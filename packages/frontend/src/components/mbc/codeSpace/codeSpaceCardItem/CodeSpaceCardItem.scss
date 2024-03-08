@@ -9,6 +9,10 @@
     opacity: 0.5;
   }
 
+  .error {
+    color: #e84d47 !important;
+  }
+
   .cardHead {
     display: flex;
     justify-content: space-between;
@@ -19,8 +23,8 @@
     .cardHeadInfo {
       width: 100%;
       padding: 0 20px;
-      cursor: pointer;
       margin-top: 35px;
+      display: flex;
       .cardHeadTitle {
         font-size: var(--font-size-headline);
         line-height: 23px;
@@ -29,14 +33,38 @@
         padding-bottom: 5px;
         width: 100%;
         text-align: left;
+        label, a {
+          cursor: pointer;
+        }
       }
 
       &.disable {
         pointer-events: none;
       }
+
+      .trigger {
+        display: inline-block;
+        padding: 2px 10px;
+        position: relative;
+        z-index: 10;
+        cursor: pointer;
+        &:hover {
+          color: #00adef;
+        }
+      }
+
+      .contextMenu {
+        hr {
+          width: 100%;
+        }
+
+        i {
+          font-size: var(--font-size-tiny);
+        }
+      }
     }
 
-    &:hover .cardHeadTitle {
+    &:hover .cardHeadTitle label {
       color: #00adef;
     }
   }
@@ -100,15 +128,12 @@
       > span {
         color: #00adef;
         margin-right: 10px;
+        cursor: pointer;
 
         > a {
           text-decoration: none;
           margin-left: 0 !important;
         }
-      }
-
-      a.error {
-        color: #e84d47;
       }
     }
 
