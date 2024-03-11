@@ -302,6 +302,7 @@ const processDataValues = (values: any[]) => {
   return <Text>{dataValues}</Text>;
 };
 
+
 const processDataSourceValues = (values: any[], dsList: any) => {
   const stringValsArr = values.map((item: any) => {
     let dsBadge: any = Envs.DNA_APPNAME_HEADER;
@@ -766,6 +767,7 @@ interface SummaryPdfDocProps {
   canShowDataSources: boolean;
   canShowDigitalValue: boolean;
   canShowComplianceSummary: number | boolean;
+  isGenAi: boolean;
   user: IUserInfo;
   noteBookInfo: INotebookInfo;
   dataIkuInfo: IDataiku;
@@ -1110,7 +1112,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View wrap={false}>
             <View style={styles.flexLayout}>
               <View style={[styles.flexCol4, styles.firstCol]}>
-                <Text style={styles.subTitle}>Analytics</Text>
+                <Text style={styles.subTitle}>{props.isGenAi ?"Technology":"Analytics"}</Text>
               </View>
               <View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Languages</Text>
@@ -1121,7 +1123,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
               <View style={styles.flexCol4}>
-                <Text style={styles.sectionTitle}>Models/Algorithms</Text>
+                <Text style={styles.sectionTitle}>{props.isGenAi?"GenAI Models ":"Models/Algorithms"}</Text>
                 {props.solution.analytics.algorithms && props.solution.analytics.algorithms.length > 0 ? (
                   processDataValuesFromObj(props.solution.analytics.algorithms)
                 ) : (
@@ -1129,7 +1131,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
               <View style={styles.flexCol4}>
-                <Text style={styles.sectionTitle}>Visualization</Text>
+                <Text style={styles.sectionTitle}>{props.isGenAi?"solution":"Visualization"}</Text>
                 {props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
                   processDataValuesFromObj(props.solution.analytics.visualizations)
                 ) : (
