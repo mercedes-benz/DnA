@@ -187,13 +187,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       })
       .catch((err) => {
         ProgressIndicator.hide();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err: any) => {
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
-          });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
+        // if (err?.response?.data?.errors?.length > 0) {
+        //   err?.response?.data?.errors.forEach((err: any) => {
+        //     Notification.show(err?.message || 'Something went wrong.', 'alert');
+        //   });
+        // } else {
+        //   Notification.show(err?.message || 'Something went wrong.', 'alert');
+        // }
       });
   }
 
