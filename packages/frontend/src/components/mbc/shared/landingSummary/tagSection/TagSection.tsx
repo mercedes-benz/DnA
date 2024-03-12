@@ -8,8 +8,8 @@ const classNames = cn.bind(Styles);
 
 export interface ITagsProps {
   tags: string[];
-  selectedTags: string[];
-  setSeletedTags: (values: string[])=>void;
+  selectedTags?: string[];
+  setSeletedTags?: (values: string[])=>void;
 }
 
 

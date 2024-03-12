@@ -1,0 +1,102 @@
+.pageWrapper {
+  position: relative;
+  margin-bottom: 30px;
+  padding: 0px 75px 0px 75px;
+
+  .backButtonWapper {
+    margin-bottom: 15px;
+  }
+
+  .pageBannerimg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .pageBannerTitle {
+    min-width: 260px;
+    max-width: 390px;
+    margin: 19px 0 50px 0;
+
+    h2 {
+      font-size: var(--font-size-icon-tile);
+      line-height: 33px;
+    }
+  }
+
+  .pageDescription {
+    min-width: 260px;
+    max-width: 650px;
+    margin: 0px 0 70px 0;
+
+    p {
+      font-size: var(--font-size-icon-highlight);
+      color: #c8c9cb;
+    }
+  }
+}
+
+.pageContentWrapper {
+  position: relative;
+  padding-top: 130px;
+}
+
+
+.portHeader {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 25px;
+  margin-bottom: 25px;
+
+  .useCaseTile {
+    background-color: #282b31;
+    display: flex;
+    justify-content: space-between;
+    padding: 24px;
+    width: calc(33% - 9.5px);
+    margin: 6.5px 0 6.5px;
+    min-height: 100%;
+    margin-right: 12px;
+    border-radius: 10px;
+
+    .useCaseTileVal {
+      display: flex;
+      align-items: center;
+
+      .serviceIcon {
+        font-size: 35px;
+        margin-right: 10px;
+        min-width: 60px;
+        color: #00adef;
+      }
+
+      h5 {
+        font-size: var(--font-size-icon-content);
+        padding-bottom: 0px;
+        margin: 0;
+        color: #c8c9cb;
+      }
+
+      span {
+        font-size: var(--font-size-icon-medium);
+        display: flex;
+        margin-bottom: 5px;
+      }
+    }
+  }
+  .toolPipeLine{
+    background-color:  #282b31;
+    display: flex;
+    justify-content: space-between;
+    padding: 24px;
+    height: 250px;
+    width: 100%;
+    border-radius: 10px;
+  }
+}
+.contentSection{
+  h4{
+    color: #c8c9cb;
+  }
+}

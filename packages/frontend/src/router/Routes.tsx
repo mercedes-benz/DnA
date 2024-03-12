@@ -27,6 +27,7 @@ const Notifications = React.lazy(() => import('components/mbc/notification/Notif
 const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
+const ToolsDetailedPage = React.lazy(() => import('components/mbc/tools/toolsDetailedPage/ToolsDetailedPage'));
 const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
@@ -249,6 +250,12 @@ const protectedRoutes = [
     exact: false,
     path: '/tools/:tag?',
     title: 'Tools',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: ToolsDetailedPage,
+    path: '/toolsDetailedPage/:id?',
+    title: 'ToolsDetailedPage'
   },
   {
     allowedRoles: UserAndAdminRole,

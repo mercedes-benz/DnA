@@ -12,7 +12,7 @@ import Styles from './AddImageModal.scss';
 const classNames = cn.bind(Styles);
 
 export interface IAddImageModalProps {
-  logoDetails: ILogoDetails;
+  logoDetails?: ILogoDetails;
   showModal: boolean;
   onModalCancel: () => void;
   onImageSelect: (logoDetails: ILogoDetails) => void;
