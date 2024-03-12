@@ -4,21 +4,6 @@ spring:
     name: dna-chronos-service
     version: 1.4.4
 
-  kafka:
-    consumer:
-    bootstrap-servers: ${NAAS_BROKER:hostXXXX:portXXXX}
-    properties:
-      ssl:
-        truststore:
-          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
-          password: ${TRUSTSTORE_PASSWORD:XXXX}
-          type: PKCS12
-        keystore:
-          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
-          password: ${KEYSTORE_PASSWORD:XXXX}
-          type: PKCS12
-      security:
-          protocol: SSL
   cloud:
     vault:
       host: ${VAULT_HOST:localhost}
