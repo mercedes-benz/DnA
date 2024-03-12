@@ -397,6 +397,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 			boolean isOwner = false;
 			List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
 			String projectName = vo.getProjectDetails().getProjectName();
+			if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public"))
+			{
+				vo.getProjectDetails().getRecipeDetails().setRepodetails(vo.getProjectDetails().getGitRepoName());
+			}
 			if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")
 					|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
