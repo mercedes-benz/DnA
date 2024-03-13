@@ -340,17 +340,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachPluginConfigVO = new AttachPluginConfigVO();
 
-		//attaching cors plugin to deploymnets
-		if(env!=null){
-			if(!env.equalsIgnoreCase("")){
-				attachPluginVO.setName(CORS_PLUGIN);
-				attachPluginRequestVO.setData(attachPluginVO);
-				GenericMessage attachCorsPluginResponse = new GenericMessage();
-				attachCorsPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-				LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
-				attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
-			}
-		}
 		attachPluginVO.setName(OIDC_PLUGIN);
 
 		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/";	
@@ -489,6 +478,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachPluginResponse.getErrors(), attachPluginResponse.getWarnings());
 			LOGGER.info("kong attach jwtissuer plugin to service status is: {} and errors if any: {}, warnings if any:", attachJwtPluginResponse.getSuccess(),
 					attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
+		}
+		//attaching cors plugin to deployments
+		if(env!=null){
+			if(!env.equalsIgnoreCase("")){
+				AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
+				AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
+				attachCorsPluginVO.setName(CORS_PLUGIN);
+				attachCorsPluginRequestVO.setData(attachCorsPluginVO);
+				GenericMessage attachCorsPluginResponse = new GenericMessage();
+				attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+				LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
+				attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
+			}
 		}
 
 	}
