@@ -32,6 +32,9 @@ public class GitClient {
 	
 	@Value("${codeServer.git.pat}")
 	private String personalAccessToken;
+
+	@Value("${codeServer.git.appname}")
+	private String applicationName;
 	
 	@Autowired
 	private RestTemplate restTemplate;
@@ -42,14 +45,14 @@ public class GitClient {
 	@Value("${codespace.recipe}")
 	private String DnARecipe;
 	
-	public HttpStatus createRepo(String repoName) {
+	public HttpStatus createRepo(String repoName, String recipeName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
+			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/orgs/"+gitOrgName+"/repos";
-			String requestJsonString = "{\"name\":\"" + repoName + "\",\"description\":\"Repository creation from DnA codespaces\",\"private\":true,\"visibility\":\"private\",\"has_issues\":true,\"has_projects\":true,\"has_wiki\":true, \"auto_init\": true}";
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			String url = gitBaseUri+"/repos/"+applicationName+"/"+recipeName+"-template/generate";
+			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName + "\",\"description\":\"" + recipeName + " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString,headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
