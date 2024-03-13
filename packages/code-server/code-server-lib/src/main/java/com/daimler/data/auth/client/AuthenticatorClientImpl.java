@@ -390,12 +390,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		appAuthoriserPluginVO.setName(APP_AUTHORISER_PLUGIN);
 		appAuthoriserPluginVO.setConfig(appAuthoriserPluginConfigVO);
 		appAuthoriserPluginRequestVO.setData(appAuthoriserPluginVO);
+
+		//request for attaching CORS plugin to service
+		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
+		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
+		attachCorsPluginVO.setName(CORS_PLUGIN);
+		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 		
 		GenericMessage createServiceResponse = new GenericMessage();
 		GenericMessage createRouteResponse = new GenericMessage();
 		GenericMessage attachPluginResponse = new GenericMessage();
 		GenericMessage attachJwtPluginResponse = new GenericMessage();
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage attachCorsPluginResponse = new GenericMessage();
 		
 		try {	
 			boolean isServiceAlreadyCreated = false;
@@ -433,11 +440,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				else {
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
-					AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
-					AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
-					attachCorsPluginVO.setName(CORS_PLUGIN);
-					attachCorsPluginRequestVO.setData(attachCorsPluginVO);
-					GenericMessage attachCorsPluginResponse = new GenericMessage();
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
