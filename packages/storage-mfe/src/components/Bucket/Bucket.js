@@ -22,60 +22,63 @@ const AllBuckets = (props) => {
   const dispatch = useDispatch();
   const {
     bucketList,
-    pagination: { bucketListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
+    pagination: { bucketListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage, currentPageOffset },
   } = useSelector((state) => state.bucket);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
-    const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
-    const modifiedData = bucketListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch({
-      type: 'BUCKET_DATA',
-      payload: modifiedData,
-    });
+    const currentPageOffsetTemp = (currentPageNumberTemp - 1) * maxItemsPerPage;
+    // const modifiedData = bucketListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
+    // dispatch({
+    //   type: 'BUCKET_DATA',
+    //   payload: modifiedData,
+    // });
     dispatch({
       type: 'SET_PAGINATION',
       payload: {
         currentPageNumber: currentPageNumberTemp,
+        currentPageOffset: currentPageOffsetTemp,
       },
     });
   };
   const onPaginationNextClick = () => {
     let currentPageNumberTemp = currentPageNumber;
-    const currentPageOffset = currentPageNumber * maxItemsPerPage;
+    const currentPageOffsetTemp = currentPageNumber * maxItemsPerPage;
     currentPageNumberTemp = currentPageNumber + 1;
-    const modifiedData = bucketListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch({
-      type: 'BUCKET_DATA',
-      payload: modifiedData,
-    });
+    // const modifiedData = bucketListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
+    // dispatch({
+    //   type: 'BUCKET_DATA',
+    //   payload: modifiedData,
+    // });
     dispatch({
       type: 'SET_PAGINATION',
       payload: {
         currentPageNumber: currentPageNumberTemp,
+        currentPageOffset: currentPageOffsetTemp,
       },
     });
   };
   const onViewByPageNum = (pageNum) => {
     const totalNumberOfPages = Math.ceil(bucketListResponse?.length / pageNum);
-    const modifiedData = bucketListResponse.slice(0, pageNum);
-    dispatch({
-      type: 'BUCKET_DATA',
-      payload: modifiedData,
-    });
+    // const modifiedData = bucketListResponse.slice(0, pageNum);
+    // dispatch({
+    //   type: 'BUCKET_DATA',
+    //   payload: modifiedData,
+    // });
     dispatch({
       type: 'SET_PAGINATION',
       payload: {
         totalNumberOfPages,
         maxItemsPerPage: pageNum,
         currentPageNumber: 1,
+        currentPageOffset: 0,
       },
     });
   };
 
   useEffect(() => {
-    dispatch(bucketActions.getBucketList());
-  }, [dispatch, maxItemsPerPage]);
+    dispatch(bucketActions.getBucketList(currentPageOffset, maxItemsPerPage));
+  }, [dispatch, currentPageNumber, maxItemsPerPage, currentPageOffset]);
 
   return (
     <>

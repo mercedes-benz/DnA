@@ -3,188 +3,309 @@ import Styles from '../connectionInfo/ConnectionModel.scss';
 import { useState, useEffect } from "react";
 import classNames from "classnames";
 //import {useNavigate} from 'react-router-dom';
+//import Tags from 'dna-container/Tags';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
+import ProgressIndicator from "../../common/modules/uilab/js/src/progress-indicator";
+import { datalakeApi } from "../../apis/datalake.api";
+import { Envs } from "../../utilities/envs";
 
-export const ConnectionModal = ({ onOkClick }) => {
+export const ConnectionModal = ({ projectId, onOkClick }) => {
     const [showSecretKey, setShowSecretKey] = useState(false);
-
-    const bucketInfo = {
-        bucketName: 'Data Lake  bucket 1',
-        accessInfo: {
-            accesskey: 'JHONSH',
-            secretKey: 'asdfghjoiuytredfghjkloiuytrsxdcvgbhnnsdfg'
-        }
-    }
+    const [connectionInfo, setConnectionInfo] = useState();
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         Tabs.defaultSetup();
     }, []);
 
+    useEffect(() => {
+        ProgressIndicator.show();
+        datalakeApi.getConnectionInfo(projectId)
+        .then((res) => {
+            setConnectionInfo(res.data.data);
+            ProgressIndicator.hide();
+            setLoading(false);
+        })
+        .catch((err) => {
+            Notification.show(
+            err?.response?.data?.errors?.[0]?.message || 'Error while fetching connection information',
+            'alert',
+            );
+            ProgressIndicator.hide();
+            setLoading(false);
+        });
+    }, [projectId]);
+    
     const copyToClipboard = (content) => {
         navigator.clipboard.writeText('');
         navigator.clipboard.writeText(content).then(() => Notification.show('Copied to Clipboard'));
     };
 
     const connectUsingRESTAPI = (
-        <>
-            <label>Step 1 - Get Access token from OpenID Connect (OIDC).</label>
-            <ul>
-                <li>Get access token from OIDC API - Use client creadential grant type or any other method.</li>
-            </ul>
-            <label>Step 2 - Generate JWT token.</label>
-            <ul>
-                <li>Request to <b>GET</b> API URL - <b>/login</b></li>
-                <li>Value in Header: <b>Authorization</b> - Access token recived from Step 1</li>
-                <li>Value in Header: <b>Content-Type</b> - application/json</li>
-                <li>On Succesful response you will receive a JWT token as JSON data.</li>
-            </ul>
-            <label>Step 3 - Access Storage API&apos;s to manage your bucket contents.</label>
-            <ul>
-                <li>Use the JWT token received in Step 2 in the <b>Authorization</b> Header on Below API&apos;s</li>
-                <li>
-                    To Upload File to a your bucket &apos;{bucketInfo.bucketName}&apos;<small>(Only for Read/Write Permission)</small> <br /><b>POST</b> API URL
-                    <ul>
-                        <li>Value in Header: <b>Authorization</b> - JWT Token</li>
-                        <li>Value in Header: <b>Content-Type</b> - application/json</li>
-                        <li>Value in FormData: <b>file</b> - File Content as Binary</li>
-                        <li>Value in FormData: <b>prefix</b> - Folder Path for the uploading file <br /><small>(Ex. Pass &apos;/&apos; for uploading to bucket root folder, Pass &apos;test/files&apos; for uploading to &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
-                    </ul>
-                </li>
-                <li>
-                    To Download File from your bucket &apos;&apos; <br /><b>GET</b> API URL-
-                    <ul>
-                        <li>Value in Header: <b>Authorization</b> - JWT Token</li>
-                        <li>Value in Header: <b>Content-Type</b> - application/json</li>
-                        <li>Value in Querystring: <b>prefix</b> - File Path for the downloading file <br /><small>(Ex. Pass &apos;file-name.pdf&apos; for downloading from root folder of the bucket, Pass &apos;test/files/file-name.pdf&apos; for downloading file &apos;file-name.pdf&apos; from &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
-                    </ul>
-                </li>
-                <li>
-                    Get files and folders information from your bucket &apos;{bucketInfo.bucketName}&apos; <br /><b>GET</b> API URL-
-                    <ul>
-                        <li>Value in Header: <b>Authorization</b> - JWT Token</li>
-                        <li>Value in Header: <b>Content-Type</b> - application/json</li>
-                        <li>Value in Querystring: <b>prefix</b> - Path of the folder <br /><small>(Ex. Pass &apos;/&apos; folder info from root folder of the bucket, Pass &apos;test/files/&apos; for getting info for &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
-                    </ul>
-                </li>
-                <li>
-                    To Delete file and folder from your bucket &apos;&apos;<small>(Only for Read/Write Permission)</small> <br /><b>DELETE</b> API URL-
-                    <ul>
-                        <li>Value in Header: <b>Authorization</b> - JWT Token</li>
-                        <li>Value in Header: <b>Content-Type</b> - application/json</li>
-                        <li>Value in Querystring: <b>prefix</b> - File or folder Path for the deleting file or folder <br /><small>(Ex. Pass &apos;file-name.pdf&apos; for delete from root folder of the bucket, Pass &apos;test/files/&apos; for deleting &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
-                    </ul>
-                </li>
-            </ul>
-        </>
+        <div>
+            <p>Please find the documentation below for the APIs which you can use to create and manage DnA Data Lakehouse projects and tables.</p>
+            <p>API Swagger Link: <a href={`https://${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/swagger-ui.html#/`} target="_blank" rel="noreferrer noopener">Swagger URL</a></p>
+            <p>You can authenticate these APIS with your SSO USER JWT token.</p>
+            <p>For system to system integration we are also supporting client credentials grant flow. So you can create a techinical user in GAS OIDC and use that technical user to generate a JWT token.</p>
+            <p className={Styles.underLine}>Example code</p>
+<code>
+    <pre>
+{`import warnings
+warnings.filterwarnings('ignore')
+import requests  # import requests library for getting the data from API
+import json
+jwt_token = 'paste here your JWT Token you got from the browser session explained above'
+
+#Lets now create a request and fire it:
+
+#
+response = requests.get(url="${Envs.DATALAKE_API_BASEURL}/datalakes",
+                        headers={"Content-Type": "application/json", "Authorization": jwt_token},
+                        verify=False)
+myjson=response.json()
+`}
+    </pre>
+</code>
+
+            <br />
+            <hr />
+            <br />
+            <p>Documentation Link: <a href="https://trino.io/docs/current/develop/client-protocol.html" target="_blank" rel="noreferrer noopener">Trino Client REST API Docs</a></p>
+            <p className={Styles.underLine}>Example code</p>
+            <code>
+<pre id="jupyterusercode">
+{`import requests
+ 
+ url = "${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/v1/statement/"
+  
+ payload = "<QUERY>"
+ headers = {
+   'Authorization': 'Basic <encoded base 64 of <client_id:client_secret>',
+   'Content-Type': 'text/plain'
+ }
+  
+ response = requests.request("POST", url, headers=headers, data=payload)
+  
+ print(response.text)`}
+</pre>
+            </code>
+        </div>
     );
 
     const connectToOData = (
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
         </>
     );
 
     const connectToGraphQl = (
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
         </>
     );
 
-    const connectToTrino = (
+    const connectToSQL = (!loading && 
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <p className={classNames(Styles.dbHighlight)}>Eg. From DBeaver: Select the trino driver and enter the below details.</p> 
+            <div className={classNames(Styles.trinoConnectDiv)}>
+                <div>
+                    <p><strong>For OIDC User:</strong></p>
+                    <ul>
+                        <li>Host: {connectionInfo.howToConnect.trino.userVO.hostName}</li>
+                        <li>Port: {connectionInfo.howToConnect.trino.userVO.port}</li>
+                        <li>
+                            Username: {connectionInfo.howToConnect.trino.userVO.accesskey} 
+                            <span onClick={() => copyToClipboard(connectionInfo.howToConnect.trino.userVO.accesskey)}>
+                                <i className="icon mbc-icon copy" />
+                            </span>
+                        </li>
+                        <li>Password: &lt;YOUR_SSO_PASSWORD&gt;</li>
+                        <li>External Authentication: {connectionInfo.howToConnect.trino.userVO.externalAuthentication ? 'Yes' : 'No'}</li>
+                    </ul>
+                </div>
+                <div>
+                    <p><strong>For Technical User:</strong></p> 
+                    <ul>
+                        <li>Host: {connectionInfo.howToConnect.trino.techUserVO.hostName}</li>
+                        <li>Port: {connectionInfo.howToConnect.trino.techUserVO.port}</li>
+                        <li>
+                            Access Key: {connectionInfo.howToConnect.trino.techUserVO.accesskey} 
+                            <span onClick={() => copyToClipboard(connectionInfo.howToConnect.trino.techUserVO.accesskey)}>
+                                <i className="icon mbc-icon copy" />
+                            </span>
+                        </li>
+                        <li>
+                            Client Secret: 
+                            {showSecretKey
+                                ? connectionInfo.howToConnect.trino.techUserVO.secretKey
+                                : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
+
+                            {showSecretKey ? (
+                                <i
+                                    className={classNames('icon mbc-icon visibility-hide ', Styles.showIcon)}
+                                    onClick={() => setShowSecretKey(false)}
+                                    tooltip-data="Hide"
+                                />
+                            ) : (
+                                <i
+                                    className={classNames('icon mbc-icon visibility-show ', Styles.showIcon)}
+                                    onClick={() => setShowSecretKey(true)}
+                                    tooltip-data="Show"
+                                />
+                            )}
+                            <span  onClick={() => copyToClipboard(connectionInfo.howToConnect.trino.techUserVO.secretKey)}>
+                                <i className="icon mbc-icon copy" />
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </>
     );
 
-    const connectToParquet = (
+    //const [dataikuProjects, setDataikuProjects] = useState([]);
+
+    const connectToDataiku = (
+      // <div className={Styles.dataikuSection}>
+      //     <Tags
+      //         title={'Please select the Dataiku project(s).'}
+      //         max={100}
+      //         chips={dataikuProjects}
+      //         tags={[]}
+      //         setTags={(selectedTags) => { setDataikuProjects(selectedTags)}}
+      //         suggestionRender={(item) => (
+      //             <div className={Styles.optionContainer}>
+      //             <span className={Styles.optionTitle}>{item?.name}</span>
+      //             <span className={Styles.optionText}>{item?.shortDesc}</span>
+      //             </div>
+      //         )}
+      //         isMandatory={false}
+      //         showMissingEntryError={false}
+      //         disableOnBlurAdd={true}
+      //         suggestionPopupHeight={120}
+      //     />
+      //     <div className={Styles.dataikuConnectionBtn}>
+      //         <button className="btn btn-tertiary">
+      //             Make Connection
+      //         </button>
+      //     </div>
+      // </div>
+      <>
+        <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
+      </>
+    );
+
+    const connectToJupyterNotebook = (!loading &&
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <p>
+                <strong>For OIDC User:</strong>
+                <span
+                    className={Styles.copyCodeIcon}
+                    onClick={() => {
+                        const content = document.getElementById('jupyterusercode')?.innerText;
+                        copyToClipboard(content);
+                    }}
+                >
+                    <i className="icon mbc-icon copy" />
+                </span>
+            </p>
+            <code>
+<pre id="jupyterusercode">
+{`from trino.dbapi import connect
+from trino.auth import OAuth2Authentication
+conn = connect(
+    user="${connectionInfo.howToConnect.trino.userVO.accesskey}",
+    catalog="${connectionInfo.project.catalogName}",
+    auth=OAuth2Authentication(),
+    http_scheme="https",
+    verify=False,
+    host="${connectionInfo.howToConnect.trino.userVO.hostName}",
+    port=${connectionInfo.howToConnect.trino.userVO.port},
+    schema="${connectionInfo.project.schemaName}"
+)
+cur = conn.cursor()
+cur.execute("YOUR_STATEMENT_TO_EXECUTE")
+rows = cur.fetchall()
+print(rows)`}
+</pre>
+            </code>
+            <br/>
+            <p>
+                <strong>For Technical User:</strong>
+                <span
+                    className={Styles.copyCodeIcon}
+                    onClick={() => {
+                        const content = document.getElementById('jupytertechcode')?.innerText;
+                        copyToClipboard(content);
+                    }}
+                >
+                    <i className="icon mbc-icon copy" />
+                </span>
+            </p>
+            <code>
+<pre id="jupytertechcode">
+{`from trino.dbapi import connect
+from trino.auth import BasicAuthentication
+conn = connect(
+    host="${connectionInfo.howToConnect.trino.techUserVO.hostName}",
+    auth=BasicAuthentication("${connectionInfo.howToConnect.trino.techUserVO.accesskey}", "XXXXXXX"),
+    port=${connectionInfo.howToConnect.trino.techUserVO.port},
+    user="${connectionInfo.howToConnect.trino.techUserVO.accesskey}",
+    catalog="${connectionInfo.project.catalogName}",
+    schema="${connectionInfo.project.schemaName}",
+    verify=False
+)
+cur = conn.cursor()
+cur.execute('SELECT * FROM YOUR_CATALOG.YOUR_PROJECT_SCHEMA.YOUR_TABLE')
+rows = cur.fetchall()
+print(rows)`}
+</pre>
+            </code>
         </>
     );
 
     return (
         <div>
             <div className={Styles.accessDetails}>
-                <>
-                    <h5>Access Details for Bucket - bucketName</h5>
-                </>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>Access Key :</strong>
-                            </td>
-                            <td id="accessKey" className={Styles.keys}>
-                                {bucketInfo?.accessInfo?.accesskey}
-                            </td>
-                            <td>
-                                <span className={Styles.copyIcon} onClick={() => copyToClipboard(bucketInfo?.accessInfo?.accesskey)}>
-                                    <i className="icon mbc-icon copy" />
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong>Secret Key :</strong>
-                            </td>
-                            <td id="secretKey" className={Styles.keys}>
-                                {showSecretKey
-                                    ? bucketInfo?.accessInfo?.secretKey
-                                    : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
-                            </td>
-                            <td>
-                                {showSecretKey ? (
-                                    <React.Fragment>
-                                        <i
-                                            className={classNames('icon mbc-icon visibility-hide ', Styles.visibilityIcon)}
-                                            onClick={() => setShowSecretKey(false)}
-                                            tooltip-data="Hide"
-                                        />
-                                    </React.Fragment>
-                                ) : (
-                                    <React.Fragment>
-                                        <i
-                                            className={classNames('icon mbc-icon visibility-show ', Styles.visibilityIcon)}
-                                            onClick={() => setShowSecretKey(true)}
-                                            tooltip-data="Show"
-                                        />
-                                    </React.Fragment>
-                                )}
-                                <span className={Styles.copyIcon} onClick={() => copyToClipboard(bucketInfo?.accessInfo?.secretKey)}>
-                                    <i className="icon mbc-icon copy" />
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <h5>Access Details for Data Lakehouse</h5>
                 <div className={'tabs-panel'}>
                     <div className="tabs-wrapper">
                         <nav>
                             <ul className="tabs">
                                 <li className={'tab active'}>
                                     <a href="#tab-content-1" id="restApi">
-                                        <strong>Connect using REST</strong>
+                                        <strong>Connect to SQL</strong>
                                     </a>
                                 </li>
                                 <li className={'tab'}>
                                     <a href="#tab-content-2" id="jupyterNotebook">
-                                        <strong>Connect using OData</strong>
+                                        <strong>Connect using REST</strong>
                                     </a>
                                 </li>
                                 <li className={'tab'}>
                                     <a href="#tab-content-3" id="jupyterNotebook">
-                                        <strong>Connect using GraphQL</strong>
+                                        <strong>Connect using Jupyter Notebook</strong>
                                     </a>
                                 </li>
                                 <li className={'tab'}>
                                     <a href="#tab-content-4" id="jupyterNotebook">
-                                        <strong>Connect using Trino</strong>
+                                        <strong>Connect using Dataiku</strong>
                                     </a>
                                 </li>
                                 <li className={'tab'}>
                                     <a href="#tab-content-5" id="jupyterNotebook">
-                                        <strong>Connect using Parequet</strong>
+                                        <strong>Connect using Azure ADF</strong>
+                                    </a>
+                                </li>
+                                <li className={'tab'}>
+                                    <a href="#tab-content-6" id="jupyterNotebook">
+                                        <strong>Connect using OData</strong>
+                                    </a>
+                                </li>
+                                <li className={'tab'}>
+                                    <a href="#tab-content-7" id="jupyterNotebook">
+                                        <strong>Connect using GraphQL</strong>
                                     </a>
                                 </li>
                             </ul>
@@ -201,7 +322,7 @@ export const ConnectionModal = ({ onOkClick }) => {
                             >
                                 <i className="icon mbc-icon copy" />
                             </span>
-                            <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectUsingRESTAPI}</div>
+                            <div className={Styles.connectionCode}>{connectToSQL}</div>
                         </div>
                         <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
                             <span
@@ -213,22 +334,19 @@ export const ConnectionModal = ({ onOkClick }) => {
                             >
                                 <i className="icon mbc-icon copy" />
                             </span>
-                            <div className={Styles.connectionCode}>{connectToOData}</div>
+                            <div className={Styles.connectionCode}>{connectUsingRESTAPI}</div>
                         </div>
                         <div id="tab-content-3" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
-                            <span
-                                className={Styles.copyIcon}
-                                onClick={() => {
-                                    const content = document.getElementById('tab-content-3')?.innerText;
-                                    copyToClipboard(content);
-                                }}
-                            >
-                                <i className="icon mbc-icon copy" />
-                            </span>
-                            <div className={Styles.connectionCode}>{connectToGraphQl}</div>
+                            <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectToJupyterNotebook}</div>
                         </div>
                         <div id="tab-content-4" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
-                            <span
+                            <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectToDataiku}</div>
+                        </div>
+                        <div id="tab-content-5" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+                            <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectToJupyterNotebook}</div>
+                        </div>
+                        <div id="tab-content-6" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+                            {/* <span
                                 className={Styles.copyIcon}
                                 onClick={() => {
                                     const content = document.getElementById('tab-content-4')?.innerText;
@@ -236,11 +354,11 @@ export const ConnectionModal = ({ onOkClick }) => {
                                 }}
                             >
                                 <i className="icon mbc-icon copy" />
-                            </span>
-                            <div className={Styles.connectionCode}>{connectToTrino}</div>
+                            </span> */}
+                            <div className={Styles.connectionCode}>{connectToOData}</div>
                         </div>
-                        <div id="tab-content-5" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
-                            <span
+                        <div id="tab-content-7" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+                            {/* <span
                                 className={Styles.copyIcon}
                                 onClick={() => {
                                     const content = document.getElementById('tab-content-5')?.innerText;
@@ -248,8 +366,8 @@ export const ConnectionModal = ({ onOkClick }) => {
                                 }}
                             >
                                 <i className="icon mbc-icon copy" />
-                            </span>
-                            <div className={Styles.connectionCode}>{connectToParquet}</div>
+                            </span> */}
+                            <div className={Styles.connectionCode}>{connectToGraphQl}</div>
                         </div>
                     </div>
                 </div>

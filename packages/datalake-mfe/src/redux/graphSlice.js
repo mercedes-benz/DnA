@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { getProjectDetails } from './graph.services';
+import { tableRowNumbers, tableMarginLeft, tableWidth, fieldHeight, titleHeight, commentHeight, tableMarginTop } from '../data/settings';
 
 const graphInitialState = {
   isLoading: false,
@@ -9,6 +10,7 @@ const graphInitialState = {
     tables: []
   },
   errors: '',
+  editingTable: {},
 };
 
 export const graphSlice = createSlice({
@@ -33,14 +35,6 @@ export const graphSlice = createSlice({
     // setAddingField: (state, action) => {
     //   state.addingField = {...action.payload};
     // },
-    addTable: (state, action) => {
-      const project = action.payload;
-      const projects = localStorage.getItem('graphs') ? JSON.parse(localStorage.getItem('graphs')) : [];
-      const updatedProjects = projects.filter((graph) => {
-        return graph.id !== project.id;
-      });
-      localStorage.setItem('graphs', JSON.stringify([...updatedProjects, project]));
-    },
   },
   extraReducers: {
     [getProjectDetails.pending]: (state) => {
@@ -48,8 +42,41 @@ export const graphSlice = createSlice({
     },
     [getProjectDetails.fulfilled]: (state, action) => {
       state.isLoading = false;
-      state.project = action.payload.data;
-      state.errors = '';
+      // state.project = action.payload.data;
+      const tables = [...action.payload.data.tables];
+      if(tables?.filter(item => item.xcoOrdinate === 0).length > 0) {
+        tables.forEach((table, index) => {
+          if(index === 0) {
+            tables[index].xcoOrdinate = 36;
+            tables[index].ycoOrdinate = 36;
+          } else {
+            let x = 0, y = 0;
+            if (index < tableRowNumbers) {
+              const lastTable = tables[index - 1];
+              x = lastTable.xcoOrdinate + tableWidth + tableMarginLeft;
+              y = lastTable.ycoOrdinate;
+            } 
+            else {
+                const lastTable = tables[index - tableRowNumbers];
+                const { columns } = lastTable;
+                x = lastTable.xcoOrdinate;
+                y =
+                    lastTable.ycoOrdinate +
+                    columns.length * fieldHeight +
+                    titleHeight +
+                    commentHeight +
+                    tableMarginTop;
+            }
+            tables[index].xcoOrdinate = x;
+            tables[index].ycoOrdinate = y;
+          }
+        });
+        state.project = {...action.payload.data, tables: [...tables]};
+        state.errors = '';
+      } else {
+        state.project = {...action.payload.data};
+        state.errors = '';
+      }
     },
     [getProjectDetails.rejected]: (state, action) => {
       state.isLoading = false;

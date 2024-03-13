@@ -44,8 +44,8 @@ public class Storage {
 
 	private String bucketName;
 	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
+	private Boolean piiData;
+	private Boolean termsOfUse;
 	private String classificationType;
 	private Date createdDate;
 	private UserInfo createdBy;

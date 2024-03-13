@@ -86,7 +86,7 @@ const ChronosProjectCard = ({project, onRefresh, history}) => {
           buttonAlignment="right"
           show={editProject}
           content={<ChronosProjectForm edit={true} project={project} onSave={() => {setEditProject(false); onRefresh()}} />}
-          scrollableContent={false}
+          scrollableContent={true}
           onCancel={() => setEditProject(false)}
           modalStyle={{
             padding: '50px 35px 35px 35px',

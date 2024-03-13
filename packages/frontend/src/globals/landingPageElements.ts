@@ -20,6 +20,7 @@ const powerbiTrainingUrl = Envs.POWERBI_TRAINING_URL;
 const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
 const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
+const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
 const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
@@ -28,14 +29,14 @@ const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
-const kpiWikiUrl = Envs.KPI_WIKI_URL;
-// const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
+const dataCatalogUrl = Envs.DATA_CATALOG_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
-const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
+const bisoContactsLink = Envs.BISO_CONTACTS_URL;
+const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 
 export const DataLayerElements = [
   {
@@ -52,32 +53,6 @@ export const DataLayerElements = [
     svgIcon: 'dataproduct',
   },
   {
-    name: 'KPI Wiki',
-    description:
-      'Find approved definitions of the most commonly used KPIs.',
-    tags: ['Self Service', 'FOSS'],
-    url: kpiWikiUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !kpiWikiUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  // {
-  //   name: 'CarLA Economic Model',
-  //   description:
-  //     'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
-  //   tags: ['Self Service', 'FOSS'],
-  //   url: carlaEconomicModelUrl,
-  //   isExternalLink: true,
-  //   isTextAlignLeft: false,
-  //   isDisabled: false,
-  //   isSmallCard: false,
-  //   isMediumCard: true,
-  //   svgIcon: 'dataproduct',
-  // },
-  {
     name: 'Corporate Data Catalogue',
     description:
       'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
@@ -86,19 +61,6 @@ export const DataLayerElements = [
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'SAP Connection Book',
-    description:
-      'List of all source systems connected to the CarLA Core Datawarehouse and the names of the targets where the data from the source system is written to.',
-    tags: ['Self Service', 'FOSS'],
-    url: sapConnectionBookUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !sapConnectionBookUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -137,7 +99,7 @@ export const DataGovernanceElements = [
     description:
       'Sharing Data? Fill out the required Usage Information (Policy A22) to let the receiving side know of any restriction when using the data.',
     tags: ['Self Service', 'FOSS'],
-    url: '/data/datasharing/create',
+    url: '/data/datasharing',
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -154,6 +116,18 @@ export const DataGovernanceElements = [
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: true,
+  },
+  {
+    name: 'BISO Contacts',
+    description:
+      'The Business Information Security Officer helps you in the topic area of information security.',
+    tags: ['Self Service', 'FOSS'],
+    url: bisoContactsLink,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !bisoContactsLink?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
   },
@@ -281,6 +255,21 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
+    name: 'Malware Azure Blob Scanner',
+    description:
+      'A docker instance that can be configured to connect to an Azure Blob instance and enables anti malware detection on any files added to the storage.',
+    tags: ['FOSS'],
+    url: '/azureBlobService',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !clamavImagwUrl?.startsWith('reg'),
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'malwarescan',
+    isDnAInternalTool: true,
+   },
+  {
     name: 'Storage Bucket',
     description:
       'Storage Buckets provide data file storage that can be shared and connected to many tools. the storage buckets are based on a FOSS solution called minIO and provide a standard API for accessing file stores: S3.',
@@ -310,7 +299,7 @@ export const ToolsLandingPageElements = [
     svgIcon: 'codespace',
     isDnAInternalTool: true,
   },
-  {
+    {
     name: 'Data Oasis',
     description:
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
@@ -426,7 +415,7 @@ export const ToolsLandingPageElements = [
     isDisabled: !datasphereUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'sac',
     isDnAInternalTool: false,
   },
   {
@@ -532,7 +521,7 @@ export const DataLandingPageElements = [
   {
     name: 'Data Layer',
     description:
-      'Official information and definitions of CarLA applications, key figures and FC data.',
+      'More information and definitions of applications, key figures and data.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datalayer',
     isExternalLink: false,
@@ -554,6 +543,19 @@ export const DataLandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIcon: 'datagovernance',
+  },
+  {
+    name: 'Data Catalog (OpenMetadata)',
+    description:
+      'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
+    tags: ['Self Service', 'FOSS'],
+    url: dataCatalogUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !dataCatalogUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'data-mini',
   },
 ];
 
@@ -620,7 +622,7 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !sacTrainingUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'sac',
   },
   {
@@ -633,7 +635,7 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !databricksTrainingUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'tools-mini',
   },
   {
@@ -646,8 +648,21 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !digitalCaseProgramUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'tools-mini',
+  },
+  {
+    name: 'SAP Datasphere',
+    description:
+      'Here you can find all relevant Information on available SAP Datasphere Trainings. So get started or advance your skills!',
+    tags: ['Self Service', 'FOSS'],
+    url: datasphereTrainingUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !datasphereTrainingUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'sac',
   },
 ];
 
@@ -663,7 +678,7 @@ export const GenAILandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'gen-ai',
+    svgIconId: 'genai-create',
   },
   {
     name: 'GenAI Solutions',
@@ -676,7 +691,7 @@ export const GenAILandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'gen-ai',
+    svgIconId: 'genai-solutions',
   },
   {
     name: 'Mercedes-Benz Direct Chat',
@@ -686,9 +701,9 @@ export const GenAILandingPageElements = [
     url: genAIDirectChatUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: !genAIDirectChatUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'gen-ai',
+    svgIconId: 'genai-direct-chat',
   }
 ];

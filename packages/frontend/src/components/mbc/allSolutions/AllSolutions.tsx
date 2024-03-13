@@ -10,7 +10,7 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
-import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
+import { SESSION_STORAGE_KEYS, USER_ROLE, SOLUTION_FIXED_TAGS } from 'globals/constants';
 
 import {
   IAllSolutionsListItem,
@@ -207,6 +207,12 @@ export default class AllSolutions extends React.Component<
         listViewMode: true,
       });
     }
+
+    const sessionSortingInfo = sessionStorage.getItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES);
+    if (sessionSortingInfo) {
+      const sortBy = JSON.parse(sessionSortingInfo);
+      this.setState({ sortBy });
+    }
     ProgressIndicator.show();
     Tooltip.defaultSetup();
     const enablePortfolioSolutionsView = window.location.href.indexOf('viewsolutions') !== -1;
@@ -309,7 +315,10 @@ export default class AllSolutions extends React.Component<
     const { openFilterPanel, enablePortfolioSolutionsView } = this.state;
     const isGenAI =
       this.state.queryParams?.tag?.length === 1 ? isSolutionFixedTagIncluded(this.state.queryParams.tag[0]) : false;
+    const isGenAITagOnPath = SOLUTION_FIXED_TAGS.includes(this.props.match?.params?.value);
     const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isDataValueContributionEnabled = window.location.href.indexOf('datavaluecontribution') !== -1;
+
     const solutionData = this.state.solutions.map((solution) => {
       return (
         <SolutionListRowItem
@@ -418,7 +427,7 @@ export default class AllSolutions extends React.Component<
                       </div>
                       {!hideFilterView ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
                       {exportCSVIcon()}
-                      {!hideFilterView ? (
+                      {!hideFilterView || isGenAI ? (
                         <>
                           <span className={Styles.dividerLine}> &nbsp; </span>
                           <div tooltip-data="Filters">
@@ -439,6 +448,7 @@ export default class AllSolutions extends React.Component<
                 </div>
 
                 <SolutionsFilter
+                  isGenAI={isGenAI}
                   userId={this.props.user.id}
                   getFilterQueryParams={(queryParams: IFilterParams) =>
                     this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
@@ -467,7 +477,7 @@ export default class AllSolutions extends React.Component<
                         <div
                           className={Styles.cardViewContainer}
                           onClick={() =>
-                            isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                            isGenAITagOnPath ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
                           }
                         >
                           <div className={Styles.addicon}> &nbsp; </div>
@@ -541,7 +551,7 @@ export default class AllSolutions extends React.Component<
                                 Division
                               </label>
                             </th>
-                            {isDigitalValueContributionEnabled ? (
+                            {isDigitalValueContributionEnabled && (
                               <th
                                 onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
                               >
@@ -555,7 +565,15 @@ export default class AllSolutions extends React.Component<
                                   Digital Value (€)
                                 </label>
                               </th>
-                            ) : (
+                            )}
+                            {isDataValueContributionEnabled && (
+                              <th
+                                onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
+                              >
+                                <label className={'sortable-column-header '}>Data Value (€)</label>
+                              </th>
+                            )}
+                            {!isDigitalValueContributionEnabled && !isDataValueContributionEnabled && (
                               <th>
                                 <label className={'sortable-column-header '}>Value Calculation (€)</label>
                               </th>
@@ -591,7 +609,7 @@ export default class AllSolutions extends React.Component<
                               colSpan={enablePortfolioSolutionsView ? 8 : 7}
                               className={classNames(Styles.listViewContainer)}
                               onClick={() =>
-                                isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                                isGenAITagOnPath ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
                               }
                             >
                               <div className={Styles.addicon}> &nbsp; </div>
@@ -623,7 +641,7 @@ export default class AllSolutions extends React.Component<
                           target="_blank"
                           className={Styles.linkStyle}
                           onClick={() =>
-                            isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                            isGenAITagOnPath ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
                           }
                           rel="noreferrer"
                         >
@@ -765,6 +783,7 @@ export default class AllSolutions extends React.Component<
         sortBy,
       },
       () => {
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES, JSON.stringify(sortBy));
         this.getSolutions(this.state.enablePortfolioSolutionsView);
       },
     );
@@ -949,7 +968,13 @@ export default class AllSolutions extends React.Component<
       : '';
     const tags = queryParams.tag.join(',');
 
-    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    let isDigitalValueContributionEnabled = null;
+    if(window.location.href.indexOf('digitalvaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = true;
+    }
+    else if(window.location.href.indexOf('datavaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = false;
+    }
     const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
 
     ApiClient.getSolutionsByGraphQL(
@@ -965,7 +990,7 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
       getPublished,
-      isDigitalValueContributionEnabled,
+      this.state.enablePortfolioSolutionsView ? isDigitalValueContributionEnabled : null,
       isNotificationEnabled,
     )
       .then((res) => {

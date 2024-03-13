@@ -54,6 +54,7 @@ public class CodeServerClient {
 		switch(recipeType) {
 			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
+			case "vue" : deployType = ConstantsUtility.VUE; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
 			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
@@ -81,6 +82,8 @@ public class CodeServerClient {
 			case "public-dna-datalake-mfe" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
 			case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
+			case "bat-frontend" : deployType = ConstantsUtility.BAT_FRONTEND; break;
+			case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
 			
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}

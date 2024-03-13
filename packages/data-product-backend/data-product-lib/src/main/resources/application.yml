@@ -29,7 +29,22 @@ spring:
     username: ${API_DB_USER:XXXX_user}
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
-    
+
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL  
   cloud:
     stream:
       default-binder: kafka
@@ -43,7 +58,6 @@ kafka:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 dataproduct:
   base:
@@ -68,10 +82,6 @@ server:
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
   
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:xxxxxx}
-
 graphql:
   servlet:
     mapping: /api/minified

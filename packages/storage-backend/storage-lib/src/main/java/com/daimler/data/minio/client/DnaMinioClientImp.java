@@ -66,6 +66,7 @@ import com.daimler.data.application.config.UserInfoDto;
 import com.daimler.data.application.config.UserInfoWrapperDto;
 import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.dto.ErrorDTO;
+import com.daimler.data.dto.McListBucketCollectionDto;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.storage.BucketObjectVO;
 import com.daimler.data.dto.storage.ObjectMetadataVO;
@@ -129,6 +130,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	
 	@Value("${storage.mc.timeout.listpolicies}")
 	private String storageMCListPoliciesCmdTimeout;
+	
+	@Value("${storage.mc.timeout.listbuckets}")
+	private String storageMCListBucketsCmdTimeout;
 	
 	@Value("${storage.mc.commandkeyword}")
 	private String storageMCcommandKey;
@@ -256,9 +260,113 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			minioResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return minioResponse;
-
 	}
-
+	
+	@Override
+	public McListBucketCollectionDto getAllBucketsUsingMC(String userId, boolean isAdmin) {
+		McListBucketCollectionDto getBucketResponse = new McListBucketCollectionDto();
+		try {
+			String userSecretKey ="";
+			if(isAdmin) {
+				//Setting minio admin credentials
+				userId = minioAdminAccessKey;
+				userSecretKey = minioAdminSecretKey;
+			}else {
+				LOGGER.info("Fetching secrets from vault for user:{}", userId);
+				userSecretKey = vaultConfig.validateUserInVault(userId);
+			}
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.info("Fetch secret from vault successfull for user:{}", userId);
+				boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+				ObjectMapper mapper = new ObjectMapper();
+				ProcessBuilder firstBuilder = new ProcessBuilder();
+				ProcessBuilder secondBuilder = new ProcessBuilder();
+	
+				String url = storageHttpMethod + storageConnectHost;
+				String env = "storagebeminioclient ";
+				String flag = "--insecure";
+				String firstCommand = "mc alias set " + env + url + " " + userId + " " + userSecretKey + " " + flag;
+				String secondCommand = "mc ls " + env 
+						+ " --json " 
+						+ flag;
+	
+				if (isWindows) {
+					firstBuilder = new ProcessBuilder("cmd.exe", "/c", firstCommand);
+					secondBuilder = new ProcessBuilder("cmd.exe", "/c", secondCommand);
+				} else {
+					firstBuilder = new ProcessBuilder(storageMCcommandKey, "-c", firstCommand);
+					secondBuilder = new ProcessBuilder(storageMCcommandKey, "-c", secondCommand);
+				}
+	
+//				firstBuilder.redirectErrorStream(true);
+//				Process p2 = firstBuilder.start();
+//				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+//				
+//				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
+//	
+//				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
+//				    p2.destroy();
+//				}
+				
+				Process p = secondBuilder.start();
+				LOGGER.info("Started mc command to list buckets");
+				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	
+//				if(!p.waitFor(Integer.parseInt(storageMCListBucketsCmdTimeout), TimeUnit.SECONDS)) {
+//				    p.destroy();
+//				}
+				
+				LOGGER.info("mc command to list buckets executed, started reading response");
+				
+				String line;
+				String prefix = "{\"data\":[";
+				String suffix = "]}";
+				String data = "";
+				while (true) {
+					line = r.readLine();
+					if (line == null) {
+						break;
+					} else {
+						data = data.concat(line).concat(",");
+					}
+				}
+				
+				LOGGER.info("finished reading response from mc list buckets");
+				
+				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+				LOGGER.debug("Policies data from minio to update cache is {} ", data);
+				McListBucketCollectionDto listBucketCollectionDto = mapper.readValue(data, McListBucketCollectionDto.class);
+				LOGGER.info("Success from minio list bucket for user:{}", userId);
+				getBucketResponse.setData(listBucketCollectionDto.getData());
+				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
+				getBucketResponse.setHttpStatus(HttpStatus.OK);
+				
+				r.close();
+				p.destroy();
+			} else {
+					LOGGER.info("User:{} not available in vault.", userId);
+					getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:" + userId + " not available.")));
+					getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
+					getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
+				}
+			}
+			catch (Exception e) {
+				LOGGER.error("Error occured while listing buckets of minio using mc: {}", e.getMessage());
+				if (e.toString() != null && e.toString().contains("code=403")) {
+					LOGGER.error("Access denied since no bucket available for user:{}", userId);
+					getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
+					getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
+					LOGGER.info("No bucket available");
+				} else {
+					getBucketResponse
+							.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing buckets of minio. ")));
+					getBucketResponse.setStatus(ConstantsUtility.FAILURE);
+					getBucketResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+		return getBucketResponse;
+	}
+	
 	@Override
 	public MinioGenericResponse getAllBuckets(String userId, boolean isAdmin) {
 		MinioGenericResponse getBucketResponse = new MinioGenericResponse();

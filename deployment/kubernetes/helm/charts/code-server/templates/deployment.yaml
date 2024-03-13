@@ -91,6 +91,46 @@ spec:
                 name: {{ template "code-server.fullname" . }}
               {{- end }}
                 key: password
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: GITHUB_TOKEN       
+          - name: GITHUBREPO_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: GITHUBREPO_URL 
+          - name: MINIO_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: MINIO_ENDPOINT 
+          - name: MINIO_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: MINIO_KEY 
+          - name: MINIO_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: MINIO_SECRET   
+          - name: SHORTID
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: SHORTID    
+          - name: isCollaborator
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: isCollaborator   
+          - name: pathCheckout
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "code-server.fullname" . }}
+                key: pathCheckout                                                                                                                      
         {{- if .Values.extraArgs }}
           args:
 {{ toYaml .Values.extraArgs | indent 10 }}
@@ -129,18 +169,18 @@ spec:
             httpGet:
               path: /
               port: http
-            timeoutSeconds: 20
+            timeoutSeconds: 40
             periodSeconds: 10
             successThreshold: 1
-            failureThreshold: 5                 
+            failureThreshold: 10                
           readinessProbe:
             httpGet:
               path: /
               port: http
-            timeoutSeconds: 20
+            timeoutSeconds: 40
             periodSeconds: 10
             successThreshold: 1
-            failureThreshold: 5                 
+            failureThreshold: 10                
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

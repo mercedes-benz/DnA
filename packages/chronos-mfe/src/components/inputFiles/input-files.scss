@@ -7,9 +7,21 @@
     background-color: #1c2026;
     cursor: pointer;
   }
+  > td {
+    width: 20%;
+  }
+  > .name {
+    width: 40%;
+  }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    column-gap: 8px;
+    margin-top: -5px;
+  }
 }
 .deleteIcon {
-  font-size: var(--font-size-icon-nav);
+  font-size: var(--font-size-icon-highlight);
   color: #00adef;
   cursor: pointer;
 }

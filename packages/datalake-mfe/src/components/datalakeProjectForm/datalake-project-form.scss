@@ -1,5 +1,8 @@
 .content {
   padding-top: 8px;
+  max-height: 75vh;
+  padding-right: 5px;
+  padding-bottom: 10px;
   .formGroup {
     .permissionField {
       display: flex;
@@ -17,7 +20,7 @@
       display: flex;
       justify-content: space-between;
       > div {
-        width: calc(50% - 30px);
+        width: calc(50% - 15px);
       }
     }
   }

@@ -23,7 +23,23 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.application.auth.CreatedByVO;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.UserInfoVO;
-import com.daimler.data.dto.storage.*;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
+import com.daimler.data.dto.storage.BucketPresentResponseWrapperDto;
+import com.daimler.data.dto.storage.CollaboratorsDto;
+import com.daimler.data.dto.storage.CreateBucketRequestDto;
+import com.daimler.data.dto.storage.CreateBucketRequestWrapperDto;
+import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.DeleteBucketResponseDataDto;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.FileDownloadResponseDto;
+import com.daimler.data.dto.storage.FileUploadResponseDto;
+import com.daimler.data.dto.storage.GetBucketByNameRequestWrapperDto;
+import com.daimler.data.dto.storage.GetBucketByNameResponseWrapperDto;
+import com.daimler.data.dto.storage.PermissionsDto;
+import com.daimler.data.dto.storage.UpdateBucketRequestDto;
+import com.daimler.data.dto.storage.UpdateBucketRequestWrapperDto;
+import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,15 +70,15 @@ public class StorageServicesClient {
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	public CreateBucketResponseWrapperDto createBucket(String bucketName,CreatedByVO creator, List<UserInfoVO> collaborators) {
+	public CreateBucketResponseWrapperDto createBucket(String bucketName, List<UserInfoVO> collaborators) {
 		CreateBucketResponseWrapperDto createBucketResponse = new CreateBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 				HttpHeaders headers = new HttpHeaders();
-				String jwt = httpRequest.getHeader("Authorization");
+				String userinfo = httpRequest.getHeader("dna-request-userdetails");
 				headers.set("Accept", "application/json");
-				headers.set("Authorization", jwt);
-				headers.set("trino-api-key",trinoAuth);
+				headers.set("dna-request-userdetails", userinfo);
+				headers.set("chronos-api-key",trinoAuth);
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				
 				String uploadFileUrl = storageBaseUri + BUCKETS_PATH;
@@ -90,12 +106,6 @@ public class StorageServicesClient {
 					data.setCollaborators(bucketCollaborators);
 				}
 				
-				CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
-				BeanUtils.copyProperties(creator,creatorAsCollab);
-				creatorAsCollab.setAccesskey(creator.getId());
-				creatorAsCollab.setPermission(permissions);
-				data.getCollaborators().add(creatorAsCollab);
-				
 				CreatedByVO creatorTrinoSystemUser = new CreatedByVO();
 				creatorTrinoSystemUser.setId(trinoUser);
 				data.setCreatedBy(creatorTrinoSystemUser);
@@ -106,6 +116,7 @@ public class StorageServicesClient {
 						requestEntity, CreateBucketResponseWrapperDto.class);
 				if (response.hasBody()) {
 					createBucketResponse = response.getBody();
+					log.info("Bucket {} creation status is {}", bucketName, createBucketResponse.getStatus());
 				}
 				}catch(Exception e) {
 					log.error("Failed while creating bucket {} with exception {}",  bucketName,e.getMessage());
@@ -122,10 +133,10 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			String getBucketByNameUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName;
 
@@ -144,15 +155,15 @@ public class StorageServicesClient {
 		return getBucketByNameResonse;
 	}
 
-	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId, CreatedByVO creator, List<UserInfoVO> collaborators) {
+	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId, List<UserInfoVO> collaborators) {
 		UpdateBucketResponseWrapperDto updateBucketResponse = new UpdateBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 
 			String uploadFileUrl = storageBaseUri + BUCKETS_PATH;
@@ -182,8 +193,7 @@ public class StorageServicesClient {
 			}
 
 			CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
-			BeanUtils.copyProperties(creator, creatorAsCollab);
-			creatorAsCollab.setAccesskey(creator.getId());
+			creatorAsCollab.setAccesskey(trinoUser);
 			creatorAsCollab.setPermission(permissions);
 			data.getCollaborators().add(creatorAsCollab);
 
@@ -196,6 +206,7 @@ public class StorageServicesClient {
 			ResponseEntity<UpdateBucketResponseWrapperDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.PUT, requestEntity, UpdateBucketResponseWrapperDto.class);
 			if (response.hasBody()) {
 				updateBucketResponse = response.getBody();
+				log.info("Bucket {} updation status is {}", bucketName, updateBucketResponse.getStatus());
 			}
 		} catch (Exception e) {
 			log.error("Failed while updating the bucket {} with exception {}", bucketName, e.getMessage());
@@ -255,10 +266,10 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
 			ByteArrayResource fileAsResource = file;
@@ -290,7 +301,7 @@ public class StorageServicesClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("chronos-api-key",trinoAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 
 			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
@@ -319,10 +330,10 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +path;
@@ -370,7 +381,7 @@ public class StorageServicesClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("chronos-api-key",trinoAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName+"/objects?prefix=" + prefix;
 			ResponseEntity<BucketObjectsCollectionWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionWrapperDto.class);
@@ -402,7 +413,7 @@ public class StorageServicesClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("chronos-api-key",trinoAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName+"/objects?prefix=" + prefix;
 			log.info("getFilesListUrl" + getFilesListUrl);
@@ -432,10 +443,10 @@ public class StorageServicesClient {
 		try {
 			DeleteBucketResponseDataDto data = new DeleteBucketResponseDataDto();
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String apiUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName;
@@ -460,10 +471,10 @@ public class StorageServicesClient {
 		try {
 			DeleteBucketResponseDataDto data = new DeleteBucketResponseDataDto();
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
-			headers.set("trino-api-key",trinoAuth);
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String apiUrl = storageBaseUri + V1_BUCKETS_PATH + "/" + bucketName;
@@ -483,12 +494,12 @@ public class StorageServicesClient {
 	}
 
 	public Boolean isBucketExists(String bucketName) {
-		Boolean isBucketPresent = false;
+		Boolean isBucketPresent = true;
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName + "/" + "present" ;
@@ -498,6 +509,7 @@ public class StorageServicesClient {
 					isBucketPresent = Boolean.valueOf(response.getBody().getIsBucketPresent());
 				}
 			}
+			log.info("Bucket {} isBucketExists value is {}", bucketName, isBucketPresent);
 		} catch(Exception e) {
 			log.error("Failed to check isBucketExists {}  with exception {}", bucketName + e.getMessage());
 		}

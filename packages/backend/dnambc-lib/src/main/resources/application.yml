@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.3.7
+    version: 3.4.2
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -32,7 +32,21 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
-      
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL    
   cloud:
     stream:
       default-binder: kafka
@@ -123,7 +137,6 @@ oidc:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:xxxxxx}
     byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences;/api/datasources/bulk}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
 

@@ -2,28 +2,87 @@ import classNames from 'classnames';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { useForm, FormProvider } from 'react-hook-form';
 import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
+import InfoModal from 'dna-container/InfoModal';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import SelectBox from '../../common/modules/uilab/js/src/select';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import GraphTable from '../../components/GraphTable';
-import TableFormTemp from '../../components/tableFormTemp/TableFormTemp';
+import TableForm from '../../components/tableForm/TableForm';
 import SlidingModal from '../../components/slidingModal/SlidingModal';
+import Spinner from '../../components/spinner/Spinner';
 import { setBox, setTables } from '../../redux/graphSlice';
 import { getProjectDetails } from '../../redux/graph.services';
+import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
+import { datalakeApi } from '../../apis/datalake.api';
+import ColumnForm from '../../components/columnForm/ColumnForm';
+import EditTableForm from '../../components/editTableForm/EditTableForm';
+import DataProductForm from '../../components/dataProductForm/DataProductForm';
+import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+import { Envs } from '../../utilities/envs';
 
-const Graph = () => {
+const Graph = ({user, hostHistory}) => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const {
         box,
         version,
         project,
+        isLoading,
     } = useSelector(state => state.graph);
+
+    const methods = useForm();
+    const {
+      register,
+      handleSubmit,
+      formState: { errors },
+    } = methods;
+
+    const isOwner = user.id === project?.createdBy?.id;
 
     useEffect(() => {
         dispatch(getProjectDetails(id));
     }, [id, dispatch]);
+
+    useEffect(() => {
+      Tooltip.defaultSetup();
+      return Tooltip.clear();
+      //eslint-disable-next-line
+    }, []);
+  
+    const [loading, setLoading] = useState(true);
+    const [connectionInfo, setConnectionInfo] = useState();
+    const [hasDataProduct,setHasDataProduct] =useState(false);
+    const [hasTable, setHasTable] = useState(project.tables.length > 0 );
+   
+
+    useEffect(() => {
+      ProgressIndicator.show();
+        datalakeApi.getConnectionInfo(id)
+        .then((res) => {
+            setConnectionInfo(res.data.data);
+            ProgressIndicator.hide();
+            setLoading(false);
+        })
+        .catch((err) => {
+            Notification.show(
+            err?.response?.data?.errors?.[0]?.message || 'Error while fetching connection information',
+            'alert',
+            );
+            ProgressIndicator.hide();
+            setLoading(false);
+        });
+    }, [id]);
+    useEffect (()=>{
+      setHasTable(project.tables.length > 0 );
+      setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
+    },[project])
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -68,7 +127,6 @@ const Graph = () => {
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [movingTable, setMovingTable] = useState();
 
-    const [formChange, setFormChange] = useState(false);
     // const [editingLink, setEditingLink] = useState(null);
     const [tableSelectedId, setTableSelectId] = useState(null);
 
@@ -104,9 +162,9 @@ const Graph = () => {
         const { x: cursorX, y: cursorY } = getSVGCursor(e);
 
         setMovingTable({
-            id: table.id,
-            offsetX: cursorX - table.x,
-            offsetY: cursorY - table.y,
+            id: table.tableName,
+            offsetX: cursorX - table.xcoOrdinate,
+            offsetY: cursorY - table.ycoOrdinate,
         });
 
         setMode('moving');
@@ -148,84 +206,392 @@ const Graph = () => {
         if (mode === 'moving') {
             const { x: cursorX, y: cursorY } = getSVGCursor(e);
             const projectTables = project.tables.map(table =>
-                table.id === movingTable.id ? {...table, x: cursorX - movingTable.offsetX, y: cursorY - movingTable.offsetY} : table
+                table.tableName === movingTable.id ? {...table, xcoOrdinate: cursorX - movingTable.offsetX, ycoOrdinate: cursorY - movingTable.offsetY} : table
             );
             dispatch(setTables([...projectTables]));
         }
     };
 
     const [toggleModal, setToggleModal] = useState(false);
-    const [showInferenceModal, setShowInferenceModal] = useState(false);
+    const [showTechnicalUserModal, setShowTechnicalUserModal] = useState(false);
 
-    const inferenceContent = <>
-        <p>Access data using any endpoints</p>
-        <div className={classNames('input-field-group')}>
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Inference by
-            </label>
-            <div className={Styles.flexLayout}>
-                <label className="checkbox">
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">REST</span>
-                </label>
-                <label className="checkbox">
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">GRAPHQL</span>
-                </label>
-                <label className="checkbox">
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">ODATA</span>
-                </label>
-                <label className="checkbox">
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">SQL</span>
-                </label>
-                <div>&nbsp;</div>
-            </div>
-            <button
-                className={classNames('btn btn-primary')}
-                type="button"
-                onClick={() => { setShowInferenceModal(false) }}
-            >
-                Create Inference
-            </button>
+    const [graphState] = useState('unchanged');
+
+    useEffect(() => {
+      const handler = event => {
+        event.preventDefault();
+        event.returnValue = '';
+      };
+      if (graphState !== 'unchanged') {
+        window.addEventListener('beforeunload', handler);
+        // clean it up, if the dirty state changes
+        return () => {
+          window.removeEventListener('beforeunload', handler);
+        };
+      }
+      // since this is not dirty, don't do anything
+      return () => {};
+    }, [graphState]);
+
+    const handleEditTechnicalUser = (values) => {
+      const data = {
+        clientId: values.clientId,
+        clientSecret: values.clientSecret
+      }
+      ProgressIndicator.show();
+      datalakeApi.updateTechnicalUser(project?.id, data).then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Techical user details updated successfully');
+        setShowTechnicalUserModal(false);
+      }).catch(error => {
+        ProgressIndicator.hide();
+        Notification.show(
+          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating technical user',
+          'alert',
+        );
+      });
+    }
+
+    const technicalUserContent = <>
+    <FormProvider {...methods}>
+      <p>Create a Technical User to connect your publised tables to Trino REST and in Dataiku.</p>
+      <div className={classNames('input-field-group include-error', errors?.clientId ? 'error' : '')}>
+        <label className={classNames(Styles.inputLabel, 'input-label')}>
+          Client ID <sup>*</sup>
+        </label>
+        <div>
+          <input
+            type="text"
+            className={classNames('input-field')}
+            id="clientId"
+            placeholder="Type here"
+            autoComplete="off"
+            maxLength={55}
+            defaultValue={!loading && (connectionInfo?.howToConnect?.trino?.techUserVO?.accesskey ? connectionInfo?.howToConnect?.trino?.techUserVO?.accesskey : '')}
+            {...register('clientId', { required: '*Missing entry'})}
+          />
+          <span className={classNames('error-message')}>{errors?.clientId?.message}</span>
         </div>
-    </>;    
+      </div>
+      <div className={classNames('input-field-group include-error', errors?.clientSecret ? 'error' : '')}>
+        <label className={classNames(Styles.inputLabel, 'input-label')}>
+          Client Secret <sup>*</sup>
+        </label>
+        <div>
+          <input
+            type="password"
+            className={classNames('input-field')}
+            id="clientSecret"
+            placeholder="Type here"
+            autoComplete="off"
+            maxLength={55}
+            // defaultValue={clientId}
+            {...register('clientSecret', { required: '*Missing entry'})}
+          />
+          <span className={classNames('error-message')}>{errors?.clientSecret?.message}</span>
+        </div>
+      </div>
+      <p>Keep your Client Secret safe. We do not store this information.</p>
+      <div className={Styles.btnContainer}>
+        <button
+          className="btn btn-tertiary"
+          type="button"
+          onClick={handleSubmit((values) => {
+            handleEditTechnicalUser(values)
+          })}
+        >
+          Save
+        </button>
+      </div>
+    </FormProvider>
+    </>; 
+
+  const [showDataProductModal, setShowDataProductModal] = useState(false);
+
+  const handleCreateDataProduct = (values) => {
+    ProgressIndicator.show();
+    const dataProductData = {
+      dataProductName: values?.name,
+      description: values?.description,
+      isPublish: false,
+      createdBy: project?.createdBy,
+      access: {
+        personalRelatedData: project?.hasPii,
+        confidentiality: project?.classificationType,
+      }
+    };
+    datalakeApi.createDataProduct(dataProductData).then((res) => {
+      ProgressIndicator.hide();
+      const id = project.id + ":" + res.data.data.dataProductId;
+      setHasDataProduct(true);
+      sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID, id);
+      Notification.show('Data Product Created successfully');
+    }).catch((error) => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating dataProduct',
+        'alert',
+      );
+    });
+    setShowDataProductModal(false);
+  }
+   const onDataProductClick = () => {
+
+    if(hasDataProduct){
+      const id = sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(":")[1];
+      hostHistory.push(`/data/dataproduct/summary/${id}`)
+
+    }else{
+      setShowDataProductModal(true);
+    }
+
+   }
+    
+  const [showCollabModal, setShowCollabModal] = useState(false);
+  const [table, setTable] = useState([]);
+
+  const handleCollab = (table) => {
+    setShowCollabModal(true);
+    setTable({...table});
+  }
+
+  const handleDeleteTable = (tableName) => {
+    const projectTemp = {...project};
+    const tempTables = projectTemp.tables.filter(item => item.tableName !== tableName);
+    projectTemp.tables = [...tempTables];
+    dispatch(setTables(projectTemp.tables));
+  }
+
+  const [connectors,setConnectors] = useState([]);
+  const [formats, setFormats] = useState([]);
+  const [dataTypes, setDataTypes] = useState([]);
+
+  useEffect(() => {
+    if(project.connectorType === 'Iceberg') {
+      const connector = connectors.filter(item => item.name === 'Iceberg');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+    if(project.connectorType === 'Delta Lake') {
+      const connector = connectors.filter(item => item.name === 'Delta Lake');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+  }, [connectors, project]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    datalakeApi.getConnectors()
+      .then((res) => {
+        setConnectors(res.data.connectors);
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching connectors',
+          'alert',
+        );
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+      });
+  }, []);
+
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [selectedTable, setSelectedTable] = useState();
+  const [selectedColumn, setSelectedColumn] = useState();
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [columnEdit, setColumnEdit] = useState(false);
+
+  const handleAddColumn = (table) => {
+    setShowColumnModal(true);
+    setSelectedTable({...table});
+  }
+
+  const handleEditColumn = (column, table, index) => {
+    setShowColumnModal(true);
+    setColumnEdit(true);
+    setSelectedTable({...table});
+    setSelectedColumn({...column});
+    setSelectedIndex(index);
+  }
+
+  const handleEditTable = (table) => {
+    setShowTableModal(true);
+    setSelectedTable({...table});
+  }
+
+  const addColumn = (values) => {
+    const tempTable = {...selectedTable};
+    const columnData = {
+      columnName: values.columnName,
+      comment: values.comment,
+      dataType: values.dataType,
+      notNullConstraintEnabled: values.notNullConstraintEnabled,
+    };
+
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {...newTables[tableIndex], columns: [...newTables[tableIndex].columns, columnData]};
+    dispatch(setTables(newTables));
+    setShowColumnModal(false);
+    Tooltip.defaultSetup();
+  }
+
+  const editColumn = (values) => {
+    const tempTable = {...selectedTable};
+    const columnData = {
+      columnName: values.columnName,
+      comment: values.comment,
+      dataType: values.dataType,
+      notNullConstraintEnabled: values.notNullConstraintEnabled,
+    };
+
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    let newColumns = [...newTables[tableIndex].columns];
+    newColumns[selectedIndex] = {...columnData};
+    newTables[tableIndex] = {...newTables[tableIndex], columns: [...newColumns]};
+    dispatch(setTables(newTables));
+    setShowColumnModal(false);
+    setColumnEdit(false);
+    Tooltip.defaultSetup();
+  }
+
+  const editTable = (values) => {
+    const tempTable = {...selectedTable};
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {
+                              ...newTables[tableIndex], 
+                              tableName: values.tableName, 
+                              description: values.description,
+                              dataFormat: values.dataFormat
+                            };
+    dispatch(setTables(newTables));
+    setShowTableModal(false);
+    Tooltip.defaultSetup();
+  }
+
+  const handlePublish = () => {
+    const data = {...project}
+    ProgressIndicator.show();
+    datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Table(s) published successfully');
+      }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
+        'alert',
+      );
+    });
+  }
+
+  const [fullScreenMode, setFullScreenMode] = useState(false);
   
+  const toggleFullScreenMode = () => {
+    setFullScreenMode(!fullScreenMode);
+  };
+
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
+  
+  const isValidFile = (file) => ['csv', 'parquet', 'json'].includes(file?.name?.split('.')[1]);
+  const [uploadFile, setUploadFile] = useState({});
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const uploadContent = <>
+    <div>
+      <p>File to Upload: {uploadFile.length > 0 && uploadFile[0]?.name}</p>
+      <div className={Styles.btnContainer}>
+        <button className="btn" disabled={true}>Publish</button>
+      </div>
+    </div>
+  </>
+     
   return (
-    <>
+    !isLoading ?
+    <div className={fullScreenMode ? Styles.datalakeWrapperFSmode : '' + ' ' + Styles.datalakeWrapper}>
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.nbheader}>
             <div className={Styles.headerdetails}>
               {/* <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} /> */}
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
-                <h2>Datalake Project</h2>
+                <h2>{project?.projectName} <span>({project?.connectorType})</span></h2>
               </div>
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
+                   { hasTable &&( 
+                      <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled,Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
+                            type="button"
+                            onClick={() => onDataProductClick()}
+                        >
+                            <i className="icon mbc-icon dataproductoverview" />
+                            <span>{!hasDataProduct ? "Provision as a Data Product" : "View Data Product"}</span>
+                        </button>
+                    </div>)}
+                    { hasTable &&( 
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline)}
                             type="button"
-                            onClick={() => { setShowInferenceModal(true) }}
+                            onClick={() => { setShowConnectionModal(true) }}
                         >
-                            <i className="icon mbc-icon plus" />
-                            <span>Add Inference</span>
+                            <i className="icon mbc-icon comparison" />
+                            <span>How to Connect</span>
                         </button>
                     </div>
+                    )}
+                    {hasTable && ( 
+                    <div className={Styles.uploadFile}>
+                        <input 
+                          type="file" 
+                          id="uploadFile" 
+                          name="uploadFile"
+                          className={Styles.fileInput} 
+                          onChange={(e) => {
+                            const isValid = isValidFile(e.target.files[0]);
+                            if (!isValid) {
+                              Notification.show('File is not valid. Only .csv, .parquet or .json files allowed.', 'alert');
+                            } else {
+                              setUploadFile(e.target.files);
+                              setShowUploadModal(true);
+                            }
+                          }}
+                          onClick={(e) => { e.target.value = '' }}
+                          accept=".csv, .parquet, .json"
+                        />
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled,Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
+                            type="button"
+                            >
+                            <i className="icon mbc-icon upload" />
+                            <label htmlFor="uploadFile" tooltip-data="Only .csv, .parquet, and .json files are allowed">Upload File</label>
+                        </button>
+                    </div>
+                    )}
+                    {hasTable && ( 
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            type="button"
+                            onClick={() => { setShowTechnicalUserModal(true) }}
+                        >
+                            <i className="icon mbc-icon plus" />
+                            <span>Create Technical User</span>
+                        </button>
+                    </div>
+                   )}
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setToggleModal(!toggleModal)}}
                         >
@@ -233,18 +599,14 @@ const Graph = () => {
                             <span>Add Table</span>
                         </button>
                     </div>
-                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab}>
-                    <i className="icon mbc-icon arrow small right" />
-                    <span> &nbsp; </span>
-                  </div>
-                  <div>
-                    <FullScreenModeIcon fsNeed={false} />
+                  <div onClick={toggleFullScreenMode}>
+                    <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
                 </div>
             </div>
         </div>
         <div className={classNames(Styles.content)}>
-          <div className="graph">
+          <div className={classNames('graph', fullScreenMode ? Styles.fullscreen : '')}>
             <svg
               className="main"
               viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
@@ -254,15 +616,21 @@ const Graph = () => {
               // onWheel={wheelHandler}
               ref={svg}
             >
-              {project?.tables?.length > 0 && project.tables.map(table => {
+              {project?.tables?.length > 0 && project.tables.map((table, index) => {
                 return (
                     <>
                         <GraphTable
-                            key={table.id}
+                            key={table.tableName + index}
                             table={table}
                             onTableMouseDown={tableMouseDownHandler}
                             tableSelectedId={tableSelectedId}
                             setTableSelectId={setTableSelectId}
+                            onCollabClick={handleCollab}
+                            onDeleteTable={handleDeleteTable}
+                            onAddColumn={handleAddColumn}
+                            onEditColumn={handleEditColumn}
+                            onEditTable={handleEditTable}
+                            isOwner={isOwner}
                         />
                     </>
                 );
@@ -272,7 +640,7 @@ const Graph = () => {
         </div>
         
         <div style={{textAlign: 'right', marginTop: '20px'}}>
-                <button className={classNames('btn btn-tertiary')}>Publish</button>
+                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save & Publish</button>
             </div>
       </div>
       
@@ -281,28 +649,143 @@ const Graph = () => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableFormTemp formChange={formChange} onFormChange={setFormChange} />} 
-            onCancel={console.log('oncancel')}
-            onSave={console.log('onsave')}
+            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} />}
         />
     }
 
-    { showInferenceModal &&
+    { showUploadModal &&
         <Modal
-            title={'Add Inference'}
+            title={'Publish File'}
             showAcceptButton={false}
             showCancelButton={false}
             modalWidth={'35%'}
             buttonAlignment="right"
-            show={showInferenceModal}
-            content={inferenceContent}
+            show={showUploadModal}
+            content={uploadContent}
             scrollableContent={false}
             onCancel={() => {
-                setShowInferenceModal(false);
+                setShowUploadModal(false);
+setUploadFile({});
             }}
         />
     }
-    </>
+
+    { showDataProductModal &&
+        <Modal
+            title={'Provision as a Data Product'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'35%'}
+            buttonAlignment="right"
+            show={showDataProductModal}
+            content={<DataProductForm project={{...project}} onCreate={handleCreateDataProduct} />}
+            scrollableContent={false}
+            onCancel={() => {
+                setShowDataProductModal(false);
+            }}
+            modalStyle={{
+                padding: '50px 35px 35px 35px',
+                minWidth: 'unset',
+                width: '35%',
+            }}
+        />
+    }
+
+    { showTechnicalUserModal &&
+        <Modal
+            title={'Edit Technical User'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'35%'}
+            buttonAlignment="right"
+            show={showTechnicalUserModal}
+            content={technicalUserContent}
+            scrollableContent={false}
+            onCancel={() => {
+                setShowTechnicalUserModal(false);
+            }}
+        />
+    }
+    
+    {
+      showCollabModal && 
+      <Modal
+        title={'Table Collaborators'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showCollabModal}
+        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} user={user} />}
+        scrollableContent={false}
+        onCancel={() => setShowCollabModal(false)}
+        modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+        }}
+      />
+    }
+
+    { showColumnModal &&
+      <Modal
+        title={columnEdit ? 'Edit Column' : 'Add Column'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showColumnModal}
+        content={<ColumnForm setToggle={() => setToggleModal(!toggleModal)} dataTypes={dataTypes} edit={columnEdit} column={selectedColumn} onAddColumn={addColumn} onEditColumn={editColumn} />}
+        scrollableContent={false}
+        onCancel={() => {
+          setShowColumnModal(false); 
+          setSelectedColumn();
+          setColumnEdit(false);
+        }}
+        modalStyle={{
+          padding: '50px 35px 35px 35px',
+          minWidth: 'unset',
+          width: '60%',
+          maxWidth: '50vw'
+        }}
+      />
+    }
+
+    { showTableModal &&
+      <Modal
+        title={'Edit Table'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showTableModal}
+        content={<EditTableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} table={selectedTable} onEditTable={editTable} />}
+        scrollableContent={false}
+        onCancel={() => {
+          setShowTableModal(false); 
+          setSelectedTable();
+        }}
+        modalStyle={{
+          padding: '50px 35px 35px 35px',
+          minWidth: 'unset',
+          width: '60%',
+          maxWidth: '50vw'
+        }}
+      />
+}
+
+    {showConnectionModal &&
+        <InfoModal
+          title={'Connect'}
+          modalCSS={Styles.header}
+          show={showConnectionModal}
+          content={<ConnectionModal projectId={id} onOkClick={() => setShowConnectionModal(false)} />}
+          hiddenTitle={true}
+          onCancel={() => setShowConnectionModal(false)}
+        />
+
+    }
+    </div> : <Spinner />
   );
 }
 

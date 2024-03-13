@@ -54,12 +54,6 @@ matomo:
 
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
-
-
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
   port: 8989

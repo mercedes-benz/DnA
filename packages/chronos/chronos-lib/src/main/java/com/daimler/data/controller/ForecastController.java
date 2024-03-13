@@ -74,6 +74,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Value("${databricks.defaultConfigYml}")
 	private String defaultConfigFolderPath;
+
+	@Value("${technicalUser}")
+	private String technicalUser;
 	@Value("${databricks.runsDefaultPageSize}")
 	private String runsDefaultPageSize;
 	private static final String BUCKETS_PREFIX = "chronos-";
@@ -409,6 +412,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		forecastVO.setName(forecastProjectCreateVO.getName());
 		forecastVO.setRuns(null);
 		forecastVO.setSavedInputs(null);
+		forecastVO.setLeanGovernanceFeilds(forecastProjectCreateVO.getLeanGovernanceFeilds());
 		try {
 			ForecastVO createdVO = new ForecastVO();
 			createdVO = service.createForecast(forecastVO);
@@ -574,16 +578,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 		// if both AddCollaborators and RemoveCollaborators are empty
 		// then return as Bad Request.
-		if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
-				&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
-			responseMessage.setSuccess("FAILED");
-			MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
-			errors.add(errMsg);
-			responseMessage.setErrors(errors);
-			log.error("Add and Remove Collaborators are list is empty!");
-			responseVO.setResponse(responseMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-		}
+		// if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
+		// 		&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
+		// 	responseMessage.setSuccess("FAILED");
+		// 	MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
+		// 	errors.add(errMsg);
+		// 	responseMessage.setErrors(errors);
+		// 	log.error("Add and Remove Collaborators are list is empty!");
+		// 	responseVO.setResponse(responseMessage);
+		// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		// }
 
 		if (forecastUpdateRequestVO.getApiKey() != null) {
 			String apiKeyCheck = vaultAuthClient.getApiKeys(id);
@@ -713,9 +717,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
-			CreatedByVO requestUser = this.userStore.getVO();
+		List<ForecastVO> records =  new ArrayList<>();
+		CreatedByVO requestUser = this.userStore.getVO();
 			String user = requestUser.getId();
-			List<ForecastVO> records = service.getAll(limit, offset, user);
+			if(user.equalsIgnoreCase(technicalUser)){
+				 records =service.getAll();
+			}
+			else {
+
+				records = service.getAll(limit, offset, user);
+			}
 			Long count = service.getCount(user);
 			HttpStatus responseCode = HttpStatus.NO_CONTENT;
 			if(records!=null && !records.isEmpty()) {
@@ -914,7 +925,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Get all forecast projects for the user.", nickname = "getAllRunsForProject", notes = "Get all forecasts projects for the user.", response = ForecastRunCollectionVO.class, tags = {
+	@ApiOperation(value = "Get all runs for the selected project.", nickname = "getAllRunsForProject", notes = "This will return details of all runs for the selected project. Make sure to filter the results by status if you only want to see finished runs. You can also use this to check status of a run.", response = ForecastRunCollectionVO.class, tags = {
 			"forecast-runs", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastRunCollectionVO.class),
@@ -928,10 +939,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<ForecastRunCollectionVO> getAllRunsForProject(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "page number from which listing of forecasts should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Page number from which listing of forecasts should start. Optional - defaults to 0, which is the first page.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "Page size to limit the number of forecasts displayed. Optional - by default, all runs are returned. In case the API call takes too long or times out, put a lower number here.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "Sort runs by a given variable like runName, createdby, createdon, or status", allowableValues = "runName,createdOn,status,createdBy,inputFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort runs based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
+			@ApiParam(value = "Sort runs based on the given order, example: asc, desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastRunCollectionVO collection = new ForecastRunCollectionVO();
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
@@ -959,7 +970,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
 				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId(),sortBy,sortOrder);
+				Object[] runCollectionWrapper = service.getAllRuns(limit, offset, existingForecast.getId(),sortBy,sortOrder);
 				List<RunVO> records = (List<RunVO>) runCollectionWrapper[0];
 				Long count = (Long) runCollectionWrapper[1];
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
@@ -1050,7 +1061,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 
 	@Override
-	@ApiOperation(value = "Create new run for forecast project.", nickname = "createForecastRun", notes = "Create run for forecast project", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
+	@ApiOperation(value = "Start a new run for the forecast project", nickname = "createForecastRun", notes = "This is the command to start a new Chronos forecast run in an already\r\n" + //
+			"        existing project. The run will be started asynchronously and the\r\n" + //
+			"        response will contain the correlation ID of the run. This correlation\r\n" + //
+			"        ID can be used to query the status of the run via the `GET\r\n" + //
+			"        /api/forecasts/{id}/runs` endpoint.\r\n" + //
+			"        For more information on how to use this endpoint, please refer to the\r\n" + //
+			"        Chronos Documentation.", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastRunResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
@@ -1062,18 +1079,58 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         produces = { "application/json" },
         consumes = { "multipart/form-data" },
         method = RequestMethod.POST)
-    public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-    		@ApiParam(value = "Chronos default config yml", required=true, allowableValues="Default-Settings") @RequestParam(value="configurationFile", required=true)  String configurationFile,
-    		@ApiParam(value = "frequency parameter.", required=true, allowableValues="Daily, Weekly, Monthly, Yearly, No_Frequency") @RequestParam(value="frequency", required=true)  String frequency,
-    		@ApiParam(value = "Any number greater than 1", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
-    		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
-    		@ApiParam(value = "path of file in minio system, if not giving file in request part") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
-    		@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
-    		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic") @RequestParam(value="runName", required=false)  String runName,
-    		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
-    		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
-    		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
-            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="chronosVersion", required=false)  String chronosVersion,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
+    public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "Project ID (UUID) of the project for which the run should be started. You can find this ID as `Api Id` in the project details page in the Chronos UI Application. You will also find it in the URL if you open your project in the browser.",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "The Chronos configuration file you want to use.\r\n" + //
+    				"            The default configuration file resides under\r\n" + //
+    				"            `chronos-core/configs/default_config.yml`, this is what you need to\r\n" + //
+    				"            provide here to use the default configuration.\r\n" + //
+    				"            If you want to use a custom configuration file, you need to upload\r\n" + //
+    				"            it first (easiest done via the Chronos UI Application) and then\r\n" + //
+    				"            provide the path to the file here. The file path will be\r\n" + //
+    				"            `chronos-<project_name>/configs/<config_filename.yml>`, where\r\n" + //
+    				"            project_name is the actual name of your project (not the UUID)") @RequestParam(value="configurationFile", required=true)  String configurationFile,
+    		@ApiParam(value = "The frequency of your data.\r\n" + //
+    				"            You can find a list of all supported frequencies here:\r\n" + //
+    				"            `https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases`\r\n" + //
+    				"            Note that Chronos is mostly tested on monthly data, so you should\r\n" + //
+    				"            carefully evaluate forecast quality when using other frequencies.", required=true, allowableValues="Daily, Weekly, Monthly, Yearly, No_Frequency") @RequestParam(value="frequency", required=true)  String frequency,
+    		@ApiParam(value = " Number of time steps to forecast. Must be 1 or larger.", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
+    		@ApiParam(value = " The Chronos Input file (*.xlsx or *.csv) containing the data to be forecast. To learn more about the input file format, please refer to the Chronos Documentation. If you do not set this, you need to instead provide the path to a file in your MinIO storage bucket via the `savedInputPath`.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
+    		@ApiParam(value = "Normally, you probably don't want to use this setting. If you want to provide a file you have already stored in MinIO, you can provide the path to the file here.") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
+			@ApiParam(value = "Set this to true if you want to store the provided input file for future runs. Only set this to true if you later on want to do a forecast with the exact same file, but a different configuration.Files saved this way can be re-used via the `savedInputPath` field.", defaultValue="false") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
+    		@ApiParam(value = " A name for the run. This name will be displayed in the Chronos UI Application. If you do not provide a name, the run name will be set to the current date and time.") @RequestParam(value="runName", required=false)  String runName,
+    		@ApiParam(value = " Set this parameter only if your data is hierarchical. \r\n" + //
+    				"            \r\n" + //
+    				"            Set to the number of hierarchy levels in your data. This is equal\r\n" + //
+    				"            to the number of rows containing headers. To learn more about\r\n" + //
+    				"            hierarchical forecasting, search for *hierarchical forecasting* in\r\n" + //
+    				"            the Chronos Documentation.") @RequestParam(value="hierarchy", required=false)  String hierarchy,
+    		@ApiParam(value = " Here you can add a comment to your run.") @RequestParam(value="comment", required=false)  String comment,
+    		@ApiParam(value = "With this setting, Chronos will run on a dedicated machine instead\r\n" + //
+    				"            of the shared cluster. This ensures consistent runtime, but comes\r\n" + //
+    				"            with additional startup time and creates additional costs - best\r\n" + //
+    				"            used for productive use cases.") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
+            @ApiParam(value = "The version of Chronos you want to use. If you do not provide a\r\n" + //
+            		"            version, the latest version will be used. This is an advanced\r\n" + //
+            		"            setting that you should only use if a new version of Chronos is not\r\n" + //
+            		"            compatible with your data. You can find Chronos version in the\r\n" + //
+            		"            Chronos repository.") @RequestParam(value="chronosVersion", required=false)  String chronosVersion,
+			@ApiParam(value = " This feature allows running Chronos multiple times to simulate past\r\n" + //
+					"            runs on the same data. Set to a positive number `n` to run\r\n" + //
+					"            backtesting. Chronos will run your data `n` times, each time\r\n" + //
+					"            simulating the past by removing the last `n` time steps from your\r\n" + //
+					"            data. This is useful to evaluate the quality of your forecast.\r\n" + //
+					"            Learn more about this feature in the Chronos Documentation.\r\n" + //
+					"            Please be aware that this effectively multiplies the runtime of\r\n" + //
+					"            Chronos by `n`.") @RequestParam(value="backtesting", required=false)  String backtesting,
+			@ApiParam(value = "Authorization header. You can find or generate your API key in the\r\n" + //
+					"            Chronos UI Application.\r\n" + //
+					"            This key is project-specific and should be used if using the REST\r\n" + //
+					"            API directly. Do not specify an Authorization header if using this\r\n" + //
+					"            key." ) @RequestHeader(value="apiKey", required=false) String apiKey,
+			@ApiParam(value = "The drivers file to upload.") @Valid @RequestPart(value="drivers", required=false) MultipartFile drivers,
+			@ApiParam(value = "The planning_data file to upload.") @Valid @RequestPart(value="planning_data", required=false) MultipartFile planning_data,
+			@ApiParam(value = "The mapping file to upload.") @Valid @RequestPart(value="mapping", required=false) MultipartFile mapping){
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
 			ForecastVO existingForecast = service.getById(id);
@@ -1094,6 +1151,29 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
+			// Defaulting values 
+			if(hierarchy == null){
+				hierarchy="";
+			}
+			if(saveRequestPart==null){
+				saveRequestPart = false;
+			}
+			if(runOnPowerfulMachines==null){
+				runOnPowerfulMachines = false;
+			}
+			// validating runName 	
+			if(runName!=null) {
+				if (!runName.trim().isEmpty() && !runName.matches("^[a-z0-9.-]*$")) {
+				   log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
+				   MessageDescription invalidMsg = new MessageDescription("Invalid run name. Only lowercase, numbers, dot, hyphen and only 55 characters allowed");
+				   GenericMessage errorMessage = new GenericMessage();
+				   errorMessage.setSuccess("FAILED");
+				   errorMessage.addErrors(invalidMsg);
+				   responseVO.setData(null);
+				   responseVO.setResponse(errorMessage);
+				   return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			 }
 
 			CreatedByVO requestUser = this.userStore.getVO();
 			List<String> forecastProjectUsers = new ArrayList<>();
@@ -1113,37 +1193,139 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					responseVO.setResponse(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}else {
-					if(file!=null) {
-						String fileName = file.getOriginalFilename();
-						if (!isValidAttachment(fileName)) {
-							log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
-							MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
+					InputFileVO savedInputToRemove = null;
+					if(backtesting!=null && !backtesting.trim().isEmpty() ) {
+						try{
+							int backtestingValue = Integer.parseInt(backtesting);
+							if(backtestingValue<0){
+								log.error("Backtesting value is not a positive number");
+								MessageDescription invalidMsg = new MessageDescription("Invalid backtesting value. Backtesting value is not a positive number");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.setSuccess("FAILED");
+								errorMessage.addErrors(invalidMsg);
+								responseVO.setData(null);
+								responseVO.setResponse(errorMessage);
+								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+
+							}
+						}catch (NumberFormatException e){
+                           log.error("Backtesting value is not a number");
+							MessageDescription invalidMsg = new MessageDescription("Invalid backtesting value. Backtesting value is not a number");
 							GenericMessage errorMessage = new GenericMessage();
 							errorMessage.setSuccess("FAILED");
 							errorMessage.addErrors(invalidMsg);
 							responseVO.setData(null);
 							responseVO.setResponse(errorMessage);
 							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-						}else {
+						}
+
+					}
+
+
+					if (file != null) {
+						String fileName = file.getOriginalFilename();
+						if (!isValidAttachment(fileName)) {
+							log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+									existingForecast.getName(), id);
+							MessageDescription invalidMsg = new MessageDescription(
+									"Invalid File type attached. Supported only xlxs and csv extensions");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.setSuccess("FAILED");
+							errorMessage.addErrors(invalidMsg);
+							responseVO.setData(null);
+							responseVO.setResponse(errorMessage);
+							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+						} else {
+
+							if (!FilenameUtils.getExtension(fileName).equalsIgnoreCase("csv")
+									&& (planning_data != null || mapping != null || drivers != null)) {
+								log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+										existingForecast.getName(), id);
+								MessageDescription invalidMsg = new MessageDescription(
+										"You attempted to provide additional data via a separate .csv file, but are using an Excel file. Please provide your additional data either inside the Excel, or provide the training data as a .csv file as well.");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.setSuccess("FAILED");
+								errorMessage.addErrors(invalidMsg);
+								responseVO.setData(null);
+								responseVO.setResponse(errorMessage);
+								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+							}
+							if(drivers!=null){
+								String driverFileName = drivers.getOriginalFilename();
+								if (!FilenameUtils.getExtension(driverFileName).equalsIgnoreCase("csv")) {
+								log.error("Invalid file type {} attached for project name {} and id {} ", driverFileName,
+										existingForecast.getName(), id);
+								MessageDescription invalidMsg = new MessageDescription(
+										"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.setSuccess("FAILED");
+								errorMessage.addErrors(invalidMsg);
+								responseVO.setData(null);
+								responseVO.setResponse(errorMessage);
+								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+								}
+							}
+							if(mapping!=null){
+								String mappingFileName = mapping.getOriginalFilename();
+								if (!FilenameUtils.getExtension(mappingFileName).equalsIgnoreCase("csv")) {
+									log.error("Invalid file type {} attached for project name {} and id {} ", mappingFileName,
+											existingForecast.getName(), id);
+									MessageDescription invalidMsg = new MessageDescription(
+											"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.addErrors(invalidMsg);
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+
+								}
+							}
+							if(planning_data!=null){
+								String planninngFileName = planning_data.getOriginalFilename();
+								if (!FilenameUtils.getExtension(planninngFileName).equalsIgnoreCase("csv")) {
+									log.error("Invalid file type {} attached for project name {} and id {} ", planninngFileName,
+											existingForecast.getName(), id);
+									MessageDescription invalidMsg = new MessageDescription(
+											"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.addErrors(invalidMsg);
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+								}
+							}
 							List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
-							if(saveRequestPart) {
-								if(savedInputs!=null && !savedInputs.isEmpty()) {
-									List<String> fileNames = savedInputs.stream().map(InputFileVO::getName).collect(Collectors.toList());
-									if(fileNames.contains(file.getOriginalFilename())) {
-										log.error("File with name already exists in saved input files list. Project {} and file {}", existingForecast.getName(),fileName);
-										MessageDescription invalidMsg = new MessageDescription("File with name already exists in saved input files list. Please rename and upload again");
-										GenericMessage errorMessage = new GenericMessage();
-										errorMessage.setSuccess("FAILED");
-										errorMessage.addErrors(invalidMsg);
-										responseVO.setData(null);
-										responseVO.setResponse(errorMessage);
-										return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+							if (saveRequestPart) {
+								if (savedInputs != null && !savedInputs.isEmpty()) {
+									for (InputFileVO savedInputDetails : savedInputs) {
+										if (savedInputDetails.getName().equals(file.getOriginalFilename())
+												|| (drivers != null && savedInputDetails.getName()
+														.equals(drivers.getOriginalFilename()))
+												|| (mapping != null && savedInputDetails.getName()
+														.equals(mapping.getOriginalFilename()))
+												|| (planning_data != null && savedInputDetails.getName()
+														.equals(planning_data.getOriginalFilename()))) {
+											log.info(
+													"File with name already exists in saved input files list. Project {} and file {}",
+													existingForecast.getName(), savedInputDetails.getName());
+											savedInputToRemove = savedInputDetails;
+											break;
+										}
 									}
-								}else
+									if (savedInputToRemove != null) {
+										savedInputs.remove(savedInputToRemove);
+									}
+								} else
 									savedInputs = new ArrayList<>();
 							}
-							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,file, existingForecast.getBucketName());
-							if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+
+							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, file,
+									existingForecast.getBucketName());
+							if (fileUploadResponse == null
+									|| (fileUploadResponse != null && (fileUploadResponse.getErrors() != null
+											|| !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 								GenericMessage errorMessage = new GenericMessage();
 								errorMessage.setSuccess("FAILED");
 								errorMessage.setErrors(fileUploadResponse.getErrors());
@@ -1151,21 +1333,106 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 								responseVO.setData(null);
 								responseVO.setResponse(errorMessage);
 								return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-							}else if("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())){
-									if(saveRequestPart) {
+							} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
+								if (saveRequestPart) {
+									InputFileVO currentInput = new InputFileVO();
+									currentInput.setName(file.getOriginalFilename());
+									currentInput.setPath(
+											existingForecast.getBucketName() + "/inputs/" + file.getOriginalFilename());
+									currentInput.setId(UUID.randomUUID().toString());
+									currentInput.setCreatedOn(createdOn);
+									currentInput.setCreatedBy(requestUser.getId());
+									savedInputs.add(currentInput);
+									existingForecast.setSavedInputs(savedInputs);
+								}
+								savedInputPath = existingForecast.getBucketName() + "/inputs/"
+										+ file.getOriginalFilename();
+							}
+							if(drivers!=null){
+								FileUploadResponseDto driverFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, drivers,
+									existingForecast.getBucketName());
+								if (driverFileUploadResponse == null
+										|| (driverFileUploadResponse != null && (driverFileUploadResponse.getErrors() != null
+												|| !"SUCCESS".equalsIgnoreCase(driverFileUploadResponse.getStatus())))) {
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.setErrors(driverFileUploadResponse.getErrors());
+									errorMessage.setWarnings(driverFileUploadResponse.getWarnings());
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+								} else if ("SUCCESS".equalsIgnoreCase(driverFileUploadResponse.getStatus())) {
+									if (saveRequestPart) {
 										InputFileVO currentInput = new InputFileVO();
-										currentInput.setName(file.getOriginalFilename());
-										currentInput.setPath(existingForecast.getBucketName()+"/inputs/"+file.getOriginalFilename());
+										currentInput.setName(drivers.getOriginalFilename());
+										currentInput.setPath(
+												existingForecast.getBucketName() + "/inputs/" + drivers.getOriginalFilename());
 										currentInput.setId(UUID.randomUUID().toString());
 										currentInput.setCreatedOn(createdOn);
 										currentInput.setCreatedBy(requestUser.getId());
 										savedInputs.add(currentInput);
 										existingForecast.setSavedInputs(savedInputs);
 									}
-								savedInputPath = existingForecast.getBucketName() + "/inputs/"+ file.getOriginalFilename();
+								}
 							}
+							if(mapping!=null){
+								FileUploadResponseDto mappingFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, mapping,
+									existingForecast.getBucketName());
+								if (mappingFileUploadResponse == null
+										|| (mappingFileUploadResponse != null && (mappingFileUploadResponse.getErrors() != null
+												|| !"SUCCESS".equalsIgnoreCase(mappingFileUploadResponse.getStatus())))) {
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.setErrors(mappingFileUploadResponse.getErrors());
+									errorMessage.setWarnings(mappingFileUploadResponse.getWarnings());
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+								} else if ("SUCCESS".equalsIgnoreCase(mappingFileUploadResponse.getStatus())) {
+									if (saveRequestPart) {
+										InputFileVO currentInput = new InputFileVO();
+										currentInput.setName(mapping.getOriginalFilename());
+										currentInput.setPath(
+												existingForecast.getBucketName() + "/inputs/" + mapping.getOriginalFilename());
+										currentInput.setId(UUID.randomUUID().toString());
+										currentInput.setCreatedOn(createdOn);
+										currentInput.setCreatedBy(requestUser.getId());
+										savedInputs.add(currentInput);
+										existingForecast.setSavedInputs(savedInputs);
+									}
+								}
+							}
+							if(planning_data!=null){
+								FileUploadResponseDto planningFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, planning_data,
+									existingForecast.getBucketName());
+								if (planningFileUploadResponse == null
+										|| (planningFileUploadResponse != null && (planningFileUploadResponse.getErrors() != null
+												|| !"SUCCESS".equalsIgnoreCase(planningFileUploadResponse.getStatus())))) {
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.setErrors(planningFileUploadResponse.getErrors());
+									errorMessage.setWarnings(planningFileUploadResponse.getWarnings());
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+								} else if ("SUCCESS".equalsIgnoreCase(planningFileUploadResponse.getStatus())) {
+									if (saveRequestPart) {
+										InputFileVO currentInput = new InputFileVO();
+										currentInput.setName(planning_data.getOriginalFilename());
+										currentInput.setPath(
+												existingForecast.getBucketName() + "/inputs/" + planning_data.getOriginalFilename());
+										currentInput.setId(UUID.randomUUID().toString());
+										currentInput.setCreatedOn(createdOn);
+										currentInput.setCreatedBy(requestUser.getId());
+										savedInputs.add(currentInput);
+										existingForecast.setSavedInputs(savedInputs);
+									}
+								}
+							}
+
+							
 						}
-				}
+					}
 
 					if (runName == null || runName.trim().isEmpty()) {
 						SimpleDateFormat runNameDate = new SimpleDateFormat("yyyy.MM.dd-HH.mm.ss");
@@ -1174,7 +1441,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
 					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
-							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion);
+							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion,backtesting, savedInputToRemove,drivers,mapping,planning_data);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.CREATED);
@@ -1744,6 +2011,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			String fileName = configFile.getOriginalFilename();
 			String config_file_extension = FilenameUtils.getExtension(fileName);
 			String configs_filename = fileName + "." + config_file_extension;
+			InputFileVO configToRemove = null;
 			if (!isValidConfigFileAttachment(fileName)) {
 				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
 				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only yaml and yml extensions");
@@ -1757,17 +2025,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				List<InputFileVO> configFiles = existingForecast.getConfigFiles();
 
 				if (configFiles != null && !configFiles.isEmpty()) {
-					List<String> fileNames = configFiles.stream().map(InputFileVO::getName).collect(Collectors.toList());
-					if (fileNames.contains(configFile.getOriginalFilename())) {
-						log.error("File with name already exists in uploaded config files list. Project {} and file {}", existingForecast.getName(), fileName);
-						MessageDescription invalidMsg = new MessageDescription("File with name already exists in uploaded config files list. Please rename and upload again");
-						GenericMessage errorMessage = new GenericMessage();
-						errorMessage.setSuccess("FAILED");
-						errorMessage.addErrors(invalidMsg);
-						responseVO.setData(null);
-						responseVO.setResponse(errorMessage);
-						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-					}
+						for (InputFileVO configFileDetails : configFiles) {
+							if (configFileDetails.getName().equals(configFile.getOriginalFilename())) {
+								log.info("File with name already exists in uploaded config files list. Project {} and file {}", existingForecast.getName(), fileName);
+								configToRemove = configFileDetails;
+								break;
+							}
+						}
+						if(configToRemove != null) {
+							configFiles.remove(configToRemove);
+						}
 				} else
 					configFiles = new ArrayList<>();
 				FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(CONFIGS_FILE_PREFIX, configFile, existingForecast.getBucketName());
@@ -1793,7 +2060,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					configFilePath = existingForecast.getBucketName() + "/configs/" + configFile.getOriginalFilename();
 				}
 			}
-			ForecastConfigFileUploadResponseVO uploadConfigResponse = service.uploadConfigFile(existingForecast,configFileIdId,requestUser.getId(),createdOn,configFilePath,configFile.getOriginalFilename());
+			ForecastConfigFileUploadResponseVO uploadConfigResponse = service.uploadConfigFile(existingForecast,configFileIdId,requestUser.getId(),createdOn,configFilePath,configFile.getOriginalFilename(), configToRemove);
 			if(uploadConfigResponse!= null && "SUCCESS".equalsIgnoreCase(uploadConfigResponse.getResponse().getSuccess())
 					&& uploadConfigResponse.getData().getId()!=null) {
 				return new ResponseEntity<>(uploadConfigResponse, HttpStatus.CREATED);
@@ -2025,5 +2292,4 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		ForecastConfigFileResultVO configFileData = service.getForecastConfigFileById(id,configFileId);
 		return new ResponseEntity<>(configFileData, HttpStatus.OK);
 	}
-
 }

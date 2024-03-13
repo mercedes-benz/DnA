@@ -17,6 +17,7 @@ import DataListItem from './Layout/ListView/DataProductListItem';
 import { dataProductApi } from '../../apis/dataproducts.api';
 
 import headerImageUrl from '../../assets/Data-Products-Landing.png';
+import { Envs } from '../../Utility/envs';
 
 const DataProductList = ({ user, history }) => {
   const dispatch = useDispatch();
@@ -124,6 +125,8 @@ const DataProductList = ({ user, history }) => {
           headerImage={headerImageUrl}
           isBackButton={true}
         />
+        <p>Tip: All cross-functional Data products are published in 
+        <a href={Envs.DDX_URL} target='_blank' rel="noreferrer"> DDX</a>.</p>
       </div>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>

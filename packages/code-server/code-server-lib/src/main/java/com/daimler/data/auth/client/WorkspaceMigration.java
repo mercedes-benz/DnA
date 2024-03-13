@@ -91,7 +91,7 @@ public class WorkspaceMigration {
 				log.info("old workspace ids for which service is not created yet are: {}", oldWsIds);
 				if (Objects.nonNull(oldWsIds) && oldWsIds.size() > 0) {
 					for (String oldWsId : oldWsIds) {
-						authenticatorClient.callingKongApis(oldWsId,null,false);
+						authenticatorClient.callingKongApis(oldWsId,oldWsId,null,false);
 					}
 				}
 				log.info("old workspace ids for which service already created and attaching authorization plugin as migration are: {}", oldWsIdsWithService);

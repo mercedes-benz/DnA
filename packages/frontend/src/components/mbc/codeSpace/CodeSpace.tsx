@@ -3,13 +3,15 @@ import * as React from 'react';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 // @ts-ignore
 import { Envs } from 'globals/Envs';
-import { ICodeCollaborator, IRole, IUserDetails, IUserInfo } from 'globals/types';
+import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { recipesMaster, trackEvent } from '../../../services/utils';
+import { buildGitJobLogViewURL, buildLogViewURL, recipesMaster, regionalDateAndTimeConversionSolution, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -24,9 +26,10 @@ import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMess
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import { getParams } from '../../../router/RouterUtils';
 import classNames from 'classnames';
-// import { IAM_URL } from 'globals/constants';
-// import TextBox from '../shared/textBox/TextBox';
-import AddUser from '../addUser/AddUser';
+import { CODE_SPACE_TITLE, IAM_URL } from 'globals/constants';
+import TextBox from '../shared/textBox/TextBox';
+import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import { IconGear } from 'components/icons/IconGear';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 export interface ICodeSpaceProps {
@@ -51,6 +54,34 @@ export interface IProjectDetails {
   projectCollaborators?: ICodeCollaborator[];
   intDeploymentDetails?: IDeploymentDetails;
   prodDeploymentDetails?: IDeploymentDetails;
+  securityConfig?: any;
+  publishedSecuirtyConfig?: any;
+  dataGovernance?: IDataGovernance;
+}
+
+export interface IDataGovernance{
+  description?: string;
+  classificationType?: string;
+  divisionId?: string;
+  division?: string;
+  subDivisionId?: string;
+  subDivision?: string;
+  department?: string;
+  archerId?: string;
+  procedureID?: string;
+  tags?: string[];
+  typeOfProject?: string;
+  piiData?: boolean;
+
+}
+
+export interface IDeploymentAuditLogs{
+  
+  branch?: string;
+  deployedOn?: string;
+  triggeredBy?: string;
+  triggeredOn?: string;
+  deploymentStatus?: string;
 }
 
 export interface IDeploymentDetails {
@@ -61,6 +92,8 @@ export interface IDeploymentDetails {
   lastDeployedBranch?: string;
   lastDeploymentStatus?: string;
   lastDeployedBy?: ICodeCollaborator;
+  deploymentAuditLogs?: IDeploymentAuditLogs[];
+  gitjobRunID?: string;
 }
 
 export interface ICodeSpaceData {
@@ -71,8 +104,9 @@ export interface ICodeSpaceData {
   intiatedOn?: string,
   workspaceUrl?: string,
   status?: string;
+  configStatus?: string;
   workspaceOwner?: ICodeCollaborator,
-  projectDetails? : IProjectDetails;
+  projectDetails?: IProjectDetails;
 
   // name?: string;
   // recipe?: string;
@@ -100,6 +134,7 @@ export interface IDeployRequest {
   branch: string;
   secureWithIAMRequired?: boolean,
   technicalUserDetailsForIAMLogin?: string,
+  valutInjectorEnable?: boolean,
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -121,58 +156,46 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [codeDeployedBranch, setCodeDeployedBranch] = useState<string>('main');
+  const [intCodeDeployFailed, setIntCodeDeployFailed] = useState<boolean>(false);
   const [prodCodeDeployed, setProdCodeDeployed] = useState<boolean>(false);
   const [prodCodeDeployedUrl, setProdCodeDeployedUrl] = useState<string>();
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
+  const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState<boolean>(false);
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState<boolean>(true);
   const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
-  // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
+  const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
-  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [livelinessInterval, setLivelinessInterval] = useState<number>();
   const [branches, setBranches] = useState<IBranch[]>([]);
-  const [usersIAMAliceSecured, setUsersIAMAliceSecured] = useState([
-    {
-      firstName: 'Kameshwara',
-      lastName: 'Rao',
-      id: 'KAMERAO',
-      eMail: 'test@dna.com',
-      department: 'Test',
-      mobileNumber: '9876543210',
-      roles: [{ id: 'admin', name: 'Admin' }],
-    },
-    {
-      firstName: 'Sathishkumar',
-      lastName: 'Palani',
-      id: 'PALANSA',
-      eMail: 'test@dna.com',
-      department: 'Test',
-      mobileNumber: '9876543210',
-      roles: [{ id: 'reader', name: 'Reader' }],
-    },
-    {
-      firstName: 'Anna Agnel Praveen',
-      lastName: 'Maria Rathinam',
-      id: 'AMARIAR',
-      eMail: 'test@dna.com',
-      department: 'Test',
-      mobileNumber: '9876543210',
-      roles: [{ id: 'user', name: 'User' }],
-    },
-  ]);
+  const [vaultEnabled, setVaultEnabled] = useState(false);
 
-
-  const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
+  const livelinessIntervalRef = React.useRef<number>();
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
+  const [showLogsView, setShowLogsView] = useState(false);
+
   const recipes = recipesMaster;
-  // const requiredError = '*Missing entry';
-  // const rolesIAMAliceSupported = [
-  //   { id: 'reader', name: 'Reader' },
-  //   { id: 'user', name: 'User' },
-  //   { id: 'admin', name: 'Admin' },
-  // ];
-  
+  const requiredError = '*Missing entry';
+
+  const setVault = () =>{
+    ProgressIndicator.show();
+    CodeSpaceApiClient.read_secret(projectDetails?.projectName.toLowerCase(), deployEnvironment === 'staging' ? 'int' : 'prod')
+      .then((response) => {
+        ProgressIndicator.hide();
+        Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        // if (err?.response?.data?.errors?.length > 0) {
+        //   err?.response?.data?.errors.forEach((err: any) => {
+        //     Notification.show(err?.message || 'Something went wrong.', 'alert');
+        //   });
+        // } else {
+        //   Notification.show(err?.message || 'Something went wrong.', 'alert');
+        // }
+      });
+  }
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -181,85 +204,91 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     if (id) {
-    CodeSpaceApiClient.getCodeSpaceStatus(id)
-      .then((res: ICodeSpaceData) => {
+      CodeSpaceApiClient.getCodeSpaceStatus(id)
+        .then((res: ICodeSpaceData) => {
 
-        const loginWindow = window.open(
-          Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
-          'codeSpaceSessionWindow',
-          'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
-        );
+          const loginWindow = window.open(
+            Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
+            'codeSpaceSessionWindow',
+            'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
+          );
 
-        setTimeout(() => {
-          loginWindow?.close();
+          setTimeout(() => {
+            loginWindow?.close();
 
-          setLoading(false);
-          const status = res.status;
-          if (
-            status !== 'CREATE_REQUESTED' &&
-            status !== 'CREATE_FAILED' &&
-            status !== 'DELETE_REQUESTED' &&
-            status !== 'DELETED' &&
-            status !== 'DELETE_FAILED'
-          ) {
-            const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
-            const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
-            const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
-            const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
-            const intDeployed =
-              intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-              (intDeployedUrl !== null && intDeployedUrl !== 'null');
-            const prodDeployed =
-              prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-              (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-            const deployingInProgress =
-              (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-              prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
-            // const deployed =
-            //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-            //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-            //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-            //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-            
-            setCodeSpaceData({
-              ...res,
-              running: !!res.intiatedOn,
-            });
-            setCodeDeployed(intDeployed);
-            setCodeDeployedUrl(intDeployedUrl);
-            setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+            setLoading(false);
+            const status = res.status;
+            if (
+              status !== 'CREATE_REQUESTED' &&
+              status !== 'CREATE_FAILED' &&
+              status !== 'DELETE_REQUESTED' &&
+              status !== 'DELETED' &&
+              status !== 'DELETE_FAILED'
+            ) {
+              const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
+              const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
+              const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+              const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+              const intDeployed =
+                intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                (intDeployedUrl !== null && intDeployedUrl !== 'null');
+              const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';  
+              const prodDeployed =
+                prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+              const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';    
+              const deployingInProgress =
+                (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
+              // const deployed =
+              //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+              //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+              //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
+              //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
 
-            setProdCodeDeployed(prodDeployed);
-            setProdCodeDeployedUrl(prodDeployedUrl);
-            setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+              setCodeSpaceData({
+                ...res,
+                running: !!res.intiatedOn,
+              });
+              
+              setCodeDeployedUrl(intDeployedUrl);
+              setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+              setCodeDeployed(intDeployed);
+              setIntCodeDeployFailed(intDeployFailed);
 
-            Tooltip.defaultSetup();
-            if (deployingInProgress) {
-              const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
-              setDeployEnvironment(deployingEnv);
-              setCodeDeploying(true);
-              enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+              setProdCodeDeployedUrl(prodDeployedUrl);
+              setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+              setProdCodeDeployed(prodDeployed);
+              setProdCodeDeployFailed(prodDeployFailed);
+
+              Tooltip.defaultSetup();
+              Tabs.defaultSetup();
+              if (deployingInProgress) {
+                const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+                setDeployEnvironment(deployingEnv);
+                setCodeDeploying(true);
+                enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+              }
+            } else {
+              Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
             }
-          } else {
-            Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
-          }
-        }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
-      })
-      .catch((err: Error) => {
-        Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
-        history.replace('/codespaces');
-      });
-    // ApiClient.getCodeSpace().then((res: any) => {
-    //   setLoading(false);
-    //   const codeSpaceRunning = (res.success === 'true');
-    //   setCodeSpaceData({
-    //     ...codeSpaceData,
-    //     running: codeSpaceRunning
-    //   });
-    //   setShowNewCodeSpaceModal(!codeSpaceRunning);
-    // }).catch((err: Error) => {
-    //   Notification.show("Error in validating code space - " + err.message, 'alert');
-    // });
+          }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+        })
+        .catch((err: Error) => {
+          Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
+          history.replace('/codespaces');
+        });
+      // ApiClient.getCodeSpace().then((res: any) => {
+      //   setLoading(false);
+      //   const codeSpaceRunning = (res.success === 'true');
+      //   setCodeSpaceData({
+      //     ...codeSpaceData,
+      //     running: codeSpaceRunning
+      //   });
+      //   setShowNewCodeSpaceModal(!codeSpaceRunning);
+      // }).catch((err: Error) => {
+      //   Notification.show("Error in validating code space - " + err.message, 'alert');
+      // });
     } else {
       Notification.show('Codespace id is missing. Please choose your codespace to open.', 'warning');
       history.replace('/codespaces');
@@ -267,11 +296,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   }, []);
 
   useEffect(() => {
+    setVault();
+  }, [deployEnvironment]);
+
+  useEffect(() => {
     livelinessIntervalRef.current = livelinessInterval;
     return () => {
       livelinessIntervalRef.current && clearInterval(livelinessIntervalRef.current);
     };
   }, [livelinessInterval]);
+
+  useEffect(() => {
+    showLogsView && Tabs.defaultSetup();
+  }, [showLogsView]);
 
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
@@ -285,6 +322,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const openInNewtab = () => {
     window.open(codeSpaceData.workspaceUrl, '_blank');
     trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+  };
+
+  const toggleLogView = () => {
+    setShowLogsView(!showLogsView);
   };
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
@@ -306,13 +347,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const onShowCodeDeployModal = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(codeSpaceData.projectDetails?.gitRepoName)
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
       .then((res: any) => {
         ProgressIndicator.hide();
         setShowCodeDeployModal(true);
         setBranches(res);
-        // setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-        // setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+        setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+        setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
         Tooltip.defaultSetup();
       })
@@ -320,6 +361,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
+    setVault();
   };
 
   const onCodeDeployModalCancel = () => {
@@ -328,7 +370,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const enableDeployLivelinessCheck = (id: string, deployEnvironmentValue: string) => {
     clearInterval(livelinessInterval);
-    const intervalId = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {
@@ -342,15 +384,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               clearInterval(livelinessIntervalRef.current);
               setCodeDeploying(false);
               if (deployEnvironmentValue === 'staging') {
-                setCodeDeployed(true);
                 setCodeDeployedUrl(intDeploymentDetails?.deploymentUrl);
                 setCodeDeployedBranch(branchValue);
+                setCodeDeployed(true);
               } else if (deployEnvironmentValue === 'production') {
-                setProdCodeDeployed(true);
                 setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
+                setProdCodeDeployed(true);
               }
-              
+              Tabs.defaultSetup();
               Tooltip.defaultSetup();
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.projectDetails?.projectName} succesfully deployed.`);
@@ -390,28 +432,29 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const onDeployEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
-    // if (deployEnv === 'staging') {
-    //   setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-    //   setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-    // } else {
-    //   setSecureWithIAMSelected(codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-    //   setIAMTechnicalUserID(codeSpaceData.projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-    // }
+    if (deployEnv === 'staging') {
+      setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+    } else {
+      setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+    }
   };
 
   const onAcceptCodeDeploy = () => {
-    const secureWithIAMSelected = false;
-    // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
-    //   setIAMTechnicalUserIDError(requiredError);
-    //   return;
-    // } else {
-    //   setIAMTechnicalUserIDError('');
-    // }
+    if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
+      setIAMTechnicalUserIDError(requiredError);
+      return;
+    } else {
+      setIAMTechnicalUserIDError('');
+    }
     const deployRequest: IDeployRequest = {
       secureWithIAMRequired: secureWithIAMSelected,
       technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-      branch: branchValue
+      branch: branchValue,
+      valutInjectorEnable: vaultEnabled,
+
     };
     ProgressIndicator.show();
     CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
@@ -423,7 +466,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           if (acceptContinueCodingOnDeployment) {
             ProgressIndicator.hide();
             Notification.show(
-              `Code space '${codeSpaceData.projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
             );
             setShowCodeDeployModal(false);
           } else {
@@ -455,42 +498,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setSecureWithIAMSelected(e.target.checked);
   };
 
-  // const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-  //   const iamUserID = evnt.currentTarget.value.trim();
-  //   setIAMTechnicalUserID(iamUserID);
-  //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
-  // };
+  const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const iamUserID = evnt.currentTarget.value.trim();
+    setIAMTechnicalUserID(iamUserID);
+    setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
+  };
 
   const onAcceptContinueCodingOnDeployment = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAcceptContinueCodingOnDeployment(e.target.checked);
   };
 
-  const getIAMAliceUsers = (user: IUserDetails) => {
-    const collabarationData = {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      id: user.shortId,
-      department: user.department,
-      eMail: user.email,
-      email: user.email,
-      mobileNumber: user.mobileNumber,
-      roles: [{ id: 'reader', name: 'Reader' }], // Default role is Reader
-    };
-
-    let duplicateMember = false;
-    duplicateMember = usersIAMAliceSecured.filter((member: IUserInfo) => member.id === user.shortId)?.length
-      ? true
-      : false;
-
-    if (duplicateMember) {
-      Notification.show(`User ${user.firstName} ${user.lastName} already exist.`, 'warning');
-    } else {
-      usersIAMAliceSecured.push(collabarationData);
-      setUsersIAMAliceSecured([...usersIAMAliceSecured]);
-    }
-  };
-
-  const isPublicRecipeChoosen = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'private-user-defined';
+  const projectDetails = codeSpaceData?.projectDetails;
+  const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -506,6 +525,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     </svg>
   );
 
+  const isOwner = projectDetails?.projectOwner?.id === props.user.id;
+  const navigateSecurityConfig = () => {
+    if (projectDetails?.publishedSecuirtyConfig) {
+      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`);
+      return;
+    }
+    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`);
+  }
+
+  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
+
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
       {codeSpaceData.running && (
@@ -517,36 +548,110 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
                 <h2
                   tooltip-data={
-                    recipes.find((item: any) => item.id === codeSpaceData.projectDetails.recipeDetails.recipeId).name
+                    recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name
                   }
                 >
-                  {codeSpaceData.projectDetails.projectName}
+                  {projectDetails.projectName}
                 </h2>
               </div>
             </div>
             <div className={Styles.navigation}>
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
-                  {!isPublicRecipeChoosen && (
+                  {!disableDeployment && (
                     <>
-                      {codeDeployed && (
-                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
-                          <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                            <i className="icon mbc-icon link" /> Staging (
-                            <i className="icon mbc-icon transactionaldata" /> {codeDeployedBranch})
-                            {codeSpaceData.projectDetails.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      {isOwner && (
+                        <div
+                          className={classNames(Styles.configLink, Styles.pointer)}
+                          onClick={() => navigateSecurityConfig()}
+                        >
+                          <a target="_blank" rel="noreferrer">
+                            <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
+                            {projectDetails?.publishedSecuirtyConfig?.status ||
+                              projectDetails?.securityConfig?.status ||
+                              'New'}
+                            )
                           </a>
                           &nbsp;
                         </div>
                       )}
+                      {codeDeployed && (
+                        <div className={Styles.urlLink} tooltip-data="APP BASE URL - Staging">
+                          <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                            <i className="icon mbc-icon link" /> Staging (
+                            <i className="icon mbc-icon transactionaldata" /> {codeDeployedBranch})
+                            {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                          </a>
+                          &nbsp;
+                          <a target="_blank" href={buildLogViewURL(codeDeployedUrl, true)} rel="noreferrer">
+                            <i
+                              tooltip-data="Show Staging App logs in new tab"
+                              className="icon mbc-icon workspace small right"
+                            />
+                          </a>
+                          <div>
+                            ({intDeploymentDetails?.gitjobRunID ? (
+                              <a
+                                target="_blank"
+                                href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                tooltip-data="Show staging build & deploy logs in new tab"
+                                rel="noreferrer"
+                              >
+                                {regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeployedOn)}
+                              </a>
+                            ) : (
+                              <>{regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeployedOn)}</>
+                            )})
+                          </div>
+                        </div>
+                      )}
+                      {intCodeDeployFailed && (
+                        <div tooltip-data="Last deployement failed on Staging - Click to view logs">
+                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)} rel="noreferrer">
+                            <i
+                              className="icon mbc-icon alert circle small right"
+                            />
+                          </a>
+                        </div>
+                      )}
                       {prodCodeDeployed && (
-                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
+                        <div className={Styles.urlLink} tooltip-data="APP BASE URL - Production">
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Production (
                             <i className="icon mbc-icon transactionaldata" /> {prodCodeDeployedBranch})
-                            {codeSpaceData.projectDetails.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                            {prodDeploymentDetails?.secureWithIAMRequired &&
+                              securedWithIAMContent}
                           </a>
                           &nbsp;
+                          <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl)} rel="noreferrer">
+                            <i
+                              tooltip-data="Show Production App logs in new tab"
+                              className="icon mbc-icon workspace small right"
+                            />
+                          </a>
+                          <div>
+                            ({prodDeploymentDetails?.gitjobRunID ? (
+                              <a
+                                target="_blank"
+                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                tooltip-data="Show production build & deploy logs in new tab"
+                                rel="noreferrer"
+                              >
+                                {regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}
+                              </a>
+                            ) : (
+                              <>{regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}</>
+                            )})
+                          </div>
+                        </div>
+                      )}
+                      {prodCodeDeployFailed && (
+                        <div tooltip-data="Last deployement failed on Production - Click to view logs">
+                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)} rel="noreferrer">
+                            <i
+                              className="icon mbc-icon alert circle small right"
+                            />
+                          </a>
                         </div>
                       )}
                       <div>
@@ -557,9 +662,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
                         </button>
                       </div>
+                      {(codeDeployed || prodCodeDeployed) && (
+                        <div
+                          tooltip-data="Show/Hide App Logs Panel"
+                          className={classNames(Styles.showLogs, showLogsView && Styles.active)}
+                          onClick={toggleLogView}
+                        >
+                          <i className="icon mbc-icon workspace small right"></i>
+                        </div>
+                      )}
                     </>
                   )}
-                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
+                  <div tooltip-data="Open in new tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                     <i className="icon mbc-icon arrow small right" />
                     <span> &nbsp; </span>
                   </div>
@@ -571,43 +685,86 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             </div>
           </div>
           <div className={Styles.codeSpaceContent}>
-            {
-              <div className={Styles.codeSpace}>
-                {loading ? (
-                  <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
-                    <div className="progress infinite" />
-                  </div>
-                ) : (
-                  codeSpaceData.running && (
-                    <div className={Styles.codespaceframe}>
-                      <iframe
-                        className={fullScreenMode ? Styles.fullscreen : ''}
-                        src={codeSpaceData.workspaceUrl}
-                        title="Code Space"
-                        allow="clipboard-read; clipboard-write"
-                      />
-                      <div className={Styles.textRight}>
-                        <small>
-                          Made with{' '}
-                          <svg
-                            stroke="#e84d47"
-                            fill="#e84d47"
-                            strokeWidth="0"
-                            viewBox="0 0 512 512"
-                            height="1em"
-                            width="1em"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path>
-                          </svg>{' '}
-                          by Developers for Developers
-                        </small>
+            <div className={Styles.codeSpace}>
+              {loading ? (
+                <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
+                  <div className="progress infinite" />
+                </div>
+              ) : (
+                codeSpaceData.running && (
+                  <div className={Styles.codespaceframe}>
+                    <iframe
+                      className={fullScreenMode ? Styles.fullscreen : ''}
+                      src={codeSpaceData.workspaceUrl}
+                      title="Code Space"
+                      allow="clipboard-read; clipboard-write"
+                    />
+                    {(codeDeployed || prodCodeDeployed) && showLogsView && (
+                      <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
+                        <button
+                          className={classNames('link-btn', Styles.closeButton)}
+                          onClick={() => setShowLogsView(false)}
+                        >
+                          <i className="icon mbc-icon close thin"></i>
+                        </button>
+                        <div className={classNames('tabs-panel', Styles.tabsHeightFix)}>
+                          <div className="tabs-wrapper">
+                            <ul className="tabs">
+                              {codeDeployed && (
+                                <li className={'tab active'}>
+                                  <a href="#tab-staginglogpanel" id="staginglogpanel">
+                                    Staging App Logs
+                                  </a>
+                                </li>
+                              )}
+                              {prodCodeDeployed && (
+                                <li className={classNames('tab', !codeDeployed && 'active')}>
+                                  <a href="#tab-productionlogpanel" id="productionlogpanel">
+                                    Production App Logs
+                                  </a>
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                          <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
+                            {codeDeployed && (
+                              <div id="tab-staginglogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
+                                <iframe src={buildLogViewURL(codeDeployedUrl, true)} height="100%" width="100%" />
+                              </div>
+                            )}
+                            {prodCodeDeployed && (
+                              <div
+                                id="tab-productionlogpanel"
+                                className={classNames(Styles.tabsHeightFix, 'tab-content')}
+                              >
+                                <iframe src={buildLogViewURL(prodCodeDeployedUrl)} height="100%" width="100%" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
+                    )}
+                    <div className={Styles.textRight}>
+                      <small>
+                        Made with{' '}
+                        <svg
+                          stroke="#e84d47"
+                          fill="#e84d47"
+                          strokeWidth="0"
+                          viewBox="0 0 512 512"
+                          height="1em"
+                          width="1em"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path>
+                        </svg>{' '}
+                        by Developers for Developers
+                      </small>
                     </div>
-                  )
-                )}
-              </div>
-            }
+                  </div>
+                )
+              )}
+            </div>
           </div>
         </React.Fragment>
       )}
@@ -639,7 +796,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           cancelButtonTitle={'Cancel'}
           onAccept={onAcceptCodeDeploy}
           showCancelButton={true}
-          modalWidth="700px"
+          modalWidth="600px"
           buttonAlignment="center"
           show={showCodeDeployModal}
           content={
@@ -699,9 +856,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               </div>
-              {(!codeSpaceData.projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/)) &&
+              {!projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/) && (
                 <>
-                  {/* {deployEnvironment === 'staging' && */}
+                  {deployEnvironment === 'staging' && (
                     <>
                       <div>
                         <label className="checkbox">
@@ -711,164 +868,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               className="ff-only"
                               checked={secureWithIAMSelected}
                               onChange={onChangeSecureWithIAM}
-                              disabled={codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                            />
-                          </span>
-                          <span className="label">Secure with IAM + Alice Access</span>
-                        </label>
-                      </div>
-                      {secureWithIAMSelected && (
-                        <div className={classNames('input-field-group include-error')}>
-                          <label htmlFor="userId" className="input-label">
-                            Find and add the users you want to access your API
-                          </label>
-                          <div className={Styles.iamUserSection}>
-                            <div className={Styles.iamUserSectionList}>
-                              <div className={Styles.iamUserSectionListAdd}>
-                                <AddUser
-                                  getCollabarators={getIAMAliceUsers}
-                                  dagId={''}
-                                  isRequired={secureWithIAMSelected}
-                                  isUserprivilegeSearch={false}
-                                  title='User'
-                                />
-                              </div>
-                              <div className={Styles.iamUserList}>
-                                {usersIAMAliceSecured?.length > 0 ? (
-                                  <React.Fragment>
-                                    <div className={Styles.iamUserTitle}>
-                                      <div className={Styles.iamUserTitleCol}>User ID</div>
-                                      <div className={Styles.iamUserTitleCol}>Name</div>
-                                      <div className={Styles.iamUserTitleCol}>Role</div>
-                                      <div className={Styles.iamUserTitleCol}></div>
-                                    </div>
-                                    <div className={classNames('mbc-scroll', Styles.iamUserContent)}>
-                                      {usersIAMAliceSecured?.map((item, collIndex) => {
-                                        const isAdmin = item.roles.filter((role: IRole) => role.id === 'admin').length ? true : false;
-                                        const isUser = item.roles.filter((role: IRole) => role.id === 'user').length ? true : false;
-                                        const isReader = item.roles.filter((role: IRole) => role.id === 'reader').length ? true : false;
-                                        
-                                        return (
-                                          <div key={collIndex} className={Styles.iamUserContentRow}>
-                                            <div className={Styles.iamUserTitleCol}>{item.id}</div>
-                                            <div className={Styles.iamUserTitleCol}>
-                                              {item.firstName + ' ' + item.lastName}
-                                            </div>
-                                            <div className={Styles.iamUserTitleCol}>
-                                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                                <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                                                  <span className="wrapper">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="ff-only"
-                                                      value="reader"
-                                                      checked={isReader}
-                                                      readOnly
-                                                    />
-                                                  </span>
-                                                  <span className="label">Reader</span>
-                                                </label>
-                                              </div>
-                                              &nbsp;&nbsp;&nbsp;
-                                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                                <label className={'checkbox'}>
-                                                  <span className="wrapper">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="ff-only"
-                                                      value="User"
-                                                      checked={isUser}
-                                                      readOnly
-                                                      // checked={item?.permission !== null ? item?.canDeploy : false}
-                                                      // onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                                    />
-                                                  </span>
-                                                  <span className="label">User</span>
-                                                </label>
-                                              </div>
-                                              &nbsp;&nbsp;&nbsp;
-                                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                                <label className={'checkbox'}>
-                                                  <span className="wrapper">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="ff-only"
-                                                      value="Admin"
-                                                      checked={isAdmin}
-                                                      readOnly
-                                                      // checked={item?.permission !== null ? item?.canDeploy : false}
-                                                      // onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                                    />
-                                                  </span>
-                                                  <span className="label">Admin</span>
-                                                </label>
-                                              </div>
-                                            </div>
-                                            <div className={Styles.iamUserTitleCol}>
-                                              <span
-                                                tooltip-data={'Remove User'}
-                                                className={Styles.deleteEntry}
-                                                // onClick={onCollaboratorDelete(item.id)}
-                                              >
-                                                <i className="icon mbc-icon trash-outline" />
-                                              </span>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </React.Fragment>
-                                ) : (
-                                  <div className={Styles.iamUserSectionEmpty}>
-                                    <h6> Collaborators Not Exist!</h6>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        // <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
-                        //   <div>
-                        //     <TextBox
-                        //       type="text"
-                        //       controlId={'iamTechnicalUserID'}
-                        //       labelId={'iamTechnicalUserIDLabel'}
-                        //       label={'Technical User ID'}
-                        //       placeholder={'IAM Technical User Id'}
-                        //       value={iamTechnicalUserID}
-                        //       errorText={iamTechnicalUserIDError}
-                        //       required={true}
-                        //       maxLength={7}
-                        //       onChange={onIAMTechnicalUserIDOnChange}
-                        //     />
-                        //   </div>
-                        //   <div className={Styles.createTechUserWrapper}>
-                        //     <a href={IAM_URL} target="_blank" rel="noreferrer">
-                        //       Create a new technical user in IAM (Enabled only with Production IAM)
-                        //     </a>
-                        //   </div>
-                        // </div>
-                      )}
-                    </>
-                  {/* } */}
-                  {/* {deployEnvironment === 'production' &&
-                    <>
-                      <div>
-                        <label className="checkbox">
-                          <span className="wrapper">
-                            <input
-                              type="checkbox"
-                              className="ff-only"
-                              checked={secureWithIAMSelected}
-                              onChange={onChangeSecureWithIAM}
-                              disabled={codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                              disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                             />
                           </span>
                           <span className="label">Secure with IAM</span>
                         </label>
                       </div>
                       {secureWithIAMSelected && (
-                        <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
+                        <div
+                          className={classNames(
+                            Styles.flexLayout,
+                            projectDetails?.intDeploymentDetails?.secureWithIAMRequired &&
+                              Styles.disabledDiv,
+                          )}
+                        >
                           <div>
                             <TextBox
                               type="text"
@@ -891,9 +904,56 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                     </>
-                  } */}
+                  )}
+                  {deployEnvironment === 'production' && (
+                    <>
+                      <div>
+                        <label className="checkbox">
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              checked={secureWithIAMSelected}
+                              onChange={onChangeSecureWithIAM}
+                              disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                            />
+                          </span>
+                          <span className="label">Secure with IAM</span>
+                        </label>
+                      </div>
+                      {secureWithIAMSelected && (
+                        <div
+                          className={classNames(
+                            Styles.flexLayout,
+                            projectDetails?.prodDeploymentDetails?.secureWithIAMRequired &&
+                              Styles.disabledDiv,
+                          )}
+                        >
+                          <div>
+                            <TextBox
+                              type="text"
+                              controlId={'iamTechnicalUserID'}
+                              labelId={'iamTechnicalUserIDLabel'}
+                              label={'Technical User ID'}
+                              placeholder={'IAM Technical User Id'}
+                              value={iamTechnicalUserID}
+                              errorText={iamTechnicalUserIDError}
+                              required={true}
+                              maxLength={7}
+                              onChange={onIAMTechnicalUserIDOnChange}
+                            />
+                          </div>
+                          <div className={Styles.createTechUserWrapper}>
+                            <a href={IAM_URL} target="_blank" rel="noreferrer">
+                              Create a new technical user in IAM (Enabled only with Production IAM)
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </>
-              }
+              )}
               <div>
                 <label className="checkbox">
                   <span className="wrapper">

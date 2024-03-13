@@ -16,7 +16,21 @@ spring:
           use_jdbc_metadata_defaults: false
     hibernate:
      ddl-auto: none
-     
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:XXXX:XXXX}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL   
   cloud:
     stream:
       default-binder: kafka
@@ -46,12 +60,10 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}    
 
 dna:
-  uri: ${DNA_URI:XXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
+  uri: ${DNA_URI:XXXX} 
   
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:XXXX}
     byPassUrl: ${JWT_BYPASS_URIS:/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
 
 git:

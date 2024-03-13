@@ -40,6 +40,8 @@ export interface IDigitalValueProps {
   onDelete: (solutionId: string) => void;
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
   onExportToPDFDocument: JSX.Element;
+  canTransferOwnerShip: boolean;
+  onTransferOwnershipSolutionConsent: (solutionId: string) => void;
 }
 
 export interface IDigitalValueSummaryState {
@@ -52,8 +54,8 @@ export interface IDigitalValueSummaryState {
 }
 export default class DigitalValueSummary extends React.Component<IDigitalValueProps, any> {
 
-  static digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
-  static dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+  static digitalValueTypeKeyValue = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+  static dataValueTypeKeyValue = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
   static dataValueSavingsKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[0];
   static dataValueRevenueKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[1];
 
@@ -79,6 +81,18 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
       contextMenuOffsetRight: 10,
       showContextMenu: !this.state.showContextMenu,
     });
+  };
+
+  public onTransferOwnershipSolution = (e: React.FormEvent<HTMLSpanElement>) => {
+    e.stopPropagation();
+    this.setState(
+      {
+        showContextMenu: false,
+      },
+      () => {
+        this.props.onTransferOwnershipSolutionConsent(this.props.solutionId);
+      },
+    );
   };
 
   public onEditSolution = (e: React.FormEvent<HTMLSpanElement>) => {
@@ -177,8 +191,8 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
 
     const teamMembersList = projectControllers
       ? projectControllers.map((member: ITeams, index: number) => {
-          return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} useFullWidth={true} />;
-        })
+        return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} useFullWidth={true} />;
+      })
       : [];
 
     const valueCalculator = digitalValue ? digitalValue.valueCalculator : null;
@@ -191,8 +205,8 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
     const assessment = digitalValue ? digitalValue.assessment : '';
     const sharingTeamMembersList = permissions
       ? permissions.map((member: ITeams, index: number) => {
-          return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
-        })
+        return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
+      })
       : [];
 
     const canShowAssessment =
@@ -208,20 +222,20 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
     const dataValueCalculator = digitalValue ? digitalValue.dataValueCalculator : null;
     const savingsValueFactorSummary = dataValueCalculator ? dataValueCalculator.savingsValueFactorSummaryVO : null;
     const revenueValueFactorSummary = dataValueCalculator ? dataValueCalculator.revenueValueFactorSummaryVO : null;
-        
+
     const canShowDataValueCalculator =
       savingsValueFactorSummary && revenueValueFactorSummary
         ? savingsValueFactorSummary.value || revenueValueFactorSummary.value
           ? true
           : false
-        : false;    
+        : false;
     const canShowValueDrivers = valueDrivers ? (valueDrivers.length > 0 ? true : false) : false;
     const canShowCostDrivers = costDrivers ? (costDrivers.length > 0 ? true : false) : false;
     const canShowMaturityLevel = teamMembersList.length > 0 || maturityLevel ? true : false;
 
     const isDataValueCalcSelected = valueCalculationType === DigitalValueSummary.dataValueTypeKeyValue;
     let totalSavings = 0;
-    let totalRevenue = 0; 
+    let totalRevenue = 0;
 
     const changeLog = (
       <table className="ul-table solutions">
@@ -233,34 +247,34 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
           </tr>
           {this.state.changeLogs
             ? this.state.changeLogs.map((data: IChangeLogData, index: number) => {
-                return (
-                  <tr key={index} className="data-row">
-                    <td className="wrap-text">
-                      {regionalDateAndTimeConversionSolution(data.changeDate)}
-                      {/* {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)} */}
-                    </td>
-                    <td className="wrap-text">
-                      {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
-                    </td>
-                    <td>
-                      <span className="hidden">`</span>
-                    </td>
-                    <td>
-                      <span className="hidden">`</span>
-                    </td>
-                    <td>
-                      <span className="hidden">`</span>
-                    </td>
-                    <td>
-                      <span className="hidden">`</span>
-                    </td>
-                    <td>
-                      <span className="hidden">`</span>
-                    </td>
-                    <td className="wrap-text">{data.changeDescription}</td>
-                  </tr>
-                );
-              })
+              return (
+                <tr key={index} className="data-row">
+                  <td className="wrap-text">
+                    {regionalDateAndTimeConversionSolution(data.changeDate)}
+                    {/* {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)} */}
+                  </td>
+                  <td className="wrap-text">
+                    {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td className="wrap-text">{data.changeDescription}</td>
+                </tr>
+              );
+            })
             : ''}
         </tbody>
       </table>
@@ -316,6 +330,11 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                         </PDFDownloadLink>
                       }
                     </li>
+                    {this.props.canTransferOwnerShip && (
+                      <li className="contextListItem">
+                        <span onClick={this.onTransferOwnershipSolution}>Transfer Ownership</span>
+                      </li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -622,30 +641,30 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                       <div id="valueRampUpContainer" className={Styles.rampUpContainer}>
                         {valueCalculator
                           ? valueCalculator.calculatedValueRampUpYears.map(
-                              (valueDriver: IValueRampUp, indexVal: number) => {
-                                return (
-                                  <div id={'valueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
-                                    <strong>{valueDriver.year}</strong>
-                                    <div>
-                                      <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {valueDriver.percent ? (
-                                          <FormattedNumber value={Number(valueDriver.percent)} />
-                                        ) : (
-                                          ''
-                                        )}
-                                      </IntlProvider>
-                                      %
-                                    </div>
-                                    <div>
-                                      <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {valueDriver.value !== '' ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
-                                      </IntlProvider>
-                                      &euro;
-                                    </div>
+                            (valueDriver: IValueRampUp, indexVal: number) => {
+                              return (
+                                <div id={'valueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
+                                  <strong>{valueDriver.year}</strong>
+                                  <div>
+                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                      {valueDriver.percent ? (
+                                        <FormattedNumber value={Number(valueDriver.percent)} />
+                                      ) : (
+                                        ''
+                                      )}
+                                    </IntlProvider>
+                                    %
                                   </div>
-                                );
-                              },
-                            )
+                                  <div>
+                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                      {valueDriver.value !== '' ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                    </IntlProvider>
+                                    &euro;
+                                  </div>
+                                </div>
+                              );
+                            },
+                          )
                           : ''}
                       </div>
                       {/* <div className={Styles.scrollerRight}>
@@ -721,21 +740,21 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
             </div> */}
                       <div id="dataValueSavingsRampUpContainer" className={Styles.rampUpContainer}>
                         {dataValueCalculator
-                          ? dataValueCalculator.calculatedValueRampUpYearsVO.savings.map(
-                              (valueDriver: IDataValueRampUp, indexVal: number) => {
-                                return (
-                                  <div id={'valueSavingsRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
-                                    <strong>{valueDriver.year}</strong>
-                                    <div>
-                                      <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : '0'}
-                                      </IntlProvider>
-                                      &euro;
-                                    </div>
+                          ? dataValueCalculator.calculatedValueRampUpYearsVO?.savings?.map(
+                            (valueDriver: IDataValueRampUp, indexVal: number) => {
+                              return (
+                                <div id={'valueSavingsRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
+                                  <strong>{valueDriver.year}</strong>
+                                  <div>
+                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                      {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : '0'}
+                                    </IntlProvider>
+                                    &euro;
                                   </div>
-                                );
-                              },
-                            )
+                                </div>
+                              );
+                            },
+                          )
                           : ''}
                       </div>
                       {/* <div className={Styles.scrollerRight}>
@@ -754,20 +773,20 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                       <div id="dataValueRevenueRampUpContainer" className={Styles.rampUpContainer}>
                         {dataValueCalculator
                           ? dataValueCalculator?.calculatedValueRampUpYearsVO?.revenue?.map(
-                              (valueDriver: IDataValueRampUp, indexVal: number) => {
-                                return (
-                                  <div id={'valueRevenueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
-                                    <strong>{valueDriver.year}</strong>
-                                    <div>
-                                      <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : '0'}
-                                      </IntlProvider>
-                                      &euro;
-                                    </div>
+                            (valueDriver: IDataValueRampUp, indexVal: number) => {
+                              return (
+                                <div id={'valueRevenueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
+                                  <strong>{valueDriver.year}</strong>
+                                  <div>
+                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                      {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : '0'}
+                                    </IntlProvider>
+                                    &euro;
                                   </div>
-                                );
-                              },
-                            )
+                                </div>
+                              );
+                            },
+                          )
                           : ''}
                       </div>
                       {/* <div className={Styles.scrollerRight}>
@@ -814,23 +833,23 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                 <div className={Styles.formWrapper}>
                   {attachments
                     ? attachments.map((attachment: IAttachment, index: number) => {
-                        return (
-                          <div key={attachment.id} className={Styles.attachmentListView}>
-                            <div className={Styles.attachmentContainer}>
-                              <div className={Styles.attachmentWrapper}>
-                                <i className={classNames(Styles.attachmentIcon, 'icon document')} />
-                                <span className={Styles.fileNameText}>{attachment.fileName}</span>
-                                <i
-                                  onClick={this.downloadAttachment(attachment)}
-                                  className={classNames(Styles.downloadIcon, 'icon download')}
-                                />
-                                <br />
-                                <span className={Styles.fileSizeText}>{attachment.fileSize}</span>
-                              </div>
+                      return (
+                        <div key={attachment.id} className={Styles.attachmentListView}>
+                          <div className={Styles.attachmentContainer}>
+                            <div className={Styles.attachmentWrapper}>
+                              <i className={classNames(Styles.attachmentIcon, 'icon document')} />
+                              <span className={Styles.fileNameText}>{attachment.fileName}</span>
+                              <i
+                                onClick={this.downloadAttachment(attachment)}
+                                className={classNames(Styles.downloadIcon, 'icon download')}
+                              />
+                              <br />
+                              <span className={Styles.fileSizeText}>{attachment.fileSize}</span>
                             </div>
                           </div>
-                        );
-                      })
+                        </div>
+                      );
+                    })
                     : ''}
                 </div>
               </div>

@@ -1,0 +1,89 @@
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 10px);
+  }
+  > button {
+    width: calc(50% - 10px);
+    margin-top: 12px;
+  }
+}
+.columnContainer {
+  background-color: #212631;
+  padding: 10px 20px;
+  margin-bottom: 8px;
+}
+.columnType {
+  text-transform: uppercase;
+}
+.tableComment {
+  font-style: italic;
+  margin: 0;
+  line-height: 30px;
+  padding: 0 10px;
+  background-color: #373d49;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tableFormat {
+  text-transform: uppercase;
+  color: #6e737d;
+}
+.btnDelete {
+  background-color: #e94d47!important;
+}
+.btnAdd {
+  background-color: #12e7ab!important;
+}
+.notNull {
+  font-size: 10px;
+  display: inline-block;
+  background-color: #373d49;
+  line-height: 12px;
+  padding: 3px;
+  margin-left: 3px;
+  border-radius: 2px;
+}
+.columnName {
+  text-overflow: ellipsis;
+  max-width: 80%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+:global {
+  .table-format {
+    display: block;    
+    float: right;
+    opacity: 0.75;
+    > p {
+      margin: 0;
+      text-transform: uppercase;
+    }
+  }
+  .table:hover {
+    border-color: #00adef;
+  }
+  .table:hover .table-format {
+    display: none;
+  }
+  .table-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .table-name {
+    font-size: 14px;
+  }
+  .field-content {
+    font-size: 14px;
+  }
+  .row:hover {
+    opacity: 1;
+
+    .field-content {
+      opacity: 0.7;
+    }
+  }
+}

@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: trinio-registry-service
-    version: 1.2.0
+    version: 1.2.3
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -31,6 +31,21 @@ spring:
 
     driverClassName: org.postgresql.Driver
 
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:XXXX:XXXX}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL 
   cloud:
     stream:
       default-binder: kafka
@@ -40,7 +55,6 @@ spring:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 kafka:
   centralTopic:
@@ -51,10 +65,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
       
 minio:
   baseUri: ${MINIO_BASEURI:http://xxxxx}
@@ -67,12 +77,20 @@ trino:
   userauth: ${TRINO_USERAUTH:XXXXX}
   userid: ${TRINO_USERID:XXXXX}
   uri: ${TRINO_BASEURI:XXXXX}
+  host: ${TRINO_HOST:XXXXX}
+  port: ${TRINO_PORT:XXXX}
   user: ${TRINO_USER:XXXXX}
   password: ${TRINO_PASSWORD:XXXXX}
   ssl: ${TRINO_SSL:true}
   sslverification: ${TRINO_SSLVERIFICATION:NONE}
-  catalog: ${TRINO_CATALOG:XXXXX}
+  catalog:
+    default: ${TRINO_CATALOG:XXXX}
+    iceberg: ${TRINO_ICEBERG_CATALOG:XXXX}
+    delta: ${TRINO_DELTA_CATALOG:XXXX}
   hadoop.remoteUser: ${TRINO_UNIX_HADOOP_REMOTEUSER:spring}
+  kubernetes:
+    namespace: ${TRINO_KUBE_NAMESPACE:XXXX}
+    configmap: ${TRINO_KUBE_CONFIGMAP:XXXX}
    
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

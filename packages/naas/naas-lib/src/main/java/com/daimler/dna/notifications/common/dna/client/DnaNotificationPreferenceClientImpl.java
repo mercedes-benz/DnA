@@ -43,11 +43,11 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 	public UsersCollection getAllUsers() {
 		UsersCollection collection = new UsersCollection();
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 
 			String getUsersUri = dnaBaseUri + usersUri + "?limit=0";
 			HttpEntity entity = new HttpEntity<>(headers);

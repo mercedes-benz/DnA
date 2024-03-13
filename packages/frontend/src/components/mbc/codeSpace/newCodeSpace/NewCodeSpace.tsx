@@ -15,10 +15,14 @@ import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
 import { ICodeCollaborator, IUserDetails, IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
+import { ApiClient } from '../../../../services/ApiClient';
 import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import { Link } from 'react-router-dom';
+import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
 
@@ -26,6 +30,7 @@ export interface ICodeSpaceProps {
   user: IUserInfo;
   onBoardingCodeSpace?: ICodeSpaceData;
   onEditingCodeSpace?: ICodeSpaceData;
+  isRetryRequest?: boolean;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
   onUpdateCodeSpaceComplete?: () => void;
@@ -43,10 +48,16 @@ export interface ICreateCodeSpaceData {
 const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onBoadingMode = props.onBoardingCodeSpace !== undefined;
   const onEditingMode = props.onEditingCodeSpace !== undefined;
+  const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
+  const [divisions, setDivisions] = useState([]);
+  const [subDivisions, setSubDivisions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
-  const [recipeValue, setRecipeValue] = useState('0');
+  const [recipeValue, setRecipeValue] = useState(onBoadingMode ? projectDetails.recipeDetails?.recipeId : '0');
   const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
@@ -63,7 +74,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // const [codeSpaceCollaboratorsError, setCodeSpaceCollaboratorsError] = useState('');
 
 
-  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [livelinessInterval, setLivelinessInterval] = useState<number>();
 
   // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
 
@@ -71,9 +82,87 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [collaboratorToDelete, setCollaboratorToDelete] =  useState<ICodeCollaborator>();
   const [collaboratorToTransferOwnership, setCollaboratorToTransferOwnership] =  useState<ICodeCollaborator>();
 
+
+  const [typeOfProject, setTypeOfProject] = useState(projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : '0');
+  const [typeOfProjectError, setTypeOfProjectError] = useState('');
+  const isPlayground = typeOfProject === 'Playground';
+
+  const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
+  const [descriptionError, setDescriptionError] = useState('');
+
+  const [division, setDivision] = useState(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+  const [divisionError, setDivisionError] = useState('');
+
+  const [subDivision, setSubDivision] = useState(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
+  
+  const [department, setDepartment] = useState(onEditingMode && projectDetails?.dataGovernance?.department ? [projectDetails?.dataGovernance?.department] : []);
+  const [departmentError, setDepartmentError] = useState(false);
+
+  const [classificationType, setClassificationType] = useState(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
+  const [classificationTypeError, setClassificationTypeError] = useState('');
+
+  const [PII, setPII] = useState(projectDetails?.dataGovernance?.piiData ? true : false);
+
+  const tags : string[] = [];
+
+  const [archerId, setArcherId] = useState(projectDetails?.dataGovernance?.archerId ? projectDetails?.dataGovernance?.archerId : '');
+  const [archerIdError, setArcherIdError] = useState('');
+
+  const [procedureID, setProcedureID] = useState(projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : '');
+  const [procedureIDError, setProcedureIDError] = useState('');
+
   const requiredError = '*Missing entry';
-  const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
+  const livelinessIntervalRef = React.useRef<number>();
   // let livelinessInterval: any = undefined;
+
+  useEffect(() => {
+  if (!onBoadingMode) {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getLovData()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setDataClassificationDropdown(response[0].data || []);
+        setDivisions(response[1] || []);
+        setDepartments(response[2]?.data || []);
+        onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+        onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err: any) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+    }  
+  }, []);
+
+  useEffect(() => {
+    const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
+    if (divId && divId!=='0' ) {
+      ProgressIndicator.show();
+      ApiClient.get('/subdivisions/' + divId)
+        .then((res) => {
+          setSubDivisions(res || []);
+          onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        }).catch(() => {
+          ProgressIndicator.hide();
+        });
+    } else {
+      setSubDivisions([]);
+    }
+  }, [division]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup(true);
+  }, [typeOfProject]);
 
   useEffect(() => {
     if (onEditingMode && props.onEditingCodeSpace.projectDetails?.projectCollaborators) {
@@ -107,10 +196,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     setProjectNameError(
       !noSpaceNoSpecialChars
         ? projectNameVal.length
-          ? 'Invalid name - Space and Special Chars not allowed'
+          ? 'Invalid name: Space and Special Chars not allowed.'
           : requiredError
         : '',
     );
+    
+    const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
+    if(startsOrEndswith) {
+      setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
+    }
   };
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
@@ -141,6 +235,55 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     setEnvironment(evnt.currentTarget.value.trim());
   };
 
+  const onTypeOfProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOption = e.currentTarget.value;
+    setTypeOfProject(selectedOption);
+  };
+
+  const onDescriptionChange = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    const currentValue = e.currentTarget.value;
+    setDescription(currentValue);
+    setDescriptionError(currentValue.length !== 0 ? '' : requiredError);
+  };
+
+  const onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOption = e.currentTarget.value;
+    setDivision(selectedOption);
+  }
+
+  const onSubDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOption = e.currentTarget.value;
+    setSubDivision(selectedOption);
+  }
+
+  const onClassificationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOption = e.currentTarget.value;
+    setClassificationType(selectedOption);
+  };
+
+  const onPIIChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const currentValue = e.currentTarget.value;
+    if (currentValue === 'true') {
+      setPII(true);
+    } else {
+      setPII(false);
+    }
+  };
+
+  const onArcherIdChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const currentValue = e.currentTarget.value;
+    setArcherId(currentValue);
+    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
+  };
+
+  const onProcedureIDChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const currentValue = e.currentTarget.value;
+    setProcedureID(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
+  };
+
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeValue(selectedOption);
@@ -150,7 +293,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setUserDefinedGithubUrl('');
       setUserDefinedGithubUrlError('');
     }
-    setRecipeError(selectedOption !== '0' ? '' : requiredError);
   };
 
   // User Name
@@ -240,6 +382,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   }
 
   const onCollaboratorDelete = (userId: string) => {
+    Tooltip.clear();
     return () => {
       if (onEditingMode) {
         setCollaboratorToDelete(codeSpaceCollaborators.find((collab: ICodeCollaborator) => collab.id === userId));
@@ -328,6 +471,31 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     setShowConfirmModal(true);
   };
 
+  const validateEditCodeSpaceForm = () => {
+    let formValid = true;
+    if (typeOfProject === '0') {
+      setTypeOfProjectError(requiredError);
+      formValid = false;
+    }
+    if (!description.length ) {
+      setDescriptionError(requiredError);
+      formValid = false;
+    }
+    if(!isPlayground && division === '0'){
+      setDivisionError(requiredError);
+      formValid = false;
+    }
+    if(!department.length){
+      setDepartmentError(true);
+      formValid = false;
+    }
+    if (!isPlayground && classificationType === '0') {
+      setClassificationTypeError(requiredError);
+      formValid = false;
+    }
+    return formValid;
+  };
+
   const validateNewCodeSpaceForm = (isPublicRecipeChoosen: boolean) => {
     let formValid = true;
     if (!projectName.length) {
@@ -336,6 +504,26 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     }
     if (recipeValue === '0') {
       setRecipeError(requiredError);
+      formValid = false;
+    }
+    if (typeOfProject === '0') {
+      setTypeOfProjectError(requiredError);
+      formValid = false;
+    }
+    if (!description.length) {
+      setDescriptionError(requiredError);
+      formValid = false;
+    }
+    if(!isPlayground && division === '0'){
+      setDivisionError(requiredError);
+      formValid = false;
+    }
+    if(!department.length){
+      setDepartmentError(true);
+      formValid = false;
+    }
+    if (!isPlayground && classificationType === '0') {
+      setClassificationTypeError(requiredError);
       formValid = false;
     }
     // if (isPublicRecipeChoosen && githubUserName === '') {
@@ -351,11 +539,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     } else {
       if (isValidGITRepoUrl(userDefinedGithubUrl, isPublicRecipeChoosen)) setUserDefinedGithubUrlError('');
     }
-    if (githubToken === '') {
+    if (githubToken === '' && recipeValue !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
+    if (projectNameError !== '' || recipeValue === '0' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;
@@ -369,7 +557,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     // } else {
     //   setGithubUserNameError('');
     // }
-    if (githubToken === '') {
+    if (githubToken === '' && recipeValue !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
@@ -381,7 +569,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const enableLivelinessCheck = (id: string) => {
     clearInterval(livelinessInterval);
-    const intervalId = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {
@@ -435,6 +623,43 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   //   }, 2000);
   // };
 
+  const editCodeSpace = () => {
+    if (validateEditCodeSpaceForm()){
+      const editCodeSpaceRequest = {
+        data: {
+          typeOfProject: typeOfProject,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          classificationType: classificationType,
+          piiData: PII,
+          tags: tags,
+          archerId: archerId,
+          procedureID: procedureID,
+        },
+      };
+
+      ProgressIndicator.show();
+      CodeSpaceApiClient.editCodeSpace(props.onEditingCodeSpace.id, editCodeSpaceRequest)
+      .then((res) => {
+        Notification.show('Code space updated successfully');
+        ProgressIndicator.hide();
+        props.onUpdateCodeSpaceComplete();
+        
+      })
+      .catch((err: Error) => {
+        ProgressIndicator.hide();
+        
+        Notification.show('Error in updating code space. Please try again later.\n' + err.message, 'alert');
+        
+      });
+    }
+
+  };
+
   const createCodeSpace = () => {
     const isPublicRecipeChoosen = recipeValue.startsWith('public');
     const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
@@ -453,14 +678,27 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               operatingSystem: 'Debian-OS-11',
               ramSize: '1',
               recipeId: recipeValue,
-              resource: recipe.resource
-            }
-          }
+              resource: recipe.resource,
+            },
+            dataGovernance: {
+              typeOfProject: typeOfProject,
+              description: description,
+              divisionId: division.split('@-@')[0],
+              division: division.split('@-@')[1],
+              subDivisionId: subDivision.split('@-@')[0],
+              subDivision: subDivision.split('@-@')[1],
+              department: department[0],
+              classificationType: classificationType,
+              piiData: PII,
+              archerId: archerId,
+              procedureID: procedureID,
+            },
+          },
         },
         pat: githubToken
       };
 
-      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe) {
+      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe || recipe.repodetails) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
         createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedGithubRecipe ? (userDefinedGithubUrl.split('://')[1] + ',') : recipe.repodetails;
@@ -573,7 +811,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   //   const newCollaborators = codeSpaceCollaborators.filter((collab: ICodeCollaborator) => !existingColloborators.some((existCollab: ICodeCollaborator) => existCollab.id === collab.id));
   // };
 
-  const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
   const isPublicRecipeChoosen = recipeValue.startsWith('public');
   const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   return (
@@ -582,27 +819,78 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         <div className={Styles.newCodeSpacePanel}>
           <div className={Styles.addicon}> &nbsp; </div>
           <h3>
-            Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}
+            Hello {namePrefix}, {props.isRetryRequest ? 'Retry creation of' : 'On-board to'} Code Space
           </h3>
-          <p>Protect your code space with the password of your own.</p>
           <div className={Styles.codeSpaceDetails}>
             <div className={Styles.flexLayout}>
               <div>
                 <label>Name</label>
               </div>
               <div>{projectDetails.projectName}</div>
+              <div>
+                <label>Type of Project</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : 'N/A'}</div>
             </div>
             <div className={Styles.flexLayout}>
-              <div>
-                <label>Recipe</label>
+              <div style={{ width: '25%' }}>
+                <label>Description</label>
               </div>
-              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
+              <div style={{ width: '75%' }}>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
+                          </div>
+            {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
+              <div>
+                <label>Division</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.division : 'N/A'}</div>
+              <div>
+                <label>Sub Division</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivision : 'N/A'}</div>
+            </div>}
+            <div className={Styles.flexLayout}>
+              <div>
+                <label>Department</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.department ? projectDetails?.dataGovernance?.department : 'N/A'}</div>
+              <div></div>
+              <div></div>
+            </div>
+            {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
+              <div>
+                <label>Data Classification</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.classificationType ? projectDetails?.dataGovernance?.classificationType : 'N/A'}</div>
+              <div>
+                <label>PII</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.piiData ? 'Yes' : 'No'}</div>
+            </div>}
+            <div className={Styles.flexLayout}>
+              <div>
+                <label>Archer ID</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.archerId ? projectDetails?.dataGovernance?.archerId : 'N/A'}</div>
+              <div>
+                <label>Procedure ID</label>
+              </div>
+              <div>{projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : 'N/A'}</div>
+            </div>
+            <div className={Styles.flexLayout}>
+              <div style={{ width: '25%' }}>
+              <label>Recipe</label>
+              </div>
+              <div style={{ width: '75%' }}>
+                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
                 <label>Environment</label>
               </div>
               <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
+              <div></div>
+              <div></div>
             </div>
           </div>
           {/* <div className={Styles.flexLayout}>
@@ -658,26 +946,29 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
             </div>
           )} */}
-          <div>
+          {recipeValue !== 'default' && <>
+            <p>Enter the information to start creating!</p>
             <div>
-              <TextBox
-                type="password"
-                controlId={'githubTokenInput'}
-                labelId={'githubTokenLabel'}
-                label={`Your Github(${githubUrlValue}) Personal Access Token`}
-                infoTip="Not stored only used for Code Space initial setup"
-                placeholder={'Type here'}
-                value={githubToken}
-                errorText={githubTokenError}
-                required={true}
-                maxLength={50}
-                onChange={onGithubTokenOnChange}
-              />
+              <div>
+                <TextBox
+                  type="password"
+                  controlId={'githubTokenInput'}
+                  labelId={'githubTokenLabel'}
+                  label={`Your Github(${githubUrlValue}) Personal Access Token`}
+                  infoTip="Not stored only used for Code Space initial setup"
+                  placeholder={'Type here'}
+                  value={githubToken}
+                  errorText={githubTokenError}
+                  required={true}
+                  maxLength={50}
+                  onChange={onGithubTokenOnChange}
+                />
+              </div>
             </div>
-          </div>
+          </>}
           <div className={Styles.newCodeSpaceBtn}>
             <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
-              On-board to Code Space
+              {props.isRetryRequest ? 'Create' : 'On-board to'} Code Space
             </button>
           </div>
         </div>
@@ -687,8 +978,290 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <>
               <div className={Styles.addicon}> &nbsp; </div>
               <h3>Hello {namePrefix}, Create your Code Space</h3>
-              <p>Protect your code space with the password of your own.</p>
+              <p>Enter the information to start creating!</p>
               {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '')}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Type of Project <sup>*</sup>
+                  </label>
+
+                  <div className={classNames('custom-select')}>
+                    <select
+                      id="reportStatusField"
+                      defaultValue={typeOfProject}
+                      required={true}
+                      required-error={requiredError}
+                      onChange={onTypeOfProjectChange}
+                      value={typeOfProject}
+                    >
+                      <option id="typeOfProjectOption" value={0}>
+                        Choose
+                      </option>
+                      <option value={'Playground'}>Playground</option>
+                      <option value={'Proof of Concept'}>Proof of Concept</option>
+                      <option value={'Production'}>Production</option>
+                    </select>
+                  </div>
+                  <p
+                    style={{ color: 'var(--color-orange)' }}
+                    className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
+                  >
+                    <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
+                    being used.
+                  </p>
+                  <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
+                    {typeOfProjectError}
+                  </span>
+                </div>
+                <div>
+                  <TextBox
+                    type="text"
+                    controlId={'productNameInput'}
+                    labelId={'productNameLabel'}
+                    label={'Code Space Name'}
+                    placeholder={'Type here'}
+                    value={projectName}
+                    errorText={projectNameError}
+                    required={true}
+                    maxLength={39}
+                    onChange={onProjectNameOnChange}
+                  />
+                </div>
+              </div>
+              <div
+                className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '')}
+              >
+                <label id="description" className="input-label" htmlFor="description">
+                  Description <sup>*</sup>
+                </label>
+                <textarea
+                  id="description"
+                  className="input-field-area"
+                  // type="text"
+                  defaultValue={description}
+                  required={true}
+                  required-error={requiredError}
+                  onChange={onDescriptionChange}
+                  rows={50}
+                />
+                <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
+                  {descriptionError}
+                </span>
+              </div>
+
+              {!isPlayground && <div>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames('input-field-group include-error', 
+                    divisionError.length ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Division <sup>*</sup>
+                  </label>
+                  <div className={classNames('custom-select')}>
+                    <select
+                      id="divisionField"
+                      defaultValue={division}
+                      required={true}
+                      required-error={requiredError}
+                      onChange={onDivisionChange}
+                      value={division}
+                    >
+                      <option id="divisionOption" value={0}>
+                        Choose
+                      </option>
+                      {divisions?.map((obj) => {
+                        return (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                            {obj.name}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                    {divisionError}
+                  </span>
+                </div>
+
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>Sub Division</label>
+                  <div className={classNames('custom-select')}>
+                    <select
+                      id="subDivisionField"
+                      defaultValue={subDivision}
+                      value={subDivision}
+                      required={false}
+                      onChange={onSubDivisionChange}
+                    >
+                      {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                        <option id="subDivisionDefault" value={0}>
+                          None
+                        </option>
+                      ) : (
+                        <>
+                      <option id="subDivisionDefault" value={0}>
+                        Choose
+                      </option>
+                      {subDivisions?.map((obj) => (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                              {obj.name}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              </div>}
+
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    Styles.bucketNameInputField,
+                    'input-field-group include-error',
+                    departmentError ? 'error' : '',
+                  )}
+                >
+                  <div>
+                    <div className={Styles.departmentTags}>
+                      <Tags
+                        title={'Department'}
+                        max={1}
+                        chips={department}
+                        tags={departments}
+                        setTags={(selectedTags) => {
+                          const dept = selectedTags?.map((item) => item.toUpperCase());
+                          setDepartment(dept);
+                          setDepartmentError(false);
+                        }}
+                        isMandatory={true}
+                        showMissingEntryError={departmentError}
+                        
+                      />
+
+                    </div>
+                  </div>
+                </div>
+
+                
+              </div>
+            
+              {!isPlayground && <div>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    classificationTypeError?.length ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Data Classification <sup>*</sup>
+                  </label>
+                  <div className={classNames('custom-select')}>
+                    <select
+                      id="classificationField"
+                      defaultValue={classificationType}
+                      required={true}
+                      required-error={requiredError}
+                      onChange={onClassificationChange}
+                      value={classificationType}
+                    >
+                      <option id="classificationOption" value={0}>
+                        Choose
+                      </option>
+                      {dataClassificationDropdown?.map((item: any) => (
+                        <option id={item.id} key={item.id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', classificationTypeError.length ? '' : 'hide')}>
+                    {classificationTypeError}
+                  </span>
+                </div>
+
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    PII (Personally Identifiable Information) <sup>*</sup>
+                  </label>
+                  <div className={Styles.pIIField}>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="true"
+                          name="pii"
+                          defaultChecked={PII === true}
+                          onChange={onPIIChange}
+                        />
+                      </span>
+                      <span className="label">Yes</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="false"
+                          name="pii"
+                          defaultChecked={PII === false}
+                          onChange={onPIIChange}
+                        />
+                      </span>
+                      <span className="label">No</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              </div>}
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', archerIdError.length ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>Archer ID</label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="archerId"
+                      placeholder="Type here eg.[INFO-XXXXX]"
+                      autoComplete="off"
+                      maxLength={55}
+                      defaultValue={archerId}
+                      onChange={onArcherIdChange}
+                    />
+                    <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
+                      {archerIdError}
+                    </span>
+                  </div>
+                </div>
+                <div className={classNames('input-field-group include-error', procedureIDError.length ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>Procedure ID</label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="procedureID"
+                      placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                      autoComplete="off"
+                      maxLength={55}
+                      defaultValue={procedureID}
+                      onChange={onProcedureIDChange}
+                    />
+                    <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>
+                      {procedureIDError}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div
                 id="recipeContainer"
                 className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
@@ -716,27 +1289,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+                <Link to="/codespaceRecipes" target='_blank'>
                 <div>
-                  <button className={classNames(Styles.addNewItemButton)}>
+                  <button className={classNames(Styles.addNewItemButton)} >
                     <i className="icon mbc-icon plus" />
                     &nbsp;
-                    <span>Add new code space recipe (Coming Soon)</span>
+                    <span>Add new code space recipe</span>
                   </button>
                 </div>
-              </div>
-              <div>
-                <TextBox
-                  type="text"
-                  controlId={'productNameInput'}
-                  labelId={'productNameLabel'}
-                  label={'Code Space Name'}
-                  placeholder={'Type here'}
-                  value={projectName}
-                  errorText={projectNameError}
-                  required={true}
-                  maxLength={39}
-                  onChange={onProjectNameOnChange}
-                />
+                </Link>
               </div>
               <div>
                 <div id="environmentContainer" className={classNames('input-field-group include-error')}>
@@ -873,23 +1434,25 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               )}
-              <div>
+              {recipeValue !== 'default' && (
                 <div>
-                  <TextBox
-                    type="password"
-                    controlId={'githubTokenInput'}
-                    labelId={'githubTokenLabel'}
-                    label={`Your Github(${githubUrlValue}) Personal Access Token`}
-                    infoTip="Not stored only used for Code Space initial setup"
-                    placeholder={'Type here'}
-                    value={githubToken}
-                    errorText={githubTokenError}
-                    required={true}
-                    maxLength={50}
-                    onChange={onGithubTokenOnChange}
-                  />
+                  <div>
+                    <TextBox
+                      type="password"
+                      controlId={'githubTokenInput'}
+                      labelId={'githubTokenLabel'}
+                      label={`Your Github(${githubUrlValue}) Personal Access Token`}
+                      infoTip="Not stored only used for Code Space initial setup"
+                      placeholder={'Type here'}
+                      value={githubToken}
+                      errorText={githubTokenError}
+                      required={true}
+                      maxLength={50}
+                      onChange={onGithubTokenOnChange}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <>
@@ -916,7 +1479,281 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                   <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
                 </div>
+
+                <div className={Styles.flexLayout}>
+                <div
+                  className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '')}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Type of Project <sup>*</sup>
+                  </label>
+
+                  <div className={classNames('custom-select')}>
+                    <select
+                      id="reportStatusField"
+                      defaultValue={typeOfProject}
+                      required={true}
+                      required-error={requiredError}
+                      onChange={onTypeOfProjectChange}
+                      value={typeOfProject}
+                    >
+                      <option id="typeOfProjectOption" value={0}>
+                        Choose
+                      </option>
+                      {(projectDetails?.dataGovernance?.typeOfProject === 'Playground' || !projectDetails?.dataGovernance?.typeOfProject) && <option value={'Playground'}>Playground</option>}
+                      <option value={'Proof of Concept'}>Proof of Concept</option>
+                      <option value={'Production'}>Production</option>
+                    </select>
+                  </div>
+                  <p
+                    style={{ color: 'var(--color-orange)' }}
+                    className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
+                  >
+                    <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
+                    being used.
+                  </p>
+                  <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
+                    {typeOfProjectError}
+                  </span>
+                </div>
+                <div
+                  className={classNames(
+                    Styles.bucketNameInputField,
+                    'input-field-group include-error',
+                    departmentError ? 'error' : '',
+                  )}
+                >
+                  <div>
+                    <div className={Styles.departmentTags}>
+                      <Tags
+                        title={'Department'}
+                        max={1}
+                        chips={department}
+                        tags={departments}
+                        setTags={(selectedTags) => {
+                          const dept = selectedTags?.map((item) => item.toUpperCase());
+                          setDepartment(dept);
+                          setDepartmentError(false);
+                        }}
+                        isMandatory={true}
+                        showMissingEntryError={departmentError}
+                        
+                      />
+
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <div>
+                  <div
+                    className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '')}
+                  >
+                    <label id="description" className="input-label" htmlFor="description">
+                      Description <sup>*</sup>
+                    </label>
+                    <textarea
+                      id="description"
+                      className="input-field-area"
+                      defaultValue={description}
+                      value={description}
+                      required={true}
+                      required-error={requiredError}
+                      onChange={onDescriptionChange}
+                      rows={50}
+                    />
+                    <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
+                      {descriptionError}
+                    </span>
+                  </div>
+                </div>
+              
+              {!isPlayground && <div>
+                <div className={Styles.flexLayout}>
+                  <div
+                    className={classNames('input-field-group include-error', 
+                      divisionError.length ? 'error' : '',
+                    )}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Division <sup>*</sup>
+                    </label>
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="divisionField"
+                        defaultValue={division}
+                        required={true}
+                        required-error={requiredError}
+                        onChange={onDivisionChange}
+                        value={division}
+                      >
+                        <option id="divisionOption" value={0}>
+                          Choose
+                        </option>
+                        {divisions?.map((obj) => {
+                          return (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                              {obj.name}
+                            </option>
+                          )
+                        })}
+                      </select>
+                    </div>
+                    <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                      {divisionError}
+                    </span>
+                  </div>
+                  <div className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>Sub Division</label>
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="subDivisionField"
+                        defaultValue={subDivision}
+                        value={subDivision}
+                        required={false}
+                        onChange={onSubDivisionChange}
+                      >
+                        {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                          <option id="subDivisionDefault" value={0}>
+                            None
+                          </option>
+                        ) : (
+                          <>
+                            <option id="subDivisionDefault" value={0}>
+                              Choose
+                            </option>
+                            {subDivisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                                {obj.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>}
+
+              {!isPlayground && <div>
+                <div className={Styles.flexLayout}>
+                  <div
+                    className={classNames(
+                      'input-field-group include-error',
+                      classificationTypeError?.length ? 'error' : '',
+                    )}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Data Classification <sup>*</sup>
+                    </label>
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="classificationField"
+                        defaultValue={classificationType}
+                        required={true}
+                        required-error={requiredError}
+                        onChange={onClassificationChange}
+                        value={classificationType}
+                      >
+                        <option id="classificationOption" value={0}>
+                          Choose
+                        </option>
+                        {dataClassificationDropdown?.map((item: any) => (
+                          <option id={item.id} key={item.id} value={item.name}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <span className={classNames('error-message', classificationTypeError.length ? '' : 'hide')}>
+                      {classificationTypeError}
+                    </span>
+                  </div>
+                  <div className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      PII (Personally Identifiable Information) <sup>*</sup>
+                    </label>
+                    <div className={Styles.pIIField}>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="true"
+                            name="pii"
+                            defaultChecked={PII === true}
+                            onChange={onPIIChange}
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="false"
+                            name="pii"
+                            defaultChecked={PII === false}
+                            onChange={onPIIChange}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>}
+
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', archerIdError.length ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>Archer ID</label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="archerId"
+                      placeholder="Type here eg.[INFO-XXXXX]"
+                      autoComplete="off"
+                      maxLength={55}
+                      defaultValue={archerId}
+                      value={archerId}
+                      onChange={onArcherIdChange}
+                    />
+                    <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
+                      {archerIdError}
+                    </span>
+                  </div>
+                </div>
+                <div className={classNames('input-field-group include-error', procedureIDError.length ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>Procedure ID</label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="procedureID"
+                      placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                      autoComplete="off"
+                      maxLength={55}
+                      defaultValue={procedureID}
+                      value={procedureID}
+                      onChange={onProcedureIDChange}
+                    />
+                    <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>
+                      {procedureIDError}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={Styles.newCodeSpaceBtn}>
+                <button className={' btn btn-tertiary '} onClick={editCodeSpace}>
+                  Save
+                </button>
+              </div>
+
+              </div>
+
               <ConfirmModal
                 title={''}
                 acceptButtonTitle="Yes"
@@ -951,7 +1788,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </>
           )}
-          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && (
+          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && !DEPLOYMENT_DISABLED_RECIPE_IDS.includes(recipeValue) && (
             <div className={classNames('input-field-group include-error')}>
               <label htmlFor="userId" className="input-label">
                 Find and add the collaborators you want to work with your code (Optional)

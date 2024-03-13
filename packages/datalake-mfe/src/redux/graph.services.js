@@ -1,14 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { datalakeApi } from '../apis/datalake.api';
 
-export const getProjectDetails = createAsyncThunk('projects/getProjectDetails', (id) => {
-  const res = localStorage.getItem('graphs') ? JSON.parse(localStorage.getItem('graphs')) : [];
-  let filteredProject;
-  if(res.length > 0) {
-    filteredProject = res.filter((project) => {
-        return project.id === id;
-    });
+export const getProjectDetails = createAsyncThunk('projects/getProjectDetails', async (id) => {
+  try {
+    const res = await datalakeApi.getDatalakeProject(id);
+    return res;
+  } catch (e) {
+    return e.message;
   }
-  return {
-    data: filteredProject[0],
-  };
 });

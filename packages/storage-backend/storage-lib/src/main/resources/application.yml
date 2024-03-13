@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.8
+    version: 3.2.10
   cache:
     type: redis
   redis:
@@ -40,7 +40,22 @@ spring:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:3000MB}
       max-request-size: ${MAX_REQUEST_SIZE:3000MB}
-    
+
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL  
   cloud:
     stream:
       default-binder: kafka
@@ -63,7 +78,6 @@ kafka:
     name: dnaCentralEventTopic      
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   feature:
      attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
   malwareScan:
@@ -71,9 +85,6 @@ dna:
      apiKey: ${MALWARE_SCANNER_API_KEY:xxxxx}
      uri: ${MALWARE_SCANNER_URI:XXXXXX}
       
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
 server:
   port: 7175
 
@@ -87,6 +98,7 @@ storage:
   mc.commandkeyword: ${MC_CMD_KEY:sh}
   mc.timeout.alias: ${MC_ALIAS_TIMEOUT:10}
   mc.timeout.listpolicies: ${MC_LISTPOLICIES_TIMEOUT:10}
+  mc.timeout.listbuckets: ${MC_LISTBUCKETS_TIMEOUT:1}
       
  
 minio:

@@ -50,4 +50,6 @@ public class SolutionDataCompliance implements Serializable {
 	private List<FileDetails> attachments;
 	private List<SolutionComplianceLink> linkDetails;
 	private List<SolutionTeamMember> complianceOfficers;
+	private String aiRiskAssessmentType;
+	private Boolean workersCouncilApproval;
 }

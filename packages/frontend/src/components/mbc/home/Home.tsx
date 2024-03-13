@@ -4,7 +4,6 @@ import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
 import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
-import IconGenAI from 'components/icons/IconGenAI';
 
 export interface ILandingpageProps {
   user: IUserInfo;
@@ -49,11 +48,11 @@ const Home: React.FC<ILandingpageProps> = () => {
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'GenAI'}
-                  description={'All the Tools and insight you need to start with Artificial Intelligence.'}
+                  description={'Explore all GenAI solutions at Mercedes-Benz.'}
                   url={'/genAI'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  svgIcon={<IconGenAI size="80"/>}
+                  svgIcon={'genai'}
                 />
               </div>
               <div className={Styles.dnaCol6}>

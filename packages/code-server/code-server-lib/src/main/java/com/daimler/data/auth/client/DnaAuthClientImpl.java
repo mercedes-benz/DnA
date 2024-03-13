@@ -44,6 +44,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.userinfo.UsersCollection;
+
 @Component
 public class DnaAuthClientImpl implements DnaAuthClient {
 
@@ -54,6 +56,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
 	private static final String ONBOARD_TECHNICAL_USER = "/api/users";
+	private static final String GET_USERS = "/api/users?limit=0&offset=0";
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -94,11 +97,11 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	public UserInfoVO onboardTechnicalUser(UserRequestVO userRequestVO) {
 		UserInfoVO userInfoVO = new UserInfoVO();
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");			
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("codeserver-api-key", codeserverAuth);
 			String onboardTechUserUri = dnaBaseUri + ONBOARD_TECHNICAL_USER;			
 			HttpEntity<UserRequestVO> entity = new HttpEntity<UserRequestVO>(userRequestVO,headers);	
@@ -126,6 +129,31 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			//throw e;
 		}
 		return userInfoVO;
+	}
+
+	@Override
+	public UsersCollection getAll() {
+		UsersCollection collection = new UsersCollection();
+
+		try {
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("dna-request-userdetails", userinfo);
+ 
+			String getUsersUri = dnaBaseUri + GET_USERS;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<UsersCollection> response = restTemplate.exchange(getUsersUri, HttpMethod.GET, entity,
+					UsersCollection.class);
+			if (response != null && response.hasBody()) {
+				LOGGER.info("Success from dna client getAll");
+				collection = response.getBody();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occured while calling dna getAll {}, returning empty", e.getMessage());
+		}
+		return collection;
 	}
 
 }

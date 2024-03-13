@@ -18,7 +18,21 @@ spring:
           use_jdbc_metadata_defaults: false
     hibernate:
       ddl-auto: none
-
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL
   cloud:
     stream:
       default-binder: kafka
@@ -39,16 +53,11 @@ kafka:
           
 dna:
   uri: ${DNA_URI:xxxx}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   dataSource:
      bulkCreate:
         api:
            accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
-      
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXX}
-      
+             
 graphql:
   servlet:
     mapping: /api/minified
