@@ -29,7 +29,22 @@ spring:
     username: ${API_DB_USER:XXXX_user}
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
-    
+
+  kafka:
+    producer:
+    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL  
   cloud:
     stream:
       default-binder: kafka
