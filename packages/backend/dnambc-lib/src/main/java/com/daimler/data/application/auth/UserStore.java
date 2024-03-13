@@ -60,6 +60,7 @@ public class UserStore {
 		vo.setDepartment(this.userInfo.getDepartment());
 		vo.setEmail(this.userInfo.getEmail());
 		vo.setMobileNumber(this.userInfo.getMobileNumber());
+		vo.setAuthToken(this.userInfo.getAuthToken());
 		return vo;
 	}
 

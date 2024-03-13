@@ -75,9 +75,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 				HttpHeaders headers = new HttpHeaders();
-				String jwt = httpRequest.getHeader("Authorization");
+				String userinfo = httpRequest.getHeader("dna-request-userdetails");
 				headers.set("Accept", "application/json");
-				headers.set("Authorization", jwt);
+				headers.set("dna-request-userdetails", userinfo);
 				headers.set("chronos-api-key",trinoAuth);
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				
@@ -133,9 +133,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			String getBucketByNameUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName;
@@ -160,9 +160,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -266,9 +266,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
@@ -330,9 +330,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
@@ -443,9 +443,9 @@ public class StorageServicesClient {
 		try {
 			DeleteBucketResponseDataDto data = new DeleteBucketResponseDataDto();
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
@@ -471,9 +471,9 @@ public class StorageServicesClient {
 		try {
 			DeleteBucketResponseDataDto data = new DeleteBucketResponseDataDto();
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
@@ -497,9 +497,9 @@ public class StorageServicesClient {
 		Boolean isBucketPresent = true;
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName + "/" + "present" ;
