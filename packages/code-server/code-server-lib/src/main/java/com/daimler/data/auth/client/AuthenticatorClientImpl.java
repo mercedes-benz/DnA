@@ -121,6 +121,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_PLUGIN_TO_SERVICE = "/plugins";
 	private static final String WORKSPACE_API = "api";
 	private static final String OIDC_PLUGIN = "oidc";
+	private static final String CORS_PLUGIN = "cors";
 	private static final String JWTISSUER_PLUGIN = "jwtissuer";
 	private static final String APP_AUTHORISER_PLUGIN = "appauthoriser";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
@@ -333,12 +334,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
 		createRouteRequestVO.setData(createRouteVO);
-		
+
 		//request for attaching plugin to service
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachPluginConfigVO = new AttachPluginConfigVO();
 
+		//attaching cors plugin to deploymnets
+		if(env!=null){
+			if(!env.equalsIgnoreCase("")){
+				attachPluginVO.setName(CORS_PLUGIN);
+				attachPluginRequestVO.setData(attachPluginVO);
+				GenericMessage attachCorsPluginResponse = new GenericMessage();
+				attachCorsPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+				LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
+				attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
+			}
+		}
 		attachPluginVO.setName(OIDC_PLUGIN);
 
 		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/";	
