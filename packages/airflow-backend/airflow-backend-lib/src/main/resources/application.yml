@@ -60,12 +60,10 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}    
 
 dna:
-  uri: ${DNA_URI:XXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
+  uri: ${DNA_URI:XXXX} 
   
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:XXXX}
     byPassUrl: ${JWT_BYPASS_URIS:/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
 
 git:

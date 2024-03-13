@@ -3,6 +3,7 @@ package com.daimler.data.client.teamsApi;
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UsersCollection;
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.util.JWTGenerator;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
@@ -28,6 +29,9 @@ public class TeamsApiClientImpl implements TeamsApiClient {
     @Autowired
     HttpServletRequest httpRequest;
 
+    @Autowired
+    private UserStore userStore;
+
     @Value("${teamsApi.team-api-baseurl}")
     private String teamsApiBaseUri;
 
@@ -48,13 +52,13 @@ public class TeamsApiClientImpl implements TeamsApiClient {
     public UsersCollection getTeamsApiUserInfoDetails(String searchTerm, int offset) {
         UsersCollection usersCollection =null;
         List<UserInfoVO> userInfoVOList = new ArrayList<>();
-        Claims claims;
+       // Claims claims;
         Integer totalCount = 0;
         TeamsApiResponseWrapperDto teamsApiOutputResponse = null;
         try {
-            String jwt = httpRequest.getHeader("Authorization");
-            claims = JWTGenerator.decodeJWT(jwt);
-            String SecretKey = claims.get("authToken", String.class);
+          //  String jwt = httpRequest.getHeader("Authorization");
+          //  claims = JWTGenerator.decodeJWT(jwt);
+            String SecretKey = this.userStore.getUserInfo().getAuthToken();
             String oidcAuthontication = "Bearer " + SecretKey;
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
