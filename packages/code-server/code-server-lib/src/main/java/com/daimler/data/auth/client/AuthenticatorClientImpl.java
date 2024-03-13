@@ -431,6 +431,17 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
 				}
 				else {
+					//attaching cors plugin to deployments
+					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
+					AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
+					attachCorsPluginVO.setName(CORS_PLUGIN);
+					attachCorsPluginRequestVO.setData(attachCorsPluginVO);
+					GenericMessage attachCorsPluginResponse = new GenericMessage();
+					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
+					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
+
 					if(!apiRecipe && uiRecipesToUseOidc) {
 						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
@@ -478,19 +489,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachPluginResponse.getErrors(), attachPluginResponse.getWarnings());
 			LOGGER.info("kong attach jwtissuer plugin to service status is: {} and errors if any: {}, warnings if any:", attachJwtPluginResponse.getSuccess(),
 					attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
-		}
-		//attaching cors plugin to deployments
-		if(env!=null){
-			if(!env.equalsIgnoreCase("")){
-				AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
-				AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
-				attachCorsPluginVO.setName(CORS_PLUGIN);
-				attachCorsPluginRequestVO.setData(attachCorsPluginVO);
-				GenericMessage attachCorsPluginResponse = new GenericMessage();
-				attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-				LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
-				attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
-			}
 		}
 
 	}
