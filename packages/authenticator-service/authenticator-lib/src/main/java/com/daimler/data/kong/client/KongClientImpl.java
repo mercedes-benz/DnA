@@ -27,6 +27,7 @@
 
 package com.daimler.data.kong.client;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -66,6 +67,12 @@ public class KongClientImpl implements KongClient {
 
 	@Value("${kong.uri}")
 	private String kongBaseUri;
+
+	@Value("${corsPlugin.allowedUrls}")
+	private String allowedUrls;
+
+	@Value("${corsPlugin.maxAge}")
+	private long maxAge;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -249,6 +256,22 @@ public class KongClientImpl implements KongClient {
 						requestBody, headers);
 				response = restTemplate.exchange(kongUri, HttpMethod.POST, jwtRequest, String.class);
 				
+			}
+			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("cors")){
+
+				AttachCorsPluginWrapperDto corsRequestWrapper = new AttachCorsPluginWrapperDto();			
+				AttachCorsPluginConfigRequestDto attachCorsPluginConfigRequestDto = new AttachCorsPluginConfigRequestDto();
+
+				corsRequestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
+				attachCorsPluginConfigRequestDto.setMax_age(maxAge);
+				String [] urls = allowedUrls.split(",");
+				List<String> origins = Arrays.asList(urls);
+				attachCorsPluginConfigRequestDto.setOrigins(origins);
+				attachCorsPluginConfigRequestDto.setCredentials(true);
+				corsRequestWrapper.setConfig(attachCorsPluginConfigRequestDto);
+					HttpEntity<AttachCorsPluginWrapperDto> corsRequest = new HttpEntity<AttachCorsPluginWrapperDto>(
+						corsRequestWrapper, headers);
+					response = restTemplate.exchange(kongUri, HttpMethod.POST, corsRequest, String.class);
 			}
 			
 			if (response != null && response.hasBody()) {
@@ -459,7 +482,7 @@ public class KongClientImpl implements KongClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes/" + routeName;
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
@@ -467,7 +490,7 @@ public class KongClientImpl implements KongClient {
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode.is2xxSuccessful()) {
+				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -479,19 +502,19 @@ public class KongClientImpl implements KongClient {
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
 			LOGGER.error("Route {} does not exist", routeName);
-			messageDescription.setMessage("Route does not exist");
+			messageDescription.setMessage("Service does not exist");
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception: {} occured while deleting route: {} details", ex.getMessage(), routeName);			
+			LOGGER.error("Exception occured while deleting route: {} details", routeName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error: {} while deleting route: {} details", e.getMessage(), routeName);			
+			LOGGER.error("Error while deleting route: {} details", routeName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
@@ -513,9 +536,9 @@ public class KongClientImpl implements KongClient {
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
-			if (response != null) {
+			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode.is2xxSuccessful()) {
+				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -532,14 +555,14 @@ public class KongClientImpl implements KongClient {
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception: {} occured while deleting service: {} details", ex.getMessage(), serviceName);			
+			LOGGER.error("Exception occured while deleting service: {} details", serviceName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error: {} while deleting service: {} details", e.getMessage(), serviceName);			
+			LOGGER.error("Error while deleting service: {} details", serviceName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
