@@ -537,11 +537,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 						&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 								.startsWith("bat")) {
 					repoName = vo.getProjectDetails().getGitRepoName();
+					String recipeName = vo.getProjectDetails().getRecipeDetails().getRecipeId().name();
 //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 //							.equalsIgnoreCase("default")
 //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 //									.startsWith("bat")) {
-						HttpStatus createRepoStatus = gitClient.createRepo(repoName);
+						HttpStatus createRepoStatus = gitClient.createRepo(repoName,recipeName);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							MessageDescription errMsg = new MessageDescription(
 									"Failed while initializing git repository " + repoName
