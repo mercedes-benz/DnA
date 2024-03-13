@@ -32,6 +32,9 @@ public class GitClient {
 	
 	@Value("${codeServer.git.pat}")
 	private String personalAccessToken;
+
+	@Value("${codeServer.git.appname}")
+	private String applicationName;
 	
 	@Autowired
 	private RestTemplate restTemplate;
@@ -48,7 +51,7 @@ public class GitClient {
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri+"/repos/DNA/"+recipeName+"-template/generate";
+			String url = gitBaseUri+"/repos/"+applicationName+"/"+recipeName+"-template/generate";
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName + "\",\"description\":\"" + recipeName + " c\",\"private\":true,\" include_all_branches\":false }";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString,headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
