@@ -537,7 +537,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 								.startsWith("bat")) {
 					repoName = vo.getProjectDetails().getGitRepoName();
-					String recipeName = vo.getProjectDetails().getRecipeDetails().getRecipeId().name();
+					String recipeName = vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase();
 //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 //							.equalsIgnoreCase("default")
 //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
