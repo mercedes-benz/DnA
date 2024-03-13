@@ -502,19 +502,19 @@ public class KongClientImpl implements KongClient {
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
 			LOGGER.error("Route {} does not exist", routeName);
-			messageDescription.setMessage("Service does not exist");
+			messageDescription.setMessage("Route does not exist");
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting route: {} details", routeName);			
+			LOGGER.error("Exception: {} occured while deleting route: {} details", ex.getMessage(), routeName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting route: {} details", routeName);			
+			LOGGER.error("Error: {} while deleting route: {} details", e.getMessage(), routeName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
@@ -555,14 +555,14 @@ public class KongClientImpl implements KongClient {
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting service: {} details", serviceName);			
+			LOGGER.error("Exception: {} occured while deleting service: {} details", ex.getMessage(), serviceName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting service: {} details", serviceName);			
+			LOGGER.error("Error: {} while deleting service: {} details", e.getMessage(), serviceName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
