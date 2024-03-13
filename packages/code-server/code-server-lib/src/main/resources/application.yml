@@ -83,6 +83,7 @@ codeServer:
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
   env.url: ${CODE_SERVER_ENVURL:XXXX}
+  git.appname: ${CODE_SERVER_APPLICATION_NAME:XXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

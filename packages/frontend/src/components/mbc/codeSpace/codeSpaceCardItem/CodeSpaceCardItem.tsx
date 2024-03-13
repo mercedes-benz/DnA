@@ -808,7 +808,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         logsList.map((items, index) => (
                           <tr className={classNames('data-row')} key={index}>
                             <td>{items.branch}</td>
-                            <td>{regionalDateAndTimeConversionSolution(items.deployedOn)}</td>
+                            <td>{items.deployedOn && regionalDateAndTimeConversionSolution(items.deployedOn)}</td>
                             <td>{items.triggeredBy}</td>
                             <td>{regionalDateAndTimeConversionSolution(items.triggeredOn)}</td>
                             <td>{items.deploymentStatus}</td>
