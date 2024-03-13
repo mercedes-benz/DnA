@@ -47,8 +47,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.daimler.dna.airflow.app.main.filter.JWTGenerator;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -129,7 +127,7 @@ public class BaseUserInfoService
 		if (token != null && !StringUtils.isEmpty(token)) {
 			// Validate Claimed roles
 			log.trace("Validating claimed roles for user:" + id + ", token:" + token);
-			Claims claims = JWTGenerator.decodeJWT(token);
+			//Claims claims = JWTGenerator.decodeJWT(token);
 			/*
 			 * List<LinkedHashMap<String, String>> claimedRoles =
 			 * (List<LinkedHashMap<String, String>>) claims.get("digiRole"); if

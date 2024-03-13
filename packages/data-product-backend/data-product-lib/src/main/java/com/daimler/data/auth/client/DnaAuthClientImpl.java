@@ -58,6 +58,8 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	@Autowired
 	RestTemplate restTemplate;
 
+	
+
 	@Autowired
 	HttpServletRequest httpRequest;
 
@@ -91,11 +93,11 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	public UsersCollection getAllUsers() {
 		UsersCollection collection = new UsersCollection();
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 
 			String getUsersUri = dnaBaseUri + GET_USERS;
 			HttpEntity entity = new HttpEntity<>(headers);
