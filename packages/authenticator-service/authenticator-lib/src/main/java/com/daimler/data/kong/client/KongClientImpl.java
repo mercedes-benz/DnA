@@ -482,7 +482,7 @@ public class KongClientImpl implements KongClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes" + routeName;
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
