@@ -56,10 +56,8 @@ flyway:
             
 dna:
   uri: ${DNA_URI:XXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   verifyLoginUri: ${DNA_VERIFYLOGIN_URI:XXXX}
   getUsersUri: ${DNA_GETUSERS_URI:XXXX}
-  jwt: ${JWT_SECRET_KEY:XXXXX}
   
   
 dataiku:

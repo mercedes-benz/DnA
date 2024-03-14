@@ -154,11 +154,11 @@ public class AVScannerClient {
 		finalObject = new JSONObject();
 		finalObject.put("data", obj);
 		String status = "";
-		String jwt = httpRequest.getHeader("Authorization");
+		String userinfo = httpRequest.getHeader("dna-request-userdetails");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
-		headers.set("Authorization", jwt);
+		headers.set("dna-request-userdetails", userinfo);
 		HttpEntity entity = new HttpEntity<>(finalObject.toString(), headers);
 		ResponseEntity<String> response = restTemplate.exchange(avscanBaseUri + subscriptionProvisionApi,
 				HttpMethod.PUT, entity, String.class);

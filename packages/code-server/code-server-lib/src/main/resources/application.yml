@@ -54,7 +54,6 @@ spring:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
 
 codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
@@ -65,10 +64,6 @@ authenticator:
 kafka:
   centralTopic:
     name: dnaCentralEventTopic  
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
   port: 7979
@@ -88,6 +83,7 @@ codeServer:
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
   env.url: ${CODE_SERVER_ENVURL:XXXX}
+  git.appname: ${CODE_SERVER_APPLICATION_NAME:XXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

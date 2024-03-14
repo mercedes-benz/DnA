@@ -63,7 +63,7 @@
         font-size: var(--font-size-default);
         line-height: var(--font-size-headline);
       }
-      a {
+      .urlLink a {
         font-size: var(--font-size-medium);
         margin-right: 10px;
         line-height: 18px;
@@ -118,15 +118,43 @@
           }
         }
 
-        a.error {
-          color: #e84d47;
-        }
-
         div > a:hover {
           text-decoration: none;
         }
       }
     }
+  }
+
+  .trigger {
+    display: inline-block;
+    padding: 2px 10px;
+    position: relative;
+    &.open {
+      z-index: 10;
+    }
+    cursor: pointer;
+    &:hover {
+      color: #00adef;
+    }
+  }
+
+  .contextMenu {
+    right: 0;
+    hr {
+      width: 100%;
+    }
+
+    i {
+      font-size: var(--font-size-tiny);
+    }
+  }
+  
+  .error {
+    color: #e84d47;
+  }
+
+  .configLink a {
+    color: #00ADEF !important;
   }
 
   .OpenNewTab {
@@ -249,6 +277,7 @@
         display: flex;
         min-width: 50vW;
         justify-content: flex-end;
+        align-items: center;
 
         .urlLink {
           padding-right: 15px;
