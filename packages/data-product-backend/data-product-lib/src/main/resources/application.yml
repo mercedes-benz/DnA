@@ -58,7 +58,6 @@ kafka:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 dataproduct:
   base:
@@ -83,10 +82,6 @@ server:
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
   
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:xxxxxx}
-
 graphql:
   servlet:
     mapping: /api/minified

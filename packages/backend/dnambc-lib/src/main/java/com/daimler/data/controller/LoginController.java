@@ -59,6 +59,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.assembler.UserRoleAssembler;
+import com.daimler.data.controller.LoginController.UserRole;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.entities.UserRoleNsql;
 import com.daimler.data.db.jsonb.UserInfoRole;
@@ -549,6 +550,7 @@ public class LoginController {
 		private String email;
 		private String mobileNumber;
 		private String department;
+		private String authToken;
 		private List<UserRole> digiRole;
 		private List<String> divisionAdmins;
 

@@ -55,7 +55,6 @@ spring:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 kafka:
   centralTopic:
@@ -66,10 +65,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
       
 minio:
   baseUri: ${MINIO_BASEURI:http://xxxxx}
