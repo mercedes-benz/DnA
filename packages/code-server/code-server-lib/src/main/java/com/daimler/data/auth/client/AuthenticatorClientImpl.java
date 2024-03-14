@@ -121,6 +121,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_PLUGIN_TO_SERVICE = "/plugins";
 	private static final String WORKSPACE_API = "api";
 	private static final String OIDC_PLUGIN = "oidc";
+	private static final String CORS_PLUGIN = "cors";
 	private static final String JWTISSUER_PLUGIN = "jwtissuer";
 	private static final String APP_AUTHORISER_PLUGIN = "appauthoriser";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
@@ -333,7 +334,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
 		createRouteRequestVO.setData(createRouteVO);
-		
+
 		//request for attaching plugin to service
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
@@ -389,12 +390,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		appAuthoriserPluginVO.setName(APP_AUTHORISER_PLUGIN);
 		appAuthoriserPluginVO.setConfig(appAuthoriserPluginConfigVO);
 		appAuthoriserPluginRequestVO.setData(appAuthoriserPluginVO);
+
+		//request for attaching CORS plugin to service
+		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
+		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
+		attachCorsPluginVO.setName(CORS_PLUGIN);
+		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 		
 		GenericMessage createServiceResponse = new GenericMessage();
 		GenericMessage createRouteResponse = new GenericMessage();
 		GenericMessage attachPluginResponse = new GenericMessage();
 		GenericMessage attachJwtPluginResponse = new GenericMessage();
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage attachCorsPluginResponse = new GenericMessage();
 		
 		try {	
 			boolean isServiceAlreadyCreated = false;
@@ -430,6 +438,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
 				}
 				else {
+					//attaching cors plugin to deployments
+					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
+					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
+
 					if(!apiRecipe && uiRecipesToUseOidc) {
 						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
