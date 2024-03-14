@@ -616,7 +616,7 @@ definitions:
         $ref: "#/definitions/AttachPluginConfigVO"
       name:
         type: string
-        enum: ["oidc","jwt"]
+        enum: ["oidc","jwt","cors"]
     
         
  AttachPluginConfigVO:
