@@ -11,7 +11,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { buildGitJobLogViewURL, buildLogViewURL, recipesMaster, regionalDateAndTimeConversionSolution, trackEvent } from '../../../services/utils';
+import { buildGitJobLogViewURL, buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -26,10 +26,12 @@ import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMess
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import { getParams } from '../../../router/RouterUtils';
 import classNames from 'classnames';
-import { CODE_SPACE_TITLE, IAM_URL } from 'globals/constants';
-import TextBox from '../shared/textBox/TextBox';
+import { CODE_SPACE_TITLE } from 'globals/constants';
+// import TextBox from '../shared/textBox/TextBox';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 import { IconGear } from 'components/icons/IconGear';
+import VaultManagement from './vaultManagement/VaultManagement';
+import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 export interface ICodeSpaceProps {
@@ -137,6 +139,8 @@ export interface IDeployRequest {
   valutInjectorEnable?: boolean,
 }
 
+let isTouch = false;
+
 const CodeSpace = (props: ICodeSpaceProps) => {
   // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
   //   url: `***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
@@ -162,12 +166,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
   const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState<boolean>(false);
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState<boolean>(true);
-  const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
-  const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
+  // const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
+  // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   const [livelinessInterval, setLivelinessInterval] = useState<number>();
   const [branches, setBranches] = useState<IBranch[]>([]);
   const [vaultEnabled, setVaultEnabled] = useState(false);
+  const [isStaging, setIsStaging] = useState(false);
+  const [logsList, setlogsList] = useState([]);
+  const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
+  const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
+
+  const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
+  const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState<number>(0);
+  const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState<number>(0);
 
   const livelinessIntervalRef = React.useRef<number>();
 
@@ -176,7 +188,72 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [showLogsView, setShowLogsView] = useState(false);
 
   const recipes = recipesMaster;
-  const requiredError = '*Missing entry';
+  // const requiredError = '*Missing entry';
+
+  const isAPIRecipe =
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi';
+
+  useEffect(() => {
+    document.addEventListener('touchend', handleContextMenuOutside, true);
+    document.addEventListener('click', handleContextMenuOutside, true);
+    return () => {
+      document.removeEventListener('touchend', handleContextMenuOutside, true);
+      document.removeEventListener('click', handleContextMenuOutside, true);
+    };
+  }, []);
+
+  const handleContextMenuOutside = (event: MouseEvent | TouchEvent) => {
+    if (event.type === 'touchend') {
+      isTouch = true;
+    }
+
+    // Click event has been simulated by touchscreen browser.
+    if (event.type === 'click' && isTouch === true) {
+      return;
+    }
+
+    const target = event.target as Element;
+    const elemClasses = target.classList;
+    const codespaceViewDivElement = document?.querySelector('#codespace-view');
+    const contextMenuWrapper = codespaceViewDivElement?.querySelector('.contextMenuWrapper');
+
+    if (
+      codespaceViewDivElement &&
+      !target.classList.contains('trigger') &&
+      !target.classList.contains('context') &&
+      !target.classList.contains('contextList') &&
+      !target.classList.contains('contextListItem') &&
+      contextMenuWrapper !== null &&
+      contextMenuWrapper.contains(target) === false &&
+      showContextMenu
+    ) {
+      setShowContextMenu(false);
+    } else if (codespaceViewDivElement?.contains(target) === false) {
+      setShowContextMenu(false);
+    }
+
+    if (!contextMenuWrapper?.contains(target)) {
+      setShowContextMenu(false);
+    }
+
+    if (
+      showContextMenu &&
+      (elemClasses.contains('contextList') ||
+        elemClasses.contains('contextListItem') ||
+        elemClasses.contains('contextMenuWrapper') ||
+        elemClasses.contains('locationsText'))
+    ) {
+      event.stopPropagation();
+    }
+  };
+
+  const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
+    e.stopPropagation();
+    setContextMenuOffsetTop(e.currentTarget.offsetTop - 17);
+    setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 230);
+    setShowContextMenu(!showContextMenu);
+  };
 
   const setVault = () =>{
     ProgressIndicator.show();
@@ -199,7 +276,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
-    setIAMTechnicalUserID('');
+    // setIAMTechnicalUserID('');
   }, [showCodeDeployModal]);
 
   useEffect(() => {
@@ -352,7 +429,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         setShowCodeDeployModal(true);
         setBranches(res);
-        setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+        // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
         setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
         Tooltip.defaultSetup();
@@ -434,23 +511,23 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setDeployEnvironment(deployEnv);
     if (deployEnv === 'staging') {
       setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-      setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+      // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     } else {
       setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-      setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+      // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     }
   };
 
   const onAcceptCodeDeploy = () => {
-    if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
-      setIAMTechnicalUserIDError(requiredError);
-      return;
-    } else {
-      setIAMTechnicalUserIDError('');
-    }
+    // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
+    //   setIAMTechnicalUserIDError(requiredError);
+    //   return;
+    // } else {
+    //   setIAMTechnicalUserIDError('');
+    // }
     const deployRequest: IDeployRequest = {
       secureWithIAMRequired: secureWithIAMSelected,
-      technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
+      // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
       branch: branchValue,
       valutInjectorEnable: vaultEnabled,
@@ -498,14 +575,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setSecureWithIAMSelected(e.target.checked);
   };
 
-  const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-    const iamUserID = evnt.currentTarget.value.trim();
-    setIAMTechnicalUserID(iamUserID);
-    setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
-  };
+  // const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+  //   const iamUserID = evnt.currentTarget.value.trim();
+  //   setIAMTechnicalUserID(iamUserID);
+  //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
+  // };
 
   const onAcceptContinueCodingOnDeployment = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAcceptContinueCodingOnDeployment(e.target.checked);
+  };
+
+  const handleOpenDoraMetrics = () => {
+    console.log('ToDo - Dora metrics');
+    // setShowDoraMetricsModal(true);
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
@@ -528,17 +610,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`);
+      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`, '_blank');
       return;
     }
-    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`);
+    window.open(`${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`, '_blank');
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
 
   return (
-    <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
+    <div
+      id="codespace-view"
+      className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}
+    >
       {codeSpaceData.running && (
         <React.Fragment>
           <div className={Styles.nbheader}>
@@ -546,11 +631,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2
-                  tooltip-data={
-                    recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name
-                  }
-                >
+                <h2 tooltip-data={recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}>
                   {projectDetails.projectName}
                 </h2>
               </div>
@@ -575,7 +656,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           &nbsp;
                         </div>
                       )}
-                      {codeDeployed && (
+                      {/* {codeDeployed && (
                         <div className={Styles.urlLink} tooltip-data="APP BASE URL - Staging">
                           <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Staging (
@@ -590,7 +671,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             />
                           </a>
                           <div>
-                            ({intDeploymentDetails?.gitjobRunID ? (
+                            (
+                            {intDeploymentDetails?.gitjobRunID ? (
                               <a
                                 target="_blank"
                                 href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
@@ -601,16 +683,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               </a>
                             ) : (
                               <>{regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeployedOn)}</>
-                            )})
+                            )}
+                            )
                           </div>
                         </div>
                       )}
                       {intCodeDeployFailed && (
                         <div tooltip-data="Last deployement failed on Staging - Click to view logs">
-                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)} rel="noreferrer">
-                            <i
-                              className="icon mbc-icon alert circle small right"
-                            />
+                          <a
+                            target="_blank"
+                            className={classNames(Styles.error)}
+                            href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                            rel="noreferrer"
+                          >
+                            <i className="icon mbc-icon alert circle small right" />
                           </a>
                         </div>
                       )}
@@ -619,8 +705,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Production (
                             <i className="icon mbc-icon transactionaldata" /> {prodCodeDeployedBranch})
-                            {prodDeploymentDetails?.secureWithIAMRequired &&
-                              securedWithIAMContent}
+                            {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                           &nbsp;
                           <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl)} rel="noreferrer">
@@ -630,7 +715,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             />
                           </a>
                           <div>
-                            ({prodDeploymentDetails?.gitjobRunID ? (
+                            (
+                            {prodDeploymentDetails?.gitjobRunID ? (
                               <a
                                 target="_blank"
                                 href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
@@ -641,25 +727,29 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               </a>
                             ) : (
                               <>{regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}</>
-                            )})
+                            )}
+                            )
                           </div>
                         </div>
                       )}
                       {prodCodeDeployFailed && (
                         <div tooltip-data="Last deployement failed on Production - Click to view logs">
-                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)} rel="noreferrer">
-                            <i
-                              className="icon mbc-icon alert circle small right"
-                            />
+                          <a
+                            target="_blank"
+                            className={classNames(Styles.error)}
+                            href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                            rel="noreferrer"
+                          >
+                            <i className="icon mbc-icon alert circle small right" />
                           </a>
                         </div>
-                      )}
+                      )} */}
                       <div>
                         <button
                           className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
                           onClick={onShowCodeDeployModal}
                         >
-                          {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
+                          Deploy{codeDeploying && 'ing...'}
                         </button>
                       </div>
                       {(codeDeployed || prodCodeDeployed) && (
@@ -679,6 +769,152 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
+                  </div>
+                  <div>
+                    <span
+                      onClick={toggleContextMenu}
+                      className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
+                    >
+                      <i className="icon mbc-icon listItem context" />
+                    </span>
+                    <div
+                      style={{
+                        top: contextMenuOffsetTop + 'px',
+                        left: contextMenuOffsetLeft + 'px',
+                        zIndex: 5,
+                      }}
+                      className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
+                    >
+                      <ul>
+                        <li>
+                          <strong>Staging:</strong>{' '}
+                          {intDeploymentDetails?.lastDeployedBranch
+                            ? `[Branch - ${codeDeployedBranch}]`
+                            : 'No Deployment'}
+                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
+                            (DORA Metrics)
+                          </span>
+                        </li>
+                        {isAPIRecipe && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowVaultManagementModal(true);
+                                setIsStaging(true);
+                              }}
+                            >
+                              Environment variables config
+                            </span>
+                          </li>
+                        )}
+                        {intDeploymentDetails?.gitjobRunID && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                              rel="noreferrer"
+                            >
+                              Last Build &amp; Deploy Logs{' '}
+                              {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {codeDeployed && (
+                          <>
+                            <li>
+                              <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </li>
+                            <li>
+                              <a target="_blank" href={buildLogViewURL(codeDeployedUrl, true)} rel="noreferrer">
+                                Application Logs <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </li>
+                            {intDeploymentDetails?.deploymentAuditLogs && (
+                              <li>
+                                <span
+                                  onClick={() => {
+                                    setShowAuditLogsModal(true);
+                                    setIsStaging(true);
+                                    setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                                  }}
+                                >
+                                  Deployment Audit Logs
+                                </span>
+                              </li>
+                            )}
+                          </>
+                        )}
+                        <li>
+                          <hr />
+                        </li>
+                        <li>
+                          <strong>Production:</strong>{' '}
+                          {prodDeploymentDetails?.lastDeployedBranch
+                            ? `[Branch - ${prodCodeDeployedBranch}]`
+                            : 'No Deployment'}
+                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
+                            (DORA Metrics)
+                          </span>
+                        </li>
+                        {isAPIRecipe && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowVaultManagementModal(true);
+                                setIsStaging(false);
+                              }}
+                            >
+                              Environment variables config
+                            </span>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.gitjobRunID && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                              rel="noreferrer"
+                            >
+                              Build &amp; Deploy Logs{' '}
+                              {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodCodeDeployed && (
+                          <>
+                            <li>
+                              <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </li>
+                            <li>
+                              <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl, true)} rel="noreferrer">
+                                Application Logs <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </li>
+                            {prodDeploymentDetails?.deploymentAuditLogs && (
+                              <li>
+                                <span
+                                  onClick={() => {
+                                    setShowAuditLogsModal(true);
+                                    setIsStaging(false);
+                                    setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                                  }}
+                                >
+                                  Deployment Audit Logs
+                                </span>
+                              </li>
+                            )}
+                          </>
+                        )}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               )}
@@ -788,6 +1024,31 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           onCancel={onNewCodeSpaceModalCancel}
         />
       )}
+      {showVaultManagementModal && (
+        <Modal
+          title={isStaging ? 'Secret Management - Staging' : 'Secret Management - Production'}
+          hiddenTitle={false}
+          showAcceptButton={false}
+          showCancelButton={false}
+          acceptButtonTitle="Save"
+          onAccept={() => console.log('save')}
+          modalWidth={'70%'}
+          modalStyle={{ minHeight: '86%' }}
+          buttonAlignment="center"
+          show={showVaultManagementModal}
+          content={<VaultManagement projectName={projectDetails.projectName.toLowerCase()} isStaging={isStaging} />}
+          scrollableContent={true}
+          onCancel={() => setShowVaultManagementModal(false)}
+        />
+      )}
+      {showAuditLogsModal && (
+        <DeployAuditLogsModal
+          deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
+          show={showAuditLogsModal}
+          setShowAuditLogsModal={setShowAuditLogsModal}
+          logsList={logsList}
+        />
+      )}
       {showCodeDeployModal && (
         <Modal
           title={'Deploy Code'}
@@ -856,7 +1117,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               </div>
-              {!projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/) && (
+              {isAPIRecipe && (
                 <>
                   {deployEnvironment === 'staging' && (
                     <>
@@ -868,18 +1129,32 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               className="ff-only"
                               checked={secureWithIAMSelected}
                               onChange={onChangeSecureWithIAM}
-                              disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                              // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                              disabled={projectDetails?.publishedSecuirtyConfig?.status !== 'PUBLISHED'}
                             />
                           </span>
-                          <span className="label">Secure with IAM</span>
+                          <span className="label">
+                            Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
+                            <span
+                              className={classNames(Styles.configLink, Styles.pointer)}
+                              onClick={() => navigateSecurityConfig()}
+                            >
+                              <a target="_blank" rel="noreferrer">
+                                {CODE_SPACE_TITLE} (
+                                {projectDetails?.publishedSecuirtyConfig?.status ||
+                                  projectDetails?.securityConfig?.status ||
+                                  'New'}
+                                )
+                              </a>
+                            </span>
+                          </span>
                         </label>
                       </div>
-                      {secureWithIAMSelected && (
+                      {/* {secureWithIAMSelected && (
                         <div
                           className={classNames(
                             Styles.flexLayout,
-                            projectDetails?.intDeploymentDetails?.secureWithIAMRequired &&
-                              Styles.disabledDiv,
+                            projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
                           )}
                         >
                           <div>
@@ -902,7 +1177,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             </a>
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </>
                   )}
                   {deployEnvironment === 'production' && (
@@ -915,18 +1190,32 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               className="ff-only"
                               checked={secureWithIAMSelected}
                               onChange={onChangeSecureWithIAM}
-                              disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                              // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                              disabled={projectDetails?.publishedSecuirtyConfig?.status !== 'PUBLISHED'}
                             />
                           </span>
-                          <span className="label">Secure with IAM</span>
+                          <span className="label">
+                            Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
+                            <span
+                              className={classNames(Styles.configLink, Styles.pointer)}
+                              onClick={() => navigateSecurityConfig()}
+                            >
+                              <a target="_blank" rel="noreferrer">
+                                {CODE_SPACE_TITLE} (
+                                {projectDetails?.publishedSecuirtyConfig?.status ||
+                                  projectDetails?.securityConfig?.status ||
+                                  'New'}
+                                )
+                              </a>
+                            </span>
+                          </span>
                         </label>
                       </div>
-                      {secureWithIAMSelected && (
+                      {/* {secureWithIAMSelected && (
                         <div
                           className={classNames(
                             Styles.flexLayout,
-                            projectDetails?.prodDeploymentDetails?.secureWithIAMRequired &&
-                              Styles.disabledDiv,
+                            projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
                           )}
                         >
                           <div>
@@ -949,7 +1238,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             </a>
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </>
                   )}
                 </>
