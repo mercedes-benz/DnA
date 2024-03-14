@@ -47,8 +47,9 @@ import com.daimler.data.dto.auth.ApiKeyValidationResponseVO;
 import com.daimler.data.dto.auth.ApiKeyValidationVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -176,6 +177,22 @@ public class JWTAuthenticationFilter implements Filter {
 		UserStore.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserStore.UserInfo>() {
 		});
 		this.userStore.setUserInfo(userInfo);
+				List<UserRole> userRoles = new ArrayList<>();
+		try{
+			JsonNode rootNode = objectMapper.readTree(userinfo);
+			JsonNode digiRoleList = rootNode.get("digiRole");
+			if (digiRoleList != null && digiRoleList.isArray()) {
+				for (JsonNode role : (ArrayNode) digiRoleList) {
+					UserRole userRole = new UserRole();
+					userRole.setId(role.get("id").asText());
+					userRole.setName(role.get("name").asText());
+					userRoles.add(userRole);
+				}
+			}
+        }catch(Exception e){
+			log.debug("Exception occured during saving user role");
+		}
+		this.userStore.getUserInfo().setUserRole(userRoles);
 
 	}
 
