@@ -22,6 +22,7 @@ import { IconGear } from 'components/icons/IconGear';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
+import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -408,7 +409,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                           </a>
                         </li>
                         <li>
-                          <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
+                          <a target="_blank" href={buildLogViewURL(prodDeployedUrl, false)} rel="noreferrer">
                             Application Logs <i className="icon mbc-icon new-tab" />
                           </a>
                         </li>
@@ -770,59 +771,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         />
       )}
       {showAuditLogsModal && (
-        <Modal
-          title={isStaging ? 'Deployment Audit Logs - Staging' : 'Deployment Audit Logs - Production'}
-          hiddenTitle={false}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'70%'}
-          modalStyle={{ minHeight: '86%' }}
-          buttonAlignment="center"
-          show={showAuditLogsModal}
-          content={
-            <>
-              <div className={classNames(Styles.allCodeSpace)}>
-                <div className={classNames(Styles.allcodeSpaceListviewContent)}>
-                  <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
-                    <thead>
-                      <tr className={classNames('header-row', Styles.codeSpaceRow)}>
-                        <th>
-                          <label>Branch</label>
-                        </th>
-                        <th>
-                          <label>Deployed On</label>
-                        </th>
-                        <th>
-                          <label>Triggered By</label>
-                        </th>
-                        <th>
-                          <label>Triggered On</label>
-                        </th>
-                        <th>
-                          <label>Deployment Status</label>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {logsList &&
-                        logsList.map((items, index) => (
-                          <tr className={classNames('data-row')} key={index}>
-                            <td>{items.branch}</td>
-                            <td>{items.deployedOn && regionalDateAndTimeConversionSolution(items.deployedOn)}</td>
-                            <td>{items.triggeredBy}</td>
-                            <td>{regionalDateAndTimeConversionSolution(items.triggeredOn)}</td>
-                            <td>{items.deploymentStatus}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          }
-          scrollableContent={true}
-          onCancel={() => setShowAuditLogsModal(false)}
-        />
+        <DeployAuditLogsModal deployedEnvInfo={ isStaging? 'Staging' : 'Production' } show={showAuditLogsModal} setShowAuditLogsModal={setShowAuditLogsModal} logsList={logsList} />
       )}
       <ConfirmModal
         title={''}
