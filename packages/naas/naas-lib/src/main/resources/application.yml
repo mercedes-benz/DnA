@@ -39,7 +39,6 @@ spring:
       max-request-size: 5MB
       
   kafka:
-    consumer:
     bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
       ssl:
