@@ -497,25 +497,26 @@ export const ToolsDetailedPageElements = [
     description:
       'Dataiku Data Science Studio is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are data preparation, analysis and the development of machine learning models',
     tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud'],
+    isExternalLink: false,
     url: '/mydataiku',
     useCases: [
-      {
-        icon: 'refresh',
-        title: 'Data Preparation & Wrangling',
-        description: 'eg: bring your excel files into a common format',
-      },
-      {
-        icon: 'refresh',
-        title: 'Data Analysis',
-        description: 'Identify patterns in your data through exploration and visualization',
-      },
-      {
-        icon: 'refresh',
-        title: 'Machine Learning',
-        description: 'Build predictive Models with your data and share the results with others',
+    {
+      icon: 'chronos',
+      title: 'Data Preparation & Wrangling',
+      description: 'eg: bring your excel files into a common format',
+    },
+    {
+      icon: 'solutionoverview',
+      title: 'Data Analysis',
+      description: 'Identify patterns in your data through exploration and visualization',
+    },
+    {
+      icon: 'portfolio',
+      title: 'Machine Learning',
+      description: 'Build predictive Models with your data and share the results with others',
       },
     ],
-    toolPipeLine: { 
+    toolPipeLine: {
       image: '',
       discription: 'some data',
       connectedTO: [
@@ -525,65 +526,88 @@ export const ToolsDetailedPageElements = [
         }
       ]
     },
-    documentaion: {
-      description: 'Explore all documented information about Dataiku',
-      Links: [
-        {
-          title: 'GitHub',
-          link: 'Link',
-        },
-        {
-          title: 'confluence',
-          link: 'Link',
-        },
-        {
-          title: 'wiki',
-          link: 'link',
-        },
-        {
-          title: 'Dataiku S1 Page',
-          link: 'link'
-        }
-      ],
-    },
-    templates: {
-      description: 'Download templates created in-line with our company standards to get started in an instant',
-      links: [
-        {
-          title: 'Dataiku Template(S1 Page)',
-          link: 'link',
-        },
-        {
-          title: 'How to import templates',
-          link: 'link',
-        },
-        {
-          title: 'Give FeedBack',
-          link: 'link',
-        }
-      ],
-    },
-    trainings: {
-      description: 'Get tailor-made trainings from experts to master this tool with ease',
-      links: [
-        {
-          title: 'Dataiku Trainings Overview (S1 Page)',
-          link: 'link',
-        },
-        {
-          title: 'Linkedin Learing Playlist',
-          link: 'link',
-        },
-        {
-          title: 'Udemy Playlist',
-          link: 'link',
-        },
-        {
-          title: 'Helpful Links',
-          link: 'link',
-        }
-      ],
-    }
+    info: [
+      {
+        icon: 'document',
+        name: 'documentation',
+        description: 'Explore all documented information about Dataiku',
+        links: [
+          {
+            title: 'GitHub',
+            link: 'https://github.com',
+          },
+          {
+            title: 'confluence',
+            link: 'Link',
+          },
+          {
+            title: 'wiki',
+            link: 'link',
+          },
+          {
+            title: 'Dataiku S1 Page',
+            link: 'link'
+          }
+        ],
+      },
+      {
+        icon: 'portfolio',
+        name: 'templates',
+        description: 'Download templates created in-line with our company standards to get started in an instant',
+        links: [
+          {
+            title: 'Dataiku Template(S1 Page)',
+            link: 'link',
+          },
+          {
+            title: 'How to import templates',
+            link: 'link',
+          },
+          {
+            title: 'Give FeedBack',
+            link: 'link',
+          }
+        ],
+      },
+      {
+        icon: 'trainings',
+        name: 'trainings',
+        description: 'Get tailor-made trainings from experts to master this tool with ease',
+        links: [
+          {
+            title: 'Dataiku Trainings Overview (S1 Page)',
+            link: 'link',
+          },
+          {
+            title: 'Linkedin Learing Playlist',
+            link: 'link',
+          },
+          {
+            title: 'Udemy Playlist',
+            link: 'link',
+          },
+          {
+            title: 'Helpful Links',
+            link: 'link',
+          }
+        ],
+      },
+    ],
+    accessSteps:[
+      {
+        id: 'step 1',
+        info : "yet to be given",
+      },
+      {
+        id: 'step 2',
+        info : "yet to be given",
+      },
+      {
+        id: 'step 3',
+        info : "yet to be given",
+      },
+    ],
+
   },
 ];
 export const TranparencyLandingPageElements = [
