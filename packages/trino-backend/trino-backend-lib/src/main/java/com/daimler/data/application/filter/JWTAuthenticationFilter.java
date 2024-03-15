@@ -58,9 +58,11 @@ import com.daimler.data.application.auth.UserStore.UserRole;
 import com.daimler.data.auth.client.DnaAuthClient;
 
 import io.jsonwebtoken.Claims;
-import io.trino.jdbc.$internal.jackson.core.JsonProcessingException;
-import io.trino.jdbc.$internal.jackson.core.type.TypeReference;
-import io.trino.jdbc.$internal.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 
 @Component
 public class JWTAuthenticationFilter implements Filter {
@@ -135,7 +137,24 @@ private void setUserDetailsToStore(String userinfo) throws JsonProcessingExcepti
 		UserStore.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserStore.UserInfo>() {
 		});
 		this.userStore.setUserInfo(userInfo);
-
+         List<UserRole> userRoles = new ArrayList<>();
+         try{
+             JsonNode rootNode = objectMapper.readTree(userinfo);
+             JsonNode digiRoleList = rootNode.get("digiRole");
+             if (digiRoleList != null && digiRoleList.isArray()) {
+                 for (JsonNode role : digiRoleList) {
+                     UserRole userRole = new UserRole();
+                     userRole.setId(role.get("id").asText());
+                     userRole.setName(role.get("name").asText());
+                     userRoles.add(userRole);
+                 }
+             }
+         }catch(Exception e){
+             log.debug("Exception occured during saving user role");
+         }
+         System.out.println(this.userStore.getUserInfo().getUserRole());
+         this.userStore.getUserInfo().setUserRole(userRoles);
+  
 	}
 	/**
 	 * method to set user info from dnabmc client
