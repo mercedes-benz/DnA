@@ -152,7 +152,6 @@ private void setUserDetailsToStore(String userinfo) throws JsonProcessingExcepti
          }catch(Exception e){
              log.debug("Exception occured during saving user role");
          }
-         System.out.println(this.userStore.getUserInfo().getUserRole());
          this.userStore.getUserInfo().setUserRole(userRoles);
   
 	}
