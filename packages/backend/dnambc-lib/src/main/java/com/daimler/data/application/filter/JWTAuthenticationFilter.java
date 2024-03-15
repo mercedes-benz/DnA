@@ -119,13 +119,13 @@ public class JWTAuthenticationFilter implements Filter {
 		ObjectMapper objectMapper = new ObjectMapper();
 		LoginController.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<LoginController.UserInfo>() {});
 		this.userStore.setUserInfo(userInfo);
-		List<UserRole> userRoles = new ArrayList<>();
+		List<LoginController.UserRole> userRoles = new ArrayList<>();
 		try{
 			JsonNode rootNode = objectMapper.readTree(userinfo);
 			JsonNode digiRoleList = rootNode.get("digiRole");
 			if (digiRoleList != null && digiRoleList.isArray()) {
-				for (JsonNode role : (ArrayNode) digiRoleList) {
-					UserRole userRole = new UserRole();
+				for (JsonNode role :  digiRoleList) {
+					LoginController.UserRole userRole = new UserRole();
 					userRole.setId(role.get("id").asText());
 					userRole.setName(role.get("name").asText());
 					userRoles.add(userRole);
