@@ -134,7 +134,7 @@ public class JWTAuthenticationFilter implements Filter {
         }catch(Exception e){
 			log.debug("Exception occured during saving user role");
 		}
-		userInfo.setDigiRole(digiRoleList);
+		userInfo.setDigiRole(userRoles);
 		this.userStore.setUserInfo(userInfo);
 		
 
