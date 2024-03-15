@@ -57,6 +57,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserRole;
 import com.daimler.data.auth.client.DnaAuthClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -140,7 +141,22 @@ public class JWTAuthenticationFilter implements Filter {
 		UserStore.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserStore.UserInfo>() {
 		});
 		this.userStore.setUserInfo(userInfo);
-
+		List<UserRole> userRoles = new ArrayList<>();
+		 try{
+			 JsonNode rootNode = objectMapper.readTree(userinfo);
+			 JsonNode digiRoleList = rootNode.get("digiRole");
+			 if (digiRoleList != null && digiRoleList.isArray()) {
+				 for (JsonNode role : digiRoleList) {
+					 UserRole userRole = new UserRole();
+					 userRole.setId(role.get("id").asText());
+					 userRole.setName(role.get("name").asText());
+					 userRoles.add(userRole);
+				 }
+			 }
+		 }catch(Exception e){
+			 log.debug("Exception occured during saving user role");
+		 }
+		 this.userStore.getUserInfo().setUserRole(userRoles);
 	}
 
 	/**
