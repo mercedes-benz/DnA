@@ -6,7 +6,6 @@ import { getParams } from '../../../../router/RouterUtils';
 import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import { ToolsDetailedPageElements } from 'globals/landingPageElements';
 import { history } from '../../../../router/History';
-//import TagSection from 'components/mbc/shared/landingSummary/tagSection/TagSection';
 
 export interface IData {
   id?: string;
@@ -44,7 +43,6 @@ const UseCaseTile = (props: any) => {
 const InfoTile = (props: any) => {
   const item = { ...props.item };
   const links = [...item.links];
-  console.log(links);
   return (
     <div className={Styles.infoTile}>
       <div className={Styles.serviceInfo}>
@@ -53,11 +51,11 @@ const InfoTile = (props: any) => {
           <h3>{item.name}</h3>
           <h5>{item.description}</h5>
           <div className={Styles.infoLinks}>
-          {item.links.map((item : any, key : any)=>{
-             return  <a href={item.link} target="_blank" rel="noreferrer" key={key}>
-             {item.title}
-           </a>
-          })}
+            {item.links.map((item: any, key: any) => {
+              return <a href={item.link} target="_blank" rel="noreferrer" key={key}>
+                {item.title}
+              </a>
+            })}
           </div>
         </div>
       </div>
@@ -65,39 +63,39 @@ const InfoTile = (props: any) => {
   )
 }
 
+
 const AccessSteps = (props: any) => {
-  const item = { ...props.item };
+  const index = props.index;
+  const item = props.item;
   return (
     <div className={Styles.AccessStep}>
       <div id="valueDriversWrapper" className={Styles.expansionListWrapper}>
         <div className="expansion-panel-group">
-          <div id={'valueDriverPanel_' + props.key} key={props.key} className="expansion-panel">
+          <div id={'valueDriverPanel_' + index} className="expansion-panel">
             <span className="animation-wrapper" />
-            <input type="checkbox" id={props.key} />
-            <label className="expansion-panel-label" htmlFor={props.key}>
+            <input type="checkbox" id={'checkbox_' + index} />
+            <label className="expansion-panel-label" htmlFor={'checkbox_' + index}>
               {item.id}
               <i className="icon down-up-flip" />
             </label>
-          </div>
-          <div className="expansion-panel-content">
-            <div className={Styles.expansionnPanelContent}>
-              <h5>
-                {item.info}
-              </h5>
+            <div className="expansion-panel-content">
+              <div className={Styles.expansionnPanelContent}>
+                <h5>{item.info}</h5>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
+};
 
-}
+
 
 
 const ToolsDetailedPage = (IData: any) => {
   const [pageDetails, setPageDetails] = useState(IData);
-  //const [tags, setTags] = useState([]);
-  
+
 
   useEffect(() => {
     const params = getParams();
@@ -108,13 +106,6 @@ const ToolsDetailedPage = (IData: any) => {
       }
     }
   }, []);
-
-  useEffect(() => {
-    //setTags(pageDetails.tags);
-    console.log(pageDetails.tags);
-
-  }, [pageDetails])
-
 
 
   return (
@@ -132,11 +123,11 @@ const ToolsDetailedPage = (IData: any) => {
               </Breadcrumb>
             </div>
             <div className={Styles.tags}>
-              {pageDetails.tags &&(
-                pageDetails.tags.map((value : any , key :any) =>
-                <div className={Styles.tag} key={key}>
-                  <h5>{value}</h5>
-                </div>
+              {pageDetails.tags && (
+                pageDetails.tags.map((value: any, key: any) =>
+                  <div className={Styles.tag} key={key}>
+                    <h5>{value}</h5>
+                  </div>
                 )
               )}
             </div>
@@ -176,7 +167,11 @@ const ToolsDetailedPage = (IData: any) => {
         <div className={Styles.contentSection}>
           <div className={Styles.portHeader}>
             <div className={Styles.classificationSection}>
-              <h3>classification</h3>
+              <div><h3>classification</h3></div>
+              <div className={Styles.classificationIcon}>
+                <i className={`icon mbc-icon portfolio`} />
+                <h4>Secret Data</h4>
+              </div>
             </div>
             <div className={Styles.accessSection}>
               <div className={Styles.serviceInfo}>
@@ -189,7 +184,7 @@ const ToolsDetailedPage = (IData: any) => {
               <div className={Styles.accessSteps}>
                 {pageDetails.accessSteps && (
                   pageDetails.accessSteps.map((item: any, key: any) =>
-                    <AccessSteps item={item} key={key} />
+                    <AccessSteps index={key} item={item} key={key} />
                   )
                 )}
               </div>
@@ -198,7 +193,7 @@ const ToolsDetailedPage = (IData: any) => {
         </div>
       </div>
       <div>
-        <div style={{ textAlign: 'right', marginTop: '20px', marginRight: '20px' }}>
+        <div className={Styles.navButton}>
           <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>Open in Browser</button>
         </div>
       </div>

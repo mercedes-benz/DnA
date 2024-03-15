@@ -14,19 +14,20 @@
       margin-bottom: 10px;
 
       .tags {
-        display: flex;
+        display: inline-flex;
         justify-content: space-between;
+        margin-top: -82px;
+
         .tag {
           border-style: solid;
           padding: 10px;
-          margin-top:0px;
+          padding-bottom: 2px !important;
+          margin-top: 0px;
           margin-left: 5px;
           margin-right: 5px;
           align-items: center;
-          height: fit-content;
-          width: fit-content;
           color: #c8c9cb;
-          border-radius: 20px;
+          border-radius: 17.5px;
 
           h5 {
             font-size: var(--font-size-default);
@@ -73,6 +74,12 @@
   h4 {
     color: #c8c9cb;
   }
+}
+
+.navButton {
+  text-Align: right;
+  margin-Top: 20px;
+  margin-Right: 20px
 }
 
 
@@ -137,7 +144,7 @@
         font-size: var(--font-size-icon-medium);
         margin-bottom: 10px;
       }
-  
+
       h5 {
         font-size: var(--font-size-icon-content);
         min-width: 100px;
@@ -147,17 +154,17 @@
         color: #b5b6b8;
       }
 
-      .infoLinks{
-        a{
+      .infoLinks {
+        a {
           font-size: var(--font-size-default);
           display: block;
-          margin-bottom : 5px;
+          margin-bottom: 5px;
           color: #00adef;
         }
       }
 
     }
-  
+
 
   }
 
@@ -173,7 +180,6 @@
 
   .classificationSection {
     background-color: #282b31;
-    display: flex;
     justify-content: space-between;
     padding: 24px;
     width: calc(33% - 9.5px);
@@ -181,33 +187,44 @@
     height: 300px;
     margin-right: 12px;
     border-radius: 10px;
+  }
 
-    h3 {
+  .classificationIcon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #a5a5a8;
+    padding: 30px;
+    padding-top: 55px !important;
+
+    h4 {
+      margin-top: 20px;
       font-size: var(--font-size-icon-medium);
     }
   }
 
+  h3 {
+    font-size: var(--font-size-icon-medium);
+  }
+
+
   .accessSection {
     border-style: solid;
     border-color: #282b31;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1.25fr 2.75fr;
     justify-content: space-between;
-    padding: 24px;
+    padding: 50px;
+    padding-left: 24px !important;
     width: calc(66% - 9.5px);
     margin: 6.5px 0 6.5px;
     height: 300px;
     border-radius: 10px;
 
-    :first-child {
-      width: calc(25% - 9.5px);
-    }
-
-    :last-child {
-      width: calc(75% - 9.5px);
-    }
-
     .serviceInfo {
-      margin: 30px 0px 0px 35px;
+      margin: 5px 0px 0px 35px;
 
       .serviceIcon {
         font-size: 40px;
@@ -234,13 +251,9 @@
     }
 
     .AccessSteps {
-
-      //margin-left: 10px; 
+      //margin-left: 10px;
       .AccessStep {
         .expansionListWrapper {
-
-          //margin-bottom: 20px;
-          //align-items: center;
           .expansionnPanelContent {
             padding-top: 40px;
 
