@@ -118,14 +118,14 @@ public class JWTAuthenticationFilter implements Filter {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		LoginController.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<LoginController.UserInfo>() {});
-		this.userStore.setUserInfo(userInfo);
 		List<LoginController.UserRole> userRoles = new ArrayList<>();
+    
 		try{
 			JsonNode rootNode = objectMapper.readTree(userinfo);
 			JsonNode digiRoleList = rootNode.get("digiRole");
 			if (digiRoleList != null && digiRoleList.isArray()) {
 				for (JsonNode role :  digiRoleList) {
-					LoginController.UserRole userRole = new UserRole();
+					LoginController.UserRole userRole = new LoginController.UserRole();
 					userRole.setId(role.get("id").asText());
 					userRole.setName(role.get("name").asText());
 					userRoles.add(userRole);
@@ -134,7 +134,9 @@ public class JWTAuthenticationFilter implements Filter {
         }catch(Exception e){
 			log.debug("Exception occured during saving user role");
 		}
-		this.userStore.getUserInfo().setUserRole(userRoles);
+		userInfo.setDigiRole(digiRoleList);
+		this.userStore.setUserInfo(userInfo);
+		
 
 	}
 
