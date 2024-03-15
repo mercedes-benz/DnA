@@ -37,6 +37,7 @@ spring:
     bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
       ssl:
+        enabled: false
         truststore:
           location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
           password: ${TRUSTSTORE_PASSWORD:XXXX}
