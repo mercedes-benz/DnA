@@ -18,7 +18,8 @@ import com.mb.dna.data.application.adapter.dna.DnaHttpClient;
 import com.mb.dna.data.application.adapter.dna.UserInfo;
 import com.mb.dna.data.application.adapter.dna.UserRole;
 import com.mb.dna.data.application.adapter.dna.UserStore;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.async.publisher.Publishers;
@@ -104,6 +105,22 @@ public class JWTAuthenticationFilter implements HttpServerFilter {
 		UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserInfo>() {
 		});
 		this.userStore.setUserInfo(userInfo);
+		List<UserRole> userRoles = new ArrayList<>();
+		try{
+			JsonNode rootNode = objectMapper.readTree(userinfo);
+			JsonNode digiRoleList = rootNode.get("digiRole");
+			if (digiRoleList != null && digiRoleList.isArray()) {
+				for (JsonNode role : (ArrayNode) digiRoleList) {
+					UserRole userRole = new UserRole();
+					userRole.setId(role.get("id").asText());
+					userRole.setName(role.get("name").asText());
+					userRoles.add(userRole);
+				}
+			}
+        }catch(Exception e){
+			log.debug("Exception occured during saving user role");
+		}
+		this.userStore.getUserInfo().setUserRole(userRoles);
 
 	}
 
