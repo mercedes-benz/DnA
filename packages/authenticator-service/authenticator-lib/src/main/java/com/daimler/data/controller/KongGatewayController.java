@@ -21,6 +21,8 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
+import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
@@ -366,6 +368,48 @@ public class KongGatewayController implements KongApi{
 			LOGGER.error("Failed to delete Kong service {} with exception {} ", serviceName,e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Attach apiAuthoriserPlugin to service.", nickname = "attachApiAuthoriserPlugin", notes = "Attach apiAuthoriserPlugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/apiAuthoriserPlugin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+	public ResponseEntity<GenericMessage> attachApiAuthoriserPlugin(
+			@Valid AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName) {
+
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		AttachApiAuthoriserPluginVO attachApiAuthoriserPluginVO = attachApiAuthoriserPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachApiAuthoriserPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachApiAuthoriserPluginToService(attachApiAuthoriserPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachApiAuthoriserPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching plugin {} to the service {} failed with error {}", attachApiAuthoriserPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach plugin {} with exception {} ", attachApiAuthoriserPluginVO.getName(),e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	
+	
 	}
 
 //	@Override

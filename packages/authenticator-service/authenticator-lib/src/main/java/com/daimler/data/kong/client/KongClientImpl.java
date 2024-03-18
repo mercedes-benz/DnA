@@ -53,6 +53,8 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
+import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginConfigVO;
+import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
@@ -570,6 +572,68 @@ public class KongClientImpl implements KongClient {
 		}
 		return message;
 	}	
+
+	@Override
+	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginVO attachApiAuthoriserPluginVO, String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {			
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			AttachApiAuthoriserPluginWrapperDto requestWrapper = new AttachApiAuthoriserPluginWrapperDto();
+			AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = attachApiAuthoriserPluginVO.getConfig();
+			AttachApiAuthoriserPluginConfigRequestDto apiAuthoriserPluginConfigRequestDto = new AttachApiAuthoriserPluginConfigRequestDto();
+
+			apiAuthoriserPluginConfigRequestDto.setApplicationName(apiAuthoriserPluginConfigVO.getApplicationName());
+			apiAuthoriserPluginConfigRequestDto.setEnableUserinfoIntrospection(apiAuthoriserPluginConfigVO.isEnableUserinfoIntrospection());
+			apiAuthoriserPluginConfigRequestDto.setWsconfigurl(apiAuthoriserPluginConfigVO.getWsconfigurl());
+			apiAuthoriserPluginConfigRequestDto.setPoolID(apiAuthoriserPluginConfigVO.getPoolID());
+			apiAuthoriserPluginConfigRequestDto.setUserinfoIntrospectionUri(apiAuthoriserPluginConfigVO.getUserinfoIntrospectionUri());
+			apiAuthoriserPluginConfigRequestDto.setLogType(apiAuthoriserPluginConfigVO.getLogType());
+			requestWrapper.setName(attachApiAuthoriserPluginVO.getName());
+			requestWrapper.setConfig(apiAuthoriserPluginConfigRequestDto);
+						
+			HttpEntity<AttachApiAuthoriserPluginWrapperDto> apiAuthoriserRequest = new HttpEntity<AttachApiAuthoriserPluginWrapperDto>(requestWrapper, headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, apiAuthoriserRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Api Authoriser plugin attached successfully to service: {}", serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("Api Authoriser plugin already attached to service: {}", serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("Api Authoriser Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching Api Authoriser plugin to service: {}", ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching Api Authoriser plugin to service: {}", e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
+	}
 	
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
