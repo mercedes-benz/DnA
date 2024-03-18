@@ -67,7 +67,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
       entitlementNameErrorMessage: '',
       entitlementPathErrorMessage: '',
       entitlementHttpMethodErrorMessage: '',
-      isProtectedByDna: false,
+      isProtectedByDna: true,
       isDnAProtectModal: false,
       showDeleteModal: false,
       deleteEntitlementName: '',
@@ -327,14 +327,15 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                   <label
                     className={classNames(
                       'checkbox',
-                      !CODE_SPACE_DISABLE_DNA_PROTECT.includes(this.state.config?.status) ? '' : 'hide',
+                      // !CODE_SPACE_DISABLE_DNA_PROTECT.includes(this.state.config?.status) ? '' : 'hide',
+                      'hide',
                     )}
                   >
                     <span className="wrapper">
                       <input
                         type="checkbox"
                         className="ff-only"
-                        checked={this.state.isProtectedByDna ? this.state.isProtectedByDna : false}
+                        checked={true}
                         onChange={(e) => {
                           const checkboxValue = e.target.checked;
                           if (!e.target.checked) {
@@ -390,7 +391,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                     <EntitlementSubList
                       readOnlyMode={this.props.readOnlyMode}
                       entitelmentListResponse={this.state.entitelmentListResponse}
-                      isProtectedByDna={this.state?.isProtectedByDna}
+                      isProtectedByDna={this.state?.isProtectedByDna || true}
                       listOfProject={this.state.entitelmentList}
                       status={this.state.config?.status}
                       getRefreshedDagPermission={this.getRefreshedDagPermission}
@@ -481,7 +482,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
             show={this.state.isCreateOrEditEntitlementModal}
             content={
               <EditOrCreateEntitlement
-                isProtectedByDna={this.state.isProtectedByDna}
+                isProtectedByDna={this.state.isProtectedByDna || true}
                 submitEntitlement={(entitlementData: any) => this.updateEntitlement(entitlementData)}
                 editEntitlementModal={this.state.editEntitlementModal}
                 entitlementNameErrorMessage={this.state.entitlementNameErrorMessage}
