@@ -37,7 +37,6 @@ spring:
     bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
       ssl:
-        enabled: false
         truststore:
           location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
           password: ${TRUSTSTORE_PASSWORD:XXXX}
@@ -59,6 +58,8 @@ dnadss:
   provisionSolutionuri: ${PROVSION_SOLUTION_URI:XXXX}
 
 kafka:
+  ssl:
+    enabled: ${KAFKA_SSL_ENABLED:false}
   centralTopic:
     name: dnaCentralEventTopic
 #DNA feature configuration allowed or not(true/false) 

@@ -22,10 +22,7 @@ public class KafkaDynamicProducerConfig {
 
 	@Value(value = "${spring.cloud.stream.kafka.binder.brokers}")
 	private String bootstrapAddress;
-
-	@Value(value = "${spring.kafka.properties.ssl.enabled}")
-	private Boolean sslEnabled;
-
+	
 	@Value(value = "${spring.kafka.properties.ssl.keystore.location}")
 	 private String sslKeyStoreLocation;
  
@@ -37,7 +34,9 @@ public class KafkaDynamicProducerConfig {
  
 	 @Value(value = "${spring.kafka.properties.ssl.truststore.password}")
 	 private String sslTrustStorePassword;
-
+	
+	 @Value(value = "${kafka.ssl.enabled}")
+	 private Boolean sslEnabled;
 
 	@Bean
 	public ProducerFactory<String, GenericEventRecord> producerFactory() {
@@ -47,7 +46,7 @@ public class KafkaDynamicProducerConfig {
 		configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, GenericEventRecordSerializer.class);
 		log.info("New ProducerFactory created with bootstrap_server{} and String Key serializer "
 				+ "and GenericEventRecordSerializer for value", bootstrapAddress);
-		if (sslEnabled) {
+		if (Boolean.TRUE.equals(sslEnabled)) {
         		configProps.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,sslKeyStoreLocation);
 			configProps.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeyStorePassword);
 			configProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,sslTrustStoreLocation);
