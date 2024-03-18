@@ -407,7 +407,7 @@ const Roles = (props: any) => {
                 className="input-field"
                 required={true}
                 id="RolId"
-                maxLength={20}
+                maxLength={19}
                 placeholder="Type here"
                 autoComplete="off"
                 onChange={(e)=>onRoleNameOnChange(e)}
