@@ -101,7 +101,7 @@ const Roles = (props: any) => {
     if (item.name.startsWith(props.projectName + "_")) {
       const roleName = item.name.substring(props.projectName.length + 1);
       setRoleName(roleName);
-    }else{
+    } else {
       setRoleName(item.name);
     }
     setTempRoleName(item.name);
