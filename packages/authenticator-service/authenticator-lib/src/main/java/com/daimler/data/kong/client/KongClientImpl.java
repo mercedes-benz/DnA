@@ -492,7 +492,7 @@ public class KongClientImpl implements KongClient {
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -540,7 +540,7 @@ public class KongClientImpl implements KongClient {
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
