@@ -61,7 +61,10 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}
+          allow:
+            auto:
+              create:
+                topics: false
           
       bindings:
         output:

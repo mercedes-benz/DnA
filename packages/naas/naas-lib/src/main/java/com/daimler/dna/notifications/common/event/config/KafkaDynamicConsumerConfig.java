@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,14 +50,33 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KafkaDynamicConsumerConfig {
 
-	@Value(value = "${spring.cloud.stream.kafka.binder.brokers}")
-	private String bootstrapAddress;
-
+	@Value(value = "${spring.kafka.bootstrap-servers}")
+	 private String bootstrapAddress;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.keystore.location}")
+	 private String sslKeyStoreLocation;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.keystore.password}")
+	 private String sslKeyStorePassword;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.truststore.location}")
+	 private String sslTrustStoreLocation;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.truststore.password}")
+	 private String sslTrustStorePassword;
 	@Bean
 	public AdminClient kafkaAdminClient() {
 		Properties properties = new Properties();
 		properties.put("bootstrap.servers", bootstrapAddress);
 		log.info("Bootstrap server address {} for KafkaAdminClient", bootstrapAddress);
+		properties.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,sslKeyStoreLocation);
+		 properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeyStorePassword);
+		 properties.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,sslTrustStoreLocation);
+		 properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTrustStorePassword);
+		 properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+		 properties.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG,sslKeyStorePassword);
+		 properties.put(SslConfigs.DEFAULT_SSL_KEYSTORE_TYPE, "PKCS12");
+		 properties.put(SslConfigs.DEFAULT_SSL_TRUSTSTORE_TYPE,"PKCS12");
 		AdminClient client = AdminClient.create(properties);
 		return client;
 	}
@@ -72,6 +93,14 @@ public class KafkaDynamicConsumerConfig {
 		log.info(
 				"New consumer factory created for kafka boostrap_server {} with key deserializer as StringDeserializer and Value deserializer as GenericEventRecordDeserializer",
 				bootstrapAddress);
+		props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,sslKeyStoreLocation);
+		props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeyStorePassword);
+		props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,sslTrustStoreLocation);
+		props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTrustStorePassword);
+		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+		props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG,sslKeyStorePassword);
+		props.put(SslConfigs.DEFAULT_SSL_KEYSTORE_TYPE, "PKCS12");
+		props.put(SslConfigs.DEFAULT_SSL_TRUSTSTORE_TYPE,"PKCS12");
 		return new DefaultKafkaConsumerFactory<>(props);
 	}
 

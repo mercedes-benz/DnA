@@ -57,7 +57,7 @@ public class KafkaDynamicConsumerService {
 	@Autowired
 	AdminClient adminClient;
 
-	@Value(value = "${spring.cloud.stream.kafka.binder.brokers}")
+	@Value(value = "${spring.kafka.bootstrap-servers}")
 	private String bootstrapAddress;
 
 	@Value(value = "${kafka.consumer.pollingTime}")
