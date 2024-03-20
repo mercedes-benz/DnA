@@ -17,8 +17,9 @@ const EditOrCreateEntitlement = (props: any) => {
   const [missingAddMesage, setMissingAddMesage] = useState<string>('');
   const [httpMethod, setHttpMethod] = useState<string>('');
   const [currentEntitlement, setCurrentEntitlement] = useState<any>({ apiList: [] });
-  
-  const onEntitlementNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
+  const [duplicateApiErrorMessage , setDuplicateApiErrorMessage] = useState('');
+
+    const onEntitlementNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
     validateEntitlementName(value);
     setEntitlId(value);
@@ -59,15 +60,26 @@ const EditOrCreateEntitlement = (props: any) => {
     if (props.isProtectedByDna && entitlPath.length === 0) {
       setmissingEntryEntlPath(errorMissingEntry);
       formValid = false;
-    }
-    if (props.isProtectedByDna && (entitlPath.length < 4 || !entitlPath.includes('/api/') || entitlPath === '/api/')) {
+    }else if (props.isProtectedByDna && (entitlPath.length < 4 || !entitlPath.startsWith('/api/') || entitlPath === '/api/')) {
       setmissingEntryEntlPath(
         'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
       );
       formValid = false;
     }
+    if(props.isProtectedByDna && ( currentEntitlement ? currentEntitlement?.apiList.length > 0 : '')){
+      const entList = [...currentEntitlement.apiList];
+      for(const data of entList){
+        if(data.apiPattern === entitlPath && data.httpMethod === httpMethod){
+          setDuplicateApiErrorMessage('An api with same path and method is already exists.');
+          formValid = false;
+        }
+      }     
+    }
     if (props.isProtectedByDna && (httpMethod === '0' || httpMethod?.trim()?.length === 0)) {
       setmissingEntryEntlMethod(errorMissingEntry);
+      formValid = false;
+    }
+    if(missingEntryEntlMethod?.length  || missingEntryEntlPath?.length || missingEntryEntitlName?.length){
       formValid = false;
     }
     setTimeout(() => {
@@ -106,6 +118,7 @@ const EditOrCreateEntitlement = (props: any) => {
   };
   const onExistingEntitlementSubmit = () => {
     setMissingAddMesage('');
+    setDuplicateApiErrorMessage('');
     if (validateForm()) {
       let currentEntitlementList = currentEntitlement || { apiList: [] };
       if (currentEntitlementList?.apiList?.length === 0) {
@@ -180,7 +193,12 @@ const EditOrCreateEntitlement = (props: any) => {
 
   useEffect(() => {
     if (props?.editEntitlementModal) {
-      setEntitlId(props.editEntitlementList.name);
+      if (props.editEntitlementList.name.startsWith(props.projectName + "_")) {
+        const entId = props.editEntitlementList.name.substring(props.projectName.length + 1);
+        setEntitlId(entId);
+      } else {
+        setEntitlId(props.editEntitlementList.name);
+      }
       setEntitleName(Envs.CODESPACE_SECURITY_APP_ID + '.' + props.editEntitlementList.name)
       setbeforeUpdateEntitlName(props.editEntitlementList.name);
     }
@@ -217,7 +235,7 @@ const EditOrCreateEntitlement = (props: any) => {
                       className="input-field"
                       required={true}
                       id="PrjId"
-                      maxLength={64}
+                      maxLength={19}
                       placeholder="Type here"
                       autoComplete="off"
                       onChange={(e) => onEntitlementNameOnChange(e)}
@@ -297,6 +315,7 @@ const EditOrCreateEntitlement = (props: any) => {
                         </div>
                       </div>
                     </div>
+                    <span className={classNames('error-message', duplicateApiErrorMessage.length ? '' : 'hide')}> {duplicateApiErrorMessage} </span>
                     <div className={Styles.AddBtn}>
                       <button
                         className={'btn btn-tertiary'}

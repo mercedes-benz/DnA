@@ -45,6 +45,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const [originalApiPattern, setOriginalApiPattern] = useState('');
   const [originalHttpMethod, setOriginalHttpMethod] = useState('');
   const [entitelmentListResponse, setEntitelmentListResponse] = useState([]);
+  const [duplicateApiErrorMessage , setDuplicateApiErrorMessage] = useState('');
 
   const onEditEntitlement = (entitlement: any) => {
     setCollEditEntitlementModel(true);
@@ -85,13 +86,13 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   };
   const validateEntitlPath = (value: any) => {
     const length = value.length;
-      if (length >= 4 && !value.includes('/api')) {
-        setEntitlementPathErrorMessage('API Path Should Start With /api');
-      } else if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
-        setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
-      } else if (value.includes('{') && !value.includes('}')) {
-        setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
-      }
+    if (length >= 4 && !value.includes('/api')) {
+      setEntitlementPathErrorMessage('API Path Should Start With /api');
+    } else if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
+      setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
+    } else if (value.includes('{') && !value.includes('}')) {
+      setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
+    }
   };
   useEffect(()=>{
     validateEntitlPath(entitlemenPath);
@@ -170,55 +171,78 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
     props.getProjectSorted([...updatedList]);
   };
 
-  const updatePathHttpMethod = () => {
+  const validateForm = () => {
+    let isFormValid = true;
     if (!entitlemenPath || !httpMethod || httpMethod === 'Choose' || httpMethod === '0') {
       setEntitlementPathErrorMessage(!entitlemenPath ? 'Please enter a valid API Path/Pattern' : '');
       setEntitlementHttpMethodErrorMessage(
         !httpMethod || httpMethod === 'Choose' || httpMethod === '0' ? 'Please select an HTTP Method' : '',
       );
-      return;
+      isFormValid = false;
     }
     if (props.isProtectedByDna && (entitlemenPath.length < 4 || !entitlemenPath.includes('/api/') || entitlemenPath === '/api/')) {
       setEntitlementPathErrorMessage(
         'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
       );
-      return;
+      isFormValid = false;
     }
-
-    const updatedList = allEntitlementList.map((entitlement: any) => {
-      if (entitlement.name === currentEntitlementName) {
-        return {
-          ...entitlement,
-          apiList: entitlement.apiList.map((apiItem: any) => {
-            if (apiItem.apiPattern === originalApiPattern && apiItem.httpMethod === originalHttpMethod) {
-              return { ...apiItem, apiPattern: entitlemenPath, httpMethod: httpMethod };
+    if (props.isProtectedByDna && allEntitlementList?.length > 0) {
+      for (const ent of allEntitlementList) {
+        if (ent.name === currentEntitlementName) {
+          ent.apiList.map((val : any) =>{
+            if (val.apiPattern === entitlemenPath && val.httpMethod === httpMethod) {
+              setDuplicateApiErrorMessage('An api with same path and method is already exists.');
+              isFormValid = false;
             }
-            return apiItem;
-          }),
-        };
+          })
+        }
       }
-      return entitlement;
-    });
+    }
+    if(entitlementPathErrorMessage !==''){
+      isFormValid = false;
+    }
+       
+    return isFormValid;
 
-    const updatedEntitelmentListResponse = entitelmentListResponse.map((entitlement: any) => {
-      if (entitlement.name === currentEntitlementName) {
-        return {
-          ...entitlement,
-          apiList: entitlement.apiList.map((apiItem: any) => {
-            if (apiItem.apiPattern === originalApiPattern && apiItem.httpMethod === originalHttpMethod) {
-              return { ...apiItem, apiPattern: entitlemenPath, httpMethod: httpMethod };
-            }
-            return apiItem;
-          }),
-        };
-      }
-      return entitlement;
-    });
+  }
 
-    setAllEntitlementList([...updatedList]);
-    setEditPathMethodModal(false);
-    setEntitelmentListResponse([...updatedEntitelmentListResponse]);
-    props.updatedFinalEntitlementList([...updatedEntitelmentListResponse]);
+  const updatePathHttpMethod = () => {
+    if (validateForm() ) {
+      const updatedList = allEntitlementList.map((entitlement: any) => {
+        if (entitlement.name === currentEntitlementName) {
+          return {
+            ...entitlement,
+            apiList: entitlement.apiList.map((apiItem: any) => {
+              if (apiItem.apiPattern === originalApiPattern && apiItem.httpMethod === originalHttpMethod) {
+                return { ...apiItem, apiPattern: entitlemenPath, httpMethod: httpMethod };
+              }
+              return apiItem;
+            }),
+          };
+        }
+        return entitlement;
+      });
+
+      const updatedEntitelmentListResponse = entitelmentListResponse.map((entitlement: any) => {
+        if (entitlement.name === currentEntitlementName) {
+          return {
+            ...entitlement,
+            apiList: entitlement.apiList.map((apiItem: any) => {
+              if (apiItem.apiPattern === originalApiPattern && apiItem.httpMethod === originalHttpMethod) {
+                return { ...apiItem, apiPattern: entitlemenPath, httpMethod: httpMethod };
+              }
+              return apiItem;
+            }),
+          };
+        }
+        return entitlement;
+      });
+
+      setAllEntitlementList([...updatedList]);
+      setEditPathMethodModal(false);
+      setEntitelmentListResponse([...updatedEntitelmentListResponse]);
+      props.updatedFinalEntitlementList([...updatedEntitelmentListResponse]);
+    }
   };
 
   // Sorting table data
@@ -571,7 +595,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                   </span>
                 </div>
               </div>
-
+              <span className={classNames('error-message', duplicateApiErrorMessage.length ? '' : 'hide')}> {duplicateApiErrorMessage} </span>
               <div className={Styles.submitButtton}>
                 <button className={classNames('btn btn-tertiary')} type="button" onClick={updatePathHttpMethod}>
                   Update
