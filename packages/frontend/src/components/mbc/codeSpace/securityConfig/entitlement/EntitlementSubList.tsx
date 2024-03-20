@@ -142,6 +142,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const editPathModelClose = () => {
     setEditPathMethodModal(false);
     setEntitlementPathErrorMessage('');
+    setDuplicateApiErrorMessage('');
   };
 
   const updateEntitlement = (editedEntitlement: any) => {
@@ -208,6 +209,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
 
   const updatePathHttpMethod = () => {
     if (validateForm() ) {
+      setDuplicateApiErrorMessage('');
       const updatedList = allEntitlementList.map((entitlement: any) => {
         if (entitlement.name === currentEntitlementName) {
           return {
