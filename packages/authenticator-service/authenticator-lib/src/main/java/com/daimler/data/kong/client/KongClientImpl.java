@@ -28,8 +28,10 @@
 package com.daimler.data.kong.client;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.json.JSONArray;
@@ -60,7 +62,10 @@ import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @Component
 public class KongClientImpl implements KongClient {
@@ -538,7 +543,7 @@ public class KongClientImpl implements KongClient {
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
-			if (response != null && response.hasBody()) {
+			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
@@ -635,6 +640,120 @@ public class KongClientImpl implements KongClient {
 		return message;
 	}
 	
+	@Override
+	public GenericMessage deletePlugin(String serviceName, String pluginName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		
+		try {
+			Map<String,String>pluginIdMap = getPluginIds(serviceName,pluginName);
+			if(!pluginIdMap.isEmpty()){
+				String PluginIdToDelete = pluginIdMap.get(pluginName);
+				if(PluginIdToDelete!=null){
+					String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins/" + PluginIdToDelete;
+					HttpHeaders headers = new HttpHeaders();
+					headers.set("Accept", "application/json");
+					headers.set("Content-Type", "application/x-www-form-urlencoded");
+					HttpEntity entity = new HttpEntity<>(headers);
+					ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
+					if (response != null) {
+						HttpStatus statusCode = response.getStatusCode();
+						if (statusCode.is2xxSuccessful()) {
+							message.setSuccess("Success");		
+							message.setErrors(errors);
+							message.setWarnings(warnings);
+							LOGGER.info("Kong plugin:{} for the service {} deleted successfully", pluginName, serviceName);
+							return message;
+						}
+						
+					}
+					LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+				}
+			}
+			else{
+				LOGGER.error("plugin {} does not exist", pluginName);
+				messageDescription.setMessage("plugin does not exist");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("plugin {} does not exist", pluginName);
+			messageDescription.setMessage("plugin does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception: {} occured while deleting plugin: {} details", ex.getMessage(), pluginName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while deleting plugin: {} details", e.getMessage(), pluginName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+	
+		return message;
+	}
+
+	public Map<String,String> getPluginIds(String serviceName, String pluginName){
+		Map<String,String>pluginIdMap = new HashMap<>();
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					// message.setSuccess("Success");		
+					// message.setErrors(errors);
+					// message.setWarnings(warnings);
+					// LOGGER.info("plugin List fetched successfully");
+
+					ObjectMapper objectMapper = new ObjectMapper();
+					 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+					try{
+						JsonNode rootNode = objectMapper.readTree(response.getBody());
+						JsonNode data = rootNode.get("data");
+						if (data != null && data.isArray()) {
+							for (JsonNode plugin : (ArrayNode) data) 
+							{
+								pluginIdMap.put(plugin.get("name").asText(),plugin.get("id").asText());
+								// UserRole userRole = new UserRole();
+								// userRole.setId(role.get("id").asText());
+								// userRole.setName(role.get("name").asText());
+								// userRoles.add(userRole);
+							}
+						}
+					}catch(Exception e){
+						LOGGER.debug("Exception occured during fetching plugin list");
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while fetching plugin: {} details", e.getMessage(), pluginName);			
+		}
+		System.out.print(pluginIdMap);
+		return pluginIdMap;
+	}
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
 //		
@@ -746,5 +865,6 @@ public class KongClientImpl implements KongClient {
 //		}
 //		return createRouteResponseVO;
 //	}
+
 
 }

@@ -28,6 +28,7 @@
 package com.daimler.data.kong.client;
 
 import java.util.List;
+import java.util.Map;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
@@ -57,6 +58,10 @@ public interface KongClient {
 	public List<String> getAllServices();
 	
 	public GenericMessage deleteRoute(String serviceName, String routeName);
+
+	public GenericMessage deletePlugin(String serviceName, String pluginName);
+
+	public Map<String,String> getPluginIds(String serviceName, String pluginName);
 	
 	public GenericMessage deleteService(String serviceName);
 	

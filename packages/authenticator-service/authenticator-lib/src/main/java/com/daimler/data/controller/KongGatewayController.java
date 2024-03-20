@@ -412,6 +412,42 @@ public class KongGatewayController implements KongApi{
 	
 	}
 
+	@Override
+	@ApiOperation(value = "Delete a plugin.", nickname = "deletePlugin", notes = "Delete a plugin", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/plugins/{pluginName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deletePlugin(String serviceName, String pluginName) {
+		GenericMessage response = new GenericMessage();		
+		try {
+			if(Objects.nonNull(serviceName) && Objects.nonNull(pluginName)) {
+				response = kongClient.deletePlugin(serviceName, pluginName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Kong plugin {} deleted successfully", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			else {
+				LOGGER.info("Kong plugin {} deletion failed", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+							
+		}catch(Exception e) {
+			LOGGER.error("Failed to delete Kong plugin {} with exception {} ", pluginName,e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+
 //	@Override
 //	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
 //		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);

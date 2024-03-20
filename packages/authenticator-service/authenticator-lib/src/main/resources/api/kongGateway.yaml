@@ -208,7 +208,7 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
 # path to delete route 
 #  supported http methods DELETE
  /kong/services/{serviceName}/routes/{routeName}:
@@ -227,6 +227,49 @@ paths:
         - name: "routeName"
           in: "path"
           description: "Name of the route has to be created"
+          required: true
+          type: "string"  
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+          
+# path to delete plugin 
+#  supported http methods DELETE
+ /kong/services/{serviceName}/plugins/{pluginName}:
+    delete:
+      tags:
+        - "kong"
+      summary: "Delete a plugin."
+      description: "Delete a plugin"
+      operationId: "deletePlugin"
+      parameters:      
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which route has to be created"
+          required: true
+          type: "string"
+        - name: "pluginName"
+          in: "path"
+          description: "Name of the plugin has to be created"
           required: true
           type: "string"  
       responses:
