@@ -43,6 +43,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.LoginController;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
@@ -56,7 +57,7 @@ import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
-import com.daimler.data.util.JWTGenerator;
+//import com.daimler.data.util.JWTGenerator;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.jsonwebtoken.Claims;
@@ -172,50 +173,51 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		}
 	}
 
-	@Override
-	public boolean validateUserToken(final String id, String token) {
-		UserInfoNsql userinfo = jpaRepo.findById(id).get();
-		if (userinfo != null && userinfo.getIsLoggedIn().equalsIgnoreCase("Y")) {
-			// Validate Claimed roles
-			log.debug("Validating claimed roles for user {} and token {}", id, token);
-			Claims claims = JWTGenerator.decodeJWT(token);
-			List<LinkedHashMap<String, String>> claimedRoles = (List<LinkedHashMap<String, String>>) claims
-					.get("digiRole");
-			if (claimedRoles != null && !claimedRoles.isEmpty()) {
-				List<UserInfoRole> userRoles = userinfo.getData().getRoles();
-				if (userRoles != null && !userRoles.isEmpty()) {
-					if (userRoles.size() != claimedRoles.size()) {
-						// Claimed roles dont match with User Roles
-						return false;
-					}
-					for (LinkedHashMap<String, String> roleClaimed : claimedRoles) {
-						boolean roleFound = false;
-						for (UserInfoRole userRole : userRoles) {
-							if (userRole.getId().equals(roleClaimed.get("id"))) {
-								roleFound = true;
-								break;
-							}
-						}
-						if (!roleFound) {
-							return false;
-						}
-					}
-				} else {
-					// Claimed roles dont match with User Roles
-					return false;
-				}
-			}
-			log.debug("Roles verified for user checking token validity for user {} and token {}", id, token);
-			// Validate Token
-			/*
-			 * String[] tokens = userinfo.getToken().split("#"); if (tokens != null) { for
-			 * (String tkn : tokens) { if (tkn.equals(token)) { return true; } } }
-			 */
-		} else {
-			return false;
-		}
-		return true;
-	}
+	// @Override
+	// public boolean validateUserToken(final String id, String token) {
+	// 	UserInfoNsql userinfo = jpaRepo.findById(id).get();
+	// 	if (userinfo != null && userinfo.getIsLoggedIn().equalsIgnoreCase("Y")) {
+	// 		// Validate Claimed roles
+	// 		log.debug("Validating claimed roles for user {} and token {}", id, token);
+	// 		// Claims claims = JWTGenerator.decodeJWT(token);
+	// 		// List<LinkedHashMap<String, String>> claimedRoles = (List<LinkedHashMap<String, String>>) claims
+	// 		// 		.get("digiRole");
+	// 		List<UserInfoRole> claimedRoles = LoginController.UserInfo.getDigiRole();
+	// 		if (claimedRoles != null && !claimedRoles.isEmpty()) {
+	// 			List<UserInfoRole> userRoles = userinfo.getData().getRoles();
+	// 			if (userRoles != null && !userRoles.isEmpty()) {
+	// 				if (userRoles.size() != claimedRoles.size()) {
+	// 					// Claimed roles dont match with User Roles
+	// 					return false;
+	// 				}
+	// 				for (UserInfoRole roleClaimed : claimedRoles) {
+	// 					boolean roleFound = false;
+	// 					for (UserInfoRole userRole : userRoles) {
+	// 						if (userRole.getId().equals(roleClaimed.get("id"))) {
+	// 							roleFound = true;
+	// 							break;
+	// 						}
+	// 					}
+	// 					if (!roleFound) {
+	// 						return false;
+	// 					}
+	// 				}
+	// 			} else {
+	// 				// Claimed roles dont match with User Roles
+	// 				return false;
+	// 			}
+	// 		}
+	// 		log.debug("Roles verified for user checking token validity for user {} and token {}", id, token);
+	// 		// Validate Token
+	// 		/*
+	// 		 * String[] tokens = userinfo.getToken().split("#"); if (tokens != null) { for
+	// 		 * (String tkn : tokens) { if (tkn.equals(token)) { return true; } } }
+	// 		 */
+	// 	} else {
+	// 		return false;
+	// 	}
+	// 	return true;
+	// }
 
 	public void addUser(UserInfoNsql userinfo) {
 		jpaRepo.save(userinfo);
