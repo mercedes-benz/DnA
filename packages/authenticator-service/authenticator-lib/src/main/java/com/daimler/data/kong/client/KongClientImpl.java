@@ -722,11 +722,6 @@ public class KongClientImpl implements KongClient {
 			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode.is2xxSuccessful()) {
-					// message.setSuccess("Success");		
-					// message.setErrors(errors);
-					// message.setWarnings(warnings);
-					// LOGGER.info("plugin List fetched successfully");
-
 					ObjectMapper objectMapper = new ObjectMapper();
 					 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 					try{
@@ -736,10 +731,6 @@ public class KongClientImpl implements KongClient {
 							for (JsonNode plugin : (ArrayNode) data) 
 							{
 								pluginIdMap.put(plugin.get("name").asText(),plugin.get("id").asText());
-								// UserRole userRole = new UserRole();
-								// userRole.setId(role.get("id").asText());
-								// userRole.setName(role.get("name").asText());
-								// userRoles.add(userRole);
 							}
 						}
 					}catch(Exception e){
@@ -751,7 +742,6 @@ public class KongClientImpl implements KongClient {
 		catch(Exception e) {
 			LOGGER.error("Error: {} while fetching plugin: {} details", e.getMessage(), pluginName);			
 		}
-		System.out.print(pluginIdMap);
 		return pluginIdMap;
 	}
 //	@Override
