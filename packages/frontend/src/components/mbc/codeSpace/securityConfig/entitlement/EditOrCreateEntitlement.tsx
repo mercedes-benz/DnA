@@ -17,9 +17,9 @@ const EditOrCreateEntitlement = (props: any) => {
   const [missingAddMesage, setMissingAddMesage] = useState<string>('');
   const [httpMethod, setHttpMethod] = useState<string>('');
   const [currentEntitlement, setCurrentEntitlement] = useState<any>({ apiList: [] });
-  const [duplicateApiErrorMessage , setDuplicateApiErrorMessage] = useState('');
+  const [duplicateApiErrorMessage, setDuplicateApiErrorMessage] = useState('');
 
-    const onEntitlementNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
+  const onEntitlementNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
     validateEntitlementName(value);
     setEntitlId(value);
@@ -60,26 +60,26 @@ const EditOrCreateEntitlement = (props: any) => {
     if (props.isProtectedByDna && entitlPath.length === 0) {
       setmissingEntryEntlPath(errorMissingEntry);
       formValid = false;
-    }else if (props.isProtectedByDna && (entitlPath.length < 4 || !entitlPath.startsWith('/api/') || entitlPath === '/api/')) {
+    } else if (props.isProtectedByDna && (entitlPath.length < 4 || !entitlPath.startsWith('/api/') || entitlPath === '/api/')) {
       setmissingEntryEntlPath(
         'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
       );
       formValid = false;
     }
-    if(props.isProtectedByDna && ( currentEntitlement ? currentEntitlement?.apiList.length > 0 : '')){
+    if (props.isProtectedByDna && (currentEntitlement ? currentEntitlement?.apiList.length > 0 : '')) {
       const entList = [...currentEntitlement.apiList];
-      for(const data of entList){
-        if(data.apiPattern === entitlPath && data.httpMethod === httpMethod){
+      for (const data of entList) {
+        if (data.apiPattern === entitlPath && data.httpMethod === httpMethod) {
           setDuplicateApiErrorMessage('An api with same path and method is already exists.');
           formValid = false;
         }
-      }     
+      }
     }
     if (props.isProtectedByDna && (httpMethod === '0' || httpMethod?.trim()?.length === 0)) {
       setmissingEntryEntlMethod(errorMissingEntry);
       formValid = false;
     }
-    if(missingEntryEntlMethod?.length  || missingEntryEntlPath?.length || missingEntryEntitlName?.length){
+    if (missingEntryEntlMethod?.length || missingEntryEntlPath?.length || missingEntryEntitlName?.length) {
       formValid = false;
     }
     setTimeout(() => {

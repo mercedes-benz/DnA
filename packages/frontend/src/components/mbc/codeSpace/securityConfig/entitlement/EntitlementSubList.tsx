@@ -45,7 +45,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const [originalApiPattern, setOriginalApiPattern] = useState('');
   const [originalHttpMethod, setOriginalHttpMethod] = useState('');
   const [entitelmentListResponse, setEntitelmentListResponse] = useState([]);
-  const [duplicateApiErrorMessage , setDuplicateApiErrorMessage] = useState('');
+  const [duplicateApiErrorMessage, setDuplicateApiErrorMessage] = useState('');
 
   const onEditEntitlement = (entitlement: any) => {
     setCollEditEntitlementModel(true);
@@ -94,9 +94,9 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
     }
   };
-  useEffect(()=>{
+  useEffect(() => {
     validateEntitlPath(entitlemenPath);
-  },[entitlemenPath])
+  }, [entitlemenPath])
 
   const deletePathMethod = (name: any, apiPattern: any, httpMethod: any, index: any) => {
     // Iterate through allEntitlementList and update the apiList for the matched entitlement
@@ -190,7 +190,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
     if (props.isProtectedByDna && allEntitlementList?.length > 0) {
       for (const ent of allEntitlementList) {
         if (ent.name === currentEntitlementName) {
-          ent.apiList.map((val : any) =>{
+          ent.apiList.map((val: any) => {
             if ((val.apiPattern === entitlemenPath && val.httpMethod === httpMethod) && !(val.apiPattern === originalApiPattern && val.httpMethod === originalHttpMethod)) {
               setDuplicateApiErrorMessage('An api with same path and method is already exists.');
               isFormValid = false;
@@ -199,16 +199,16 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
         }
       }
     }
-    if(entitlementPathErrorMessage !==''){
+    if (entitlementPathErrorMessage !== '') {
       isFormValid = false;
     }
-       
+
     return isFormValid;
 
   }
 
   const updatePathHttpMethod = () => {
-    if (validateForm() ) {
+    if (validateForm()) {
       setDuplicateApiErrorMessage('');
       const updatedList = allEntitlementList.map((entitlement: any) => {
         if (entitlement.name === currentEntitlementName) {
@@ -315,7 +315,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                       >
                         <div className={classNames('expansion-panel')}>
                           <div className={classNames(Styles.entTile)}>
-                            <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage? Envs.CODESPACE_SECURITY_APP_ID +'.'+item.name : item.name}</div>
+                            <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage ? Envs.CODESPACE_SECURITY_APP_ID + '.' + item.name : item.name}</div>
                             <div className={Styles.dagTitleCol}>
                               <div className={Styles.prjListAction}>
                                 <div className={Styles.actionBtnGrp}>
@@ -371,7 +371,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                           <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                           <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                             <div className={classNames(Styles.entTile)}>
-                              <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage?( Envs.CODESPACE_SECURITY_APP_ID+'.'+ item.name ): item.name}</div>
+                              <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage ? (Envs.CODESPACE_SECURITY_APP_ID + '.' + item.name) : item.name}</div>
                               <div className={Styles.dagTitleCol}></div>
                             </div>
                             <i tooltip-data="Expand" className="icon down-up-flip"></i>
