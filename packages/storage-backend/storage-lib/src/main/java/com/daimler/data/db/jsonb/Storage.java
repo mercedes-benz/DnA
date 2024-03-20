@@ -53,4 +53,13 @@ public class Storage {
 	private UserInfo updatedBy;
 	private List<UserInfo> collaborators;
 	private List<String> dataikuProjects;
+	private String divisionId;
+	private String division;
+	private String subDivisionId;
+	private String subDivision;
+	private String procedureId;
+	private String typeOfProject;
+	private List<String> tags;
+	private String archerId;
+	private String department;
 }
