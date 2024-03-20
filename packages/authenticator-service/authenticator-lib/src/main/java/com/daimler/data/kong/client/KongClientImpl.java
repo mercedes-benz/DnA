@@ -669,12 +669,12 @@ public class KongClientImpl implements KongClient {
 						}
 						
 					}
-					LOGGER.error("plugin {} does not exist", pluginName);
+				}
+				LOGGER.error("plugin {} does not exist", pluginName);
 					messageDescription.setMessage("plugin does not exist");
 					errors.add(messageDescription);
 					message.setErrors(errors);
 					return message;
-				}
 			}
 			else{
 				LOGGER.error("plugin {} does not exist", pluginName);
