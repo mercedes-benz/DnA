@@ -191,7 +191,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       for (const ent of allEntitlementList) {
         if (ent.name === currentEntitlementName) {
           ent.apiList.map((val : any) =>{
-            if (val.apiPattern === entitlemenPath && val.httpMethod === httpMethod) {
+            if ((val.apiPattern === entitlemenPath && val.httpMethod === httpMethod) && !(val.apiPattern === originalApiPattern && val.httpMethod === originalHttpMethod)) {
               setDuplicateApiErrorMessage('An api with same path and method is already exists.');
               isFormValid = false;
             }
