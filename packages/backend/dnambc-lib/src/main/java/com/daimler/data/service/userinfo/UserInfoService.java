@@ -43,7 +43,7 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 
 	boolean updateNewUserToken(String id, boolean isLogin);
 
-	boolean validateUserToken(final String id, String token);
+	// boolean validateUserToken(final String id, String token);
 
 	void addUser(UserInfoNsql userinfo);
 

@@ -30,7 +30,7 @@ package com.daimler.data.application.filter;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.LoginController;
 import com.daimler.data.service.userinfo.UserInfoService;
-import com.daimler.data.util.JWTGenerator;
+//import com.daimler.data.util.JWTGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -118,8 +118,8 @@ public class JWTAuthenticationFilter implements Filter {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		LoginController.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<LoginController.UserInfo>() {});
-		List<LoginController.UserRole> userRoles = new ArrayList<>();
     
+		List<LoginController.UserRole> userRoles = new ArrayList<>();
 		try{
 			JsonNode rootNode = objectMapper.readTree(userinfo);
 			JsonNode digiRoleList = rootNode.get("digiRole");
