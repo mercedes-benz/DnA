@@ -4,7 +4,7 @@ import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.util.JWTGenerator;
+//import com.daimler.data.util.JWTGenerator;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
