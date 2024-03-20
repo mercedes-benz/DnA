@@ -18,7 +18,6 @@ spring:
      ddl-auto: none
   kafka:
     producer:
-    bootstrap-servers: ${NAAS_BROKER:XXXX:XXXX}
     properties:
       ssl:
         truststore:
