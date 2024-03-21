@@ -32,7 +32,6 @@ spring:
 
   kafka:
     producer:
-    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
       ssl:
         truststore:

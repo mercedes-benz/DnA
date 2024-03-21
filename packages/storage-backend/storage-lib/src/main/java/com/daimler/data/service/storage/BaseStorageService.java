@@ -992,8 +992,9 @@ public class BaseStorageService implements StorageService {
 				//To update Bucket record in database
 				bucketVo.setLastModifiedDate(new Date());
 				bucketVo.setUpdatedBy(userStore.getVO());
-				BucketVo savedBucketVo =  this.saveBucket(bucketVo);
-				responseVO.setData(savedBucketVo);
+				StorageNsql updatedData = storageAssembler.toEntity(bucketVo);
+				jpaRepo.save(updatedData);
+				responseVO.setData(bucketVo);
 
 				responseVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;

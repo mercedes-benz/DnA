@@ -270,6 +270,7 @@ export default class SecurityConfig extends React.Component<
         }
       },
     );
+    config.openSegments.push('RoleMappings');
   };
 
   protected onPublish = (config: any) => {

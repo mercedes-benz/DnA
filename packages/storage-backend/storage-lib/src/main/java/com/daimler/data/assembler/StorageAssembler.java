@@ -150,9 +150,9 @@ public class StorageAssembler {
 		StorageNsql entity = new StorageNsql();
 		if (Objects.nonNull(vo)) {
 			String id = vo.getId();
-			if (!StringUtils.hasText(id)) {
-				id = UUID.randomUUID().toString();
-			}
+			// if (!StringUtils.hasText(id)) {
+			// 	id = UUID.randomUUID().toString();
+			// }
 			// Setting id in entity
 			entity.setId(id);
 
