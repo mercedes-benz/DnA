@@ -181,7 +181,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       );
       isFormValid = false;
     }
-    if (props.isProtectedByDna && (entitlemenPath.length < 4 || !entitlemenPath.includes('/api/') || entitlemenPath === '/api/')) {
+    if (props.isProtectedByDna && (entitlemenPath.length < 4 || !entitlemenPath.startsWith('/api/') || entitlemenPath === '/api/')) {
       setEntitlementPathErrorMessage(
         'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
       );
