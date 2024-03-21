@@ -59,6 +59,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.assembler.UserRoleAssembler;
+import com.daimler.data.controller.LoginController.UserRole;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.entities.UserRoleNsql;
 import com.daimler.data.db.jsonb.UserInfoRole;
@@ -66,7 +67,7 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.userrole.UserRoleService;
-import com.daimler.data.util.JWTGenerator;
+//import com.daimler.data.util.JWTGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,171 +148,171 @@ public class LoginController {
 	@Autowired
 	private UserRoleAssembler userRoleAssembler;
 
-	@ApiOperation(value = "Authenticates and generates a JWT on successful authentication.", nickname = "login", notes = "ApplicationLogin", response = String.class, tags = {
-			"authentication", })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "User Authenticated Successfully"),
-			@ApiResponse(code = 400, message = "Bad Request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/login", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<String> login(@RequestHeader("Authorization") String oauthToken) {
+// 	@ApiOperation(value = "Authenticates and generates a JWT on successful authentication.", nickname = "login", notes = "ApplicationLogin", response = String.class, tags = {
+// 			"authentication", })
+// 	@ApiResponses(value = { @ApiResponse(code = 200, message = "User Authenticated Successfully"),
+// 			@ApiResponse(code = 400, message = "Bad Request"),
+// 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+// 			@ApiResponse(code = 403, message = "Request is not authorized."),
+// 			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+// 	@RequestMapping(value = "/login", produces = { "application/json" }, consumes = {
+// 			"application/json" }, method = RequestMethod.GET)
+// 	public ResponseEntity<String> login(@RequestHeader("Authorization") String oauthToken) {
 
-		if (StringUtils.isEmpty(oauthToken)) {
-			return new ResponseEntity<>("{\"errmsg\": \"Invalid Token!\"}", HttpStatus.BAD_REQUEST);
-		}
-		if (oidcDisabled) {
-			log.debug("OIDC is disabled, generating a dummy token");
-//            String jwt = JWTGenerator.createJWT(getMockUser());
-//            userinfoService.updateUserToken(getMockUser().getId(), jwt);
-			userInfoService.updateNewUserToken("DEMOUSER", true);
-			return new ResponseEntity<>(
-					"{\"token\": \"" + JWTGenerator.generateJWT(getMockUser(), mockOauthToken)
-							+ "\",\"loggedIn\":\"Y\"}",
-					HttpStatus.OK);
-		} else if ("OKTA".equalsIgnoreCase(oidcProvider) || "GOOGLE".equalsIgnoreCase(oidcProvider)) {
-			log.debug("Verifying access token with {}", oidcProvider);
-			IntrospectionResponse response = doOKTATokenIntrospection(oauthToken);
-			if (response.getSub() != null && response.getActive().equalsIgnoreCase("true")) {
-				UserInfo userInfo = fetchOKTAUserInfo(oauthToken, response.getSub());
-				if (userInfo == null) {
-					return new ResponseEntity<>("{\"errmsg\": \"Error fetching userinfo or No user exists!\"}",
-							HttpStatus.INTERNAL_SERVER_ERROR);
-				} else {
-					userInfo.setId(userInfo.getEmail());
-					String jwt = JWTGenerator.generateJWT(userInfo, oauthToken);
-					userInfoService.updateNewUserToken(userInfo.getEmail(), true);
-					return new ResponseEntity<String>("{\"token\": \"" + jwt + "\",\"loggedIn\":\"Y\"}", HttpStatus.OK);
-				}
+// 		if (StringUtils.isEmpty(oauthToken)) {
+// 			return new ResponseEntity<>("{\"errmsg\": \"Invalid Token!\"}", HttpStatus.BAD_REQUEST);
+// 		}
+// 		if (oidcDisabled) {
+// 			log.debug("OIDC is disabled, generating a dummy token");
+// //            String jwt = JWTGenerator.createJWT(getMockUser());
+// //            userinfoService.updateUserToken(getMockUser().getId(), jwt);
+// 			userInfoService.updateNewUserToken("DEMOUSER", true);
+// 			return new ResponseEntity<>(
+// 					"{\"token\": \"" + JWTGenerator.generateJWT(getMockUser(), mockOauthToken)
+// 							+ "\",\"loggedIn\":\"Y\"}",
+// 					HttpStatus.OK);
+// 		} else if ("OKTA".equalsIgnoreCase(oidcProvider) || "GOOGLE".equalsIgnoreCase(oidcProvider)) {
+// 			log.debug("Verifying access token with {}", oidcProvider);
+// 			IntrospectionResponse response = doOKTATokenIntrospection(oauthToken);
+// 			if (response.getSub() != null && response.getActive().equalsIgnoreCase("true")) {
+// 				UserInfo userInfo = fetchOKTAUserInfo(oauthToken, response.getSub());
+// 				if (userInfo == null) {
+// 					return new ResponseEntity<>("{\"errmsg\": \"Error fetching userinfo or No user exists!\"}",
+// 							HttpStatus.INTERNAL_SERVER_ERROR);
+// 				} else {
+// 					userInfo.setId(userInfo.getEmail());
+// 					String jwt = JWTGenerator.generateJWT(userInfo, oauthToken);
+// 					userInfoService.updateNewUserToken(userInfo.getEmail(), true);
+// 					return new ResponseEntity<String>("{\"token\": \"" + jwt + "\",\"loggedIn\":\"Y\"}", HttpStatus.OK);
+// 				}
 
-			} else {
-				return new ResponseEntity<>("{\"errmsg\": \"Token Introspection Failed!\"}", HttpStatus.NOT_ACCEPTABLE);
-			}
+// 			} else {
+// 				return new ResponseEntity<>("{\"errmsg\": \"Token Introspection Failed!\"}", HttpStatus.NOT_ACCEPTABLE);
+// 			}
 
-		} else {
-			log.debug("OIDC is enabled, introspecting the token");
+// 		} else {
+// 			log.debug("OIDC is enabled, introspecting the token");
 
-			IntrospectionResponse response = doTokenIntrospection(oauthToken);
-			if (response.getSub() != null) {
-				UserInfo userInfo = fetchUserInfo(oauthToken, response.getSub());
-				if (userInfo == null) {
-					return new ResponseEntity<>("{\"errmsg\": \"Error fetching userinfo or No user exists!\"}",
-							HttpStatus.INTERNAL_SERVER_ERROR);
-				} else {
-					String jwt = JWTGenerator.generateJWT(userInfo, oauthToken);
-					userInfoService.updateNewUserToken(userInfo.getId(), true);
-					return new ResponseEntity<String>("{\"token\": \"" + jwt + "\",\"loggedIn\":\"Y\"}", HttpStatus.OK);
-				}
+// 			IntrospectionResponse response = doTokenIntrospection(oauthToken);
+// 			if (response.getSub() != null) {
+// 				UserInfo userInfo = fetchUserInfo(oauthToken, response.getSub());
+// 				if (userInfo == null) {
+// 					return new ResponseEntity<>("{\"errmsg\": \"Error fetching userinfo or No user exists!\"}",
+// 							HttpStatus.INTERNAL_SERVER_ERROR);
+// 				} else {
+// 					String jwt = JWTGenerator.generateJWT(userInfo, oauthToken);
+// 					userInfoService.updateNewUserToken(userInfo.getId(), true);
+// 					return new ResponseEntity<String>("{\"token\": \"" + jwt + "\",\"loggedIn\":\"Y\"}", HttpStatus.OK);
+// 				}
 
-			} else {
-				return new ResponseEntity<>("{\"errmsg\": \"Token Introspection Failed!\"}", HttpStatus.NOT_ACCEPTABLE);
-			}
+// 			} else {
+// 				return new ResponseEntity<>("{\"errmsg\": \"Token Introspection Failed!\"}", HttpStatus.NOT_ACCEPTABLE);
+// 			}
 
-		}
-	}
+// 		}
+// 	}
 
-	@ApiOperation(value = "Verifies the JWT and returns user details.", nickname = "verifyLogin", notes = "ApplicationLogin", response = String.class, tags = {
-			"authentication", })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "User Verified Successfully"),
-			@ApiResponse(code = 400, message = "Bad Request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/verifyLogin", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<String> verifyLogin(@RequestHeader("Authorization") String jwt) {
-		log.trace("Verify login ");
-		if (StringUtils.isEmpty(jwt)) {
-			return new ResponseEntity<>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-		} else {
-			boolean tokenMappedToUser = false;
-			String userId = "";
-			Claims claims = JWTGenerator.decodeJWT(jwt);
-			log.debug("Verify login claim {}", claims);
-			if (claims == null) {
-				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-			}
-			userId = (String) claims.get("id");
-			log.debug("Verify login {}", userId);
-			String oauthToken = (String) claims.get("authToken");
-			if (StringUtils.isEmpty(userId)) {
-				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-			} else if (!userInfoService.isLoggedIn(userId)) {
-				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-			} else {
-				if (oidcDisabled) {
-					tokenMappedToUser = true;
-				} else {
-					/*
-					 * IntrospectionResponse response = doTokenIntrospection(oauthToken);
-					 * tokenMappedToUser = response.getActive()!=null?
-					 * response.getActive().equalsIgnoreCase("Y"): false; if(tokenMappedToUser) {
-					 * UserInfo userInfo = fetchUserInfo(oauthToken, response.getSub()); jwt =
-					 * JWTGenerator.generateJWT(userInfo, oauthToken); }
-					 */
-					jwt = JWTGenerator.refreshJWT(claims, oauthToken);
-					tokenMappedToUser = true;
-				}
-				if (tokenMappedToUser) {
-					ObjectMapper mapper = new ObjectMapper();
-					List roles = (List) claims.get("digiRole");
-					String role = null;
-					List<String> divisions = (List<String>) claims.get("divisionAdmins");
-					String divisionAdmins = null;
-					try {
-						role = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(roles.toArray())
-								.replaceAll("\n", "");
-						divisionAdmins = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(divisions)
-								.replaceAll("\n", "");
-					} catch (JsonProcessingException e) {
-						return new ResponseEntity<String>("{\"errmsg\": \"Error Parsing JWT!\"}",
-								HttpStatus.INTERNAL_SERVER_ERROR);
-					}
-					return new ResponseEntity<String>("{\"token\": \"" + jwt
-							+ "\",\"loggedIn\":\"Y\",\"data\":{\"roles\":" + role + ",\"department\":\""
-							+ claims.get("department") + "\",\"eMail\":\"" + claims.get("email") + "\",\"firstName\":\""
-							+ claims.get("firstName") + "\",\"lastName\":\"" + claims.get("lastName") + "\",\"id\":\""
-							+ claims.get("id") + "\",\"mobileNumber\":\"" + claims.get("mobileNumber")
-							+ "\",\"divisionAdmins\":" + divisionAdmins + "}}", HttpStatus.OK);
-				} else {
-					return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-				}
-			}
-		}
+// 	@ApiOperation(value = "Verifies the JWT and returns user details.", nickname = "verifyLogin", notes = "ApplicationLogin", response = String.class, tags = {
+// 			"authentication", })
+// 	@ApiResponses(value = { @ApiResponse(code = 200, message = "User Verified Successfully"),
+// 			@ApiResponse(code = 400, message = "Bad Request"),
+// 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+// 			@ApiResponse(code = 403, message = "Request is not authorized."),
+// 			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+// 	@RequestMapping(value = "/verifyLogin", produces = { "application/json" }, consumes = {
+// 			"application/json" }, method = RequestMethod.POST)
+// 	public ResponseEntity<String> verifyLogin(@RequestHeader("Authorization") String jwt) {
+// 		log.trace("Verify login ");
+// 		if (StringUtils.isEmpty(jwt)) {
+// 			return new ResponseEntity<>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+// 		} else {
+// 			boolean tokenMappedToUser = false;
+// 			String userId = "";
+// 			Claims claims = JWTGenerator.decodeJWT(jwt);
+// 			log.debug("Verify login claim {}", claims);
+// 			if (claims == null) {
+// 				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+// 			}
+// 			userId = (String) claims.get("id");
+// 			log.debug("Verify login {}", userId);
+// 			String oauthToken = (String) claims.get("authToken");
+// 			if (StringUtils.isEmpty(userId)) {
+// 				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+// 			} else if (!userInfoService.isLoggedIn(userId)) {
+// 				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+// 			} else {
+// 				if (oidcDisabled) {
+// 					tokenMappedToUser = true;
+// 				} else {
+// 					/*
+// 					 * IntrospectionResponse response = doTokenIntrospection(oauthToken);
+// 					 * tokenMappedToUser = response.getActive()!=null?
+// 					 * response.getActive().equalsIgnoreCase("Y"): false; if(tokenMappedToUser) {
+// 					 * UserInfo userInfo = fetchUserInfo(oauthToken, response.getSub()); jwt =
+// 					 * JWTGenerator.generateJWT(userInfo, oauthToken); }
+// 					 */
+// 					jwt = JWTGenerator.refreshJWT(claims, oauthToken);
+// 					tokenMappedToUser = true;
+// 				}
+// 				if (tokenMappedToUser) {
+// 					ObjectMapper mapper = new ObjectMapper();
+// 					List roles = (List) claims.get("digiRole");
+// 					String role = null;
+// 					List<String> divisions = (List<String>) claims.get("divisionAdmins");
+// 					String divisionAdmins = null;
+// 					try {
+// 						role = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(roles.toArray())
+// 								.replaceAll("\n", "");
+// 						divisionAdmins = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(divisions)
+// 								.replaceAll("\n", "");
+// 					} catch (JsonProcessingException e) {
+// 						return new ResponseEntity<String>("{\"errmsg\": \"Error Parsing JWT!\"}",
+// 								HttpStatus.INTERNAL_SERVER_ERROR);
+// 					}
+// 					return new ResponseEntity<String>("{\"token\": \"" + jwt
+// 							+ "\",\"loggedIn\":\"Y\",\"data\":{\"roles\":" + role + ",\"department\":\""
+// 							+ claims.get("department") + "\",\"eMail\":\"" + claims.get("email") + "\",\"firstName\":\""
+// 							+ claims.get("firstName") + "\",\"lastName\":\"" + claims.get("lastName") + "\",\"id\":\""
+// 							+ claims.get("id") + "\",\"mobileNumber\":\"" + claims.get("mobileNumber")
+// 							+ "\",\"divisionAdmins\":" + divisionAdmins + "}}", HttpStatus.OK);
+// 				} else {
+// 					return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+// 				}
+// 			}
+// 		}
 
-	}
+// 	}
 
-	@ApiOperation(value = "Logs the user out.", nickname = "logout", notes = "ApplicationLogout", response = String.class, tags = {
-			"authentication", })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "User Logged ut Successfully"),
-			@ApiResponse(code = 400, message = "Bad Request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/logout", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<String> logout(@RequestHeader("AccessToken") String oauthToken,
-			@RequestHeader("Authorization") String jwt) {
-		if (StringUtils.isEmpty(jwt)) {
-			return new ResponseEntity<>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-		} else {
-			String userId = "";
-			Claims claims = JWTGenerator.decodeJWT(jwt);
-			if (claims == null) {
-				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
-			}
-			if (!oidcDisabled) {
-				revokeToken(oauthToken);
-			}
-			userId = (String) claims.get("id");
+	// @ApiOperation(value = "Logs the user out.", nickname = "logout", notes = "ApplicationLogout", response = String.class, tags = {
+	// 		"authentication", })
+	// @ApiResponses(value = { @ApiResponse(code = 200, message = "User Logged ut Successfully"),
+	// 		@ApiResponse(code = 400, message = "Bad Request"),
+	// 		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+	// 		@ApiResponse(code = 403, message = "Request is not authorized."),
+	// 		@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+	// @RequestMapping(value = "/logout", produces = { "application/json" }, consumes = {
+	// 		"application/json" }, method = RequestMethod.POST)
+	// public ResponseEntity<String> logout(@RequestHeader("AccessToken") String oauthToken,
+	// 		@RequestHeader("Authorization") String jwt) {
+	// 	if (StringUtils.isEmpty(jwt)) {
+	// 		return new ResponseEntity<>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+	// 	} else {
+	// 		String userId = "";
+	// 		Claims claims = JWTGenerator.decodeJWT(jwt);
+	// 		if (claims == null) {
+	// 			return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
+	// 		}
+	// 		if (!oidcDisabled) {
+	// 			revokeToken(oauthToken);
+	// 		}
+	// 		userId = (String) claims.get("id");
 
-			userInfoService.updateNewUserToken(userId, false);
-			return new ResponseEntity<String>("{\"msg\": \"User Logged out Successfully!\"}", HttpStatus.OK);
+	// 		userInfoService.updateNewUserToken(userId, false);
+	// 		return new ResponseEntity<String>("{\"msg\": \"User Logged out Successfully!\"}", HttpStatus.OK);
 
-		}
+	// 	}
 
-	}
+	// }
 
 	@ApiOperation(value = "Retrieves user details from the DRD system.", nickname = "userinfo", notes = "UserInfo", response = String.class, tags = {
 			"authentication", })
@@ -549,6 +550,7 @@ public class LoginController {
 		private String email;
 		private String mobileNumber;
 		private String department;
+		private String authToken;
 		private List<UserRole> digiRole;
 		private List<String> divisionAdmins;
 

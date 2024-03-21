@@ -45,6 +45,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.dto.auth.ApiKeyValidationResponseVO;
 import com.daimler.data.dto.auth.ApiKeyValidationVO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -57,7 +61,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.util.UriTemplate;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserRole;
 import com.daimler.data.auth.client.DnaAuthClient;
@@ -69,14 +74,11 @@ public class JWTAuthenticationFilter implements Filter {
 
 	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
-	@Value("${dna.dnaAuthEnable}")
-	private boolean dnaAuthEnable;
 
 	private UserStore userStore;
 
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
-
 
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
@@ -84,13 +86,13 @@ public class JWTAuthenticationFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
-		//filterChain.doFilter(servletRequest, servletResponse);
+		// filterChain.doFilter(servletRequest, servletResponse);
 		injectSpringDependecies(servletRequest);
 		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
 		String requestUri = httpRequest.getRequestURI();
-		log.debug("Intercepting Request to validate JWT:" + requestUri);
-		String jwt = httpRequest.getHeader("Authorization");
-		if (!StringUtils.hasText(jwt)) {
+		log.debug("Intercepting Request to store userinfo:" + requestUri);
+		String userinfo = httpRequest.getHeader("dna-request-userdetails");
+		if (!StringUtils.hasText(userinfo)) {
 			String uriPattern = "/api/forecasts/{id}";
 			UriTemplate uriTemplate = new UriTemplate(uriPattern);
 			Map<String, String> pathVariables = uriTemplate.match(requestUri);
@@ -100,7 +102,8 @@ public class JWTAuthenticationFilter implements Filter {
 				ApiKeyValidationVO apiKeyValidationVO = new ApiKeyValidationVO();
 				apiKeyValidationVO.setApiKey(appKey);
 				apiKeyValidationVO.setAppId(appId);
-				ApiKeyValidationResponseVO apiKeyValidationResponseVO = vaultAuthClient.validateApiKey(apiKeyValidationVO);
+				ApiKeyValidationResponseVO apiKeyValidationResponseVO = vaultAuthClient
+						.validateApiKey(apiKeyValidationVO);
 				if (apiKeyValidationResponseVO.isValidApiKey()) {
 					JSONObject userdetails = vaultAuthClient.getUserDetails(appId);
 
@@ -117,75 +120,80 @@ public class JWTAuthenticationFilter implements Filter {
 					return;
 				}
 			}
-			log.error("Request UnAuthorized,No JWT available");
+			log.error("Request UnAuthorized,No appkey available");
 			forbidResponse(servletResponse);
 			return;
-		} else {
-			Claims claims = JWTGenerator.decodeJWT(jwt);
-			String userId = "";
-			if (claims == null) {
-				log.error("Invalid  JWT!");
-				HttpServletResponse response = (HttpServletResponse) servletResponse;
-				response.reset();
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		} else if (StringUtils.hasText(userinfo)) {
+			
+			try {
+				log.debug(
+						"Request validation successful, set request user details in the store for further access");
+				setUserDetailsToStore(userinfo);
+				servletRequest.setAttribute("userDetails", this.userStore.getUserInfo());
+				filterChain.doFilter(servletRequest, servletResponse);
+			} catch (Exception e) {
+				log.error("Error while storing userDetails {} ", e.getMessage());
+				forbidResponse(servletResponse);
+				this.userStore.clear();
 				return;
-			} else {
-				userId = (String) claims.get("id");
-				if (dnaAuthEnable) {
-					JSONObject res = dnaAuthClient.verifyLogin(jwt);
-					if (res != null) {
-						try {
-							setUserDetailsToStore(res);
-							filterChain.doFilter(servletRequest, servletResponse);
-						} finally {
-							// Otherwise when a previously used container thread is used, it will have the
-							// old user id set and
-							// if for some reason this filter is skipped, userStore will hold an unreliable
-							// value
-							this.userStore.clear();
-						}
-
-					} else {
-						log.error("Request UnAuthorized,No JWT available");
-						forbidResponse(servletResponse);
-						return;
-					}
-
-				} else {
-					try {
-						log.debug(
-								"Request validation successful, set request user details in the store for further access");
-						setUserDetailsToStore(claims);
-						filterChain.doFilter(servletRequest, servletResponse);
-					} finally {
-						// Otherwise when a previously used container thread is used, it will have the
-						// old user id set and
-						// if for some reason this filter is skipped, userStore will hold an unreliable
-						// value
-						this.userStore.clear();
-					}
-				}
-
+			} finally {
+				// Otherwise when a previously used container thread is used, it will have the
+				// old user id set and
+				// if for some reason this filter is skipped, userStore will hold an unreliable
+				// value
+				this.userStore.clear();
 			}
+		} else {
+			log.debug("Request is exempted from validation");
+			filterChain.doFilter(servletRequest, servletResponse);
 		}
 
 	}
 
-	private void setUserDetailsToStore(Claims claims) {
-		// To Set user details for local development
-		UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
-				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
-				.email((String) claims.get("email")).department((String) claims.get("department"))
-				.mobileNumber((String) claims.get("mobileNumber")).build();
-		// To Set user Roles for local development
-		List<LinkedHashMap> claimedRoles = (ArrayList) claims.get("digiRole");
-		List<UserRole> roles = new ArrayList<>();
-		claimedRoles.forEach(roleMapEntity -> {
-			roles.add(UserRole.builder().id((String) roleMapEntity.get("id")).name((String) roleMapEntity.get("name"))
-					.build());
+	// private void setUserDetailsToStore(Claims claims) {
+	// // To Set user details for local development
+	// UserStore.UserInfo user = UserStore.UserInfo.builder().id((String)
+	// claims.get("id"))
+	// .firstName((String) claims.get("firstName")).lastName((String)
+	// claims.get("lastName"))
+	// .email((String) claims.get("email")).department((String)
+	// claims.get("department"))
+	// .mobileNumber((String) claims.get("mobileNumber")).build();
+	// // To Set user Roles for local development
+	// List<LinkedHashMap> claimedRoles = (ArrayList) claims.get("digiRole");
+	// List<UserRole> roles = new ArrayList<>();
+	// claimedRoles.forEach(roleMapEntity -> {
+	// roles.add(UserRole.builder().id((String)
+	// roleMapEntity.get("id")).name((String) roleMapEntity.get("name"))
+	// .build());
+	// });
+	// user.setUserRole(roles);
+	// this.userStore.setUserInfo(user);
+	// }
+
+	private void setUserDetailsToStore(String userinfo) throws JsonProcessingException {
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		UserStore.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserStore.UserInfo>() {
 		});
-		user.setUserRole(roles);
-		this.userStore.setUserInfo(user);
+		this.userStore.setUserInfo(userInfo);
+		List<UserRole> userRoles = new ArrayList<>();
+		try{
+			JsonNode rootNode = objectMapper.readTree(userinfo);
+			JsonNode digiRoleList = rootNode.get("digiRole");
+			if (digiRoleList != null && digiRoleList.isArray()) {
+				for (JsonNode role : (ArrayNode) digiRoleList) {
+					UserRole userRole = new UserRole();
+					userRole.setId(role.get("id").asText());
+					userRole.setName(role.get("name").asText());
+					userRoles.add(userRole);
+				}
+			}
+        }catch(Exception e){
+			log.debug("Exception occured during saving user role");
+		}
+		this.userStore.getUserInfo().setUserRole(userRoles);
+
 	}
 
 	/**

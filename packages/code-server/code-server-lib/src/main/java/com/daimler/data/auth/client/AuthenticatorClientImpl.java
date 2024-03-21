@@ -111,7 +111,24 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	@Value("${kong.csvalidateurl}")
 	private String csvalidateurl;
-	
+
+	@Value("${kong.logType}")
+	private String logType;
+
+	@Value("${kong.wsconfigurl}")
+	private String wsconfigurl;
+
+	@Value("${kong.applicationName}")
+	private String applicationName;
+
+	@Value("${kong.poolID}")
+	private String poolID;
+
+	@Value("${kong.userinfoIntrospectionUri}")
+	private String userinfoIntrospectionUri;
+
+	@Value("${kong.enableUserinfoIntrospection}")
+	private Boolean enableUserinfoIntrospection;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -121,9 +138,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_PLUGIN_TO_SERVICE = "/plugins";
 	private static final String WORKSPACE_API = "api";
 	private static final String OIDC_PLUGIN = "oidc";
+	private static final String CORS_PLUGIN = "cors";
 	private static final String JWTISSUER_PLUGIN = "jwtissuer";
 	private static final String APP_AUTHORISER_PLUGIN = "appauthoriser";
+	private static final String API_AUTHORISER_PLUGIN = "apiauthoriser";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
+	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
 	
 	@Override
@@ -333,7 +353,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
 		createRouteRequestVO.setData(createRouteVO);
-		
+
 		//request for attaching plugin to service
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
@@ -389,12 +409,35 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		appAuthoriserPluginVO.setName(APP_AUTHORISER_PLUGIN);
 		appAuthoriserPluginVO.setConfig(appAuthoriserPluginConfigVO);
 		appAuthoriserPluginRequestVO.setData(appAuthoriserPluginVO);
+
+		//request for attaching APIAUTHORISER plugin to service
+		AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
+		AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
+		AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
+		apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+		apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
+		apiAuthoriserPluginConfigVO.setLogType(logType);
+		apiAuthoriserPluginConfigVO.setPoolID(poolID);
+		apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
+		apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+
+		apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
+		apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
+		apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
+
+		//request for attaching CORS plugin to service
+		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
+		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
+		attachCorsPluginVO.setName(CORS_PLUGIN);
+		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 		
 		GenericMessage createServiceResponse = new GenericMessage();
 		GenericMessage createRouteResponse = new GenericMessage();
 		GenericMessage attachPluginResponse = new GenericMessage();
 		GenericMessage attachJwtPluginResponse = new GenericMessage();
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage attachCorsPluginResponse = new GenericMessage();
 		
 		try {	
 			boolean isServiceAlreadyCreated = false;
@@ -423,6 +466,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
 				return;
 			}
+
 			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
@@ -430,21 +474,37 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
 				}
 				else {
-					if(!apiRecipe && uiRecipesToUseOidc) {
+					//attaching cors plugin to deployments
+					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
+					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
+
+					// if(!apiRecipe && uiRecipesToUseOidc) {
+					// 	LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+					// 	attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
+					// }else {
+					if(intSecureIAM || prodSecureIAM) {
+						attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
 						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
+						// attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
+						// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+					}else{
+						
+						GenericMessage deletePluginResponse = new GenericMessage();
+						deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+						LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+						deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+						deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+						LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+						deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 					}
-					else {
-						if(intSecureIAM || prodSecureIAM) {
-							attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
-							LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-						}else {
-							LOGGER.info("Secure with IAM false, hence didnt add jwt plugin to service. kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-						}
-					}
+					// }
+					
 				}
 			}
-			
 			else {
 				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
 				return;
@@ -624,6 +684,56 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
+	public GenericMessage deletePlugin(String serviceName, String pluginName) {
+
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String deleteRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					message.setSuccess("Success");		
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					LOGGER.info("Kong plugin:{} for the service {} deleted successfully", pluginName, serviceName);
+					return message;
+				}
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("plugin {} does not exist", pluginName);
+			messageDescription.setMessage("Route does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception occured: {} while deleting plugin: {} details", ex.getMessage(),pluginName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured: {} while deleting plugin: {} details", e.getMessage(),pluginName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+		return message;
+	
+	}
+
+	@Override
 	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName) {
 
 		GenericMessage response = new GenericMessage();
@@ -665,6 +775,48 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			LOGGER.error("Failed to secure apis with IAM for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Error occured while calling Kong attach plugin: " + attachAppAuthoriserPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	
+	}
+
+	@Override
+	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName) {
+
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE;
+
+			HttpEntity<AttachApiAuthoriserPluginRequestVO> entity = new HttpEntity<AttachApiAuthoriserPluginRequestVO>(attachApiAuthoriserPluginRequestVO,headers);			
+			ResponseEntity<String> attachApiAuthoriserPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachApiAuthoriserPluginResponse != null && attachApiAuthoriserPluginResponse.getStatusCode()!=null) {
+				if(attachApiAuthoriserPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachApiAuthoriserPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachApiAuthoriserPluginRequestVO.getData().getName(), serviceName,  attachApiAuthoriserPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachApiAuthoriserPluginResponse.getBody() + " Response Code is : " + attachApiAuthoriserPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to secure apis with IAM for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachApiAuthoriserPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
 			errors.add(error);
 		}
 		response.setSuccess(status);

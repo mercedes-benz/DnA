@@ -857,6 +857,34 @@ definitions:
         type: array
         items:
           type: string
+      divisionId:
+        type: string
+        description: "divisionId of the bucket"
+      division:
+        type: string
+        description: "division of the bucket"
+      subDivisionId:
+        type: string
+        description: "subDivision of the bucket"
+      subDivision:
+        type: string
+        description: "subDivision of the bucket"
+      procedureId:
+        type: string
+        description: "procedureId of the bucket"
+      typeOfProject:
+        type: string
+        description: "type of project for bucket"
+      tags:
+        type: array
+        items:
+          type: string
+      archerId:
+        type: string
+        description: "archerId of the bucket"
+      department:
+        type: string
+        description: "department for bucket"
 
     required:
       - bucketName

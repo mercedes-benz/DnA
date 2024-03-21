@@ -20,7 +20,6 @@ spring:
       ddl-auto: none
   kafka:
     producer:
-    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
       ssl:
         truststore:
@@ -53,16 +52,11 @@ kafka:
           
 dna:
   uri: ${DNA_URI:xxxx}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   dataSource:
      bulkCreate:
         api:
            accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
-      
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXX}
-      
+             
 graphql:
   servlet:
     mapping: /api/minified

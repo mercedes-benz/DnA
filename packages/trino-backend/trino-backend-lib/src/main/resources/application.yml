@@ -31,6 +31,20 @@ spring:
 
     driverClassName: org.postgresql.Driver
 
+  kafka:
+    producer:
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL 
   cloud:
     stream:
       default-binder: kafka
@@ -40,7 +54,6 @@ spring:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 kafka:
   centralTopic:
@@ -51,10 +64,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
       
 minio:
   baseUri: ${MINIO_BASEURI:http://xxxxx}

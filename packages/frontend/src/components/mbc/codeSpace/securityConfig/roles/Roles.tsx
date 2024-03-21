@@ -98,7 +98,12 @@ const Roles = (props: any) => {
   const editRole = (item: any) => {
     setEditRoleCol(true);
     setShowEditOrCreateModal(true);
-    setRoleName(item.name);
+    if (item.name.startsWith(props.projectName + "_")) {
+      const roleName = item.name.substring(props.projectName.length + 1);
+      setRoleName(roleName);
+    } else {
+      setRoleName(item.name);
+    }
     setTempRoleName(item.name);
     setRoleId(item.id);
     setEntitelmentList(item.roleEntitlements);
@@ -110,8 +115,8 @@ const Roles = (props: any) => {
   };
 
   const deleteRole = (item: any) => {
-    const updatedList = roleList.filter((role: any) => role.id !== item.id);
-    const updatedAllRoleList = allRoleList.filter((role: any) => role.id !== item.id);
+    const updatedList = roleList.filter((role: any) => role.name !== item.name);
+    const updatedAllRoleList = allRoleList.filter((role: any) => role.name !== item.name);
     setRoleList(updatedList);
     setAllRoleList(updatedAllRoleList);
   };
@@ -132,26 +137,29 @@ const Roles = (props: any) => {
   };
 
   const onRoleNameOnChange = (e: any) => {
-    setRoleName(e.target.value);
-    setRoleFullName(props.projectName+'_' + e.target.value);
-    validateRole(e.target.value);
+    const val = e.target.value.toUpperCase();
+    setRoleName(val);
+    setRoleFullName(props.projectName+'_' + val);
+    validateRole(val);
   };
 
   const validateRole = (value: any) => {
-    const pattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+    const pattern = /^[A-Z0-9][A-Z0-9_-]*$/;
     const isValid = pattern.test(value);
-    const spclCharValidation = /[^a-zA-Z0-9_-]/;
+    const spclCharValidation = /[^A-Z0-9_-]/;
     if (!isValid) {
-      setTimeout(()=>{
+      setTimeout(() => {
         if (value.startsWith('-') || value.startsWith('_')) {
           setMissingRoleName('Role Id cannot start with special character');
         } else if (value.includes(' ')) {
           setMissingRoleName('Role Id cannot have whitespaces');
-        }else if(spclCharValidation.test(value)) {
+        } else if (spclCharValidation.test(value)) {
           setMissingRoleName('Role Id cannot have special characters other than - and _');
         }
       })
-    }else{
+    } else if (allRoleList.some((role: any) => role.name === (props.projectName + '_' + value))) {
+      setMissingRoleName('A role with this name already exists.');
+    } else {
       setMissingRoleName('');
     }
   }
@@ -201,7 +209,7 @@ const Roles = (props: any) => {
   };
 
   const addORUpdateRoles = () => {
-    if (!isFormValid()) {
+    if (!isFormValid() || missingRoleName !== '') {
       return;
     }
     if (!editRoleCol) {
@@ -399,7 +407,7 @@ const Roles = (props: any) => {
                 className="input-field"
                 required={true}
                 id="RolId"
-                maxLength={64}
+                maxLength={19}
                 placeholder="Type here"
                 autoComplete="off"
                 onChange={(e)=>onRoleNameOnChange(e)}

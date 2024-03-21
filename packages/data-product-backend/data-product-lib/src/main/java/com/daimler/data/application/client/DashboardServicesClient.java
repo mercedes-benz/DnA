@@ -34,9 +34,9 @@ public class DashboardServicesClient {
         List<MessageDescription> errors = new ArrayList<>();
         try {
             HttpHeaders headers = new HttpHeaders();
-            String jwt = httpRequest.getHeader("Authorization");
+            String userinfo = httpRequest.getHeader("dna-request-userdetails");
             headers.set("Accept", "application/json");
-            headers.set("authorization", jwt);
+            headers.set("dna-request-userdetails", userinfo);
             headers.setContentType(MediaType.APPLICATION_JSON);
             String getReportUrl = reportBaseUri + AGILE_RELEASE_TRAIN_LOV_PATH;
 
@@ -61,9 +61,9 @@ public class DashboardServicesClient {
         List<MessageDescription> errors = new ArrayList<>();
         try {
             HttpHeaders headers = new HttpHeaders();
-            String jwt = httpRequest.getHeader("Authorization");
+            String userinfo = httpRequest.getHeader("dna-request-userdetails");
             headers.set("Accept", "application/json");
-            headers.set("authorization", jwt);
+            headers.set("dna-request-userdetails", userinfo);
             headers.setContentType(MediaType.APPLICATION_JSON);
             String getReportUrl = reportBaseUri + FRONTEND_TECHNOLOGIES_LOV_PATH;
 

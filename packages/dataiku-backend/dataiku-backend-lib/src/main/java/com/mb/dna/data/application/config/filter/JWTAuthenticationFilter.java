@@ -9,15 +9,21 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.mb.dna.data.application.adapter.dna.DnaClientConfig;
 import com.mb.dna.data.application.adapter.dna.DnaHttpClient;
 import com.mb.dna.data.application.adapter.dna.UserInfo;
 import com.mb.dna.data.application.adapter.dna.UserRole;
 import com.mb.dna.data.application.adapter.dna.UserStore;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.async.publisher.Publishers;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -29,9 +35,9 @@ import io.micronaut.http.filter.ServerFilterChain;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-@Filter("/api/**") 
+@Filter("/api/**")
 @Singleton
-public class JWTAuthenticationFilter implements HttpServerFilter{
+public class JWTAuthenticationFilter implements HttpServerFilter {
 
 	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
@@ -40,69 +46,42 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 
 	@Inject
 	private UserStore userStore;
-	
+
 	@Inject
 	ApplicationContext applicationContext;
-	
+
 	@Inject
 	private DnaHttpClient dnaHttpClient;
-	
+
 	@SuppressWarnings("unused")
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
-		String jwt = request.getHeaders().get("Authorization");
-		if(jwt == null) {
-			jwt = request.getHeaders().get("authorization");
+		String userinfo = request.getHeaders().get("dna-request-userdetails");
+		if (userinfo == null) {
+			userinfo = request.getHeaders().get("dna-request-userdetails");
 		}
-		
-		String secretKey = dnaClientConfig.getJwt();
-		String dnaAuthEnableString = dnaClientConfig.getDnaAuthEnable();
-		boolean dnaAuthEnable = Boolean.valueOf(dnaAuthEnableString);
-		if (jwt==null || jwt.isBlank() || jwt.isEmpty()) {
-			log.error("Request UnAuthorized,No JWT available");
+
+		if (userinfo == null || userinfo.isBlank() || userinfo.isEmpty()) {
+			log.error("Request UnAuthorized,No userinfo available");
 			Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.FORBIDDEN));
 			return Publishers.just(response.get());
-		} else {
-			Claims claims = JWTGenerator.decodeJWT(jwt,secretKey);
-			if (claims == null) {
-				log.error("Invalid  JWT!");
-				Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.UNAUTHORIZED));
-				return Publishers.just(response.get());
-			} else {
-				if (dnaAuthEnable) {
-					UserInfo res = dnaHttpClient.verifyLogin(jwt);
-					if (res != null) {
-						try {
-							setUserDetailsToStore(res);
-						} catch(Exception e) {
-							log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
-							this.userStore.clear();
-						}
-
-					} else {
-						log.error("Request UnAuthorized,No JWT available");
-						Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.FORBIDDEN));
-						return Publishers.just(response.get());
-					}
-
-				} else {
-					try {
-						log.info(
-								"Request validation successful, set request user details in the store for further access");
-						setUserDetailsToStore(claims);
-					} catch(Exception e) {
-						log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
-						this.userStore.clear();
-					}
-				}
-
+		} else if (StringUtils.hasText(userinfo)) {
+	
+			try {
+				log.info(
+						"Request validation successful, set request user details in the store for further access");
+				setUserDetailsToStore(userinfo);
+			} catch (Exception e) {
+				log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
+				this.userStore.clear();
 			}
+
 		}
 		return Publishers.map(filterChain.proceed(request), mutableHttpResponse -> {
-	          return mutableHttpResponse;
-	        });
+			return mutableHttpResponse;
+		});
 	}
-	
+
 	private void setUserDetailsToStore(Claims claims) {
 		// To Set user details for local development
 		UserInfo user = UserInfo.builder().id((String) claims.get("id"))
@@ -118,6 +97,31 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 		});
 		user.setUserRole(roles);
 		this.userStore.setUserInfo(user);
+	}
+
+	private void setUserDetailsToStore(String userinfo) throws JsonProcessingException {
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserInfo>() {
+		});
+		this.userStore.setUserInfo(userInfo);
+		List<UserRole> userRoles = new ArrayList<>();
+		try{
+			JsonNode rootNode = objectMapper.readTree(userinfo);
+			JsonNode digiRoleList = rootNode.get("digiRole");
+			if (digiRoleList != null && digiRoleList.isArray()) {
+				for (JsonNode role : (ArrayNode) digiRoleList) {
+					UserRole userRole = new UserRole();
+					userRole.setId(role.get("id").asText());
+					userRole.setName(role.get("name").asText());
+					userRoles.add(userRole);
+				}
+			}
+        }catch(Exception e){
+			log.debug("Exception occured during saving user role");
+		}
+		this.userStore.getUserInfo().setUserRole(userRoles);
+
 	}
 
 	/**

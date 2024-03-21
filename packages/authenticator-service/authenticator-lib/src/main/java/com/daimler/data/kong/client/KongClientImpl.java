@@ -27,8 +27,11 @@
 
 package com.daimler.data.kong.client;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.json.JSONArray;
@@ -52,12 +55,17 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
+import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginConfigVO;
+import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @Component
 public class KongClientImpl implements KongClient {
@@ -66,6 +74,12 @@ public class KongClientImpl implements KongClient {
 
 	@Value("${kong.uri}")
 	private String kongBaseUri;
+
+	@Value("${corsPlugin.allowedUrls}")
+	private String allowedUrls;
+
+	@Value("${corsPlugin.maxAge}")
+	private long maxAge;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -249,6 +263,22 @@ public class KongClientImpl implements KongClient {
 						requestBody, headers);
 				response = restTemplate.exchange(kongUri, HttpMethod.POST, jwtRequest, String.class);
 				
+			}
+			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("cors")){
+
+				AttachCorsPluginWrapperDto corsRequestWrapper = new AttachCorsPluginWrapperDto();			
+				AttachCorsPluginConfigRequestDto attachCorsPluginConfigRequestDto = new AttachCorsPluginConfigRequestDto();
+
+				corsRequestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
+				attachCorsPluginConfigRequestDto.setMax_age(maxAge);
+				String [] urls = allowedUrls.split(",");
+				List<String> origins = Arrays.asList(urls);
+				attachCorsPluginConfigRequestDto.setOrigins(origins);
+				attachCorsPluginConfigRequestDto.setCredentials(true);
+				corsRequestWrapper.setConfig(attachCorsPluginConfigRequestDto);
+					HttpEntity<AttachCorsPluginWrapperDto> corsRequest = new HttpEntity<AttachCorsPluginWrapperDto>(
+						corsRequestWrapper, headers);
+					response = restTemplate.exchange(kongUri, HttpMethod.POST, corsRequest, String.class);
 			}
 			
 			if (response != null && response.hasBody()) {
@@ -547,7 +577,173 @@ public class KongClientImpl implements KongClient {
 		}
 		return message;
 	}	
+
+	@Override
+	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginVO attachApiAuthoriserPluginVO, String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {			
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			AttachApiAuthoriserPluginWrapperDto requestWrapper = new AttachApiAuthoriserPluginWrapperDto();
+			AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = attachApiAuthoriserPluginVO.getConfig();
+			AttachApiAuthoriserPluginConfigRequestDto apiAuthoriserPluginConfigRequestDto = new AttachApiAuthoriserPluginConfigRequestDto();
+
+			apiAuthoriserPluginConfigRequestDto.setApplicationName(apiAuthoriserPluginConfigVO.getApplicationName());
+			apiAuthoriserPluginConfigRequestDto.setEnableUserinfoIntrospection(apiAuthoriserPluginConfigVO.isEnableUserinfoIntrospection());
+			apiAuthoriserPluginConfigRequestDto.setWsconfigurl(apiAuthoriserPluginConfigVO.getWsconfigurl());
+			apiAuthoriserPluginConfigRequestDto.setPoolID(apiAuthoriserPluginConfigVO.getPoolID());
+			apiAuthoriserPluginConfigRequestDto.setUserinfoIntrospectionUri(apiAuthoriserPluginConfigVO.getUserinfoIntrospectionUri());
+			apiAuthoriserPluginConfigRequestDto.setLogType(apiAuthoriserPluginConfigVO.getLogType());
+			requestWrapper.setName(attachApiAuthoriserPluginVO.getName());
+			requestWrapper.setConfig(apiAuthoriserPluginConfigRequestDto);
+						
+			HttpEntity<AttachApiAuthoriserPluginWrapperDto> apiAuthoriserRequest = new HttpEntity<AttachApiAuthoriserPluginWrapperDto>(requestWrapper, headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, apiAuthoriserRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Api Authoriser plugin attached successfully to service: {}", serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("Api Authoriser plugin already attached to service: {}", serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("Api Authoriser Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching Api Authoriser plugin to service: {}", ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching Api Authoriser plugin to service: {}", e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
+	}
 	
+	@Override
+	public GenericMessage deletePlugin(String serviceName, String pluginName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		
+		try {
+			Map<String,String>pluginIdMap = getPluginIds(serviceName,pluginName);
+			if(!pluginIdMap.isEmpty()){
+				String PluginIdToDelete = pluginIdMap.get(pluginName);
+				if(PluginIdToDelete!=null){
+					String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins/" + PluginIdToDelete;
+					HttpHeaders headers = new HttpHeaders();
+					headers.set("Accept", "application/json");
+					headers.set("Content-Type", "application/x-www-form-urlencoded");
+					HttpEntity entity = new HttpEntity<>(headers);
+					ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
+					if (response != null) {
+						HttpStatus statusCode = response.getStatusCode();
+						if (statusCode.is2xxSuccessful()) {
+							message.setSuccess("Success");		
+							message.setErrors(errors);
+							message.setWarnings(warnings);
+							LOGGER.info("Kong plugin:{} for the service {} deleted successfully", pluginName, serviceName);
+							return message;
+						}
+						
+					}
+				}
+				LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+			}
+			else{
+				LOGGER.error("plugin {} does not exist", pluginName);
+				messageDescription.setMessage("plugin does not exist");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("plugin {} does not exist", pluginName);
+			messageDescription.setMessage("plugin does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception: {} occured while deleting plugin: {} details", ex.getMessage(), pluginName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while deleting plugin: {} details", e.getMessage(), pluginName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+	
+		return message;
+	}
+
+	public Map<String,String> getPluginIds(String serviceName, String pluginName){
+		Map<String,String>pluginIdMap = new HashMap<>();
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+					try{
+						JsonNode rootNode = objectMapper.readTree(response.getBody());
+						JsonNode data = rootNode.get("data");
+						if (data != null && data.isArray()) {
+							for (JsonNode plugin : (ArrayNode) data) 
+							{
+								pluginIdMap.put(plugin.get("name").asText(),plugin.get("id").asText());
+							}
+						}
+					}catch(Exception e){
+						LOGGER.debug("Exception occured during fetching plugin list");
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while fetching plugin: {} details", e.getMessage(), pluginName);			
+		}
+		return pluginIdMap;
+	}
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
 //		
@@ -659,5 +855,6 @@ public class KongClientImpl implements KongClient {
 //		}
 //		return createRouteResponseVO;
 //	}
+
 
 }

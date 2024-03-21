@@ -21,6 +21,20 @@ spring:
     hibernate:
       ddl-auto: none
 
+  kafka:
+    producer:
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL
   cloud:
     stream:
       default-binder: kafka
@@ -39,7 +53,6 @@ spring:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
 
 codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
@@ -50,10 +63,6 @@ authenticator:
 kafka:
   centralTopic:
     name: dnaCentralEventTopic  
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
   port: 7979
@@ -73,6 +82,7 @@ codeServer:
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
   env.url: ${CODE_SERVER_ENVURL:XXXX}
+  git.appname: ${CODE_SERVER_APPLICATION_NAME:XXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -135,6 +145,12 @@ kong:
    uiRecipesToUseOidc: ${UI_RECIPES_TO_USE_OIDC:XXXX}
    enableAuthTokenIntrospection: ${enableAuthTokenIntrospection:XXXX}
    csvalidateurl: ${csvalidateurl:XXXX}
+   logType: ${LOG_TYPE:XXXX}
+   wsconfigurl: ${WSCONFIGURL:XXXX}
+   applicationName: ${APPLICATION_NAME:XXXX}
+   poolID: ${POOL_ID:XXXX}
+   userinfoIntrospectionUri: ${USERINFO_INTROSPECTION_URL:XXXX}
+   enableUserinfoIntrospection: ${ENABLE_USERINFO_INTROSPECTION:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
