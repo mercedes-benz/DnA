@@ -784,14 +784,11 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
       <View style={styles.view}>
         <Text style={styles.title}>{props.solution.description.productName}</Text>
         <Text style={styles.subTitle}>Solution Summary</Text>
-        <View style={styles.flexLayout}>
-        <View style={styles.flexCol2}>
+        <View style={styles.flexLayout} wrap={false}>
+          <View style={[styles.flexCol2, styles.firstCol, { marginRight: 20 }]}>
             <Text style={styles.sectionTitle}>Description</Text>
             <Text>{props.solution.description.description}</Text>
           </View>
-        </View>
-        <View style={styles.seperatorLine} />
-        <View style={styles.flexLayout}>
           <View style={[styles.flexCol2]}>
             <Text style={styles.sectionTitle}>Tags</Text>
             {props.solution.description.tags && props.solution.description.tags.length ? (
