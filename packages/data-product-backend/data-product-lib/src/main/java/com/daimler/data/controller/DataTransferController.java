@@ -34,6 +34,8 @@ import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.service.datatransfer.DataTransferService;
 import com.daimler.data.util.ConstantsUtility;
 import io.swagger.annotations.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,12 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Api(value = "DataTransfer API", tags = { "datatransfers" })
@@ -91,28 +98,31 @@ public class DataTransferController implements DatatransfersApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all available datatransfers.", nickname = "getAll", notes = "Get all datatransfers. This endpoints will be used to get all valid available datatransfer records.", response = DataTransferCollection.class, tags={ "datatransfers", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = DataTransferCollection.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/datatransfers",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-    public ResponseEntity<DataTransferCollection> getAll(
+	@ApiOperation(value = "Get all available datatransfers.", nickname = "getAll", notes = "Get all datatransfers. This endpoints will be used to get all valid available datatransfer records.", response = DataTransferCollection.class, tags = {
+			"datatransfers", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = DataTransferCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datatransfers", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<DataTransferCollection> getAll(
 			@ApiParam(value = "datatransfer ID to be fetched (send id's with comma separated eg: 'DTF-00019', 'DTF-00020'..)") @Valid @RequestParam(value = "datatransferIds", required = false) String datatransferIds,
-			@ApiParam(value = "If true then sends datatransfer which are created by the logged In users") @Valid @RequestParam(value = "isCreator", required = false) Boolean isCreator,
+			@ApiParam(value = "if true then sends datatransfer which are created by the logged In users") @Valid @RequestParam(value = "isCreator", required = false) Boolean isCreator,
 			@ApiParam(value = "if true then sends dataproduct which are created by the logged In users") @Valid @RequestParam(value = "isProviderCreator", required = false) Boolean isProviderCreator,
 			@ApiParam(value = "Filtering datatransfer based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
-    		@ApiParam(value = "page number from which listing of datatransfers should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-    		@ApiParam(value = "page size to limit the number of datatransfers.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-    		@ApiParam(value = "Sort datatransfers by a given variable.", allowableValues = "dataTransferName, dataTransferId") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-    		@ApiParam(value = "Sort datatransfers based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+			@ApiParam(value = "page number from which listing of datatransfers should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "page size to limit the number of datatransfers.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Sort datatransfers by a given variable.", allowableValues = "dataTransferName, dataTransferId") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort datatransfers based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
+			@ApiParam(value = "name of contact information provider fetched (send names with comma separated eg: 'DTF-00019', 'DTF-00020'..)") @Valid @RequestParam(value = "dataSteward", required = false) String dataSteward,
+			@ApiParam(value = "information owner details to be fetched (send IO with comma separated eg: 'DTF-00019', 'DTF-00020'..)") @Valid @RequestParam(value = "informationOwner", required = false) String informationOwner,
+			@ApiParam(value = "Filtering data transfer based on department") @Valid @RequestParam(value = "department", required = false) String department,
+			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of data tranfer. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division) {
 		try {
 			DataTransferCollection dataTransferCollection = new DataTransferCollection();
 
@@ -131,12 +141,33 @@ public class DataTransferController implements DatatransfersApi {
 
 			String recordStatus = ConstantsUtility.OPEN;
 
-			Long count = dataTransferService.getCount(published, recordStatus, datatransferIds, isCreator, isProviderCreator);
+            String[] dataStewards = null;
+            List<String> dataStewardList = new ArrayList<>();
+            if (dataSteward != null && !"".equals(dataSteward))
+                dataStewards = dataSteward.split(",");
+            if (dataStewards != null && dataStewards.length > 0)
+                dataStewardList = Arrays.asList(dataStewards);
+
+			String[] informationOwners = null;
+			List<String> informationOwnerList = new ArrayList<>();
+			if(informationOwner != null && !"".equals(informationOwner))
+				informationOwners = informationOwner.split(",");
+			if(informationOwners != null && informationOwners.length>0)
+				informationOwnerList = Arrays.asList(informationOwners);
+
+			String[] departments = null;
+			List<String> departmentList = new ArrayList<>();
+			if(department!= null && !"".equals(department))
+				departments = department.split(",");
+			if(departments!= null && departments.length>0)
+				departmentList = Arrays.asList(departments);
+				
+			Long count = dataTransferService.getCount(published, recordStatus, datatransferIds, isCreator, isProviderCreator, dataStewardList, informationOwnerList, departmentList, division);
 			if (count < offset)
 				offset = 0;
 
 			List<DataTransferVO> dataTransfers = dataTransferService.getAllWithFilters(published, offset, limit, sortBy,
-					sortOrder, recordStatus, datatransferIds, isCreator,isProviderCreator);
+					sortOrder, recordStatus, datatransferIds, isCreator,isProviderCreator, dataStewardList, informationOwnerList, departmentList, division);
 			LOGGER.info("DataTransfers fetched successfully");
 			if (!ObjectUtils.isEmpty(dataTransfers)) {
 				dataTransferCollection.setTotalCount(count.intValue());

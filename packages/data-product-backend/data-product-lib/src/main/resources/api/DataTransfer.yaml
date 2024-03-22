@@ -223,7 +223,27 @@ paths:
           description: Sort datatransfers based on the given order, example asc,desc
           required: false
           type: string
-          enum: [asc,desc]             
+          enum: [asc,desc]     
+        - name: dataSteward
+          in: query
+          description: "name of contact information provider fetched (send names with comma separated eg: 'DTF-00019', 'DTF-00020'..)"
+          required: false 
+          type: string
+        - name: informationOwner
+          in: query
+          description: "information owner details to be fetched (send IO with comma separated eg: 'DTF-00019', 'DTF-00020'..)"
+          required: false  
+          type: string 
+        - name: department
+          in: query
+          description: "Filtering data transfer based on department"
+          required: false 
+          type: string
+        - name: division
+          in: query
+          description: List of IDs of divisions and subdivisions under each division of data tranfer. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]
+          required: false
+          type: string
       responses:
         200:
           description: "Returns message of success or failure"

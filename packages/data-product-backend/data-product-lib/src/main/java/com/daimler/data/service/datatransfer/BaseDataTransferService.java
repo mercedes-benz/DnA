@@ -108,7 +108,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator) {
+			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator, List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
 		String userId = null;
 		String providerUserId = null;
 		if (isCreator != null && isCreator && this.userStore.getUserInfo() != null) {
@@ -118,7 +118,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			providerUserId = this.userStore.getUserInfo().getId();
 		}
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId,dataStewardList, informationOwnerList, departmentList, division);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -126,7 +126,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	}
 
 	@Override
-	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator) {
+	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator, List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
 		String userId = null;
 		String providerUserId = null;
 		if (isCreator != null && isCreator  && this.userStore.getUserInfo() != null) {
@@ -135,7 +135,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		if (isProviderCreator != null && isProviderCreator && this.userStore.getUserInfo() != null) {
 			providerUserId = this.userStore.getUserInfo().getId();
 		}
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId, providerUserId);
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId, providerUserId,dataStewardList,informationOwnerList,departmentList,division);
 	}
 
 	private void updateDepartments(String department) {

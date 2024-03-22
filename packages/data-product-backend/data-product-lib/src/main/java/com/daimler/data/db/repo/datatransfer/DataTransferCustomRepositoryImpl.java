@@ -67,8 +67,8 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 
 	@Override
 	public List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId);
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId, List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId,dataStewardList,informationOwnerList,departmentList,division);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<DataTransferNsql> convertedResults = results.stream().map(temp -> {
@@ -88,15 +88,17 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId, String providerUserId ) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId, String providerUserId,List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, userId, providerUserId);
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, userId, providerUserId,dataStewardList,informationOwnerList,departmentList,division);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId) {
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId,
+			String providerUserId, List<String> dataStewardList, List<String> informationOwnerList,
+			List<String> departmentList, String division) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
@@ -116,6 +118,28 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 			String creator = " and (jsonb_extract_path_text(data,'providerInformation','createdBy','id') in ('" + providerUserId + "')) ";
 			query += creator;
 		}
+		if(dataStewardList != null && dataStewardList.size()>0){
+			String dataStewardsJson = String.join("','", dataStewardList);
+			String dataSteward = " and (jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'name', 'shortId') in ('" + dataStewardsJson + "'))";
+			query +=dataSteward;
+		}
+		if(informationOwnerList != null && informationOwnerList.size()>0){
+			String informationOwnerJson = String.join("','",informationOwnerList);
+			String informationOwner = " and (jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'informationOwner', 'shortId') in ('" + informationOwnerJson + "'))";
+			query += informationOwner;
+		}
+
+		if(departmentList != null && departmentList.size()>0){
+			String departmentJson = String.join("','",departmentList);
+			String department = " and (jsonb_extract_path_text(data,'providerInformation','contactInformation','department') in ('" + departmentJson + "'))";
+			query+=department;
+		}
+		if(division!= null && !"".equals(division))
+		{
+			String divisions = this.getDivisionsPredicateString(division);
+			query+=divisions;
+		}
+
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
 			switch (sortBy) {

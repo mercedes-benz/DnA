@@ -32,4 +32,6 @@ public class ConstantsUtility {
 	public static final String DELETED = "DELETED";
 	public static final String SUCCESS = "SUCCESS";
 	public static final String FAILURE = "FAILURE";
+	public static final String EMPTY_VALUE = "EMPTY";
+	public static final String NONE_VALUE = "None";
 }
