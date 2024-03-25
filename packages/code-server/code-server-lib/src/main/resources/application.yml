@@ -23,7 +23,6 @@ spring:
 
   kafka:
     producer:
-    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
       ssl:
         truststore:
@@ -146,6 +145,12 @@ kong:
    uiRecipesToUseOidc: ${UI_RECIPES_TO_USE_OIDC:XXXX}
    enableAuthTokenIntrospection: ${enableAuthTokenIntrospection:XXXX}
    csvalidateurl: ${csvalidateurl:XXXX}
+   logType: ${LOG_TYPE:XXXX}
+   wsconfigurl: ${WSCONFIGURL:XXXX}
+   applicationName: ${APPLICATION_NAME:XXXX}
+   poolID: ${POOL_ID:XXXX}
+   userinfoIntrospectionUri: ${USERINFO_INTROSPECTION_URL:XXXX}
+   enableUserinfoIntrospection: ${ENABLE_USERINFO_INTROSPECTION:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
