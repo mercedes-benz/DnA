@@ -21,6 +21,7 @@ spec:
       labels:
         {{- include "chronos-be.selectorLabels" . | nindent 8 }}
     spec:
+      shareProcessNamespace: true
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

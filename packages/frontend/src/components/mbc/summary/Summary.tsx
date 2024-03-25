@@ -301,6 +301,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         canShowDataSources={this.state.canShowDataSources}
         canShowDigitalValue={canShowDigitalValue}
         canShowComplianceSummary={canShowComplianceSummary}
+        isGenAi={this.state.isGenAI}
         user={this.props.user}
         noteBookInfo={this.state.noteBookInfo}
         dataIkuInfo={this.state.dataIkuInfo}
