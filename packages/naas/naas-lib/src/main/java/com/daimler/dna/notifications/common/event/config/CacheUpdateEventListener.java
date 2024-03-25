@@ -44,6 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.common.config.SslConfigs;
+
 
 import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
@@ -58,7 +61,7 @@ public class CacheUpdateEventListener {
 	@Autowired
 	AdminClient adminClient;
 
-	@Value(value = "${spring.cloud.stream.kafka.binder.brokers}")
+	@Value(value = "${spring.kafka.bootstrap-servers}")
 	private String bootstrapAddress;
 
 	@Value(value = "${kafka.consumer.pollingTime}")
@@ -75,6 +78,19 @@ public class CacheUpdateEventListener {
 
 	@Value(value = "${kafka.centralDeleteTopic.name}")
 	private String deleteTopicName;
+
+	@Value(value = "${spring.kafka.properties.ssl.keystore.location}")
+	 private String sslKeyStoreLocation;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.keystore.password}")
+	 private String sslKeyStorePassword;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.truststore.location}")
+	 private String sslTrustStoreLocation;
+ 
+	 @Value(value = "${spring.kafka.properties.ssl.truststore.password}")
+	 private String sslTrustStorePassword;
+
 
 	@Autowired
 	private RedisCacheUtil cacheUtil;
@@ -126,6 +142,14 @@ public class CacheUpdateEventListener {
 				"org.apache.kafka.common.serialization.StringDeserializer");
 		props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
 				"com.daimler.dna.notifications.common.event.config.GenericEventRecordDeserializer");
+		props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,sslKeyStoreLocation);
+		props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeyStorePassword);
+		props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,sslTrustStoreLocation);
+		props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTrustStorePassword);
+		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+		props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG,sslKeyStorePassword);
+		props.put(SslConfigs.DEFAULT_SSL_KEYSTORE_TYPE, "PKCS12");
+		props.put(SslConfigs.DEFAULT_SSL_TRUSTSTORE_TYPE,"PKCS12");
 		KafkaConsumer<String, GenericEventRecord> consumer = new KafkaConsumer<>(props);
 		consumer.subscribe(Arrays.asList(topicName));
 		LOG.info("partitions :: {}", consumer.partitionsFor(topicName));
