@@ -24,6 +24,7 @@ spec:
       {{- end }}
       {{- end }}
     spec:
+      shareProcessNamespace: true
       {{- if .Values.vaultInjector.enable }}         
       serviceAccountName: {{ .Values.vaultInjector.saName }}
       {{- end }}       
