@@ -4,6 +4,7 @@ import Styles from './CreateBucket.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { bucketActions } from './redux/bucket.actions';
 import AddUser from 'dna-container/AddUser';
+import Tags from 'dna-container/Tags';
 
 import { useParams } from 'react-router-dom';
 import { history } from '../../store/storeRoot';
@@ -19,6 +20,7 @@ import { bucketsApi } from '../../apis/buckets.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { Envs } from '../Utility/envs';
+import { hostServer } from '../../server/api';
 
 const CreateBucket = ({ user }) => {
   const { id } = useParams();
@@ -40,6 +42,10 @@ const CreateBucket = ({ user }) => {
   const [createdBy, setCreatedBy] = useState({});
   const [createdDate, setCreatedDate] = useState(new Date());
 
+  const [divisions, setDivisions] = useState([]);
+  const [subDivisions, setSubDivisions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [dataClassification, setDataClassification] = useState('Internal');
   const [dataClassificationError, setDataClassificationError] = useState('');
@@ -48,9 +54,109 @@ const CreateBucket = ({ user }) => {
   const [termsOfUseError, setTermsOfUseError] = useState(false);
   const [editAPIResponse, setEditAPIResponse] = useState({});
 
+  const [typeOfProject, setTypeOfProject] = useState('0');
+  const [typeOfProjectError, setTypeOfProjectError] = useState('');
+  const isPlayground = typeOfProject === 'Playground';
+  const [description, setDescription] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
+
+  const [division, setDivision] = useState('0');
+  const [divisionError, setDivisionError] = useState('');
+
+  const [subDivision, setSubDivision] = useState('0');
+
+  const [department, setDepartment] = useState([]);
+  const [departmentError, setDepartmentError] = useState(false);
+
+  const [archerId, setArcherId] = useState('');
+  const [archerIdError, setArcherIdError] = useState('');
+
+  const [procedureID, setProcedureID] = useState('');
+  const [procedureIDError, setProcedureIDError] = useState('');
+
   const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
+  const requiredError = '*Missing entry';
 
   const isOwner = user.id === createdBy.id;
+
+  const chips =
+    department && department?.length
+      ? department?.map((chip) => {
+        return (
+          <>
+            <label className="chips">{chip}</label>
+          </>
+        );
+      })
+      : 'N/A';
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    bucketsApi.getLovData()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setDivisions(response[0]?.data || []);
+        setDepartments(response[1]?.data?.data || []);
+        id && setDivision(editAPIResponse?.divisionId + '@-@' + editAPIResponse?.division || '0');
+        // !id && SelectBox.defaultSetup();
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
+    if (divId && divId !== '0') {
+      ProgressIndicator.show();
+      hostServer.get('/subdivisions/' + divId)
+        .then((res) => {
+          setSubDivisions(res?.data || []);
+          // id && setSubDivision(editAPIResponse?.subDivisionId+'@-@'+editAPIResponse?.subDivision || '0');
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        }).catch(() => {
+          ProgressIndicator.hide();
+        });
+    } else {
+      setSubDivisions([]);
+    }
+  }, [division]);
+
+  useEffect(() => {
+    // SelectBox.defaultSetup();
+    setTimeout(() => {
+      SelectBox.defaultSetup(true);
+    }, 200);
+  }, [typeOfProject]);
+
+  useEffect(() => {
+    divisions.length > 0 &&
+      id && setDivision(editAPIResponse?.divisionId + '@-@' + editAPIResponse?.division || '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [divisions]);
+
+  useEffect(() => {
+    subDivisions.length > 0 &&
+      id && setSubDivision(editAPIResponse?.subDivisionId + '@-@' + editAPIResponse?.subDivision || '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subDivisions]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      SelectBox.defaultSetup(true);
+    }, 200);
+  }, [division, subDivision]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -85,6 +191,13 @@ const CreateBucket = ({ user }) => {
             setCreatedBy(res?.data?.createdBy);
             setCreatedDate(res?.data?.createdDate);
             setTermsOfUse(res?.data?.termsOfUse);
+            setDescription(res?.data?.description || '');
+            setTypeOfProject(res?.data?.typeOfProject || '0');
+            setDepartment([res?.data?.department] || []);
+            setDivision(res?.data?.divisionId + '@-@' + res?.data?.division || '0');
+            setSubDivision(res?.data?.subDivisionId + '@-@' + res?.data?.subDivision || '0');
+            setArcherId(res?.data?.archerId || '');
+            setProcedureID(res?.data?.procedureId || '');
             setEditAPIResponse(res?.data); // store to compare whether the values are changed
             SelectBox.defaultSetup();
           } else {
@@ -112,12 +225,19 @@ const CreateBucket = ({ user }) => {
       if (
         dataClassification !== editAPIResponse.classificationType ||
         PII !== editAPIResponse.piiData ||
-        bucketCollaborators?.length !== (editAPIResponse?.collaborators?.length || 0)
+        bucketCollaborators?.length !== (editAPIResponse?.collaborators?.length || 0) ||
+        description !== editAPIResponse?.description ||
+        typeOfProject !== editAPIResponse?.typeOfProject ||
+        division.split('@-@')[0] !== editAPIResponse?.divisionId ||
+        subDivision.split('@-@')[0] !== editAPIResponse?.subDivisionId ||
+        department[0] !== editAPIResponse?.department ||
+        archerId !== editAPIResponse?.archerId ||
+        procedureID !== editAPIResponse.procedureId
       ) {
         setTermsOfUse(false);
       }
     }
-  }, [id, dataClassification, PII, bucketCollaborators, editAPIResponse]);
+  }, [id, dataClassification, PII, bucketCollaborators, editAPIResponse, description, typeOfProject, division, subDivision, department, archerId, procedureID]);
 
   const goBack = () => {
     // history.replace('/');
@@ -136,10 +256,26 @@ const CreateBucket = ({ user }) => {
       setBucketNameError(errorMissingEntry);
       formValid = false;
     }
+    if (typeOfProject === '0') {
+      setTypeOfProjectError(errorMissingEntry);
+      formValid = false;
+    }
     if (bucketNameError) {
       formValid = false;
     }
-    if (dataClassification === 'Choose') {
+    if (!description.length) {
+      setDescriptionError(errorMissingEntry);
+      formValid = false;
+    }
+    if (!isPlayground && division === '0') {
+      setDivisionError(errorMissingEntry);
+      formValid = false;
+    }
+    if (!department.length) {
+      setDepartmentError(true);
+      formValid = false;
+    }
+    if (!isPlayground && dataClassification === 'Choose') {
       formValid = false;
       setDataClassificationError(errorMissingEntry);
     }
@@ -195,6 +331,15 @@ const CreateBucket = ({ user }) => {
         piiData: PII,
         creator: user,
         termsOfUse: termsOfUse,
+        description: description,
+        typeOfProject: typeOfProject,
+        divisionId: division?.split('@-@')[0] || '',
+        division: division?.split('@-@')[1] || '',
+        subDivisionId: subDivision?.split('@-@')[0] || '',
+        subDivision: subDivision?.split('@-@')[1] || '',
+        department: department[0],
+        archerId: archerId,
+        procedureId: procedureID,
       };
       dispatch(bucketActions.createBucket(data));
     }
@@ -216,6 +361,15 @@ const CreateBucket = ({ user }) => {
         classificationType: dataClassification,
         piiData: PII,
         termsOfUse: termsOfUse,
+        description: description,
+        typeOfProject: typeOfProject,
+        divisionId: division?.split('@-@')[0] || '',
+        division: division?.split('@-@')[1] || '',
+        subDivisionId: subDivision?.split('@-@')[0] || '',
+        subDivision: subDivision?.split('@-@')[1] || '',
+        department: department[0],
+        archerId: archerId,
+        procedureId: procedureID,
       };
       dispatch(bucketActions.updateBucket(data));
     }
@@ -316,6 +470,41 @@ const CreateBucket = ({ user }) => {
     setDataClassification(e.target.value);
   };
 
+  const onTypeOfProjectChange = (e) => {
+    const selectedOption = e.currentTarget.value;
+    setTypeOfProject(selectedOption);
+  };
+
+  const onDescriptionChange = (e) => {
+    const currentValue = e.currentTarget.value;
+    setDescription(currentValue);
+    setDescriptionError(currentValue.length !== 0 ? '' : requiredError);
+  };
+
+  const onDivisionChange = (e) => {
+    const selectedOption = e.currentTarget.value;
+    setDivision(selectedOption);
+  }
+
+  const onSubDivisionChange = (e) => {
+    const selectedOption = e.currentTarget.value;
+    setSubDivision(selectedOption);
+  }
+
+  const onArcherIdChange = (e) => {
+    const currentValue = e.currentTarget.value;
+    setArcherId(currentValue);
+    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
+  };
+
+  const onProcedureIDChange = (e) => {
+    const currentValue = e.currentTarget.value;
+    setProcedureID(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
+  };
+
   const handlePII = (e) => {
     setPII(e.target.value === 'true' ? true : false);
   };
@@ -347,146 +536,358 @@ const CreateBucket = ({ user }) => {
         </div>
         <div className={Styles.content}>
           <div className={Styles.formGroup}>
+
             <div className={Styles.flexLayout}>
-              <div>
-                <div
-                  className={classNames(
-                    Styles.bucketNameInputField,
-                    'input-field-group include-error',
-                    bucketNameErrorField?.length ? 'error' : '',
-                  )}
-                >
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Name of Bucket <sup>*</sup>
-                    {!id ? (
-                      <div className={Styles.infoIcon}>
-                        <i className="icon mbc-icon info" onClick={handleInfoModal} />
-                      </div>
-                    ) : null}
-                  </label>
-                  <div>
-                    <input
-                      type="text"
-                      className={classNames('input-field', Styles.bucketNameField)}
-                      required={true}
-                      id="bucketName"
-                      maxLength={63}
-                      placeholder="Type here"
-                      autoComplete="off"
-                      onChange={(e) => {
-                        setBucketName(e.target.value?.toLowerCase());
-                        handleBucketNameValidation(e.target.value);
-                      }}
-                      defaultValue={bucketName}
-                      readOnly={id}
-                    />
-                    <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
-                      {bucketNameError}
-                    </span>
-                  </div>
+
+              <div
+                className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '', id && !isOwner ? 'disabled' : '',)}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Type of Project <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '',)}>
+                  <select
+                    id="reportStatusField"
+                    defaultValue={typeOfProject}
+                    required={true}
+                    onChange={onTypeOfProjectChange}
+                    value={typeOfProject}
+                  >
+                    <option id="typeOfProjectOption" value={0}>
+                      Choose
+                    </option>
+                    {(!id || editAPIResponse?.typeOfProject === 'Playground' || !editAPIResponse?.typeOfProject) && <option value={'Playground'}>Playground</option>}
+                    <option value={'Proof of Concept'}>Proof of Concept</option>
+                    <option value={'Production'}>Production</option>
+                  </select>
                 </div>
-                <div
-                  className={classNames(
-                    'input-field-group include-error',
-                    dataClassificationError?.length ? 'error' : '',
-                    id && !isOwner ? 'disabled' : '',
-                  )}
+                <p
+                  style={{ color: 'var(--color-orange)' }}
+                  className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
                 >
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Data Classification <sup>*</sup>
-                  </label>
-                  <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
-                    <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
-                      {dataClassificationDropdown?.length
-                        ? dataClassificationDropdown?.map((item) => (
-                            <option
-                              disabled={item.name === 'Secret' && !isSecretEnabled}
-                              id={item.id}
-                              key={item.id}
-                              value={item.name}
-                            >
-                              {item.name}
-                            </option>
-                          ))
-                        : null}
-                    </select>
-                  </div>
-                  <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
-                    {dataClassificationError}
+                  <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
+                  being used.
+                </p>
+                <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
+                  {typeOfProjectError}
+                </span>
+              </div>
+
+              <div
+                className={classNames(
+                  Styles.bucketNameInputField,
+                  'input-field-group include-error',
+                  bucketNameErrorField?.length ? 'error' : '',
+                  id && !isOwner ? 'disabled' : '',
+                )}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Name of Bucket <sup>*</sup>
+                  {!id ? (
+                    <div className={Styles.infoIcon}>
+                      <i className="icon mbc-icon info" onClick={handleInfoModal} />
+                    </div>
+                  ) : null}
+                </label>
+                <div>
+                  <input
+                    type="text"
+                    className={classNames('input-field', Styles.bucketNameField)}
+                    required={true}
+                    id="bucketName"
+                    maxLength={63}
+                    placeholder="Type here"
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setBucketName(e.target.value?.toLowerCase());
+                      handleBucketNameValidation(e.target.value);
+                    }}
+                    defaultValue={bucketName}
+                    readOnly={id}
+                  />
+                  <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
+                    {bucketNameError}
                   </span>
                 </div>
               </div>
-              <div>
-                <div className={classNames('input-field-group include-error')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Permission <sup>*</sup>
-                  </label>
-                  <div className={Styles.permissionField}>
-                    <div className={Styles.checkboxContainer}>
-                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                        <span className="wrapper">
-                          <input
-                            name="read"
-                            type="checkbox"
-                            className="ff-only"
-                            checked={!!bucketPermission?.read}
-                            onChange={handleCheckbox}
-                          />
-                        </span>
-                        <span className="label">Read</span>
-                      </label>
-                    </div>
-                    <div className={Styles.checkboxContainer}>
-                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                        <span className="wrapper">
-                          <input
-                            name="write"
-                            type="checkbox"
-                            className="ff-only"
-                            checked={!!bucketPermission?.write}
-                            onChange={handleCheckbox}
-                          />
-                        </span>
-                        <span className="label">Write</span>
-                      </label>
-                    </div>
-                  </div>
+
+            </div>
+
+            <div className={Styles.flexLayout}>
+
+              <div
+                className={classNames(
+                  Styles.bucketNameInputField,
+                  'input-field-group include-error',
+                  departmentError ? 'error' : '',
+                  id && !isOwner ? 'disabled' : '',
+                )}
+              >
+                <div>
+                  {id && !isOwner ? (<div
+                    className={classNames('input-field-group disabled')}
+                  >
+                    <label id="description" className="input-label" htmlFor="description">
+                      Department <sup>*</sup>
+                    </label> <div>{chips}</div></div>) : (<div className={classNames(Styles.departmentTags)}>
+                      <Tags
+                        title={'Department'}
+                        max={1}
+                        chips={department}
+                        tags={departments}
+                        setTags={(selectedTags) => {
+                          const dept = selectedTags?.map((item) => item.toUpperCase());
+                          setDepartment(dept);
+                          setDepartmentError(false);
+                        }}
+                        isMandatory={true}
+                        showMissingEntryError={departmentError}
+                      />
+
+                    </div>)}
                 </div>
-                <div className={classNames('input-field-group include-error')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    PII (Personally Identifiable Information) <sup>*</sup>
-                  </label>
-                  <div className={Styles.pIIField}>
-                    <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
+              </div>
+
+              <div className={classNames('input-field-group include-error', id && !isOwner ? 'disabled' : '',)}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Permission <sup>*</sup>
+                </label>
+                <div className={Styles.permissionField}>
+                  <div className={Styles.checkboxContainer}>
+                    <label className={classNames('checkbox', Styles.checkBoxDisable)}>
                       <span className="wrapper">
                         <input
-                          type="radio"
+                          name="read"
+                          type="checkbox"
                           className="ff-only"
-                          value={true}
-                          name="pii"
-                          onChange={handlePII}
-                          checked={PII === true}
+                          checked={!!bucketPermission?.read}
+                          onChange={handleCheckbox}
                         />
                       </span>
-                      <span className="label">Yes</span>
+                      <span className="label">Read</span>
                     </label>
-                    <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
+                  </div>
+                  <div className={Styles.checkboxContainer}>
+                    <label className={classNames('checkbox', Styles.checkBoxDisable)}>
                       <span className="wrapper">
                         <input
-                          type="radio"
+                          name="write"
+                          type="checkbox"
                           className="ff-only"
-                          value={false}
-                          name="pii"
-                          onChange={handlePII}
-                          checked={PII === false}
+                          checked={!!bucketPermission?.write}
+                          onChange={handleCheckbox}
                         />
                       </span>
-                      <span className="label">No</span>
+                      <span className="label">Write</span>
                     </label>
                   </div>
                 </div>
               </div>
+
             </div>
+
+            <div
+              className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '', id && !isOwner ? 'disabled' : '',)}
+            >
+              <label id="description" className="input-label" htmlFor="description">
+                Description <sup>*</sup>
+              </label>
+              <textarea
+                id="description"
+                className={classNames('input-field-area', id && !isOwner ? 'disabled' : '',)}
+                type="text"
+                defaultValue={description}
+                required={true}
+                onChange={onDescriptionChange}
+                rows={50}
+                readOnly={id && !isOwner}
+              />
+              <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
+                {descriptionError}
+              </span>
+            </div>
+
+            {!isPlayground && <div className={Styles.flexLayout}>
+
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  dataClassificationError?.length ? 'error' : '',
+                  id && !isOwner ? 'disabled' : '',
+                )}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Data Classification <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
+                  <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
+                    {dataClassificationDropdown?.length
+                      ? dataClassificationDropdown?.map((item) => (
+                        <option
+                          disabled={item.name === 'Secret' && !isSecretEnabled}
+                          id={item.id}
+                          key={item.id}
+                          value={item.name}
+                        >
+                          {item.name}
+                        </option>
+                      ))
+                      : null}
+                  </select>
+                </div>
+                <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
+                  {dataClassificationError}
+                </span>
+              </div>
+
+              <div className={classNames('input-field-group include-error', id && !isOwner ? 'disabled' : '',)}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  PII (Personally Identifiable Information) <sup>*</sup>
+                </label>
+                <div className={Styles.pIIField}>
+                  <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={true}
+                        name="pii"
+                        onChange={handlePII}
+                        checked={PII === true}
+                      />
+                    </span>
+                    <span className="label">Yes</span>
+                  </label>
+                  <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={false}
+                        name="pii"
+                        onChange={handlePII}
+                        checked={PII === false}
+                      />
+                    </span>
+                    <span className="label">No</span>
+                  </label>
+                </div>
+              </div>
+
+            </div>}
+
+            {!isPlayground && <div className={Styles.flexLayout}>
+
+              <div
+                className={classNames('input-field-group include-error',
+                  divisionError.length ? 'error' : '', id && !isOwner ? 'disabled' : '',
+                )}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Division <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '',)}>
+                  <select
+                    id="divisionField"
+                    defaultValue={division}
+                    required={true}
+                    required-error={requiredError}
+                    onChange={onDivisionChange}
+                    value={division}
+                  >
+                    <option id="divisionOption" value={0}>
+                      Choose
+                    </option>
+                    {divisions?.map((obj) => {
+                      return (
+                        <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                          {obj.name}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+                <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                  {divisionError}
+                </span>
+              </div>
+
+              <div className={classNames('input-field-group include-error', id && !isOwner ? 'disabled' : '',)}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>Sub Division</label>
+                <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '',)}>
+                  <select
+                    id="subDivisionField"
+                    defaultValue={subDivision}
+                    value={subDivision}
+                    required={false}
+                    onChange={onSubDivisionChange}
+                  >
+                    {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                      <option id="subDivisionDefault" value={0}>
+                        None
+                      </option>
+                    ) : (
+                      <>
+                        <option id="subDivisionDefault" value={0}>
+                          Choose
+                        </option>
+                        {subDivisions?.map((obj) => (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                            {obj.name}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+            </div>}
+
+            <div className={Styles.flexLayout}>
+
+              <div className={classNames('input-field-group include-error', archerIdError.length ? 'error' : '', id && !isOwner ? 'disabled' : '',)}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>Archer ID</label>
+                <div>
+                  <input
+                    type="text"
+                    className={classNames('input-field', Styles.projectNameField, id && !isOwner ? 'disabled' : '',)}
+                    id="archerId"
+                    placeholder="Type here eg.[INFO-XXXXX]"
+                    autoComplete="off"
+                    maxLength={55}
+                    defaultValue={archerId}
+                    onChange={onArcherIdChange}
+                    readOnly={id && !isOwner}
+                  />
+                  <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
+                    {archerIdError}
+                  </span>
+                </div>
+              </div>
+
+              <div className={classNames('input-field-group include-error', procedureIDError.length ? 'error' : '', id && !isOwner ? 'disabled' : '',)}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>Procedure ID</label>
+                <div>
+                  <input
+                    type="text"
+                    className={classNames('input-field', Styles.projectNameField, id && !isOwner ? 'disabled' : '',)}
+                    id="procedureID"
+                    placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                    autoComplete="off"
+                    maxLength={55}
+                    defaultValue={procedureID}
+                    onChange={onProcedureIDChange}
+                    readOnly={id && !isOwner}
+                  />
+                  <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>
+                    {procedureIDError}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
             <div className={classNames('input-field-group include-error')}>
               <div className={Styles.bucketColContent}>
                 <div className={Styles.bucketColContentList}>
@@ -546,7 +947,7 @@ const CreateBucket = ({ user }) => {
                                       <i className="icon mbc-icon trash-outline" />
                                       Delete Entry
                                     </div>
-                                    {isOwner && 
+                                    {isOwner &&
                                       <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.accesskey)}>
                                         <i className="icon mbc-icon comparison" />
                                         Transfer Ownership
