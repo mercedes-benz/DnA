@@ -35,6 +35,10 @@ export const dataikuServer = axios.create({
   headers,
 });
 
+export const reportsServer = axios.create({
+  baseURL: Envs.REPORTS_API_BASEURL ? Envs.REPORTS_API_BASEURL : `http://${window.location.hostname}:7173/api`,
+  headers,
+});
 
 async function blobToJson(blob) {
   const text = await blob.text();
@@ -103,3 +107,6 @@ createRefreshInterceptor(trinoServer);
 
 // Apply interceptor to dataikuServer
 createRefreshInterceptor(dataikuServer);
+
+// Apply interceptor to reportsServer
+createRefreshInterceptor(reportsServer);
