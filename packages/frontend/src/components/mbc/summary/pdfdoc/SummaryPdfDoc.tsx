@@ -302,6 +302,7 @@ const processDataValues = (values: any[]) => {
   return <Text>{dataValues}</Text>;
 };
 
+
 const processDataSourceValues = (values: any[], dsList: any) => {
   const stringValsArr = values.map((item: any) => {
     let dsBadge: any = Envs.DNA_APPNAME_HEADER;
@@ -766,6 +767,7 @@ interface SummaryPdfDocProps {
   canShowDataSources: boolean;
   canShowDigitalValue: boolean;
   canShowComplianceSummary: number | boolean;
+  isGenAi: boolean;
   user: IUserInfo;
   noteBookInfo: INotebookInfo;
   dataIkuInfo: IDataiku;
@@ -1110,18 +1112,18 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View wrap={false}>
             <View style={styles.flexLayout}>
               <View style={[styles.flexCol4, styles.firstCol]}>
-                <Text style={styles.subTitle}>Analytics</Text>
+                <Text style={styles.subTitle}>{props.isGenAi ?"Technology":"Analytics"}</Text>
               </View>
-              <View style={styles.flexCol4}>
+              {!props.isGenAi ?(<View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Languages</Text>
                 {props.solution.analytics.languages && props.solution.analytics.languages.length > 0 ? (
                   processDataValuesFromObj(props.solution.analytics.languages)
                 ) : (
                   <Text>NA</Text>
                 )}
-              </View>
+              </View>): ''}
               <View style={styles.flexCol4}>
-                <Text style={styles.sectionTitle}>Models/Algorithms</Text>
+                <Text style={styles.sectionTitle}>{props.isGenAi?"GenAI Models ":"Models/Algorithms"}</Text>
                 {props.solution.analytics.algorithms && props.solution.analytics.algorithms.length > 0 ? (
                   processDataValuesFromObj(props.solution.analytics.algorithms)
                 ) : (
@@ -1129,14 +1131,22 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
               <View style={styles.flexCol4}>
-                <Text style={styles.sectionTitle}>Visualization</Text>
-                {props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
-                  processDataValuesFromObj(props.solution.analytics.visualizations)
-                ) : (
-                  <Text>NA</Text>
-                )}
+                <Text style={styles.sectionTitle}>{props.isGenAi ? "solutions" : "Visualization"}</Text>
+                  {!props.isGenAi ? (
+                    props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
+                      processDataValuesFromObj(props.solution.analytics.visualizations)
+                    ) : (
+                      <Text>NA</Text>
+                    )) : (
+                    props.solution.analytics.analyticsSolution && props.solution.analytics.analyticsSolution.length > 0 ? (
+                      processDataValuesFromObj(props.solution.analytics.analyticsSolution)
+                    ) : (
+                      <Text>NA</Text>
+                    )
+                  )
+                  }
               </View>
-            </View>
+              </View>
             <View style={styles.seperatorLineLight} />
           </View>
         ) : (
@@ -1190,22 +1200,24 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           props.solution?.marketing?.personas?.length > 0 ||
           props.solution?.marketing?.personalization?.isChecked ||
           props.solution?.marketing?.marketingRoles?.length > 0) ? (
-          <View wrap={false}>
+          <View>
             <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
             <View style={styles.flexLayout}>
-              <View style={[styles.flexCol4, styles.firstCol]}>
-                <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
-                {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
-                  <View>
-                    {props.solution?.marketing?.customerJourneyPhases?.map((item, index) => {
-                      return <Text key={index}>{item.name}</Text>;
-                    })}
-                  </View>
-                ) : (
-                  <Text>NA</Text>
+            <View style={[styles.flexCol4, styles.firstCol]}>
+              <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
+              {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
+                <View>
+                  {props.solution?.marketing?.customerJourneyPhases?.map((item, index) => {
+                    return <Text key={index}>{item.name}</Text>;
+                  })}
+                </View>
+              ) : (
+                <Text>NA</Text>
                 )}
               </View>
-              <View style={styles.flexCol4}>
+            </View>
+            <View style={styles.flexLayout}>
+              <View style={[styles.flexCol4, styles.firstCol]}>
                 <Text style={styles.sectionTitle}>Marketing Communication Channels</Text>
                 {props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ? (
                   <Text>
