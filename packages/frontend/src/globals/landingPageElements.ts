@@ -135,7 +135,7 @@ export const DataGovernanceElements = [
 
 export const ToolsLandingPageElements = [
   {
-    id:'ChronosForecasting',
+    id:'chronosForecasting',
     name: 'Chronos Forecasting',
     description:
       'Chronos is a self-service tool that provides accurate and explainable forecasts based on Machine Learning for any KPI.',
@@ -151,7 +151,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'Matomo',
+    id: 'matomo',
     name: 'Matomo',
     description:
       'Matomo is a free open source web-analytics platform which will help in analyzing the website traffic, visitors.',
@@ -168,7 +168,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'DataLakehouse',
+    id: 'dataLakehouse',
     name: 'Data Lakehouse',
     description:
       'A data lakehouse is an open source data management architecture that combines the flexibility and cost-efficiency of data lakes with the data management and structure features of data warehouses, all on one data platform.',
@@ -185,7 +185,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'Kubeflow',
+    id: 'kubeflow',
     name: 'Kubeflow',
     description:
       'Kubeflow is a platform for data scientists who want to build and experiment with Machine Learning [ML] pipelines. Kubeflow is also for ML engineers and operational teams who want to deploy ML systems to various environments for development, testing, and production-level serving.',
@@ -202,7 +202,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'DataikuDSS',
+    id: 'dataikuDSS',
     name: 'Dataiku DSS',
     description:
       'Dataiku Data Science Studio is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are data preparation, analysis and the development of machine learning models',
@@ -236,7 +236,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
-    id: 'PowerBI',
+    id: 'powerBI',
     name: 'Power BI',
     description:
       'Power BI Desktop is an application you install on your local computer that lets you connect to, transform, and visualize your data. With Power BI Desktop, you can connect to multiple different sources on data, and combine them into a data model. This data model lets you build visuals, and collections of visuals you can share as reports, with other people inside your organization. You get Power BI in the ITShop. Most users who work on business intelligence projects use Power BI Desktop to create reports, and then use the Power BI service called PBOS to share their reports with others.',
@@ -246,14 +246,14 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !powerBIUrl?.startsWith('http'),
-    isDetailedPage: false,
+    isDetailedPage: true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'powerbi',
     isDnAInternalTool: false,
   },
   {
-    id: 'MalwareScan',
+    id: 'malwareScan',
     name: 'Malware Scan',
     description:
       'Malware Scan as a Service is an API for scanning files for malicious code.',
@@ -270,7 +270,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'MalwareAzureBlobScanner',
+    id: 'malwareAzureBlobScanner',
     name: 'Malware Azure Blob Scanner',
     description:
       'A docker instance that can be configured to connect to an Azure Blob instance and enables anti malware detection on any files added to the storage.',
@@ -287,7 +287,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
    },
   {
-    id:'StorageBucket',
+    id:'storageBucket',
     name: 'Storage Bucket',
     description:
       'Storage Buckets provide data file storage that can be shared and connected to many tools. the storage buckets are based on a FOSS solution called minIO and provide a standard API for accessing file stores: S3.',
@@ -304,7 +304,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'CodeApaces',
+    id: 'codeApaces',
     name: 'Code Spaces',
     description:
       'Code spaces provides developers with one click developer workspace customizable based on the technology used. Developers can collaborate on the team developing same solution but also deploy solution to different staging environments with click of the mouse.',
@@ -321,7 +321,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
     {
-    id: 'DataOasis',
+    id: 'dataOasis',
     name: 'Data Oasis',
     description:
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
@@ -338,7 +338,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
-    id:'DataQ',
+    id:'dataQ',
     name: 'DataQ',
     description:
       'DataQ is the intelligent IT tool for the simplified application of the Compliance Framework for Data Analytics and the AI Risk Self Assessments.',
@@ -355,7 +355,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
-    id: 'Jupyter',
+    id: 'jupyter',
     name: 'Jupyter',
     description:
       'Jupyter is a web-based interactive computational environment for creating data analysis in notebook like documents. At FC it is mainly used for Python Data Analysis.',
@@ -389,7 +389,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
-    id: 'Airflow',
+    id: 'airflow',
     name: 'Airflow',
     description:
       'Apache Airflow is an open-source platform for developing, scheduling, and monitoring batch-oriented workflows. Airflow’s extensible Python framework enables you to build workflows connecting with virtually any technology. A web interface helps manage the state of your workflows. Airflow is deployable in many ways, varying from a single process on your laptop to a distributed setup to support even the biggest workflows.',
@@ -440,7 +440,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
-    id: 'Datasphere',
+    id: 'datasphere',
     name: 'Datasphere',
     description: 'SAP Datasphere is a cloud based data warehouse designed for self service data integration, modelling and analysis.It provides access to FC Data products and is connected to our SAP Analytics Cloud Frontend.',
     tags: ['Data Engineering', 'Data Storage', 'SAP', 'No / Low Code', 'Cloud'],
@@ -456,7 +456,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
-    id: 'ModelRegistry',
+    id: 'modelRegistry',
     name: 'Model Registry',
     description:
       'Model registry provides access to published models resulting out of kubeflow model development.',
@@ -473,7 +473,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    id: 'Spire',
+    id: 'spire',
     name: 'Spire',
     description: 'Spire is the standardized & compliant global cloud analytics platform for MBM – live and running, along with a team of experts leveraging cutting-edge technology and end2end services to create business value.',
     tags: ['Data Engineering','Cloud', 'Machine Learning'],
@@ -490,126 +490,6 @@ export const ToolsLandingPageElements = [
   },
 ];
 
-export const ToolsDetailedPageElements = [
-  {
-    id: 'DataikuDSS',
-    name: 'Dataiku DSS',
-    description:
-      'Dataiku Data Science Studio is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are data preparation, analysis and the development of machine learning models',
-    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud'],
-    isExternalLink: false,
-    url: '/mydataiku',
-    useCases: [
-    {
-      icon: 'chronos',
-      title: 'Data Preparation & Wrangling',
-      description: 'eg: bring your excel files into a common format',
-    },
-    {
-      icon: 'solutionoverview',
-      title: 'Data Analysis',
-      description: 'Identify patterns in your data through exploration and visualization',
-    },
-    {
-      icon: 'portfolio',
-      title: 'Machine Learning',
-      description: 'Build predictive Models with your data and share the results with others',
-      },
-    ],
-    toolPipeLine: {
-      image: '',
-      discription: 'some data',
-      connectedTO: [
-        {
-          title: 'SAC',
-          icon: '',
-        }
-      ]
-    },
-    info: [
-      {
-        icon: 'document',
-        name: 'documentation',
-        description: 'Explore all documented information about Dataiku',
-        links: [
-          {
-            title: 'GitHub',
-            link: 'https://github.com',
-          },
-          {
-            title: 'confluence',
-            link: 'Link',
-          },
-          {
-            title: 'wiki',
-            link: 'link',
-          },
-          {
-            title: 'Dataiku S1 Page',
-            link: 'link'
-          }
-        ],
-      },
-      {
-        icon: 'portfolio',
-        name: 'templates',
-        description: 'Download templates created in-line with our company standards to get started in an instant',
-        links: [
-          {
-            title: 'Dataiku Template(S1 Page)',
-            link: 'link',
-          },
-          {
-            title: 'How to import templates',
-            link: 'link',
-          },
-          {
-            title: 'Give FeedBack',
-            link: 'link',
-          }
-        ],
-      },
-      {
-        icon: 'trainings',
-        name: 'trainings',
-        description: 'Get tailor-made trainings from experts to master this tool with ease',
-        links: [
-          {
-            title: 'Dataiku Trainings Overview (S1 Page)',
-            link: 'link',
-          },
-          {
-            title: 'Linkedin Learing Playlist',
-            link: 'link',
-          },
-          {
-            title: 'Udemy Playlist',
-            link: 'link',
-          },
-          {
-            title: 'Helpful Links',
-            link: 'link',
-          }
-        ],
-      },
-    ],
-    accessSteps:[
-      {
-        id: 'step 1',
-        info : "yet to be given",
-      },
-      {
-        id: 'step 2',
-        info : "yet to be given",
-      },
-      {
-        id: 'step 3',
-        info : "yet to be given",
-      },
-    ],
-
-  },
-];
 export const TranparencyLandingPageElements = [
   {
     name: 'Portfolio',

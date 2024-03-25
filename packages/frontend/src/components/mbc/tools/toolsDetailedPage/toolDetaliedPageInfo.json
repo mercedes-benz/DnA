@@ -1,0 +1,221 @@
+[
+  {
+    "id": "dataikuDSS",
+    "name": "Dataiku DSS",
+    "description": "Dataiku Data Science Studio is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are data preparation, analysis and the development of machine learning models",
+    "tags": ["Data Engineering", "Data Science", "No / Low Code", "Cloud"],
+    "isExternalLink": false,
+    "url": "/mydataiku",
+    "useCases": [
+      {
+        "icon": "case2",
+        "title": "Data Preparation & Wrangling",
+        "description": "eg: bring your excel files into a common format"
+      },
+      {
+        "icon": "case3",
+        "title": "Data Analysis",
+        "description": "Identify patterns in your data through exploration and visualization"
+      },
+      {
+        "icon": "case1",
+        "title": "Machine Learning",
+        "description": "Build predictive Models with your data and share the results with others"
+      }
+    ],
+    "toolPipeLine": {
+      "description": ["Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."],
+      "connectedTO": [
+        {
+          "title": "SAC",
+          "icon": "sac",
+          "url": "url"
+        }
+      ]
+    },
+    "info": [
+      {
+        "icon": "doc",
+        "name": "Documentation",
+        "description": "Explore all documented information about Dataiku",
+        "links": [
+          {
+            "title": "GitHub",
+            "link": "https://github.com"
+          },
+          {
+            "title": "confluence",
+            "link": "Link"
+          },
+          {
+            "title": "wiki",
+            "link": "link"
+          },
+          {
+            "title": "Dataiku S1 Page",
+            "link": "link"
+          }
+        ]
+      },
+      {
+        "icon": "tem",
+        "name": "Templates",
+        "description": "Download templates created in-line with our company standards to get started in an instant",
+        "links": [
+          {
+            "title": "Dataiku Template(S1 Page)",
+            "link": "link"
+          },
+          {
+            "title": "How to import templates",
+            "link": "link"
+          },
+          {
+            "title": "Give FeedBack",
+            "link": "link"
+          }
+        ]
+      },
+      {
+        "icon": "trainings",
+        "name": "Trainings",
+        "description": "Get tailor-made trainings from experts to master this tool with ease",
+        "links": [
+          {
+            "title": "Dataiku Trainings Overview (S1 Page)",
+            "link": "link"
+          },
+          {
+            "title": "Linkedin Learing Playlist",
+            "link": "link"
+          },
+          {
+            "title": "Udemy Playlist",
+            "link": "link"
+          },
+          {
+            "title": "Helpful Links",
+            "link": "link"
+          }
+        ]
+      }
+    ],
+    "classification": "Secret",
+    "accessSteps": [
+      {
+        "id": "step 1",
+        "info": "yet to be given"
+      },
+      {
+        "id": "step 2",
+        "info": "yet to be given"
+      },
+      {
+        "id": "step 3",
+        "info": "yet to be given"
+      }
+    ]
+  },
+  {
+    "id": "powerBI",
+    "name": "Power BI",
+    "description": "Power BI Desktop is an application you install on your local computer that lets you connect to, transform, and visualize your data. With Power BI Desktop, you can connect to multiple different sources on data, and combine them into a data model. This data model lets you build visuals, and collections of visuals you can share as reports, with other people inside your organization. You get Power BI in the ITShop. Most users who work on business intelligence projects use Power BI Desktop to create reports, and then use the Power BI service called PBOS to share their reports with others.",
+    "tags": ["Frontend Reporting", "No / Low Code", "Onprem"],
+    "isExternalLink": true,
+    "url": "powerBIUrl",
+    "useCases": [
+      {
+        "icon": "case3",
+        "title": "Data Analysis",
+        "description": "Building Reports and Dashboards with csv data"
+      }
+    ],
+    "toolPipeLine": {
+      "description": ["With power Bi Desktop you can visualize your data. You can use your data directly in the report (Import) or you can connect to a Fileshare and bring your data files there. with Power BI you can than combine your data into a data model. This data model lets you build visiuals, and collections of visuals you can share as reports, with other people.", "Most users who work on business intelligence projects use Power BI Desktop to create reports, and then use the Power BI service called PBOS to share their reports with others"],
+      "connectedTO": [
+        {
+          "title": "Fileshare",
+          "icon": "trino_shared-folder",
+          "url": "url"
+        }
+      ]
+    },
+    "info": [
+      {
+        "icon": "doc",
+        "name": "Documentation",
+        "description": "Explore all documented information ",
+        "links": [
+          {
+            "title": "Power BI SI Page",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "User manual",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "Terms of Use",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "Power BI Templates",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "Custom Visuals",
+            "link": "YOUR_URL"
+          }
+        ]
+      },
+      {
+        "icon": "trainings",
+        "name": "Trainings",
+        "description": "Get tailor-made trainings from experts to master this tool with ease",
+        "links": [
+          {
+            "title": "Microsoft Learn Power BI",
+            "link": "https://learn.microsoft.com/en-us/training/browse/?products-power-bi"
+          },
+          {
+            "title": "Get started with Power BI (80 min)",
+            "link": "https://learn.microsoft.com/de-de/training/modules/get-started-with-power-bi/"
+          },
+          {
+            "title": "Create Dashboards (40 min)",
+            "link": "https://learn.microsoft.com/de-de/training/modules/create-dashboards-power-bi/"
+          },
+          {
+            "title": "Clean Data in Power BI (120 min)",
+            "link": "https://learn.microsoft.com/de-de/training/modules/clean-data-power-bi/"
+          },
+          {
+            "title": "LinkedIn Learning Power BI (105 min)",
+            "link": "https://de.linkedin.com/learning/power-bi-desktop-lernen/daten-aufbereiten-analysieren-und-visualisieren?u=141000850"
+          }
+        ]
+      },
+      {
+        "icon": "tem",
+        "name": "Costs",
+        "description" : "Get familiar with the costs",
+        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 6.70 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
+      }
+    ],
+    "classification" : "Confidential",
+    "accessSteps":[
+      {
+        "id": "step 1",
+        "info" : "Create AD Groups via ServiceNow (see User manual chapter 5)"
+      },
+      {
+        "id": "step 2",
+        "info" : "send an Email to ssa@mercedes-benz.com with all required information + E3 confirmation to the ToU (see User manual chapter 2)"
+      },
+      {
+        "id": "step 3",
+        "info" : "Manage permissions across your AD groups on a need-to-know basis (see User manual chapter 5.3)"
+      }
+    ]
+  }
+]

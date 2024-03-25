@@ -2,6 +2,8 @@
   position: relative;
   margin-bottom: 30px;
   padding: 0px 75px 0px 75px;
+  background-color: linear-gradient(170deg, #000000 0%, rgba(28, 32, 38, 0.00) 9%, #171A1F 29%);
+  ;
 
   .backButtonWapper {
 
@@ -25,10 +27,12 @@
           margin-left: 5px;
           margin-right: 5px;
           align-items: center;
-          color: #c8c9cb;
+          color: #383F49;
           border-radius: 17.5px;
 
           h5 {
+            font-family: var(--font-family-medium);
+            color: #697582;
             font-size: var(--font-size-default);
           }
         }
@@ -41,6 +45,7 @@
     left: 0;
     top: 0;
     width: 100%;
+
   }
 
   .pageBannerTitle {
@@ -81,6 +86,19 @@
   margin-Right: 20px
 }
 
+.stickyPanel {
+  background: #171A1F;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 15px 75px;
+
+  .navButton {
+    text-Align: right;
+    margin: 10px
+  }
+
+}
 
 .portHeader {
   display: flex;
@@ -97,30 +115,34 @@
     margin: 6.5px 0 6.5px;
     min-height: 100%;
     margin-right: 12px;
-    border-radius: 10px;
+    border-radius: 7px;
+    min-height: 115px;
 
     .useCaseTileVal {
       display: flex;
       align-items: center;
 
       .serviceIcon {
-        font-size: 35px;
+        font-size: 45px;
         margin-right: 10px;
         min-width: 60px;
         color: #00adef;
       }
 
       h5 {
-        font-size: var(--font-size-icon-content);
+        font-family: var(--font-family-medium);
+        font-size: 11px;
         padding-bottom: 0px;
         margin: 0;
-        color: #c8c9cb;
+        color: #99A5B3;
       }
 
       span {
-        font-size: var(--font-size-icon-medium);
+        font-size: 15px;
+        font-family: var(--font-family-bold);
         display: flex;
         margin-bottom: 5px;
+        color: #D9DFE4;
       }
     }
   }
@@ -131,34 +153,46 @@
     padding: 24px;
     width: calc(33% - 9.5px);
     margin: 6.5px 0 6.5px;
-    height: 300px;
+    height: 350px;
     margin-right: 12px;
     border-radius: 10px;
 
     .serviceInfo {
-      font-size: 25px;
-      margin-bottom: 10px;
+      font-size: 40px;
+      margin-bottom: 20px;
 
       h3 {
-        font-size: var(--font-size-icon-medium);
+        font-size: 15px;
+        font-family: var(--font-family-bold);
         margin-bottom: 10px;
+        color: #D9DFE4;
       }
 
       h5 {
-        font-size: var(--font-size-icon-content);
+        font-size: 11px;
+        font-family: var(--font-family-medium);
+        color: #99A5B3;
         min-width: 100px;
         max-width: 300px;
         padding-bottom: 0px;
         margin-bottom: 20px;
-        color: #b5b6b8;
       }
 
       .infoLinks {
         a {
           font-size: var(--font-size-default);
           display: block;
-          margin-bottom: 5px;
+          margin-bottom: 8px;
           color: #00adef;
+        }
+      }
+
+      .infoContent {
+        h3 {
+          font-size: var(--font-size-default);
+          display: block;
+          margin-bottom: 8px;
+          color: #C0C8D0;
         }
       }
 
@@ -171,10 +205,44 @@
     background-color: #282b31;
     display: flex;
     justify-content: space-between;
-    padding: 24px;
-    height: 250px;
+    padding: 45px;
+    height: 300px;
     width: 98.5%;
     border-radius: 10px;
+
+    .pipeLineImage {
+      width: calc(60% - 9.5px);
+      size: 10px;
+    }
+
+    .pipeLineDescription {
+      width: calc(35% - 9.5px);
+
+      h5 {
+        color: #C0C8D0;
+        font-family: var(--font-family-medium);
+        font-size: 12px;
+        min-width: 100px;
+        max-width: 450px;
+      }
+
+      h4 {
+        margin-top: 30px;
+        font-size: var(--font-size-icon-medium);
+      }
+
+      .connectedToList {
+        i {
+          font-size: 25px;
+        }
+
+        h5 {
+          margin-top: 7px;
+          font-family: var(--font-family);
+          font-size: 12px;
+        }
+      }
+    }
   }
 
   .classificationSection {
@@ -186,6 +254,13 @@
     height: 300px;
     margin-right: 12px;
     border-radius: 10px;
+
+    h3 {
+      color: #C0C8D0;
+      ;
+      font-size: var(--font-size-icon-medium);
+      font-family: var(--font-family-bold);
+    }
   }
 
   .classificationIcon {
@@ -200,12 +275,16 @@
 
     h4 {
       margin-top: 20px;
-      font-size: var(--font-size-icon-medium);
+      font-size: 15px;
+      color: #D9DFE4;
+      font-family: var(--font-family-bold);
     }
   }
 
   h3 {
-    font-size: var(--font-size-icon-medium);
+    font-size: 11px;
+    font-family: var(--font-family-medium);
+    color: #99A5B3;
   }
 
 
@@ -233,10 +312,11 @@
         color: #c8c9cb;
       }
 
-      h4 {
+      h3 {
         font-size: var(--font-size-icon-medium);
         margin-bottom: 10px;
-        margin-top: 30px
+        margin-top: 15px;
+        color: #c8c9cb;
       }
 
       h5 {
@@ -249,25 +329,31 @@
       }
     }
 
+    .expansionnPanelContent {
+      padding: 20px;
+
+      h5 {
+        font-size: 12px;
+        color: #c8c9cb;
+      }
+    }
+
     .AccessSteps {
 
       .AccessStep {
         .expansionListWrapper {
-          .expansionnPanelContent {
-            padding-top: 40px;
-
-            label {
-              font-size: var(--font-size-small);
-              font-family: 'Roboto-Medium';
-              font-weight: bold;
-              color: #99a5b3;
-            }
-
-            .factorInfo {
-              margin-bottom: 40px;
+          .expansion-panel-group {
+            .expansion-panel {
+              label {
+                font-size: var(--font-size-small);
+                font-family: var(--font-family-medium);
+                font-weight: bold;
+                color: #99a5b3;
+              }
             }
           }
         }
+
       }
     }
 
