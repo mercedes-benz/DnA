@@ -151,6 +151,11 @@ kong:
    poolID: ${POOL_ID:XXXX}
    userinfoIntrospectionUri: ${USERINFO_INTROSPECTION_URL:XXXX}
    enableUserinfoIntrospection: ${ENABLE_USERINFO_INTROSPECTION:XXXX}
+   authoriserBearerOnly: ${AUTHORISER_BEARER_ONLY:XXXX}
+   authoriserClientId: ${AUTHORISER_CLIENT_ID:XXXX}
+   authoriserClientSecret: ${AUTHORISER_CLIENT_SECRET:XXXX}
+   authoriserIntrospectionEndpointAuthMethod: ${AUTHORISER_INTROSPECTION_ENDPOINT_AUTH_METHOD:XXXX}
+   authoriserScope: ${AUTHORISER_SCOPE:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
