@@ -130,6 +130,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.enableUserinfoIntrospection}")
 	private Boolean enableUserinfoIntrospection;
 
+	@Value("${kong.authoriserBearerOnly}")
+	private String authoriserBearerOnly;
+
+	@Value("${kong.authoriserClientId}")
+	private String authoriserClientId;
+
+	@Value("${kong.authoriserClientSecret}")
+	private String authoriserClientSecret;
+
+	@Value("${kong.authoriserIntrospectionEndpointAuthMethod}")
+	private String authoriserIntrospectionEndpointAuthMethod;
+
+	@Value("${kong.authoriserScope}")
+	private String authoriserScope;
+
+
+
 	@Autowired
 	RestTemplate restTemplate;
 	
@@ -485,10 +502,40 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					// 	attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 					// }else {
 					if(intSecureIAM || prodSecureIAM) {
-						attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+
+						//request for attaching ODIC plugin to authorize service
+						AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
+						AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
+						AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
+
+						attachOIDCPluginVO.setName(OIDC_PLUGIN);
+
+						String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
+						String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+
+						attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
+						attachOIDCPluginConfigVO.setClient_id(authoriserClientId);
+						attachOIDCPluginConfigVO.setClient_secret(authoriserClientSecret);
+						attachOIDCPluginConfigVO.setDiscovery(discovery);
+						attachOIDCPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
+						attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
+						attachOIDCPluginConfigVO.setLogout_path(logoutPath);
+						attachOIDCPluginConfigVO.setRealm(realm);
+						attachOIDCPluginConfigVO.setRedirect_after_logout_uri(redirectAfterLogoutUri);
+						attachOIDCPluginConfigVO.setRedirect_uri(authRedirectUri);
+						attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
+						attachOIDCPluginConfigVO.setResponse_type(responseType);
+						attachOIDCPluginConfigVO.setScope(authoriserScope);
+						attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
+						attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+						attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
+						attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+						attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+
+						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
+						attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
-						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-						attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
+						attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
 						// attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 						// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 					}else{
