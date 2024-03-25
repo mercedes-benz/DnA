@@ -1,4 +1,4 @@
-import { hostServer, server, dataikuServer } from '../server/api';
+import { hostServer, server, dataikuServer, reportsServer } from '../server/api';
 
 const getAllBuckets = (offset, limit) => {
   return server.get(`/buckets?offset=${offset}&limit=${limit}`, {
@@ -64,6 +64,15 @@ const transferOwnership = (bucketName, userId) => {
   return server.patch(`/buckets/${bucketName}/reAssignOwner/${userId}`, {});
 };
 
+const getLovData = () => {
+  return Promise.all([
+    hostServer.get('/divisions'),
+    reportsServer.get('/departments', {
+      data: {},
+    }),
+  ]);
+};
+
 export const bucketsApi = {
   getAllBuckets,
   getBucketByName,
@@ -77,5 +86,6 @@ export const bucketsApi = {
   connectToDataikuProjects,
   connectToJupyterNotebook,
   transferOwnership,
-  validateUserPrivilage
+  validateUserPrivilage,
+  getLovData
 };
