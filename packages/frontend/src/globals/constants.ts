@@ -134,12 +134,12 @@ export const ToolsPageImagesInfo = {
     {
       id: 'dataikuDSS',
       banner: 'banner.png',
-      toolPipeline:'toolPipeline.jpg'
+      toolPipeline:'toolPipeline.png'
     },
     {
       id: 'powerBI',
       banner: 'banner.jpg',
-      toolPipeline:'toolPipeline.jpg'
+      toolPipeline:'toolPipeline.png'
     }
   ]
 }
