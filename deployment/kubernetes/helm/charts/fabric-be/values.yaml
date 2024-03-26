@@ -1,9 +1,9 @@
-# Default values for chronos-be.
+# Default values for fabric-be.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
-namespace: chronos
+namespace: fabric
 image:
   repository: ""
   pullPolicy: IfNotPresent
@@ -17,7 +17,7 @@ envs: {}
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: "chronos-be"
+fullnameOverride: "fabric-be"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -32,9 +32,9 @@ podAnnotations:
   vault.hashicorp.com/agent-inject: 'false'
   vault.hashicorp.com/role: 'dna'
   vault.hashicorp.com/agent-pre-populate-only: 'true'
-  vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/chronos-be'
+  vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/fabric-be'
   vault.hashicorp.com/agent-inject-template-envvar: | 
-    {{- with secret "kv/dna/kubernetesSecret/chronos-be" -}}
+    {{- with secret "kv/dna/kubernetesSecret/fabric-be" -}}
       {{- range $k, $v := .Data.data }}
           export {{ $k }}="{{ $v }}"
       {{- end }}
@@ -99,7 +99,7 @@ affinity: {}
 # If you enable vault injector, the environment variables specified above will be will be override from vault
 vaultInjector:
   enable: false     
-  jarName: "chronos-lib*.jar"
+  jarName: "fabric-lib*.jar"
 
 podDisruptionBudget:
   enabled: false
