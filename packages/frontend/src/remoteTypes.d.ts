@@ -27,3 +27,8 @@ declare module 'datalake-mfe/Datalake' {
   const Datalake: React.ComponentType;
   export default Datalake;
 }
+
+declare module 'fabric-mfe/Fabric' {
+  const Fabric: React.ComponentType;
+  export default Fabric;
+}

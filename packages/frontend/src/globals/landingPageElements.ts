@@ -34,6 +34,7 @@ const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
+const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -180,6 +181,22 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDatalakeService,
     isDetailedPage: false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'fabric',
+    name: 'Fabric',
+    description:
+      'Fabric offers a comprehensive suite of services, including data lake, data engineering, and data integration, all in one place.',
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+    url: '/fabric',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableFabricService,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
