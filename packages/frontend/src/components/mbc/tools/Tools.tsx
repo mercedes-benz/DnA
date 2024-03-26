@@ -66,11 +66,13 @@ const Tools = (props: any) => {
             <DNACard
               key={index}
               title={card.name}
+              id= {card.id}
               description={card.description}
               url={card.url}
               isExternalLink={card.isExternalLink}
               isTextAlignLeft={card.isTextAlignLeft}
               isDisabled={card.isDisabled}
+              isDetailedPage ={card.isDetailedPage}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
               svgIcon={card.svgIcon}
