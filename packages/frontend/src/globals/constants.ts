@@ -127,6 +127,24 @@ export const PredefinedSolutionLogoImagesInfo = {
   ],
 };
 
+export const ToolsPageImagesInfo = {
+  folder: 'images/toolDetailedPageImages',
+  images:
+    [
+    {
+      id: 'dataikuDSS',
+      banner: 'banner.png',
+      toolPipeline:'toolPipeline.png'
+    },
+    {
+      id: 'powerBI',
+      banner: 'banner.jpg',
+      toolPipeline:'toolPipeline.png'
+    }
+  ]
+}
+
+
 export const AdditionalResourceTooltipContent = 'if required please detail your need via Members tab.';
 
 export const DataStrategyDomainInfoList = [

@@ -1466,6 +1466,24 @@
     &.genai-solutions::before {
       content: "\e98f";
     }
+    &.machineLearning::before{
+      content: "\e990";
+    }
+    &.dataPreparation::before{
+      content: "\e991";
+    }
+    &.dataAnalysis::before{
+      content: "\e992";
+    }
+    &.doc::before{
+      content: "\e993";
+    }
+    &.sec::before{
+      content: "\e994";
+    }
+    &.tem::before{
+      content: "\e995";
+    }
   }
 
   .active-status {
