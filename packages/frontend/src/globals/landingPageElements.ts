@@ -145,6 +145,7 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableChronosForecastingService,
+    isDetailedPage: false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'chronos',

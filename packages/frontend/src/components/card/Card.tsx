@@ -35,7 +35,6 @@ const DNACard = (props: IDNACardProps) => {
   }, []);
 
   const maxTagItem = 4;
-  console.log(props.title);
 
   return (
     <>
