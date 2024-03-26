@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "fabric-be.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - port: 8989
+  podSelector:
+    matchLabels:
+      {{- include "fabric-be.selectorLabels" . | nindent 8 }}
