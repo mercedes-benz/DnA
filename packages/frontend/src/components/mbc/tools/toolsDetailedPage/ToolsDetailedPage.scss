@@ -1,0 +1,357 @@
+.pageWrapper {
+  position: relative;
+  margin-bottom: 30px;
+  padding: 0px 75px 0px 75px;
+  background-color: linear-gradient(170deg, #000000 0%, rgba(28, 32, 38, 0.00) 9%, #171A1F 29%);
+
+
+  .backButtonWapper {
+
+    .pageHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0px;
+      margin-bottom: 10px;
+
+      .tags {
+        display: inline-flex;
+        justify-content: space-between;
+        margin-top: -82px;
+
+        .tag {
+          border: 1px solid #383F49;
+          padding: 6px 20px 0px;
+          margin : 0px 5px 5px 0px;
+          align-items: center;
+          border-radius: 15px;
+
+
+          h5 {
+            font-family: var( --font-size-smallest);
+            color: #697582;
+            font-size: var(--font-size-default);
+          }
+        }
+      }
+    }
+  }
+
+  .pageBannerimg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+
+  }
+
+  .pageBannerTitle {
+    min-width: 260px;
+    max-width: 390px;
+    margin: 19px 0 50px 0;
+
+    h2 {
+      font-size: var(--font-size-icon-tile);
+      line-height: 33px;
+    }
+  }
+
+  .pageDescription {
+    min-width: 260px;
+    max-width: 650px;
+    margin: 0px 0 70px 0;
+
+    p {
+      font-size: var(--font-size-icon-highlight);
+      color: #c8c9cb;
+    }
+  }
+}
+
+.pageContentWrapper {
+  position: relative;
+  padding-top: 130px;
+
+  h4 {
+    color: #c8c9cb;
+  }
+}
+
+.navButton {
+  text-Align: right;
+  margin-Top: 20px;
+  margin-Right: 20px
+}
+
+.stickyPanel {
+  background: #171A1F;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 15px 75px;
+
+  .navButton {
+    text-Align: right;
+    margin: 10px
+  }
+
+}
+
+.portHeader {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 25px;
+  margin-bottom: 25px;
+
+  .useCaseTile {
+    background-color: #282b31;
+    display: flex;
+    justify-content: space-between;
+    padding: 24px;
+    width: calc(33% - 9.5px);
+    margin: 6.5px 0 6.5px;
+    min-height: 100%;
+    margin-right: 12px;
+    border-radius: 7px;
+    min-height: 115px;
+
+    .useCaseTileVal {
+      display: flex;
+      align-items: center;
+
+      .serviceIcon {
+        font-size: 45px;
+        margin-right: 10px;
+        min-width: 60px;
+        color: #00adef;
+      }
+
+      h5 {
+        font-family: var(--font-family-medium);
+        font-size: 11px;
+        padding-bottom: 0px;
+        margin: 0;
+        color: #99A5B3;
+      }
+
+      span {
+        font-size: 15px;
+        font-family: var(--font-family-bold);
+        display: flex;
+        margin-bottom: 5px;
+        color: #D9DFE4;
+      }
+    }
+  }
+
+  .infoTile {
+    border: 1px solid #282b31;
+    padding: 24px;
+    width: calc(33% - 9.5px);
+    margin: 6.5px 0 6.5px;
+    height: 350px;
+    margin-right: 12px;
+    border-radius: 7px;
+
+    .serviceInfo {
+      font-size: 40px;
+      margin-bottom: 20px;
+
+      h3 {
+        font-size: 15px;
+        font-family: var(--font-family-bold);
+        margin-bottom: 10px;
+        color: #D9DFE4;
+      }
+
+      h5 {
+        font-size: 11px;
+        font-family: var(--font-family-medium);
+        color: #99A5B3;
+        min-width: 100px;
+        max-width: 300px;
+        padding-bottom: 0px;
+        margin-bottom: 20px;
+      }
+
+      .infoLinks {
+        a {
+          font-size: var(--font-size-default);
+          display: block;
+          margin-bottom: 8px;
+          color: #00adef;
+        }
+      }
+
+      .infoContent {
+        h3 {
+          font-size: var(--font-size-default);
+          display: block;
+          margin-bottom: 8px;
+          color: #C0C8D0;
+        }
+      }
+
+    }
+
+
+  }
+
+  .toolPipeLine {
+    background-color: #282b31;
+    display: flex;
+    justify-content: space-between;
+    padding: 45px;
+    height: 300px;
+    width: 98.5%;
+    border-radius: 7px;
+
+    .pipeLineImage {
+      width: calc(60% - 9.5px);
+      size: 10px;
+    }
+
+    .pipeLineDescription {
+      width: calc(35% - 9.5px);
+
+      h5 {
+        color: #C0C8D0;
+        font-family: var(--font-family-medium);
+        font-size: 12px;
+        min-width: 100px;
+        max-width: 450px;
+      }
+
+      h4 {
+        margin-top: 30px;
+        font-size: var(--font-size-icon-medium);
+      }
+
+      .connectedToList {
+        i {
+          font-size: 25px;
+        }
+
+        h5 {
+          margin-top: 7px;
+          font-family: var(--font-family);
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .classificationSection {
+    background-color: #282b31;
+    justify-content: space-between;
+    padding: 24px;
+    width: calc(33% - 9.5px);
+    margin: 7px 0 6.5px;
+    height: 300px;
+    margin-right: 12px;
+    border-radius: 7px;
+
+    h3 {
+      color: #C0C8D0;
+      ;
+      font-size: var(--font-size-icon-medium);
+      font-family: var(--font-family-bold);
+    }
+  }
+
+  .classificationIcon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #a5a5a8;
+    padding: 30px;
+    padding-top: 55px !important;
+
+    h4 {
+      margin-top: 20px;
+      font-size: 15px;
+      color: #D9DFE4;
+      font-family: var(--font-family-bold);
+    }
+  }
+
+  h3 {
+    font-size: 11px;
+    font-family: var(--font-family-medium);
+    color: #99A5B3;
+  }
+
+
+  .accessSection {
+    border: 1px solid  #282b31 ;
+    display: grid;
+    grid-template-columns: 1.25fr 2.75fr;
+    justify-content: space-between;
+    padding: 50px;
+    padding-left: 24px !important;
+    width: calc(66% - 9.5px);
+    margin: 6.5px 0 6.5px;
+    height: 300px;
+    border-radius: 7px;
+
+    .serviceInfo {
+      margin: 5px 0px 0px 35px;
+
+      .serviceIcon {
+        font-size: 40px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        min-width: 60px;
+        color: #c8c9cb;
+      }
+
+      h3 {
+        font-size: var(--font-size-icon-medium);
+        margin-bottom: 10px;
+        margin-top: 15px;
+        color: #c8c9cb;
+      }
+
+      h5 {
+        font-size: var(--font-size-icon-content);
+        min-width: 100px;
+        max-width: 200px;
+        padding-bottom: 0px;
+        margin: 0;
+        color: #b5b6b8;
+      }
+    }
+
+    .expansionnPanelContent {
+      padding: 20px;
+
+      h5 {
+        font-size: 12px;
+        color: #c8c9cb;
+      }
+    }
+
+    .AccessSteps {
+
+      .AccessStep {
+        .expansionListWrapper {
+          .expansion-panel-group {
+            .expansion-panel {
+              label {
+                font-size: var(--font-size-small);
+                font-family: var(--font-family-medium);
+                font-weight: bold;
+                color: #99a5b3;
+              }
+            }
+          }
+        }
+
+      }
+    }
+
+  }
+
+}

@@ -13,7 +13,9 @@ import IconSpire from 'components/icons/IconSpire';
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
+  id?:string;
   isDisabled: boolean;
+  isDetailedPage?: boolean;
   title: string;
   description: string;
   url: string;
@@ -45,7 +47,7 @@ const DNACard = (props: IDNACardProps) => {
           props.className,
         )}
         onClick={() => {
-          props.isExternalLink ? window.open(props.url) : history.push(props.url);
+         props.isDetailedPage ? history.push('/toolDetails/' + props.id):( props.isExternalLink ? window.open(props.url) : history.push(props.url));
         }}
       >
         <div className={Styles.cardHeaderSection}>
