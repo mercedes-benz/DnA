@@ -3,7 +3,7 @@
   margin-bottom: 30px;
   padding: 0px 75px 0px 75px;
   background-color: linear-gradient(170deg, #000000 0%, rgba(28, 32, 38, 0.00) 9%, #171A1F 29%);
-  ;
+
 
   .backButtonWapper {
 
@@ -20,18 +20,15 @@
         margin-top: -82px;
 
         .tag {
-          border-style: solid;
-          padding: 10px;
-          padding-bottom: 2px !important;
-          margin-top: 0px;
-          margin-left: 5px;
-          margin-right: 5px;
+          border: 1px solid #383F49;
+          padding: 6px 20px 0px;
+          margin : 0px 5px 5px 0px;
           align-items: center;
-          color: #383F49;
-          border-radius: 17.5px;
+          border-radius: 15px;
+
 
           h5 {
-            font-family: var(--font-family-medium);
+            font-family: var( --font-size-smallest);
             color: #697582;
             font-size: var(--font-size-default);
           }
@@ -148,14 +145,13 @@
   }
 
   .infoTile {
-    border-style: solid;
-    border-color: #282b31;
+    border: 1px solid #282b31;
     padding: 24px;
     width: calc(33% - 9.5px);
     margin: 6.5px 0 6.5px;
     height: 350px;
     margin-right: 12px;
-    border-radius: 10px;
+    border-radius: 7px;
 
     .serviceInfo {
       font-size: 40px;
@@ -208,7 +204,7 @@
     padding: 45px;
     height: 300px;
     width: 98.5%;
-    border-radius: 10px;
+    border-radius: 7px;
 
     .pipeLineImage {
       width: calc(60% - 9.5px);
@@ -253,7 +249,7 @@
     margin: 7px 0 6.5px;
     height: 300px;
     margin-right: 12px;
-    border-radius: 10px;
+    border-radius: 7px;
 
     h3 {
       color: #C0C8D0;
@@ -289,8 +285,7 @@
 
 
   .accessSection {
-    border-style: solid;
-    border-color: #282b31;
+    border: 1px solid  #282b31 ;
     display: grid;
     grid-template-columns: 1.25fr 2.75fr;
     justify-content: space-between;
@@ -299,7 +294,7 @@
     width: calc(66% - 9.5px);
     margin: 6.5px 0 6.5px;
     height: 300px;
-    border-radius: 10px;
+    border-radius: 7px;
 
     .serviceInfo {
       margin: 5px 0px 0px 35px;

@@ -47,7 +47,7 @@ const DNACard = (props: IDNACardProps) => {
           props.className,
         )}
         onClick={() => {
-         props.isDetailedPage ? history.push('/toolsDetailedPage/' + props.id):( props.isExternalLink ? window.open(props.url) : history.push(props.url));
+         props.isDetailedPage ? history.push('/toolDetails/' + props.id):( props.isExternalLink ? window.open(props.url) : history.push(props.url));
         }}
       >
         <div className={Styles.cardHeaderSection}>

@@ -254,7 +254,7 @@ const protectedRoutes = [
   {
     allowedRoles: UserAndAdminRole,
     component: ToolsDetailedPage,
-    path: '/toolsDetailedPage/:id?',
+    path: '/toolDetails/:id?',
     title: 'ToolsDetailedPage'
   },
   {

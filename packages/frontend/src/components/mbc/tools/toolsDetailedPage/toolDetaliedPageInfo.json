@@ -8,17 +8,17 @@
     "url": "/mydataiku",
     "useCases": [
       {
-        "icon": "case2",
+        "icon": "dataPreparation",
         "title": "Data Preparation & Wrangling",
         "description": "eg: bring your excel files into a common format"
       },
       {
-        "icon": "case3",
+        "icon": "dataAnalysis",
         "title": "Data Analysis",
         "description": "Identify patterns in your data through exploration and visualization"
       },
       {
-        "icon": "case1",
+        "icon": "machineLearning",
         "title": "Machine Learning",
         "description": "Build predictive Models with your data and share the results with others"
       }
