@@ -1,0 +1,82 @@
+spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
+  application:
+    name: dna-fabric-workspace-service
+    version: 1.0.0
+
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}   
+        
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:64000/dbname}
+    username: ${API_DB_USER:dbuser}
+    password: ${API_DB_PASS:dbpassword}
+    driverClassName: org.postgresql.Driver
+
+fabricWorkspaces:
+  clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
+  clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
+  grantType: ${FABRIC_OAUTH_GRANT_TYPE:client_credentials}
+  scope: ${FABRIC_OAUTH_SCOPE:XXXX}
+  accessToken: ${FABRIC_OAUTH_ACCESS_TOKEN:XXXX}
+  tokenTypeHint: ${FABRIC_OAUTH_TOKEN_TYPE_HINT:access_token}
+  capacityId: ${FABRIC_CAPACITY_ID:capacityIdX}
+  uri:
+    login: ${FABRIC_LOGIN_URL:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
+    workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}
+    capacitiesBase: ${FABRIC_CAPACITY_URL:https://api.fabric.microsoft.com/v1/capacities}
+    addUserUrl: ${FABRIC_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/groups/{groupId}/users}
+
+server:
+  port: 9292
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+proxy: 
+  port: ${CUSTOMPROXY_PORT:1234}
+  host: ${CUSTOMPROXY_HOST:XXXX}
+  
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+          controller.ItsmmGameController: DEBUG
+    org.springframework.boot.autoconfigure.logging: INFO
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
