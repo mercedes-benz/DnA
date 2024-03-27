@@ -45,9 +45,14 @@ const FabricWorkspace = () => {
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          <Caption title={!loading ? workspace?.name : ''}>
-
-          </Caption>
+          {!loading ? 
+            <Caption title={workspace?.name}>
+              &nbsp;(<a href={`https://app.fabric.microsoft.com/groups/${workspace?.id}`} target='_blank' rel='noopener noreferrer'>
+                Access Workspace
+                <i className={classNames('icon mbc-icon new-tab')} />
+              </a>)
+            </Caption> : null
+          }
           <div className={Styles.content}>
             <h3 id="productName">Workspace Details</h3>
             <div className={Styles.firstPanel}>

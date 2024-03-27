@@ -81,6 +81,15 @@ const Workspaces = (props) => {
                 <div className={Styles.cardBodySection}>
                   <div>
                     <div>
+                      <div>Workspace Link</div>
+                      <div>
+                        <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>
+                          Access Workspace
+                          <i className={classNames('icon mbc-icon new-tab')} />
+                        </a>
+                      </div>
+                    </div>
+                    <div>
                       <div>Created on</div>
                       <div>{regionalDateAndTimeConversionSolution(workspace.createdOn)}</div>
                     </div>
@@ -144,12 +153,18 @@ const Workspaces = (props) => {
                     <div className={Styles.bucketTitleCol}>
                       <label>
                         {/* <i className="icon sort" /> */}
+                        Workspace Link
+                      </label>
+                    </div>
+                    <div className={Styles.bucketTitleCol}>
+                      <label>
+                        {/* <i className="icon sort" /> */}
                         Created On
                       </label>
                     </div>
                     <div className={Styles.bucketTitleCol}>
                       <label>
-                        <i className="icon sort" />
+                        {/* <i className="icon sort" /> */}
                         Data Classification
                       </label>
                     </div>
@@ -172,6 +187,12 @@ const Workspaces = (props) => {
                               <span>
                                 {workspace.name}
                               </span>
+                            </div>
+                            <div className={classNames(Styles.bucketTitleCol, Styles.workspaceLink)}>
+                              <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>
+                                Access Workspace
+                                <i className={classNames('icon mbc-icon new-tab')} />
+                              </a>
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {regionalDateAndTimeConversionSolution(workspace.createdOn)}
