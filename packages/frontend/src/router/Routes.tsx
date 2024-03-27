@@ -51,6 +51,7 @@ const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
 const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
 const DatalakeComponent = React.lazy(() => import('datalake-mfe/Datalake'));
+const FabricComponent = React.lazy(() => import('fabric-mfe/Fabric'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -417,6 +418,13 @@ const protectedRoutes = [
     exact: false,
     path: '/datalake',
     title: 'Datalake',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: FabricComponent,
+    exact: false,
+    path: '/fabric',
+    title: 'Fabric',
   },
 ];
 
