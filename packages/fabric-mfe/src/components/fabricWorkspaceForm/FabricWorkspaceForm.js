@@ -36,11 +36,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [solutions] = useState([]);
   const [reports] = useState([]);
-  const [capacities] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
-  const [capacity, setCapacity] = useState(edit && workspace?.capacity !== null ? workspace?.capacity : '');
   const [division, setDivision] = useState(edit ? (workspace?.divisionId ? workspace?.divisionId + '@-@' + workspace?.division : '0') : '');
   const [subDivision, setSubDivision] = useState(edit ? (workspace?.subDivisionId ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && workspace?.decription ? workspace?.decription : '');
@@ -139,7 +137,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder,
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
-      capacity: values?.capacity,
     };
     fabricApi.createFabricWorkspace(data).then((res) => {
       ProgressIndicator.hide();
@@ -172,7 +169,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder,
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
-      capacity: values?.capacity,
     }
     ProgressIndicator.show();
     fabricApi.updateFabricWorkspace(data, workspace.id).then(() => {
@@ -239,6 +235,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       Choose
                     </option>
                     {(!edit || workspace?.typeOfProject === 'Playground') && <option value={'Playground'}>Playground</option>}
+                    <option value={'Proof of Concept'}>Proof of Concept</option>
                     <option value={'Production'}>Production</option>
                   </select>
                 </div>
@@ -366,39 +363,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Capacity
-                  </label>
-                  <div className={classNames('custom-select')}>
-                    <select
-                      id="capacityField"
-                      defaultValue={capacity}
-                      value={capacity}
-                      {...register('capacity', {
-                        required: '*Missing entry',
-                        validate: (value) => value !== '0' || '*Missing entry',
-                        onChange: (e) => { setCapacity(e.target.value) }
-                      })}
-                    >
-                      <option id="capacityOption" value={0}>
-                        Choose
-                      </option>
-                      {capacities?.map((capacity) => {
-                        return (
-                          <option id={capacity.id} key={capacity.id} value={capacity.name}>
-                            {capacity.name}
-                          </option>
-                        )
-                      })}
-                    </select>
-                  </div>
-                </div>
-
-                <div></div>
               </div>
 
               <div className={Styles.flexLayout}>
