@@ -51,8 +51,8 @@ repositories {
 group 'com.mb.dna'
 version = releaseVersion;
 
-sourceCompatibility = 1.19
-targetCompatibility = 1.19
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 
