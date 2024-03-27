@@ -66,10 +66,12 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.1",
+    "axios": "^0.27.2",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.5",
     "classnames": "^2.3.1",
     "cra-template": "1.2.0",
+    "dayjs": "^1.11.5",
     "env-cmd": "^10.1.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
