@@ -84,9 +84,6 @@ const FabricWorkspace = () => {
                         {workspace?.decription ? workspace?.decription : 'N/A'}
                       </div>
                       <div id="divisionField">
-                        <label className="input-label summary">Capacity</label>
-                        <br />
-                        {workspace?.capacity ? workspace?.capacity?.name : 'N/A'}
                       </div>
                     </div>
 
