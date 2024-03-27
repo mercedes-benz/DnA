@@ -5,10 +5,12 @@
 namespace: fabric
 configJs: |
     window["fabric_INJECTED_ENVIRONMENT"]={
-      ENABLE_fabric_SERVICE=true,
-      fabric_MFE_APP_URL="http://localhost:8089",
-      fabric_API_BASEURL="http://localhost:8989/api"
-      fabric_APP_URL='YOUR_fabric_APP_URL'
+      CONTAINER_APP_URL: "http://localhost:9090",
+      API_BASEURL: "http://localhost:7171/api",
+      FABRIC_API_BASEURL: 'YOUR_FABRIC_API_BASEURL',
+      REPORTS_API_BASEURL: 'YOUR_REPORTS_API_BASEURL',
+      STORAGE_API_BASEURL: 'YOUR_STORAGE_API_BASEURL',
+      TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
     };
 
 replicaCount: 1

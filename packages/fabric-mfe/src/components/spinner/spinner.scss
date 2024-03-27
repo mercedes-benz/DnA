@@ -1,0 +1,11 @@
+.spinner {
+  min-height: 50vh;
+  margin-left: -40px;
+  position: relative;
+  
+  > div {
+    position: absolute;
+    top: calc(50% - 40px);
+    left: calc(50% - 25px);
+  }
+}

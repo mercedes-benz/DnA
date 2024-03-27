@@ -170,6 +170,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATALAKE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATALAKE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_DATALAKE_SERVICE, false),
+  ENABLE_FABRIC_SERVICE:
+    getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
