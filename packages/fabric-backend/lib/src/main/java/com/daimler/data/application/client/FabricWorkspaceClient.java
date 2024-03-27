@@ -133,7 +133,6 @@ public class FabricWorkspaceClient {
 				workspaceDetailDto = response.getBody();
 			}
 		}catch(HttpClientErrorException.Conflict e) {
-			e.printStackTrace();
 			log.error("Failed to create workspace with displayName {} with error {} ", createRequest.getDisplayName(), e.getMessage());
 		}
 		return workspaceDetailDto;
@@ -221,7 +220,6 @@ public class FabricWorkspaceClient {
 				return response;
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
 			response.setSuccess("FAILED");
 			List<MessageDescription> errors = new ArrayList<>();
 			MessageDescription errorMessage = new MessageDescription("Failed to add user to workspace with exception, please try again or contact Admin.");

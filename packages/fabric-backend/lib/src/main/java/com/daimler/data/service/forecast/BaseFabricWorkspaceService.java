@@ -123,7 +123,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
 			GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
