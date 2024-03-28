@@ -98,7 +98,7 @@ auth:
   ## @param auth.rootPassword Password for the `root` user. Ignored if existing secret is provided
   ## ref: https://github.com/bitnami/bitnami-docker-mysql#setting-the-root-password-on-first-run
   ##
-  rootPassword: "***REMOVED***"
+  rootPassword: ""
   ## @param auth.database Name for a custom database to create
   ## ref: https://github.com/bitnami/bitnami-docker-mysql/blob/master/README.md#creating-a-database-on-first-run
   ##
