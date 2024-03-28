@@ -70,7 +70,7 @@ data:
 
             @self.appbuilder.sm.oid.require_login
             def handle_login():
-        #         sub = "***REMOVED***"
+        #         sub = ""
                 user = sm.auth_user_oid(oidc.user_getfield('email'))
 
                 login_user(user, remember=False)

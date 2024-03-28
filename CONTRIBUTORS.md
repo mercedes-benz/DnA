@@ -8,7 +8,6 @@ Contributors that have signed CLA
 | ramyarao161 | 24.02.2022 |
 | shubverma | 11.03.2022 |
 | PAVITHRAJAINI | 27.09.2022 |
-| Shalini-peeka | 26.09.2023 |
-| 6Shiva | 26.09.2023 |
-| ***REMOVED*** | 05.10.2023 |
-| ***REMOVED*** | 05.10.2023 |
+| shalini-peeka | 26.09.2023 |
+| AjayShivanagol | 26.09.2023 |
+| 6-Sushma | 05.10.2023 |
