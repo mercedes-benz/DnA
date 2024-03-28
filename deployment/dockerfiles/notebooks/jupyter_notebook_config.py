@@ -775,8 +775,8 @@ c.NotebookApp.tornado_settings = {
 # c.Session.unpacker = 'json'
 
 # Username for the Session. Default is your system username.
-#  Default: '***REMOVED***'
-# c.Session.username = '***REMOVED***'
+#  Default: ''
+# c.Session.username = ''
 
 # ------------------------------------------------------------------------------
 # MultiKernelManager(LoggingConfigurable) configuration
