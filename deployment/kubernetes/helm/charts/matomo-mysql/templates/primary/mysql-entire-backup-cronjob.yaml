@@ -12,7 +12,7 @@ spec:
           containers:
             - name: mysql-entire-db-backup
               image: >-
-                ***REMOVED***/dna/databack/mysql-backup-u1005:dbea4c6457a3df4e7246721757a24f5bea8d4a0c
+                xxxx/dna/databack/mysql-backup-u1005:dbea4c6457a3df4e7246721757a24f5bea8d4a0c
               env:
                 - name: DB_SERVER
                   value: {{ .Values.backupRestore.DB_SERVER }}

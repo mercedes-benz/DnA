@@ -70,7 +70,7 @@ diagnosticMode:
 ## @param image.debug Specify if debug logs should be enabled
 ##
 image:
-  registry: ***REMOVED***
+  registry: xxxx
   repository: dna/bitnami/mysql
   tag: 8.0.30-debian-11-r6
   ## Specify a imagePullPolicy

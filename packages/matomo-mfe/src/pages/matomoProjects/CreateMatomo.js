@@ -493,7 +493,7 @@ const CreateMatomo = ({ user }) => {
         <li>Site names must be between 3 (min) and 63 (max) characters long.</li>
         <li>Site names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).</li>
         <li>Site names must begin and end with a letter or number.</li>
-        <li>Site names must not be formatted as an IP address (for example, ***REMOVED***).</li>
+        <li>Site names must not be formatted as an IP address (for example, 1.1.1.1).</li>
       </ul>
     </div>
   );

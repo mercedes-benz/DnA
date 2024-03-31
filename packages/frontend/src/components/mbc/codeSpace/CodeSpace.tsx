@@ -143,7 +143,7 @@ let isTouch = false;
 
 const CodeSpace = (props: ICodeSpaceProps) => {
   // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-  //   url: `***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
+  //   url: `https://xxxx/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
   //   running: false
   // });
   const { id } = getParams();
