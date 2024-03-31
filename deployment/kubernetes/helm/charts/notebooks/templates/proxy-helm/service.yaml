@@ -38,4 +38,4 @@ spec:
       targetPort: 8000
   type: NodePort    
   #type: LoadBalancer
-  #loadBalancerIP: ***REMOVED***
+  #loadBalancerIP: xxxx

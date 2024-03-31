@@ -198,7 +198,7 @@ const CreateBucket = () => {
         <li>Bucket names must be between 3 (min) and 63 (max) characters long.</li>
         <li>Bucket names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).</li>
         <li>Bucket names must begin and end with a letter or number.</li>
-        <li>Bucket names must not be formatted as an IP address (for example, ***REMOVED***).</li>
+        <li>Bucket names must not be formatted as an IP address (for example, xxxxx).</li>
       </ul>
     </div>
   );
