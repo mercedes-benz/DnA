@@ -53,7 +53,7 @@ spec:
           {{- end }}          
           ports:
             - name: http
-              containerPort: 8989
+              containerPort: 9292
               protocol: TCP
           livenessProbe:
             initialDelaySeconds: 60
