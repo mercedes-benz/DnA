@@ -153,10 +153,6 @@
     color: #e84d47;
   }
 
-  .configLink a {
-    color: #00ADEF !important;
-  }
-
   .OpenNewTab {
     &:hover i {
       animation: OpenNewTab 1s infinite;
@@ -385,11 +381,6 @@
 
   .createTechUserWrapper {
     padding-top: 33px;
-  }
-
-  .disabledDiv {
-    opacity: 0.6;
-    pointer-events: none;
   }
 
   .iamUserSection {
@@ -667,8 +658,4 @@
   }
   .tooltip {
     top: -6px !important;
-  }
-  
-  .pointer {
-    cursor: pointer;
   }

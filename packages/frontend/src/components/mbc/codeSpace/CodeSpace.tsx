@@ -1,38 +1,33 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
-import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 // @ts-ignore
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
 import { buildGitJobLogViewURL, buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
-// import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { useState } from 'react';
-import { useEffect } from 'react';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import { getParams } from '../../../router/RouterUtils';
 import classNames from 'classnames';
 import { CODE_SPACE_TITLE } from 'globals/constants';
-// import TextBox from '../shared/textBox/TextBox';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 import { IconGear } from 'components/icons/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
-// import { HTTP_METHOD } from '../../../globals/constants';
+import DeployModal from './deployModal/DeployModal';
 
 export interface ICodeSpaceProps {
   user: IUserInfo;
@@ -78,7 +73,6 @@ export interface IDataGovernance{
 }
 
 export interface IDeploymentAuditLogs{
-  
   branch?: string;
   deployedOn?: string;
   triggeredBy?: string;
@@ -109,26 +103,7 @@ export interface ICodeSpaceData {
   configStatus?: string;
   workspaceOwner?: ICodeCollaborator,
   projectDetails?: IProjectDetails;
-
-  // name?: string;
-  // recipe?: string;
-  // environment?: string;
-  // deployed?: boolean;
-  // deployedUrl?: string;
-  // deployedBranch?: string;
-  // prodDeployed?: boolean;
-  // prodDeployedUrl?: string;
-  // prodDeployedBranch?: string;
-  // createdDate?: string;
-  // lastDeployedDate?: string;
-  // url: string;
   running?: boolean;
-  // status?: string;
-  // collaborators?: ICodeCollaborator[];
-}
-
-export interface IBranch {
-  name: string;
 }
 
 export interface IDeployRequest {
@@ -165,13 +140,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [prodCodeDeployedUrl, setProdCodeDeployedUrl] = useState<string>();
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
   const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState<boolean>(false);
-  const [secureWithIAMSelected, setSecureWithIAMSelected] = useState<boolean>(true);
-  // const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
-  // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
-  const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   const [livelinessInterval, setLivelinessInterval] = useState<number>();
-  const [branches, setBranches] = useState<IBranch[]>([]);
-  const [vaultEnabled, setVaultEnabled] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const [logsList, setlogsList] = useState([]);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
@@ -183,12 +152,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const livelinessIntervalRef = React.useRef<number>();
 
-  const [branchValue, setBranchValue] = useState('main');
-  const [deployEnvironment, setDeployEnvironment] = useState('staging');
+  // const [branchValue, setBranchValue] = useState('main');
+  // const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [showLogsView, setShowLogsView] = useState(false);
 
   const recipes = recipesMaster;
-  // const requiredError = '*Missing entry';
+  
 
   const isAPIRecipe =
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
@@ -255,30 +224,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setShowContextMenu(!showContextMenu);
   };
 
-  const setVault = () =>{
-    ProgressIndicator.show();
-    CodeSpaceApiClient.read_secret(projectDetails?.projectName.toLowerCase(), deployEnvironment === 'staging' ? 'int' : 'prod')
-      .then((response) => {
-        ProgressIndicator.hide();
-        Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        // if (err?.response?.data?.errors?.length > 0) {
-        //   err?.response?.data?.errors.forEach((err: any) => {
-        //     Notification.show(err?.message || 'Something went wrong.', 'alert');
-        //   });
-        // } else {
-        //   Notification.show(err?.message || 'Something went wrong.', 'alert');
-        // }
-      });
-  }
-
-  useEffect(() => {
-    SelectBox.defaultSetup();
-    // setIAMTechnicalUserID('');
-  }, [showCodeDeployModal]);
-
   useEffect(() => {
     if (id) {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
@@ -342,7 +287,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               Tabs.defaultSetup();
               if (deployingInProgress) {
                 const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
-                setDeployEnvironment(deployingEnv);
+                // setDeployEnvironment(deployingEnv);
                 setCodeDeploying(true);
                 enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
               }
@@ -355,26 +300,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
           history.replace('/codespaces');
         });
-      // ApiClient.getCodeSpace().then((res: any) => {
-      //   setLoading(false);
-      //   const codeSpaceRunning = (res.success === 'true');
-      //   setCodeSpaceData({
-      //     ...codeSpaceData,
-      //     running: codeSpaceRunning
-      //   });
-      //   setShowNewCodeSpaceModal(!codeSpaceRunning);
-      // }).catch((err: Error) => {
-      //   Notification.show("Error in validating code space - " + err.message, 'alert');
-      // });
     } else {
       Notification.show('Codespace id is missing. Please choose your codespace to open.', 'warning');
       history.replace('/codespaces');
     }
   }, []);
-
-  useEffect(() => {
-    setVault();
-  }, [deployEnvironment]);
 
   useEffect(() => {
     livelinessIntervalRef.current = livelinessInterval;
@@ -423,26 +353,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const onShowCodeDeployModal = () => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
-      .then((res: any) => {
-        ProgressIndicator.hide();
-        setShowCodeDeployModal(true);
-        setBranches(res);
-        // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-        setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-        SelectBox.defaultSetup();
-        Tooltip.defaultSetup();
-      })
-      .catch((err: Error) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
-      });
-    setVault();
-  };
-
-  const onCodeDeployModalCancel = () => {
-    setShowCodeDeployModal(false);
+    setShowCodeDeployModal(true);
   };
 
   const enableDeployLivelinessCheck = (id: string, deployEnvironmentValue: string) => {
@@ -462,11 +373,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeploying(false);
               if (deployEnvironmentValue === 'staging') {
                 setCodeDeployedUrl(intDeploymentDetails?.deploymentUrl);
-                setCodeDeployedBranch(branchValue);
+                setCodeDeployedBranch(intDeploymentDetails?.lastDeployedBranch);
                 setCodeDeployed(true);
               } else if (deployEnvironmentValue === 'production') {
                 setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
-                setProdCodeDeployedBranch(branchValue);
+                setProdCodeDeployedBranch(prodDeploymentDetails?.lastDeployedBranch);
                 setProdCodeDeployed(true);
               }
               Tabs.defaultSetup();
@@ -502,87 +413,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setLivelinessInterval(intervalId);
   };
 
-  const onBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setBranchValue(e.currentTarget.value);
-  };
-
-  const onDeployEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-    const deployEnv = evnt.currentTarget.value.trim();
-    setDeployEnvironment(deployEnv);
-    if (deployEnv === 'staging') {
-      setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-      // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-    } else {
-      setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-      // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-    }
-  };
-
-  const onAcceptCodeDeploy = () => {
-    // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
-    //   setIAMTechnicalUserIDError(requiredError);
-    //   return;
-    // } else {
-    //   setIAMTechnicalUserIDError('');
-    // }
-    const deployRequest: IDeployRequest = {
-      secureWithIAMRequired: secureWithIAMSelected,
-      // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
-      targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-      branch: branchValue,
-      valutInjectorEnable: vaultEnabled,
-
-    };
-    ProgressIndicator.show();
-    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
-      .then((res: any) => {
-        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-        if (res.success === 'SUCCESS') {
-          // setCreatedCodeSpaceName(res.data.name);
-          setCodeDeploying(true);
-          if (acceptContinueCodingOnDeployment) {
-            ProgressIndicator.hide();
-            Notification.show(
-              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
-            );
-            setShowCodeDeployModal(false);
-          } else {
-            setIsApiCallTakeTime(true);
-          }
-          enableDeployLivelinessCheck(codeSpaceData.workspaceId, deployEnvironment);
-        } else {
-          setIsApiCallTakeTime(false);
-          ProgressIndicator.hide();
-          Notification.show(
-            'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
-            'alert',
-          );
-        }
-      })
-      .catch((err: Error) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
-      });
-  };
-
   const goBack = () => {
     clearInterval(livelinessInterval);
     Tooltip.clear();
     history.goBack();
-  };
-
-  const onChangeSecureWithIAM = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSecureWithIAMSelected(e.target.checked);
-  };
-
-  // const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-  //   const iamUserID = evnt.currentTarget.value.trim();
-  //   setIAMTechnicalUserID(iamUserID);
-  //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
-  // };
-
-  const onAcceptContinueCodingOnDeployment = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAcceptContinueCodingOnDeployment(e.target.checked);
   };
 
   const handleOpenDoraMetrics = () => {
@@ -833,20 +667,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                                 Application Logs <i className="icon mbc-icon new-tab" />
                               </a>
                             </li>
-                            {intDeploymentDetails?.deploymentAuditLogs && (
-                              <li>
-                                <span
-                                  onClick={() => {
-                                    setShowAuditLogsModal(true);
-                                    setIsStaging(true);
-                                    setlogsList(intDeploymentDetails?.deploymentAuditLogs);
-                                  }}
-                                >
-                                  Deployment Audit Logs
-                                </span>
-                              </li>
-                            )}
                           </>
+                        )}
+                        {intDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(true);
+                                setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deployment Audit Logs
+                            </span>
+                          </li>
                         )}
                         <li>
                           <hr />
@@ -898,20 +732,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                                 Application Logs <i className="icon mbc-icon new-tab" />
                               </a>
                             </li>
-                            {prodDeploymentDetails?.deploymentAuditLogs && (
-                              <li>
-                                <span
-                                  onClick={() => {
-                                    setShowAuditLogsModal(true);
-                                    setIsStaging(false);
-                                    setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
-                                  }}
-                                >
-                                  Deployment Audit Logs
-                                </span>
-                              </li>
-                            )}
                           </>
+                        )}
+                        {prodDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(false);
+                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deployment Audit Logs
+                            </span>
+                          </li>
                         )}
                       </ul>
                     </div>
@@ -1049,219 +883,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           logsList={logsList}
         />
       )}
+
       {showCodeDeployModal && (
-        <Modal
-          title={'Deploy Code'}
-          showAcceptButton={true}
-          acceptButtonTitle={'Deploy'}
-          cancelButtonTitle={'Cancel'}
-          onAccept={onAcceptCodeDeploy}
-          showCancelButton={true}
-          modalWidth="600px"
-          buttonAlignment="center"
-          show={showCodeDeployModal}
-          content={
-            <>
-              <p>
-                The code from your workspace will be deployed and is run in a container and you will get the access url
-                after the deployment.
-              </p>
-              <div className={Styles.flexLayout}>
-                <div>
-                  <div id="branchContainer" className="input-field-group">
-                    <label id="branchLabel" className="input-label" htmlFor="branchSelect">
-                      Code Branch to Deploy
-                    </label>
-                    <div id="branch" className="custom-select">
-                      <select id="branchSelect" onChange={onBranchChange} value={branchValue}>
-                        {branches.map((obj: any) => (
-                          <option key={obj.name} id={obj.name + '-branch'} value={obj.name}>
-                            {obj.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div id="deployEnvironmentContainer" className="input-field-group">
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>Deploy Environment</label>
-                    <div>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value="staging"
-                            name="deployEnvironment"
-                            onChange={onDeployEnvironmentChange}
-                            checked={deployEnvironment === 'staging'}
-                          />
-                        </span>
-                        <span className="label">Staging</span>
-                      </label>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value="production"
-                            name="deployEnvironment"
-                            onChange={onDeployEnvironmentChange}
-                            checked={deployEnvironment === 'production'}
-                          />
-                        </span>
-                        <span className="label">Production</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {isAPIRecipe && (
-                <>
-                  {deployEnvironment === 'staging' && (
-                    <>
-                      <div>
-                        <label className="checkbox">
-                          <span className="wrapper">
-                            <input
-                              type="checkbox"
-                              className="ff-only"
-                              checked={secureWithIAMSelected}
-                              onChange={onChangeSecureWithIAM}
-                              // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                              disabled={projectDetails?.publishedSecuirtyConfig?.status !== 'PUBLISHED'}
-                            />
-                          </span>
-                          <span className="label">
-                            Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
-                            <span
-                              className={classNames(Styles.configLink, Styles.pointer)}
-                              onClick={() => navigateSecurityConfig()}
-                            >
-                              <a target="_blank" rel="noreferrer">
-                                {CODE_SPACE_TITLE} (
-                                {projectDetails?.publishedSecuirtyConfig?.status ||
-                                  projectDetails?.securityConfig?.status ||
-                                  'New'}
-                                )
-                              </a>
-                            </span>
-                          </span>
-                        </label>
-                      </div>
-                      {/* {secureWithIAMSelected && (
-                        <div
-                          className={classNames(
-                            Styles.flexLayout,
-                            projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
-                          )}
-                        >
-                          <div>
-                            <TextBox
-                              type="text"
-                              controlId={'iamTechnicalUserID'}
-                              labelId={'iamTechnicalUserIDLabel'}
-                              label={'Technical User ID'}
-                              placeholder={'IAM Technical User Id'}
-                              value={iamTechnicalUserID}
-                              errorText={iamTechnicalUserIDError}
-                              required={true}
-                              maxLength={7}
-                              onChange={onIAMTechnicalUserIDOnChange}
-                            />
-                          </div>
-                          <div className={Styles.createTechUserWrapper}>
-                            <a href={IAM_URL} target="_blank" rel="noreferrer">
-                              Create a new technical user in IAM (Enabled only with Production IAM)
-                            </a>
-                          </div>
-                        </div>
-                      )} */}
-                    </>
-                  )}
-                  {deployEnvironment === 'production' && (
-                    <>
-                      <div>
-                        <label className="checkbox">
-                          <span className="wrapper">
-                            <input
-                              type="checkbox"
-                              className="ff-only"
-                              checked={secureWithIAMSelected}
-                              onChange={onChangeSecureWithIAM}
-                              // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                              disabled={projectDetails?.publishedSecuirtyConfig?.status !== 'PUBLISHED'}
-                            />
-                          </span>
-                          <span className="label">
-                            Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
-                            <span
-                              className={classNames(Styles.configLink, Styles.pointer)}
-                              onClick={() => navigateSecurityConfig()}
-                            >
-                              <a target="_blank" rel="noreferrer">
-                                {CODE_SPACE_TITLE} (
-                                {projectDetails?.publishedSecuirtyConfig?.status ||
-                                  projectDetails?.securityConfig?.status ||
-                                  'New'}
-                                )
-                              </a>
-                            </span>
-                          </span>
-                        </label>
-                      </div>
-                      {/* {secureWithIAMSelected && (
-                        <div
-                          className={classNames(
-                            Styles.flexLayout,
-                            projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
-                          )}
-                        >
-                          <div>
-                            <TextBox
-                              type="text"
-                              controlId={'iamTechnicalUserID'}
-                              labelId={'iamTechnicalUserIDLabel'}
-                              label={'Technical User ID'}
-                              placeholder={'IAM Technical User Id'}
-                              value={iamTechnicalUserID}
-                              errorText={iamTechnicalUserIDError}
-                              required={true}
-                              maxLength={7}
-                              onChange={onIAMTechnicalUserIDOnChange}
-                            />
-                          </div>
-                          <div className={Styles.createTechUserWrapper}>
-                            <a href={IAM_URL} target="_blank" rel="noreferrer">
-                              Create a new technical user in IAM (Enabled only with Production IAM)
-                            </a>
-                          </div>
-                        </div>
-                      )} */}
-                    </>
-                  )}
-                </>
-              )}
-              <div>
-                <label className="checkbox">
-                  <span className="wrapper">
-                    <input
-                      type="checkbox"
-                      className="ff-only"
-                      checked={acceptContinueCodingOnDeployment}
-                      onChange={onAcceptContinueCodingOnDeployment}
-                    />
-                  </span>
-                  <span className="label">Continue with your workspace while the deployment is in progress?</span>
-                </label>
-              </div>
-            </>
-          }
-          scrollableContent={false}
-          onCancel={onCodeDeployModalCancel}
+        <DeployModal
+          codeSpaceData={codeSpaceData}
+          enableSecureWithIAM={isAPIRecipe}
+          setShowCodeDeployModal={setShowCodeDeployModal}
+          startDeployLivelinessCheck={enableDeployLivelinessCheck}
+          setCodeDeploying={setCodeDeploying}
+          setIsApiCallTakeTime={setIsApiCallTakeTime}
+          navigateSecurityConfig={navigateSecurityConfig}
         />
       )}
+
       {isApiCallTakeTime && (
         <ProgressWithMessage message={'Please wait as this process can take up 2 to 5 minutes....'} />
       )}
