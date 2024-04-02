@@ -716,7 +716,7 @@ setUploadFile({});
         modalWidth={'60%'}
         buttonAlignment="right"
         show={showCollabModal}
-        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} user={user} />}
+        content={<TableCollaborators edit={false} table={table} isProjectLevelCollab ={false} onSave={() => setShowCollabModal(false)} user={user} />}
         scrollableContent={false}
         onCancel={() => setShowCollabModal(false)}
         modalStyle={{

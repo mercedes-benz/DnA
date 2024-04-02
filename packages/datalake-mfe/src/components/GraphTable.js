@@ -80,12 +80,12 @@ const GraphTable = (props) => {
 
                     {editable && (
                         <div className="table-settings">
-                            <button 
+                            {/* <button 
                                 tooltip-data={'View Collaborators'}
                                 onClick={() => props.onCollabClick(table)}
                             >
-                                <i className="icon mbc-icon profile"></i>
-                            </button>
+                                <i className="icon mbc-icon profile "></i>
+                            </button> */}
                             {/* <button 
                                 onClick={() => onEditTable(table)}
                                 tooltip-data={'Edit Table'}
