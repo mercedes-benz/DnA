@@ -371,6 +371,15 @@ const ForecastingResults = () => {
     let graphMode = 'lines';
     graphMode = showMarkers ? graphMode + '+markers' : graphMode;
     graphMode = showValues ? graphMode + '+text' : graphMode;
+
+    const numFormat = (number) =>{
+      const formatter = new Intl.NumberFormat('en', {
+        style: 'decimal',
+        maximumFractionDigits: 3,
+        minimumFractionDigits: 0
+      });
+      return formatter.format(number / 1e9) + 'B';
+    };
     
     for(const [key, value] of Object.entries(lines)) {
       if(key === cols[0]) {
@@ -379,8 +388,10 @@ const ForecastingResults = () => {
           mode: graphMode,
           x: dates,
           y: value.y,
+          text: value.y.map(y => y>=1e8 ? numFormat(y) : y),
           textposition: 'top center',
-          name: key
+          name: key,
+          hoverinfo: 'x+text'
         });
       }
       if(colTwoSelect.current.value !== '0') {
@@ -390,6 +401,7 @@ const ForecastingResults = () => {
             mode: graphMode,
             x: dates,
             y: value.y,
+            text: value.y.map(y => y>=1e8 ? numFormat(y) : y), 
             textposition: 'top center',
             yaxis: 'y2',
             name: key,
@@ -397,6 +409,7 @@ const ForecastingResults = () => {
               dash: 'dot',
               color: '#979797',
             },
+            hoverinfo: 'x+text'
           });
         }
       }
