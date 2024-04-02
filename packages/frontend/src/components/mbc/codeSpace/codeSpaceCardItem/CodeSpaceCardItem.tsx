@@ -31,6 +31,7 @@ interface CodeSpaceCardItemProps {
   toggleProgressMessage?: (show: boolean) => void;
   onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => void;
   onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
+  onShowDeployModal: (codeSpace: ICodeSpaceData) => void;
 }
 
 let isTouch = false;
@@ -289,7 +290,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             </div>
             {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <div>
-                <span onClick={toggleContextMenu} className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}>
+                <span
+                  onClick={toggleContextMenu}
+                  className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
+                >
                   <i className="icon mbc-icon listItem context" />
                 </span>
                 <div
@@ -301,6 +305,18 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowDeployModal(codeSpace);
+                        }}
+                      >
+                        Deploy Code
+                      </span>
+                    </li>
+                    <li>
+                      <hr />
+                    </li>
                     <li>
                       <strong>Staging:</strong>{' '}
                       {intDeploymentDetails?.lastDeployedBranch
@@ -348,26 +364,26 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                             Application Logs <i className="icon mbc-icon new-tab" />
                           </a>
                         </li>
-                        {intDeploymentDetails?.deploymentAuditLogs && (
-                          <li>
-                            <span
-                              onClick={() => {
-                                setShowAuditLogsModal(true);
-                                setIsStaging(true);
-                                setlogsList(intDeploymentDetails?.deploymentAuditLogs);
-                              }}
-                            >
-                              Deployment Audit Logs
-                            </span>
-                          </li>
-                        )}
                       </>
+                    )}
+                    {intDeploymentDetails?.deploymentAuditLogs && (
+                      <li>
+                        <span
+                          onClick={() => {
+                            setShowAuditLogsModal(true);
+                            setIsStaging(true);
+                            setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                          }}
+                        >
+                          Deployment Audit Logs
+                        </span>
+                      </li>
                     )}
                     <li>
                       <hr />
                     </li>
                     <li>
-                      <strong>Production:</strong> {' '}
+                      <strong>Production:</strong>{' '}
                       {prodDeploymentDetails?.lastDeployedBranch
                         ? `[Branch - ${prodDeploymentDetails?.lastDeployedBranch}]`
                         : 'No Deployment'}
@@ -413,20 +429,20 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                             Application Logs <i className="icon mbc-icon new-tab" />
                           </a>
                         </li>
-                        {prodDeploymentDetails?.deploymentAuditLogs && (
-                          <li>
-                            <span
-                              onClick={() => {
-                                setShowAuditLogsModal(true);
-                                setIsStaging(false);
-                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
-                              }}
-                            >
-                              Deployment Audit Logs
-                            </span>
-                          </li>
-                        )}
                       </>
+                    )}
+                    {prodDeploymentDetails?.deploymentAuditLogs && (
+                      <li>
+                        <span
+                          onClick={() => {
+                            setShowAuditLogsModal(true);
+                            setIsStaging(false);
+                            setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                          }}
+                        >
+                          Deployment Audit Logs
+                        </span>
+                      </li>
                     )}
                   </ul>
                 </div>
@@ -771,7 +787,12 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         />
       )}
       {showAuditLogsModal && (
-        <DeployAuditLogsModal deployedEnvInfo={ isStaging? 'Staging' : 'Production' } show={showAuditLogsModal} setShowAuditLogsModal={setShowAuditLogsModal} logsList={logsList} />
+        <DeployAuditLogsModal
+          deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
+          show={showAuditLogsModal}
+          setShowAuditLogsModal={setShowAuditLogsModal}
+          logsList={logsList}
+        />
       )}
       <ConfirmModal
         title={''}

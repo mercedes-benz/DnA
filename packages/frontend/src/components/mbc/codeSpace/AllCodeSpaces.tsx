@@ -17,6 +17,7 @@ import { IconGear } from 'components/icons/IconGear';
 import { USER_ROLE } from 'globals/constants';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
+import DeployModal from './deployModal/DeployModal';
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
 }
@@ -31,10 +32,12 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     //   maxItemsPerPage: 15,
     // }),
     [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false),
+    [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState<boolean>(false),
     [isRetryRequest, setIsRetryRequest] = useState<boolean>(false),
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>(),
-    [onEditCodeSpace, setOnEditCodeSpace] = useState<ICodeSpaceData>();
+    [onEditCodeSpace, setOnEditCodeSpace] = useState<ICodeSpaceData>(),
+    [onDeployCodeSpace, setOnDeployCodeSpace] = useState<ICodeSpaceData>();
   const isCodeSpaceAdmin = props.user.roles.some((role) => role.id === USER_ROLE.CODESPACEADMIN);
   const history = useHistory();
   const goback = () => {
@@ -145,6 +148,11 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     setShowNewCodeSpaceModal(true);
   };
 
+  const onCodeSpaceDeploy = (codeSpace: ICodeSpaceData) => {
+    setOnDeployCodeSpace(codeSpace);
+    setShowDeployCodeSpaceModal(true);
+  };
+
   const switchBackToCodeSpace = () => {
     setOnEditCodeSpace(undefined);
     setOnBoardCodeSpace(undefined);
@@ -154,6 +162,15 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     ProgressIndicator.hide();
     getCodeSpacesData();
   };
+
+  const navigateSecurityConfig = () => {
+    const projectDetails = onDeployCodeSpace?.projectDetails;
+    if (projectDetails?.publishedSecuirtyConfig) {
+      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?pub=true&name=${projectDetails.projectName}`, '_blank');
+      return;
+    }
+    window.open(`${window.location.pathname}#/codespace/securityconfig/${onDeployCodeSpace.id}?pub=false&name=${projectDetails.projectName}`, '_blank');
+  }
 
   return (
     <div className={classNames(Styles.mainPanel)}>
@@ -248,6 +265,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                             onDeleteSuccess={onDeleteSuccess}
                             onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                             onCodeSpaceEdit={onCodeSpaceEdit}
+                            onShowDeployModal={onCodeSpaceDeploy}
                           />
                         );
                       })}
@@ -297,6 +315,17 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           }
           scrollableContent={true}
           onCancel={onNewCodeSpaceModalCancel}
+        />
+      )}
+      {showDeployCodeSpaceModal && (
+        <DeployModal
+          codeSpaceData={onDeployCodeSpace}
+          enableSecureWithIAM={onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+          onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi'}
+          setShowCodeDeployModal={(isVisible: boolean)=> setShowDeployCodeSpaceModal(isVisible)}
+          setCodeDeploying={(isDeploying: boolean)=> getCodeSpacesData()}
+          setIsApiCallTakeTime={setIsApiCallTakeTime}
+          navigateSecurityConfig={navigateSecurityConfig}
         />
       )}
       {isApiCallTakeTime && (

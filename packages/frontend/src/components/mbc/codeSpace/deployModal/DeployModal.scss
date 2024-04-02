@@ -1,0 +1,28 @@
+.deployModal {
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+
+    >div {
+      width: calc(50% - 7px);
+    }
+  }
+
+  .disabledDiv {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .configLink {
+    cursor: pointer;
+
+    a {
+      color: #00ADEF !important;
+    }
+  }
+
+  .createTechUserWrapper {
+    padding-top: 33px;
+  }
+
+}
