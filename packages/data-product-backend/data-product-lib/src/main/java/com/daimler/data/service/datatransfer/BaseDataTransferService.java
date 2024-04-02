@@ -49,6 +49,7 @@ import com.daimler.data.assembler.DataTransferAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataTransferNsql;
+import com.daimler.data.db.jsonb.datatransfer.TeamMember;
 import com.daimler.data.db.repo.datatransfer.DataTransferCustomRepository;
 import com.daimler.data.db.repo.datatransfer.DataTransferRepository;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
@@ -58,7 +59,7 @@ import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.department.DepartmentService;
 import com.daimler.data.util.ConstantsUtility;
-
+import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
 import io.jsonwebtoken.lang.Strings;
 
 @Service
@@ -108,7 +109,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator) {
+			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator, List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
 		String userId = null;
 		String providerUserId = null;
 		if (isCreator != null && isCreator && this.userStore.getUserInfo() != null) {
@@ -118,7 +119,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			providerUserId = this.userStore.getUserInfo().getId();
 		}
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId,dataStewardList, informationOwnerList, departmentList, division);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -126,7 +127,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	}
 
 	@Override
-	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator) {
+	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator, List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
 		String userId = null;
 		String providerUserId = null;
 		if (isCreator != null && isCreator  && this.userStore.getUserInfo() != null) {
@@ -135,7 +136,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		if (isProviderCreator != null && isProviderCreator && this.userStore.getUserInfo() != null) {
 			providerUserId = this.userStore.getUserInfo().getId();
 		}
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId, providerUserId);
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId, providerUserId,dataStewardList, informationOwnerList, departmentList, division);
 	}
 
 	private void updateDepartments(String department) {
@@ -687,7 +688,29 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			return new ArrayList<>();
 		}	
 	}
-	
-
-
+	 
+	 @Override
+	 @Transactional
+	 public List<DataTransferLovVO> getInformationOfficerLov()
+	 {
+		 List<DataTransferTeamMemLov> listOfMembs = dataTransferCustomRepository.getAllIOLov();
+		 if (!ObjectUtils.isEmpty(listOfMembs)){
+			 List<DataTransferLovVO> finalData = listOfMembs.stream().map(n -> dataTransferAssembler.dtoToVo(n)).collect(Collectors.toList());
+			 return finalData;	
+		 }else{
+			 return new ArrayList<>();
+		 }
+	 }
+ 
+	 @Override
+	 @Transactional
+	 public List<DataTransferLovVO> getDataStweardLov()
+	 {
+		 List<DataTransferTeamMemLov> listOfMembs = dataTransferCustomRepository.getAllDataStweardLov();
+		 if (!ObjectUtils.isEmpty(listOfMembs)){
+			 List<DataTransferLovVO> finalData = listOfMembs.stream().map(n -> dataTransferAssembler.dtoToVo(n)).collect(Collectors.toList());
+			 return finalData;	
+		 }else
+			 return new ArrayList<>();
+	 }
 }
