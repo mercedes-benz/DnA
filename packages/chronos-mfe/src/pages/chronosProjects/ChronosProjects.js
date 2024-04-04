@@ -28,7 +28,7 @@ const ChronosProjects = ({ user }) => {
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
   const [showBanner, setShowBanner] = useState(false);
-  const [bannerCloseTime , setBannerCloseTime] = useState((localStorage.getItem('bannerCloseTime') === null || localStorage.getItem('bannerCloseTime')));
+  const [bannerCloseTime , setBannerCloseTime] = useState(localStorage.getItem('bannerCloseTime') || '');
   const [bannerDetails, setbannerDetails] = useState({});
 
   // Fetch all chronos projects
@@ -66,7 +66,6 @@ const ChronosProjects = ({ user }) => {
     chronosApi.getBannerDetails().then((res) => {
       const data = res.data;
       setbannerDetails(data);
-      showBanner(true);
     }).catch(() => {
       Notification.show('Something went wrong', 'alert');
     })
@@ -75,10 +74,12 @@ const ChronosProjects = ({ user }) => {
   useEffect(() => {
     if (bannerDetails.lastchangedtime > bannerCloseTime) {
       setShowBanner(true);
+    } else {
+      setShowBanner(false);
     }
   }, [bannerDetails])
 
-  const onBannerClick = () => {
+  const onBannerClose = () => {
     const currentTime = new Date();
     const formattedTime = currentTime.toISOString();
     localStorage.setItem('bannerCloseTime', formattedTime);
@@ -138,7 +139,7 @@ const ChronosProjects = ({ user }) => {
               />
             </div>
           </div>
-          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClick}>
+          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClose}>
             <h4>don&apos;t show again</h4>
             <i className="icon mbc-icon close thin" />
           </button>

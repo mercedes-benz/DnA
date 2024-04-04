@@ -32,7 +32,7 @@ const ChronosProjectDetails = ({ user }) => {
   const [currentTab, setCurrentTab] = useState(tabName !== undefined ? tabName : 'runForecast');
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
   const [showBanner, setShowBanner] = useState(false);
-  const [bannerCloseTime , setBannerCloseTime] = useState((localStorage.getItem('bannerCloseTime') === null || localStorage.getItem('bannerCloseTime')));
+  const [bannerCloseTime , setBannerCloseTime] = useState(localStorage.getItem('bannerCloseTime') || '');
   const [bannerDetails, setbannerDetails] = useState({});
 
   const projectDetails = useSelector(state => state.projectDetails);
@@ -53,7 +53,6 @@ const ChronosProjectDetails = ({ user }) => {
     chronosApi.getBannerDetails().then((res) => {
       const data = res.data;
       setbannerDetails(data);
-      showBanner(true);
     }).catch(() => {
       Notification.show('Something went wrong', 'alert');
     })
@@ -61,10 +60,12 @@ const ChronosProjectDetails = ({ user }) => {
   useEffect(() => {
     if (bannerDetails.lastchangedtime > bannerCloseTime) {
       setShowBanner(true);
+    } else {
+      setShowBanner(false);
     }
   }, [bannerDetails])
 
-  const onBannerClick = () => {
+  const onBannerClose = () => {
     const currentTime = new Date();
     const formattedTime = currentTime.toISOString();
     localStorage.setItem('bannerCloseTime', formattedTime);
@@ -128,7 +129,7 @@ const ChronosProjectDetails = ({ user }) => {
               />
             </div>
           </div>
-          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClick}>
+          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClose}>
             <h4>don&apos;t show again</h4>
             <i className="icon mbc-icon close thin" />
           </button>
