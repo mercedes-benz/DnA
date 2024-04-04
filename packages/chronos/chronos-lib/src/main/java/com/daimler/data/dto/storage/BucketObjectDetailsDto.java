@@ -15,5 +15,6 @@ import lombok.NoArgsConstructor;
 public class BucketObjectDetailsDto implements Serializable{
 
 	private String objectName;
+	private String lastModified;
 	
 }
