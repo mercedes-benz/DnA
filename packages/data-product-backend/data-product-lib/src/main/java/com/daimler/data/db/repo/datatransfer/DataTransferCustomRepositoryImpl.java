@@ -47,6 +47,7 @@ import com.daimler.data.db.entities.CarlaFunctionNsql;
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.dto.userinfo.dashboard.DashboardServiceLovDto;
 import com.daimler.data.dto.userinfo.dashboard.GetDashboardServiceLovResponseWrapperDto;
+import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
 import com.daimler.data.util.ConstantsUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,7 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataTransferNsql;
 import com.daimler.data.db.jsonb.datatransfer.DataTranfer;
+import com.daimler.data.db.jsonb.datatransfer.TeamMember;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -67,8 +69,8 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 
 	@Override
 	public List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId);
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId, List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId,dataStewardList, informationOwnerList, departmentList, division);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<DataTransferNsql> convertedResults = results.stream().map(temp -> {
@@ -88,15 +90,15 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId, String providerUserId ) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId, String providerUserId,List<String> dataStewardList, List<String> informationOwnerList, List<String> departmentList, String division) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, userId, providerUserId);
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, userId, providerUserId,dataStewardList,informationOwnerList,departmentList,division);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId) {
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId, String providerUserId, List<String> dataStewardList, List<String> informationOwnerList,List<String> departmentList, String division) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
@@ -116,6 +118,27 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 			String creator = " and (jsonb_extract_path_text(data,'providerInformation','createdBy','id') in ('" + providerUserId + "')) ";
 			query += creator;
 		}
+		  if(dataStewardList != null && dataStewardList.size()>0){
+			  String dataStewardsJson = String.join("','", dataStewardList);
+			  String dataSteward = " and (jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'name', 'shortId') in ('" + dataStewardsJson + "'))";
+			  query +=dataSteward;
+		  }
+		  if(informationOwnerList != null && informationOwnerList.size()>0){
+			  String informationOwnerJson = String.join("','",informationOwnerList);
+			  String informationOwner = " and (jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'informationOwner', 'shortId') in ('" + informationOwnerJson + "'))";
+			  query += informationOwner;
+		  }
+  
+		  if(departmentList != null && departmentList.size()>0){
+			  String departmentJson = String.join("','",departmentList);
+			  String department = " and (jsonb_extract_path_text(data,'providerInformation','contactInformation','department') in ('" + departmentJson + "'))";
+			  query+=department;
+		  }
+		  if(division!= null && !"".equals(division))
+		  {
+			  String divisions = this.getDivisionsPredicateString(division);
+			  query+=divisions;
+		  }
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
 			switch (sortBy) {
@@ -367,4 +390,92 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.intValue();
 	}
-}
+ 
+	 @Override
+	 @Transactional
+	 public List<DataTransferTeamMemLov> getAllDataStweardLov(){
+		 List<DataTransferTeamMemLov> data = new ArrayList<>();
+		 List<Object[]> results = new ArrayList<>();
+		 String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'name', 'shortId')) " +
+					   "cast(jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'name') as text) as TEAM_NAME, " +
+					   "cast(id as text) as COLUMN_ID " +
+				   "FROM " +
+					   "datatransfer_nsql";
+		 try {
+			 Query q = em.createNativeQuery(getQuery);
+			 results = q.getResultList();
+ 
+			 ObjectMapper mapper = new ObjectMapper();
+			 for(Object[] rowData : results){
+				 DataTransferTeamMemLov rowDetails = new DataTransferTeamMemLov();
+				 if(rowData !=null){
+					 rowDetails.setId((String)rowData[1]);
+					 try{
+						 // rowDetails.setProjectName((String)rowData[0]);
+						 TeamMember teamDetails = mapper.readValue(rowData[0].toString(),TeamMember.class);
+						 rowDetails.setMember(teamDetails);
+					 
+					 }catch(Exception e){
+						 LOGGER.error("failed in repo Impl while fetching data");
+						 rowDetails.setId(null);
+					 }
+					 data.add(rowDetails);
+				 }
+			 }
+			 if(data!=null && !data.isEmpty()) {
+																 
+				 LOGGER.info("Found {} workspaces which are in requested and accepted state", data.size());
+			 }
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 LOGGER.error("Failed to query workspaces under project , which are in requested and accepted state");
+		 }
+		 return data;
+	 }
+ 
+	 @Override
+	 @Transactional
+	 public List<DataTransferTeamMemLov> getAllIOLov(){
+		 List<DataTransferTeamMemLov> data = new ArrayList<>();
+		 List<Object[]> results = new ArrayList<>();
+		 String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'name', 'shortId')) " +
+					   "cast(jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'informationOwner') as text) as TEAM_NAME, " +
+					   "cast(id as text) as COLUMN_ID " +
+				   "FROM " +
+					   "datatransfer_nsql";
+ 
+		 try {
+			 Query q = em.createNativeQuery(getQuery);
+			 results = q.getResultList();
+ 
+			 ObjectMapper mapper = new ObjectMapper();
+			 for(Object[] rowData : results){
+				 DataTransferTeamMemLov rowDetails = new DataTransferTeamMemLov();
+				 if(rowData !=null){
+					 rowDetails.setId((String)rowData[1]);
+					 try{
+						 // rowDetails.setProjectName((String)rowData[0]);
+						 TeamMember teamDetails = mapper.readValue(rowData[0].toString(),TeamMember.class);
+						 rowDetails.setMember(teamDetails);
+					 
+					 }catch(Exception e){
+						 LOGGER.error("failed in repo Impl while fetching data");
+						 rowDetails.setId(null);
+					 }
+					 data.add(rowDetails);
+				 }
+			 }
+			 if(data!=null && !data.isEmpty()) {
+																 
+				 LOGGER.info("Found {} workspaces which are in requested and accepted state", data.size());
+			 }
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 LOGGER.error("Failed to query workspaces under project , which are in requested and accepted state");
+		 }
+		 return data;
+	 }
+ 
+ }
+ 
+ 

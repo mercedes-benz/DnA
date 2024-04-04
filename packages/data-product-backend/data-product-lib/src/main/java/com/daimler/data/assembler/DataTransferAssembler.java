@@ -83,6 +83,8 @@ import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+ import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
+ import com.daimler.data.dto.datatransfer.DataTransferLovVO;
 
 @Component
 public class DataTransferAssembler implements GenericAssembler<DataTransferVO, DataTransferNsql> {
@@ -415,6 +417,23 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 			}
 		}
 		return teamMember;
+	}
+ 
+	 public DataTransferLovVO dtoToVo(DataTransferTeamMemLov n)
+	 {
+		 DataTransferLovVO lov = new DataTransferLovVO();
+		 DataTransferTeamMemberVO member = null;
+		 if(n!=null)
+		 {
+			 BeanUtils.copyProperties(n, lov);
+			 member = new DataTransferTeamMemberVO();
+			 if(n.getMember()!=null)
+			 {
+				 lov.setTeamMemeber(this.toTeamMemberVO(n.getMember()));
+			 }
+		 }
+		 return lov;
+ 
 	}
 
 	/**
