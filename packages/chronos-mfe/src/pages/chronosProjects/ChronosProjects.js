@@ -4,6 +4,7 @@ import Styles from './chronos-projects.scss';
 // import from DNA Container
 import Modal from 'dna-container/Modal';
 import Pagination from 'dna-container/Pagination';
+import { markdownParser } from 'dna-container/MarkdownParser';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
@@ -26,6 +27,9 @@ const ChronosProjects = ({ user }) => {
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerCloseTime , setBannerCloseTime] = useState((localStorage.getItem('bannerCloseTime') === null || localStorage.getItem('bannerCloseTime')));
+  const [bannerDetails, setbannerDetails] = useState({});
 
   // Fetch all chronos projects
   const getChronosProjects = () => {
@@ -58,8 +62,33 @@ const ChronosProjects = ({ user }) => {
       });
   }
 
+  const getBannerDetails = () => {
+    chronosApi.getBannerDetails().then((res) => {
+      const data = res.data;
+      setbannerDetails(data);
+      showBanner(true);
+    }).catch(() => {
+      Notification.show('Something went wrong', 'alert');
+    })
+  }
+
+  useEffect(() => {
+    if (bannerDetails.lastchangedtime > bannerCloseTime) {
+      setShowBanner(true);
+    }
+  }, [bannerDetails])
+
+  const onBannerClick = () => {
+    const currentTime = new Date();
+    const formattedTime = currentTime.toISOString();
+    localStorage.setItem('bannerCloseTime', formattedTime);
+    setBannerCloseTime(formattedTime);
+    setShowBanner(false)
+  }
+
   const handleRefresh = () => {
     getChronosProjects();
+    getBannerDetails();
   }
 
   useEffect(() => {
@@ -90,11 +119,31 @@ const ChronosProjects = ({ user }) => {
 
   useEffect(() => {
     getChronosProjects();
+    getBannerDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
   return (
     <>
+      {showBanner && (
+        <div className={classNames(Styles.banner)}>
+          <div className={classNames(Styles.content)}>
+            <div className={classNames(Styles.placeholder)}>
+              <i className="icon mbc-icon info" />
+              <h5>Upcoming Features:</h5>
+            </div>
+            <div className={classNames(Styles.info)}>
+              <p
+                dangerouslySetInnerHTML={{ __html: markdownParser(bannerDetails.bannerText) }}
+              />
+            </div>
+          </div>
+          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClick}>
+            <h4>don&apos;t show again</h4>
+            <i className="icon mbc-icon close thin" />
+          </button>
+        </div>)
+      }
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {loading ? <Spinner /> : null}
