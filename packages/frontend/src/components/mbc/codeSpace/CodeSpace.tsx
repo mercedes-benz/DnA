@@ -667,20 +667,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                                 Application Logs <i className="icon mbc-icon new-tab" />
                               </a>
                             </li>
-                            {intDeploymentDetails?.deploymentAuditLogs && (
-                              <li>
-                                <span
-                                  onClick={() => {
-                                    setShowAuditLogsModal(true);
-                                    setIsStaging(true);
-                                    setlogsList(intDeploymentDetails?.deploymentAuditLogs);
-                                  }}
-                                >
-                                  Deployment Audit Logs
-                                </span>
-                              </li>
-                            )}
                           </>
+                        )}
+                        {intDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(true);
+                                setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deployment Audit Logs
+                            </span>
+                          </li>
                         )}
                         <li>
                           <hr />
@@ -728,24 +728,24 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               </a>
                             </li>
                             <li>
-                              <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl, true)} rel="noreferrer">
+                              <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl, false)} rel="noreferrer">
                                 Application Logs <i className="icon mbc-icon new-tab" />
                               </a>
                             </li>
-                            {prodDeploymentDetails?.deploymentAuditLogs && (
-                              <li>
-                                <span
-                                  onClick={() => {
-                                    setShowAuditLogsModal(true);
-                                    setIsStaging(false);
-                                    setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
-                                  }}
-                                >
-                                  Deployment Audit Logs
-                                </span>
-                              </li>
-                            )}
                           </>
+                        )}
+                        {prodDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(false);
+                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deployment Audit Logs
+                            </span>
+                          </li>
                         )}
                       </ul>
                     </div>

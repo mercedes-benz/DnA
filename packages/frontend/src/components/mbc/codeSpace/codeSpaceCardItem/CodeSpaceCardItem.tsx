@@ -305,7 +305,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
-                    <li>
+                    <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                       <span
                         onClick={() => {
                           props.onShowDeployModal(codeSpace);
