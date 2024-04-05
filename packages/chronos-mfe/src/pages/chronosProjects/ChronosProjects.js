@@ -4,7 +4,7 @@ import Styles from './chronos-projects.scss';
 // import from DNA Container
 import Modal from 'dna-container/Modal';
 import Pagination from 'dna-container/Pagination';
-import { markdownParser } from 'dna-container/MarkdownParser';
+
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
@@ -14,6 +14,7 @@ import ChronosProjectForm from '../../components/chronosProjectForm/ChronosProje
 import Spinner from '../../components/spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+import ChronosBanner from '../chronosBanner/ChronosBanner'
 // Api
 import { chronosApi } from '../../apis/chronos.api';
 
@@ -127,23 +128,8 @@ const ChronosProjects = ({ user }) => {
   return (
     <>
       {showBanner && (
-        <div className={classNames(Styles.banner)}>
-          <div className={classNames(Styles.content)}>
-            <div className={classNames(Styles.placeholder)}>
-              <i className="icon mbc-icon info" />
-              <h5>Upcoming Features:</h5>
-            </div>
-            <div className={classNames(Styles.info)}>
-              <p
-                dangerouslySetInnerHTML={{ __html: markdownParser(bannerDetails.bannerText) }}
-              />
-            </div>
-          </div>
-          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClose}>
-            <h4>don&apos;t show again</h4>
-            <i className="icon mbc-icon close thin" />
-          </button>
-        </div>)
+        <ChronosBanner bannerText={bannerDetails.bannerText} onBannerClose = {onBannerClose}/>
+        )
       }
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>

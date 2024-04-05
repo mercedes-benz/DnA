@@ -4,7 +4,6 @@ import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Styles from './chronos-project-details.scss';
 import SelectBox from 'dna-container/SelectBox';
-import { markdownParser } from 'dna-container/MarkdownParser';
 // App components
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 // import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -16,6 +15,7 @@ import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import { getProjectDetails } from '../../redux/projectDetails.services';
 import { reset } from '../../redux/chronosFormSlice';
 import { getConfigFiles } from '../../redux/chronosForm.services';
+import  ChronosBanner from '../chronosBanner/ChronosBanner';
 //Api
 import { chronosApi } from '../../apis/chronos.api';
 
@@ -117,23 +117,8 @@ const ChronosProjectDetails = ({ user }) => {
   return (
     <>
       {showBanner && (
-        <div className={classNames(Styles.banner)}>
-          <div className={classNames(Styles.content)}>
-            <div className={classNames(Styles.placeholder)}>
-              <i className="icon mbc-icon info" />
-              <h5>Upcoming Features:</h5>
-            </div>
-            <div className={classNames(Styles.info)}>
-              <p
-                dangerouslySetInnerHTML={{ __html: markdownParser(bannerDetails.bannerText) }}
-              />
-            </div>
-          </div>
-          <button className={classNames('btn btn-primary', Styles.button)} onClick={onBannerClose}>
-            <h4>don&apos;t show again</h4>
-            <i className="icon mbc-icon close thin" />
-          </button>
-        </div>)
+        <ChronosBanner bannerText = {bannerDetails.bannerText} onBannerClose = {onBannerClose}/>
+        )
       }
       <div className={classNames(Styles.mainPanel)}>
         <Breadcrumb>
