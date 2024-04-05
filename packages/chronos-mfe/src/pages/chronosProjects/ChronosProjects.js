@@ -4,7 +4,6 @@ import Styles from './chronos-projects.scss';
 // import from DNA Container
 import Modal from 'dna-container/Modal';
 import Pagination from 'dna-container/Pagination';
-
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';

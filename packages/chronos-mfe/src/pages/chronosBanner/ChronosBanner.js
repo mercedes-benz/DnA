@@ -4,7 +4,6 @@ import Styles from './ChronosBanner.scss';
 import { markdownParser } from 'dna-container/MarkdownParser';
 
 const ChronosBanner = ({ bannerText, onBannerClose }) => {
-    console.log(bannerText)
     return (
         <div className={Styles.mainPanel}>
             <div className={classNames(Styles.banner)}>
