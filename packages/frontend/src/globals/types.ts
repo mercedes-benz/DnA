@@ -1109,6 +1109,12 @@ export interface IFilterParams {
   useCaseType: string[];
   dataVolume?: string[];
   tag: string[];
+  dataValueRange?: IDataValueFilterParams;
+}
+
+export interface IDataValueFilterParams{
+  startYear: string;
+  endYear: string;
 }
 export interface IFilterPreferences {
   divisions: IDivision[];

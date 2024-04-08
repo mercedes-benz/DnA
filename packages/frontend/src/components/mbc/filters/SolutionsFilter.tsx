@@ -96,6 +96,10 @@ const SolutionsFilter = ({
     status: [],
     useCaseType: [],
     tag: [],
+    dataValueRange: {
+      startYear: '',
+      endYear: ''
+    }
   });
   const [projectTypes] = useState<IProjectType[]>([
     { id: '1', name: 'My Bookmarks', routePath: 'bookmarks' },
@@ -128,6 +132,17 @@ const SolutionsFilter = ({
   const isAllSolutionsPage = pathname === '/allsolutions';
 
   const [genAIPage, setGenAIPage] = useState(false);
+
+  const [years ,setYears] = useState([]);
+
+  useEffect(() => {
+    const currentYear = new Date().getFullYear();
+    const val = [];
+    for (let year = currentYear - 2; year <= currentYear + 5; year++) {
+      val.push(year);
+    }
+    setYears(val);
+  }, []);
 
   useEffect(() => {
     onsetTags(setSelectedTags);
@@ -383,7 +398,7 @@ const SolutionsFilter = ({
     Notification.show(message, 'alert');
   };
 
-  const applyFilter = (filterName: string, values: string[]) => {
+  const applyFilter = (filterName: string, values: any) => {
     if (solutionsDataLoaded) {
       ProgressIndicator.show();
       setFilterApplied(true);
@@ -637,6 +652,7 @@ const SolutionsFilter = ({
     let status = queryParams.status.join(',');
     let useCaseType = queryParams.useCaseType.join(',');
     const tags = queryParams.tag.join(',');
+    const dataValueRange = `startYear=${queryParams.dataValueRange.startYear === '' ? years[0] : queryParams.dataValueRange.startYear},endYear=${queryParams.dataValueRange.endYear === '' ? years[0] +3 : queryParams.dataValueRange.endYear }`;
 
     if (queryParams.division.length === 0) {
       queryParams.division = [];
@@ -671,7 +687,7 @@ const SolutionsFilter = ({
 
     typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
 
-    typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags);
+    typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags, dataValueRange);
 
     setSolutionsFilterApplied(
       isSolutionFilterApplied(
@@ -795,6 +811,18 @@ const SolutionsFilter = ({
       document.getElementById('filterContainer').setAttribute('style', 'height:' + 0 + 'px');
     }
   }
+
+  const onDataValueChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const { id, value } = e.currentTarget;
+    const data = {...queryParams.dataValueRange} ;
+    data[id] = value;
+    setQueryParams(prevParams => ({
+        ...prevParams,
+        dataValueRange: data
+    }));
+    focusedItems['dataValueRange'] && applyFilter('dataValueRange', data );
+  };
+
 
   const subDivisionsOfSelectedDivision: ISubDivisionSolution[] = getSubDivisionsOfSelectedDivision();
 
@@ -924,6 +952,41 @@ const SolutionsFilter = ({
           />
         </div>
       </div>
+      {isPortfolioPage &&(
+        <div className={classNames(Styles.dvFilterWrapper)}>
+        <div>
+          <div id="dataValueContainer" className={classNames("input-field-group", Styles.dvStartRange)} onFocus={(e) => onHandleFocus(e, 'dataValueRange')}>
+            <label id="dataValueLabel" className="input-label" htmlFor="dvRangeSelect">
+              Data Value Range
+            </label>
+            <div className="custom-select">
+              <select id="startYear" onChange={onDataValueChange} value={queryParams?.dataValueRange?.startYear}>
+                {years.map((obj: string , key: any) => (
+                <option id={obj +key} key={key} value={obj}>
+                  {obj}
+                </option>
+              ))}
+              </select>
+            </div>
+          </div>
+        </div>
+        <i className={classNames('icon mbc-icon minus',Styles.speratorIcon)}/>
+        <div>
+          <div id="dataValueContainer" className={classNames("input-field-group", Styles.dvEndRange)} onFocus={(e) => onHandleFocus(e, 'dataValueRange')}>
+            <div className=" custom-select">
+              <select id="endYear" multiple={false} onChange={onDataValueChange} value={queryParams?.dataValueRange?.endYear}>
+                {years.length && (
+                  years.map((value : any , key : any) => (
+                    <option id={key} key={key} value={value+3}>
+                      {value+3}
+                    </option>
+                  )))}
+              </select>
+            </div>
+          </div>
+        </div>
+        </div>
+      )}
       <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
         {!isGenAI && (
           <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>

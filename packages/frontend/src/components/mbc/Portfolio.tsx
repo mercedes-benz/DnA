@@ -81,6 +81,7 @@ export interface IPortfolioState {
   selectedTagsToPass: string[];
   csvData: any[];
   csvHeader: any[];
+  dataValueRangeText: string;
 }
 
 export interface IPortfolioProps {
@@ -271,6 +272,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       selectedTagsToPass: [],
       csvData: [],
       csvHeader: [],
+      dataValueRangeText:''
     };
   }
 
@@ -281,6 +283,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     status: string,
     useCaseType: string,
     tagSearch: string,
+    dataValueRange: string
   ) {
     ProgressIndicator.hide();
     this.setState({
@@ -304,7 +307,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       locationsChartData: [],
       showLocationLoader: true,
     });
-
+    this.setState({dataValueRangeText: `summed up from ${dataValueRange.match(/startYear=(\d+)/)[1]} until ${dataValueRange.match(/endYear=(\d+)/)[1]}` });
     ApiClient.getDashboardData('datasources', locations, phases, divisions, status, useCaseType, tagSearch)
       .then((res: any) => {
         const dataSourcesChartData: IBarChartDataItem[] = [];
@@ -536,6 +539,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
         this.setState({ newDigitalValueChartData: [], showDigitalValueLoader: false });
       });
+      console.log(dataValueRange);
     ApiClient.getDashboardData('datavalue', locations, phases, divisions, status, useCaseType, tagSearch)
       .then((res: any) => {
         const totalSavings = res.totalDataValueSavings;
@@ -682,7 +686,8 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               status: string,
               useCaseType: string,
               tags: string,
-            ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
+              dataValueRange: string
+            ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags, dataValueRange)}
             getFilterQueryParams={(queryParams: IFilterParams) =>
               this.setState({
                 queryParams: queryParams,
@@ -706,6 +711,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               });
             }}
             setSelectedTags={this.state.selectedTagsToPass}
+            
           />
           <div className={classNames(Styles.portContentsection)}>
             <div className={classNames(Styles.portHeader)}>
@@ -742,7 +748,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               </div>
               <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileDataVal)}>
-                  <h5>Data Value (€)</h5>
+                  <div className={classNames(Styles.portTileDataValTitle)}>
+                    <h5>Data Value (€)</h5>
+                    <h3 className="sub-title-text"> { this.state.dataValueRangeText}</h3>
+                  </div>
                   <div>
                     {dataValueDataSavingsKPI !== '-' || dataValueDataRevenueKPI !== '-' ? (
                       <div>
@@ -848,7 +857,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   <div id="dataValueWidget" className={Styles.widgetWrapper}>
                     <header>
                       <h1 className={Styles.widgetTitle}>Data Value</h1>
-                      <span className="sub-title-text">in €</span>
+                      <span className="sub-title-text"> {"savings and earings in €/ "+ this.state.dataValueRangeText}</span>
                       <section>
                         {newDataValueChartData.length ? (
                           <StackedBarChartWidget
@@ -1003,6 +1012,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     status: string,
     useCaseType: string,
     tags: string,
+    dataValueRange : string
   ) => {
     ProgressIndicator.show();
     this.setState(
@@ -1010,7 +1020,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         portfolioFirstTimeDataLoaded: true,
       },
       () => {
-        this.getWidgetData(locations, phases, divisions, status, useCaseType, tags);
+        this.getWidgetData(locations, phases, divisions, status, useCaseType, tags,dataValueRange);
       },
     );
   };
