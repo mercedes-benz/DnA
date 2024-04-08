@@ -196,6 +196,7 @@ const base = {
         'matomo-mfe': `matomo_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.MATOMO_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'datalake-mfe': `datalake_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATALAKE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'fabric-mfe': `fabric_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.FABRIC_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'data-entry-mfe': `data_entry_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_ENTRY_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,

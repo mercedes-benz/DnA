@@ -52,6 +52,7 @@ const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
 const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
 const DatalakeComponent = React.lazy(() => import('datalake-mfe/Datalake'));
 const FabricComponent = React.lazy(() => import('fabric-mfe/Fabric'));
+const DataEntryComponent = React.lazy(() => import('data-entry-mfe/DataEntry'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -425,6 +426,13 @@ const protectedRoutes = [
     exact: false,
     path: '/fabric',
     title: 'Fabric',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataEntryComponent,
+    exact: false,
+    path: '/dataentry',
+    title: 'Data Entry as a Service',
   },
 ];
 
