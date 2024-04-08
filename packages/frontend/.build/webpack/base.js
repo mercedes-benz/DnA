@@ -186,6 +186,7 @@ const base = {
         './MarkdownParser': './src/utils/MarkdownParser.tsx',
         './RefreshToken': './src/utils/RefreshToken.tsx',
         './FullScreenModeIcon': './src/components/icons/fullScreenMode/FullScreenModeIcon.tsx',
+        './FilterWrapper':'./src/components/mbc/filters/FilterWrapper.tsx',
       },
       remotes: {
         // object key is used to import
