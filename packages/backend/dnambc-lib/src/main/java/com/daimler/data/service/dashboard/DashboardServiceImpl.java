@@ -170,9 +170,9 @@ public class DashboardServiceImpl implements DashboardService {
 	public List<BigDecimal> getSolDataValue(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
-			List<String> divisionsAdmin) {
+			List<String> divisionsAdmin, String startdate, String enddate) {
 		return customRepo.getDataValuesSum(published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin, startdate, enddate);
 	}
 
 	
@@ -180,72 +180,80 @@ public class DashboardServiceImpl implements DashboardService {
 	public List<SolDataValueSummaryVO> getSolDataValueSummary(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin,String startDate,String endDate) {
 
 		List<SolDataValueDTO> result = customRepo.getDataValueUsingNativeQuery(published, phases, dataVolumes,
 				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
 				divisionsAdmin);
 		HashMap<BigDecimal, List<DataValueVO>> finalMap = new HashMap<BigDecimal, List<DataValueVO>>();// Creating HashMap
+		int start = Integer.parseInt(startDate);
+		int end = Integer.parseInt(endDate);
 
 		for (SolDataValueDTO dto : result) {
 			List<DataValueRampUpYear> savingsList =  dto.getSavings();
 			List<DataValueRampUpYear> revenueList =  dto.getRevenue();
 			if(Objects.nonNull(savingsList) && savingsList.size() > 0 ) {
 				for(DataValueRampUpYear saving : savingsList) {
-					List<DataValueVO> existingVal = finalMap.get(saving.getYear());
-					if(Objects.nonNull(existingVal) && existingVal.size() > 0) {
-						DataValueVO dataValueVO = new DataValueVO();
-						dataValueVO.setSolutionId(dto.getId());
-						dataValueVO.setProductName(dto.getProductName());
-						dataValueVO.setSavings(saving.getValue());
-						dataValueVO.setRevenue(BigDecimal.ZERO);
-						existingVal.add(dataValueVO);
-						finalMap.put(saving.getYear(), existingVal);
-					}
-					else {
-						List<DataValueVO> newVal = new ArrayList<>();
-						DataValueVO dataValueVO = new DataValueVO();
-						dataValueVO.setSolutionId(dto.getId());
-						dataValueVO.setProductName(dto.getProductName());
-						dataValueVO.setSavings(saving.getValue());
-						dataValueVO.setRevenue(BigDecimal.ZERO);
-						newVal.add(dataValueVO);
-						finalMap.put(saving.getYear(), newVal);
+					int year = saving.getYear().intValue(); 
+						if (year >= start && year <= end) { 
+							List<DataValueVO> existingVal = finalMap.get(saving.getYear());
+							if(Objects.nonNull(existingVal) && existingVal.size() > 0) {
+								DataValueVO dataValueVO = new DataValueVO();
+								dataValueVO.setSolutionId(dto.getId());
+								dataValueVO.setProductName(dto.getProductName());
+								dataValueVO.setSavings(saving.getValue());
+								dataValueVO.setRevenue(BigDecimal.ZERO);
+								existingVal.add(dataValueVO);
+								finalMap.put(saving.getYear(), existingVal);
+							}
+						else {
+							List<DataValueVO> newVal = new ArrayList<>();
+							DataValueVO dataValueVO = new DataValueVO();
+							dataValueVO.setSolutionId(dto.getId());
+							dataValueVO.setProductName(dto.getProductName());
+							dataValueVO.setSavings(saving.getValue());
+							dataValueVO.setRevenue(BigDecimal.ZERO);
+							newVal.add(dataValueVO);
+							finalMap.put(saving.getYear(), newVal);
+						}
 					}
 				}
 			}
 			
 			if(Objects.nonNull(revenueList) && revenueList.size() > 0 ) {
 				for(DataValueRampUpYear revenue : revenueList) {
-					List<DataValueVO> existingValues = finalMap.get(revenue.getYear());
-					if(existingValues != null && existingValues.size() > 0) {
-						DataValueVO dataValueVO = existingValues.stream().filter(n->n.getSolutionId() == dto.getId()).findAny().orElse(null);
-						if(Objects.nonNull(dataValueVO)) {
-							dataValueVO.setRevenue(revenue.getValue());
-							existingValues.add(dataValueVO);
+					int year = revenue.getYear().intValue(); 
+					if (year >= start && year <= end) { 
+						List<DataValueVO> existingValues = finalMap.get(revenue.getYear());
+						if(existingValues != null && existingValues.size() > 0) {
+							DataValueVO dataValueVO = existingValues.stream().filter(n->n.getSolutionId() == dto.getId()).findAny().orElse(null);
+							if(Objects.nonNull(dataValueVO)) {
+								dataValueVO.setRevenue(revenue.getValue());
+								existingValues.add(dataValueVO);
+							}
+							else {
+								DataValueVO newDataValueVO = new DataValueVO();
+								newDataValueVO.setSolutionId(dto.getId());
+								newDataValueVO.setProductName(dto.getProductName());
+								newDataValueVO.setSavings(BigDecimal.ZERO);
+								newDataValueVO.setRevenue(revenue.getValue());
+								existingValues.add(newDataValueVO);
+							}
+							List<DataValueVO> newList = existingValues.stream() 
+									.distinct() 
+									.collect(Collectors.toList()); 
+							finalMap.put(revenue.getYear(), newList);
 						}
 						else {
-							DataValueVO newDataValueVO = new DataValueVO();
-							newDataValueVO.setSolutionId(dto.getId());
-							newDataValueVO.setProductName(dto.getProductName());
-							newDataValueVO.setSavings(BigDecimal.ZERO);
-							newDataValueVO.setRevenue(revenue.getValue());
-							existingValues.add(newDataValueVO);
+							List<DataValueVO> newValue = new ArrayList<>();
+							DataValueVO dataValueVO = new DataValueVO();
+							dataValueVO.setSolutionId(dto.getId());
+							dataValueVO.setProductName(dto.getProductName());
+							dataValueVO.setSavings(BigDecimal.ZERO);
+							dataValueVO.setRevenue(revenue.getValue());
+							newValue.add(dataValueVO);
+							finalMap.put(revenue.getYear(), newValue);
 						}
-						List<DataValueVO> newList = existingValues.stream() 
-                                .distinct() 
-                                .collect(Collectors.toList()); 
-						finalMap.put(revenue.getYear(), newList);
-					}
-					else {
-						List<DataValueVO> newValue = new ArrayList<>();
-						DataValueVO dataValueVO = new DataValueVO();
-						dataValueVO.setSolutionId(dto.getId());
-						dataValueVO.setProductName(dto.getProductName());
-						dataValueVO.setSavings(BigDecimal.ZERO);
-						dataValueVO.setRevenue(revenue.getValue());
-						newValue.add(dataValueVO);
-						finalMap.put(revenue.getYear(), newValue);
 					}
 				}
 			}
@@ -254,5 +262,9 @@ public class DashboardServiceImpl implements DashboardService {
 
 	}
 
+	@Override
+	public List<Integer> getMinMaxYears() {
+		return customRepo.getMinMaxYearDetails();
+	}
 
 }
