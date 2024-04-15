@@ -109,5 +109,3 @@ packages/naas/naas-lib/bin
 #Helm
 Chart.lock
 secrets.json
-truststore*
-keystore*
