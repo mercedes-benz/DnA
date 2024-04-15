@@ -536,4 +536,36 @@ public class StorageServicesClient {
 		}
 		return isBucketPresent;
 	}
+
+	public BucketObjectsCollectionWrapperDto getBucketObjectDetails(String path) {
+		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
+		ByteArrayResource data = null;
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
+			headers.set("Accept", "application/json");
+			headers.set("dna-request-userdetails", userinfo);
+			headers.set("chronos-api-key",dataBricksAuth);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +path;
+			ResponseEntity<BucketObjectsCollectionWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionWrapperDto.class);
+			if (response.hasBody() && response.getBody()!=null) {
+				if(response.getBody()!=null && response.getBody().getData()!=null && response.getBody().getData().getBucketObjects()!=null
+						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
+					filesList = response.getBody();
+					List<BucketObjectDetailsDto> filteredList =filesList.getData().getBucketObjects().stream().map
+							(n -> { BucketObjectDetailsDto fileDetails = new BucketObjectDetailsDto();
+								BeanUtils.copyProperties(n,fileDetails);
+								return fileDetails;
+							}).collect(Collectors.toList());
+					filesList.getData().setBucketObjects(filteredList);
+				}
+			}
+			}catch(Exception e) {
+				log.error("Failed while getting bucket object details with exception {}", e.getMessage());
+			}
+		return filesList;
+	}
 }

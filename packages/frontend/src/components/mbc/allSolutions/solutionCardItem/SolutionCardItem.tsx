@@ -22,6 +22,7 @@ export interface ISolutionCardItemProps {
   onDelete: (solutionId: string) => void;
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
   noteBookData: INotebookInfoSolutionId;
+  onShowSimilarSolutionModal: (solutionName: string) => void;
 }
 
 const goToSummary = (solutionId: string) => {
@@ -189,6 +190,16 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
                   <span onClick={onDeleteSolution}>Delete Solution</span>
                 </li>
               )}
+              <li className="contextListItem">
+                <span
+                  onClick={(e: React.FormEvent<HTMLSpanElement>) => {
+                    e.stopPropagation();
+                    props.onShowSimilarSolutionModal(solution.productName);
+                  }}
+                >
+                  View Similar Solutions
+                </span>
+              </li>
             </ul>
           </div>
         </div>

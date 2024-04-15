@@ -5,6 +5,7 @@ import { GetDataTransfers, SetDataTransfers, UpdateDataTransfers } from './dataT
 const dataProductsInitialState = {
   dataTransfers: [],
   isLoading: false,
+  firstDataLoaded: false,
   errors: '',
   pagination: {
     dataProductListResponse: [],
@@ -30,6 +31,7 @@ export const provideDataTransferSlice = createSlice({
         : [];
       state.dataTransfers = modifiedData;
       state.isLoading = false;
+      state.firstDataLoaded = true;
       state.errors = '';
       state.pagination.dataProductListResponse = action.payload.data;
       state.pagination.totalNumberOfPages = totalNumberOfPages;
