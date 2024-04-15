@@ -890,7 +890,7 @@ export default class AllSolutions extends React.Component<
 
   protected onShowSimilarSolutionModal = (selectedSolutionName: string, selectedSolutionDescription: string, isGenAI: boolean) => {
     ProgressIndicator.show();
-    ApiClient.getSimilarSolutions(`${isGenAI ? 'search' : 'solutionssearch'}?q=${selectedSolutionDescription}`).then((res) => {
+    ApiClient.getSimilarSolutions(`${isGenAI ? 'search' : 'solutionssearch'}?q=${selectedSolutionDescription}`).then((res: any) => {
       ProgressIndicator.hide();
       if(res?.result?.length) {
         const similarSolutionsBasedOnInputData:ISimilarSolutionsListItem[] = [];
