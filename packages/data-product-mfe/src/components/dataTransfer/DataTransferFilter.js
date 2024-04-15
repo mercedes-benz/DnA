@@ -74,19 +74,19 @@ const DataTransferFilter = ({
 
                         } else {
                             newQueryParams.dataStewards = dataStewards.map((dataSteward) => {
-                                return dataSteward.teamMemeber.shortId;
+                                return dataSteward?.teamMemeber?.shortId;
                             });
                             newQueryParams.informationOwners = dataStewards.map((informationOwner) => {
-                                return informationOwner.teamMemeber.shortId;
+                                return informationOwner?.teamMemeber?.shortId;
                             });
                             newQueryParams.division = divisions?.map((division) => {
-                                return division.id;
+                                return division?.id;
                             });
                             newQueryParams.subDivision = subDivisions?.map((subDivision) => {
-                                return subDivision.id;
+                                return subDivision?.id;
                             });
                             newQueryParams.departments = departments?.map((department) => {
-                                return department.name;
+                                return department?.name;
                             });
                             setFilterApplied(false);
                             setdataTransferFilterApplied(false);
