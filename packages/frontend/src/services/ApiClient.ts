@@ -1189,4 +1189,8 @@ export class ApiClient {
   public static getUsersTransparency(): Promise<any> {
     return this.get('users/transparency');
   }
+
+  public static getSimilarSolutions(endpoint: string):Promise<any> {
+    return this.fetch(getSimilaritySearchUrl(endpoint), HTTP_METHOD.GET);
+  } 
 }

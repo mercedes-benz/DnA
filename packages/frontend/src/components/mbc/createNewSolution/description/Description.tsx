@@ -305,7 +305,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
       Notification.show(`Checking for similar solution based on your solution ${fieldType}.`);
 
-      ApiClient.getSimilarSolutions(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?q=${inputData}`).then((res) => {
+      ApiClient.getSimilarSolutions(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?q=${inputData}`).then((res: any) => {
         if(res?.result?.length) {
           const similarSolutionsBasedOnInputData:ISimilarSolutionsListItem[] = [];
           res?.result.forEach((item: any) => {
