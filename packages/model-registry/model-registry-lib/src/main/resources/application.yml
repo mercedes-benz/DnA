@@ -10,7 +10,7 @@ spring:
       port: ${VAULT_PORT:8200}
       scheme: ${VAULT_SCHEME:http}
       authentication: ${VAULT_AUTHENTICATION:TOKEN}
-      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
+      token: ${VAULT_TOKEN:xxxx-xxxx-xxxx-xxxx}
       mountpath: ${VAULT_MOUNTPATH:secret}
       vaultpath: ${VAULT_PATH:dna/modelregistry}
       kv:
