@@ -151,7 +151,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	public List<BucketObjectDetailsDto> toProjectSpecificConfigFiles(List<InputFileVO> configFiles){
 		List<BucketObjectDetailsDto> filePathList = new ArrayList<>();
 		if(configFiles!=null && !configFiles.isEmpty()) {
-			 filePathList = configFiles.stream().map(x-> new BucketObjectDetailsDto(x.getPath())).collect(Collectors.toList());
+			 filePathList = configFiles.stream().map(x-> new BucketObjectDetailsDto(x.getPath(),null)).collect(Collectors.toList());
 		}
 		return filePathList;
 	}
