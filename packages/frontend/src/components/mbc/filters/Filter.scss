@@ -8,24 +8,21 @@
     }
 }
 .dvFilterWrapper{
-  display: flex;
-  .dvStartRange{
-    margin-right: 10px;
-    width: 120px;
+  .dvRange{
+    display: flex;
+    margin-bottom: 0px;
+    .dvStartRange{
+      margin-right: 10px;
+      width: 120px;
+    }
+    .dvEndRange{
+      margin: 31px 10px 0 0;
+      width:120px
+    }
+    .speratorIcon{
+      margin: 40px 16px 0;
+      font-size: 10px;
+      color: #d9dfe4;;
+    }
   }
-  .dvEndRange{
-    margin-left: 0px;
-    margin-top: 31px;
-    margin-right: 10px;
-    width:120px
-  }
-  .speratorIcon{
-    margin-right: 16px;
-    margin-top: 40px;
-    font-size: 10px;
-    color: #d9dfe4;;
-  }
-
- 
-
 }

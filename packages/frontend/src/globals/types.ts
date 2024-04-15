@@ -1124,6 +1124,7 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+  dataValueRange?: string;
 }
 
 export interface IDataProductListItem {

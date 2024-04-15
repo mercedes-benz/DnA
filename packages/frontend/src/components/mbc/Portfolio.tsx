@@ -307,7 +307,8 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       locationsChartData: [],
       showLocationLoader: true,
     });
-    this.setState({dataValueRangeText: `summed up from ${dataValueRange.match(/startYear=(\d+)/)[1]} until ${dataValueRange.match(/endYear=(\d+)/)[1]}` });
+
+    this.setState({dataValueRangeText: `summed up from ${dataValueRange?.split(',')[0]} until ${dataValueRange?.split(',')[1]}` });
     ApiClient.getDashboardData('datasources', locations, phases, divisions, status, useCaseType, tagSearch)
       .then((res: any) => {
         const dataSourcesChartData: IBarChartDataItem[] = [];
@@ -435,13 +436,12 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
           const newDigitalValueChartData: IStackedBarChartDataItem[] = [];
           const currentYear = new Date().getFullYear();
           let startYear = currentYear;
-          const tenthYearFromNow = currentYear + 10;
-          do {
+          const tenthYearFromNow = currentYear + 9;
+          do { 
             const tempObj: any = {};
 
             tempObj.id = startYear.toString();
             tempObj.labelValue = startYear.toString();
-
             tempObj.firstBarValue = 0;
             tempObj.firstBarFillColor = '#9DE1FC';
             tempObj.secondBarValue = 0;
@@ -539,8 +539,8 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
         this.setState({ newDigitalValueChartData: [], showDigitalValueLoader: false });
       });
-      console.log(dataValueRange);
-    ApiClient.getDashboardData('datavalue', locations, phases, divisions, status, useCaseType, tagSearch)
+
+      ApiClient.getDashboardData('datavalue', locations, phases, divisions, status, useCaseType, tagSearch,dataValueRange)
       .then((res: any) => {
         const totalSavings = res.totalDataValueSavings;
         const totalRevenue = res.totalDataValueRevenue;
@@ -552,19 +552,19 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       .catch((error) => {
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
       });
-    ApiClient.getDashboardData('datavaluesummary', locations, phases, divisions, status, useCaseType, tagSearch)
+
+    ApiClient.getDashboardData('datavaluesummary', locations, phases, divisions, status, useCaseType, tagSearch,dataValueRange)
       .then((res: any) => {
         if (res) {
           const totalDataValue = res.solDataValueSummary;
           const newDataValueChartData: IStackedBarChartDataItem[] = [];
-          const currentYear = new Date().getFullYear();
-          let startYear = currentYear;
-          const tenthYearFromNow = currentYear + 10;
+          let startYear = parseInt(dataValueRange.split(',')[0]);
+          const endYear = parseInt(dataValueRange.split(',')[1]);
           do {
             const tempObj: any = {};
-            tempObj.id = startYear.toString();
+            tempObj.id = startYear;
 
-            tempObj.labelValue = startYear.toString();
+            tempObj.labelValue = startYear;
             tempObj.firstBarValue = 0;
             tempObj.firstBarFillColor = '#9DE1FC';
             tempObj.secondBarValue = 0;
@@ -588,7 +588,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             }
             newDataValueChartData.push(tempObj);
             startYear++;
-          } while (startYear <= tenthYearFromNow);
+          } while (startYear <= endYear);
           this.setState({ newDataValueChartData, showDataValueLoader: false });
           this.setState({ showDataValueLoader: false });
         }
@@ -697,7 +697,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
             setSolutionsFilterApplied={(value: boolean) => {
-              console.log(value);
               this.setState({ portfolioDataFilterApplied: value });
             }}
             openFilters={this.state.openFilters}
