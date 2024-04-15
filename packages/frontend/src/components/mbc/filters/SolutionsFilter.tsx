@@ -829,7 +829,7 @@ const SolutionsFilter = ({
     const { id, value } = e.currentTarget;
     const data = { ...queryParams.dataValueRange };
     data[id] = value;
-    if (parseInt(data.startYear, 10) <= parseInt(data.endYear, 10)) {
+    if (parseInt(data.startYear, 10) < parseInt(data.endYear, 10)) {
       setQueryParams(prevParams => ({
         ...prevParams,
         dataValueRange: data
