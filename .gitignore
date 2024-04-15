@@ -24,6 +24,8 @@ coverage/
 *.tar
 *.tgz
 *.zip
+*.p12
+*.jks
 
 # Logs and databases #
 ######################
