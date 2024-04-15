@@ -73,10 +73,10 @@ const DataTransferFilter = ({
                             setdataTransferFilterApplied(true);
 
                         } else {
-                            newQueryParams.dataStewards = dataStewards.map((dataSteward) => {
+                            newQueryParams.dataStewards = dataStewards?.map((dataSteward) => {
                                 return dataSteward?.teamMemeber?.shortId;
                             });
-                            newQueryParams.informationOwners = dataStewards.map((informationOwner) => {
+                            newQueryParams.informationOwners = informationOwners?.map((informationOwner) => {
                                 return informationOwner?.teamMemeber?.shortId;
                             });
                             newQueryParams.division = divisions?.map((division) => {
@@ -448,8 +448,8 @@ const DataTransferFilter = ({
                                 Choose
                             </option>
                             {dataStewards?.map((obj, index) => (
-                                <option key={index} value={obj.teamMemeber.shortId}>
-                                    {`${obj.teamMemeber.firstName} ${obj.teamMemeber.lastName}`}
+                                <option key={index} value={obj?.teamMemeber?.shortId}>
+                                    {`${obj?.teamMemeber?.firstName} ${obj?.teamMemeber?.lastName}`}
                                 </option>
                             ))}
                         </select>
@@ -475,8 +475,8 @@ const DataTransferFilter = ({
                                 Choose
                             </option>
                             {informationOwners?.map((obj, index) => (
-                                <option key={index} value={obj.teamMemeber.shortId}>
-                                    {`${obj.teamMemeber.firstName} ${obj.teamMemeber.lastName}`}
+                                <option key={index} value={obj?.teamMemeber?.shortId}>
+                                    {`${obj?.teamMemeber?.firstName} ${obj?.teamMemeber?.lastName}`}
                                 </option>
                             ))}
                         </select>
