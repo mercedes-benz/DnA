@@ -7,6 +7,7 @@
       margin-right: 12px;
     }
 }
+
 .dvFilterWrapper{
   .dvRange{
     display: flex;
@@ -16,13 +17,16 @@
       width: 120px;
     }
     .dvEndRange{
-      margin: 31px 10px 0 0;
+      margin-left: 0px;
+      margin-top: 31px;
+      margin-right: 10px;
       width:120px
     }
     .speratorIcon{
-      margin: 40px 16px 0;
+      margin-right: 16px;
+      margin-top: 40px;
       font-size: 10px;
       color: #d9dfe4;;
     }
   }
-}
+} 
