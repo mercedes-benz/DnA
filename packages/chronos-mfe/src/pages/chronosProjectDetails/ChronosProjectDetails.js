@@ -15,6 +15,9 @@ import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import { getProjectDetails } from '../../redux/projectDetails.services';
 import { reset } from '../../redux/chronosFormSlice';
 import { getConfigFiles } from '../../redux/chronosForm.services';
+import  ChronosBanner from '../chronosBanner/ChronosBanner';
+//Api
+import { chronosApi } from '../../apis/chronos.api';
 
 const tabs = {
   runForecast: {},
@@ -28,6 +31,9 @@ const ChronosProjectDetails = ({ user }) => {
 
   const [currentTab, setCurrentTab] = useState(tabName !== undefined ? tabName : 'runForecast');
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerCloseTime , setBannerCloseTime] = useState(localStorage.getItem('bannerCloseTime') || '');
+  const [bannerDetails, setbannerDetails] = useState({});
 
   const projectDetails = useSelector(state => state.projectDetails);
   const dispatch = useDispatch();
@@ -36,12 +42,36 @@ const ChronosProjectDetails = ({ user }) => {
     dispatch(getProjectDetails(projectId));
     dispatch(getConfigFiles(projectId));
     SelectBox.defaultSetup();
+    getBannerDetails();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // useEffect(() => {
   //   projectDetails.isLoading ? ProgressIndicator.show() : ProgressIndicator.hide();
   // }, [projectDetails]);
 
+  const getBannerDetails = () => {
+    chronosApi.getBannerDetails().then((res) => {
+      const data = res.data;
+      setbannerDetails(data);
+    }).catch(() => {
+      Notification.show('Something went wrong', 'alert');
+    })
+  }
+  useEffect(() => {
+    if (bannerDetails.lastchangedtime > bannerCloseTime) {
+      setShowBanner(true);
+    } else {
+      setShowBanner(false);
+    }
+  }, [bannerDetails])
+
+  const onBannerClose = () => {
+    const currentTime = new Date();
+    const formattedTime = currentTime.toISOString();
+    localStorage.setItem('bannerCloseTime', formattedTime);
+    setBannerCloseTime(formattedTime);
+    setShowBanner(false)
+  }
   useEffect(() => {
     if(currentTab === 'runForecast') {
       dispatch(reset());
@@ -86,6 +116,10 @@ const ChronosProjectDetails = ({ user }) => {
 
   return (
     <>
+      {showBanner && (
+        <ChronosBanner bannerText = {bannerDetails.bannerText} onBannerClose = {onBannerClose}/>
+        )
+      }
       <div className={classNames(Styles.mainPanel)}>
         <Breadcrumb>
           <li><Link to='/'>Chronos Forecasting</Link></li>

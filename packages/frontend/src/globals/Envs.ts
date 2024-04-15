@@ -162,6 +162,7 @@ export const Envs = {
     getInjectedEnv('CODESPACE_OIDC_POPUP_WAIT_TIME') ||
     parseInt(process.env.CODESPACE_OIDC_POPUP_WAIT_TIME || '5000', 10),
   VAULT_API_BASEURL: getInjectedEnv('VAULT_API_BASEURL') || process.env.VAULT_API_BASEURL,
+  SIMILARITY_SEARCH_API_BASEURL: getInjectedEnv('SIMILARITY_SEARCH_API_BASEURL') || process.env.SIMILARITY_SEARCH_API_BASEURL,
   ENABLE_CHRONOS_FORECASTING_SERVICE:
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
@@ -174,6 +175,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_DATA_ENTRY_SERVICE:
+    getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_ENTRY_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')

@@ -1,6 +1,6 @@
 .mainPanel {
     padding: 72px 75px 30px 75px;
-
+    
     .wrapper {
         width: 100%;
         .caption {
@@ -89,6 +89,9 @@
                 color: #00adef;
             }
         }
+        .activeFilters {
+            color: #00adef;
+        }
     }
 }
 .allDataproductContent {
@@ -111,7 +114,7 @@
     border: 1px solid #383f49;
     cursor: pointer;
     min-height: 250px;
-    .addicon {
+      .addicon {
         top: calc(50% - 31px);
         width: 63px;
         height: 63px;
@@ -160,9 +163,9 @@
     display: flex;
     justify-content: center;
     border: 1px solid #697582;
-    padding: 20px;
+padding: 20px;
     cursor: pointer;
-    .addicon {
+        .addicon {
         width: 40px;
         height: 40px;
         margin: 0px;

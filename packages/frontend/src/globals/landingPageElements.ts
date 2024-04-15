@@ -35,6 +35,7 @@ const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
+const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -197,6 +198,22 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableFabricService,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'dataentry',
+    name: 'Data Entry as a Service',
+    description:
+      'Easy, self service way to collect user input - either for planning purpose or simply to gather desired information.',
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+    url: '/dataentry',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDataEntryService,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',

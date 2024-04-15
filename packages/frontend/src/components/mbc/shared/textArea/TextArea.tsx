@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import Styles from './TextArea.scss';
 
 export interface ITextAreaProps {
   controlId: string;
@@ -15,6 +16,7 @@ export interface ITextAreaProps {
   errorText?: string;
   small?: boolean;
   containerId?: string;
+  infoContent?: React.ReactNode;
 }
 
 const TextArea:React.FC<ITextAreaProps> = (props: ITextAreaProps) => {
@@ -34,6 +36,7 @@ const TextArea:React.FC<ITextAreaProps> = (props: ITextAreaProps) => {
       className="input-label"
     >
       {props.label}{ props.required && <sup>*</sup> }
+      {props.infoContent && <span className={Styles.infoContent}>{props.infoContent}</span>}
     </label>
     <textarea
       className={classNames('input-field-area', isSmall && 'small')}
