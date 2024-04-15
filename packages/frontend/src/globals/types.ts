@@ -888,6 +888,14 @@ export interface IMonth {
   name: string;
 }
 
+export interface ISimilarSolutionsListItem {
+  id?: string;
+  productName: string;
+  description: string;
+  businessNeed: string;
+  score: number;
+}
+
 export interface IAllSolutionsListItem {
   id?: string;
   productName: string;
