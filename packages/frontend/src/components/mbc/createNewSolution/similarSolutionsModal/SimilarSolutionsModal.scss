@@ -24,6 +24,11 @@
         overflow-wrap: break-word;
         padding-right: 10px;
         padding-bottom: 5px;
+
+        i {
+          font-size: var(--font-size-default);
+          margin-left: 15px;
+        }
       }
 
       .solTitleDiv {

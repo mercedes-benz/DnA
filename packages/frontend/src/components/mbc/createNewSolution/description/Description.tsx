@@ -125,8 +125,8 @@ export interface IDescriptionState {
   similarSolutionsBasedOnDescription: ISimilarSolutionsListItem[];
   lastSearchedBusinessNeedInput: string;
   similarSolutionsBasedOnBusinessNeed: ISimilarSolutionsListItem[];
-  lastSearchedExpectedBenefitsInput: string;
-  similarSolutionsBasedOnExpectedBenefits: ISimilarSolutionsListItem[];
+  lastSearchedProductNameInput: string;
+  similarSolutionsBasedOnProductName: ISimilarSolutionsListItem[];
   similarSolutionstoShow: ISimilarSolutionsListItem[];
 }
 
@@ -239,8 +239,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       similarSolutionsBasedOnDescription: [],
       lastSearchedBusinessNeedInput: '', 
       similarSolutionsBasedOnBusinessNeed: [],
-      lastSearchedExpectedBenefitsInput: '',
-      similarSolutionsBasedOnExpectedBenefits: [],
+      lastSearchedProductNameInput: '',
+      similarSolutionsBasedOnProductName: [],
       similarSolutionstoShow: [],
     };
 
@@ -285,10 +285,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     });
   };
 
-  public onFocusOut = (e: React.FocusEvent<HTMLTextAreaElement>, fieldType: string, data: string) => {
+  public onFocusOut = (fieldType: string, data: string) => {
     const inputData = data.trim();
     if(inputData !== '') {
       switch(fieldType) {
+        case 'Name':
+          if(inputData === this.state.lastSearchedProductNameInput) return;
+          this.setState({similarSolutionsBasedOnProductName: []});
+          break;   
         case 'Description':
           if(inputData === this.state.lastSearchedDescriptionInput) return;
           this.setState({similarSolutionsBasedOnDescription: []});
@@ -296,14 +300,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         case 'Business Need':
           if(inputData === this.state.lastSearchedBusinessNeedInput) return;
           this.setState({similarSolutionsBasedOnBusinessNeed: []});
-          break;
-        case 'Expected Benefits':
-          if(inputData === this.state.lastSearchedExpectedBenefitsInput) return;
-          this.setState({similarSolutionsBasedOnExpectedBenefits: []});
-          break;        
+          break;     
       }
-
-      Notification.show(`Checking for similar solution based on your solution ${fieldType}.`);
 
       ApiClient.getSimilarSolutions(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?q=${inputData}`).then((res: any) => {
         if(res?.result?.length) {
@@ -321,17 +319,18 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           });
 
           switch(fieldType) {
+            case 'Name':
+              this.setState({similarSolutionsBasedOnProductName: similarSolutionsBasedOnInputData, lastSearchedProductNameInput: inputData});
+              break;    
             case 'Description':
               this.setState({similarSolutionsBasedOnDescription: similarSolutionsBasedOnInputData, lastSearchedDescriptionInput: inputData});
               break;
             case 'Business Need':
               this.setState({similarSolutionsBasedOnBusinessNeed: similarSolutionsBasedOnInputData, lastSearchedBusinessNeedInput: inputData});
-              break;
-            case 'Expected Benefits':
-              this.setState({similarSolutionsBasedOnExpectedBenefits: similarSolutionsBasedOnInputData, lastSearchedExpectedBenefitsInput: inputData});
-              break;        
+              break;    
           }
 
+          Notification.show(`Similar solution found based on your Solution ${fieldType}.`);
           Tooltip.defaultSetup();
         }
       });
@@ -575,14 +574,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   public showSimilarSolutions = (type: string) => {
     let similarSolutionstoShow: ISimilarSolutionsListItem[] = [];
     switch (type) {
+      case 'Name': 
+        similarSolutionstoShow = this.state.similarSolutionsBasedOnProductName;
+        break;
       case 'Description':
         similarSolutionstoShow = this.state.similarSolutionsBasedOnDescription;
         break;
       case 'Business Need':
         similarSolutionstoShow = this.state.similarSolutionsBasedOnBusinessNeed;
-        break;
-      case 'Expected Benefits': 
-        similarSolutionstoShow = this.state.similarSolutionsBasedOnExpectedBenefits;
         break;
     }
     this.setState({ selectedSimilarSolutionsType: type, showSimilarSolutionsModal: true, similarSolutionstoShow });
@@ -686,6 +685,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       required={true}
                       maxLength={200}
                       onChange={this.onProductNameOnChange}
+                      onBlur={() => this.onFocusOut("Name", this.state.productName)}
+                      infoContent={
+                        this.state.similarSolutionsBasedOnProductName.length > 0 && (
+                          <span
+                            className={Styles.similarSolInfo}
+                            onClick={() => this.showSimilarSolutions('Name')}
+                            tooltip-data="Click to view"
+                          >
+                            <i className="icon mbc-icon alert circle" />
+                            Similar Solutions Found
+                          </span>
+                        )
+                      }
                     />
                     <div>
                       <div>
@@ -1007,7 +1019,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     errorText={descriptionError}
                     required={true}
                     onChange={this.onDescChange}
-                    onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => this.onFocusOut(e, "Description", this.state.description)}
+                    onBlur={() => this.onFocusOut("Description", this.state.description)}
                     infoContent={
                       this.state.similarSolutionsBasedOnDescription.length > 0 && (
                         <span
@@ -1034,7 +1046,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     errorText={businessNeedsError}
                     required={true}
                     onChange={this.onBusinessNeedChange}
-                    onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => this.onFocusOut(e, "Business Need", this.state.businessNeeds)}
+                    onBlur={() => this.onFocusOut("Business Need", this.state.businessNeeds)}
                     infoContent={
                       this.state.similarSolutionsBasedOnBusinessNeed.length > 0 && (
                         <span
@@ -1061,19 +1073,6 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     errorText={expectedBenefitsError}
                     required={!this.props.isGenAI}
                     onChange={this.onBenefitChange}
-                    onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => this.onFocusOut(e, "Expected Benefits", this.state.expectedBenefits)}
-                    infoContent={
-                      this.state.similarSolutionsBasedOnExpectedBenefits.length > 0 && (
-                        <span
-                          className={Styles.similarSolInfo}
-                          onClick={() => this.showSimilarSolutions('Expected Benefits')}
-                          tooltip-data="Click to view"
-                        >
-                          <i className="icon mbc-icon alert circle" />
-                          Similar Solutions Found
-                        </span>
-                      )
-                    }
                   />
                 </div>
               </div>
