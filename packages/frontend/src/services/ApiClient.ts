@@ -820,6 +820,7 @@ export class ApiClient {
     status: string,
     useCaseType: string,
     tagSearch: string,
+    dataValueRange?: string,
   ): Promise<IWidgetsResponse[]> {
     let reqQuery = 'published=true&';
     if (locations != '') reqQuery += `location=${locations}&`;
@@ -828,8 +829,13 @@ export class ApiClient {
     if (status != '') reqQuery += `projectstatus=${status}&`;
     if (useCaseType != '') reqQuery += `useCaseType=${useCaseType}&`;
     if (tagSearch != '') reqQuery += `tags=${tagSearch}&`;
+    if (dataValueRange !='' && dataValueRange != undefined) reqQuery +=`enddate=${dataValueRange.split(',')[1]}&startdate=${dataValueRange.split(',')[0]}&`;
 
     return this.get(`dashboard/${calledResource}?` + reqQuery);
+  }
+
+  public static getDataValueMinMaxYear(): Promise<any> {
+    return this.get('dashboard/datavalue/minmaxyear');
   }
 
   public static getAllWidgets(): Promise<IWidgetsResponse[]> {

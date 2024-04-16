@@ -27,7 +27,7 @@ export default class StackedBarChartWidget extends React.Component<
     super(props);
     this.state = {
       dataItemsPerView: 5,
-      totalNumberOfPages: 2,
+      totalNumberOfPages:  Math.ceil(this.props.data.length / 5),
       currentPage: 1,
     };
   }
@@ -123,17 +123,21 @@ export default class StackedBarChartWidget extends React.Component<
             ''
           )}{' '}
           <label>{xAxisLabel}</label>{' '}
-          <i
-            className={'icon mbc-icon arrow small left pointer' + (currentPage === 1 ? ' inactive' : '')}
-            onClick={this.onPreviousClick}
-          />
-          {currentPage}/{totalNumberOfPages}{' '}
-          <i
-            className={
-              'icon mbc-icon arrow small right pointer' + (currentPage === totalNumberOfPages ? ' inactive' : '')
-            }
-            onClick={this.onNextClick}
-          />
+          {this.props.data.length > 5 && (
+            <>
+              <i
+                className={'icon mbc-icon arrow small left pointer' + (currentPage === 1 ? ' inactive' : '')}
+                onClick={this.onPreviousClick}
+              />
+              {currentPage}/{totalNumberOfPages}{' '}
+              <i
+                className={
+                  'icon mbc-icon arrow small right pointer' + (currentPage === totalNumberOfPages ? ' inactive' : '')
+                }
+                onClick={this.onNextClick}
+              />
+            </>
+          )}
         </div>
       </div>
     );
