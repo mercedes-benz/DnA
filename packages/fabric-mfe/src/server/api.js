@@ -5,7 +5,9 @@ import { refreshToken } from 'dna-container/RefreshToken';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
-export const baseURL = `http://${window.location.hostname}:7575/api`;
+export const baseURL = Envs.FABRIC_API_BASEURL
+  ? Envs.FABRIC_API_BASEURL
+  : `http://${window.location.hostname}:7575/api`;
 
 const headers = {
   Accept: 'application/json',
