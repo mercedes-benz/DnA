@@ -298,12 +298,12 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       defaultValue={costCenter}
                       {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
-                    <span className={classNames('error-message')}>{errors?.name?.message}</span>
+                    <span className={classNames('error-message')}>{errors?.costCenter?.message}</span>
                   </div>
                 </div>
-                <div className={classNames('input-field-group')}>
+                <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Internal Order
+                    Internal Order <sup>*</sup>
                   </label>
                   <div>
                     <input
@@ -317,6 +317,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       defaultValue={internalOrder}
                       {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
+                    <span className={classNames('error-message')}>{errors?.internalOrder?.message}</span>
                   </div>
                 </div>
               </div>
