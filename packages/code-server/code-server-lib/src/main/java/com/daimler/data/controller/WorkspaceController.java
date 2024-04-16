@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -293,7 +294,7 @@ import lombok.extern.slf4j.Slf4j;
 	 public ResponseEntity<SecurityConfigResponseDto> saveSecurityConfig(
 			 @ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id,
 			 @ApiParam(value = "request body for saving security config details of the project", required = true) @Valid @RequestBody SecurityConfigRequestDto configRequestDto,
-			 @ApiParam(value = "environment variable to select the target environment") @Valid @RequestParam(value = "env", required = false) String env) {
+			 @NotNull @ApiParam(value = "environment variable to select the target environment") @Valid @RequestParam(value = "env", required = false) String env) {
  
 		 SecurityConfigResponseDto saveConfigResponse = new SecurityConfigResponseDto();
 		 saveConfigResponse.setData(null);
@@ -1539,20 +1540,20 @@ import lombok.extern.slf4j.Slf4j;
 	//  }
 
 	 @Override
-	 @ApiOperation(value = " Change codespace security configurations to publish state", nickname = "publishSecurityConfig", notes = "change state codespace security configurations to publish", response = GenericMessage.class, tags = {
-			 "code-server", })
-	 @ApiResponses(value = {
-			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
-			 @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-			 @ApiResponse(code = 400, message = "Bad request."),
-			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			 @ApiResponse(code = 403, message = "Request is not authorized."),
-			 @ApiResponse(code = 405, message = "Method not allowed"),
-			 @ApiResponse(code = 500, message = "Internal error") })
-	 @RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
-			 "application/json" }, method = RequestMethod.POST)
-	 public ResponseEntity<GenericMessage> publishSecurityConfig(
-			 @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id, @ApiParam(value = "environment variable to select the target environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env) {
+	 @ApiOperation(value = "Marking status after Publishing the changes added in access management system", nickname = "publishSecurityConfig", notes = "Marking status after Publishing the changes added in access management system", response = GenericMessage.class, tags={ "code-server-admin", })
+	 @ApiResponses(value = { 
+		 @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+		 @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+		 @ApiResponse(code = 400, message = "Bad request."),
+		 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		 @ApiResponse(code = 403, message = "Request is not authorized."),
+		 @ApiResponse(code = 405, message = "Method not allowed"),
+		 @ApiResponse(code = 500, message = "Internal error") })
+	 @RequestMapping(value = "/workspaces/{id}/config/publish",
+		 produces = { "application/json" }, 
+		 consumes = { "application/json" },
+		 method = RequestMethod.POST)
+	 public ResponseEntity<GenericMessage> publishSecurityConfig(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id, @NotNull @ApiParam(value = "environment variable to select the target environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env){
 		 CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
