@@ -1,8 +1,14 @@
-.infoTip{
+.infoTip,
+.infoContent {
   font-size: var(--font-size-icon-medium);
   position: absolute;
   right: 0;
-  &:hover{
+
+  &:hover {
     cursor: pointer;
   }
+}
+
+.infoContent {
+  font-size: var(--font-size-small);
 }

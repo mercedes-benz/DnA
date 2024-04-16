@@ -3,7 +3,8 @@
   width: calc(25% - 15px);
   margin: 0 15px 15px 0;
   min-width: 250px;
-  // position: relative;
+  display: flex;
+  flex-flow: column;
   &:hover {
     background: #30343a !important;
   }
@@ -42,6 +43,8 @@
   }
   .solbodysection {
     padding: 15px 20px 20px 20px;
+    height: 100%;
+    position: relative;
   }
   .subsolHead {
     display: flex;
@@ -101,16 +104,30 @@
     line-height: 18px;
     min-height: 90px;
     word-break: break-word;
+    margin-bottom: 5px;
   }
   .solLink {
-    position: relative;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     .solBm {
-      position: absolute;
-      right: 0;
       i {
         color: #807d7d;
+      }
+
+      .similarSolLink {
+        cursor: pointer;
+        &:hover {
+          color: #00adef;
+        }
+
+        span {
+          font-size: var(--font-size-tiny);
+        }
       }
     }
     label {

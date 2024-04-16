@@ -190,16 +190,6 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
                   <span onClick={onDeleteSolution}>Delete Solution</span>
                 </li>
               )}
-              <li className="contextListItem">
-                <span
-                  onClick={(e: React.FormEvent<HTMLSpanElement>) => {
-                    e.stopPropagation();
-                    props.onShowSimilarSolutionModal(solution.productName);
-                  }}
-                >
-                  View Similar Solutions
-                </span>
-              </li>
             </ul>
           </div>
         </div>
@@ -302,35 +292,45 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         </div>
         <div className={Styles.solInfo}>{attachEllipsis(solution.description, 125)}</div>
         <div className={Styles.solLink}>
-          {/* <label className='hidden'>
-              <i className="icon mbc-icon dataiku" /> Dataiku
-                  </label> */}
-          {solution.portfolio?.dnaNotebookId != null && (
-            <React.Fragment>
-              {props.noteBookData?.solutionId === solution.id ? (
-                <label className={Styles.goToLink} title="Go to notebook" onClick={goTonotebook}>
-                  <i className="icon mbc-icon jupyter" />
+          <div>
+            {solution.portfolio?.dnaNotebookId != null && (
+              <React.Fragment>
+                {props.noteBookData?.solutionId === solution.id ? (
+                  <label className={Styles.goToLink} title="Go to notebook" onClick={goTonotebook}>
+                    <i className="icon mbc-icon jupyter" />
+                  </label>
+                ) : (
+                  <label title="Has notebook">
+                    <i className="icon mbc-icon jupyter" />
+                  </label>
+                )}
+              </React.Fragment>
+            )}
+            {solution.portfolio?.dnaDataikuProjectId !== null && (
+              <a
+                href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <label className={Styles.goToLink} title="Go to dataiku project">
+                  <i className="icon mbc-icon dataiku" />
                 </label>
-              ) : (
-                <label title="Has notebook">
-                  <i className="icon mbc-icon jupyter" />
-                </label>
-              )}
-            </React.Fragment>
-          )}
-          {solution.portfolio?.dnaDataikuProjectId !== null && (
-            <a
-              href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <label className={Styles.goToLink} title="Go to dataiku project">
-                <i className="icon mbc-icon dataiku" />
-              </label>
-            </a>
-          )}
+              </a>
+            )}
+          </div>
           <div className={Styles.solBm}>
             {solution.bookmarked ? <i title="Bookmarked solution" className="icon mbc-icon bookmark-fill" /> : null}
+            <span className={Styles.similarSolLink}>
+              <i className="icon mbc-icon dublicate" />
+              <span
+                onClick={(e: React.FormEvent<HTMLSpanElement>) => {
+                  e.stopPropagation();
+                  props.onShowSimilarSolutionModal(solution.productName);
+                }}
+              >
+                Similar Solutions
+              </span>
+            </span>
           </div>
         </div>
       </div>
