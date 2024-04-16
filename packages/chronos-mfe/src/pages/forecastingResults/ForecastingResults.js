@@ -348,6 +348,18 @@ const ForecastingResults = () => {
     ],
   };
 
+  const numFormat = (number) => {
+    const formatter = new Intl.NumberFormat('en', {
+      style: 'decimal',
+      maximumFractionDigits: 3,
+      minimumFractionDigits: 0
+    });
+    if (number >= 1e9 || number <= -1e9) return formatter.format(number / 1e9) + 'B';
+    else if (number >= 1e6 || number <= -1e6) return formatter.format(number / 1e6) + 'M';
+    else if (number >= 1e3 || number <= -1e3) return formatter.format(number / 1e3) + 'K';
+    else return formatter.format(number);
+  };
+
   const addTraces = (data) => {
     let traces = [];
     
@@ -371,15 +383,6 @@ const ForecastingResults = () => {
     let graphMode = 'lines';
     graphMode = showMarkers ? graphMode + '+markers' : graphMode;
     graphMode = showValues ? graphMode + '+text' : graphMode;
-
-    const numFormat = (number) =>{
-      const formatter = new Intl.NumberFormat('en', {
-        style: 'decimal',
-        maximumFractionDigits: 3,
-        minimumFractionDigits: 0
-      });
-      return formatter.format(number / 1e9) + 'B';
-    };
     
     for(const [key, value] of Object.entries(lines)) {
       if(key === cols[0]) {
@@ -388,7 +391,7 @@ const ForecastingResults = () => {
           mode: graphMode,
           x: dates,
           y: value.y,
-          text: value.y.map(y => y>=1e8 ? numFormat(y) : y),
+          text: value.y.map(y => numFormat(y)),
           textposition: 'top center',
           name: key,
           hoverinfo: 'x+text'
@@ -401,7 +404,7 @@ const ForecastingResults = () => {
             mode: graphMode,
             x: dates,
             y: value.y,
-            text: value.y.map(y => y>=1e8 ? numFormat(y) : y), 
+            text: value.y.map(y => numFormat(y)), 
             textposition: 'top center',
             yaxis: 'y2',
             name: key,
@@ -528,6 +531,8 @@ const ForecastingResults = () => {
           x: dates,
           y: value.y,
           name: colOneSelect.current.value,
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'trend2') {
@@ -541,6 +546,8 @@ const ForecastingResults = () => {
             dash: 'dot',
             color: '#979797',
           },
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'seasonal') {
@@ -555,6 +562,8 @@ const ForecastingResults = () => {
           line: {
             color: '#00ADF0',
           },
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'seasonal2') {
@@ -570,6 +579,8 @@ const ForecastingResults = () => {
             dash: 'dot',
             color: '#979797',
           },
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'residual') {
@@ -584,6 +595,8 @@ const ForecastingResults = () => {
           xaxis: 'x3',
           yaxis: 'y3',
           name: colOneSelect.current.value,
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'residual2') {
@@ -599,6 +612,8 @@ const ForecastingResults = () => {
             dash: 'dot',
             color: '#979797',
           },
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
     }
@@ -674,7 +689,9 @@ const ForecastingResults = () => {
           mode: 'lines',
           x: dates,
           y: value.y,
-          name: key
+          name: key,
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'proposal') {
@@ -687,6 +704,8 @@ const ForecastingResults = () => {
           marker: {
             color: '#00ADF0',
           },
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(key === 'outlier') {
@@ -700,6 +719,8 @@ const ForecastingResults = () => {
             color: '#E0144C',
             symbol: 'x',
           },
+          text: value.y.map(y => numFormat(y)),
+          hovertemplate: '%{text}',
         });
       }
       if(colTwoSelect.current.value !== '0') {
@@ -713,7 +734,9 @@ const ForecastingResults = () => {
             line: {
               dash: 'dot',
               color: '#979797',
-            }
+            },
+            text: value.y.map(y => numFormat(y)),
+            hovertemplate: '%{text}',
           });
         }
 
@@ -728,6 +751,8 @@ const ForecastingResults = () => {
               dash: 'dot',
               color: '#979797',
             },
+            text: value.y.map(y => numFormat(y)),
+            hovertemplate: '%{text}',
           });
         }
         if(key === 'outlier2') {
@@ -742,6 +767,8 @@ const ForecastingResults = () => {
               color: '#E0144C',
               symbol: 'x',
             },
+            text: value.y.map(y => numFormat(y)),
+            hovertemplate: '%{text}',
           });
         }
       }
