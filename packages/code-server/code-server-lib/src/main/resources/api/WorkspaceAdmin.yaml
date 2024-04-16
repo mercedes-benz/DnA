@@ -72,36 +72,36 @@ paths:
   # path example ../workspaces
 
 
-  /workspaces/{id}/config/accept:        
-    post:
-      tags:
-        - "code-server-admin"
-      summary: "Accepting the changes to be added in access management , marking status as Accepted if success"
-      description: "Accepting the changes to be added in access management system"
-      operationId: "acceptSecurityConfig"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace ID to be fetched"
-          required: true
-          type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /workspaces/{id}/config/accept:        
+  #   post:
+  #     tags:
+  #       - "code-server-admin"
+  #     summary: "Accepting the changes to be added in access management , marking status as Accepted if success"
+  #     description: "Accepting the changes to be added in access management system"
+  #     operationId: "acceptSecurityConfig"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace ID to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/GenericMessage"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
           
   /workspaces/{id}/config/publish:        
     post:
@@ -116,6 +116,14 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"

@@ -16,7 +16,7 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName);
 	
-	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe);
+	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret);
 	
 	public GenericMessage deleteService(String serviceName);
 	

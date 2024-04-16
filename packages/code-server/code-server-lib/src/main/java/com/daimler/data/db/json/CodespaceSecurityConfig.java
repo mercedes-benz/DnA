@@ -15,13 +15,15 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CodespaceSecurityConfig implements Serializable{
 
-	private String status;
-	private List<CodespaceSecurityRole> roles;
-	private List<CodespaceSecurityEntitlement> entitlements;
-	private List<CodespaceSecurityUserRoleMap> userRoleMappings;
-	private List<String> openSegments;
+	// private String status;
+	// private List<CodespaceSecurityRole> roles;
+	//private List<CodespaceSecurityEntitlement> entitlements;
+	//private List<CodespaceSecurityUserRoleMap> userRoleMappings;
+	private CodespaceSecurityConfigDetailCollection staging;
+	private CodespaceSecurityConfigDetailCollection production;
+	// private List<String> openSegments;
 	private Boolean isProtectedByDna;
-	private String requestedDate;
+	// private String requestedDate;
 
 	
 }

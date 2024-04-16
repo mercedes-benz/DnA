@@ -206,10 +206,10 @@ public class WorkspaceJobStatusUpdateController  {
 			String gitJobRunId = updateRequestVO.getGitjobRunID();
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId);
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
-			if(callKongApisFromBackend) {
-				log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);
-				authenticatorClient.callingKongApis(name,name,null,false);
-			}			
+			// if(callKongApisFromBackend) {
+			// 	log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);
+			// 	authenticatorClient.callingKongApis(name,name,null,false);
+			// }			
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {

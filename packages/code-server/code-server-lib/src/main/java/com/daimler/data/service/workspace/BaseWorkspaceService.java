@@ -782,7 +782,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin,boolean valutInjectorEnable ) {
+			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin,boolean valutInjectorEnable, String clientID, String clientSecret) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -838,9 +838,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					;
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
+					boolean apiRecipe = false;
+					String serviceName = projectName;
+					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					String reactRecipeId = RecipeIdEnum.REACT.toString();
+					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					String workspaceId = entity.getData().getWorkspaceId();
+					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					} else {
+						apiRecipe = true;
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					}
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
@@ -1365,17 +1379,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 					log.info(
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
-					boolean apiRecipe = false;
-					String serviceName = projectName;
-					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
-					} else {
-						apiRecipe = true;
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
-					}
+					// boolean apiRecipe = false;
+					// String serviceName = projectName;
+					// if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
+					// } else {
+					// 	apiRecipe = true;
+					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
+					// }
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
@@ -1430,7 +1444,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	@Override
 	@Transactional
-	public GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo , Boolean isPublished) {
+	public GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo , Boolean isPublished, String env) {
 		GenericMessage responseMessage = new GenericMessage();
 		try {
 
@@ -1445,7 +1459,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 						entity.getData().getProjectDetails().setSecurityConfig(config);
 
 						if(isPublished){
-							entity.getData().getProjectDetails().setPublishedSecurityConfig(config);
+							if("int".equalsIgnoreCase(env)){
+								entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getPublished());
+							}
+							if("prod".equalsIgnoreCase(env)){
+								entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getPublished());
+							}
 						}
 						entities.add(entity);
 					}
@@ -1455,7 +1474,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
-			//e.printStackTrace();
 			log.error("caught exception while saving security config {}", e.getMessage());
 			MessageDescription msg = new MessageDescription();
 			List<MessageDescription> errorMessage = new ArrayList<>();
@@ -1466,104 +1484,104 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setErrors(errorMessage);
 		}
 
-		CreatedByVO currentUser = this.userStore.getVO();
-		String userId = currentUser != null ? currentUser.getId() : null;
+		// CreatedByVO currentUser = this.userStore.getVO();
+		// String userId = currentUser != null ? currentUser.getId() : null;
 
-		String resourceID = vo.getWorkspaceId();
-		List<String> teamMembers = new ArrayList<>();
-		List<String> teamMembersEmails = new ArrayList<>();
-		List<ChangeLogVO> changeLogs = new ArrayList<>();
-		UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
-		teamMembers.add(projectOwner.getId());
-		teamMembersEmails.add(projectOwner.getEmail());
-		List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
-		if (Objects.nonNull(projectCollaborators)) {
-			if (projectCollaborators.size() > 0) {
-				for (UserInfoVO collab : projectCollaborators) {
-					teamMembers.add(collab.getId());
-					teamMembersEmails.add(collab.getEmail());
-				}
-			}
-		}
-		String eventType = "Codespace-SecurityConfig Status Update";
-		String message = ""; 
+		// String resourceID = vo.getWorkspaceId();
+		// List<String> teamMembers = new ArrayList<>();
+		// List<String> teamMembersEmails = new ArrayList<>();
+		// List<ChangeLogVO> changeLogs = new ArrayList<>();
+		// UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
+		// teamMembers.add(projectOwner.getId());
+		// teamMembersEmails.add(projectOwner.getEmail());
+		// List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
+		// if (Objects.nonNull(projectCollaborators)) {
+		// 	if (projectCollaborators.size() > 0) {
+		// 		for (UserInfoVO collab : projectCollaborators) {
+		// 			teamMembers.add(collab.getId());
+		// 			teamMembersEmails.add(collab.getEmail());
+		// 		}
+		// 	}
+		// }
+		// String eventType = "Codespace-SecurityConfig Status Update";
+		// String message = ""; 
 
-		if (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") ||vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED")) {
-			message = "Codespace " + vo.getProjectDetails().getProjectName() + " is accepted / published by Codespace Admin.";
-			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-		} 
-		if ( vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") ) {
-			message = "Codespace " + vo.getProjectDetails().getProjectName() + " is requesting to publish security config. ";
-			//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-			notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
-		}
+		// if (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") ||vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED")) {
+		// 	message = "Codespace " + vo.getProjectDetails().getProjectName() + " is accepted / published by Codespace Admin.";
+		// 	kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+		// } 
+		// if ( vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") ) {
+		// 	message = "Codespace " + vo.getProjectDetails().getProjectName() + " is requesting to publish security config. ";
+		// 	//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+		// 	notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
+		// }
 
-
-		return responseMessage;
-
-	}
-
-	@Override
-	@Transactional
-	public GenericMessage updateSecurityConfigStatus(String projectName, String status, String userId,
-			CodeServerWorkspaceVO vo) {
-		GenericMessage responseMessage = new GenericMessage();
-
-		try {
-
-			responseMessage = workspaceCustomRepository.updateSecurityConfigStatus(projectName, status);
-
-			// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-			// jpaRepo.save(entity);
-			// MessageDescription msg = new MessageDescription();
-			// List<MessageDescription> errorMessage = new ArrayList<>();
-
-			// responseMessage.setSuccess("SUCCESS");
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("caught exception while saving security config {}", e.getMessage());
-			MessageDescription msg = new MessageDescription();
-			List<MessageDescription> errorMessage = new ArrayList<>();
-			msg.setMessage("No workspace found for given id and the user");
-			errorMessage.add(msg);
-			responseMessage.addErrors(msg);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errorMessage);
-		}
-
-		String resourceID = vo.getWorkspaceId();
-		List<String> teamMembers = new ArrayList<>();
-		List<String> teamMembersEmails = new ArrayList<>();
-		List<ChangeLogVO> changeLogs = new ArrayList<>();
-		UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
-		teamMembers.add(projectOwner.getId());
-		teamMembersEmails.add(projectOwner.getEmail());
-		List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
-		if (Objects.nonNull(projectCollaborators)) {
-			if (projectCollaborators.size() > 0) {
-				for (UserInfoVO collab : projectCollaborators) {
-					teamMembers.add(collab.getId());
-					teamMembersEmails.add(collab.getEmail());
-				}
-			}
-		}
-		String eventType = "Codespace-SecurityConfig Status Update";
-		String message = ""; 
-
-		if (status.equalsIgnoreCase("ACCEPTED") ||status.equalsIgnoreCase("PUBLISHED")) {
-			message = "Codespace " + projectName + " is accepted / published by Codespace Admin.";
-			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-		}
-		if ( status.equalsIgnoreCase("REQUESTED") ) {
-			message = "Codespace " + projectName + " is requesting to publish security config. ";
-			//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-			notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
-		}
 
 		return responseMessage;
 
 	}
+
+	// @Override
+	// @Transactional
+	// public GenericMessage updateSecurityConfigStatus(String projectName, String status, String userId,
+	// 		CodeServerWorkspaceVO vo) {
+	// 	GenericMessage responseMessage = new GenericMessage();
+
+	// 	try {
+
+	// 		responseMessage = workspaceCustomRepository.updateSecurityConfigStatus(projectName, status);
+
+	// 		// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+	// 		// jpaRepo.save(entity);
+	// 		// MessageDescription msg = new MessageDescription();
+	// 		// List<MessageDescription> errorMessage = new ArrayList<>();
+
+	// 		// responseMessage.setSuccess("SUCCESS");
+
+	// 	} catch (Exception e) {
+	// 		e.printStackTrace();
+	// 		log.error("caught exception while saving security config {}", e.getMessage());
+	// 		MessageDescription msg = new MessageDescription();
+	// 		List<MessageDescription> errorMessage = new ArrayList<>();
+	// 		msg.setMessage("No workspace found for given id and the user");
+	// 		errorMessage.add(msg);
+	// 		responseMessage.addErrors(msg);
+	// 		responseMessage.setSuccess("FAILED");
+	// 		responseMessage.setErrors(errorMessage);
+	// 	}
+
+	// 	String resourceID = vo.getWorkspaceId();
+	// 	List<String> teamMembers = new ArrayList<>();
+	// 	List<String> teamMembersEmails = new ArrayList<>();
+	// 	List<ChangeLogVO> changeLogs = new ArrayList<>();
+	// 	UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
+	// 	teamMembers.add(projectOwner.getId());
+	// 	teamMembersEmails.add(projectOwner.getEmail());
+	// 	List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
+	// 	if (Objects.nonNull(projectCollaborators)) {
+	// 		if (projectCollaborators.size() > 0) {
+	// 			for (UserInfoVO collab : projectCollaborators) {
+	// 				teamMembers.add(collab.getId());
+	// 				teamMembersEmails.add(collab.getEmail());
+	// 			}
+	// 		}
+	// 	}
+	// 	String eventType = "Codespace-SecurityConfig Status Update";
+	// 	String message = ""; 
+
+	// 	if (status.equalsIgnoreCase("ACCEPTED") ||status.equalsIgnoreCase("PUBLISHED")) {
+	// 		message = "Codespace " + projectName + " is accepted / published by Codespace Admin.";
+	// 		kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+	// 	}
+	// 	if ( status.equalsIgnoreCase("REQUESTED") ) {
+	// 		message = "Codespace " + projectName + " is requesting to publish security config. ";
+	// 		//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+	// 		notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
+	// 	}
+
+	// 	return responseMessage;
+
+	// }
 
 	@Override
 	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName) {
@@ -1579,33 +1597,33 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 	}
 
-	public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
-			List<ChangeLogVO> changeLogs) {
-		log.info("Notifying all Codespace Admin users on " + eventType + " for " + message);
-		UsersCollection usersCollection = dnaAuthClient.getAll();
-		List<com.daimler.data.dto.userinfo.UserInfoVO> allUsers = usersCollection.getRecords();
-		List<String> codespaceAdminUsersIds = new ArrayList<>();
-		List<String> codespaceAdminUsersEmails = new ArrayList<>();
-		for (com.daimler.data.dto.userinfo.UserInfoVO user : allUsers) {
-			boolean isCodespaceAdmin = false;
-			if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
-				isCodespaceAdmin = user.getRoles().stream().anyMatch(role -> "CodespaceAdmin".equalsIgnoreCase(role.getName()));
-			}
-			if (isCodespaceAdmin) {
-				codespaceAdminUsersIds.add(user.getId());
-				codespaceAdminUsersEmails.add(user.getEmail());
-			}
-		}
-		try {
-			String id = resourceId.toString();
-			kafkaProducer.send(eventType, id, "", triggeringUser, message, true, codespaceAdminUsersIds,
-					codespaceAdminUsersEmails, changeLogs);
-			log.info("Successfully notified all codespace admin users for event {} for {} ", eventType, message);
-		} catch (Exception e) {
-			log.error("Exception occurred while notifying all codespace Admin users on {}  for {} . Failed with exception {}",
-					eventType, message, e.getMessage());
-		}
-	}
+	// public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+	// 		List<ChangeLogVO> changeLogs) {
+	// 	log.info("Notifying all Codespace Admin users on " + eventType + " for " + message);
+	// 	UsersCollection usersCollection = dnaAuthClient.getAll();
+	// 	List<com.daimler.data.dto.userinfo.UserInfoVO> allUsers = usersCollection.getRecords();
+	// 	List<String> codespaceAdminUsersIds = new ArrayList<>();
+	// 	List<String> codespaceAdminUsersEmails = new ArrayList<>();
+	// 	for (com.daimler.data.dto.userinfo.UserInfoVO user : allUsers) {
+	// 		boolean isCodespaceAdmin = false;
+	// 		if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+	// 			isCodespaceAdmin = user.getRoles().stream().anyMatch(role -> "CodespaceAdmin".equalsIgnoreCase(role.getName()));
+	// 		}
+	// 		if (isCodespaceAdmin) {
+	// 			codespaceAdminUsersIds.add(user.getId());
+	// 			codespaceAdminUsersEmails.add(user.getEmail());
+	// 		}
+	// 	}
+	// 	try {
+	// 		String id = resourceId.toString();
+	// 		kafkaProducer.send(eventType, id, "", triggeringUser, message, true, codespaceAdminUsersIds,
+	// 				codespaceAdminUsersEmails, changeLogs);
+	// 		log.info("Successfully notified all codespace admin users for event {} for {} ", eventType, message);
+	// 	} catch (Exception e) {
+	// 		log.error("Exception occurred while notifying all codespace Admin users on {}  for {} . Failed with exception {}",
+	// 				eventType, message, e.getMessage());
+	// 	}
+	// }
 
 	@Override
 	@Transactional

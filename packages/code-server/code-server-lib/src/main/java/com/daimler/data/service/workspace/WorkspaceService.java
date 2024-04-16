@@ -55,7 +55,7 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin, boolean valutInjectorEnable);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin, boolean valutInjectorEnable, String clientID, String clientSecret);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
@@ -71,11 +71,11 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
-	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished);
+	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished, String env);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
 
-	GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
+	//GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
 
 	GenericMessage updateGovernancenceValues(String userId, String id,
 			@Valid DataGovernanceRequestInfo dataGovernanceInfo);
