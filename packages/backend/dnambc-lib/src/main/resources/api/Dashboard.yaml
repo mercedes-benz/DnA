@@ -577,7 +577,19 @@ paths:
           in: query
           description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
           required: false
-          type: string       
+          type: string  
+        - name: startdate
+          in: query
+          description: Start date to filter solutions. Start date is a string used to search date and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string 
+          default: "2022"  
+        - name: enddate
+          in: query
+          description: End date to filter solutions. End date is a string used to search date and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string  
+          default: "2025"       
     responses:
       200:
        description: "Returns message of success or failure."
@@ -594,6 +606,29 @@ paths:
       500:
        description: "Internal error."                 
      
+
+ /dashboard/datavalue/minmaxyear:
+   get:
+    tags:
+    - "dashboard"
+    summary: "Get min and max year values."
+    description:  "Get min and max years in Data Value details of solution with given filter."
+    operationId: "getMinMixDataValueYear"     
+    responses:
+      200:
+       description: "Returns message of success or failure."
+       schema:
+         $ref: "#/definitions/SolDataValueMinMaxYearVO"
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error."  
 # path to get Digital Value details year wise
 #
 #  supported http methods GET 
@@ -729,7 +764,19 @@ paths:
           in: query
           description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
           required: false
-          type: string       
+          type: string  
+        - name: startdate
+          in: query
+          description: Start date to filter solutions. Start date is a string used to search date and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string 
+          default: "2022"  
+        - name: enddate
+          in: query
+          description: End date to filter solutions. End date is a string used to search date and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string  
+          default: "2025"    
     responses:
       200:
        description: "Returns message of success or failure."
@@ -875,7 +922,29 @@ definitions:
         description: "Total data value for savings."
       totalDataValueRevenue:
         type: number
-        description: "Total data value for revenue."              
+        description: "Total data value for revenue."  
+      startYear:
+        type: string
+      endYear:
+        type: string        
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"   
+          
+ SolDataValueMinMaxYearVO:
+   type: object
+   properties:
+      minYear:
+        type: integer
+        description: "Min year is data value solutions."
+      maxYear:
+        type: integer
+        description: "Max year of data value solution."        
       errors:
         type: array
         items:
