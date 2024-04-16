@@ -5,6 +5,7 @@
   min-width: 250px;
   display: flex;
   flex-flow: column;
+  position: relative;
   &:hover {
     background: #30343a !important;
   }
@@ -13,7 +14,7 @@
     justify-content: space-between;
     margin-bottom: 5px;
     //align-items: center;
-    position: relative;
+    // position: relative;
     // overflow: hidden;
     // height: 110px;
     padding: 20px;
@@ -44,7 +45,6 @@
   .solbodysection {
     padding: 15px 20px 20px 20px;
     height: 100%;
-    position: relative;
   }
   .subsolHead {
     display: flex;
