@@ -3,11 +3,11 @@
   margin: 0;
   background: #00adef;
   width: 100%;
-  padding: 15px 0px 15px 75px;
+  padding: 15px 27px 15px 75px;
+  justify-content: space-between;
 
   .content {
     display: flex;
-    flex: 88;
     margin: 0;
     justify-content: flex-start;
 
@@ -47,7 +47,6 @@
 
   .button {
     display: flex;
-    flex: 12;
     margin: 0;
     background: #00adef;
     border-color: #00adef;
