@@ -301,7 +301,7 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 
 	List<BigDecimal> getDataValuesSum(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin,String startDate, String endDate);
 	
 	/**
 	 * 
@@ -325,5 +325,7 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
+
+	List<Integer> getMinMaxYearDetails();
 
 }

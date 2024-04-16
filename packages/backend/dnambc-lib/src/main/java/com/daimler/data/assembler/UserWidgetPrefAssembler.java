@@ -153,6 +153,7 @@ public class UserWidgetPrefAssembler implements GenericAssembler<UserWidgetPrefe
 				if (filterPrefs != null) {
 
 					filterPrefVO.useCaseType(UseCaseTypeEnum.fromValue(filterPrefs.getUseCaseType()));
+					filterPrefVO.setDataValueRange(filterPrefs.getDataValueRange());
 					List<UserWidgetPreferenceDivision> divisions = filterPrefs.getDivisions();
 					List<DivisionVO> divisionsVO = new ArrayList<>();
 					if (divisions != null && !divisions.isEmpty()) {
@@ -296,6 +297,7 @@ public class UserWidgetPrefAssembler implements GenericAssembler<UserWidgetPrefe
 			if (filterPrefVO != null) {
 				if (filterPrefVO.getUseCaseType() != null)
 					filterPref.setUseCaseType(filterPrefVO.getUseCaseType().toString());
+				filterPref.setDataValueRange(filterPrefVO.getDataValueRange());
 				List<DivisionVO> divisionsVO = filterPrefVO.getDivisions();
 				List<UserWidgetPreferenceDivision> divisions = new ArrayList<>();
 				if (divisionsVO != null && !divisionsVO.isEmpty()) {
