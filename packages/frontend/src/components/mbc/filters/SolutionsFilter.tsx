@@ -1011,7 +1011,7 @@ const SolutionsFilter = ({
       )}
       <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
         {!isGenAI && (
-          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
+          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn , !isDvRangeValid ? 'disabled' : '')} onClick={saveFilterPreference}>
             Save settings
           </button>
         )}
