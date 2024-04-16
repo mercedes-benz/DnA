@@ -86,7 +86,7 @@ const FabricWorkspace = () => {
                       <div id="description">
                         <label className="input-label summary">Description</label>
                         <br />
-                        {workspace?.decription ? workspace?.decription : 'N/A'}
+                        {workspace?.description ? workspace?.description : 'N/A'}
                       </div>
                       <div id="divisionField">
                       </div>
@@ -168,7 +168,7 @@ const FabricWorkspace = () => {
                       <div id="PiiData">
                         <label className="input-label summary">PII</label>
                         <br />
-                        {workspace?.piiData === true ? 'Yes' : 'No'}
+                        {workspace?.hasPii === true ? 'Yes' : 'No'}
                       </div>
                       <div id="archerId">
                         <label className="input-label summary">Archer ID</label>
