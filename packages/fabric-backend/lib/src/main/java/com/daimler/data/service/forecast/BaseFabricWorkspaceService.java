@@ -130,7 +130,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setHasPii(vo.isHasPii());
 					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId());
 					CapacityVO capacityVO = new CapacityVO();
-					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "Failed".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
 						capacityVO = null;
 						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
 					}else {
