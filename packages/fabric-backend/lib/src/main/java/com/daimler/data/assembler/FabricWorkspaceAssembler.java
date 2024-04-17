@@ -36,6 +36,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					BeanUtils.copyProperties(creator, createdByVO);
 				}
 				vo.setCreatedBy(createdByVO);
+				vo.setHasPii(data.getHasPii());
 			}
 		}
 		return vo;
@@ -61,6 +62,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				BeanUtils.copyProperties(createdByVO, createdBy);
 			}
 			data.setCreatedBy(createdBy);
+			data.setHasPii(vo.isHasPii());
 			entity.setData(data);
 		}
 		return entity;
