@@ -91,27 +91,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 			workspaceRequestVO.setCreatedBy(requestUser);
 			workspaceRequestVO.setId(null);
 			workspaceRequestVO.setCreatedOn(new Date());
-			FabricWorkspaceResponseVO responseFromService = service.createWorkspace(workspaceRequestVO);
-			if(responseFromService!=null && responseFromService.getResponses()!=null && "SUCCESS".equalsIgnoreCase(responseFromService.getResponses().getSuccess()) ) {
-				return new ResponseEntity<>(responseFromService, HttpStatus.CREATED);
-			}else {
-				GenericMessage failedResponse = new GenericMessage();
-				List<MessageDescription> messages = new ArrayList<>();
-				if(responseFromService!=null && responseFromService.getResponses()!=null && responseFromService.getResponses().getErrors()!= null && !responseFromService.getResponses().getErrors().isEmpty())
-				{
-					failedResponse.setErrors(responseFromService.getResponses().getErrors());
-				}else {
-					MessageDescription message = new MessageDescription();
-					message.setMessage("Failed to create workspace due to internal error");
-					messages.add(message);
-					failedResponse.addErrors(message);
-				}
-				failedResponse.setSuccess("FAILED");
-				responseVO.setData(workspaceRequestVO);
-				responseVO.setResponses(failedResponse);
-				log.error("Exception occurred while creating fabric workspace project {} ", workspaceRequestVO.getName());
-				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
+			ResponseEntity<FabricWorkspaceResponseVO> responseFromService = service.createWorkspace(workspaceRequestVO);
+			return responseFromService;
 		}catch(Exception e) {
 			GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
@@ -142,8 +123,34 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> delete(@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("id") String id){
-    	
-    	return null;
+		FabricWorkspaceVO existingFabricWorkspace = service.getById(id);
+		if(existingFabricWorkspace==null || !id.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}else {
+			GenericMessage deleteResponse = service.delete(id);
+			if(deleteResponse!=null) {
+				if("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
+					return new ResponseEntity<>(deleteResponse, HttpStatus.OK);
+				}else {
+					return new ResponseEntity<>(deleteResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}else {
+				GenericMessage response = new GenericMessage();
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errMsg = new MessageDescription("");
+				errors.add(errMsg);
+				response.setErrors(errors);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
     }
 
     @Override
@@ -207,12 +214,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 			log.warn("No Fabric Workspace found with id {}", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
-		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		
 		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
-				log.warn("Fabric workspace doesnt belong to User, Not authorized to use other projects",id,existingFabricWorkspace.getName());
+				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 				return new ResponseEntity<>(existingFabricWorkspace, HttpStatus.OK);

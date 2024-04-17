@@ -117,11 +117,11 @@ public class FabricWorkspaceClient {
 				workspaceDetailDto.setErrorCode("Failed to fetch token");
 				return workspaceDetailDto;
 			}
-			if("null".equalsIgnoreCase(capacityId)) {
-				createRequest.setCapacityId(null);
-			}else {
-				createRequest.setCapacityId(capacityId);
-			}
+//			if("null".equalsIgnoreCase(capacityId)) {
+//				createRequest.setCapacityId(null);
+//			}else {
+//				createRequest.setCapacityId(capacityId);
+//			}
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
@@ -133,6 +133,12 @@ public class FabricWorkspaceClient {
 				workspaceDetailDto = response.getBody();
 			}
 		}catch(HttpClientErrorException.Conflict e) {
+			workspaceDetailDto.setErrorCode("409");
+			workspaceDetailDto.setMessage("Workspace name already exists");
+			log.error("Failed to create workspace with displayName {} with conflict error {} ", createRequest.getDisplayName(), e.getMessage());
+		}catch(Exception e) {
+			workspaceDetailDto.setErrorCode("500");
+			workspaceDetailDto.setMessage(e.getMessage());
 			log.error("Failed to create workspace with displayName {} with error {} ", createRequest.getDisplayName(), e.getMessage());
 		}
 		return workspaceDetailDto;
@@ -258,15 +264,63 @@ public class FabricWorkspaceClient {
 		return workspaceDetailDto;
 	}
 	
-//	public ErrorResponseDto assignCapacity(String workspaceId, String capacityId) {
-//		
-//		return null;
-//	}
-//	
-//	public ErrorResponseDto unassignCapacity(String workspaceId) {
-//		
-//		return null;
-//	}
+	public ErrorResponseDto assignCapacity(String workspaceId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("Failed");
+				errorResponse.setMessage("Failed to fetch token while assigning capacity to workspace. Please reassign or update workspace.");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String request = "{\"capacityId\": \"" + capacityId +"\"}";
+			HttpEntity<String> requestEntity = new HttpEntity<>(request,headers);
+			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/assignToCapacity";
+			ResponseEntity<ErrorResponseDto> response = restTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
+					requestEntity, ErrorResponseDto.class);
+			if (response!=null && response.hasBody()) {
+				errorResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			errorResponse.setErrorCode("Failed");
+			errorResponse.setMessage("Failed to assign capacity to workspace, with error " + e.getMessage());
+			log.error("Failed to assign capacity {} to workspace with displayName {} with error {} ", capacityId, workspaceId , e.getMessage());
+		}
+		return errorResponse;
+	}
+	
+	public ErrorResponseDto unassignCapacity(String workspaceId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("Failed to fetch token");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String request = "{\"capacityId\": \"" + capacityId +"\"}";
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/unassignFromCapacity";
+			ResponseEntity<ErrorResponseDto> response = restTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
+					requestEntity, ErrorResponseDto.class);
+			if (response!=null && response.hasBody()) {
+				errorResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			errorResponse.setErrorCode("Failed to unassign capacity, with error " + e.getMessage());
+			log.error("Failed to unassign capacity {} of workspace with displayName {} with error {} ", capacityId, workspaceId , e.getMessage());
+		}
+		return errorResponse;
+	}
 	
 	public ErrorResponseDto deleteWorkspace(String workspaceId) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
@@ -283,12 +337,13 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId;
-			ResponseEntity<WorkspaceDetailDto> response = restTemplate.exchange(workspaceUrl , HttpMethod.GET,
+			ResponseEntity<WorkspaceDetailDto> response = restTemplate.exchange(workspaceUrl , HttpMethod.DELETE,
 					requestEntity, WorkspaceDetailDto.class);
 			if (response !=null && response.getStatusCode().is2xxSuccessful()) {
 				errorResponse = null;
 			}
 		}catch(Exception e) {
+			errorResponse.setMessage("Failed to delete workspace with error : " + e.getMessage());
 			log.error("Failed to delete workspace details for id {} with {} exception ", workspaceId, e.getMessage());
 		}
 		return errorResponse;
