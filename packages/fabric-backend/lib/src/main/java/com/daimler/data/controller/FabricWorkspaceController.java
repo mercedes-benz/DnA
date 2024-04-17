@@ -66,12 +66,12 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		FabricWorkspaceVO data = new FabricWorkspaceVO();
 		FabricWorkspaceVO workspaceRequestVO = workspaceCreateVO.getData();
 		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null || workspaceRequestVO.getDescription()==null 
-				|| workspaceRequestVO.getDivision() == null || workspaceRequestVO.getSubDivision() == null || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getDataClassification() ==null
+				|| workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
 				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null) {
 			log.error("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
 			MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(workspaceRequestVO);
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
@@ -80,7 +80,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 			log.error("Fabric workspace project name cannot be Admin monitoring, cannot use reserve keyword. Please send valid input");
 			MessageDescription invalidMsg = new MessageDescription("Fabric workspace project name cannot be Admin monitoring, cannot use reserve keyword. Please send valid input");
 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(workspaceRequestVO);
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
