@@ -198,7 +198,7 @@ definitions:
       projectOwner:
         $ref: "#/definitions/UserInfoVO"
       securityConfig:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+        $ref: "#/definitions/CodespacePublishedSecurityConfigVO"
 
   CodespaceSecurityConfigCollectionVO: 
     type: object
@@ -210,4 +210,13 @@ definitions:
      totalCount:
         type: integer
         description: "Total number of Codespace projects that requested for publishing security configurations"     
+
+  CodespacePublishedSecurityConfigVO:
+    type: object
+    properties:
+      staging:
+        $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+      production:
+        $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+    
 

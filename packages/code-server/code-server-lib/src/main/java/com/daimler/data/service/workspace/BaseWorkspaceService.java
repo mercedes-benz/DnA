@@ -1460,10 +1460,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 						if(isPublished){
 							if("int".equalsIgnoreCase(env)){
-								entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getPublished());
+								entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
 							}
 							if("prod".equalsIgnoreCase(env)){
-								entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getPublished());
+								entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
 							}
 						}
 						entities.add(entity);

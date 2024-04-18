@@ -18,8 +18,7 @@ import lombok.NoArgsConstructor;
 public class CodespaceSecurityEntitlement implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	private String id;
+	
 	private String name;
 	private List<CodespaceSecurityApiList> apiList;
 	

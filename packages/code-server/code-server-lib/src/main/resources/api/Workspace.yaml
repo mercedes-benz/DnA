@@ -557,11 +557,19 @@ paths:
           description: "Workspace name to be fetched"
           required: true
           type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -745,11 +753,19 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -997,9 +1013,6 @@ definitions:
   CodespaceSecurityEntitlementVO: 
     type: object
     properties:
-      id:
-        type: string
-        description: "Entitlement Id" 
       name:
         type: string
         description: "name  of Entitlement"   
@@ -1102,51 +1115,10 @@ definitions:
       #   type: string
       #   description: "Status of security configurations"   
       staging:
-        type: object
-        properties:
-          draft:
-            # type: object
-            # properties:
-            #   entitlements:
-            #       type: array
-            #       items:
-            #         $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-            #   appId:
-            #     type: string
-            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
-          published:
-            # type: object
-            # properties:
-            #   entitlements:
-            #       type: array
-            #       items:
-            #         $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
-              # appId:
-              #   type: string
+          $ref: "#/definitions/CodespaceSecurityConfigDetailCollectionVO"
+         
       production:
-        type: object
-        properties:
-          draft:
-            # type: object
-            # properties:
-            #   entitlements:
-            #       type: array
-            #       items:
-            #         $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-            #   appId:
-            #     type: string
-            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
-          published:
-            # type: object
-            # properties:
-            #   entitlements:
-            #       type: array
-            #       items:
-            #         $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-            #   appId:
-            #     type: string
-            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+          $ref: "#/definitions/CodespaceSecurityConfigDetailCollectionVO"
       # roles:
       #   type: array
       #   items:
@@ -1393,9 +1365,14 @@ definitions:
       #   type: array
       #   items:
       #     type: string
-      isProtectedByDna:
-        type: boolean
       # requestedDate:
       #   type: string
       # projectName:
       #   type: string
+  CodespaceSecurityConfigDetailCollectionVO:
+    type: object  
+    properties:
+      draft:
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+      published:
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"

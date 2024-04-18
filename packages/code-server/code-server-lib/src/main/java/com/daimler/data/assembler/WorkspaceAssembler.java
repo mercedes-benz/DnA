@@ -48,6 +48,7 @@ import com.daimler.data.db.json.CodeServerProjectDetails;
 import com.daimler.data.db.json.CodeServerRecipeDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
+import com.daimler.data.db.json.CodespaceSecurityConfigDetailCollection;
 import com.daimler.data.db.json.CodespaceSecurityConfigDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfigDetailsLOV;
 import com.daimler.data.db.json.CodespaceSecurityEntitlement;
@@ -69,10 +70,12 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO.HttpMethodEnum;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailCollectionVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO;
+import com.daimler.data.dto.workspace.admin.CodespacePublishedSecurityConfigVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
@@ -332,58 +335,76 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		if (CodespaceSecurityConfig != null) {
 			BeanUtils.copyProperties(CodespaceSecurityConfig, codespaceSecurityConfigVO);
 
-			CodespaceSecurityConfigDetails stagingDraftConfig = CodespaceSecurityConfig.getStaging().getDraft();
+			CodespaceSecurityConfigDetails stagingDraftConfig = CodespaceSecurityConfig.getStaging ().getDraft();
+			CodespaceSecurityConfigDetailVO stagingDraftConfigVO = new CodespaceSecurityConfigDetailVO();
 			if(stagingDraftConfig !=null){
-				codespaceSecurityConfigVO.getStaging().getDraft().setAppID(stagingDraftConfig.getAppID());
+				
+				stagingDraftConfigVO.setAppID(stagingDraftConfig.getAppID());
 				List<CodespaceSecurityEntitlement> entitlements = stagingDraftConfig.getEntitlements();
 				if (entitlements != null && !entitlements.isEmpty()) {
 					List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
 							.collect(Collectors.toList());
-					codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(entitlementsVO);
+					//codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(entitlementsVO);
+					stagingDraftConfigVO.setEntitlements(entitlementsVO);
 				} 
 			}else {
-				codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(new ArrayList<>());
+				//codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(new ArrayList<>());
+				stagingDraftConfigVO.setEntitlements(new ArrayList<>());
 			}
 
 			CodespaceSecurityConfigDetails stagingPublishedConfig = CodespaceSecurityConfig.getStaging().getPublished();
+			CodespaceSecurityConfigDetailVO stagingPublishedConfigVO = new CodespaceSecurityConfigDetailVO();
 			if(stagingPublishedConfig !=null){
-				codespaceSecurityConfigVO.getStaging().getPublished().setAppID(stagingPublishedConfig.getAppID());
+				
+				stagingPublishedConfigVO.setAppID(stagingPublishedConfig.getAppID());
 				List<CodespaceSecurityEntitlement> entitlements = stagingPublishedConfig.getEntitlements();
 				if (entitlements != null && !entitlements.isEmpty()) {
 					List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
 							.collect(Collectors.toList());
-					codespaceSecurityConfigVO.getStaging().getPublished().setEntitlements(entitlementsVO);
+					stagingPublishedConfigVO.setEntitlements(entitlementsVO);
 				} 
 			}else {
-				codespaceSecurityConfigVO.getStaging().getPublished().setEntitlements(new ArrayList<>());
+				stagingPublishedConfigVO.setEntitlements(new ArrayList<>());
 			}
 
 			CodespaceSecurityConfigDetails productionPublishedConfig = CodespaceSecurityConfig.getProduction().getPublished();
+			CodespaceSecurityConfigDetailVO productionPublishedConfigVO = new CodespaceSecurityConfigDetailVO();
 			if(productionPublishedConfig !=null){
-				codespaceSecurityConfigVO.getProduction().getPublished().setAppID(productionPublishedConfig.getAppID());
+		
+				productionPublishedConfigVO.setAppID(productionPublishedConfig.getAppID());
 				List<CodespaceSecurityEntitlement> entitlements = productionPublishedConfig.getEntitlements();
 				if (entitlements != null && !entitlements.isEmpty()) {
 					List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
 							.collect(Collectors.toList());
-					codespaceSecurityConfigVO.getProduction().getPublished().setEntitlements(entitlementsVO);
+							productionPublishedConfigVO.setEntitlements(entitlementsVO);
 				} 
 			}else {
-				codespaceSecurityConfigVO.getProduction().getPublished().setEntitlements(new ArrayList<>());
+				productionPublishedConfigVO.setEntitlements(new ArrayList<>());
 			}
 
 			CodespaceSecurityConfigDetails productionDraftConfig = CodespaceSecurityConfig.getProduction().getDraft();
+			CodespaceSecurityConfigDetailVO productionDraftConfigVO = new CodespaceSecurityConfigDetailVO();
 			if(productionDraftConfig !=null){
-				codespaceSecurityConfigVO.getProduction().getDraft().setAppID(productionDraftConfig.getAppID());
+				productionDraftConfigVO.setAppID(productionDraftConfig.getAppID());
 				List<CodespaceSecurityEntitlement> entitlements = productionDraftConfig.getEntitlements();
 				if (entitlements != null && !entitlements.isEmpty()) {
 					List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
 							.collect(Collectors.toList());
-					codespaceSecurityConfigVO.getProduction().getDraft().setEntitlements(entitlementsVO);
+							productionDraftConfigVO.setEntitlements(entitlementsVO);
 				} 
 			}else {
-				codespaceSecurityConfigVO.getProduction().getDraft().setEntitlements(new ArrayList<>());
-			}
+				productionDraftConfigVO.setEntitlements(new ArrayList<>());
+			} 
 
+			CodespaceSecurityConfigDetailCollectionVO stagingCollection = new CodespaceSecurityConfigDetailCollectionVO();
+			stagingCollection.setDraft(stagingDraftConfigVO);
+			stagingCollection.setPublished(stagingPublishedConfigVO);
+			CodespaceSecurityConfigDetailCollectionVO productionCollection = new CodespaceSecurityConfigDetailCollectionVO();
+			productionCollection.setDraft(productionDraftConfigVO);
+			productionCollection.setPublished(productionPublishedConfigVO);
+
+			codespaceSecurityConfigVO.setStaging(stagingCollection);
+			codespaceSecurityConfigVO.setProduction(productionCollection);
 		}
 		// List<CodespaceSecurityRole> roles = CodespaceSecurityConfig.getRoles();
 		// if (roles != null && !roles.isEmpty()) {
@@ -414,48 +435,62 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			}
 
 			CodespaceSecurityConfigDetailVO stagingDraftConfigVO = CodespaceSecurityConfigVO.getStaging().getDraft();
+			CodespaceSecurityConfigDetails stagingDraftConfig = new CodespaceSecurityConfigDetails();
 			if(stagingDraftConfigVO !=null){
-				entity.getStaging().getDraft().setAppID(stagingDraftConfigVO.getAppID());
+				stagingDraftConfig.setAppID(stagingDraftConfigVO.getAppID());
 				List<CodespaceSecurityEntitlementVO> entitlementsVO = stagingDraftConfigVO.getEntitlements();
 				if (entitlementsVO != null && !entitlementsVO.isEmpty()) {
 					List<CodespaceSecurityEntitlement> entitlements = entitlementsVO.stream().map(n -> toEntitlement(n))
 							.collect(Collectors.toList());
-					entity.getStaging().getDraft().setEntitlements(entitlements);
+					stagingDraftConfig.setEntitlements(entitlements);
 				}
 			}
 
 			CodespaceSecurityConfigDetailVO stagingPublishedConfigVO = CodespaceSecurityConfigVO.getStaging().getPublished();
+			CodespaceSecurityConfigDetails stagingPublishedConfig = new CodespaceSecurityConfigDetails();
 			if(stagingPublishedConfigVO !=null){
-				entity.getStaging().getPublished().setAppID(stagingPublishedConfigVO.getAppID());
+				stagingPublishedConfig.setAppID(stagingPublishedConfigVO.getAppID());
 				List<CodespaceSecurityEntitlementVO> entitlementsVO = stagingPublishedConfigVO.getEntitlements();
 				if (entitlementsVO != null && !entitlementsVO.isEmpty()) {
 					List<CodespaceSecurityEntitlement> entitlements = entitlementsVO.stream().map(n -> toEntitlement(n))
 							.collect(Collectors.toList());
-					entity.getStaging().getPublished().setEntitlements(entitlements);
+					stagingPublishedConfig.setEntitlements(entitlements);
 				}
 			}
 
 			CodespaceSecurityConfigDetailVO productionPublishedConfigVO = CodespaceSecurityConfigVO.getProduction().getPublished();
+			CodespaceSecurityConfigDetails productionPublishedConfig = new CodespaceSecurityConfigDetails();
 			if(productionPublishedConfigVO !=null){
-				entity.getProduction().getPublished().setAppID(productionPublishedConfigVO.getAppID());
+				productionPublishedConfig.setAppID(productionPublishedConfigVO.getAppID());
 				List<CodespaceSecurityEntitlementVO> entitlementsVO = productionPublishedConfigVO.getEntitlements();
 				if (entitlementsVO != null && !entitlementsVO.isEmpty()) {
 					List<CodespaceSecurityEntitlement> entitlements = entitlementsVO.stream().map(n -> toEntitlement(n))
 							.collect(Collectors.toList());
-					entity.getProduction().getPublished().setEntitlements(entitlements);
+					productionPublishedConfig.setEntitlements(entitlements);
 				}
 			}
 
 			CodespaceSecurityConfigDetailVO productionDraftConfigVO = CodespaceSecurityConfigVO.getProduction().getDraft();
+			CodespaceSecurityConfigDetails productionDraftConfig = new CodespaceSecurityConfigDetails();
 			if(productionDraftConfigVO !=null){
-				entity.getProduction().getDraft().setAppID(productionDraftConfigVO.getAppID());
+				productionDraftConfig.setAppID(productionDraftConfigVO.getAppID());
 				List<CodespaceSecurityEntitlementVO> entitlementsVO = productionDraftConfigVO.getEntitlements();
 				if (entitlementsVO != null && !entitlementsVO.isEmpty()) {
 					List<CodespaceSecurityEntitlement> entitlements = entitlementsVO.stream().map(n -> toEntitlement(n))
 							.collect(Collectors.toList());
-					entity.getProduction().getDraft().setEntitlements(entitlements);
+					productionDraftConfig.setEntitlements(entitlements);
 				}
 			}
+			
+			CodespaceSecurityConfigDetailCollection stagingCollection = new CodespaceSecurityConfigDetailCollection();
+			stagingCollection.setDraft(stagingDraftConfig);
+			stagingCollection.setPublished(stagingPublishedConfig);
+			CodespaceSecurityConfigDetailCollection productionCollection = new CodespaceSecurityConfigDetailCollection();
+			productionCollection.setDraft(productionDraftConfig);
+			productionCollection.setPublished(productionPublishedConfig);
+
+			entity.setStaging(stagingCollection);
+			entity.setProduction(productionCollection);
 		}
 		// List<CodespaceSecurityRoleVO> rolesVO = CodespaceSecurityConfigVO.getRoles();
 		// if (rolesVO != null && !rolesVO.isEmpty()) {
@@ -588,12 +623,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 									.tosecurityConfigVO(projectDetails.getSecurityConfig());
 							projectDetailsVO.setSecurityConfig(securityConfigVO);
 						}
-						if (projectDetails.getPublishedSecurityConfig() != null) {
-							CodespaceSecurityConfigVO publishedSecuirtyConfigVO = this
-									.tosecurityConfigVO(projectDetails.getPublishedSecurityConfig());
-							projectDetailsVO.setPublishedSecuirtyConfig(publishedSecuirtyConfigVO);
+						// if (projectDetails.getPublishedSecurityConfig() != null) {
+						// 	CodespaceSecurityConfigVO publishedSecuirtyConfigVO = this
+						// 			.tosecurityConfigVO(projectDetails.getPublishedSecurityConfig());
+						// 	projectDetailsVO.setPublishedSecuirtyConfig(publishedSecuirtyConfigVO);
 
-						}
+						// }
 						if (projectDetails.getProjectCreatedOn() != null)
 							projectDetailsVO.setProjectCreatedOn(
 									isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
@@ -807,79 +842,84 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	// 	return assembledSecurityConfig;
 	// }
 
-	public CodespaceSecurityConfigDetailVO generateSecurityConfigIds(CodespaceSecurityConfigDetailVO data, String projectName) {
-		CodespaceSecurityConfigDetailVO securityConfigWithIds = new CodespaceSecurityConfigDetailVO();
-		if (data != null) {
+// 	public CodespaceSecurityConfigDetailVO generateSecurityConfigIds(CodespaceSecurityConfigDetailVO data, String projectName) {
+// 		CodespaceSecurityConfigDetailVO securityConfigWithIds = new CodespaceSecurityConfigDetailVO();
+// 		if (data != null) {
 
-			//securityConfigWithIds.setStatus(data.getStatus());
-			securityConfigWithIds.setAppID(data.getAppID());
-			if (data.getEntitlements() != null) {
-				securityConfigWithIds.setEntitlements(data.getEntitlements());
-			} else {
-				securityConfigWithIds.setEntitlements(new ArrayList<>());
-			}
-			// if (data.getOpenSegments() != null) {
-			// 	securityConfigWithIds.setOpenSegments(data.getOpenSegments());
-			// } else {
-			// 	securityConfigWithIds.setOpenSegments(new ArrayList<>());
-			// }
-			// if (data.isIsProtectedByDna() != null) {
-			// 	securityConfigWithIds.setIsProtectedByDna(data.isIsProtectedByDna());
-			// }
+// 			//securityConfigWithIds.setStatus(data.getStatus());
+// 			securityConfigWithIds.setAppID(data.getAppID());
+// 			if (data.getEntitlements() != null) {
+// 				securityConfigWithIds.setEntitlements(data.getEntitlements());
+// 			} else {
+// 				securityConfigWithIds.setEntitlements(new ArrayList<>());
+// 			}
+// 			// if (data.getOpenSegments() != null) {
+// 			// 	securityConfigWithIds.setOpenSegments(data.getOpenSegments());
+// 			// } else {
+// 			// 	securityConfigWithIds.setOpenSegments(new ArrayList<>());
+// 			// }
+// 			// if (data.isIsProtectedByDna() != null) {
+// 			// 	securityConfigWithIds.setIsProtectedByDna(data.isIsProtectedByDna());
+// 			// }
 
-			List<CodespaceSecurityEntitlementVO> entitlementList = new ArrayList<>();
-			if (data.getEntitlements() != null) {
-				entitlementList = data.getEntitlements();
-			}
-			// List<CodespaceSecurityRoleVO> roleList = new ArrayList<>();
-			// if (data.getRoles() != null) {
-			// 	roleList = data.getRoles();
-			// }
-			// List<CodespaceSecurityUserRoleMapVO> roleMapList = new ArrayList<>();
-			// if (data.getUserRoleMappings() != null) {
-			// 	roleMapList = data.getUserRoleMappings();
-			// }
-			for (CodespaceSecurityEntitlementVO entitlement : entitlementList) {
-				if(entitlement.getId()==null){
-					entitlement.setId(UUID.randomUUID().toString());
-				}
-				// if(projectName!=null){
-				// 	if(!entitlement.getName().startsWith(projectName)){
-				// 		entitlement.setName(projectName+"_"+entitlement.getName());
-				// 	}
-				// }
-			}
-			securityConfigWithIds.setEntitlements(entitlementList);
-			// for(CodespaceSecurityRoleVO role : roleList){
-			// 	if(role.getId()==null){
-			// 		role.setId(UUID.randomUUID().toString());
-			// 	}
-				// if(projectName!=null){
-				// 	if(!role.getName().startsWith(projectName)){
-				// 		role.setName(projectName+"_"+role.getName());
-				// 	}
-				// }
-			// }
-			// securityConfigWithIds.setRoles(roleList);
-//			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
-//				if(userRoleMap.getId()==null){
-//					userRoleMap.setId(UUID.randomUUID().toString());
-//				}
-//			}
-			//securityConfigWithIds.setUserRoleMappings(roleMapList);
+// 			List<CodespaceSecurityEntitlementVO> entitlementList = new ArrayList<>();
+// 			if (data.getEntitlements() != null) {
+// 				entitlementList = data.getEntitlements();
+// 			}
+// 			// List<CodespaceSecurityRoleVO> roleList = new ArrayList<>();
+// 			// if (data.getRoles() != null) {
+// 			// 	roleList = data.getRoles();
+// 			// }
+// 			// List<CodespaceSecurityUserRoleMapVO> roleMapList = new ArrayList<>();
+// 			// if (data.getUserRoleMappings() != null) {
+// 			// 	roleMapList = data.getUserRoleMappings();
+// 			// }
+// 			for (CodespaceSecurityEntitlementVO entitlement : entitlementList) {
+// 				if(entitlement.getId()==null){
+// 					entitlement.setId(UUID.randomUUID().toString());
+// 				}
+// 				// if(projectName!=null){
+// 				// 	if(!entitlement.getName().startsWith(projectName)){
+// 				// 		entitlement.setName(projectName+"_"+entitlement.getName());
+// 				// 	}
+// 				// }
+// 			}
+// 			securityConfigWithIds.setEntitlements(entitlementList);
+// 			// for(CodespaceSecurityRoleVO role : roleList){
+// 			// 	if(role.getId()==null){
+// 			// 		role.setId(UUID.randomUUID().toString());
+// 			// 	}
+// 				// if(projectName!=null){
+// 				// 	if(!role.getName().startsWith(projectName)){
+// 				// 		role.setName(projectName+"_"+role.getName());
+// 				// 	}
+// 				// }
+// 			// }
+// 			// securityConfigWithIds.setRoles(roleList);
+// //			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
+// //				if(userRoleMap.getId()==null){
+// //					userRoleMap.setId(UUID.randomUUID().toString());
+// //				}
+// //			}
+// 			//securityConfigWithIds.setUserRoleMappings(roleMapList);
 			
-		}
-		return securityConfigWithIds;
-	}
+// 		}
+// 		return securityConfigWithIds;
+// 	}
 
 	public CodespaceSecurityConfigDetailsVO dtoToVo(CodespaceSecurityConfigDto dto) {
 		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
+		CodespacePublishedSecurityConfigVO publishedSecuirtyConfigVO = new CodespacePublishedSecurityConfigVO();
+
 		try {
 			if (dto != null) {
 				vo.setId(dto.getId());
 				vo.setProjectName(dto.getProjectName());
 				vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
-				vo.setSecurityConfig(tosecurityConfigVO(dto.getSecurityConfig()));
+				CodespaceSecurityConfigVO  securityConfigVO = tosecurityConfigVO(dto.getSecurityConfig());
+				publishedSecuirtyConfigVO.setStaging(securityConfigVO.getStaging().getPublished());
+				publishedSecuirtyConfigVO.setProduction(securityConfigVO.getProduction().getPublished());
+				vo.setSecurityConfig(publishedSecuirtyConfigVO);
 			}
 		} catch (Exception e) {
 			log.error("Failed in assembler", e.getMessage());

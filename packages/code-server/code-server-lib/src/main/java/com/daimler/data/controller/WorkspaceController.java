@@ -74,6 +74,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemE
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailCollectionVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailVO;
@@ -331,9 +332,9 @@ import lombok.extern.slf4j.Slf4j;
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
 			}
-			if(data.isIsProtectedByDna()== null){
-				data.isProtectedByDna(false);
-			 }
+			// if(data.isIsProtectedByDna()== null){
+			// 	data.isProtectedByDna(false);
+			//  }
 			//  if(data.isIsProtectedByDna()!=null && ! data.isIsProtectedByDna())
 			//  {
 			// 	 List<CodespaceSecurityEntitlementVO> entitlemtVOs = data.getEntitlements();
@@ -436,18 +437,42 @@ import lombok.extern.slf4j.Slf4j;
 				//  if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 				// 		 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo
 				// 				 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
-					 data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
+					//data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 					 //data = workspaceAssembler.assembleSecurityConfig(vo,data,env);
-					 if("int".equalsIgnoreCase(env)){
-					 	vo.getProjectDetails().getSecurityConfig().getStaging().setDraft(data);;
-					 }
-					 if("prod".equalsIgnoreCase(env)){
-						vo.getProjectDetails().getSecurityConfig().getProduction().setDraft(data);;
+					 if(vo.getProjectDetails().getSecurityConfig() == null){
+						
+						CodespaceSecurityConfigDetailCollectionVO collectionVO = new CodespaceSecurityConfigDetailCollectionVO();
+					 	CodespaceSecurityConfigVO configVO = new CodespaceSecurityConfigVO();
+						if("int".equalsIgnoreCase(env)){
+							collectionVO.setDraft(data);
+							configVO.setStaging(collectionVO);
+							configVO.setProduction(new CodespaceSecurityConfigDetailCollectionVO());
+							vo.getProjectDetails().setSecurityConfig(configVO);
+						}
+						if("prod".equalsIgnoreCase(env)){
+							collectionVO.setDraft(data);
+							configVO.setProduction(collectionVO);
+							configVO.setStaging(new CodespaceSecurityConfigDetailCollectionVO());
+							vo.getProjectDetails().setSecurityConfig(configVO);
+						}
+						responseMessage = service.saveSecurityConfig(vo,false,env);
+						saveConfigResponse.setResponse(responseMessage);
+						saveConfigResponse.setData(data);
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
+
+					}else{
+						if("int".equalsIgnoreCase(env)){
+							vo.getProjectDetails().getSecurityConfig().getStaging().setDraft(data);
+							
+						}
+						if("prod".equalsIgnoreCase(env)){
+							vo.getProjectDetails().getSecurityConfig().getProduction().setDraft(data);
+						}
+						responseMessage = service.saveSecurityConfig(vo,false,env);
+						saveConfigResponse.setResponse(responseMessage);
+						saveConfigResponse.setData(data);
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 					}
-					 responseMessage = service.saveSecurityConfig(vo,false,env);
-					 saveConfigResponse.setResponse(responseMessage);
-					saveConfigResponse.setData(data);
-					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 				// }
 			 //}
 			// data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
@@ -1347,10 +1372,10 @@ import lombok.extern.slf4j.Slf4j;
 	//  }
  
 	 @Override
-	 @ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigVO.class, tags = {
+	 @ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigDetailVO.class, tags = {
 			 "code-server", })
 	 @ApiResponses(value = {
-			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
+			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigDetailVO.class),
 			 @ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			 @ApiResponse(code = 400, message = "Bad request."),
 			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -1359,9 +1384,11 @@ import lombok.extern.slf4j.Slf4j;
 			 @ApiResponse(code = 500, message = "Internal error") })
 	 @RequestMapping(value = "/workspaces/{id}/config", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
-	 public ResponseEntity<CodespaceSecurityConfigVO> getSecurityConfig(
-			 @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
-				CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
+	 public ResponseEntity<CodespaceSecurityConfigDetailVO> getSecurityConfig(
+			 @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id,
+			 @NotNull @ApiParam(value = "environment variable to select the target environment") @Valid @RequestParam(value = "env", required = false) String env) {
+ 
+			CodespaceSecurityConfigDetailVO getConfigResponse = new CodespaceSecurityConfigDetailVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
@@ -1390,9 +1417,20 @@ import lombok.extern.slf4j.Slf4j;
 			 log.info("No security configurations for workspace found");
 			 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		 }
-		 getConfigResponse = vo.getProjectDetails().getSecurityConfig();
+		 if("int".equalsIgnoreCase(env)){
+			if(vo.getProjectDetails().getSecurityConfig().getStaging().getDraft().getEntitlements()!=null){
+				getConfigResponse = vo.getProjectDetails().getSecurityConfig().getStaging().getDraft();
+				return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
+			}
+		}
+		if("prod".equalsIgnoreCase(env)){
+			if(vo.getProjectDetails().getSecurityConfig().getProduction().getDraft().getEntitlements()!=null){
+				getConfigResponse = vo.getProjectDetails().getSecurityConfig().getProduction().getDraft();
+				return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
+			}
+		}
 		// getConfigResponse.setProjectName(vo.getProjectDetails().getProjectName());
-		 return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
+		return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 	 }
  
 	//  @Override
@@ -1618,10 +1656,10 @@ import lombok.extern.slf4j.Slf4j;
 	 }
 
 	 @Override
-	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigVO.class, tags = {
+	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigDetailVO.class, tags = {
 			"code-server", })
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
+            @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigDetailVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -1630,8 +1668,10 @@ import lombok.extern.slf4j.Slf4j;
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<CodespaceSecurityConfigVO> getPublishedSecurityConfigDetails(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
-		CodespaceSecurityConfigVO configPublishedDetailsVO = new CodespaceSecurityConfigVO();
+	public ResponseEntity<CodespaceSecurityConfigDetailVO> getPublishedSecurityConfigDetails(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id,
+	@NotNull @ApiParam(value = "environment variable to select the target environment") @Valid @RequestParam(value = "env", required = false) String env) {
+
+		CodespaceSecurityConfigDetailVO configPublishedDetailsVO = new CodespaceSecurityConfigDetailVO();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -1651,9 +1691,21 @@ import lombok.extern.slf4j.Slf4j;
 			log.debug("No published security config found, returning empty");
 			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		}
-		configPublishedDetailsVO = vo.getProjectDetails().getPublishedSecuirtyConfig();
+		if("int".equalsIgnoreCase(env)){
+			if(vo.getProjectDetails().getSecurityConfig().getStaging().getPublished().getEntitlements()!=null){
+				configPublishedDetailsVO = vo.getProjectDetails().getSecurityConfig().getStaging().getPublished();
+				return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
+			}
+		}
+		if("prod".equalsIgnoreCase(env)){
+			if(vo.getProjectDetails().getSecurityConfig().getProduction().getPublished().getEntitlements()!=null){
+				configPublishedDetailsVO = vo.getProjectDetails().getSecurityConfig().getProduction().getPublished();
+				return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
+			}
+		}
 		//configPublishedDetailsVO.setProjectName(vo.getProjectDetails().getProjectName());
-		return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
+		return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+		
 	}
    
    	@Override

@@ -433,7 +433,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
 		apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
 		apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
-		apiAuthoriserPluginConfigVO.setEnvironment(env);
 		apiAuthoriserPluginConfigVO.setLogType(logType);
 		apiAuthoriserPluginConfigVO.setPoolID(poolID);
 		apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
