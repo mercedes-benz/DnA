@@ -6,7 +6,7 @@ const devConfig = {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {
-    port: 8091,
+    port: 8092,
     historyApiFallback: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
