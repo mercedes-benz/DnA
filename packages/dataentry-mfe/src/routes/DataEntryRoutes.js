@@ -23,7 +23,7 @@ export const protectedRoutes = [
   {
     component: DataEntryProject,
     exact: true,
-    path: '/workspace/:id',
+    path: '/project/:id',
   },
 ];
 
