@@ -16,5 +16,5 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=base /usr/src/packages/fabric-mfe/dist .
 COPY nginx.conf /opt/bitnami/nginx/conf/nginx.conf
 RUN chmod -R g+rwX /usr/share/nginx/html
-EXPOSE 8093
+EXPOSE 8092
 USER 1001
