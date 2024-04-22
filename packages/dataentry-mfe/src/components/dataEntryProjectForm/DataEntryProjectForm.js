@@ -34,9 +34,7 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-
-  const [costCenter, setCostCenter] = useState(edit && project?.costCenter !== null ? project?.costCenter : '');
-  const [internalOrder, setInternalOrder] = useState(edit && project?.internalOrder !== null ? project?.internalOrder : '');
+  
   const [division, setDivision] = useState(edit ? (project?.divisionId ? project?.divisionId + '@-@' + project?.division : '0') : '');
   const [subDivision, setSubDivision] = useState(edit ? (project?.subDivisionId ? project?.subDivisionId + '@-@' + project?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && project?.decription ? project?.decription : '');
@@ -129,10 +127,6 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter,
-      internalOrder: values?.internalOrder,
-      // relatedSolutions: relatedSolutions,
-      // relatedReports: relatedReports,
     };
     dataEntryApi.createDataEntryProject(data).then((res) => {
       ProgressIndicator.hide();
@@ -161,8 +155,6 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter,
-      internalOrder: values?.internalOrder,
     }
     ProgressIndicator.show();
     dataEntryApi.updateDataEntryProject(data, project.id).then(() => {
@@ -273,46 +265,6 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
                   rows={50}
                 />
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
-              </div>
-
-              <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Cost Center <sup>*</sup>
-                  </label>
-                  <div>
-                    <input
-                      type="text"
-                      className={classNames('input-field', Styles.workspaceNameField)}
-                      id="costCenter"
-                      placeholder="Type here"
-                      autoComplete="off"
-                      maxLength={55}
-                      readOnly={edit}
-                      defaultValue={costCenter}
-                      {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
-                    />
-                    <span className={classNames('error-message')}>{errors?.name?.message}</span>
-                  </div>
-                </div>
-                <div className={classNames('input-field-group')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Internal Order
-                  </label>
-                  <div>
-                    <input
-                      type="text"
-                      className={classNames('input-field', Styles.workspaceNameField)}
-                      id="internalOrder"
-                      placeholder="Type here"
-                      autoComplete="off"
-                      maxLength={55}
-                      readOnly={edit}
-                      defaultValue={internalOrder}
-                      {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
-                    />
-                  </div>
-                </div>
               </div>
 
               <div className={Styles.flexLayout}>

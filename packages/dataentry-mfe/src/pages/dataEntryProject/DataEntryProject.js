@@ -7,12 +7,14 @@ import Caption from 'dna-container/Caption';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-// import DataEntrySheet from '../../components/dataEntrySheet/DataEntrySheet';
+import DataEntrySheet from '../../components/dataEntrySheet/DataEntrySheet';
 import { dataEntryApi } from '../../apis/dataentry.api';
+import { DEFAULT_WORKBOOK_DATA } from '../../utilities/template';
 
 const DataEntryProject = () => {
   const { id: projectId } = useParams();
   const univerRef = useRef();
+  const [data] = useState(DEFAULT_WORKBOOK_DATA);
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
@@ -64,7 +66,7 @@ const DataEntryProject = () => {
               Get Data
             </button>
             <div>
-              {/* <DataEntrySheet style={{ flex: 1 }} ref={univerRef} data={data} /> */}
+              <DataEntrySheet style={{ flex: 1 }} ref={univerRef} data={data} />
             </div>
           </div>
           <div className={Styles.content}>
@@ -103,30 +105,6 @@ const DataEntryProject = () => {
                         {project?.decription ? project?.decription : 'N/A'}
                       </div>
                       <div id="divisionField">
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="typeOfProjectOption">
-                        <label className="input-label summary">Cost Center</label>
-                        <br />
-                        {project?.costCenter === '0' || !project?.costCenter ? 'N/A' : project?.costCenter}
-                      </div>
-                      <div id="description">
-                        <label className="input-label summary">Internal Order</label>
-                        <br />
-                        {project?.internalOrder ? project?.internalOrder : 'N/A'}
-                      </div>
-                      <div id="tags">
-                        <label className="input-label summary">Related Solutions</label>
-                        <br />
-                        {project?.relatedSolutions ? project.relatedSolutions?.map((chip) => {
-                          return (
-                            <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
-                            </>
-                          );
-                        }) : 'N/A'}
                       </div>
                     </div>
 
