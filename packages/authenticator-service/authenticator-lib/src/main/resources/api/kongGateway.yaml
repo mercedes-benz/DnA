@@ -878,5 +878,7 @@ definitions:
       userinfoIntrospectionUri:  
         type: string
       enableUserinfoIntrospection: 
-        type : boolean          
+        type : boolean     
+      env:
+        type : string     
  
