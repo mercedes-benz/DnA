@@ -175,7 +175,7 @@ spec:
       volumes:
         - name: dag-repo
           persistentVolumeClaim:
-            claimName: {{ .Chart.Name }}-dags
+            claimName: {{ .Chart.Name }}-nfs-dags
         - name: git-secrets
           secret:
             secretName: {{ .Chart.Name }}-git-sync-secret

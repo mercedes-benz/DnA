@@ -364,7 +364,6 @@ definitions:
       - description
       - divisionId
       - subDivisionId
-      - department
       - dataClassification
       - hasPii
       - termsOfUse

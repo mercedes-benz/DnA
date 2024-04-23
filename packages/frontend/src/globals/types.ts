@@ -888,6 +888,14 @@ export interface IMonth {
   name: string;
 }
 
+export interface ISimilarSolutionsListItem {
+  id?: string;
+  productName: string;
+  description: string;
+  businessNeed: string;
+  score: number;
+}
+
 export interface IAllSolutionsListItem {
   id?: string;
   productName: string;
@@ -1109,6 +1117,12 @@ export interface IFilterParams {
   useCaseType: string[];
   dataVolume?: string[];
   tag: string[];
+  dataValueRange?: IDataValueFilterParams;
+}
+
+export interface IDataValueFilterParams{
+  startYear: string;
+  endYear: string;
 }
 export interface IFilterPreferences {
   divisions: IDivision[];
@@ -1118,6 +1132,7 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+  dataValueRange?: string;
 }
 
 export interface IDataProductListItem {

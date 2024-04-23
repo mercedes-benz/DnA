@@ -41,11 +41,11 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
   const [division, setDivision] = useState(edit ? (workspace?.divisionId ? workspace?.divisionId + '@-@' + workspace?.division : '0') : '');
   const [subDivision, setSubDivision] = useState(edit ? (workspace?.subDivisionId ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0') : '');
-  const [description, setDescription] = useState(edit && workspace?.decription ? workspace?.decription : '');
+  const [description, setDescription] = useState(edit && workspace?.description ? workspace?.description : '');
   const [departmentName, setDepartmentName] = useState(edit && workspace?.department ? [workspace?.department] : []);
   const [typeOfProject, setTypeOfProject] = useState(edit && workspace?.typeOfProject ? workspace?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
-  const [PII, setPII] = useState(edit && workspace?.piiData ? workspace?.piiData : false);
+  const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
   const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace?.tags || undefined] : []);
   const [relatedSolutions, setRelatedSolutions] = useState(edit && workspace?.relatedSolutions !== null ? [...workspace?.relatedSolutions || undefined] : []);
   const [relatedReports, setRelatedReports] = useState(edit && workspace?.relatedReports !== null ? [...workspace?.relatedReports || undefined] : []);
@@ -121,13 +121,13 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     const data = {
       name: values.name,
       tags: tags,
-      piiData: values?.pii,
+      hasPii: values?.pii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      decription: values?.description,
+      description: values?.description,
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
@@ -153,13 +153,13 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const handleEditWorkspace = (values) => {
     const data = {
       tags: tags,
-      piiData: values?.pii,
+      hasPii: values?.pii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      decription: values?.description,
+      description: values?.description,
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
@@ -298,12 +298,12 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       defaultValue={costCenter}
                       {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
-                    <span className={classNames('error-message')}>{errors?.name?.message}</span>
+                    <span className={classNames('error-message')}>{errors?.costCenter?.message}</span>
                   </div>
                 </div>
-                <div className={classNames('input-field-group')}>
+                <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Internal Order
+                    Internal Order <sup>*</sup>
                   </label>
                   <div>
                     <input
@@ -317,6 +317,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       defaultValue={internalOrder}
                       {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
+                    <span className={classNames('error-message')}>{errors?.internalOrder?.message}</span>
                   </div>
                 </div>
               </div>

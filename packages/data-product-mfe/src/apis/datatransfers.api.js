@@ -1,4 +1,4 @@
-import { reportsServer, server } from '../server/api';
+import { reportsServer, server, hostServer } from '../server/api';
 
 const getAllDataProducts = (sortBy, sortOrder, isProviderCreatorFilter=false) => {
   return server.get(`/datatransfers?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}&isProviderCreator=${isProviderCreatorFilter}`, {
@@ -60,6 +60,40 @@ const getPlanningIT = (searchTerm = '') => {
   return server.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
 };
 
+const getSubDivisionsData = (divisions) => {
+  const divisionIds = divisions.map((division) => division.id);
+  return new Promise ( (resolve) => {getAllSubDivisions(divisionIds).then((res) => {
+    const tempSubDivision = [];
+    res.data.forEach((division) => {
+      division.subdivisions.forEach((subdiv) => {
+        subdiv.division = division.id;
+        subdiv.id = subdiv.id + '@-@' + division.id;
+        tempSubDivision.push(subdiv);
+      });
+    });
+    resolve (tempSubDivision);
+  })});
+}
+
+const getFilterMasterData = () => {
+  return Promise.all([
+    hostServer.get('/divisions'),
+    reportsServer.get('/departments', {
+      data: {},
+    }),
+    server.get('/datatransfers/dataStwerdLov',{
+      data: {},
+    }),
+    server.get('/datatransfers/IOLov',{
+      data: {},
+    }),
+  ]);
+};
+
+const getAllSubDivisions = (divisionIds) => {
+  return hostServer.get('divisions?ids=' + divisionIds);
+}
+
 export const dataTransferApi = {
   getAllDataProducts,
   createDataProduct,
@@ -72,4 +106,6 @@ export const dataTransferApi = {
   getAllClassificationTypes,
   getAllLegalBasis,
   getPlanningIT,
+  getFilterMasterData,
+  getSubDivisionsData,
 };

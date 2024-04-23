@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dataentry-mfe.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "dataentry-mfe.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "dataentry-mfe.selectorLabels" . | nindent 4 }}

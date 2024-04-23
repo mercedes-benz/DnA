@@ -52,6 +52,7 @@ public class FilterPreferences implements Serializable {
 	private List<SolutionLocation> locations;
 	private SolutionProjectStatus solutionStatus;
 	private List<Tag> tags;
+	private String dataValueRange;
 
 //	public FilterPreferences() {
 //		super();

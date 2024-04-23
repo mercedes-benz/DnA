@@ -162,6 +162,7 @@ export const Envs = {
     getInjectedEnv('CODESPACE_OIDC_POPUP_WAIT_TIME') ||
     parseInt(process.env.CODESPACE_OIDC_POPUP_WAIT_TIME || '5000', 10),
   VAULT_API_BASEURL: getInjectedEnv('VAULT_API_BASEURL') || process.env.VAULT_API_BASEURL,
+  SIMILARITY_SEARCH_API_BASEURL: getInjectedEnv('SIMILARITY_SEARCH_API_BASEURL') || process.env.SIMILARITY_SEARCH_API_BASEURL,
   ENABLE_CHRONOS_FORECASTING_SERVICE:
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
@@ -174,6 +175,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_DATA_ENTRY_SERVICE:
+    getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_ENTRY_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
@@ -188,7 +193,7 @@ export const Envs = {
   POWERBI_TRAINING_URL: getInjectedEnv('POWERBI_TRAINING_URL') || process.env.POWERBI_TRAINING_URL,
   SAC_TRAINING_URL: getInjectedEnv('SAC_TRAINING_URL') || process.env.SAC_TRAINING_URL,
   DATABRICKS_TRAINING_URL: getInjectedEnv('DATABRICKS_TRAINING_URL') || process.env.DATABRICKS_TRAINING_URL,
-  DIGITAL_CASE_PROGRAM_URL: getInjectedEnv('DIGITAL_CASE_PROGRAM_URL') || process.env.DIGITAL_CASE_PROGRAM_URL,
+  FABRIC_TRAINING_URL: getInjectedEnv('FABRIC_TRAINING_URL') || process.env.FABRIC_TRAINING_URL,
   DATASPHERE_TRAINING_URL: getInjectedEnv('DATASPHERE_TRAINING_URL') || process.env.DATASPHERE_TRAINING_URL,
   CHINA_TRAINING_URL: getInjectedEnv('CHINA_TRAINING_URL') || process.env.CHINA_TRAINING_URL,
   TRANSACTIONAL_DATA_URL: getInjectedEnv('TRANSACTIONAL_DATA_URL') || process.env.TRANSACTIONAL_DATA_URL,
