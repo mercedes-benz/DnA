@@ -435,7 +435,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
 		apiAuthoriserPluginConfigVO.setLogType(logType);
 		apiAuthoriserPluginConfigVO.setPoolID(poolID);
-		apiAuthoriserPluginConfigVO.setEnv(env);
+		if("int".equalsIgnoreCase(env)){
+			apiAuthoriserPluginConfigVO.setEnv("staging");
+		}
+		if("prod".equalsIgnoreCase(env)){
+			apiAuthoriserPluginConfigVO.setEnv("production");
+		}
 		apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
 		apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
 
