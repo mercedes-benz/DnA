@@ -9,18 +9,19 @@
 }
 
 .dvFilterWrapper{
+  width: 250px !important;
   .dvRange{
     display: flex;
     margin-bottom: 0px;
     .dvStartRange{
       margin-right: 10px;
-      width: 120px;
+      width: 100px;
     }
     .dvEndRange{
       margin-left: 0px;
       margin-top: 31px;
       margin-right: 10px;
-      width:120px
+      width:100px
     }
     .speratorIcon{
       margin-right: 16px;
