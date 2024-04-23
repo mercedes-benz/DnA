@@ -630,6 +630,64 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return q;
 	}
 
+		public Query getDataValueNativeQueryWithFiltersDataValue(String selectFieldsString, Boolean published, List<String> phases,
+		List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+		String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+		List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+		Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit, String sortBy, String sortOrder,
+		String additionalPredicatesString, String groupByString) {
+
+			String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+					: "select cast(id as text), cast(data as text) ";
+			prefix = prefix + "from solution_nsql";
+			String basicpredicate = " where jsonb_extract_path_text(data, 'digitalValueDetails', 'typeOfCalculation') = 'DATA_VALUE'";
+			String consolidatedPredicates = buildPredicateString(published, phases, dataVolumes, divisions, locations,
+					statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts,
+					divisionsAdmin, hasDigitalValue, hasNotebook);
+			String query = prefix + basicpredicate + consolidatedPredicates;
+			query += ") AS subquery";
+			String sortQueryString = "";
+			if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
+				switch (sortBy) {
+				case "productName":
+					sortQueryString = " order by lower(jsonb_extract_path_text(data,'productName')) ";
+					break;
+				case "currentPhase":
+					sortQueryString = " order by lower(jsonb_extract_path_text(data,'currentPhase','name')) ";
+					break;
+				case "division":
+					sortQueryString = " order by lower(jsonb_extract_path_text(data,'division','name')) ";
+					break;
+				case "projectStatus":
+					sortQueryString = " order by lower(jsonb_extract_path_text(data,'projectStatus','name')) ";
+					break;
+				case "digitalValue":
+					sortQueryString = " order by (jsonb_extract_path(data,'digitalValueDetails','digitalValue')) ";
+					break;
+				default:
+					sortQueryString = "";
+					break;
+				}
+				if (StringUtils.hasText(sortQueryString)) {
+					if ("desc".equalsIgnoreCase(sortOrder))
+						sortQueryString = sortQueryString + " desc ";
+					else
+						sortQueryString = sortQueryString + " asc ";
+				}
+				query = query + sortQueryString;
+			}
+			if (additionalPredicatesString != null && !"".equalsIgnoreCase(additionalPredicatesString))
+				query = query + " " + additionalPredicatesString + " \n";
+			if (groupByString != null && !"".equalsIgnoreCase(groupByString))
+				query = query + " " + groupByString + " \n";
+			if (limit > 0 && !"locations".equalsIgnoreCase(sortBy))
+				query = query + " limit " + limit;
+			if (offset >= 0 && !"locations".equalsIgnoreCase(sortBy))
+				query = query + " offset " + offset;
+			Query q = em.createNativeQuery(query);
+			return q;
+	}
+
 	
 	@Override
 	public List<SolutionNsql> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
@@ -1015,24 +1073,93 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public List<BigDecimal> getDataValuesSum(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
-			List<String> divisionsAdmin) {
-		Query q = getDataValueNativeQueryWithFilters(
-				" select  sum(cast (jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','revenueValueFactorSummary','value') as decimal) ) as revenueValueFactorSummary,"
-				+ "  sum(cast (jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','savingsValueFactorSummary','value') as decimal) ) as savingsValueFactorSummary ", published, phases,
+			List<String> divisionsAdmin, String startdate,String enddate) {
+				String generatedQuerySaving = generateQuery("SAVINGS", Integer.parseInt(startdate), Integer.parseInt(enddate));
+				String generatedQuearyRevenue = generateQuery("REVENUE", Integer.parseInt(startdate), Integer.parseInt(enddate));
+		Query q = getDataValueNativeQueryWithFiltersDataValue(generatedQuerySaving, published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
 				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "", "");
+		Query q1 = getDataValueNativeQueryWithFiltersDataValue(generatedQuearyRevenue, published, phases,
+		dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
+		searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "", "");		
 		ObjectMapper mapper = new ObjectMapper();
-		List<Object[]> results = q.getResultList();	
+		Object results = q != null ? q.getSingleResult() : null;
+		Object result1 = q1 != null ? q1.getSingleResult() : null;		
 		List<BigDecimal> dataValueSum = new ArrayList<>();
-		if(!results.isEmpty() && results.size() > 0) {
-			Object[] result = results.get(0);
-			BigDecimal revenueResult = (BigDecimal) result[0];
-			BigDecimal savingsResult = (BigDecimal) result[1];
-			dataValueSum.add(revenueResult);
+			BigDecimal revenueResult = (BigDecimal)results;
+			BigDecimal savingsResult = (BigDecimal) result1;
 			dataValueSum.add(savingsResult);
-		}			
+			dataValueSum.add(revenueResult);			
 		return dataValueSum;
 	}
+
+	private String generateQuery(String category, int startYear, int endYear) {
+		String queryValue = "SELECT COALESCE(SUM(valueFactorsSum), 0) AS totalValueFactorsSum " +
+					   "FROM ( " +
+					   "    SELECT " +
+					   "        CASE " +
+					   "            WHEN jsonb_extract_path_text(data, 'digitalValueDetails', 'valueDrivers') IS NOT NULL THEN " +
+					   "                ( " +
+					   "                SELECT " +
+					   "                    COALESCE(SUM(CAST(jsonb_extract_path_text(ru, 'value') AS DECIMAL)), 0) " +
+					   "                FROM " +
+					   "                    jsonb_array_elements(data->'digitalValueDetails'->'valueDrivers') AS vd, " +
+					   "                    jsonb_array_elements(vd->'valueFactors') AS vf, " +
+					   "                    jsonb_array_elements(vf->'rampUps') AS ru " +
+					   "                WHERE " +
+					   "                    CAST(jsonb_extract_path_text(ru, 'year') AS INTEGER) >= " + startYear + " AND " +
+					   "                    CAST(jsonb_extract_path_text(ru, 'year') AS INTEGER) <= " + endYear + " AND " +
+					   "                    jsonb_extract_path_text(vf, 'category') = '" + category + "' " +
+					   "                ) " +
+					   "            ELSE NULL " +
+					   "        END AS valueFactorsSum ";
+		return queryValue;
+	}
+	
+	@Override
+	public List<Integer> getMinMaxYearDetails()
+	{
+		List<Integer> x = new ArrayList<>();
+		Integer val1 = generateQueryYears("MAX");
+		Integer val2 = generateQueryYears("MIN");
+		x.add(val1);
+		x.add(val2);
+		return x;
+	}
+
+	private Integer generateQueryYears(String type) {
+		String queryValue = "SELECT " + type + "(valueFactorsSum) AS totalValueFactorsSum " +
+						   "FROM ( " +
+						   "    SELECT " +
+						   "        CASE " +
+						   "            WHEN jsonb_extract_path_text(data, 'digitalValueDetails', 'valueDrivers') IS NOT NULL THEN " +
+						   "                ( " +
+						   "                SELECT " +
+						   "                    " + type + "(jsonb_extract_path_text(ru, 'year')) " +
+						   "                FROM " +
+						   "                    jsonb_array_elements(data->'digitalValueDetails'->'valueDrivers') AS vd, " +
+						   "                    jsonb_array_elements(vd->'valueFactors') AS vf, " +
+						   "                    jsonb_array_elements(vf->'rampUps') AS ru " +
+						   "                ) " +
+						   "            ELSE NULL " +
+						   "        END AS valueFactorsSum " +
+						   "    FROM " +
+						   "        solution_nsql " +
+						   "    WHERE " +
+						   "        jsonb_extract_path_text(data, 'digitalValueDetails', 'typeOfCalculation') = 'DATA_VALUE' " +
+						   ") AS subquery;";
+			Query resultantQuery = em.createNativeQuery(queryValue);
+			Object result = resultantQuery.getSingleResult();
+			Integer intValue = null;
+			if (result != null) {
+				if (result instanceof String) {
+						intValue = Integer.parseInt((String) result);
+					}
+			}			
+			return intValue;
+	}
+	
+	
 
 	@Override
 	public List<SolDataValueDTO> getDataValueUsingNativeQuery(Boolean published, List<String> phases,

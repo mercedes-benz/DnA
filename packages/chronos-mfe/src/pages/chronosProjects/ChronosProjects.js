@@ -13,6 +13,7 @@ import ChronosProjectForm from '../../components/chronosProjectForm/ChronosProje
 import Spinner from '../../components/spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+import ChronosBanner from '../chronosBanner/ChronosBanner'
 // Api
 import { chronosApi } from '../../apis/chronos.api';
 
@@ -26,6 +27,9 @@ const ChronosProjects = ({ user }) => {
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerCloseTime , setBannerCloseTime] = useState(localStorage.getItem('bannerCloseTime') || '');
+  const [bannerDetails, setbannerDetails] = useState({});
 
   // Fetch all chronos projects
   const getChronosProjects = () => {
@@ -58,8 +62,34 @@ const ChronosProjects = ({ user }) => {
       });
   }
 
+  const getBannerDetails = () => {
+    chronosApi.getBannerDetails().then((res) => {
+      const data = res.data;
+      setbannerDetails(data);
+    }).catch(() => {
+      Notification.show('Something went wrong', 'alert');
+    })
+  }
+
+  useEffect(() => {
+    if (bannerDetails.lastchangedtime > bannerCloseTime) {
+      setShowBanner(true);
+    } else {
+      setShowBanner(false);
+    }
+  }, [bannerDetails])
+
+  const onBannerClose = () => {
+    const currentTime = new Date();
+    const formattedTime = currentTime.toISOString();
+    localStorage.setItem('bannerCloseTime', formattedTime);
+    setBannerCloseTime(formattedTime);
+    setShowBanner(false)
+  }
+
   const handleRefresh = () => {
     getChronosProjects();
+    getBannerDetails();
   }
 
   useEffect(() => {
@@ -90,11 +120,16 @@ const ChronosProjects = ({ user }) => {
 
   useEffect(() => {
     getChronosProjects();
+    getBannerDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
   return (
     <>
+      {showBanner && (
+        <ChronosBanner bannerText={bannerDetails.bannerText} onBannerClose = {onBannerClose}/>
+        )
+      }
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {loading ? <Spinner /> : null}

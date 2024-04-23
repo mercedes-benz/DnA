@@ -99,7 +99,7 @@ const Workspaces = (props) => {
                     </div> */}
                     <div>
                       <div>Classification</div>
-                      <div>{workspace.classificationType || 'N/A'}</div>
+                      <div>{workspace.dataClassification || 'N/A'}</div>
                     </div>
                   </div>
                 </div>

@@ -102,11 +102,18 @@
             }
           }
           .portTileDataVal {
-            h5 {
-              font-size: var(--font-size-sub-headline);
-              padding-bottom: 0px;
-              margin: 0;
-              color: #c0c8d0;
+            .portTileDataValTitle{
+              display: flex;
+              h5 {
+                font-size: var(--font-size-sub-headline);
+                padding-bottom: 0px;
+                margin: 0;
+                color: #c0c8d0;
+                margin-right: 5px;
+              }
+              h3{
+                margin-top: 3px;
+              }
             }
             span {
               font-size: var(--font-size-icon-big);

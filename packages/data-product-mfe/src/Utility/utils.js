@@ -47,3 +47,13 @@ export const htmlToMarkdownParser = (htmlText) =>{
   return markdownText.trim();
 }
 
+export const trackEvent = (category, action, name, value) => {
+  // For tracking event in matamo
+  if (window._paq) {
+    const eventArr = ['trackEvent', category, action, name];
+    if (value) {
+      eventArr.push(value);
+    }
+    window._paq.push(eventArr);
+  }
+};

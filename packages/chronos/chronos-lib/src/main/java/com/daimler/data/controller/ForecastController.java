@@ -2292,4 +2292,28 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		ForecastConfigFileResultVO configFileData = service.getForecastConfigFileById(id,configFileId);
 		return new ResponseEntity<>(configFileData, HttpStatus.OK);
 	}
+	@Override
+	@ApiOperation(value = "Get Banner text.", nickname = "getBannerText", notes = "Get Banner text.", response = BannerResponseVO.class, tags={ "forecast-projects", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = BannerResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/banner",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<BannerResponseVO> getBannerText(){
+		BannerResponseVO bannerResponseVO = new BannerResponseVO();
+		bannerResponseVO = service.getBannerText();
+		if(bannerResponseVO !=null){
+			HttpStatus responseCode = HttpStatus.OK;
+			return new ResponseEntity<>(bannerResponseVO, responseCode);
+		}
+		HttpStatus responseCode = HttpStatus.NO_CONTENT;
+		return new ResponseEntity<>(bannerResponseVO, responseCode);
+	}
 }

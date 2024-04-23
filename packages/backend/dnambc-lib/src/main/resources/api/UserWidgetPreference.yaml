@@ -266,7 +266,8 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/TagVO"
-
+      dataValueRange:
+        type: string
 
   SolutionPhaseVO:
     type: object

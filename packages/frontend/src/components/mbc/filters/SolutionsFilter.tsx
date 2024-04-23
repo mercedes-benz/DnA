@@ -88,6 +88,9 @@ const SolutionsFilter = ({
   const [divisions, setDivisions] = useState<IDivisionFilterPreference[]>([]);
   const [subDivisions, setSubDivisions] = useState<ISubDivisionSolution[]>([]);
   const [tagValues, setTagValues] = useState<ITag[]>([]);
+  const currentYear = new Date().getFullYear();
+  const defaultStartYear = currentYear - 2 + '';
+  const defaultEndYear =currentYear + 1 + '';
   const [queryParams, setQueryParams] = useState<IFilterParams>({
     phase: [],
     location: [],
@@ -96,6 +99,10 @@ const SolutionsFilter = ({
     status: [],
     useCaseType: [],
     tag: [],
+    dataValueRange: {
+      startYear: defaultStartYear ,
+      endYear: defaultEndYear
+    }
   });
   const [projectTypes] = useState<IProjectType[]>([
     { id: '1', name: 'My Bookmarks', routePath: 'bookmarks' },
@@ -128,6 +135,9 @@ const SolutionsFilter = ({
   const isAllSolutionsPage = pathname === '/allsolutions';
 
   const [genAIPage, setGenAIPage] = useState(false);
+
+  const [years ,setYears] = useState([]);
+  const [isDvRangeValid, setisDvRangeValid]= useState(true);
 
   useEffect(() => {
     onsetTags(setSelectedTags);
@@ -256,6 +266,19 @@ const SolutionsFilter = ({
       .catch((error: Error) => {
         showErrorNotification(error.message ? error.message : 'Some Error Occured');
       });
+
+    ApiClient.getDataValueMinMaxYear()
+      .then((res) =>{
+        const data = []
+        for (let year = res.minYear; year <= res.maxYear; year++) {
+          data.push(year);
+        }
+        setYears(data);
+      })
+      .catch((error: Error) => {
+        showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
+    
   }, []);
 
   useEffect(() => {
@@ -267,7 +290,7 @@ const SolutionsFilter = ({
             const userPreference = res[0];
             const savedSubDivisionsList: ISubDivisionSolution[] = [];
             const filterPreferences = userPreference.filterPreferences;
-            if (!portfolioFilterValues.current) {
+            if (!portfolioFilterValues.current) {              
               queryParams.phase = filterPreferences.phases.map((phase: IPhase) => {
                 return phase.id;
               });
@@ -293,6 +316,8 @@ const SolutionsFilter = ({
               queryParams.tag = filterPreferences.tags.map((tag: ITag) => {
                 return tag.name;
               });
+              queryParams.dataValueRange.startYear=filterPreferences.dataValueRange.split(',')[0];
+              queryParams.dataValueRange.endYear=filterPreferences.dataValueRange.split(',')[1];
               // populate subDivision dropdown values
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
                 setSubDivisions(subDivisionsList);
@@ -383,7 +408,7 @@ const SolutionsFilter = ({
     Notification.show(message, 'alert');
   };
 
-  const applyFilter = (filterName: string, values: string[]) => {
+  const applyFilter = (filterName: string, values: any) => {
     if (solutionsDataLoaded) {
       ProgressIndicator.show();
       setFilterApplied(true);
@@ -590,7 +615,7 @@ const SolutionsFilter = ({
       });
       divisionsWithSubDivisions = tempArr;
     }
-
+    const dVRange = queryParams.dataValueRange.startYear +','+ queryParams.dataValueRange.endYear;
     const filterPreferences: IFilterPreferences = {
       divisions: divisionsWithSubDivisions,
       subDivisions: subDivisionFilterValues,
@@ -599,6 +624,7 @@ const SolutionsFilter = ({
       solutionStatus: statusFilterValue,
       useCaseType: typeFilterValue.id === '0' ? null : typeFilterValue.id,
       tags: tagFilterValues,
+      dataValueRange : dVRange,
     };
 
     const userPreference: IUserPreference = {
@@ -637,6 +663,7 @@ const SolutionsFilter = ({
     let status = queryParams.status.join(',');
     let useCaseType = queryParams.useCaseType.join(',');
     const tags = queryParams.tag.join(',');
+    const dataValueRange = `${queryParams.dataValueRange?.startYear},${queryParams.dataValueRange?.endYear}`;
 
     if (queryParams.division.length === 0) {
       queryParams.division = [];
@@ -671,7 +698,7 @@ const SolutionsFilter = ({
 
     typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
 
-    typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags);
+    typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags, dataValueRange);
 
     setSolutionsFilterApplied(
       isSolutionFilterApplied(
@@ -712,6 +739,8 @@ const SolutionsFilter = ({
       queryParams.status = [];
       queryParams.useCaseType = [];
       queryParams.tag = [];
+      queryParams.dataValueRange.startYear = defaultStartYear;
+      queryParams.dataValueRange.endYear=defaultEndYear;
       setTags([]);
       setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES), 50);
       ProgressIndicator.show();
@@ -795,6 +824,23 @@ const SolutionsFilter = ({
       document.getElementById('filterContainer').setAttribute('style', 'height:' + 0 + 'px');
     }
   }
+
+  const onDataValueChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const { id, value } = e.currentTarget;
+    const data = { ...queryParams.dataValueRange };
+    data[id] = value;
+    if (parseInt(data.startYear, 10) < parseInt(data.endYear, 10)) {
+      setQueryParams(prevParams => ({
+        ...prevParams,
+        dataValueRange: data
+      }));
+      focusedItems['dataValueRange'] && applyFilter('dataValueRange', data);
+      setisDvRangeValid(true);
+    } else {
+      setisDvRangeValid(false);
+    }
+  };
+
 
   const subDivisionsOfSelectedDivision: ISubDivisionSolution[] = getSubDivisionsOfSelectedDivision();
 
@@ -924,9 +970,48 @@ const SolutionsFilter = ({
           />
         </div>
       </div>
+      {isPortfolioPage && (
+        <div className={classNames(Styles.dvFilterWrapper)}>
+          <div className={classNames(Styles.dvRange)}>
+            <div>
+              <div id="dataValueContainer"  className={classNames('input-field-group', Styles.dvStartRange)} onFocus={(e) => onHandleFocus(e, 'dataValueRange')}>
+                <label id="dataValueLabel" className="input-label" htmlFor="dvRangeSelect">
+                  Data Value Range
+                </label>
+                <div className="custom-select">
+                  <select id="startYear" onChange={onDataValueChange} value={queryParams?.dataValueRange?.startYear} >
+                    {years.map((obj: string, key: any) => (
+                      <option id={obj + key} key={key} value={obj}>
+                        {obj}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <i className={classNames('icon mbc-icon minus', Styles.speratorIcon)} />
+            <div>
+              <div id="dataValueContainer" className={classNames('input-field-group ', Styles.dvEndRange)} onFocus={(e) => onHandleFocus(e, 'dataValueRange')}>
+                <div className=" custom-select">
+                  <select id="endYear" multiple={false} onChange={onDataValueChange} value={queryParams?.dataValueRange?.endYear}>
+                    {years.map((obj: string, key: any) => (
+                      <option id={obj + key} key={key} value={obj}>
+                        {obj}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span className={classNames('error-message', isDvRangeValid ? 'hide' : '')}>
+            Enter valid range
+          </span>
+        </div>
+      )}
       <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
         {!isGenAI && (
-          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
+          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn , !isDvRangeValid ? 'disabled' : '')} onClick={saveFilterPreference}>
             Save settings
           </button>
         )}

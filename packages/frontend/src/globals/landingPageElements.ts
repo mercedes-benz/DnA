@@ -19,7 +19,7 @@ const dataikuTrainingUrl = Envs.DATAIKU_TRAINING_URL;
 const powerbiTrainingUrl = Envs.POWERBI_TRAINING_URL;
 const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
-const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
+const fabricTrainingUrl = Envs.FABRIC_TRAINING_URL;
 const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
 const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
@@ -35,6 +35,7 @@ const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
+const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -197,6 +198,22 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableFabricService,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'dataentry',
+    name: 'Data Entry as a Service',
+    description:
+      'Easy, self service way to collect user input - either for planning purpose or simply to gather desired information.',
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+    url: '/dataentry',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDataEntryService,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -698,14 +715,14 @@ export const TrainingsLandingPageElements = [
     svgIconId: 'tools-mini',
   },
   {
-    name: 'Digital College',
+    name: 'Fabric',
     description:
-      'The Digital College is available to all colleagues in Finance & Controlling worldwide and helps us to build the right skills for digitization.',
+      'To get a first insight into Microsoft Fabric, to complete a specific training or to read up on different topics, we have collected some recommendations for you below.',
     tags: ['Self Service', 'FOSS'],
-    url: digitalCaseProgramUrl,
+    url: fabricTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !digitalCaseProgramUrl?.startsWith('http'),
+    isDisabled: !fabricTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'tools-mini',

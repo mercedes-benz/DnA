@@ -1291,6 +1291,32 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /banner:
+    get:
+      tags:
+        - "forecast-projects"
+      summary: "Get Banner text."
+      description:  "Get Banner text."
+      operationId: "getBannerText"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/BannerResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
 definitions:
   TransparencyVO:
     type: object
@@ -2000,5 +2026,17 @@ definitions:
         type: string
       response:
         $ref: "#/definitions/GenericMessage"
+
+  BannerResponseVO:
+    type: object
+    properties:
+      bannerText:
+        type: string
+        description: "Banner Content"
+      lastchangedtime :
+        type: string
+        description: "Last Modified Time"
+        
+
  
  
