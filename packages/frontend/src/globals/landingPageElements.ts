@@ -2,10 +2,7 @@ import { Envs } from 'globals/Envs';
 
 const enableMalwareScanService = Envs.ENABLE_MALWARE_SCAN_SERVICE;
 const enableDataPipelineService = Envs.ENABLE_DATA_PIPELINE_SERVICE;
-const enableMyModelRegistryService = Envs.ENABLE_MY_MODEL_REGISTRY_SERVICE;
-const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
 const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
-const mLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
 const enableChronosForecastingService = Envs.ENABLE_CHRONOS_FORECASTING_SERVICE;
 const enableMatomoService = Envs.ENABLE_MATOMO_SERVICE;
 const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
@@ -21,7 +18,6 @@ const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
 const fabricTrainingUrl = Envs.FABRIC_TRAINING_URL;
 const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
-const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
 const dataQToolUrl = Envs.DATAQ_TOOL_URL;
@@ -148,6 +144,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableChronosForecastingService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'chronos',
@@ -165,6 +162,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableMatomoService,
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -182,6 +180,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDatalakeService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -198,6 +197,7 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableFabricService,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -214,26 +214,10 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableDataEntryService,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
-    isDnAInternalTool: true,
-  },
-  {
-    id: 'kubeflow',
-    name: 'Kubeflow',
-    description:
-      'Kubeflow is a platform for data scientists who want to build and experiment with Machine Learning [ML] pipelines. Kubeflow is also for ML engineers and operational teams who want to deploy ML systems to various environments for development, testing, and production-level serving.',
-    tags: ['Data Pipeline', 'Data Science', 'Machine Learning', 'FOSS', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
-    url: mLPipelineUrl,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !enableMLPipelineService,
-    isDetailedPage: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'kubeflow',
     isDnAInternalTool: true,
   },
   {
@@ -248,6 +232,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDataikuWorkspace,
     isDetailedPage: true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataiku-new',
@@ -265,6 +250,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableSapAnalyticsCloud,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
@@ -282,6 +268,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !powerBIUrl?.startsWith('http'),
     isDetailedPage: true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'powerbi',
@@ -299,6 +286,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableMalwareScanService,
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
@@ -316,6 +304,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !clamavImagwUrl?.startsWith('reg'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
@@ -333,6 +322,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableStorageService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'storage',
@@ -350,6 +340,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableCodeSpace,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'codespace',
@@ -367,6 +358,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !dataOasisUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'data-oasis',
@@ -384,6 +376,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !dataQToolUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -401,27 +394,11 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableJupiyterNoteWorkspace,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'jupyter',
     isDnAInternalTool: true,
-  },
-  {
-    id: 'AFO',
-    name: 'AFO',
-    description:
-      'SAP Analysis for Office (AfO) is an office add-in that enables multidimensional ad-hoc analyzes on OLAP data sources in Excel. In addition, the product enables workbook-based application design and the creation of BI presentations in PowerPoint. Connectivity to our SBISS platform is fully supported.',
-    tags: ['Frontend Reporting', 'FOSS', 'SAP', 'No / Low Code', 'Onprem'],
-    url: afoUrl,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !afoUrl?.startsWith('http'),
-    isDetailedPage: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'afo',
-    isDnAInternalTool: false,
   },
   {
     id: 'airflow',
@@ -435,6 +412,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDataPipelineService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'airflow',
@@ -452,6 +430,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !extolloUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'extollo',
@@ -469,6 +448,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !btpUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'btp',
@@ -485,27 +465,11 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !datasphereUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
     isDnAInternalTool: false,
-  },
-  {
-    id: 'modelRegistry',
-    name: 'Model Registry',
-    description:
-      'Model registry provides access to published models resulting out of kubeflow model development.',
-    tags: ['Data Science', 'Machine Learning', 'FOSS', 'Cloud', 'Onprem'],
-    url: '/modelregistry',
-    isExternalLink: false,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !enableMyModelRegistryService,
-    isDetailedPage: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'modelregistry',
-    isDnAInternalTool: true,
   },
   {
     id: 'spire',
@@ -518,6 +482,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !spireUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'spire',
