@@ -61,7 +61,7 @@ const Tools = (props: any) => {
     >
       <div className={Styles.toolsPageWrapper}>
         <div className={Styles.toolsWrapper}>
-          {cards.filter((card) => card.isAdditionalCard === false).map((card, index) => {
+          {cards.filter((card) => card.isMoreServicesCard === false).map((card, index) => {
             return (
               <DNACard
                 key={index}
@@ -82,14 +82,14 @@ const Tools = (props: any) => {
             );
           })}
         </div>
-        {(cards.some(card => card.isAdditionalCard)  && cards.some(card => !card.isAdditionalCard)) && (
+        {(cards.some(card => card.isMoreServicesCard)  && cards.some(card => !card.isMoreServicesCard)) && (
           <div className={Styles.cardsSeparator}>
             <h5 className="sub-title-text">More Services</h5>
             <hr />
           </div>
         )}
         <div className={Styles.toolsWrapper}>
-          {cards.filter((card) => card.isAdditionalCard === true).map((card, index) => {
+          {cards.filter((card) => card.isMoreServicesCard === true).map((card, index) => {
             return (
               <DNACard
                 key={index}
