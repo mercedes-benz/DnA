@@ -268,6 +268,13 @@ export const isSolutionFilterApplied = (
 ) => {
   const { division, subDivision, phase, location, status, useCaseType, tag } = queryParams;
   let filterApplied = false;
+  const currentYear = new Date().getFullYear();
+  const defaultStartYear = currentYear - 2 + '';
+  const defaultEndYear = currentYear + 1 + '';
+
+  if(!(queryParams.dataValueRange.startYear === defaultStartYear && queryParams.dataValueRange.endYear === defaultEndYear)){
+    filterApplied = true;
+  }
 
   if (division.length && division.length !== divisionLength) {
     filterApplied = true;
