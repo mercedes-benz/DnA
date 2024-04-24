@@ -104,6 +104,7 @@ export interface ICodeSpaceData {
   workspaceOwner?: ICodeCollaborator,
   projectDetails?: IProjectDetails;
   running?: boolean;
+  serverStatus?: string;
 }
 
 export interface IDeployRequest {
@@ -586,7 +587,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           Deploy{codeDeploying && 'ing...'}
                         </button>
                       </div>
-                      {(codeDeployed || prodCodeDeployed) && (
+                      {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && (
                         <div
                           tooltip-data="Show/Hide App Logs Panel"
                           className={classNames(Styles.showLogs, showLogsView && Styles.active)}
@@ -655,19 +656,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           </li>
                         )}
                         {codeDeployed && (
-                          <>
-                            <li>
-                              <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                <i className="icon mbc-icon new-tab" />
-                              </a>
-                            </li>
-                            <li>
-                              <a target="_blank" href={buildLogViewURL(codeDeployedUrl, true)} rel="noreferrer">
-                                Application Logs <i className="icon mbc-icon new-tab" />
-                              </a>
-                            </li>
-                          </>
+                          <li>
+                            <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {intDeploymentDetails?.lastDeploymentStatus && (
+                          <li>
+                            <a target="_blank" href={buildLogViewURL(codeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)} rel="noreferrer">
+                              Application Logs <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
                         )}
                         {intDeploymentDetails?.deploymentAuditLogs && (
                           <li>
@@ -720,19 +721,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           </li>
                         )}
                         {prodCodeDeployed && (
-                          <>
-                            <li>
-                              <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                <i className="icon mbc-icon new-tab" />
-                              </a>
-                            </li>
-                            <li>
-                              <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl, false)} rel="noreferrer">
-                                Application Logs <i className="icon mbc-icon new-tab" />
-                              </a>
-                            </li>
-                          </>
+                          <li>
+                            <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.lastDeploymentStatus && (
+                          <li>
+                            <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)} rel="noreferrer">
+                              Application Logs <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
                         )}
                         {prodDeploymentDetails?.deploymentAuditLogs && (
                           <li>
@@ -769,7 +770,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       title="Code Space"
                       allow="clipboard-read; clipboard-write"
                     />
-                    {(codeDeployed || prodCodeDeployed) && showLogsView && (
+                    {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && showLogsView && (
                       <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
                         <button
                           className={classNames('link-btn', Styles.closeButton)}
@@ -780,14 +781,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         <div className={classNames('tabs-panel', Styles.tabsHeightFix)}>
                           <div className="tabs-wrapper">
                             <ul className="tabs">
-                              {codeDeployed && (
+                              {intDeploymentDetails.lastDeploymentStatus && (
                                 <li className={'tab active'}>
                                   <a href="#tab-staginglogpanel" id="staginglogpanel">
                                     Staging App Logs
                                   </a>
                                 </li>
                               )}
-                              {prodCodeDeployed && (
+                              {prodDeploymentDetails.lastDeploymentStatus && (
                                 <li className={classNames('tab', !codeDeployed && 'active')}>
                                   <a href="#tab-productionlogpanel" id="productionlogpanel">
                                     Production App Logs
@@ -797,17 +798,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             </ul>
                           </div>
                           <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
-                            {codeDeployed && (
+                            {intDeploymentDetails?.lastDeploymentStatus && (
                               <div id="tab-staginglogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
-                                <iframe src={buildLogViewURL(codeDeployedUrl, true)} height="100%" width="100%" />
+                                <iframe src={buildLogViewURL(codeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)} height="100%" width="100%" />
                               </div>
                             )}
-                            {prodCodeDeployed && (
+                            {prodDeploymentDetails?.lastDeploymentStatus && (
                               <div
                                 id="tab-productionlogpanel"
                                 className={classNames(Styles.tabsHeightFix, 'tab-content')}
                               >
-                                <iframe src={buildLogViewURL(prodCodeDeployedUrl)} height="100%" width="100%" />
+                                <iframe src={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase())} height="100%" width="100%" />
                               </div>
                             )}
                           </div>

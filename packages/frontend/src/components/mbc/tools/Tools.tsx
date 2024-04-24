@@ -59,30 +59,59 @@ const Tools = (props: any) => {
       isTagsFilter={true}
       onTagsFilterSelected={onTagsFilterSelected}
     >
-      <>
-      <div className={Styles.toolsWrapper}>
-        {cards.map((card, index) => {
-          return (
-            <DNACard
-              key={index}
-              title={card.name}
-              id= {card.id}
-              description={card.description}
-              url={card.url}
-              isExternalLink={card.isExternalLink}
-              isTextAlignLeft={card.isTextAlignLeft}
-              isDisabled={card.isDisabled}
-              isDetailedPage ={card.isDetailedPage}
-              isSmallCard={card.isSmallCard}
-              isMediumCard={card.isMediumCard}
-              svgIcon={card.svgIcon}
-              animation={card.animation}
-              className="tools"
-            />
-          );
-        })}
+      <div className={Styles.toolsPageWrapper}>
+        <div className={Styles.toolsWrapper}>
+          {cards.filter((card) => card.isMoreServicesCard === false).map((card, index) => {
+            return (
+              <DNACard
+                key={index}
+                title={card.name}
+                id={card.id}
+                description={card.description}
+                url={card.url}
+                isExternalLink={card.isExternalLink}
+                isTextAlignLeft={card.isTextAlignLeft}
+                isDisabled={card.isDisabled}
+                isDetailedPage={card.isDetailedPage}
+                isSmallCard={card.isSmallCard}
+                isMediumCard={card.isMediumCard}
+                svgIcon={card.svgIcon}
+                animation={card.animation}
+                className="tools"
+              />
+            );
+          })}
+        </div>
+        {(cards.some(card => card.isMoreServicesCard)  && cards.some(card => !card.isMoreServicesCard)) && (
+          <div className={Styles.cardsSeparator}>
+            <h5 className="sub-title-text">More Services</h5>
+            <hr />
+          </div>
+        )}
+        <div className={Styles.toolsWrapper}>
+          {cards.filter((card) => card.isMoreServicesCard === true).map((card, index) => {
+            return (
+              <DNACard
+                key={index}
+                title={card.name}
+                id={card.id}
+                description={card.description}
+                url={card.url}
+                isExternalLink={card.isExternalLink}
+                isTextAlignLeft={card.isTextAlignLeft}
+                isDisabled={card.isDisabled}
+                isDetailedPage={card.isDetailedPage}
+                isSmallCard={card.isSmallCard}
+                isMediumCard={card.isMediumCard}
+                svgIcon={card.svgIcon}
+                animation={card.animation}
+                className="tools"
+              />
+            );
+          })}
+        </div>
+
       </div>
-      </>
     </LandingSummary>
   );
 };
