@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { SESSION_STORAGE_KEYS } from '../utilities/constants';
 import { refreshToken } from 'dna-container/RefreshToken';
+import { Envs } from '../utilities/envs';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
-export const baseURL = `http://${window.location.hostname}:9292/api`;
+export const baseURL = Envs.DATA_ENTRY_API_BASEURL
+? Envs.DATA_ENTRY_API_BASEURL
+: `http://${window.location.hostname}:9292/api`;
 
 const headers = {
   Accept: 'application/json',
@@ -18,17 +21,17 @@ export const server = axios.create({
 });
 
 export const hostServer = axios.create({
-  baseURL: `http://${window.location.hostname}:7171/api`,
-  headers,
-});
-
-export const reportsServer = axios.create({
-  baseURL: `http://${window.location.hostname}:7173/api`,
+  baseURL: Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`,
   headers,
 });
 
 export const storageServer = axios.create({
-  baseURL: `http://${window.location.hostname}:7175/api`,
+  baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL : `http://${window.location.hostname}:7175/api`,
+  headers,
+});
+
+export const reportsServer = axios.create({
+  baseURL: Envs.REPORTS_API_BASEURL ? Envs.REPORTS_API_BASEURL : `http://${window.location.hostname}:7173/api`,
   headers,
 });
 

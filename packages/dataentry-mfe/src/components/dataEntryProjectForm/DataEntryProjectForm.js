@@ -17,7 +17,7 @@ import { Envs } from '../../utilities/envs';
 import { hostServer } from '../../server/api';
 import { dataEntryApi } from '../../apis/dataentry.api';
 
-const FabricWorkspaceForm = ({ project, edit, onSave }) => {
+const DataEntryProjectForm = ({ project, edit, onSave }) => {
   let history = useHistory();
   
   const methods = useForm();
@@ -28,7 +28,7 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
   } = methods;
 
   // lean governance fields
-  const [nameOfWorkspace, setNameOfWorkspace] = useState(edit && project?.name !== null ? project?.name : '');
+  const [nameOfProject, setNameOfProject] = useState(edit && project?.name !== null ? project?.name : '');
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -226,26 +226,26 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
                   </select>
                 </div>
                 <p style={{ color: 'var(--color-orange)' }}
-                  className={classNames((typeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground workspaces are deleted after 2 months of not being used.</p>
+                  className={classNames((typeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not being used.</p>
                 <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
                   {errors?.typeOfProject?.message}
                 </span>
               </div>
               <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
                 <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Name of Workspace <sup>*</sup>
+                  Name of Project <sup>*</sup>
                 </label>
                 <div>
                   <input
                     type="text"
                     className={classNames('input-field', Styles.workspaceNameField)}
-                    id="workspaceName"
+                    id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
                     maxLength={55}
                     readOnly={edit}
-                    defaultValue={nameOfWorkspace}
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                    defaultValue={nameOfProject}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfProject(e.target.value) } })}
                   />
                   <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                 </div>
@@ -572,7 +572,7 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
                   edit ? handleEditProject(values) : handleCreateProject(values);
                 })}
               >
-                {edit ? 'Save Workspace' : 'Create Workspace'}
+                {edit ? 'Save Project' : 'Create Project'}
               </button>
             </div>
           </div>
@@ -582,4 +582,4 @@ const FabricWorkspaceForm = ({ project, edit, onSave }) => {
   );
 }
 
-export default FabricWorkspaceForm;
+export default DataEntryProjectForm;
