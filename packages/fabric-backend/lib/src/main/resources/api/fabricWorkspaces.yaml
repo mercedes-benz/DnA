@@ -358,16 +358,16 @@ definitions:
         format: date
       role:
         type: string
-    required:
-      - name
-      - typeOfProject
-      - description
-      - divisionId
-      - subDivisionId
-      - dataClassification
-      - hasPii
-      - termsOfUse
-      - costCenter
+#    required:
+#      - name
+#      - typeOfProject
+#      - description
+#      - divisionId
+#      - subDivisionId
+#      - dataClassification
+#      - hasPii
+#      - termsOfUse
+#      - costCenter
 
   FabricWorkspaceUpdateRequestVO:
     type: object

@@ -65,16 +65,37 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		GenericMessage errorMessage = new GenericMessage();
 		FabricWorkspaceVO data = new FabricWorkspaceVO();
 		FabricWorkspaceVO workspaceRequestVO = workspaceCreateVO.getData();
-		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null || workspaceRequestVO.getDescription()==null 
-				|| workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null) {
+		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null ) {
 			log.error("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
-			MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
+			MessageDescription invalidMsg = new MessageDescription("Fabric workspace name/type of project cannot be null, please check and send valid input");
 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
 			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(workspaceRequestVO);
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		}else {
+			if("Playground".equalsIgnoreCase(null)) {
+				if(workspaceRequestVO.getDataClassification() ==null || workspaceRequestVO.isHasPii() == null) {
+					log.error("Fabric workspace Data-Classification/PII cannot be null for Playground type of project, please check and send valid input");
+					MessageDescription invalidMsg = new MessageDescription("Fabric workspace Data-Classification/PII cannot be null for Playground type of project, please check and send valid input");
+					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+					errorMessage.addErrors(invalidMsg);
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}else {
+				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null){
+					log.error("Fabric workspace project mandatory fields cannot be null for non playground type of project, please check and send valid input.");
+					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for non playground type of project, please check and send valid input.");
+					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+					errorMessage.addErrors(invalidMsg);
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
 		}
 		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && "Admin monitoring".equalsIgnoreCase(workspaceRequestVO.getName())) {
 			log.error("Fabric workspace project name cannot be Admin monitoring, cannot use reserve keyword. Please send valid input");
