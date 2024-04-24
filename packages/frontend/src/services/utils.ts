@@ -270,7 +270,7 @@ export const isSolutionFilterApplied = (
   let filterApplied = false;
   const currentYear = new Date().getFullYear();
   const defaultStartYear = currentYear - 2 + '';
-  const defaultEndYear =currentYear + 1 + '';
+  const defaultEndYear = currentYear + 1 + '';
 
   if(!(queryParams.dataValueRange.startYear === defaultStartYear && queryParams.dataValueRange.endYear === defaultEndYear)){
     filterApplied = true;
