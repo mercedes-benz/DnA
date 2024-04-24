@@ -393,7 +393,7 @@ const protectedRoutes = [
     title: 'Your Code Spaces',
   },
   {
-    allowedRoles: AdminRole,
+    allowedRoles: UserAndAdminRole,
     component:CodeSpaceRecipe ,
     exact: false,
     path: '/codespaceRecipes',
