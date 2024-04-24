@@ -97,9 +97,9 @@ const CreateBucket = ({ user }) => {
         ProgressIndicator.hide();
         setDivisions(response[0]?.data || []);
         setDepartments(response[1]?.data?.data || []);
-        id && setDivision(editAPIResponse?.divisionId + '@-@' + editAPIResponse?.division || '0');
-        // !id && SelectBox.defaultSetup();
-        SelectBox.defaultSetup();
+        setTimeout(() => {
+          SelectBox.defaultSetup();
+        }, 200);
       })
       .catch((err) => {
         ProgressIndicator.hide();
@@ -122,8 +122,6 @@ const CreateBucket = ({ user }) => {
       hostServer.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res?.data || []);
-          // id && setSubDivision(editAPIResponse?.subDivisionId+'@-@'+editAPIResponse?.subDivision || '0');
-          SelectBox.defaultSetup();
           ProgressIndicator.hide();
         }).catch(() => {
           ProgressIndicator.hide();
@@ -134,29 +132,25 @@ const CreateBucket = ({ user }) => {
   }, [division]);
 
   useEffect(() => {
-    // SelectBox.defaultSetup();
     setTimeout(() => {
       SelectBox.defaultSetup(true);
     }, 200);
   }, [typeOfProject]);
 
   useEffect(() => {
-    divisions.length > 0 &&
-      id && setDivision(editAPIResponse?.divisionId + '@-@' + editAPIResponse?.division || '0');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [divisions]);
-
-  useEffect(() => {
     subDivisions.length > 0 &&
       id && setSubDivision(editAPIResponse?.subDivisionId + '@-@' + editAPIResponse?.subDivision || '0');
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    setTimeout(() => {
+      SelectBox.defaultSetup();
+    }, 100);
   }, [subDivisions]);
 
-  useEffect(() => {
-    setTimeout(() => {
-      SelectBox.defaultSetup(true);
-    }, 200);
-  }, [division, subDivision]);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     SelectBox.defaultSetup(true);
+  //   }, 200);
+  // }, [division, subDivision]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -193,13 +187,16 @@ const CreateBucket = ({ user }) => {
             setTermsOfUse(res?.data?.termsOfUse);
             setDescription(res?.data?.description || '');
             setTypeOfProject(res?.data?.typeOfProject || '0');
-            setDepartment([res?.data?.department] || []);
+            setDepartment(res?.data?.department ? [res?.data?.department] : []);
             setDivision(res?.data?.divisionId + '@-@' + res?.data?.division || '0');
             setSubDivision(res?.data?.subDivisionId + '@-@' + res?.data?.subDivision || '0');
             setArcherId(res?.data?.archerId || '');
             setProcedureID(res?.data?.procedureId || '');
             setEditAPIResponse(res?.data); // store to compare whether the values are changed
-            SelectBox.defaultSetup();
+
+            setTimeout(() => {
+              SelectBox.defaultSetup();
+            }, 200);
           } else {
             // reset history to base page before accessing container app's public routes;
             history.replace('/');
@@ -256,26 +253,26 @@ const CreateBucket = ({ user }) => {
       setBucketNameError(errorMissingEntry);
       formValid = false;
     }
-    if (typeOfProject === '0') {
+    if (isOwner && typeOfProject === '0') {
       setTypeOfProjectError(errorMissingEntry);
       formValid = false;
     }
     if (bucketNameError) {
       formValid = false;
     }
-    if (!description.length) {
+    if (isOwner && !description.length) {
       setDescriptionError(errorMissingEntry);
       formValid = false;
     }
-    if (!isPlayground && division === '0') {
+    if (isOwner && !isPlayground && division === '0') {
       setDivisionError(errorMissingEntry);
       formValid = false;
     }
-    if (!department.length) {
+    if (isOwner && !department.length) {
       setDepartmentError(true);
       formValid = false;
     }
-    if (!isPlayground && dataClassification === 'Choose') {
+    if (isOwner && !isPlayground && dataClassification === 'Choose') {
       formValid = false;
       setDataClassificationError(errorMissingEntry);
     }
