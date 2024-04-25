@@ -39,7 +39,7 @@ type Query {
     dataproducts(published: Boolean, art: String, carlafunction: String,
         platform: String, frontendTool: String,
         productOwner: String, offset: Int, limit: Int, sortBy: String,
-        sortOrder: String): DataProductCollection!
+        sortOrder: String, dataSteward: String, informationOwner: String, department: String, division:String): DataProductCollection!
 }
 
 type CarLaFunctionVO {

@@ -50,6 +50,8 @@ import com.daimler.data.db.entities.CarlaFunctionNsql;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.userinfo.dashboard.DashboardServiceLovDto;
 import com.daimler.data.dto.userinfo.dashboard.GetDashboardServiceLovResponseWrapperDto;
+import com.daimler.data.dto.userinfo.dashboard.dataProduct.DataProductTeamLov;
+import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
 import com.daimler.data.util.ConstantsUtility;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -63,6 +65,7 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.jsonb.dataproduct.DataProduct;
+import com.daimler.data.db.jsonb.dataproduct.TeamMember;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -223,9 +226,9 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	public List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
 			String sortBy, String sortOrder, String recordStatus,
 			List<String> artsList, List<String> carlafunctionsList, List<String> platformsList, List<String> frontendToolsList,
-			List<String> productOwnerList) {
+			List<String> productOwnerList, List<String> dataStewardsList,List<String> informationOwnerList, List<String> departmentList,String division) {
 		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus,
-				artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
+				artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList,dataStewardsList,informationOwnerList,departmentList,division);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = null;
 		try {
@@ -252,10 +255,10 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	@Override
 	public Long getCountUsingNativeQuery(Boolean published, String recordStatus,
 		List<String> artsList, List<String> carlafunctionsList,
-		List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList) {
+		List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList,List<String> dataStewardsList,List<String> informationOwnerList,List<String> departmentList,String division) {
 
 		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus,
-				artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
+				artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList,dataStewardsList,informationOwnerList,departmentList,division);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
@@ -317,7 +320,7 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			String sortBy, String sortOrder, String recordStatus,
 			List<String> artsList, List<String> carlafunctionsList,
 			List<String> platformsList, List<String> frontendToolsLis,
-			List<String> productOwnerList) {
+			List<String> productOwnerList,List<String> dataStewardsList, List<String> informationOwnerList, List<String> departmentList,String division) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
@@ -327,7 +330,7 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 				published, recordStatus,
 				artsList, carlafunctionsList,
 				platformsList, frontendToolsLis,
-				productOwnerList);
+				productOwnerList,dataStewardsList,informationOwnerList,departmentList,division);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
@@ -359,13 +362,50 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	}
 
 	private String buildPredicateString(Boolean published, String recordStatus,
-		List<String> artsList, List<String> carlafunctionsList,
-		List<String> platformsList, List<String> frontendToolsLis,
-		List<String> productOwnerList) {
+			List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsLis,
+			List<String> productOwnerList, List<String> dataStewardsList, List<String> informationOwnerList,
+			List<String> departmentList, String division) {
 		return getArtPredicateString(artsList) + "\n" + getartCarlafunctionString(carlafunctionsList) + "\n"
 				+ getPlatformsListPredicateString(platformsList) + "\n" + getartFrontendToolsString(frontendToolsLis) + "\n"
 				+ getProductOwnerPredicateString(productOwnerList) + "\n"
+				+getDatasweardPredicateString(dataStewardsList) + "\n"
+				+getInformationOwnerPredicateString(informationOwnerList) + "\n" +getDepartmentPredicateString(departmentList) + "\n"
+				+getDivisionsPredicateString(division) + "\n"
 				+ getPublishedAndAccessPredicate(published) + "\n" + getRecordStatusPredicateString(recordStatus);
+	}
+
+	private String getDepartmentPredicateString(List<String> departmentList) {
+		// TODO Auto-generated method stub
+		if(departmentList !=null && !departmentList.isEmpty())
+		{
+			String departmentJson = String.join("','",departmentList);
+			String department = " and (jsonb_extract_path_text(data, 'contactInformation','department') in ('" + departmentJson + "'))";
+			return department;
+		}
+		return "";
+	}
+
+	private String getInformationOwnerPredicateString(List<String> informationOwnerList) {
+		// TODO Auto-generated method stub
+		if(informationOwnerList != null && !informationOwnerList.isEmpty())
+		{
+			String informationIOJson = String.join("','",informationOwnerList);
+			String department = " and (jsonb_extract_path_text(data, 'contactInformation','informationOwner','shortId') in ('" + informationIOJson + "'))";
+			return department;
+		}
+		return "";
+	}
+
+	private String getDatasweardPredicateString(List<String> dataStewardsList) {
+		// TODO Auto-generated method stub
+		if(dataStewardsList!= null && !dataStewardsList.isEmpty())
+		{
+			String dataStewardJson = String.join("','",dataStewardsList);
+			String department = " and (jsonb_extract_path_text(data,'contactInformation','name','shortId') in ('" + dataStewardJson + "'))";
+			return department;
+		}
+		return "";
 	}
 
 	private String buildPredicateString(Boolean published, String recordStatus) {
@@ -541,4 +581,88 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		}
 		return dataProductNsqls;				
 	}
+
+    public List<DataProductTeamLov> getAllDataStweardLov()
+	{
+		 List<DataProductTeamLov> data = new ArrayList<>();
+		 List<Object[]> results = new ArrayList<>();
+		 String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data,'contactInformation', 'name', 'shortId')) " +
+					   "cast(jsonb_extract_path_text(data, 'contactInformation', 'name') as text) as TEAM_NAME, " +
+					   "cast(id as text) as COLUMN_ID " +
+				   "FROM " +
+					   "dataproduct_nsql where jsonb_extract_path_text(data, 'contactInformation', 'name') is not null";
+		 try {
+			 Query q = em.createNativeQuery(getQuery);
+			 results = q.getResultList();
+ 
+			 ObjectMapper mapper = new ObjectMapper();
+			 for(Object[] rowData : results){
+				DataProductTeamLov rowDetails = new DataProductTeamLov();
+				 if(rowData !=null){
+					 rowDetails.setId((String)rowData[1]);
+					 try{
+						 // rowDetails.setProjectName((String)rowData[0]);
+						 TeamMember teamDetails = mapper.readValue(rowData[0].toString(),TeamMember.class);
+						 rowDetails.setMember(teamDetails);
+					 
+					 }catch(Exception e){
+						 LOGGER.error("failed in repo Impl while fetching data");
+						 rowDetails.setId(null);
+					 }
+					 data.add(rowDetails);
+				 }
+			 }
+			 if(data!=null && !data.isEmpty()) {
+																 
+				 LOGGER.info("Found {} workspaces which are in requested and accepted state", data.size());
+			 }
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 LOGGER.error("Failed to query workspaces under project , which are in requested and accepted state");
+		 }
+		 return data;
+	}
+
+    public List<DataProductTeamLov> getAllIOLov()
+	{
+		List<DataProductTeamLov> data = new ArrayList<>();
+		List<Object[]> results = new ArrayList<>();
+		String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data,'contactInformation', 'name', 'shortId')) " +
+					  "cast(jsonb_extract_path_text(data,'contactInformation', 'informationOwner') as text) as TEAM_NAME, " +
+					  "cast(id as text) as COLUMN_ID " +
+				  "FROM " +
+					  "dataproduct_nsql  where jsonb_extract_path_text(data, 'contactInformation', 'informationOwner') is not null";
+
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			results = q.getResultList();
+
+			ObjectMapper mapper = new ObjectMapper();
+			for(Object[] rowData : results){
+				DataProductTeamLov rowDetails = new DataProductTeamLov();
+				if(rowData !=null){
+					rowDetails.setId((String)rowData[1]);
+					try{
+						// rowDetails.setProjectName((String)rowData[0]);
+						TeamMember teamDetails = mapper.readValue(rowData[0].toString(),TeamMember.class);
+						rowDetails.setMember(teamDetails);
+					
+					}catch(Exception e){
+						LOGGER.error("failed in repo Impl while fetching data");
+						rowDetails.setId(null);
+					}
+					data.add(rowDetails);
+				}
+			}
+			if(data!=null && !data.isEmpty()) {
+																
+				LOGGER.info("Found {} workspaces which are in requested and accepted state", data.size());
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			LOGGER.error("Failed to query workspaces under project , which are in requested and accepted state");
+		}
+		return data;
+	}
+
 }
