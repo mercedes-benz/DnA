@@ -3,7 +3,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-matomo-service
-    version: 1.0.1
+    version: 1.0.2
 
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
