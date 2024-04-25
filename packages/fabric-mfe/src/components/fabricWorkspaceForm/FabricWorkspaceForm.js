@@ -169,7 +169,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       // relatedReports: relatedReports,
     }
     ProgressIndicator.show();
-    fabricApi.updateFabricWorkspace(data, workspace.id).then(() => {
+    fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Fabric workspace successfully updated');
       onSave();
