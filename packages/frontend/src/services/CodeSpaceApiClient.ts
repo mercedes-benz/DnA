@@ -185,7 +185,12 @@ export class CodeSpaceApiClient {
     return this.getVault(`/secret/${codeSpaceName}/${env}`)
   };
 
-  public static update_secret(path: string, secret_value: any, env: string): Promise<any[]>{
-    return this.putVault(`/secret/${path}/${env}`,secret_value)
-  };
+  public static update_secret(path: string, secret_value: any, env: string): Promise<any[]> {
+    return this.putVault(`/secret/${path}/${env}`, secret_value);
+  }
+
+  public static startStopWorkSpace(id: string, serverStarted: boolean): Promise<any> {
+    if (serverStarted) return this.delete(`/workspaces/server/${id}`);
+    return this.post(`/workspaces/startserver/${id}`);
+  }
 }

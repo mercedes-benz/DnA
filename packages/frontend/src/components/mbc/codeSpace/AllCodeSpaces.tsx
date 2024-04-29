@@ -153,6 +153,39 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     setShowDeployCodeSpaceModal(true);
   };
 
+  const onStartStopCodeSpace = (codeSpace: ICodeSpaceData) => {
+    Tooltip.clear();
+    const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
+    setLoading(true);
+    CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
+      .then((res: any) => {
+        setLoading(false);
+        if (res.success === 'SUCCESS') {
+          Notification.show(
+            'Your Codespace for project ' +
+              codeSpace.projectDetails?.projectName +
+              ' is requested to ' +
+              (serverStarted ? 'stop' : 'start') +
+              '. Please check status after some time.',
+          );
+        } else {
+          Notification.show(
+            'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err: Error) => {
+        setLoading(false);
+        Notification.show(
+          'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
+          'alert',
+        );
+      }).finally(() => {
+        Tooltip.defaultSetup();
+      });
+  };
+
   const switchBackToCodeSpace = () => {
     setOnEditCodeSpace(undefined);
     setOnBoardCodeSpace(undefined);
@@ -266,6 +299,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                             onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                             onCodeSpaceEdit={onCodeSpaceEdit}
                             onShowDeployModal={onCodeSpaceDeploy}
+                            onStartStopCodeSpace={onStartStopCodeSpace}
                           />
                         );
                       })}
