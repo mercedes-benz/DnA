@@ -22,7 +22,7 @@ public class CodespaceSecurityConfig implements Serializable{
 	private CodespaceSecurityConfigDetailCollection staging;
 	private CodespaceSecurityConfigDetailCollection production;
 	// private List<String> openSegments;
-	private Boolean isProtectedByDna;
+	//private Boolean isProtectedByDna;
 	// private String requestedDate;
 
 	

@@ -1138,8 +1138,8 @@ definitions:
       #   type: array
       #   items:
       #     type: string
-      isProtectedByDna:
-        type: boolean
+      # isProtectedByDna:
+      #   type: boolean
       # requestedDate:
       #   type: string
       # projectName:
