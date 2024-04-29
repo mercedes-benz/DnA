@@ -275,6 +275,23 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
   {
+    id: 'powerPlatform',
+    name: 'Power Platform',
+    description: 'Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.',
+    tags: ['No / Low Code'],
+    url: '',
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: true,
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: false,
+  },
+  {
     id: 'malwareScan',
     name: 'Malware Scan',
     description:
