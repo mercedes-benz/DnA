@@ -1014,12 +1014,19 @@ definitions:
     type: object
     properties:
       name:
-        type: string
-        description: "name  of Entitlement"   
-      apiList:
-        type:  array
+        type: array
+        description: "name  of Entitlement"
         items:
-          $ref: "#/definitions/CodespaceSecurityApiListVO"
+          type: string   
+      apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+      httpMethod:
+        type: string
+        enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
+        description: "Operating system required" 
+      id:
+        type: string
 
   CodespaceSecurityUserRoleMapVO: 
     type: object

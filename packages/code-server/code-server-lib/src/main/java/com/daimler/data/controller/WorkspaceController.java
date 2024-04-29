@@ -440,7 +440,7 @@ import lombok.extern.slf4j.Slf4j;
 					//data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 					 //data = workspaceAssembler.assembleSecurityConfig(vo,data,env);
 					 if(vo.getProjectDetails().getSecurityConfig() == null){
-						
+						data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 						CodespaceSecurityConfigDetailCollectionVO collectionVO = new CodespaceSecurityConfigDetailCollectionVO();
 					 	CodespaceSecurityConfigVO configVO = new CodespaceSecurityConfigVO();
 						if("int".equalsIgnoreCase(env)){
@@ -461,6 +461,7 @@ import lombok.extern.slf4j.Slf4j;
 						return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 
 					}else{
+						data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 						if("int".equalsIgnoreCase(env)){
 							vo.getProjectDetails().getSecurityConfig().getStaging().setDraft(data);
 							
