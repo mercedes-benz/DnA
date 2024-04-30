@@ -435,7 +435,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       <li>
                         <a
                           target="_blank"
-                          href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                          href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                           rel="noreferrer"
                         >
                           Application Logs <i className="icon mbc-icon new-tab" />

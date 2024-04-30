@@ -730,7 +730,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
                           <li>
-                            <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)} rel="noreferrer">
+                            <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase())} rel="noreferrer">
                               Application Logs <i className="icon mbc-icon new-tab" />
                             </a>
                           </li>
