@@ -28,7 +28,6 @@ const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
 const ToolsDetailedPage = React.lazy(() => import('components/mbc/tools/toolsDetailedPage/ToolsDetailedPage'));
-const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
 const Comingsoon = React.lazy(() => import('components/mbc/comingsoon/Comingsoon'));
@@ -275,13 +274,6 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
-    component: Services,
-    exact: false,
-    path: '/services',
-    title: 'Services',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
     component: CreateNewPipeline,
     exact: false,
     path: '/createnewpipeline',
@@ -393,7 +385,7 @@ const protectedRoutes = [
     title: 'Your Code Spaces',
   },
   {
-    allowedRoles: AdminRole,
+    allowedRoles: UserAndAdminRole,
     component:CodeSpaceRecipe ,
     exact: false,
     path: '/codespaceRecipes',

@@ -139,6 +139,7 @@ const DataTransferFilter = ({
 
         if (selectedOptions.length) {
             Array.from(selectedOptions).forEach((option) => {
+                if(option.value === '') return; 
                 const dataStewards = { id: '0', name: null };
                 dataStewards.id = option.value;
                 dataStewards.name = option.textContent;
@@ -157,6 +158,7 @@ const DataTransferFilter = ({
 
         if (selectedOptions.length) {
             Array.from(selectedOptions).forEach((option) => {
+                if(option.value === '') return;
                 const informationOwners = { id: '0', name: null };
                 informationOwners.id = option.value;
                 informationOwners.name = option.textContent;

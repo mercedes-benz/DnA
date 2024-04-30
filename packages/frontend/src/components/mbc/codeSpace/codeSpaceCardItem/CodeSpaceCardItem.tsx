@@ -32,6 +32,7 @@ interface CodeSpaceCardItemProps {
   onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => void;
   onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
   onShowDeployModal: (codeSpace: ICodeSpaceData) => void;
+  onStartStopCodeSpace: (codeSpaceId: ICodeSpaceData) => void;
 }
 
 let isTouch = false;
@@ -44,6 +45,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
+  const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
@@ -352,19 +355,23 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       </li>
                     )}
                     {intDeployed && (
-                      <>
-                        <li>
-                          <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                            Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                            <i className="icon mbc-icon new-tab" />
-                          </a>
-                        </li>
-                        <li>
-                          <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
-                            Application Logs <i className="icon mbc-icon new-tab" />
-                          </a>
-                        </li>
-                      </>
+                      <li>
+                        <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                          Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
+                    {intDeploymentDetails?.lastDeploymentStatus && (
+                      <li>
+                        <a
+                          target="_blank"
+                          href={buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                          rel="noreferrer"
+                        >
+                          Application Logs <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
                     )}
                     {intDeploymentDetails?.deploymentAuditLogs && (
                       <li>
@@ -417,19 +424,23 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       </li>
                     )}
                     {prodDeployed && (
-                      <>
-                        <li>
-                          <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                            Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                            <i className="icon mbc-icon new-tab" />
-                          </a>
-                        </li>
-                        <li>
-                          <a target="_blank" href={buildLogViewURL(prodDeployedUrl, false)} rel="noreferrer">
-                            Application Logs <i className="icon mbc-icon new-tab" />
-                          </a>
-                        </li>
-                      </>
+                      <li>
+                        <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                          Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
+                    {prodDeploymentDetails?.lastDeploymentStatus && (
+                      <li>
+                        <a
+                          target="_blank"
+                          href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                          rel="noreferrer"
+                        >
+                          Application Logs <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
                     )}
                     {prodDeploymentDetails?.deploymentAuditLogs && (
                       <li>
@@ -693,6 +704,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           ) : (
             <>
               <div>
+                {!createInProgress && !creationFailed && (
+                  <span onClick={() => props.onStartStopCodeSpace(codeSpace)} tooltip-data={((serverStarted ? "Stop" : "Start") + " the Codespace")} className={classNames(Styles.statusIndicator, Styles.wsStartStop, serverStarted ? Styles.wsStarted : '')}>
+                    {serverStarted ? 'Stop' : 'Start'}
+                  </span>
+                )}
                 {createInProgress ? (
                   <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
                 ) : (

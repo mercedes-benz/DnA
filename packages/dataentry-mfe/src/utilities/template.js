@@ -1,8 +1,7 @@
-import { BooleanNumber, LocaleType, SheetTypes } from '@univerjs/core';
+import { BooleanNumber, SheetTypes } from '@univerjs/core';
 
 export const DEFAULT_WORKBOOK_DATA = {
   id: 'workbook-01',
-  locale: LocaleType.EN_US,
   name: 'survey',
   sheetOrder: ['sheet-01'],
   appVersion: '3.0.0-alpha',
@@ -11,14 +10,43 @@ export const DEFAULT_WORKBOOK_DATA = {
       type: SheetTypes.GRID,
       id: 'sheet-01',
       cellData: {
-        0: {
-          0: {
-            v: 'Hello World',
+          "0": {
+              "0": {},
+              "1": {
+                  "v": "Column 1",
+                  "t": 1
+              },
+              "2": {
+                  "v": "Column 2",
+                  "t": 1
+              },
+              "3": {
+                  "v": "Column 3",
+                  "t": 1
+              }
           },
-        },
+          "1": {
+              "0": {
+                  "v": "Row 1",
+                  "t": 1
+              },
+              "1": {},
+              "2": {}
+          },
+          "2": {
+              "0": {
+                  "v": "Row 2",
+                  "t": 1
+              }
+          },
+          "3": {
+              "0": {
+                  "v": "Row 3",
+                  "t": 1
+              }
+          }
       },
       name: 'survey',
-      tabColor: 'red',
       hidden: BooleanNumber.FALSE,
       rowCount: 1000,
       columnCount: 20,

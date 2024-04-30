@@ -50,23 +50,32 @@ const DataEntryProject = () => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {!loading ? 
-            <Caption title={project?.name}>
-              &nbsp;(<a href={`https://app.fabric.microsoft.com/groups/${project?.id}`} target='_blank' rel='noopener noreferrer'>
-                Access Workspace
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>)
-            </Caption> : null
+            <Caption title={project?.name} /> : null
           }
-          <div className={Styles.content}>
-            <button
-              onClick={() => {
-                console.log(univerRef.current?.getData());
-              }}
-            >
-              Get Data
-            </button>
+          {/* <div onClick={toggleFullScreenMode}>
+            <FullScreenModeIcon fsNeed={fullScreenMode} />
+          </div> */}
+          <div>
             <div>
               <DataEntrySheet style={{ flex: 1 }} ref={univerRef} data={data} />
+            </div>
+            <div className={Styles.btnContainer}>
+              <button
+                className={'btn btn-primary'}
+                onClick={() => {
+                  console.log(univerRef.current?.getData());
+                }}
+              >
+                Save as Draft
+              </button>
+              <button
+                className={'btn btn-tertiary'}
+                onClick={() => {
+                  console.log(univerRef.current?.getData());
+                }}
+              >
+                Send to Fillers
+              </button>
             </div>
           </div>
           <div className={Styles.content}>
@@ -109,17 +118,6 @@ const DataEntryProject = () => {
                     </div>
 
                     <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="tags">
-                        <label className="input-label summary">Related Reports</label>
-                        <br />
-                        {project?.relatedReports ? project.relatedReports?.map((chip) => {
-                          return (
-                            <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
-                            </>
-                          );
-                        }) : 'N/A'}
-                      </div>
                       <div id="divisionField">
                         <label className="input-label summary">Division</label>
                         <br />

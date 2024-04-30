@@ -81,10 +81,10 @@ const Projects = (props) => {
                 <div className={Styles.cardBodySection}>
                   <div>
                     <div>
-                      <div>Workspace Link</div>
+                      <div>Data Lakehouse Link</div>
                       <div>
                         <a href={`https://app.fabric.microsoft.com/groups/${project.id}`} target='_blank' rel='noopener noreferrer'>
-                          Access Workspace
+                          Access Lakehouse
                           <i className={classNames('icon mbc-icon new-tab')} />
                         </a>
                       </div>
@@ -93,13 +93,13 @@ const Projects = (props) => {
                       <div>Created on</div>
                       <div>{regionalDateAndTimeConversionSolution(project.createdOn)}</div>
                     </div>
-                    {/* <div>
-                      <div>Last modified</div>
-                      <div>{regionalDateAndTimeConversionSolution(project.lastModified)}</div>
-                    </div> */}
                     <div>
                       <div>Classification</div>
                       <div>{project.classificationType || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <div>State</div>
+                      <div>{project.state}</div>
                     </div>
                   </div>
                 </div>
