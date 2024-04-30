@@ -1693,13 +1693,13 @@ import lombok.extern.slf4j.Slf4j;
 			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		}
 		if("int".equalsIgnoreCase(env)){
-			if(vo.getProjectDetails().getSecurityConfig().getStaging().getPublished().getEntitlements()!=null){
+			if(vo.getProjectDetails().getSecurityConfig().getStaging().getPublished().getEntitlements()!=null || vo.getProjectDetails().getSecurityConfig().getStaging().getPublished().getAppID()!=null){
 				configPublishedDetailsVO = vo.getProjectDetails().getSecurityConfig().getStaging().getPublished();
 				return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
 			}
 		}
 		if("prod".equalsIgnoreCase(env)){
-			if(vo.getProjectDetails().getSecurityConfig().getProduction().getPublished().getEntitlements()!=null){
+			if(vo.getProjectDetails().getSecurityConfig().getProduction().getPublished().getEntitlements()!=null || vo.getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID()!=null){
 				configPublishedDetailsVO = vo.getProjectDetails().getSecurityConfig().getProduction().getPublished();
 				return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
 			}
