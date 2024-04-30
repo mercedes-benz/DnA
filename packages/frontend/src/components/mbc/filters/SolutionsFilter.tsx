@@ -316,8 +316,14 @@ const SolutionsFilter = ({
               queryParams.tag = filterPreferences.tags.map((tag: ITag) => {
                 return tag.name;
               });
-              queryParams.dataValueRange.startYear=filterPreferences.dataValueRange.split(',')[0];
-              queryParams.dataValueRange.endYear=filterPreferences.dataValueRange.split(',')[1];
+
+              if(filterPreferences.dataValueRange) {
+                queryParams.dataValueRange.startYear = filterPreferences.dataValueRange.split(',')[0];
+                queryParams.dataValueRange.endYear = filterPreferences.dataValueRange.split(',')[1];
+              } else {
+                queryParams.dataValueRange.startYear = defaultStartYear;
+                queryParams.dataValueRange.endYear = defaultEndYear;
+              }
               // populate subDivision dropdown values
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
                 setSubDivisions(subDivisionsList);
