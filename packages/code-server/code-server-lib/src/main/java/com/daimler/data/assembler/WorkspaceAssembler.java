@@ -348,6 +348,8 @@
 							 .collect(Collectors.toList());
 					 //codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(entitlementsVO);
 					 stagingDraftConfigVO.setEntitlements(entitlementsVO);
+				 }else {
+					stagingDraftConfigVO.setEntitlements(new ArrayList<>());
 				 } 
 			 }else {
 				 //codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(new ArrayList<>());
@@ -364,7 +366,9 @@
 					 List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
 							 .collect(Collectors.toList());
 					 stagingPublishedConfigVO.setEntitlements(entitlementsVO);
-				 } 
+				 }else {
+					stagingPublishedConfigVO.setEntitlements(new ArrayList<>());
+				 }
 			 }else {
 				 stagingPublishedConfigVO.setEntitlements(new ArrayList<>());
 			 }
@@ -379,7 +383,9 @@
 					 List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
 							 .collect(Collectors.toList());
 							 productionPublishedConfigVO.setEntitlements(entitlementsVO);
-				 } 
+				 }else {
+					productionPublishedConfigVO.setEntitlements(new ArrayList<>());
+				 }
 			 }else {
 				 productionPublishedConfigVO.setEntitlements(new ArrayList<>());
 			 }
@@ -394,6 +400,9 @@
 							 .collect(Collectors.toList());
 							 productionDraftConfigVO.setEntitlements(entitlementsVO);
 				 } 
+				 else {
+					productionDraftConfigVO.setEntitlements(new ArrayList<>());
+				 }
 			 }else {
 				 productionDraftConfigVO.setEntitlements(new ArrayList<>());
 			 } 

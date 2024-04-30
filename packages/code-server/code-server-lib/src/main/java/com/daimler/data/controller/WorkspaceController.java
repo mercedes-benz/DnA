@@ -1419,13 +1419,13 @@ import lombok.extern.slf4j.Slf4j;
 			 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		 }
 		 if("int".equalsIgnoreCase(env)){
-			if(vo.getProjectDetails().getSecurityConfig().getStaging().getDraft().getEntitlements()!=null){
+			if(vo.getProjectDetails().getSecurityConfig().getStaging().getDraft().getEntitlements()!=null || vo.getProjectDetails().getSecurityConfig().getStaging().getDraft().getAppID() !=null ){
 				getConfigResponse = vo.getProjectDetails().getSecurityConfig().getStaging().getDraft();
 				return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
 			}
 		}
 		if("prod".equalsIgnoreCase(env)){
-			if(vo.getProjectDetails().getSecurityConfig().getProduction().getDraft().getEntitlements()!=null){
+			if(vo.getProjectDetails().getSecurityConfig().getProduction().getDraft().getEntitlements()!=null || vo.getProjectDetails().getSecurityConfig().getProduction().getDraft().getAppID()!=null){
 				getConfigResponse = vo.getProjectDetails().getSecurityConfig().getProduction().getDraft();
 				return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
 			}
