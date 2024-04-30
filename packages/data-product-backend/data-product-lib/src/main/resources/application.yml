@@ -75,6 +75,8 @@ xapikeydetails:
 dashboard:
   uri: ${REPORTS_BASE_URL:XXXXXXX}
 
+planningIT.headers.authorization.token: ${PLANNINGIT_HEADER_AUTH:XXXXXX}
+
 server:
   port: 7184
 
