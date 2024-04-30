@@ -148,7 +148,7 @@ public class FabricWorkspaceClient {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				workspaceDetailDto.setErrorCode("500");
 				workspaceDetailDto.setMessage("Failed to login using service principal, please try later.");
-				return workspaceDetailDto;
+				return null;
 			}
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -163,8 +163,37 @@ public class FabricWorkspaceClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to get workspace details for id {} with {} exception ", workspaceId, e.getMessage());
+			return null;
 		}
 		return workspaceDetailDto;
+	}
+	
+	public WorkspacesCollectionDto getAllWorkspacesDetails() {
+		WorkspacesCollectionDto collectionDto = new WorkspacesCollectionDto();
+		WorkspaceDetailDto workspaceDetailDto = new WorkspaceDetailDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				workspaceDetailDto.setErrorCode("500");
+				workspaceDetailDto.setMessage("Failed to login using service principal, please try later.");
+				return collectionDto;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String workspacesUrl = workspacesBaseUrl;
+			ResponseEntity<WorkspacesCollectionDto> response = proxyRestTemplate.exchange(workspacesUrl , HttpMethod.GET,
+					requestEntity, WorkspacesCollectionDto.class);
+			if (response !=null && response.hasBody()) {
+				collectionDto = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get workspaces details with {} exception ", e.getMessage());
+		}
+		return collectionDto;
 	}
 	
 	public WorkspacesCollectionDto listWorkspaces() {
