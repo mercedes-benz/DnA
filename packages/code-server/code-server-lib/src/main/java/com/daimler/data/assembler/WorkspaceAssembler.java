@@ -432,9 +432,9 @@
  
 		 if (CodespaceSecurityConfigVO != null) {
 			 BeanUtils.copyProperties(CodespaceSecurityConfigVO, entity);
-			 if (CodespaceSecurityConfigVO.isIsProtectedByDna() != null) {
-				 entity.setIsProtectedByDna(CodespaceSecurityConfigVO.isIsProtectedByDna());
-			 }
+			//  if (CodespaceSecurityConfigVO.isIsProtectedByDna() != null) {
+			// 	 entity.setIsProtectedByDna(CodespaceSecurityConfigVO.isIsProtectedByDna());
+			//  }
  
 			 CodespaceSecurityConfigDetailVO stagingDraftConfigVO = CodespaceSecurityConfigVO.getStaging().getDraft();
 			 CodespaceSecurityConfigDetails stagingDraftConfig = new CodespaceSecurityConfigDetails();
