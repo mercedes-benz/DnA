@@ -25,6 +25,5 @@ public class CodeServerProjectDetails implements Serializable {
 	private CodeServerRecipeDetails recipeDetails;
 	private String gitRepoName;
 	private CodespaceSecurityConfig securityConfig;	
-	private CodespaceSecurityConfig publishedSecurityConfig;
 	private CodeServerLeanGovernanceFeilds dataGovernance;
 }

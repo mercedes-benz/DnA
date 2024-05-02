@@ -519,6 +519,14 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/SecurityConfigRequestDto"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
@@ -549,43 +557,19 @@ paths:
           description: "Workspace name to be fetched"
           required: true
           type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
-
-
-  /workspaces/{id}/config/request:        
-    post:
-      tags:
-        - "code-server"
-      summary: "Request for the changes to be added in access management system"
-      description: "request Codespace security configurations to be published"
-      operationId: "requestSecurityConfig"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace ID to be fetched"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
           required: true
-          type: "string"
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/GenericMessage"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -598,6 +582,38 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+
+  # /workspaces/{id}/config/request:        
+  #   post:
+  #     tags:
+  #       - "code-server"
+  #     summary: "Request for the changes to be added in access management system"
+  #     description: "request Codespace security configurations to be published"
+  #     operationId: "requestSecurityConfig"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace ID to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/GenericMessage"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
                       
   # Fetch all valid userinfo or by intent
   #
@@ -661,67 +677,67 @@ paths:
         500:
           description: "Internal error"
           
-  /workspaces/{id}/config/entitlements:
-    get:
-      tags:
-        - "code-server"
-      summary: "Get all entitlements for the workspace Id."
-      description: "Get all entitlements for the workspace Id."
-      operationId: "getAllEntitlements"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace name to be fetched"
-          required: true
-          type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/EntitlementCollectionVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /workspaces/{id}/config/entitlements:
+  #   get:
+  #     tags:
+  #       - "code-server"
+  #     summary: "Get all entitlements for the workspace Id."
+  #     description: "Get all entitlements for the workspace Id."
+  #     operationId: "getAllEntitlements"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace name to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/EntitlementCollectionVO"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
  
-  /workspaces/{id}/config/roles:
-    get:
-      tags:
-        - "code-server"
-      summary: "Get all roles for the workspace Id."
-      description: "Get all roles for the workspace Id."
-      operationId: "getAllRoles"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace name to be fetched"
-          required: true
-          type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/RoleCollectionVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /workspaces/{id}/config/roles:
+  #   get:
+  #     tags:
+  #       - "code-server"
+  #     summary: "Get all roles for the workspace Id."
+  #     description: "Get all roles for the workspace Id."
+  #     operationId: "getAllRoles"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace name to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/RoleCollectionVO"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
 
 
   /workspaces/{id}/config/publish:
@@ -737,11 +753,19 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -898,6 +922,11 @@ definitions:
       valutInjectorEnable:  # Corrected property name
         type: boolean
         default: false  # This should now work as expected
+      clientID:
+        type: string
+      clientSecret:
+        type: string
+
 
            
   CodeServerDeploymentDetailsVO:
@@ -969,7 +998,7 @@ definitions:
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+        $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
      response:
         $ref: "#/definitions/GenericMessage"
         
@@ -977,21 +1006,27 @@ definitions:
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+      $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+      
+       
   
   CodespaceSecurityEntitlementVO: 
     type: object
     properties:
+      name:
+        type: array
+        description: "name  of Entitlement"
+        items:
+          type: string   
+      apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+      httpMethod:
+        type: string
+        enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
+        description: "Operating system required" 
       id:
         type: string
-        description: "Entitlement Id" 
-      name:
-        type: string
-        description: "name  of Entitlement"   
-      apiList:
-        type:  array
-        items:
-          $ref: "#/definitions/CodespaceSecurityApiListVO"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
@@ -1077,31 +1112,38 @@ definitions:
   CodespaceSecurityConfigVO: 
     type: object
     properties:
-      status:
-        type: string
-        description: "Status of security configurations"   
-      entitlements:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-      roles:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityRoleVO" 
-      userRoleMappings:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
-      openSegments:
-        type: array
-        items:
-          type: string
-      isProtectedByDna:
-        type: boolean
-      requestedDate:
-        type: string
-      projectName:
-        type: string
+      # entitlements:
+      #   type: array
+      #   items:
+      #       $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+      # appId:
+      #   type: string
+      # status:
+      #   type: string
+      #   description: "Status of security configurations"   
+      staging:
+          $ref: "#/definitions/CodespaceSecurityConfigDetailCollectionVO"
+         
+      production:
+          $ref: "#/definitions/CodespaceSecurityConfigDetailCollectionVO"
+      # roles:
+      #   type: array
+      #   items:
+      #     $ref: "#/definitions/CodespaceSecurityRoleVO" 
+      # userRoleMappings:
+      #   type: array
+      #   items:
+      #     $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
+      # openSegments:
+      #   type: array
+      #   items:
+      #     type: string
+      # isProtectedByDna:
+      #   type: boolean
+      # requestedDate:
+      #   type: string
+      # projectName:
+      #   type: string
         
   UserIdVO:
     type: object
@@ -1316,3 +1358,28 @@ definitions:
       branch:
         type: string
         description: "branch one which codespace is deployed"
+
+  CodespaceSecurityConfigDetailVO:
+    type: object  
+    properties:
+      entitlements:
+        type: array
+        items:
+            $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+      appID:
+        type: string
+      # openSegments:
+      #   type: array
+      #   items:
+      #     type: string
+      # requestedDate:
+      #   type: string
+      # projectName:
+      #   type: string
+  CodespaceSecurityConfigDetailCollectionVO:
+    type: object  
+    properties:
+      draft:
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+      published:
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
