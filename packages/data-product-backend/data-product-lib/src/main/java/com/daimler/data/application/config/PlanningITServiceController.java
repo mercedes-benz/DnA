@@ -19,7 +19,6 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.planningit.PlanningITVO;
 import com.daimler.data.dto.planningit.PlanningITVOCollection;
-import com.daimler.data.service.forecast.BaseFabricWorkspaceService;
 import com.daimler.data.service.planningit.PlanningITService;
 
 import io.swagger.annotations.Api;
