@@ -13,18 +13,20 @@ import Modal from '../../../../../components/formElements/modal/Modal';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import EntitlementSubList from './EntitlementSubList';
 import Pagination from 'components/mbc/pagination/Pagination';
-import { CODE_SPACE_DISABLE_DNA_PROTECT, CODE_SPACE_STATUS, SESSION_STORAGE_KEYS } from 'globals/constants';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import EditOrCreateEntitlement from './EditOrCreateEntitlement';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 const classNames = cn.bind(Styles);
 
 export interface IEntitlementProps {
   onSaveDraft: (tabToBeSaved: string, config: any) => void;
+  onPublish: (config: any, env: string) => void;
+  env: string;
   id: string;
   config: any;
   readOnlyMode: boolean;
   projectName?: string;
-  isCodeSpaceAdminPage: boolean;
 }
 
 export interface IEntitlementState {
@@ -40,7 +42,6 @@ export interface IEntitlementState {
   entitlementNameErrorMessage: string;
   entitlementPathErrorMessage: string;
   entitlementHttpMethodErrorMessage: string;
-  isProtectedByDna: boolean;
   isDnAProtectModal: boolean;
   showDeleteModal: boolean;
   deleteEntitlementName: string;
@@ -49,6 +50,8 @@ export interface IEntitlementState {
   maxItemsPerPage: number;
   entitelmentListResponse: any;
   config: any;
+  appId: string;
+  appIdErrorMessage: string;
 }
 
 export default class Entitlement extends React.Component<IEntitlementProps, IEntitlementState> {
@@ -67,7 +70,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
       entitlementNameErrorMessage: '',
       entitlementPathErrorMessage: '',
       entitlementHttpMethodErrorMessage: '',
-      isProtectedByDna: true,
       isDnAProtectModal: false,
       showDeleteModal: false,
       deleteEntitlementName: '',
@@ -76,6 +78,8 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
       maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE)) || 10,
       entitelmentListResponse: [],
       config: {},
+      appId: '',
+      appIdErrorMessage: '',
     };
 
     // Bind the method to the class instance in the constructor
@@ -87,30 +91,25 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
-        const prjIdSortVal = records?.sort(function (item1: any, item2: any) {
-          return item1.name.localeCompare(item2.name);
-        });
         const totalNumberOfPages = Math.ceil(records?.length / this.state.maxItemsPerPage);
-        const modifiedData = prjIdSortVal.slice(0, this.state.maxItemsPerPage);
         this.setState({
-          // entitelmentListResponse: this.props.config.entitlements,
-          // entitelmentList: this.props.config.entitlements,
-          entitelmentListResponse: prjIdSortVal,
-          entitelmentList: modifiedData,
+          entitelmentListResponse: this.props.config.entitlements,
+          entitelmentList: this.props.config.entitlements,
           totalNumberOfPages: totalNumberOfPages,
           config: this.props.config,
-          isProtectedByDna: this.props.config.isProtectedByDna,
+          appId: this.props.config.appId,
         });
       } else {
         this.setState({
           config: this.props.config,
-          isProtectedByDna: this.props.config.isProtectedByDna,
+          appId: this.props.config.appId,
         });
       }
     }
   }
 
   public componentDidMount() {
+    SelectBox.defaultSetup();
     Tooltip.defaultSetup();
   }
 
@@ -120,20 +119,15 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
   }
 
   protected editCreateEditEntitlementModal = () => {
-    this.setState({ editEntitlementModal: false, isCreateOrEditEntitlementModal: false , entitlementNameErrorMessage: ''});
+    this.setState({
+      editEntitlementModal: false,
+      isCreateOrEditEntitlementModal: false,
+      entitlementNameErrorMessage: '',
+    });
   };
 
   protected onChangeHttp = (e: any) => {
     this.setState({ httpMethod: e.target.value, entitlementHttpMethodErrorMessage: '' });
-  };
-
-  protected onPersonalizationCheckBoxChange = (type: string) => {
-    if (type === 'accept') {
-      this.setState({ isProtectedByDna: false });
-    } else if (type === 'cancel') {
-      this.setState({ isProtectedByDna: true });
-    }
-    this.setState({ isDnAProtectModal: false });
   };
 
   protected validateEntitementForm = () => {
@@ -144,12 +138,12 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
       formValid = false;
     }
 
-    if (this.state.isProtectedByDna && this.state.entitlemenPath?.trim()?.length === 0) {
+    if (this.state.entitlemenPath?.trim()?.length === 0) {
       this.setState({ entitlementPathErrorMessage: errorMissingEntry });
       formValid = false;
     }
 
-    if (this.state.isProtectedByDna && (this.state.httpMethod === '0' || this.state.httpMethod?.trim()?.length === 0)) {
+    if (this.state.httpMethod === '0' || this.state.httpMethod?.trim()?.length === 0) {
       this.setState({ entitlementHttpMethodErrorMessage: errorMissingEntry });
       formValid = false;
     }
@@ -170,7 +164,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
 
   protected handleEntitementAdd = (type: string) => {
     if (this.validateEntitementForm()) {
-      const { entitelmentList, entitlementName, entitlemenPath, httpMethod, isProtectedByDna } = this.state;
+      const { entitelmentList, entitlementName, entitlemenPath, httpMethod } = this.state;
 
       // Check if the item already exists in the list
       const existingItem = entitelmentList.find((item: any) => item.entitlementName === entitlementName);
@@ -187,7 +181,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
           entitlementName: '',
           entitlemenPath: '',
           httpMethod: '',
-          isProtectedByDna: false,
           editEntitlementModal: false, // Set edit mode to false
         });
       } else {
@@ -196,7 +189,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
           entitlementName,
           entitlemenPath,
           httpMethod,
-          isProtectedByDna,
         });
 
         this.setState({
@@ -205,7 +197,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
           entitlementName: '',
           entitlemenPath: '',
           httpMethod: '',
-          isProtectedByDna: false,
         });
       }
     }
@@ -218,7 +209,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
       entitlementName: editEntitlement.entitlementName,
       entitlemenPath: editEntitlement.entitlemenPath,
       httpMethod: editEntitlement.httpMethod,
-      isProtectedByDna: editEntitlement.isProtectedByDna,
     });
   };
 
@@ -321,46 +311,43 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
         <div className={classNames(Styles.provisionStyles)}>
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames('decriptionSection', 'mbc-scroll')}>
-              <h3 className={classNames(Styles.title)}>Entitlements for your application authorization</h3>
+              <h3 className={classNames(Styles.title)}>
+                {this.props.env === 'int'
+                  ? 'Entitlements for your Staging application authorization'
+                  : 'Entitlements for your Production application authorization'}
+              </h3>
               <div className={Styles.parentEntitlement}>
                 <div className={Styles.checkboxWrapper}>
-                  <label
+                  <div
                     className={classNames(
-                      'checkbox',
-                      // !CODE_SPACE_DISABLE_DNA_PROTECT.includes(this.state.config?.status) ? '' : 'hide',
-                      'hide',
+                      ' input-field-group include-error ',
+                      this.state?.appIdErrorMessage?.length ? 'error' : '',
                     )}
                   >
-                    <span className="wrapper">
-                      <input
-                        type="checkbox"
-                        className="ff-only"
-                        checked={true}
-                        onChange={(e) => {
-                          const checkboxValue = e.target.checked;
-                          if (!e.target.checked) {
-                            this.setState({ isDnAProtectModal: true });
-                          }
-                          this.setState({ isProtectedByDna: checkboxValue });
-                        }}
-                        disabled={
-                          this.props.readOnlyMode || CODE_SPACE_DISABLE_DNA_PROTECT.includes(this.state.config?.status)
-                        }
-                      />
+                    <label id="PrjName" htmlFor="PrjId" className="input-label">
+                      {this.props.env === 'int' ? 'Staging ' : 'Production '} Application Id<sup>*</sup>
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      required={true}
+                      id="AppId"
+                      maxLength={50}
+                      placeholder="Type here"
+                      autoComplete="off"
+                      onChange={(e) => {
+                        e.target.value.length !== 0
+                          ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
+                          : this.setState({ appId: e.target.value, appIdErrorMessage: '*Missing entry' });
+                      }}
+                      value={this.state.appId}
+                    />
+                    <span className={classNames('error-message', this.state?.appIdErrorMessage?.length ? '' : 'hide')}>
+                      {this.state?.appIdErrorMessage}
                     </span>
-                    <span className={classNames('label')}>Do you want to DnA platform to protect your API's</span>
-                  </label>
-                  {!CODE_SPACE_STATUS.includes(this.state.config?.status) && !this.props.isCodeSpaceAdminPage && (
-                    <p
-                      style={{ color: 'var(--color-orange)' }}
-                      className={classNames(this.props.readOnlyMode ? ' hidden' : '')}
-                    >
-                      <i className="icon mbc-icon alert circle"></i> Once the config is in published state, Can Add /
-                      Edit Entitlement
-                    </p>
-                  )}
+                  </div>
                 </div>
-                {!this.props.readOnlyMode ? (
+                {!this.props.readOnlyMode && this?.state?.appId?.length ? (
                   <div className={classNames(Styles.createEntitlementButton)}>
                     <button
                       className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)}
@@ -370,12 +357,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                           isCreateOrEditEntitlementModal: true,
                         });
                       }}
-                      title={
-                        !CODE_SPACE_STATUS.includes(this.state.config?.status)
-                          ? 'Once the config is in published state, can add New Entitlement.'
-                          : ''
-                      }
-                      disabled={!CODE_SPACE_STATUS.includes(this.state.config?.status)}
                     >
                       <i className="icon mbc-icon plus" />
                       <span>Create New Entitlement</span>
@@ -391,14 +372,12 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                     <EntitlementSubList
                       readOnlyMode={this.props.readOnlyMode}
                       entitelmentListResponse={this.state.entitelmentListResponse}
-                      isProtectedByDna={this.state?.isProtectedByDna || true}
                       listOfProject={this.state.entitelmentList}
-                      status={this.state.config?.status}
                       getRefreshedDagPermission={this.getRefreshedDagPermission}
                       updatedFinalEntitlementList={this.updatedFinalEntitlementList}
                       getProjectSorted={this.getProjectSorted}
-                      isCodeSpaceAdminPage ={this.props.isCodeSpaceAdminPage}
-                      projectName ={this.props.projectName}
+                      projectName={this.props.projectName}
+                      env={this.props.env}
                     />
                   </div>
                   <Pagination
@@ -416,31 +395,6 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
             </div>
           </div>
         </div>
-
-        {this.state.isDnAProtectModal && (
-          <ConfirmModal
-            title={'ss'}
-            acceptButtonTitle="Yes"
-            cancelButtonTitle="No"
-            showAcceptButton={true}
-            showCancelButton={true}
-            show={this.state.isDnAProtectModal}
-            content={
-              <div className={Styles.deleteForecastResult}>
-                <div className={Styles.closeIcon}>
-                  <i className={classNames('icon mbc-icon close thin')} />
-                </div>
-                <div>
-                  All API Path/Pattern and HTTP Method will be removed from the entitlement.
-                  <br />
-                  Are you sure you want to proceed?
-                </div>
-              </div>
-            }
-            onCancel={() => this.onPersonalizationCheckBoxChange('cancel')}
-            onAccept={() => this.onPersonalizationCheckBoxChange('accept')}
-          />
-        )}
 
         {this.state.showDeleteModal && (
           <ConfirmModal
@@ -482,11 +436,11 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
             show={this.state.isCreateOrEditEntitlementModal}
             content={
               <EditOrCreateEntitlement
-                isProtectedByDna={this.state.isProtectedByDna || true}
                 submitEntitlement={(entitlementData: any) => this.updateEntitlement(entitlementData)}
                 editEntitlementModal={this.state.editEntitlementModal}
                 entitlementNameErrorMessage={this.state.entitlementNameErrorMessage}
-                projectName= {this.props.projectName}
+                projectName={this.props.projectName}
+                env={this.props.env}
               />
             }
             scrollableContent={true}
@@ -495,11 +449,18 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
         )}
         {
           <div className="btnConatiner">
-            <button className="btn btn-primary" type="button" onClick={this.onEntitlementSubmit}>
-              {!CODE_SPACE_STATUS.includes(this.state.config?.status) || this.props.readOnlyMode
-                ? 'Next'
-                : 'Save & Next'}
-            </button>
+            <div className="btn-set">
+              <button className="btn btn-primary" type="button" onClick={this.onEntitlementSubmit}>
+                {this.props.env === 'int' ? 'Save Staging' : 'Save Production'}
+              </button>
+              <button
+                className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+                type="button"
+                onClick={this.onEntitlementPublish}
+              >
+                {this.props.env === 'int' ? 'Publish Staging' : 'Publish Production'}
+              </button>
+            </div>
           </div>
         }
       </React.Fragment>
@@ -508,17 +469,17 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
 
   protected onEntitlementSubmit = () => {
     let formValid = true;
-    let isMissingApiList = false;
-    if (this.state.isProtectedByDna) {
-      this.state.entitelmentListResponse.map((item: any) => {
-        if (item?.apiList?.length === 0 || item?.apiList?.length === undefined) {
-          formValid = false;
-          isMissingApiList = true;
-        }
-      });
-      if (isMissingApiList) {
-        this.showErrorNotification('API Path/Pattern and HTTP Method for Entitlements is Missing');
-      }
+    const isMissingApiList = false;
+    let isMissingAppId = false;
+    if (isMissingApiList) {
+      this.showErrorNotification('API Path/Pattern and HTTP Method for Entitlements is Missing');
+    }
+    if (this.state.appId.length === 0) {
+      formValid = false;
+      isMissingAppId = true;
+    }
+    if (isMissingAppId) {
+      this.showErrorNotification('Application Id is Missing');
     }
     if (formValid) {
       this.setState(
@@ -526,11 +487,43 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
           config: {
             ...this.state.config,
             entitlements: this.state.entitelmentListResponse,
-            isProtectedByDna: this.state.isProtectedByDna,
+            appId: this.state.appId,
           },
         },
         () => {
-          this.props.onSaveDraft('entitlement', this.state.config);
+          this.props.onSaveDraft(
+            this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement',
+            this.state.config,
+          );
+        },
+      );
+    }
+  };
+  protected onEntitlementPublish = () => {
+    let formValid = true;
+    const isMissingApiList = false;
+    let isMissingAppId = false;
+    if (isMissingApiList) {
+      this.showErrorNotification('API Path/Pattern and HTTP Method for Entitlements is Missing');
+    }
+    if (this.state.appId.length === 0) {
+      formValid = false;
+      isMissingAppId = true;
+    }
+    if (isMissingAppId) {
+      this.showErrorNotification('Application Id is Missing');
+    }
+    if (formValid) {
+      this.setState(
+        {
+          config: {
+            ...this.state.config,
+            entitlements: this.state.entitelmentListResponse,
+            appId: this.state.appId,
+          },
+        },
+        () => {
+          this.props.onPublish(this.state.config, this.props.env);
         },
       );
     }

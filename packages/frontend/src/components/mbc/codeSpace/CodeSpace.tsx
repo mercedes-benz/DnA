@@ -445,10 +445,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`, '_blank');
+      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
       return;
     }
-    window.open(`${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`, '_blank');
+    window.open(`${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
