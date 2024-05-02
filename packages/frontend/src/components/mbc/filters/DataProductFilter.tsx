@@ -1,10 +1,13 @@
 import classNames from 'classnames';
 import React, { useState, useEffect, useRef } from 'react';
 import {
+  IDivision,
+  ISubDivisionSolution,
   IDataProductListItem,
   IDataProductFilterParams,
   IUserPreferenceRequest,
   IUserInfo,
+  IDivisionFilterPreference,
   // ITag,
 } from 'globals/types';
 // @ts-ignore
@@ -16,6 +19,7 @@ import Styles from './Filter.scss';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { DataProductFilterApiClient } from '../../../services/DataProductFilterApiClient';
+import { ApiClient } from '../../../services/ApiClient';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { trackEvent } from '../../../services/utils';
 // import Tags from 'components/formElements/tags/Tags';
@@ -29,6 +33,7 @@ type DataProductsFilterType = {
   dataProductsDataLoaded: boolean;
   setDataProductsDataLoaded: Function;
   showDataProductsFilter?: boolean;
+  setDpFilterApplied : Function;
   openFilters?: boolean;
   setSelectedTags?: string[]; // this prop is used to set selected tags from tags component
 };
@@ -39,9 +44,15 @@ const DataProductFilter = ({
   getFilterQueryParams,
   dataProductsDataLoaded,
   openFilters,
+  setDpFilterApplied,
 }: DataProductsFilterType) => {
 
   // dropdown values
+  const [divisions, setDivisions] = useState([]);
+  const [subDivisions, setSubDivisions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [dataStewards, setDataStewards] = useState([]);
+  const [informationOwners, setInformationOwners] = useState([]);
   const [arts, setArts] = useState<IDataProductListItem[]>([]);
   const [frontendTools, setFrontendTools] = useState<IDataProductListItem[]>([]);
   const [platforms, setPlatforms] = useState<IDataProductListItem[]>([]);
@@ -49,19 +60,30 @@ const DataProductFilter = ({
   // const [tagValues] = useState<ITag[]>([]);
   // const [tagFilterValues, setTagFilterValues] = useState<ITag[]>(tagsList);
   const [queryParams, setQueryParams] = useState<IDataProductFilterParams>({
+    division: [],
+    subDivision: [],
+    department: [],
+    dataSteward: [],
+    informationOwner: [],
     art: [],
     platform: [],
     frontendTool: [],
     productOwner: [],
-    carlaFunction: [],
-    tag: [],
+    //carlaFunction: [],
+    //tag: [],
   });
 
-  const portfolioFilterValues: any = useRef();
+  const dataProductFilterValues: any = useRef();
   const [dataFilterApplied, setFilterApplied] = useState(false);
   const [userPreferenceDataId, setUserPreferenceDataId] = useState<string>(null);
   const [focusedItems, setFocusedItems] = useState({});
   const [userPreference, setRunUserPreference] = useState<boolean>(false);
+
+  const [divisionFilterValues, setDivisionFilterValues] = useState([]);
+  const [subDivisionValues, setSubDivisionValues] = useState([]);
+  const [departmentValues, setDepartmentValues] = useState([]);
+  const [dataStewardValues, setDataStewardValues] = useState([]);
+  const [informationOwnerValues, setInformationOwnerValues] = useState([]);
 
   const [artFilterValues, setArtFilterValues] = useState([]);
   const [platformFilterValues, setPlatformFilterValues] = useState([]);
@@ -87,25 +109,40 @@ const DataProductFilter = ({
   // },[setSelectedTags])
 
   useEffect(() => {
+    SelectBox.refresh('subDivisionSelect'); // Refresh the sub division select box
+  }, [divisionFilterValues]);
+
+  useEffect(() => {
     ProgressIndicator.show();
     DataProductFilterApiClient.getFilterMasterData()
       .then((response: any) => {
         if (response) {
-          portfolioFilterValues.current = JSON.parse(
-            sessionStorage.getItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES),
+          dataProductFilterValues.current = JSON.parse(
+            sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE),
           ) as IDataProductFilterParams;
-
           const arts = response[0].data;
           const platforms = response[1].data;
           const frontendTools = response[2].data;
           const productOwners = response[3].records;
+          const divisions = response[4];
+          const departments = response[5].data;
+          const dataSteward = response[6].data;
+          const informationOwner = response[7].data;
 
-          // const tagValues: ITag[] = response[4].data;
+          const divisionsToPass =
+          dataProductFilterValues.current && dataProductFilterValues.current.division?.length > 0
+              ? divisions?.filter((element : any) => dataProductFilterValues.current.division.includes(element.id))
+              : divisions;
+          ApiClient.getSubDivisionsData(divisionsToPass).then((subDivisionsList) => {
+
+            const subDivisions = [].concat(...subDivisionsList);
+
+            // const tagValues: ITag[] = response[4].data;
           // getAllTags(response[4].data);
           
           let newQueryParams = queryParams;
-          if (portfolioFilterValues.current) {
-            newQueryParams = portfolioFilterValues.current;
+          if (dataProductFilterValues.current) {
+            newQueryParams = dataProductFilterValues.current;
             // Solved the issue on tag if user has already values in session
             // if (!newQueryParams.tag) {
             //   newQueryParams.tag = [];
@@ -120,6 +157,7 @@ const DataProductFilter = ({
             // setTagFilterValues(selectedValues);
             // setTags(newQueryParams.tag);
             setFilterApplied(true);
+            setDpFilterApplied(true);
           } else {
             newQueryParams.art = arts.map((phase: IDataProductListItem) => {
               return phase.id;
@@ -130,22 +168,46 @@ const DataProductFilter = ({
             newQueryParams.frontendTool = frontendTools.map((frontendTool: IDataProductListItem) => {
               return frontendTool.id;
             });
-            newQueryParams.productOwner = productOwners.map((productOwner: IDataProductListItem) => {
-              return productOwner.id;
+            // newQueryParams.productOwner = productOwners.map((productOwner: any) => {
+            //   return productOwner.shortId;
+            // });
+            newQueryParams.division = divisions.map((division : IDataProductListItem) =>{
+              return division?.id;
             });
+            newQueryParams.subDivision = subDivisions?.map((subDivision) => {
+              return subDivision?.id;
+            });
+            newQueryParams.department = departments.map((department : IDataProductListItem) =>{
+              return department?.id;
+            });
+            // newQueryParams.dataSteward = dataSteward.map((dataSteward : any) =>{
+            //   return dataSteward?.teamMemeber.shortId;
+            // });
+            // newQueryParams.informationOwner = informationOwner.map((informationOwnwer : any) =>{
+            //   return informationOwnwer?.teamMemeber.shortId;
+            // });
+
             // newQueryParams.productOwner = [];
             // newQueryParams.tag = [];
             setFilterApplied(false);
+            setDpFilterApplied(false);
           }
-
           setArts(arts);
           setPlatforms(platforms);
           setFrontendTools(frontendTools);
           setProductOwners(productOwners);
+          setDivisions(divisions);
+          setSubDivisions(subDivisions);
+          setDepartments(departments);
+          setDataStewards(dataSteward);
+          setInformationOwners(informationOwner);
           // setTagValues(tagValues);
           setQueryParams(newQueryParams);
           SelectBox.defaultSetup();
           setRunUserPreference(true);
+
+
+          })
         }
       })
       .catch((error: Error) => {
@@ -161,7 +223,22 @@ const DataProductFilter = ({
           if (res.length) {
             const userPreference = res[0];
             const filterPreferences:any = userPreference.filterPreferences;
-            if (!portfolioFilterValues.current) {
+            if (!dataProductFilterValues.current) {
+              queryParams.division = filterPreferences.divisions.map((division: IDataProductListItem) => {
+                return division.id;
+              });
+              queryParams.subDivision = filterPreferences.subDivisions.map((subDivision: IDataProductListItem) => {
+                return subDivision.id;
+              });
+              queryParams.department = filterPreferences.departments.map((department: IDataProductListItem) => {
+                return department.id;
+              });
+              queryParams.dataSteward = filterPreferences.dataStewards.map((dataSteward: IDataProductListItem) => {
+                return dataSteward.id;
+              });
+              queryParams.informationOwner = filterPreferences.informationOwners.map((informationOwner: IDataProductListItem) => {
+                return informationOwner.id;
+              });
               queryParams.art = filterPreferences.arts.map((art: IDataProductListItem) => {
                 return art.id;
               });
@@ -171,14 +248,15 @@ const DataProductFilter = ({
               queryParams.frontendTool = filterPreferences.frontendTools.map((frontendTool: IDataProductListItem) => {
                 return frontendTool.id;
               });
-              queryParams.productOwner = filterPreferences.productOwners.map((productOwner: IDataProductListItem) => {
-                return productOwner.id;
+              queryParams.productOwner = filterPreferences.productOwners.map((productOwner: any) => {
+                return productOwner.shortId;
               });
               setFilterApplied(true);
+              setDpFilterApplied(true);
             }
             userPreferenceDataId = userPreference.id;
           }
-          // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
+          // sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE, JSON.stringify(queryParams));
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           SelectBox.defaultSetup();
@@ -198,7 +276,29 @@ const DataProductFilter = ({
     if (dataProductsDataLoaded) {
       // ProgressIndicator.show();
       setFilterApplied(true);
+      setDpFilterApplied(true);
       queryParams[filterName] = values;
+      if (filterName === 'division') {
+        let subDivisionValues: string[] = [];
+        let hasNoneValue = false;
+        values.forEach((divisionId: string) => {
+          const subDivisions = divisions.find((division: IDivision) => division.id === divisionId)?.subdivisions;
+          if (!hasNoneValue) {
+            hasNoneValue = subDivisions.some((subDiv: ISubDivisionSolution) => subDiv.name === 'None');
+          }
+          if (subDivisions.length) {
+            const subDivVals = subDivisions.map((subDivision: ISubDivisionSolution) =>
+              subDivision.id.indexOf('@-@') !== -1 ? subDivision.id : (`${subDivision.id}@-@${divisionId}` as string),
+            ) as string[];
+            subDivisionValues = subDivisionValues.concat(subDivVals);
+          }
+        });
+        if (!hasNoneValue && values.length) {
+          subDivisionValues.unshift(`EMPTY@-@${values[values.length - 1]}`);
+        }
+        queryParams['subDivision'] = subDivisionValues;
+    }
+      setDataProductFilterValuesSession(queryParams)
       getDataProductsByQueryParams(queryParams);
     }
   };
@@ -207,6 +307,104 @@ const DataProductFilter = ({
     //to ensure user action is done on the form fields
     setFocusedItems({ [targetElement]: true });
   };
+
+  const setDataProductFilterValuesSession = (queryParams : any) => {
+    console.log(queryParams);
+    sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE, JSON.stringify(queryParams));
+  };
+
+  const onDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedValues: IDataProductListItem[] = [];
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const ids: string[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const division: IDataProductListItem = { id: '0', name: null };
+        division.id = option.value;
+        division.name = option.label;
+        selectedValues.push(division);
+        ids.push(option.value);
+      });
+    }
+
+    focusedItems['division'] && applyFilter('division', ids);
+    setDivisionFilterValues(selectedValues);
+
+  }
+
+  const onSubDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedValues: IDataProductListItem[] = [];
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const ids: string[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const subDivision: IDataProductListItem = { id: '0', name: null };
+        subDivision.id = option.value;
+        subDivision.name = option.label;
+        selectedValues.push(subDivision);
+        ids.push(option.value);
+      });
+    }
+    focusedItems['subDivision'] && applyFilter('subDivision', ids);
+    setSubDivisionValues(selectedValues);
+    
+  }
+
+  const onDepartmentChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedValues: IDataProductListItem[] = [];
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const ids: string[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const department: IDataProductListItem = { id: '0', name: null };
+        department.id = option.value;
+        department.name = option.label;
+        selectedValues.push(department);
+        ids.push(option.value);
+      });
+    }
+    focusedItems['department'] && applyFilter('department', ids);
+    setDepartmentValues(selectedValues);
+  }
+
+  const onDataStewardChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedValues: IDataProductListItem[] = [];
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const ids: string[] = [];
+    console.log("Data Steward",selectedOptions)
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const dataSteward: IDataProductListItem = { id: '0', name: null };
+        dataSteward.id = option.value;
+        dataSteward.name = option.label;
+        selectedValues.push(dataSteward);
+        ids.push(option.value);
+        console.log("Data Steward",option.value);
+      });
+    }
+    focusedItems['dataSteward'] && applyFilter('dataSteward', ids);
+    setDataStewardValues(selectedValues);
+
+  }
+
+  const onInformationOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedValues: IDataProductListItem[] = [];
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const ids: string[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const informationOwner: IDataProductListItem = { id: '0', name: null };
+        informationOwner.id = option.value;
+        informationOwner.name = option.label;
+        selectedValues.push(informationOwner);
+        ids.push(option.value);
+        console.log(ids);
+      });
+    }
+    focusedItems['informationOwner'] && applyFilter('informationOwner', ids);
+    setInformationOwnerValues(selectedValues);
+
+  }
 
   const onArtChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedValues: IDataProductListItem[] = [];
@@ -266,6 +464,7 @@ const DataProductFilter = ({
     const selectedValues: IDataProductListItem[] = [];
     const selectedOptions = e.currentTarget.selectedOptions;
     const ids: string[] = [];
+    console.log("product Owner",selectedOptions)
 
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
@@ -274,25 +473,37 @@ const DataProductFilter = ({
         productOwner.name = option.label;
         selectedValues.push(productOwner);
         ids.push(option.value);
+        console.log("product Owner",ids)
       });
     }
-    focusedItems['productOwners'] && applyFilter('productOwners', ids);
+    focusedItems['productOwner'] && applyFilter('productOwner', ids);
     setProductOwnerFilterValues(selectedValues);
   };
 
   const getDataProductsByQueryParams = (filterQueryParams: IDataProductFilterParams) => {
     const queryParams: IDataProductFilterParams = { ...filterQueryParams };
 
-    let query = queryParams.art?.length > 0 ? '&art=' + queryParams.art?.join(',') : '';
-    query = queryParams.frontendTool?.length > 0 ? query + '&frontendTools=' + queryParams.frontendTool?.join(',') : query;
-    query = queryParams.platform?.length > 0 ? query + '&platform=' + queryParams.platform?.join(',') : query;
-    query = queryParams.productOwner?.length > 0 ? query + '&productOwner=' + queryParams.productOwner?.join(',') : query;
+    // let query = queryParams.art?.length > 0 ? '&art=' + queryParams.art?.join(',') : '';
+    // query += queryParams.division?.length > 0 ? '&division=' + queryParams.division?.join(','): '';
+    // query += queryParams.subDivision?.length > 0 ? '&subDivision=' + queryParams.subDivision?.join(','): '';
+    // query += queryParams.department?.length > 0 ? '&department=' + queryParams.department?.join(','): '';
+    // query += queryParams.dataSteward?.length > 0 ? '&dataSteward=' +  queryParams.dataSteward.join(',') : '';
+    // query += queryParams.informationOwner?.length > 0 ? '&informationOwner=' + queryParams.informationOwner : '';
+    // query += queryParams.frontendTool?.length > 0 ? '&frontendTools=' + queryParams.frontendTool?.join(',') : query;
+    // query += queryParams.platform?.length > 0 ? '&platform=' + queryParams.platform?.join(',') : query;
+    // query += queryParams.productOwner?.length > 0 ? '&productOwner=' + queryParams.productOwner.join(',') : query;
+    // console.log(query)
 
-    typeof getFilterQueryParams === 'function' && getFilterQueryParams(query);
+    typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
   };
 
   const saveFilterPreference = () => {
     const filterPreferences: IDataProductFilterParams = {
+      division: divisionFilterValues,
+      subDivision: subDivisionValues,
+      department: departmentValues,
+      dataSteward: dataStewardValues,
+      informationOwner: informationOwnerValues,
       art: artFilterValues,
       platform: platformFilterValues,
       frontendTool: frontendToolFilterValues,
@@ -330,48 +541,107 @@ const DataProductFilter = ({
   };
 
   const resetDataFilters = () => {
-    setArts([]);
-    setPlatforms([]);
-    setFrontendTools([]);
-    setProductOwners([]);
+    setArtFilterValues([]);
+    setPlatformFilterValues([]);
+    setFrontendToolFilterValues([]);
+    setProductOwnerFilterValues([]);
+    setDivisionFilterValues([]);
+    setSubDivisionValues([]);
+    setDataStewardValues([]);
+    setInformationOwnerValues([]);
+    setDepartmentValues([]);
     const newQueryParams = queryParams;
+
     newQueryParams.art = arts.map((phase: IDataProductListItem) => {
       return phase.id;
     });
-    newQueryParams.platform = platforms.map((phase: IDataProductListItem) => {
-      return phase.id;
+    newQueryParams.platform = platforms.map((platform: IDataProductListItem) => {
+      return platform.id;
     });
-    newQueryParams.frontendTool = frontendTools.map((phase: IDataProductListItem) => {
-      return phase.id;
+    newQueryParams.frontendTool = frontendTools.map((frontendTool: IDataProductListItem) => {
+      return frontendTool.id;
     });
-    newQueryParams.productOwner = productOwners.map((phase: IDataProductListItem) => {
-      return phase.id;
+    newQueryParams.division = divisions.map((division : IDataProductListItem) =>{
+      return division?.id;
     });
+    newQueryParams.subDivision = subDivisions?.map((subDivision) => {
+      return subDivision?.id;
+    });
+    newQueryParams.department = departments.map((department : IDataProductListItem) =>{
+      return department?.id;
+    });
+    newQueryParams.dataSteward = [];
+    newQueryParams.informationOwner = [];
+    newQueryParams.productOwner = [];
+    console.log('arting',newQueryParams.art);
 
-    setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES), 50);
+
+    setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE), 50);
     ProgressIndicator.show();
 
     if (userPreferenceDataId) {
       DataProductFilterApiClient.removeUserPreference(userPreferenceDataId)
         .then((res) => {
-          onResetFilterCompleted(newQueryParams, true);
+          setTimeout(()=>onResetFilterCompleted(newQueryParams),50)
         })
         .catch((error: Error) => {
           showErrorNotification(error.message ? error.message : 'Some Error Occured');
         });
     } else {
-      onResetFilterCompleted(newQueryParams);
+      setTimeout(()=>onResetFilterCompleted(newQueryParams),50)
     }
   };
 
+  const getSubDivisionsOfSelectedDivision = () => {
+    let subDivisionsOfSelectedDivision: ISubDivisionSolution[] = divisionFilterValues.length ? [] : subDivisions;
+    divisionFilterValues.forEach((div: IDivision) => {
+      const subDivisionsFromDivision = divisions.find(
+        (masterDiv: IDivisionFilterPreference) => masterDiv.id === div.id,
+      )?.subdivisions;
+      subDivisionsFromDivision?.forEach((subdivision: ISubDivisionSolution) => {
+        if (subdivision.id.indexOf('@-@') === -1) {
+          // Making sure if divisiona and subdivision mappping already performed donot do again
+          subdivision.id = subdivision.id + '@-@' + div.id;
+          subdivision.division = div.id;
+        }
+        subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subdivision);
+      });
+      // subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisionsFromDivision);
+      // subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisions.filter((subDiv: ISubDivisionSolution) => subDiv.division === div.id) as ISubDivisionSolution[]);
+    });
+
+    if (
+      subDivisionsOfSelectedDivision.length &&
+      !subDivisionsOfSelectedDivision.some((item: ISubDivisionSolution) => item.name === 'None')
+    ) {
+      const lastDivisionId = divisionFilterValues[divisionFilterValues.length - 1].id;
+      subDivisionsOfSelectedDivision.unshift({
+        id: `EMPTY@-@${lastDivisionId}`,
+        name: 'None',
+        division: lastDivisionId,
+      } as ISubDivisionSolution);
+    } else {
+      subDivisionsOfSelectedDivision.sort((item) => (item.name === 'None' ? -1 : 0));
+    }
+
+    return subDivisionsOfSelectedDivision;
+  };
+
+  useEffect (()=>{
+    console.log('dataFilterApplied',dataFilterApplied);
+
+  },[dataFilterApplied])
+
+
   const onResetFilterCompleted = (queryParams: IDataProductFilterParams, showMessage?: boolean) => {
     setFilterApplied(false);
+    setDpFilterApplied(false);
     setFocusedItems({});
     setQueryParams(queryParams);
     setUserPreferenceDataId(null);
     SelectBox.defaultSetup(false);
     getDataProductsByQueryParams(queryParams);
-    setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES), 50);
+    setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE), 50);
     if (showMessage) {
       trackEvent(
         'Data Products',
@@ -392,9 +662,58 @@ const DataProductFilter = ({
       document.getElementById("filterContainer").setAttribute("style", "height:"+0+"px");
     } 
   }
-
+ 
+  const subDivisionsOfSelectedDivision = getSubDivisionsOfSelectedDivision();
   return (
     <FilterWrapper openFilters={openFilters}>
+      <div>
+          <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
+              <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+              Division
+              </label>
+              <div className="custom-select">
+              <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
+                  {divisions.map((obj: IDataProductListItem) => (
+                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                      {obj.name}
+                  </option>
+                  ))}
+              </select>
+              </div>
+          </div>
+      </div>
+      <div>
+          <div id="subDivisionContainer" className={`input-field-group ${divisionFilterValues?.length ? '' : 'disabled'}`} onFocus={(e) => onHandleFocus(e, 'subDivision')}>
+              <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
+                Sub Division
+              </label>
+              <div className={`custom-select ${divisionFilterValues.length ? '' : 'disabled'}`}>
+              <select id="subDivisionSelect" multiple={true} onChange={onSubDivisionChange} value={queryParams?.subDivision}>
+                  {subDivisionsOfSelectedDivision.map((obj: IDataProductListItem) => (
+                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                      {obj.name}
+                  </option>
+                  ))}
+              </select>
+              </div>
+          </div>
+      </div>
+      <div>
+          <div id="departmentContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'department')}>
+              <label id="departmentLabel" className="input-label" htmlFor="departmentSelect">
+              Department
+              </label>
+              <div className=" custom-select">
+              <select id="departmentSelect" multiple={true} onChange={onDepartmentChange} value={queryParams?.department}>
+                  {departments.map((obj: IDataProductListItem) => (
+                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                      {obj.name}
+                  </option>
+                  ))}
+              </select>
+              </div>
+          </div>
+      </div>
       <div>
           <div id="artContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'art')}>
               <label id="artLabel" className="input-label" htmlFor="artSelect">
@@ -449,19 +768,58 @@ const DataProductFilter = ({
               Product Owner
               </label>
               <div className=" custom-select">
-              <select id="productOwnerSelect" multiple={true} onChange={onProductOwnerChange} value={queryParams?.productOwner.join('')}>
-                  <option id="defaultStatus" value={0}>
+              <select id="productOwnerSelect" multiple={false} onChange={onProductOwnerChange} value={queryParams?.productOwner.join('')}>
+              <option id="defaultStatus" value={0}>
                   Choose
                   </option>
-                  {productOwners.map((obj: IDataProductListItem) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
+                {productOwners?.map((obj: any, index) => (
+                <option key={index} value={obj?.shortId}>
+                  {`${obj?.firstName} ${obj?.lastName}`}
+                </option>
+              ))}
+              </select>
+              </div>
+          </div>
+       </div>
+       <div>
+          <div id="dataStewardContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'dataSteward')}>
+              <label id="dataStewardLabel" className="input-label" htmlFor="dataStewardSelect">
+                Data Steward
+              </label>
+              <div className=" custom-select">
+              <select id="dataStewardSelect" multiple={false} onChange={onDataStewardChange} value={queryParams?.dataSteward?.join('')}>
+              <option id="defaultStatus" value={0}>
+                  Choose
                   </option>
+                  {dataStewards.map((obj, index) => (
+                   <option key={index} value={obj?.teamMemeber?.shortId}>
+                   {`${obj?.teamMemeber?.firstName} ${obj?.teamMemeber?.lastName}`}
+               </option>
                   ))}
               </select>
               </div>
           </div>
       </div>
+      <div>
+          <div id="informationOwnerContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'informationOwner')}>
+              <label id="informationOwnerLabel" className="input-label" htmlFor="informationOwnerSelect">
+              Responsible Manager
+              </label>
+          <div className=" custom-select">
+            <select id="informationOwnerSelect" multiple={false} onChange={onInformationOwnerChange} value={queryParams?.informationOwner?.join('')}>
+                <option id="defaultStatus" value={0}>
+                  Choose
+                </option>
+              {informationOwners?.map((obj, index) => (
+                <option key={index} value={obj?.teamMemeber?.shortId}>
+                  {`${obj?.teamMemeber?.firstName} ${obj?.teamMemeber?.lastName}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          </div>
+      </div>
+
       {/* <div>
           <div>
               <Tags
