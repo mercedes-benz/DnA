@@ -101,16 +101,16 @@ export class CodeSpaceApiClient {
     return this.get('workspaces/transparency');
   }
 
-  public static createOrUpdateCodeSpaceConfig(id: string, data: any) {
-    return this.patch(`workspaces/${id}/config`, data);
+  public static createOrUpdateCodeSpaceConfig(id: string, data: any, env: string) {
+    return this.patch(`workspaces/${id}/config?env=${env}`, data);
   }
 
-  public static getCodeSpaceConfig(id: string): Promise<any[]> {
-    return this.get(`/workspaces/${id}/config`)
+  public static getCodeSpaceConfig(id: string, env: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config?env=${env}`)
   };
 
-  public static getPublishedConfig(id: string): Promise<any[]> {
-    return this.get(`/workspaces/${id}/config/publish`)
+  public static getPublishedConfig(id: string, env: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/publish?env=${env}`)
   };
 
   public static getEntitlements(id: string): Promise<any[]> {
@@ -125,8 +125,8 @@ export class CodeSpaceApiClient {
     return this.get(`/workspaces/${id}/config/mappings`)
   };
 
-  public static addCodeSpaceRequest(id: string): Promise<any[]> {
-    return this.post(`/workspaces/${id}/config/request`)
+  public static addCodeSpaceRequest(id: string, env: string): Promise<any[]> {
+    return this.post(`/workspaces/${id}/config/publish?env=${env}`)
   };
 
   public static createCodeSpaceRecipe(data: any) {

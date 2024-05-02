@@ -199,10 +199,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const navigateSecurityConfig = () => {
     const projectDetails = onDeployCodeSpace?.projectDetails;
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?pub=true&name=${projectDetails.projectName}`, '_blank');
+      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?name=${projectDetails.projectName}`, '_blank');
       return;
     }
-    window.open(`${window.location.pathname}#/codespace/securityconfig/${onDeployCodeSpace.id}?pub=false&name=${projectDetails.projectName}`, '_blank');
+    window.open(`${window.location.pathname}#/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}`, '_blank');
   }
 
   return (
