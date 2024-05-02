@@ -34,6 +34,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+  const [solutions, setSolutions] = useState([]);
+  const [reports, setReports] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -45,8 +47,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
   const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
   const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace?.tags || undefined] : []);
-  // const [relatedSolutions, setRelatedSolutions] = useState(edit && workspace?.relatedSolutions !== null ? [...workspace?.relatedSolutions || undefined] : []);
-  // const [relatedReports, setRelatedReports] = useState(edit && workspace?.relatedReports !== null ? [...workspace?.relatedReports || undefined] : []);
+  const [relatedSolutions, setRelatedSolutions] = useState(edit && workspace?.relatedSolutions !== null ? [...workspace?.relatedSolutions || undefined] : []);
+  const [relatedReports, setRelatedReports] = useState(edit && workspace?.relatedReports !== null ? [...workspace?.relatedReports || undefined] : []);
   const [archerId, setArcherID] = useState(edit && workspace?.archerId ? workspace?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
@@ -72,6 +74,36 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         } else {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllSolutions()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const solutionsTemp = res?.data?.data?.records.maps((rec) => { return {id: rec.id, name: rec.productName}});
+        setSolutions([...solutionsTemp]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllReports()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const reportsTemp = res?.data?.data?.records.maps((rec) => { return {id: rec.id, name: rec.productName}});
+        setReports([...reportsTemp]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -133,8 +165,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       dataClassification: values?.dataClassification,
       costCenter: values?.costCenter,
       internalOrder: values?.internalOrder,
-      // relatedSolutions: relatedSolutions,
-      // relatedReports: relatedReports,
+      relatedSolutions: relatedSolutions,
+      relatedReports: relatedReports,
     };
     fabricApi.createFabricWorkspace(data).then((res) => {
       ProgressIndicator.hide();
@@ -143,7 +175,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating fabric workspace',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating fabric workspace',
         'alert',
       );
     });
@@ -165,8 +197,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       dataClassification: values?.dataClassification,
       costCenter: values?.costCenter,
       internalOrder: values?.internalOrder,
-      // relatedSolutions: relatedSolutions,
-      // relatedReports: relatedReports,
+      relatedSolutions: relatedSolutions,
+      relatedReports: relatedReports,
     }
     ProgressIndicator.show();
     fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
@@ -292,7 +324,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      readOnly={edit}
                       defaultValue={costCenter}
                       {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
@@ -311,7 +342,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      readOnly={edit}
                       defaultValue={internalOrder}
                       {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
@@ -320,7 +350,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
 
-              {/* <div className={Styles.flexLayout} >
+              <div className={Styles.flexLayout} >
                 <div className={classNames(Styles.bucketNameInputField, 'input-field-group')}>
                   <div>
                     <div className={Styles.departmentTags}>
@@ -362,7 +392,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     </div>
                   </div>
                 </div>
-              </div> */}
+              </div>
 
               <div className={Styles.flexLayout}>
                 <div
