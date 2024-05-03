@@ -136,7 +136,9 @@
 		 CodespaceSecurityEntitlement entity = new CodespaceSecurityEntitlement();
 		 if (entitlementVO != null) {
 			 BeanUtils.copyProperties(entitlementVO, entity);
-			 entity.setHttpMethod(entitlementVO.getHttpMethod().toString());
+			 if(entitlementVO.getHttpMethod()!=null){
+			 	entity.setHttpMethod(entitlementVO.getHttpMethod().toString());
+			 }
 			 // List<CodespaceSecurityApiListVO> apiListVO = entitlementVO.getApiList();
 			 // if (apiListVO != null) {
 			 // 	List<CodespaceSecurityApiList> apiLists = apiListVO.stream().map(n -> toApiList(n))
@@ -160,7 +162,9 @@
 		 CodespaceSecurityEntitlementVO entitlementVO = new CodespaceSecurityEntitlementVO();
 		 if (entitlementVO != null) {
 			 BeanUtils.copyProperties(entitlement, entitlementVO);
-			 entitlementVO.setHttpMethod(HttpMethodEnum.fromValue(entitlement.getHttpMethod()));
+			 if(entitlement.getHttpMethod()!=null){
+			 	entitlementVO.setHttpMethod(HttpMethodEnum.fromValue(entitlement.getHttpMethod()));
+			 }
 			 // List<CodespaceSecurityApiList> apiLists = entitlement.getApiList();
 			 // if (apiLists != null) {
 			 // 	List<CodespaceSecurityApiListVO> apiListVO = apiLists.stream().map(n -> toApiListVO(n))
