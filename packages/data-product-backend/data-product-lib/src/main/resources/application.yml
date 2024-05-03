@@ -30,6 +30,14 @@ spring:
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      
+  graphql:
+      path: /api/minified
+
   kafka:
     producer:
     properties:
@@ -80,12 +88,9 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-  
-graphql:
-  servlet:
-    mapping: /api/minified
-    enabled: true
-    corsEnabled: true
+
+ 
+
       
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -109,3 +114,5 @@ logging:
         web:
           client:
             RestTemplate: INFO
+      graphql:
+        servlet: ERROR

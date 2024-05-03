@@ -59,8 +59,8 @@ import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public class DataProductAssembler implements GenericAssembler<DataProductVO, DataProductNsql> {

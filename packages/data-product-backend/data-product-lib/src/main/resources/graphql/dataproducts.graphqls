@@ -1,5 +1,3 @@
-scalar ISODate
-
 type DataProductCollection {
     totalCount: Int,
     records: [DataProductVO]
@@ -10,20 +8,22 @@ type DataProductVO {
     dataProductId: String,
     dataProductName: String,
     description: String,
-    howToAccessText: String,
     carLaFunction: CarLaFunctionVO,
     ddx: String,
-    kafka: String,
-    oneApi: String,
+    productOwner: DataProductTeamMemberVO,
+    tags: [String],
     platform: PlatformVO,
-    frontEndTools: FrontendToolsVO,
+    frontEndTools: [FrontendToolsVO],
+    access: AccessVO,
+    howToAccessTemplate: HowToAccessTemplateVO   
     agileReleaseTrain: AgileReleaseTrainVO,
     corporateDataCatalog: CorporateDataCatalogVO,
     recordStatus: String,
     isPublish: Boolean,
     notifyUsers: Boolean,
-    createdDate: ISODate,
-    lastModifiedDate: ISODate,
+    createdDate: String,
+    lastModifiedDate: String,
+    additionalInformation: String,
     createdBy: CreatedByVO,
     modifiedBy: CreatedByVO,
     contactInformation: DataProductContactInformationVO,
@@ -31,15 +31,42 @@ type DataProductVO {
     personalRelatedData: DataProductPersonalRelatedDataVO,
     transnationalDataTransfer: DataProductTransnationalDataTransferVO,
     deletionRequirement: DataProductDeletionRequirementVO,
-    datatransfersAssociated: DatatransfersAssociatedVO,
-    openSegments: OpenSegmentsEnum,
+    datatransfersAssociated: [DatatransfersAssociatedVO],
+    openSegments: [OpenSegmentsEnum]
 }
 
 type Query {
     dataproducts(published: Boolean, art: String, carlafunction: String,
         platform: String, frontendTool: String,
         productOwner: String, offset: Int, limit: Int, sortBy: String,
-        sortOrder: String, dataSteward: String, informationOwner: String, department: String, division:String): DataProductCollection!
+        sortOrder: String, dataSteward: String, informationOwner: String, department: String, division:String): DataProductCollection
+}
+
+type AccessVO{
+    accessType: [String],
+    kafka: String,
+    oneApi: String,
+    confidentiality: String,
+    personalRelatedData: Boolean,
+    deletionRequirement: Boolean,
+    restrictDataAccess: Boolean,
+    minimumInformationCheck: Boolean
+}
+
+type HowToAccessTemplateVO{
+    useTemplate: [String],
+    accessDetailsCollectionVO: AccessDetailsVO
+}
+
+type AccessDetailsVO{
+    accessType: String,
+    stepCollectionVO: StepDetailsVO
+}
+
+type StepDetailsVO{
+    stepNumber: Int,
+    stepIconType: String,
+    stepText: String
 }
 
 type CarLaFunctionVO {
@@ -48,13 +75,13 @@ type CarLaFunctionVO {
 }
 
 type PlatformVO {
-    id: ID!,
+    id: ID,
     name: String
 }
 
 type FrontendToolsVO {
     id: ID!,
-    name: String
+    name: String!
 }
 
 type AgileReleaseTrainVO {
@@ -63,12 +90,11 @@ type AgileReleaseTrainVO {
 }
 
 type CorporateDataCatalogVO {
-    id: ID!,
+    id: ID,
     name: String
 }
 
 type DataProductContactInformationVO {
-    dataProductDate: ISODate,
     informationOwner: DataProductTeamMemberVO,
     name: DataProductTeamMemberVO,
     division: DivisionVO,
@@ -78,7 +104,7 @@ type DataProductContactInformationVO {
 }
 
 type DataProductTeamMemberVO {
-    shortId: String,
+    shortId: String!,
     userType: String,
     firstName: String,
     lastName: String,
@@ -121,20 +147,27 @@ type DataProductPersonalRelatedDataVO {
     personalRelatedData: Boolean,
     description: String,
     purpose: String,
-    legalBasis: String
+    legalBasis: String,
+    contactAwareTransfer: Boolean,
+    objectionsToTransfer: Boolean,
+    transferringNonetheless: String,
+    objections: String
 }
 
 type DataProductTransnationalDataTransferVO {
     dataTransferred: Boolean,
     notWithinEU: Boolean,
-    approved: String,
-    insiderInformation: String
+    contactAwareTransfer: Boolean,
+    objectionsToTransfer: Boolean,
+    transferringNonetheless: String,
+    objections: String
 }
 
 type DataProductDeletionRequirementVO {
     deletionRequirements: String,
     description: String,
-    otherRelevantInformation: String
+    otherRelevantInformation: String,
+    insiderInformation: String
 }
 
 type DatatransfersAssociatedVO {
@@ -144,10 +177,10 @@ type DatatransfersAssociatedVO {
 }
 
 enum OpenSegmentsEnum {
-    Description,
-    ContactInformation,
-    ClassificationAndConfidentiality,
-    IdentifyingPersonalRelatedData,
-    IdentifiyingTransnationalDataTransfer,
-    SpecifyDeletionRequirements
+    DESCRIPTION,
+    CONTACTINFORMATION,
+    CLASSIFICATIONANDCONFIDENTIALITY,
+    IDENTIFYINGPERSONALRELATEDDATA,
+    IDENTIFIYINGTRANSNATIONALDATATRANSFER,
+    SPECIFYDELETIONREQUIREMENTS
 }
