@@ -13,6 +13,7 @@ import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from 'globals/constants';
 import { Envs } from 'globals/Envs';
 import { trackEvent } from '../../../../services/utils';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -26,6 +27,8 @@ export interface IDeployRequest {
   secureWithIAMRequired?: boolean;
   technicalUserDetailsForIAMLogin?: string;
   valutInjectorEnable?: boolean;
+  clientID?: string;
+  clientSecret?: string;
 }
 
 interface DeployModalProps {
@@ -47,14 +50,24 @@ const DeployModal = (props: DeployModalProps) => {
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   // const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
   // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
-
-  // const requiredError = '*Missing entry';
-  
+  const [clientId, setClientId] = useState('');
+  const [clientIdError, setClientIdError] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [clientSecretError, setClientSecretError] = useState('');
+  const [changeSelected, setChangeSelected] = useState(false);
+  const [disableIntIAM, setDisableIntIAM] = useState(true);
+  const [disableProdIAM, setDisableProdIAM] = useState(true);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
 
   useEffect(() => {
+    setClientId('');
+    setClientIdError('');
+    setClientSecret('');
+    setClientSecretError('');
+    setChangeSelected(false);
     // setIAMTechnicalUserID('');
+    getPublishedConfig(props?.codeSpaceData?.id, 'int');
     ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
       .then((res: any) => {
@@ -76,6 +89,21 @@ const DeployModal = (props: DeployModalProps) => {
     setVault();
   }, [deployEnvironment]);
 
+  const getPublishedConfig = (id: string, env: string) => {
+    let appId;
+    let entitlements;
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getPublishedConfig(id, env).then((res: any) => {
+      appId = res.appID || '';
+      entitlements = res.entitlements || [];
+      if (env === 'int') {
+        appId.length !== 0 && entitlements.length !== 0 ? setDisableIntIAM(false) : setDisableIntIAM(true);
+      } else if (env === 'prod') {
+        appId.length !== 0 && entitlements.length !== 0 ? setDisableProdIAM(false) : setDisableProdIAM(true);
+      }
+    });
+  };
+
   const onBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBranchValue(e.currentTarget.value);
   };
@@ -89,13 +117,20 @@ const DeployModal = (props: DeployModalProps) => {
   };
 
   const onDeployEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    setClientId('');
+    setClientIdError('');
+    setClientSecret('');
+    setClientSecretError('');
+    setChangeSelected(false);
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
     if (deployEnv === 'staging') {
       setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+      getPublishedConfig(props?.codeSpaceData?.id, 'int');
       // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     } else {
       setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
+      getPublishedConfig(props?.codeSpaceData?.id, 'prod');
       // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     }
   };
@@ -135,43 +170,65 @@ const DeployModal = (props: DeployModalProps) => {
     // } else {
     //   setIAMTechnicalUserIDError('');
     // }
-    const deployRequest: IDeployRequest = {
-      secureWithIAMRequired: secureWithIAMSelected,
-      // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
-      targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-      branch: branchValue,
-      valutInjectorEnable: vaultEnabled,
-    };
-    ProgressIndicator.show();
-    CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
-      .then((res: any) => {
-        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-        if (res.success === 'SUCCESS') {
-          // setCreatedCodeSpaceName(res.data.name);
-          props.setCodeDeploying(true);
-          if (acceptContinueCodingOnDeployment) {
+    let formValid = true;
+    if (
+      secureWithIAMSelected &&
+      (!projectDetails.intDeploymentDetails.secureWithIAMRequired || changeSelected) &&
+      clientSecret.length === 0
+    ) {
+      formValid = false;
+      setClientIdError('*Missing Entry');
+    }
+    if (
+      secureWithIAMSelected &&
+      (!projectDetails.intDeploymentDetails.secureWithIAMRequired || changeSelected) &&
+      clientSecret.length === 0
+    ) {
+      formValid = false;
+      setClientSecretError('*Missing Entry');
+    }
+    if (formValid) {
+      const deployRequest: IDeployRequest = {
+        secureWithIAMRequired: secureWithIAMSelected,
+        // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
+        targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
+        branch: branchValue,
+        valutInjectorEnable: vaultEnabled,
+        clientID: clientId,
+        clientSecret: clientSecret,
+      };
+      ProgressIndicator.show();
+      CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+        .then((res: any) => {
+          trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+          if (res.success === 'SUCCESS') {
+            // setCreatedCodeSpaceName(res.data.name);
+            props.setCodeDeploying(true);
+            if (acceptContinueCodingOnDeployment) {
+              ProgressIndicator.hide();
+              Notification.show(
+                `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+              );
+              props.setShowCodeDeployModal(false);
+            } else {
+              props.setIsApiCallTakeTime(true);
+            }
+            props.startDeployLivelinessCheck &&
+              props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
+          } else {
+            props.setIsApiCallTakeTime(false);
             ProgressIndicator.hide();
             Notification.show(
-              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+              'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
+              'alert',
             );
-            props.setShowCodeDeployModal(false);
-          } else {
-            props.setIsApiCallTakeTime(true);
           }
-          props.startDeployLivelinessCheck && props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
-        } else {
-          props.setIsApiCallTakeTime(false);
+        })
+        .catch((err: Error) => {
           ProgressIndicator.hide();
-          Notification.show(
-            'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
-            'alert',
-          );
-        }
-      })
-      .catch((err: Error) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
-      });
+          Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
+        });
+    }
   };
 
   return (
@@ -255,7 +312,7 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                          disabled={projectDetails?.publishedSecuirtyConfig?.status !== 'PUBLISHED'}
+                          disabled={disableIntIAM || projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
@@ -272,6 +329,53 @@ const DeployModal = (props: DeployModalProps) => {
                       </span>
                     </label>
                   </div>
+                  {secureWithIAMSelected && (
+                    <div>
+                      {!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
+                        <div className={classNames(Styles.flexLayout)}>
+                          <TextBox
+                            type="text"
+                            controlId={'Client ID'}
+                            labelId={'clientIdLabel'}
+                            label={'Client ID'}
+                            placeholder={'Client ID as per IAM used with Alice'}
+                            value={clientId}
+                            errorText={clientIdError}
+                            required={true}
+                            maxLength={200}
+                            onChange={(e: React.FormEvent<HTMLInputElement>) => {
+                              setClientId(e.currentTarget.value);
+                              setClientIdError('');
+                            }}
+                          />
+                          <TextBox
+                            type="text"
+                            controlId={'Client Secret'}
+                            labelId={'clientSecretLabel'}
+                            label={'Client Secret'}
+                            placeholder={'Client Secret as per IAM used with Alice'}
+                            value={clientSecret}
+                            errorText={clientSecretError}
+                            required={true}
+                            maxLength={200}
+                            onChange={(e: React.FormEvent<HTMLInputElement>) => {
+                              setClientSecret(e.currentTarget.value);
+                              setClientSecretError('');
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className={classNames(Styles.actionWrapper)}>
+                          <button
+                            className={classNames('btn btn-primary', Styles.saveSettingsBtn)}
+                            onClick={() => setChangeSelected(true)}
+                          >
+                            Change Credentials
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {/* {secureWithIAMSelected && (
                 <div
                   className={classNames(
@@ -313,7 +417,7 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          disabled={projectDetails?.publishedSecuirtyConfig?.status !== 'PUBLISHED'}
+                          disabled={disableProdIAM || projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
@@ -330,6 +434,53 @@ const DeployModal = (props: DeployModalProps) => {
                       </span>
                     </label>
                   </div>
+                  {secureWithIAMSelected && (
+                    <div>
+                      {!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
+                        <div className={classNames(Styles.flexLayout)}>
+                          <TextBox
+                            type="text"
+                            controlId={'Client ID'}
+                            labelId={'clientIdLabel'}
+                            label={'Client ID'}
+                            placeholder={'Client ID as per IAM used with Alice'}
+                            value={clientId}
+                            errorText={clientIdError}
+                            required={true}
+                            maxLength={200}
+                            onChange={(e: React.FormEvent<HTMLInputElement>) => {
+                              setClientId(e.currentTarget.value);
+                              setClientIdError('');
+                            }}
+                          />
+                          <TextBox
+                            type="text"
+                            controlId={'Client Secret'}
+                            labelId={'clientSecretLabel'}
+                            label={'Client Secret'}
+                            placeholder={'Client Secret as per IAM used with Alice'}
+                            value={clientSecret}
+                            errorText={clientSecretError}
+                            required={true}
+                            maxLength={200}
+                            onChange={(e: React.FormEvent<HTMLInputElement>) => {
+                              setClientSecret(e.currentTarget.value);
+                              setClientSecretError('');
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className={classNames(Styles.actionWrapper)}>
+                          <button
+                            className={classNames('btn btn-primary', Styles.saveSettingsBtn)}
+                            onClick={() => setChangeSelected(true)}
+                          >
+                            Change Credentials
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {/* {secureWithIAMSelected && (
                 <div
                   className={classNames(
