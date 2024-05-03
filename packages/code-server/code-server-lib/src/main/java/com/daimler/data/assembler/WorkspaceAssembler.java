@@ -337,75 +337,67 @@
 		 if (CodespaceSecurityConfig != null) {
 			 BeanUtils.copyProperties(CodespaceSecurityConfig, codespaceSecurityConfigVO);
  
-			 CodespaceSecurityConfigDetails stagingDraftConfig = CodespaceSecurityConfig.getStaging ().getDraft();
 			 CodespaceSecurityConfigDetailVO stagingDraftConfigVO = new CodespaceSecurityConfigDetailVO();
-			 if(stagingDraftConfig !=null){
-				 
-				 stagingDraftConfigVO.setAppID(stagingDraftConfig.getAppID());
-				 List<CodespaceSecurityEntitlement> entitlements = stagingDraftConfig.getEntitlements();
-				 if (entitlements != null && !entitlements.isEmpty()) {
-					 List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
-							 .collect(Collectors.toList());
-					 //codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(entitlementsVO);
-					 stagingDraftConfigVO.setEntitlements(entitlementsVO);
-				 }else {
-					stagingDraftConfigVO.setEntitlements(new ArrayList<>());
-				 } 
-			 }else {
-				 //codespaceSecurityConfigVO.getStaging().getDraft().setEntitlements(new ArrayList<>());
-				 stagingDraftConfigVO.setEntitlements(new ArrayList<>());
-			 }
- 
-			 CodespaceSecurityConfigDetails stagingPublishedConfig = CodespaceSecurityConfig.getStaging().getPublished();
 			 CodespaceSecurityConfigDetailVO stagingPublishedConfigVO = new CodespaceSecurityConfigDetailVO();
-			 if(stagingPublishedConfig !=null){
-				 
-				 stagingPublishedConfigVO.setAppID(stagingPublishedConfig.getAppID());
-				 List<CodespaceSecurityEntitlement> entitlements = stagingPublishedConfig.getEntitlements();
-				 if (entitlements != null && !entitlements.isEmpty()) {
-					 List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
-							 .collect(Collectors.toList());
-					 stagingPublishedConfigVO.setEntitlements(entitlementsVO);
-				 }else {
-					stagingPublishedConfigVO.setEntitlements(new ArrayList<>());
-				 }
-			 }else {
-				 stagingPublishedConfigVO.setEntitlements(new ArrayList<>());
-			 }
- 
-			 CodespaceSecurityConfigDetails productionPublishedConfig = CodespaceSecurityConfig.getProduction().getPublished();
 			 CodespaceSecurityConfigDetailVO productionPublishedConfigVO = new CodespaceSecurityConfigDetailVO();
-			 if(productionPublishedConfig !=null){
-		 
-				 productionPublishedConfigVO.setAppID(productionPublishedConfig.getAppID());
-				 List<CodespaceSecurityEntitlement> entitlements = productionPublishedConfig.getEntitlements();
-				 if (entitlements != null && !entitlements.isEmpty()) {
-					 List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
-							 .collect(Collectors.toList());
-							 productionPublishedConfigVO.setEntitlements(entitlementsVO);
-				 }else {
-					productionPublishedConfigVO.setEntitlements(new ArrayList<>());
-				 }
-			 }else {
-				 productionPublishedConfigVO.setEntitlements(new ArrayList<>());
-			 }
- 
-			 CodespaceSecurityConfigDetails productionDraftConfig = CodespaceSecurityConfig.getProduction().getDraft();
 			 CodespaceSecurityConfigDetailVO productionDraftConfigVO = new CodespaceSecurityConfigDetailVO();
-			 if(productionDraftConfig !=null){
-				 productionDraftConfigVO.setAppID(productionDraftConfig.getAppID());
-				 List<CodespaceSecurityEntitlement> entitlements = productionDraftConfig.getEntitlements();
-				 if (entitlements != null && !entitlements.isEmpty()) {
-					 List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
-							 .collect(Collectors.toList());
-							 productionDraftConfigVO.setEntitlements(entitlementsVO);
-				 } 
-				 else {
+
+			 if(CodespaceSecurityConfig.getStaging()!=null){
+				
+				if(CodespaceSecurityConfig.getStaging().getDraft()!=null){
+					CodespaceSecurityConfigDetails stagingDraftConfig = CodespaceSecurityConfig.getStaging ().getDraft();
+					stagingDraftConfigVO.setAppID(stagingDraftConfig.getAppID());
+					List<CodespaceSecurityEntitlement> entitlements = stagingDraftConfig.getEntitlements();
+					if (entitlements != null && !entitlements.isEmpty()) {
+						List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
+								.collect(Collectors.toList());
+						stagingDraftConfigVO.setEntitlements(entitlementsVO);
+					} 
+				}else {
+					stagingDraftConfigVO.setEntitlements(new ArrayList<>());
+				}
+
+				if(CodespaceSecurityConfig.getStaging().getPublished() !=null){
+					CodespaceSecurityConfigDetails stagingPublishedConfig = CodespaceSecurityConfig.getStaging().getPublished();
+					stagingPublishedConfigVO.setAppID(stagingPublishedConfig.getAppID());
+					List<CodespaceSecurityEntitlement> entitlements = stagingPublishedConfig.getEntitlements();
+					if (entitlements != null && !entitlements.isEmpty()) {
+						List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
+								.collect(Collectors.toList());
+						stagingPublishedConfigVO.setEntitlements(entitlementsVO);
+					} 
+				}else {
+					stagingPublishedConfigVO.setEntitlements(new ArrayList<>());
+				}
+			}
+			if(CodespaceSecurityConfig.getProduction()!=null){
+				
+				if(CodespaceSecurityConfig.getProduction().getPublished() !=null){
+					CodespaceSecurityConfigDetails productionPublishedConfig = CodespaceSecurityConfig.getProduction().getPublished();
+					productionPublishedConfigVO.setAppID(productionPublishedConfig.getAppID());
+					List<CodespaceSecurityEntitlement> entitlements = productionPublishedConfig.getEntitlements();
+					if (entitlements != null && !entitlements.isEmpty()) {
+						List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
+								.collect(Collectors.toList());
+								productionPublishedConfigVO.setEntitlements(entitlementsVO);
+					} 
+				}else {
+					productionPublishedConfigVO.setEntitlements(new ArrayList<>());
+				}
+
+				if(CodespaceSecurityConfig.getProduction().getDraft()!=null){
+					CodespaceSecurityConfigDetails productionDraftConfig = CodespaceSecurityConfig.getProduction().getDraft();
+					productionDraftConfigVO.setAppID(productionDraftConfig.getAppID());
+					List<CodespaceSecurityEntitlement> entitlements = productionDraftConfig.getEntitlements();
+					if (entitlements != null && !entitlements.isEmpty()) {
+						List<CodespaceSecurityEntitlementVO> entitlementsVO = entitlements.stream().map(n -> toEntitlementVO(n))
+								.collect(Collectors.toList());
+								productionDraftConfigVO.setEntitlements(entitlementsVO);
+					} 
+				}else {
 					productionDraftConfigVO.setEntitlements(new ArrayList<>());
-				 }
-			 }else {
-				 productionDraftConfigVO.setEntitlements(new ArrayList<>());
-			 } 
+				} 
+			}
  
 			 CodespaceSecurityConfigDetailCollectionVO stagingCollection = new CodespaceSecurityConfigDetailCollectionVO();
 			 stagingCollection.setDraft(stagingDraftConfigVO);
