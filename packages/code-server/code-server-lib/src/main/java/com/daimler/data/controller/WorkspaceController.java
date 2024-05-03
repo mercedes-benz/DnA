@@ -458,6 +458,9 @@ import lombok.extern.slf4j.Slf4j;
 						responseMessage = service.saveSecurityConfig(vo,false,env);
 						saveConfigResponse.setResponse(responseMessage);
 						saveConfigResponse.setData(data);
+						if("FAILED".equalsIgnoreCase(saveConfigResponse.getResponse().getSuccess())){
+							return new ResponseEntity<>(saveConfigResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+						}
 						return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 
 					}else{

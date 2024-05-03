@@ -1460,10 +1460,34 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 						if(isPublished){
 							if("int".equalsIgnoreCase(env)){
-								entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
+								if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null){
+									entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
+								}else{
+									log.info("APPID and Entitlement should not be empty while publishing");
+									MessageDescription msg = new MessageDescription();
+									List<MessageDescription> errorMessage = new ArrayList<>();
+									msg.setMessage("APPID and Entitlement should not be empty while publishing");
+									errorMessage.add(msg);
+									responseMessage.addErrors(msg);
+									responseMessage.setSuccess("FAILED");
+									responseMessage.setErrors(errorMessage);
+									return responseMessage;
+								}
 							}
 							if("prod".equalsIgnoreCase(env)){
-								entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
+								if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null){
+									entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
+								}else{
+									log.info("APPID and Entitlement should not be empty while publishing");
+									MessageDescription msg = new MessageDescription();
+									List<MessageDescription> errorMessage = new ArrayList<>();
+									msg.setMessage("APPID and Entitlement should not be empty while publishing");
+									errorMessage.add(msg);
+									responseMessage.addErrors(msg);
+									responseMessage.setSuccess("FAILED");
+									responseMessage.setErrors(errorMessage);
+									return responseMessage;
+								}
 							}
 						}
 						entities.add(entity);
