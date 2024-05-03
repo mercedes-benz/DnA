@@ -65,16 +65,25 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		GenericMessage errorMessage = new GenericMessage();
 		FabricWorkspaceVO data = new FabricWorkspaceVO();
 		FabricWorkspaceVO workspaceRequestVO = workspaceCreateVO.getData();
-		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null || workspaceRequestVO.getDescription()==null 
-				|| workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null) {
+		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null ) {
 			log.error("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
-			MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
+			MessageDescription invalidMsg = new MessageDescription("Fabric workspace name/type of project cannot be null, please check and send valid input");
 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
 			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(workspaceRequestVO);
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		}else {
+				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null || workspaceRequestVO.getDepartment() == null){
+					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
+					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
+					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+					errorMessage.addErrors(invalidMsg);
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
 		}
 		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && "Admin monitoring".equalsIgnoreCase(workspaceRequestVO.getName())) {
 			log.error("Fabric workspace project name cannot be Admin monitoring, cannot use reserve keyword. Please send valid input");
@@ -293,9 +302,14 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 				existingFabricWorkspace.setHasPii(workspaceUpdateRequestVO.isHasPii());
 			if(workspaceUpdateRequestVO.getInternalOrder()!=null)
 				existingFabricWorkspace.setInternalOrder(workspaceUpdateRequestVO.getInternalOrder());
+			
+			if(workspaceUpdateRequestVO.getName()!=null)
+				existingFabricWorkspace.setName(workspaceUpdateRequestVO.getName());
+			if(workspaceUpdateRequestVO.getDescription()!=null)
+				existingFabricWorkspace.setDescription(workspaceUpdateRequestVO.getDescription());
 				
 			try {
-				FabricWorkspaceVO updatedRecord = service.create(existingFabricWorkspace);
+				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);
 				responses.setSuccess("SUCCESS");
 				responses.setErrors(new ArrayList<>());

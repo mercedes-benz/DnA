@@ -347,8 +347,14 @@ definitions:
         type: string
       internalOrder:
         type: string
-      #relatedSolutions:
-      #relatedReports:
+      relatedSolutions:
+        type: array
+        items:
+         $ref: "#/definitions/ProjectReferenceDetailsVO"
+      relatedReports:
+        type: array
+        items:
+         $ref: "#/definitions/ProjectReferenceDetailsVO"
       capacity:
         $ref: "#/definitions/CapacityVO"
       createdBy:
@@ -358,25 +364,38 @@ definitions:
         format: date
       role:
         type: string
-    required:
-      - name
-      - typeOfProject
-      - description
-      - divisionId
-      - subDivisionId
-      - dataClassification
-      - hasPii
-      - termsOfUse
-      - costCenter
-
+#    required:
+#      - name
+#      - typeOfProject
+#      - description
+#      - divisionId
+#      - subDivisionId
+#      - dataClassification
+#      - hasPii
+#      - termsOfUse
+#      - costCenter
+  
+  ProjectReferenceDetailsVO:
+    type: object
+    properties:
+      id:
+       type: string
+      name:
+       type: string
+       
   FabricWorkspaceUpdateRequestVO:
     type: object
     properties:
+      name:
+        type: string
+        description: "Name of the fabric workspace"
+        maxLength: 256
       typeOfProject:
         type: string
       #  enum: ["Playground","Proof of Concept","Production"]
-      #description:
-      #  type: string
+      description:
+        type: string
+        maxLength: 4000
       divisionId:
         type: string
       division:
@@ -406,8 +425,14 @@ definitions:
         type: string
       internalOrder:
         type: string
-      #relatedSolutions:
-      #relatedReports:
+      relatedSolutions:
+        type: array
+        items:
+         $ref: "#/definitions/ProjectReferenceDetailsVO"
+      relatedReports:
+        type: array
+        items:
+         $ref: "#/definitions/ProjectReferenceDetailsVO"
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."

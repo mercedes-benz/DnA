@@ -1,8 +1,8 @@
 import '@univerjs/design/lib/index.css';
 import '@univerjs/ui/lib/index.css';
 import '@univerjs/sheets-ui/lib/index.css';
-import '@univerjs/sheets-formula/lib/index.css';
-import { Styles } from './data-entry-sheet.scss';
+import '@univerjs/sheets-formula/lib/index.css';;
+import Styles from './data-entry-sheet.scss';
 
 import { Univer } from '@univerjs/core';
 import { defaultTheme } from '@univerjs/design';
@@ -14,7 +14,13 @@ import { UniverSheetsPlugin } from '@univerjs/sheets';
 import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula';
 import { UniverSheetsUIPlugin } from '@univerjs/sheets-ui';
 import { UniverUIPlugin } from '@univerjs/ui';
-import { React, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { LocaleType } from '@univerjs/core';
+import { enUS as UniverDesignEnUS } from '@univerjs/design';
+import { enUS as UniverDocsUIEnUS } from '@univerjs/docs-ui';
+import { enUS as UniverSheetsEnUS } from '@univerjs/sheets';
+import { enUS as UniverSheetsUIEnUS } from '@univerjs/sheets-ui';
+import { enUS as UniverUIEnUS } from '@univerjs/ui';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 // eslint-disable-next-line react/display-name
 const DataEntrySheet = forwardRef(({ data }, ref) => {
@@ -36,6 +42,16 @@ const DataEntrySheet = forwardRef(({ data }, ref) => {
     }
     const univer = new Univer({
       theme: defaultTheme,
+      locale: LocaleType.EN_US,
+      locales: {
+        [LocaleType.EN_US]: {
+          ...UniverSheetsEnUS,
+          ...UniverDocsUIEnUS,
+          ...UniverSheetsUIEnUS,
+          ...UniverUIEnUS,
+          ...UniverDesignEnUS,
+        },
+      },
     });
     univerRef.current = univer;
 

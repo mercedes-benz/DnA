@@ -108,18 +108,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_DATA_PIPELINE_SERVICE, false),
-  ENABLE_MY_MODEL_REGISTRY_SERVICE:
-    getInjectedEnv('ENABLE_MY_MODEL_REGISTRY_SERVICE') !== undefined
-      ? getInjectedEnv('ENABLE_MY_MODEL_REGISTRY_SERVICE')
-      : EnvParser.parseBool(process.env.ENABLE_MY_MODEL_REGISTRY_SERVICE, false),
   ENABLE_STORAGE_SERVICE:
     getInjectedEnv('ENABLE_STORAGE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_STORAGE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_STORAGE_SERVICE, false),
-  ENABLE_ML_PIPELINE_SERVICE:
-    getInjectedEnv('ENABLE_ML_PIPELINE_SERVICE') !== undefined
-      ? getInjectedEnv('ENABLE_ML_PIPELINE_SERVICE')
-      : EnvParser.parseBool(process.env.ENABLE_ML_PIPELINE_SERVICE, false),
   ML_PIPELINE_URL: getInjectedEnv('ML_PIPELINE_URL') || process.env.ML_PIPELINE_URL,
   ENABLE_MALWARE_SCAN_ONEAPI:
     getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI') !== undefined

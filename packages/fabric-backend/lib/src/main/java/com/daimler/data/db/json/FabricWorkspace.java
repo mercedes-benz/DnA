@@ -36,5 +36,7 @@ public class FabricWorkspace {
 	private UserDetails createdBy;
 	private Date createdOn;
 	private String role;
+	private List<ProjectDetails> relatedSolutions;
+	private List<ProjectDetails> relatedReports;
 	
 }

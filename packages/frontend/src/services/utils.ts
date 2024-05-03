@@ -9,6 +9,15 @@ declare global {
   }
 }
 
+const isValidURL = (urlString: string) => {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:3000/api`;
 
 export const createQueryParams = (obj: any): string => {
@@ -259,6 +268,13 @@ export const isSolutionFilterApplied = (
 ) => {
   const { division, subDivision, phase, location, status, useCaseType, tag } = queryParams;
   let filterApplied = false;
+  const currentYear = new Date().getFullYear();
+  const defaultStartYear = currentYear - 2 + '';
+  const defaultEndYear = currentYear + 1 + '';
+
+  if(!(queryParams.dataValueRange.startYear === defaultStartYear && queryParams.dataValueRange.endYear === defaultEndYear)){
+    filterApplied = true;
+  }
 
   if (division.length && division.length !== divisionLength) {
     filterApplied = true;
@@ -348,9 +364,13 @@ export const csvSeparator = (region: string) => {
     return  ";";  
 };
 
-export const buildLogViewURL = (deployedUrl: string, isStagging?: boolean) => {
+export const buildLogViewURL = (deployedInstance: string, isStagging?: boolean) => {
   try {
-    return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', new URL(deployedUrl).pathname.split("/")[1] + (isStagging ? '-int' : '-prod'));
+    let instanceId = deployedInstance;
+    if(isValidURL(deployedInstance)) {
+      instanceId = new URL(deployedInstance).pathname.split("/")[1];
+    }
+    return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', instanceId + (isStagging ? '-int' : '-prod'));
   } catch {
     return "Error in building log view Url. Please check the deployment Url."
   }

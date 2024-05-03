@@ -34,8 +34,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-  const [solutions] = useState([]);
-  const [reports] = useState([]);
+  const [solutions, setSolutions] = useState([]);
+  const [reports, setReports] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -74,6 +74,36 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         } else {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllSolutions()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const solutionsTemp = res?.data?.data?.records.maps((rec) => { return {id: rec.id, name: rec.productName}});
+        setSolutions([...solutionsTemp]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllReports()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const reportsTemp = res?.data?.data?.records.maps((rec) => { return {id: rec.id, name: rec.productName}});
+        setReports([...reportsTemp]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -145,7 +175,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating fabric workspace',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating fabric workspace',
         'alert',
       );
     });
@@ -171,7 +201,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       relatedReports: relatedReports,
     }
     ProgressIndicator.show();
-    fabricApi.updateFabricWorkspace(data, workspace.id).then(() => {
+    fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Fabric workspace successfully updated');
       onSave();
@@ -294,7 +324,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      readOnly={edit}
                       defaultValue={costCenter}
                       {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
@@ -313,7 +342,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      readOnly={edit}
                       defaultValue={internalOrder}
                       {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />

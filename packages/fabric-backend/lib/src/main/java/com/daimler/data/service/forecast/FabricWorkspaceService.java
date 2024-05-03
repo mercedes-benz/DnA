@@ -20,4 +20,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	
 	GenericMessage delete(String id);
 
+	FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace);
+
 }

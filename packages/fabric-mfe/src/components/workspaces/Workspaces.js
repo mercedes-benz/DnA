@@ -39,7 +39,7 @@ const Workspaces = (props) => {
   const deleteWorkspaceAccept = () => {
     ProgressIndicator.show();
     fabricApi
-      .deleteWorkspace(selectedItem.id)
+      .deleteFabricWorkspace(selectedItem.id)
       .then(() => {
         props.callWorkspaces();
         Notification.show(`Fabric Workspace ${selectedItem.name} deleted successfully.`);

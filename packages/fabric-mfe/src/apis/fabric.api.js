@@ -28,6 +28,18 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
+const getAllSolutions = () => {
+  return hostServer.get(`/solutions?limit=0`, {
+    data: {},
+  });
+};
+
+const getAllReports = () => {
+  return reportsServer.get(`/reports?limit=0`, {
+    data: {},
+  });
+};
+
 const getLovData = () => {
   return Promise.all([
     storageServer.get(`/classifications`, {
@@ -46,5 +58,7 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
+  getAllReports,
+  getAllSolutions,
   getLovData,
 };
