@@ -10,7 +10,7 @@ import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { buildGitJobLogViewURL, buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
+import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
@@ -621,6 +621,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                     >
                       <ul>
+                        {projectDetails?.gitRepoName && (
+                          <>
+                            <li>
+                              <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName)} rel="noreferrer">
+                                Goto code repo
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </li>
+                            <li>
+                              <hr />
+                            </li>
+                          </>
+                        )}
                         <li>
                           <strong>Staging:</strong>{' '}
                           {intDeploymentDetails?.lastDeployedBranch
@@ -665,7 +678,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
                           <li>
-                            <a target="_blank" href={buildLogViewURL(codeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)} rel="noreferrer">
+                            <a
+                              target="_blank"
+                              href={buildLogViewURL(codeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                              rel="noreferrer"
+                            >
                               Application Logs <i className="icon mbc-icon new-tab" />
                             </a>
                           </li>
@@ -730,7 +747,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
                           <li>
-                            <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase())} rel="noreferrer">
+                            <a
+                              target="_blank"
+                              href={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                              rel="noreferrer"
+                            >
                               Application Logs <i className="icon mbc-icon new-tab" />
                             </a>
                           </li>
@@ -770,51 +791,68 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       title="Code Space"
                       allow="clipboard-read; clipboard-write"
                     />
-                    {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && showLogsView && (
-                      <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
-                        <button
-                          className={classNames('link-btn', Styles.closeButton)}
-                          onClick={() => setShowLogsView(false)}
-                        >
-                          <i className="icon mbc-icon close thin"></i>
-                        </button>
-                        <div className={classNames('tabs-panel', Styles.tabsHeightFix)}>
-                          <div className="tabs-wrapper">
-                            <ul className="tabs">
-                              {intDeploymentDetails.lastDeploymentStatus && (
-                                <li className={'tab active'}>
-                                  <a href="#tab-staginglogpanel" id="staginglogpanel">
-                                    Staging App Logs
-                                  </a>
-                                </li>
+                    {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) &&
+                      showLogsView && (
+                        <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
+                          <button
+                            className={classNames('link-btn', Styles.closeButton)}
+                            onClick={() => setShowLogsView(false)}
+                          >
+                            <i className="icon mbc-icon close thin"></i>
+                          </button>
+                          <div className={classNames('tabs-panel', Styles.tabsHeightFix)}>
+                            <div className="tabs-wrapper">
+                              <ul className="tabs">
+                                {intDeploymentDetails.lastDeploymentStatus && (
+                                  <li className={'tab active'}>
+                                    <a href="#tab-staginglogpanel" id="staginglogpanel">
+                                      Staging App Logs
+                                    </a>
+                                  </li>
+                                )}
+                                {prodDeploymentDetails.lastDeploymentStatus && (
+                                  <li className={classNames('tab', !codeDeployed && 'active')}>
+                                    <a href="#tab-productionlogpanel" id="productionlogpanel">
+                                      Production App Logs
+                                    </a>
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                            <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
+                              {intDeploymentDetails?.lastDeploymentStatus && (
+                                <div
+                                  id="tab-staginglogpanel"
+                                  className={classNames(Styles.tabsHeightFix, 'tab-content')}
+                                >
+                                  <iframe
+                                    src={buildLogViewURL(
+                                      codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      true,
+                                    )}
+                                    height="100%"
+                                    width="100%"
+                                  />
+                                </div>
                               )}
-                              {prodDeploymentDetails.lastDeploymentStatus && (
-                                <li className={classNames('tab', !codeDeployed && 'active')}>
-                                  <a href="#tab-productionlogpanel" id="productionlogpanel">
-                                    Production App Logs
-                                  </a>
-                                </li>
+                              {prodDeploymentDetails?.lastDeploymentStatus && (
+                                <div
+                                  id="tab-productionlogpanel"
+                                  className={classNames(Styles.tabsHeightFix, 'tab-content')}
+                                >
+                                  <iframe
+                                    src={buildLogViewURL(
+                                      prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                    )}
+                                    height="100%"
+                                    width="100%"
+                                  />
+                                </div>
                               )}
-                            </ul>
-                          </div>
-                          <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
-                            {intDeploymentDetails?.lastDeploymentStatus && (
-                              <div id="tab-staginglogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
-                                <iframe src={buildLogViewURL(codeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)} height="100%" width="100%" />
-                              </div>
-                            )}
-                            {prodDeploymentDetails?.lastDeploymentStatus && (
-                              <div
-                                id="tab-productionlogpanel"
-                                className={classNames(Styles.tabsHeightFix, 'tab-content')}
-                              >
-                                <iframe src={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase())} height="100%" width="100%" />
-                              </div>
-                            )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     <div className={Styles.textRight}>
                       <small>
                         Made with{' '}
