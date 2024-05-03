@@ -338,7 +338,7 @@ const DeployModal = (props: DeployModalProps) => {
                             controlId={'Client ID'}
                             labelId={'clientIdLabel'}
                             label={'Client ID'}
-                            placeholder={'Client ID as per Alice'}
+                            placeholder={'Client ID as per IAM used with Alice'}
                             value={clientId}
                             errorText={clientIdError}
                             required={true}
@@ -353,7 +353,7 @@ const DeployModal = (props: DeployModalProps) => {
                             controlId={'Client Secret'}
                             labelId={'clientSecretLabel'}
                             label={'Client Secret'}
-                            placeholder={'Client Secret as per Alice'}
+                            placeholder={'Client Secret as per IAM used with Alice'}
                             value={clientSecret}
                             errorText={clientSecretError}
                             required={true}
@@ -443,7 +443,7 @@ const DeployModal = (props: DeployModalProps) => {
                             controlId={'Client ID'}
                             labelId={'clientIdLabel'}
                             label={'Client ID'}
-                            placeholder={'Client ID as per Alice'}
+                            placeholder={'Client ID as per IAM used with Alice'}
                             value={clientId}
                             errorText={clientIdError}
                             required={true}
@@ -458,7 +458,7 @@ const DeployModal = (props: DeployModalProps) => {
                             controlId={'Client Secret'}
                             labelId={'clientSecretLabel'}
                             label={'Client Secret'}
-                            placeholder={'Client Secret as per Alice'}
+                            placeholder={'Client Secret as per IAM used with Alice'}
                             value={clientSecret}
                             errorText={clientSecretError}
                             required={true}
