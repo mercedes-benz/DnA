@@ -180,15 +180,22 @@ export default class SecurityConfig extends React.Component<
   };
 
   public onCancellingUpdateChanges = () => {
-    document.getElementById(this.state.nextTab).click();
+    document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
     this.setState({
       showAlertChangesModal: false,
+      clickedTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? false : true,
     });
   };
 
   public onAcceptUpdateChanges = () => {
-    // document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
     this.setState({
+      currentTab: clickedTab,
+      saveActionType: '',
+      nextTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? true : false,
       showAlertChangesModal: false,
     });
   };
@@ -228,26 +235,21 @@ export default class SecurityConfig extends React.Component<
     const currentState = this.state.currentState;
     // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
     const showAlertChangesModal = !this.state.readOnlyMode;
-    
+
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        target.id === 'stagingEntitlement'
+        !this.state.readOnlyMode
           ? this.setState({
-              currentTab: target.id,
               clickedTab: target.id,
-              saveActionType: '',
-              nextTab: 'productionEntitlement',
-              showStagingModal: true,
               showAlertChangesModal: showAlertChangesModal,
             })
           : this.setState({
-              currentTab: target.id,
-              clickedTab: target.id,
-              saveActionType: '',
-              nextTab: 'stagingEntitlement',
-              showStagingModal: false,
-              showAlertChangesModal: showAlertChangesModal,
-            });
+            currentTab: target.id,
+            saveActionType: '',
+            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
+            showAlertChangesModal: false,
+          });
       }
     }
   };
