@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import Styles from './fabric-workspaces.scss';
-// import { MatomoList } from './MatomoList';
 import { fabricApi } from '../../apis/fabric.api';
 
 // dna-container
@@ -66,7 +65,17 @@ const FabricWorkspaces = (props) => {
       fabricApi
         .getFabricWorkspaces(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setWorkspaces(res?.data?.records);
+          const sortedWorkspaces = res?.data?.records.sort((x, y) => {
+              let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+              if (fx < fy) {
+                  return -1;
+              }
+              if (fx > fy) {
+                  return 1;
+              }
+              return 0;
+          });
+          setWorkspaces(sortedWorkspaces);
           const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -90,6 +99,12 @@ const FabricWorkspaces = (props) => {
         <div className={classNames(Styles.wrapper)}>
           <Caption title="Fabric Workspaces">
             <div className={classNames(Styles.listHeader)}>
+              <div className={Styles.btnContainer}>
+                <button className="btn btn-primary" onClick={getWorkspaces} tooltip-data="Refresh">
+                  <i className="icon mbc-icon refresh"></i>
+                </button>
+              </div>
+              <span className={Styles.dividerLine}> &nbsp; </span>
               <div tooltip-data="Card View">
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
