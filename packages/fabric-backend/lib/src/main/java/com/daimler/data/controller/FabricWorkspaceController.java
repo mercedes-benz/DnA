@@ -307,7 +307,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 				existingFabricWorkspace.setName(workspaceUpdateRequestVO.getName());
 			if(workspaceUpdateRequestVO.getDescription()!=null)
 				existingFabricWorkspace.setDescription(workspaceUpdateRequestVO.getDescription());
-				
+
+			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
+			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
+			
 			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);
