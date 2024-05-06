@@ -84,7 +84,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     fabricApi.getAllSolutions()
       .then((res) => {
         ProgressIndicator.hide();
-        const solutionsTemp = res?.data?.data?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
+        const solutionsTemp = res?.data?.solutions?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
         setSolutions([...solutionsTemp]);
       })
       .catch((err) => {
@@ -99,7 +99,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     fabricApi.getAllReports()
       .then((res) => {
         ProgressIndicator.hide();
-        const reportsTemp = res?.data?.data?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
+        const reportsTemp = res?.data?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
         setReports([...reportsTemp]);
       })
       .catch((err) => {

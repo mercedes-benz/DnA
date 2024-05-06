@@ -28,11 +28,30 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
+// const getAllSolutions = () => {
+//   return hostServer.get(`/solutions?limit=0`, {
+//     data: {},
+//   });
+// };
+
 const getAllSolutions = () => {
-  return hostServer.get(`/solutions?limit=0`, {
-    data: {},
-  });
-};
+  const reqQuery = `limit:0`;
+  let resQuery = `totalCount
+    records {
+      id,
+      productName
+    }`;
+
+  const apiQuery = {
+    query: `query {
+      solutions(${reqQuery}){
+        ${resQuery}
+      }
+    }`,
+  };
+
+  return hostServer.post('minified', apiQuery);
+}
 
 const getAllReports = () => {
   return reportsServer.get(`/reports?limit=0`, {
