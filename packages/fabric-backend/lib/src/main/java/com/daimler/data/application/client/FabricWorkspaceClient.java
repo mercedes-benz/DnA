@@ -164,11 +164,11 @@ public class FabricWorkspaceClient {
 		}catch(Exception e) {
 			if(e.getMessage()!=null) 
 				if(e.getMessage().contains("InsufficientPrivileges")) {
-					workspaceDetailDto.setErrorCode("403");
+					workspaceDetailDto.setErrorCode("InsufficientPrivileges");
 					workspaceDetailDto.setMessage("Failed to fetch details, InsufficientPrivileges. Record might not exist.");
 					log.error("Failed to get workspace details for id {} with {} exception . Which could mean that workspace doesnt exist anymore.", workspaceId, e.getMessage());
 				}else if (e.getMessage().contains("WorkspaceNotFound")) {
-					workspaceDetailDto.setErrorCode("404");
+					workspaceDetailDto.setErrorCode("WorkspaceNotFound");
 					workspaceDetailDto.setMessage("Failed to fetch details, WorkspaceNotFound. Record might not exist.");
 					log.error("Failed to get workspace details for id {} with {} exception . Which could mean that workspace doesnt exist anymore.", workspaceId, e.getMessage());
 				}
