@@ -31,7 +31,7 @@ export interface ICreateNewSecurityConfigState {
   currentTab: string;
   nextTab: string;
   clickedTab: string;
-  isSaved: boolean;
+  // isSaved: boolean;
   saveActionType: string;
   tabClassNames: Map<string, string>;
   currentState: any;
@@ -63,7 +63,7 @@ export default class SecurityConfig extends React.Component<
       tabClassNames: new Map<string, string>(),
       currentState: null,
       showAlertChangesModal: false,
-      isSaved: false,
+      //isSaved: false,
       config: {
         entitlements: [],
       },
@@ -99,7 +99,7 @@ export default class SecurityConfig extends React.Component<
 
   public componentDidUpdate(prevProps: ICreateNewSecurityConfigProps, prevState: ICreateNewSecurityConfigState) {
     if (this.state.currentTab !== prevState.currentTab) {
-      this.setState({ isSaved: false });
+      // this.setState({ isSaved: false });
       const params = getParams();
       let id = params?.id;
       if (id.includes('?name=')) {
@@ -149,7 +149,6 @@ export default class SecurityConfig extends React.Component<
 
   public getConfig = (id: string, env: string) => {
     ProgressIndicator.show();
-    console.log('get config ', id);
     CodeSpaceApiClient.getCodeSpaceConfig(id, env)
       .then((res: any) => {
         const response = {
@@ -198,7 +197,7 @@ export default class SecurityConfig extends React.Component<
     this.setState(
       {
         config: config,
-        isSaved: true,
+        // isSaved: true,
       },
       () => {
         if (tabToBeSaved === 'stagingEntitlement') {
@@ -214,7 +213,7 @@ export default class SecurityConfig extends React.Component<
     this.setState(
       {
         config: config,
-        isSaved: true,
+        // isSaved: true,
       },
       () => {
         this.callApiToSave(env, true);
@@ -227,8 +226,9 @@ export default class SecurityConfig extends React.Component<
     const newState = this.state.config;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-    const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
-
+    // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
+    const showAlertChangesModal = !this.state.readOnlyMode;
+    
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
         target.id === 'stagingEntitlement'
