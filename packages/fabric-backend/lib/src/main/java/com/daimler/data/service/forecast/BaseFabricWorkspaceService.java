@@ -77,7 +77,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.info("Fetched fabric project record from db successfully for id {} ", id);
 					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
 					if(dtoFromFabric!=null) {
-						if(dtoFromFabric.getErrorCode()!=null && "WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode())) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
 								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
 								jpaRepo.deleteById(id);
 								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
@@ -111,7 +111,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		log.info("Fetched fabric project record from db successfully for id {} ", id);
 		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
 		if(dtoFromFabric!=null) {
-			if(dtoFromFabric.getErrorCode()!=null && "WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode())) {
+			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
 				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
 				try{
 					jpaRepo.deleteById(id);
