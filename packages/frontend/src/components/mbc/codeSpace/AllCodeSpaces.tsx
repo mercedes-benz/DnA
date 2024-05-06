@@ -157,7 +157,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     Tooltip.clear();
     const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
     setLoading(true);
-    CodeSpaceApiClient.startStopWorkSpace(codeSpace.workspaceId, serverStarted)
+    CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
       .then((res: any) => {
         setLoading(false);
         if (res.success === 'SUCCESS') {
