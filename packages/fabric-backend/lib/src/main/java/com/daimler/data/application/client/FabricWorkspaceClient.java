@@ -280,7 +280,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<WorkspaceUpdateDto> requestEntity = new HttpEntity<>(updateRequest,headers);
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId;
-			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl, HttpMethod.POST,
+			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl, HttpMethod.PATCH,
 					requestEntity, WorkspaceDetailDto.class);
 			if (response!=null && response.hasBody()) {
 				workspaceDetailDto = response.getBody();
