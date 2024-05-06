@@ -355,7 +355,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         title={'Related Solutions'}
                         max={100}
                         chips={relatedSolutionsTags}
-                        tags={solutions}
+                        tags={solutions.length > 0 ? solutions : []}
                         setTags={onRelatedSolutionsChange}
                         isMandatory={false}
                       // {...register('department', {required: '*Missing entry'})}
