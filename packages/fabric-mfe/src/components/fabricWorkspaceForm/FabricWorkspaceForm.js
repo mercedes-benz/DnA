@@ -84,7 +84,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     fabricApi.getAllSolutions()
       .then((res) => {
         ProgressIndicator.hide();
-        const solutionsTemp = res?.data?.solutions?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
+        const solutionsTemp = res?.data?.data?.solutions?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
         setSolutions([...solutionsTemp]);
       })
       .catch((err) => {
