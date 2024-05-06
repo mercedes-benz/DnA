@@ -191,21 +191,13 @@ export default class SecurityConfig extends React.Component<
 
   public onAcceptUpdateChanges = () => {
     const clickedTab = this.state.clickedTab;
-    clickedTab === 'stagingEntitlement'
-      ? this.setState({
-          currentTab: clickedTab,
-          saveActionType: '',
-          nextTab: 'productionEntitlement',
-          showStagingModal: true,
-          showAlertChangesModal: false,
-        })
-      : this.setState({
-          currentTab: clickedTab,
-          saveActionType: '',
-          nextTab: 'stagingEntitlement',
-          showStagingModal: false,
-          showAlertChangesModal: false,
-        });
+    this.setState({
+      currentTab: clickedTab,
+      saveActionType: '',
+      nextTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? true : false,
+      showAlertChangesModal: false,
+    });
   };
 
   protected onSaveDraft = (tabToBeSaved: string, config: any, previousTab?: string) => {
@@ -251,23 +243,13 @@ export default class SecurityConfig extends React.Component<
               clickedTab: target.id,
               showAlertChangesModal: showAlertChangesModal,
             })
-          : target.id === 'stagingEntitlement'
-          ? this.setState({
-              currentTab: target.id,
-              clickedTab: target.id,
-              saveActionType: '',
-              nextTab: 'productionEntitlement',
-              showStagingModal: true,
-              showAlertChangesModal: showAlertChangesModal,
-            })
           : this.setState({
-              currentTab: target.id,
-              clickedTab: target.id,
-              saveActionType: '',
-              nextTab: 'stagingEntitlement',
-              showStagingModal: false,
-              showAlertChangesModal: showAlertChangesModal,
-            });
+            currentTab: target.id,
+            saveActionType: '',
+            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
+            showAlertChangesModal: false,
+          });
       }
     }
   };
