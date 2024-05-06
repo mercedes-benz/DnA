@@ -180,17 +180,32 @@ export default class SecurityConfig extends React.Component<
   };
 
   public onCancellingUpdateChanges = () => {
-    document.getElementById(this.state.nextTab).click();
+    document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
     this.setState({
       showAlertChangesModal: false,
+      clickedTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? false : true,
     });
   };
 
   public onAcceptUpdateChanges = () => {
-    // document.getElementById(this.state.currentTab).click();
-    this.setState({
-      showAlertChangesModal: false,
-    });
+    const clickedTab = this.state.clickedTab;
+    clickedTab === 'stagingEntitlement'
+      ? this.setState({
+          currentTab: clickedTab,
+          saveActionType: '',
+          nextTab: 'productionEntitlement',
+          showStagingModal: true,
+          showAlertChangesModal: false,
+        })
+      : this.setState({
+          currentTab: clickedTab,
+          saveActionType: '',
+          nextTab: 'stagingEntitlement',
+          showStagingModal: false,
+          showAlertChangesModal: false,
+        });
   };
 
   protected onSaveDraft = (tabToBeSaved: string, config: any, previousTab?: string) => {
@@ -228,10 +243,15 @@ export default class SecurityConfig extends React.Component<
     const currentState = this.state.currentState;
     // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
     const showAlertChangesModal = !this.state.readOnlyMode;
-    
+
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        target.id === 'stagingEntitlement'
+        !this.state.readOnlyMode
+          ? this.setState({
+              clickedTab: target.id,
+              showAlertChangesModal: showAlertChangesModal,
+            })
+          : target.id === 'stagingEntitlement'
           ? this.setState({
               currentTab: target.id,
               clickedTab: target.id,
