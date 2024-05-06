@@ -109,7 +109,7 @@ const FabricWorkspace = () => {
                         {workspace?.relatedSolutions ? workspace.relatedSolutions?.map((chip) => {
                           return (
                             <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
+                              <label className="chips">{chip.name}</label>&nbsp;&nbsp;
                             </>
                           );
                         }) : 'N/A'}
@@ -123,7 +123,7 @@ const FabricWorkspace = () => {
                         {workspace?.relatedReports ? workspace.relatedReports?.map((chip) => {
                           return (
                             <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
+                              <label className="chips">{chip.name}</label>&nbsp;&nbsp;
                             </>
                           );
                         }) : 'N/A'}
