@@ -743,7 +743,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 				String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
 			ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
-			ownerEntity.getData().setWorkspaceUrl("");
 			ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
 					vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ||
