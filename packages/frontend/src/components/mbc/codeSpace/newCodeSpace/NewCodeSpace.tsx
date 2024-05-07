@@ -425,7 +425,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         );
       } else {
         Notification.show(
-          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.`,
+          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.\n ${res.errors[0].message}`,
           'alert',
         );
       }

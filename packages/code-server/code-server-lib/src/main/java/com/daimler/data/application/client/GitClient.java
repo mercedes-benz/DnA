@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,14 +51,21 @@ public class GitClient {
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri+"/repos/"+applicationName+"/"+recipeName+"-template/generate";
-			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName + "\",\"description\":\"" + recipeName + " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
-			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString,headers);
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "-template/generate";
+			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
+					+ "\",\"description\":\"" + recipeName
+					+ " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
+			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-			if (response != null && response.getStatusCode()!=null) {
-				log.info("Completed creating git repo {} initated by user with status {}", gitOrgName,response.getStatusCode());
+			if (response != null && response.getStatusCode() != null) {
+				log.info("Completed creating git repo {} initated by user with status {}", gitOrgName,
+						response.getStatusCode());
 				return response.getStatusCode();
 			}
+		}catch (HttpClientErrorException.UnprocessableEntity ex) {
+				log.error("Error: Name already exists while creating git repo {} with exception {}", gitOrgName,
+						ex.getMessage());
+				return HttpStatus.CONFLICT; // Return HTTP 409 Conflict status for name conflict
 		} catch (Exception e) {
 			log.error("Error occured while creating git repo {} with exception {} ", gitOrgName, e.getMessage());
 		}

@@ -278,6 +278,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 			
 			if(workspaceUpdateRequestVO.getArcherId()!=null)
 				existingFabricWorkspace.setArcherId(workspaceUpdateRequestVO.getArcherId());
+			if(workspaceUpdateRequestVO.getProcedureId()!=null)
+				existingFabricWorkspace.setProcedureId(workspaceUpdateRequestVO.getProcedureId());
 			if(workspaceUpdateRequestVO.getCostCenter()!=null)
 				existingFabricWorkspace.setCostCenter(workspaceUpdateRequestVO.getCostCenter());
 			if(workspaceUpdateRequestVO.getDataClassification()!=null)
@@ -307,7 +309,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 				existingFabricWorkspace.setName(workspaceUpdateRequestVO.getName());
 			if(workspaceUpdateRequestVO.getDescription()!=null)
 				existingFabricWorkspace.setDescription(workspaceUpdateRequestVO.getDescription());
-				
+
+			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
+			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
+			
 			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);

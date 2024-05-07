@@ -189,11 +189,81 @@ paths:
           required: false
           type: string
           enum: [asc,desc]
+        - name: dataSteward
+          in: query
+          description: "name of contact information provider fetched (send names with comma separated eg: 'DTF-00019', 'DTF-00020'..)"
+          required: false 
+          type: string
+        - name: informationOwner
+          in: query
+          description: "information owner details to be fetched (send IO with comma separated eg: 'DTF-00019', 'DTF-00020'..)"
+          required: false  
+          type: string 
+        - name: department
+          in: query
+          description: "Filtering data product based on department"
+          required: false 
+          type: string
+        - name: division
+          in: query
+          description: List of IDs of divisions and subdivisions under each division of data product. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]
+          required: false
+          type: string 
       responses:
         200:
           description: "Returns message of success or failure"
           schema:
             $ref: "#/definitions/DataProductCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /dataproducts/dataStwerdLov:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get lov of DataStewardLov."
+      description: "Get lov of DataSteward in dataproducts. This endpoints will be used to get  dataproducts for a given identifier."
+      operationId: "getDataStwerdLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataStewardCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"     
+
+  /dataproducts/IOLov:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get lov of Information Officer."
+      description: "Get lov of IO in dataproducts. This endpoints will be used to get a dataproducts for a given identifier."
+      operationId: "getIoLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/IoCollectionVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -414,6 +484,30 @@ definitions:
         $ref: "#/definitions/GenericMessage"
       datatransferGenericMessage:
         $ref: "#/definitions/GenericMessage"
+
+  DataStewardCollectionVO: 
+    type: object
+    properties:
+      data:
+        type: array
+        items: 
+          $ref: "#/definitions/DataProductLovVO"   
+
+  IoCollectionVO: 
+    type: object
+    properties:
+      data:
+        type: array
+        items: 
+          $ref: "#/definitions/DataProductLovVO" 
+
+  DataProductLovVO:
+    type: object
+    properties:
+      id:
+        type: string
+      teamMemeber:
+        $ref: "#/definitions/DataProductTeamMemberVO"
 
   PlatformVO:
     type: object

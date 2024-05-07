@@ -35,7 +35,7 @@ const deleteFabricWorkspace = (id) => {
 // };
 
 const getAllSolutions = () => {
-  const reqQuery = `limit:0`;
+  const reqQuery = `limit:0,published:true`;
   let resQuery = `totalCount
     records {
       id,

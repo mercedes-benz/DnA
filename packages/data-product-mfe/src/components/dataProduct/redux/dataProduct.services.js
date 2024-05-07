@@ -9,18 +9,19 @@ import {
   stringArrayToObjectArray,
 } from '../../../Utility/formData';
 
-export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
+export const GetDataProducts = createAsyncThunk( 'products/GetDataProducts',
+ async (data, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductApi.getAllDataProductList('dataProductName', 'asc', arg);
+    const res = await dataProductApi.getDataProductsByGraphQL(data);
+    const totalNumberOfRecords = res?.data.data.dataproducts.totalCount;
     ProgressIndicator.hide();
-
     const {
       dataProduct: { pagination },
     } = getState(); // redux store method
-
     return {
-      data: res?.data.records,
+      data: res?.data.data.dataproducts.records,
+      totalNumberOfRecords,
       pagination,
     };
   } catch (e) {

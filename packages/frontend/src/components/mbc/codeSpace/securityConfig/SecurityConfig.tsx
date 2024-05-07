@@ -31,7 +31,7 @@ export interface ICreateNewSecurityConfigState {
   currentTab: string;
   nextTab: string;
   clickedTab: string;
-  isSaved: boolean;
+  // isSaved: boolean;
   saveActionType: string;
   tabClassNames: Map<string, string>;
   currentState: any;
@@ -63,7 +63,7 @@ export default class SecurityConfig extends React.Component<
       tabClassNames: new Map<string, string>(),
       currentState: null,
       showAlertChangesModal: false,
-      isSaved: false,
+      //isSaved: false,
       config: {
         entitlements: [],
       },
@@ -99,7 +99,7 @@ export default class SecurityConfig extends React.Component<
 
   public componentDidUpdate(prevProps: ICreateNewSecurityConfigProps, prevState: ICreateNewSecurityConfigState) {
     if (this.state.currentTab !== prevState.currentTab) {
-      this.setState({ isSaved: false });
+      // this.setState({ isSaved: false });
       const params = getParams();
       let id = params?.id;
       if (id.includes('?name=')) {
@@ -149,7 +149,6 @@ export default class SecurityConfig extends React.Component<
 
   public getConfig = (id: string, env: string) => {
     ProgressIndicator.show();
-    console.log('get config ', id);
     CodeSpaceApiClient.getCodeSpaceConfig(id, env)
       .then((res: any) => {
         const response = {
@@ -181,15 +180,22 @@ export default class SecurityConfig extends React.Component<
   };
 
   public onCancellingUpdateChanges = () => {
-    document.getElementById(this.state.nextTab).click();
+    document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
     this.setState({
       showAlertChangesModal: false,
+      clickedTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? false : true,
     });
   };
 
   public onAcceptUpdateChanges = () => {
-    // document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
     this.setState({
+      currentTab: clickedTab,
+      saveActionType: '',
+      nextTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? true : false,
       showAlertChangesModal: false,
     });
   };
@@ -198,7 +204,7 @@ export default class SecurityConfig extends React.Component<
     this.setState(
       {
         config: config,
-        isSaved: true,
+        // isSaved: true,
       },
       () => {
         if (tabToBeSaved === 'stagingEntitlement') {
@@ -214,7 +220,7 @@ export default class SecurityConfig extends React.Component<
     this.setState(
       {
         config: config,
-        isSaved: true,
+        // isSaved: true,
       },
       () => {
         this.callApiToSave(env, true);
@@ -227,27 +233,23 @@ export default class SecurityConfig extends React.Component<
     const newState = this.state.config;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-    const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
+    // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
+    const showAlertChangesModal = !this.state.readOnlyMode;
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        target.id === 'stagingEntitlement'
+        !this.state.readOnlyMode
           ? this.setState({
-              currentTab: target.id,
               clickedTab: target.id,
-              saveActionType: '',
-              nextTab: 'productionEntitlement',
-              showStagingModal: true,
               showAlertChangesModal: showAlertChangesModal,
             })
           : this.setState({
-              currentTab: target.id,
-              clickedTab: target.id,
-              saveActionType: '',
-              nextTab: 'stagingEntitlement',
-              showStagingModal: false,
-              showAlertChangesModal: showAlertChangesModal,
-            });
+            currentTab: target.id,
+            saveActionType: '',
+            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
+            showAlertChangesModal: false,
+          });
       }
     }
   };
@@ -404,7 +406,7 @@ export default class SecurityConfig extends React.Component<
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.showAlertChangesModal}
-            content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={this.onCancellingUpdateChanges}
             onAccept={this.onAcceptUpdateChanges}
           />
@@ -416,7 +418,8 @@ export default class SecurityConfig extends React.Component<
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.editModeNavigateModal}
-            content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            // content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={() => {
               this.setState({
                 editModeNavigateModal: !this.state.editModeNavigateModal,
