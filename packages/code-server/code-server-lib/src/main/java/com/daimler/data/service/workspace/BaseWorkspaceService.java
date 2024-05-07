@@ -98,6 +98,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Value("${codeServer.git.orguri}")
 	private String gitOrgUri;
 
+	@Value("${codeServer.jupyter.url}")
+	private String jupyterUrl;
+
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
 	@Autowired
@@ -297,9 +300,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 		ownerWorkbenchDeleteInputsDto.setType(recipeType);
 		ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		GenericMessage deleteOwnerWSResponse = client.manageWorkBench(ownerWorkbenchDeleteDto);
-		warnings.addAll(deleteOwnerWSResponse.getErrors());
-		warnings.addAll(deleteOwnerWSResponse.getWarnings());
+		boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+		if(!deleteAction)
+		{
+			log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
+			MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
+			errors.add(prodUndeployTriggerFailed);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+
+		}
 		// }
 		// update all workspaces for the project to deleted state in db if user is
 		// projectOwner otherwise change state to deleted only for individual workspace
@@ -323,6 +334,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 		workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 		// }
 		// Deleting Kong route
+		if((entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null
+		&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch() != null
+		&& entity.getData().getProjectDetails().getIntDeploymentDetails()
+				.getLastDeploymentStatus() != null) ||(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null
+				&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch() != null
+				&& entity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getLastDeploymentStatus() != null) ){
 		GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
 				entity.getData().getWorkspaceId());
 		if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
@@ -344,6 +362,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deleteServiceResponse.getErrors().get(0).getMessage());
 			}
 		}
+	}
 		// deleting kong route and service if codespace is deployed to staging/production
 //		if (isCodespaceDeployed) {
 //			String serviceName = entity.getData().getWorkspaceId() + "-api";
@@ -440,7 +459,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
-			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
+			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
+			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
@@ -459,8 +485,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
-
-			GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
+			String codespaceName = vo.getProjectDetails().getProjectName();
+			String ownerwsid = vo.getWorkspaceId();
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			if (createOwnerWSResponse != null) {
 				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
@@ -481,7 +508,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 			Date initatedOn = new Date();
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
-			entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			String url = jupyterUrl+"/"+projectOwnerId.toLowerCase()+"/"+ownerwsid+"/?folder=/home/coder";
+			entity.getData().setWorkspaceUrl(url);
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
@@ -631,6 +661,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
+			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
+			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			ownerWorkbenchCreateInputsDto.setProfile(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
@@ -653,8 +689,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setWsid(ownerwsid);
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
-
-			GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
+			String codespaceName = vo.getProjectDetails().getProjectName();
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			if (createOwnerWSResponse != null) {
 				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
@@ -702,7 +738,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
 			String projectName = ownerEntity.getData().getProjectDetails().getProjectName();
 			ownerEntity.getData().setIntiatedOn(now);
-			ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			//  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+				String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+			ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			ownerEntity.getData().setWorkspaceUrl("");
 			ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
@@ -752,6 +792,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 	}
 
+	private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
+	{
+		String workspaceUrl = jupyterUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		return workspaceUrl;
+	}
+
+
 	@Override
 	public CodeServerWorkspaceVO getById(String userId, String id) {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
@@ -761,7 +808,20 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	public List<CodeServerWorkspaceVO> getAll(String userId, int offset, int limit) {
 		List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findAll(userId, limit, offset);
-		return entities.stream().map(n -> workspaceAssembler.toVo(n)).collect(Collectors.toList());
+		entities.forEach(entity -> {
+			CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+			String serverStatus = getServerStatus(vo); // Update server status
+			if(serverStatus.equalsIgnoreCase("true"))
+			{
+				vo.setServerStatus("SERVER_STARTED");
+			}
+			else
+			{
+				vo.setServerStatus("SERVER_STOPPED");
+			}
+		});
+
+		return entities.stream().map(workspaceAssembler::toVo).collect(Collectors.toList());
 	}
 
 	@Override
@@ -1704,6 +1764,104 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 		return responseMessage;
 
+	}
+	@Override
+	@Transactional
+	public String getServerStatus(CodeServerWorkspaceVO vo)
+	{
+		String userName = vo.getProjectDetails().getProjectOwner().getId().toLowerCase();
+		String id = vo.getWorkspaceId(); 
+		CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
+			String statusValue = "false";
+			GenericMessage responseMessage = new GenericMessage();
+			try {
+
+				boolean response = client.serverStatus(userName.toLowerCase(),id);
+				if (response) {
+					statusValue = "true";
+					savedOwnerEntity.getData().setServerStatus("SERVER_STARTED");
+					log.info("Server started sucessfully for {} user of workspace {}",userName,id);
+				} else {
+					log.warn("Server is not started for {} user of workspace {}",userName,id);
+					statusValue = "false";
+					savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
+				}
+			} catch (Exception e) {
+				log.error("caught exception while getting server status", e.getMessage());
+			}
+			jpaRepo.save(savedOwnerEntity);
+			return statusValue;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage startServer(String userId,String wsId)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+
+			GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId);
+				if (startServer != null) {
+					if (!"SUCCESS".equalsIgnoreCase(startServer.getSuccess()) ||
+							(startServer.getErrors() != null && !startServer.getErrors().isEmpty()) ||
+							(startServer.getWarnings() != null
+									&& !startServer.getWarnings().isEmpty())) {
+					MessageDescription msg = new MessageDescription();
+					List<MessageDescription> errorMessage = new ArrayList<>(); 
+						msg.setMessage("Failed to start workbench.");
+						responseMessage.setSuccess("FAILED");
+					}
+					responseMessage.setSuccess("SUCCESS");
+				}
+
+		} catch (Exception e) {
+			log.error("caught exception while saving security config {}", e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("caught exception while saving security config");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errorMessage);
+		}
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage stopServer(CodeServerWorkspaceVO vo) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		String wsid = vo.getWorkspaceId();
+		String userName = vo.getGitUserName().toLowerCase();
+		CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
+
+		try {
+			boolean stopServerResponse = client.stopServer(wsid, userName);
+
+			if (stopServerResponse) {
+				responseMessage.setSuccess("SUCCESS");
+				savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
+				jpaRepo.save(savedOwnerEntity);
+			} else {
+				MessageDescription errorMsg = new MessageDescription();
+				errorMsg.setMessage("Failed to stop server.");
+				errors.add(errorMsg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+			}
+		} catch (Exception e) {
+			log.error("Caught exception while stopping server: {}", e.getMessage());
+			MessageDescription errorMsg = new MessageDescription();
+			errorMsg.setMessage("Exception occurred while stopping server: " + e.getMessage());
+			errors.add(errorMsg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+		}
+		return responseMessage;
 	}
 
 }
