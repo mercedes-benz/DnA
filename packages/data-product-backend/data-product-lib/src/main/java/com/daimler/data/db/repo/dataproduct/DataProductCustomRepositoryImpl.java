@@ -416,7 +416,7 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		if (productOwnerList != null && !productOwnerList.isEmpty()) {
 			String commaSeparatedProductOwner = productOwnerList.stream().map(s -> "%\"" + s + "\"%")
 					.collect(Collectors.joining("|"));
-			return " and (jsonb_extract_path_text(data, 'contactInformation', 'informationOwner') similar to '" + commaSeparatedProductOwner + "' )";
+			return " and (jsonb_extract_path_text(data, 'contactInformation', 'informationOwner','shortId') similar to '" + commaSeparatedProductOwner + "' )";
 		}
 		return "";
 	}
