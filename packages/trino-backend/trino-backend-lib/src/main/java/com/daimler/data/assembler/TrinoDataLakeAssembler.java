@@ -46,24 +46,25 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 							}
 						}
 						tableVO.setColumns(columnsVO);
-						List<DataLakeTableCollabDetailsVO> collabsVO = new ArrayList<>();
-						if(table.getCollabs()!=null && !table.getCollabs().isEmpty()) {
-							for(DataLakeTableCollabDetails collabDetails : table.getCollabs()) {
-								DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
-								BeanUtils.copyProperties(collabDetails, collabVO);
-								UserInfoVO userinfoVO = new UserInfoVO();
-								if(collabDetails.getCollaborator()!=null) {
-										BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
-								}
-								collabVO.setCollaborator(userinfoVO);
-								collabsVO.add(collabVO);
-							}
-						}
-						tableVO.setCollabs(collabsVO);
 						tablesVO.add(tableVO);
 					}
 				}
 				datalakeProjectVO.setTables(tablesVO);
+				List<DataLakeTableCollabDetailsVO> collabsVO = new ArrayList<>();
+				if(projectDetails.getCollabs()!=null && !projectDetails.getCollabs().isEmpty()) {
+					for(DataLakeTableCollabDetails collabDetails : projectDetails.getCollabs()) {
+						DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
+						BeanUtils.copyProperties(collabDetails, collabVO);
+						UserInfoVO userinfoVO = new UserInfoVO();
+						if(collabDetails.getCollaborator()!=null) {
+								BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
+						}
+						collabVO.setCollaborator(userinfoVO);
+						collabsVO.add(collabVO);
+					}
+				}
+				datalakeProjectVO.setCollabs(collabsVO);
+				
 			}
 		}
 		return datalakeProjectVO;
@@ -91,24 +92,24 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 							}
 						}
 						table.setColumns(columns);
-						List<DataLakeTableCollabDetails> collabs = new ArrayList<>();
-						if(tableVO.getCollabs()!=null && !tableVO.getCollabs().isEmpty()) {
-							for(DataLakeTableCollabDetailsVO collabVO : tableVO.getCollabs()) {
-								DataLakeTableCollabDetails collabDetails = new DataLakeTableCollabDetails();
-								BeanUtils.copyProperties(collabVO, collabDetails);
-								UserInfo userinfo = new UserInfo();
-								if(collabVO.getCollaborator()!=null) {
-										BeanUtils.copyProperties(collabVO.getCollaborator(), userinfo);
-								}
-								collabDetails.setCollaborator(userinfo);
-								collabs.add(collabDetails);
-							}
-						}
-						table.setCollabs(collabs);
 						tables.add(table);
 					}
 				}
 				projectDetails.setTables(tables);
+				List<DataLakeTableCollabDetails> collabs = new ArrayList<>();
+				if(vo.getCollabs()!=null && !vo.getCollabs().isEmpty()) {
+					for(DataLakeTableCollabDetailsVO collabVO : vo.getCollabs()) {
+						DataLakeTableCollabDetails collabDetails = new DataLakeTableCollabDetails();
+						BeanUtils.copyProperties(collabVO, collabDetails);
+						UserInfo userinfo = new UserInfo();
+						if(collabVO.getCollaborator()!=null) {
+								BeanUtils.copyProperties(collabVO.getCollaborator(), userinfo);
+						}
+						collabDetails.setCollaborator(userinfo);
+						collabs.add(collabDetails);
+					}
+				}
+				projectDetails.setCollabs(collabs);
 			}
 			entity.setId(vo.getId());
 			entity.setData(projectDetails);
