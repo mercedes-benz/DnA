@@ -2,8 +2,10 @@ package com.mb.dna.datalakehouse.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -95,7 +97,8 @@ public class TableToProjectCollabMigrationService {
 						}
 						
 					}
-					projectCollabs = (List<DataLakeTableCollabDetails>) projectCollabMap.values();
+					Collection<DataLakeTableCollabDetails> collection = projectCollabMap.values();
+					projectCollabs =  collection.stream().collect(Collectors.toList());
 				}
 				
 				data.setCollabs(projectCollabs);
@@ -147,8 +150,11 @@ public class TableToProjectCollabMigrationService {
 				readAccessRules.setSchema(schema);
 				readAccessRules.setTable(".*");
 				readAccessRules.setUser(String.join("|", readCollabs));
-				updatedAccessRules.getTables().add(readAccessRules);
-				log.info("Added new read collabs table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
+				
+				if(readCollabs!=null && !readCollabs.isEmpty()) {
+					updatedAccessRules.getTables().add(readAccessRules);
+					log.info("Added new read collabs table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
+				}
 				
 				List<String> ownershipUsers = new ArrayList<>();
 				ownershipUsers.add(data.getCreatedBy().getId());
@@ -160,7 +166,7 @@ public class TableToProjectCollabMigrationService {
 				techUserTableRule.setCatalog(catalog);
 				techUserTableRule.setSchema(schema);
 				techUserTableRule.setUser(String.join("|", ownershipUsers));
-				techUserTableRule.setTable(null);
+				techUserTableRule.setTable(".*");
 				techUserTableRule.setPrivileges(ownerShipPrivileges);
 				updatedAccessRules.getTables().add(techUserTableRule);
 				log.info("Added updated owner n techuser table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
