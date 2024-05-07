@@ -330,7 +330,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                     <input
                       type="text"
                       className="input-field"
-                      required={true}
+                      required={this.props.readOnlyMode ? false : true}
                       id="AppId"
                       maxLength={50}
                       placeholder="Type here"
@@ -341,6 +341,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                           : this.setState({ appId: e.target.value, appIdErrorMessage: '*Missing entry' });
                       }}
                       value={this.state.appId}
+                      readOnly={this.props.readOnlyMode}
                     />
                     <p
                     style={{ color: 'var(--color-orange)' }}
