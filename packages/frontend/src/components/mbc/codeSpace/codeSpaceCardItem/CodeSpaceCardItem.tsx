@@ -777,6 +777,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
+                  isAPIRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />

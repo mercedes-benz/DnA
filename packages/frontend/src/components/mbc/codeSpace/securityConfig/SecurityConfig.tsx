@@ -406,7 +406,7 @@ export default class SecurityConfig extends React.Component<
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.showAlertChangesModal}
-            content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={this.onCancellingUpdateChanges}
             onAccept={this.onAcceptUpdateChanges}
           />
@@ -418,7 +418,8 @@ export default class SecurityConfig extends React.Component<
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.editModeNavigateModal}
-            content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            // content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={() => {
               this.setState({
                 editModeNavigateModal: !this.state.editModeNavigateModal,
