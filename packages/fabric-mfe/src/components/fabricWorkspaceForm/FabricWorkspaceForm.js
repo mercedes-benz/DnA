@@ -203,6 +203,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   };
   const handleEditWorkspace = (values) => {
     const data = {
+      name: values.name,
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
