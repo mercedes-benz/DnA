@@ -21,7 +21,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { DataProductFilterApiClient } from '../../../services/DataProductFilterApiClient';
 import { ApiClient } from '../../../services/ApiClient';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
-import { trackEvent } from '../../../services/utils';
+import {getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 // import Tags from 'components/formElements/tags/Tags';
 
 import FilterWrapper from './FilterWrapper';
@@ -29,7 +29,7 @@ import FilterWrapper from './FilterWrapper';
 type DataProductsFilterType = {
   user: IUserInfo;
   getValuesFromFilter?: Function;
-  getFilterQueryParams?:Function;
+  getFilteredData?:Function;
   dataProductsDataLoaded: boolean;
   setDataProductsDataLoaded: Function;
   showDataProductsFilter?: boolean;
@@ -41,7 +41,7 @@ type DataProductsFilterType = {
 const DataProductFilter = ({
   user,
   // getValuesFromFilter,
-  getFilterQueryParams,
+  getFilteredData,
   dataProductsDataLoaded,
   openFilters,
   setDpFilterApplied,
@@ -178,7 +178,7 @@ const DataProductFilter = ({
               return subDivision?.id;
             });
             newQueryParams.department = departments.map((department : IDataProductListItem) =>{
-              return department?.id;
+              return department?.name;
             });
             // newQueryParams.dataSteward = dataSteward.map((dataSteward : any) =>{
             //   return dataSteward?.teamMemeber.shortId;
@@ -274,7 +274,6 @@ const DataProductFilter = ({
 
   const applyFilter = (filterName: string, values: string[]) => {
     if (dataProductsDataLoaded) {
-      // ProgressIndicator.show();
       setFilterApplied(true);
       setDpFilterApplied(true);
       queryParams[filterName] = values;
@@ -309,7 +308,6 @@ const DataProductFilter = ({
   };
 
   const setDataProductFilterValuesSession = (queryParams : any) => {
-    console.log(queryParams);
     sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE, JSON.stringify(queryParams));
   };
 
@@ -351,27 +349,25 @@ const DataProductFilter = ({
   }
 
   const onDepartmentChange = (e: React.FormEvent<HTMLSelectElement>) => {
-    const selectedValues: IDataProductListItem[] = [];
+    const selectedValues = [];
     const selectedOptions = e.currentTarget.selectedOptions;
     const ids: string[] = [];
     if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        const department: IDataProductListItem = { id: '0', name: null };
-        department.id = option.value;
-        department.name = option.label;
-        selectedValues.push(department);
-        ids.push(option.value);
-      });
+        Array.from(selectedOptions).forEach((option) => {
+            const department: IDataProductListItem = { id: '0', name: null };
+            department.id = option.value;
+            department.name = option.textContent;
+            selectedValues.push(department);
+            ids.push(option.textContent);
+        });
     }
     focusedItems['department'] && applyFilter('department', ids);
-    setDepartmentValues(selectedValues);
   }
 
   const onDataStewardChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedValues: IDataProductListItem[] = [];
     const selectedOptions = e.currentTarget.selectedOptions;
     const ids: string[] = [];
-    console.log("Data Steward",selectedOptions)
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
         const dataSteward: IDataProductListItem = { id: '0', name: null };
@@ -379,7 +375,6 @@ const DataProductFilter = ({
         dataSteward.name = option.label;
         selectedValues.push(dataSteward);
         ids.push(option.value);
-        console.log("Data Steward",option.value);
       });
     }
     focusedItems['dataSteward'] && applyFilter('dataSteward', ids);
@@ -398,7 +393,6 @@ const DataProductFilter = ({
         informationOwner.name = option.label;
         selectedValues.push(informationOwner);
         ids.push(option.value);
-        console.log(ids);
       });
     }
     focusedItems['informationOwner'] && applyFilter('informationOwner', ids);
@@ -464,7 +458,6 @@ const DataProductFilter = ({
     const selectedValues: IDataProductListItem[] = [];
     const selectedOptions = e.currentTarget.selectedOptions;
     const ids: string[] = [];
-    console.log("product Owner",selectedOptions)
 
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
@@ -473,7 +466,6 @@ const DataProductFilter = ({
         productOwner.name = option.label;
         selectedValues.push(productOwner);
         ids.push(option.value);
-        console.log("product Owner",ids)
       });
     }
     focusedItems['productOwner'] && applyFilter('productOwner', ids);
@@ -482,19 +474,56 @@ const DataProductFilter = ({
 
   const getDataProductsByQueryParams = (filterQueryParams: IDataProductFilterParams) => {
     const queryParams: IDataProductFilterParams = { ...filterQueryParams };
+    // const divisions = queryParams.division?.length > 0 ? queryParams.division?.join(','): '';
+    // const subDivisions = queryParams.subDivision?.length > 0 ? queryParams.subDivision?.join(','): '';
+    let divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
+    let departmentIds = queryParams.department?.length > 0 ? queryParams.department?.join(','): '';
+    let artIds = queryParams.art?.length > 0 ?  queryParams.art?.join(',') : '';
+    let platformIds = queryParams.platform?.length > 0 ? queryParams.platform?.join(',') : '';
+    let frontendToolIds = queryParams.frontendTool?.length > 0 ? queryParams.frontendTool?.join(',') : '';
+    const productOwners = queryParams.productOwner?.length > 0 ? queryParams.productOwner.join(',') : '';
+    const dataStewards = queryParams.dataSteward?.length > 0 ? queryParams.dataSteward.join(',') : '';
+    const informationOwners = queryParams.informationOwner?.length > 0 ? queryParams.informationOwner.join(',') : '';
 
-    // let query = queryParams.art?.length > 0 ? '&art=' + queryParams.art?.join(',') : '';
-    // query += queryParams.division?.length > 0 ? '&division=' + queryParams.division?.join(','): '';
-    // query += queryParams.subDivision?.length > 0 ? '&subDivision=' + queryParams.subDivision?.join(','): '';
-    // query += queryParams.department?.length > 0 ? '&department=' + queryParams.department?.join(','): '';
-    // query += queryParams.dataSteward?.length > 0 ? '&dataSteward=' +  queryParams.dataSteward.join(',') : '';
-    // query += queryParams.informationOwner?.length > 0 ? '&informationOwner=' + queryParams.informationOwner : '';
-    // query += queryParams.frontendTool?.length > 0 ? '&frontendTools=' + queryParams.frontendTool?.join(',') : query;
-    // query += queryParams.platform?.length > 0 ? '&platform=' + queryParams.platform?.join(',') : query;
-    // query += queryParams.productOwner?.length > 0 ? '&productOwner=' + queryParams.productOwner.join(',') : query;
-    // console.log(query)
+    if (queryParams.division.length === 0) {
+      queryParams.division = [];
+      queryParams.subDivision = [];
+    }
 
-    typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
+    if(queryParams.division.length === divisions.length  && queryParams.subDivision.length === subDivisions.length){
+      divisionIds = '';
+      queryParams.division = [];
+      queryParams.subDivision = [];
+    }
+    if(queryParams.department.length === departments.length){
+      departmentIds = '';
+      queryParams.department = []
+
+    }
+    if(queryParams.art.length === arts.length){
+      artIds = '';
+      queryParams.art = [];
+    }
+    if(queryParams.platform.length === platforms.length){
+      platformIds = '';
+      queryParams.platform = []
+    }
+    if(queryParams.frontendTool.length === frontendTools.length){
+      frontendToolIds = '';
+      queryParams.frontendTool = []
+    }
+    const data = {
+      divisionIds,
+      departmentIds,
+      artIds,
+      platformIds,
+      frontendToolIds,
+      productOwners,
+      dataStewards,
+      informationOwners
+  };
+
+    typeof getFilteredData === 'function' && getFilteredData(data);
   };
 
   const saveFilterPreference = () => {
@@ -568,13 +597,11 @@ const DataProductFilter = ({
       return subDivision?.id;
     });
     newQueryParams.department = departments.map((department : IDataProductListItem) =>{
-      return department?.id;
+      return department?.name;
     });
     newQueryParams.dataSteward = [];
     newQueryParams.informationOwner = [];
     newQueryParams.productOwner = [];
-    console.log('arting',newQueryParams.art);
-
 
     setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.DATAPRODUCT_FILTER_VALUE), 50);
     ProgressIndicator.show();
@@ -626,11 +653,6 @@ const DataProductFilter = ({
 
     return subDivisionsOfSelectedDivision;
   };
-
-  useEffect (()=>{
-    console.log('dataFilterApplied',dataFilterApplied);
-
-  },[dataFilterApplied])
 
 
   const onResetFilterCompleted = (queryParams: IDataProductFilterParams, showMessage?: boolean) => {
@@ -706,7 +728,7 @@ const DataProductFilter = ({
               <div className=" custom-select">
               <select id="departmentSelect" multiple={true} onChange={onDepartmentChange} value={queryParams?.department}>
                   {departments.map((obj: IDataProductListItem) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                       {obj.name}
                   </option>
                   ))}
@@ -769,7 +791,7 @@ const DataProductFilter = ({
               </label>
               <div className=" custom-select">
               <select id="productOwnerSelect" multiple={false} onChange={onProductOwnerChange} value={queryParams?.productOwner.join('')}>
-              <option id="defaultStatus" value={0}>
+              <option id="defaultStatus" value={''}>
                   Choose
                   </option>
                 {productOwners?.map((obj: any, index) => (
@@ -788,7 +810,7 @@ const DataProductFilter = ({
               </label>
               <div className=" custom-select">
               <select id="dataStewardSelect" multiple={false} onChange={onDataStewardChange} value={queryParams?.dataSteward?.join('')}>
-              <option id="defaultStatus" value={0}>
+              <option id="defaultStatus" value={''}>
                   Choose
                   </option>
                   {dataStewards.map((obj, index) => (
@@ -807,7 +829,7 @@ const DataProductFilter = ({
               </label>
           <div className=" custom-select">
             <select id="informationOwnerSelect" multiple={false} onChange={onInformationOwnerChange} value={queryParams?.informationOwner?.join('')}>
-                <option id="defaultStatus" value={0}>
+                <option id="defaultStatus" value={''}>
                   Choose
                 </option>
               {informationOwners?.map((obj, index) => (
@@ -847,14 +869,14 @@ const DataProductFilter = ({
           </div>
       </div> */}
       <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
-          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
-              Save settings
-          </button>
           <div className="icon-tile">
               <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
               <i className="icon mbc-icon refresh" />
               </button>
           </div>
+          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn, 'hidden')} onClick={saveFilterPreference}>
+              Save settings
+          </button>
       </div> 
     </FilterWrapper>
     
