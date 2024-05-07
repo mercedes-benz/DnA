@@ -121,15 +121,21 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		List<String> schemaCollaborators = new ArrayList<>();
 		collaborators.add(vo.getCreatedBy());
 		schemaCollaborators.add(vo.getCreatedBy().getId());
-		if(vo.getTables()!=null && !vo.getTables().isEmpty()) {
-			for(DatalakeTableVO tableVO : vo.getTables()) {
-				if(tableVO.getCollabs()!=null && !tableVO.getCollabs().isEmpty()) {
-					for(DataLakeTableCollabDetailsVO collab: tableVO.getCollabs()) {
-						if(collab!=null && collab.getCollaborator()!=null && collab.getCollaborator().getId()!=null) {
-							collaborators.add(collab.getCollaborator());
-							schemaCollaborators.add(collab.getCollaborator().getId());
-						}
-					}
+		List<String> ownershipCollabs = new ArrayList<>();
+		List<String> readCollabs = new ArrayList<>();
+		List<String> writeCollabs = new ArrayList<>();
+		ownershipCollabs.add(vo.getCreatedBy().getId());
+		if(vo.getTechUserClientId()!=null) {
+			ownershipCollabs.add(vo.getTechUserClientId());
+		}
+		if(vo.getCollabs()!=null && !vo.getCollabs().isEmpty()) {
+			for(DataLakeTableCollabDetailsVO collab : vo.getCollabs()) {
+				collaborators.add(collab.getCollaborator());
+				schemaCollaborators.add(collab.getCollaborator().getId());
+				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
+					writeCollabs.add(collab.getCollaborator().getId());
+				}else {
+					readCollabs.add(collab.getCollaborator().getId());
 				}
 			}
 		}
@@ -179,43 +185,37 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								schemaRules.setSchema(schema);
 								schemaRules.setUser(String.join("|", schemaCollaborators));
 								updatedAccessRules.getSchemas().add(schemaRules);
-								for(DatalakeTableVO tableAccess : createdTablesResponse.getTables()) {
-									updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
-																				&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
-																				&& x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
-									
-										TrinoTableRules readAccessRules = new TrinoTableRules();
-										readAccessRules.setCatalog(catalog);
-										readAccessRules.setPrivileges(readPrivileges);
-										readAccessRules.setSchema(schema);
-										readAccessRules.setTable(tableAccess.getTableName());
-										TrinoTableRules writeAccessRules = new TrinoTableRules();
-										writeAccessRules.setCatalog(catalog);
-										writeAccessRules.setPrivileges(writePrivileges);
-										writeAccessRules.setSchema(schema);
-										writeAccessRules.setTable(tableAccess.getTableName());
-										List<String> readCollabs = new ArrayList<>();
-										List<String> writeCollabs = new ArrayList<>();
-										writeCollabs.add(vo.getCreatedBy().getId());
-										if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
-											for(DataLakeTableCollabDetailsVO tableAccessCollab : tableAccess.getCollabs()) {
-												if(tableAccessCollab.getHasWritePermission()) {
-													writeCollabs.add(tableAccessCollab.getCollaborator().getId());
-												}else {
-													readCollabs.add(tableAccessCollab.getCollaborator().getId());
-												}
-											}
-										}
-										if(writeCollabs!=null && !writeCollabs.isEmpty()) {
-											writeAccessRules.setUser(String.join("|", writeCollabs));
-											updatedAccessRules.getTables().add(writeAccessRules);
-										}
-										if(readCollabs!=null && !readCollabs.isEmpty()) {
-											readAccessRules.setUser(String.join("|", readCollabs));
-											updatedAccessRules.getTables().add(readAccessRules);
-										}
-									
-								}
+								
+								//remove any existing table rules for new project
+								updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+										&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+								
+								TrinoTableRules readAccessRules = new TrinoTableRules();
+								readAccessRules.setCatalog(catalog);
+								readAccessRules.setPrivileges(readPrivileges);
+								readAccessRules.setSchema(schema);
+								readAccessRules.setTable(".*");
+								readAccessRules.setUser(String.join("|", readCollabs));
+								if(readCollabs!=null && !readCollabs.isEmpty())
+									updatedAccessRules.getTables().add(readAccessRules);
+								
+								TrinoTableRules writeAccessRules = new TrinoTableRules();
+								writeAccessRules.setCatalog(catalog);
+								writeAccessRules.setPrivileges(writePrivileges);
+								writeAccessRules.setSchema(schema);
+								writeAccessRules.setTable(".*");
+								writeAccessRules.setUser(String.join("|", writeCollabs));
+								if(writeCollabs!=null && !writeCollabs.isEmpty())
+									updatedAccessRules.getTables().add(writeAccessRules);
+								
+								TrinoTableRules techUserTableRule = new TrinoTableRules();
+								techUserTableRule.setCatalog(catalog);
+								techUserTableRule.setSchema(schema);
+								techUserTableRule.setUser(String.join("|", ownershipCollabs));
+								techUserTableRule.setTable(".*");
+								techUserTableRule.setPrivileges(ownerShipPrivileges);
+								updatedAccessRules.getTables().add(techUserTableRule);
+								
 								accessNsql.setData(updatedAccessRules);
 								accessJpaRepo.save(accessNsql);
 							}
@@ -308,6 +308,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		existingVO.setSubdivisionId(updateRequestVO.getSubdivisionId());
 		existingVO.setSubdivisionName(updateRequestVO.getSubdivisionName());
 		existingVO.setDepartment(updateRequestVO.getDepartment());
+		existingVO.setCollabs(updateRequestVO.getCollabs());
 		
 		GenericMessage responseMsg = new GenericMessage();
 		responseMsg.setSuccess("FAILED");
@@ -316,14 +317,24 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		responseMsg.setErrors(errors);
 		responseMsg.setWarnings(warnings);
 		List<UserInfoVO> collaborators = new ArrayList<>();
+		List<String> schemaCollaborators = new ArrayList<>();
 		collaborators.add(existingVO.getCreatedBy());
-		if(updateRequestVO.getTables()!=null && !updateRequestVO.getTables().isEmpty()) {
-			for(DatalakeTableVO tableVO : updateRequestVO.getTables()) {
-				if(tableVO.getCollabs()!=null && !tableVO.getCollabs().isEmpty()) {
-					for(DataLakeTableCollabDetailsVO collab: tableVO.getCollabs()) {
-						if(collab!=null && collab.getCollaborator()!=null && collab.getCollaborator().getId()!=null)
-							collaborators.add(collab.getCollaborator());
-					}
+		schemaCollaborators.add(existingVO.getCreatedBy().getId());
+		List<String> ownershipCollabs = new ArrayList<>();
+		List<String> readCollabs = new ArrayList<>();
+		List<String> writeCollabs = new ArrayList<>();
+		ownershipCollabs.add(existingVO.getCreatedBy().getId());
+		if(existingVO.getTechUserClientId()!=null) {
+			ownershipCollabs.add(existingVO.getTechUserClientId());
+		}
+		if(existingVO.getCollabs()!=null && !existingVO.getCollabs().isEmpty()) {
+			for(DataLakeTableCollabDetailsVO collab : existingVO.getCollabs()) {
+				collaborators.add(collab.getCollaborator());
+				schemaCollaborators.add(collab.getCollaborator().getId());
+				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
+					writeCollabs.add(collab.getCollaborator().getId());
+				}else {
+					readCollabs.add(collab.getCollaborator().getId());
 				}
 			}
 		}
@@ -367,47 +378,48 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 							}
 							if(updatedAccessRules!=null) {
 								
-								for(DatalakeTableVO tableAccess : createdTablesResponse.getTables()) {
-									existingTablesInDna.add(tableAccess.getTableName());
-									updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
-											&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
-											&& x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
-									
-										TrinoTableRules readAccessRules = new TrinoTableRules();
-										readAccessRules.setCatalog(catalog);
-										readAccessRules.setPrivileges(readPrivileges);
-										readAccessRules.setSchema(schema);
-										readAccessRules.setTable(tableAccess.getTableName());
-										TrinoTableRules writeAccessRules = new TrinoTableRules();
-										writeAccessRules.setCatalog(catalog);
-										writeAccessRules.setPrivileges(writePrivileges);
-										writeAccessRules.setSchema(schema);
-										writeAccessRules.setTable(tableAccess.getTableName());
-										List<String> readCollabs = new ArrayList<>();
-										List<String> writeCollabs = new ArrayList<>();
-										writeCollabs.add(existingVO.getCreatedBy().getId());
-										if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
-											for(DataLakeTableCollabDetailsVO tableAccessCollab : tableAccess.getCollabs()) {
-												if(tableAccessCollab.getHasWritePermission()) {
-													writeCollabs.add(tableAccessCollab.getCollaborator().getId());
-												}else {
-													readCollabs.add(tableAccessCollab.getCollaborator().getId());
-												}
-											}
-										}
-										if(writeCollabs!=null && !writeCollabs.isEmpty()) {
-											writeAccessRules.setUser(String.join("|", writeCollabs));
-											updatedAccessRules.getTables().add(writeAccessRules);
-										}
-										if(readCollabs!=null && !readCollabs.isEmpty()) {
-											readAccessRules.setUser(String.join("|", readCollabs));
-											updatedAccessRules.getTables().add(readAccessRules);
-										}
-										//updatedAccessRules.getTables().add(readAccessRules);
-										//updatedAccessRules.getTables().add(writeAccessRules);
-									
-								}
+								//remove existing schema rules
+								updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 
+										&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
 								
+								//added new schema rules
+								TrinoSchemaRules schemaRules = new TrinoSchemaRules();
+								schemaRules.setCatalog(catalog);
+								schemaRules.setOwner(true);
+								schemaRules.setSchema(schema);
+								schemaRules.setUser(String.join("|", schemaCollaborators));
+								updatedAccessRules.getSchemas().add(schemaRules);
+								
+								//remove existing table rules
+								updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+										&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+								
+								//adding new table rules
+								TrinoTableRules readAccessRules = new TrinoTableRules();
+								readAccessRules.setCatalog(catalog);
+								readAccessRules.setPrivileges(readPrivileges);
+								readAccessRules.setSchema(schema);
+								readAccessRules.setTable(".*");
+								readAccessRules.setUser(String.join("|", readCollabs));
+								if(readCollabs!=null && !readCollabs.isEmpty())
+									updatedAccessRules.getTables().add(readAccessRules);
+								
+								TrinoTableRules writeAccessRules = new TrinoTableRules();
+								writeAccessRules.setCatalog(catalog);
+								writeAccessRules.setPrivileges(writePrivileges);
+								writeAccessRules.setSchema(schema);
+								writeAccessRules.setTable(".*");
+								writeAccessRules.setUser(String.join("|", writeCollabs));
+								if(writeCollabs!=null && !writeCollabs.isEmpty())
+									updatedAccessRules.getTables().add(writeAccessRules);
+								
+								TrinoTableRules techUserTableRule = new TrinoTableRules();
+								techUserTableRule.setCatalog(catalog);
+								techUserTableRule.setSchema(schema);
+								techUserTableRule.setUser(String.join("|", ownershipCollabs));
+								techUserTableRule.setTable(".*");
+								techUserTableRule.setPrivileges(ownerShipPrivileges);
+								updatedAccessRules.getTables().add(techUserTableRule);
 								
 								//removing deleted tables
 								 existingTables = trinoClient.showTables(catalog, schema, "%%");
@@ -415,9 +427,6 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 									if(!existingTablesInDna.contains(trinoTable)) {
 										try {
 											trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + trinoTable);
-											updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
-													&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
-													&& x.getTable()!=null && x.getTable().equalsIgnoreCase(trinoTable));
 											existingVO.getTables().removeIf(x-> x.getTableName().equalsIgnoreCase(trinoTable));
 										}catch(Exception e) {
 											log.error("Failed while dropping table {} under schema {} . Caused due to Exception {}", trinoTable, schema, e.getMessage());
@@ -427,28 +436,6 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 									}
 								}
 								
-								List<String> schemaCollaborators = new ArrayList<>();
-								schemaCollaborators.add(existingVO.getCreatedBy().getId());
-								if(existingVO.getTechUserClientId()!=null) {
-									schemaCollaborators.add(existingVO.getTechUserClientId());
-								}
-								if(existingVO.getTables()!=null && !existingVO.getTables().isEmpty()) {
-									for(DatalakeTableVO availableTable : existingVO.getTables()) {
-										if(availableTable.getCollabs()!=null && !availableTable.getCollabs().isEmpty()) {
-											for (DataLakeTableCollabDetailsVO tableCollab : availableTable.getCollabs()) {
-												schemaCollaborators.add(tableCollab.getCollaborator().getId());
-											}
-										}
-									}
-								}
-								TrinoSchemaRules schemaRules = new TrinoSchemaRules();
-								schemaRules.setCatalog(catalog);
-								schemaRules.setOwner(true);
-								schemaRules.setSchema(schema);
-								schemaRules.setUser(String.join("|", schemaCollaborators));
-								updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 
-																			&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
-								updatedAccessRules.getSchemas().add(schemaRules);
 								accessNsql.setData(updatedAccessRules);
 								accessJpaRepo.save(accessNsql);
 							}
@@ -520,7 +507,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			if(!existingTablesInDNA.contains(table)) {
 				DatalakeTableVO newTable = new DatalakeTableVO();
 				List<DataLakeTableCollabDetailsVO> collabs = new ArrayList<>();
-				newTable.setCollabs(collabs);
+//				newTable.setCollabs(collabs);
 				newTable.setDescription("");
 				newTable.setTableName(table);
 				newTable.setExternalLocation("");
