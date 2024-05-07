@@ -81,6 +81,7 @@ codeServer:
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
+  git.appname: ${CODE_SERVER_APPLICATION_NAME:DNA}
   jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
   jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
