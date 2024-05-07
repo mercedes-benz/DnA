@@ -44,7 +44,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private String clientId;
 	
 	@Value("${kong.clientSecret}")
-	private String clientSecret;
+	private String clientSec;
 	
 	@Value("${kong.discovery}")
 	private String discovery;
@@ -383,7 +383,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
-		attachPluginConfigVO.setClient_secret(clientSecret);
+		attachPluginConfigVO.setClient_secret(clientSec);
 		attachPluginConfigVO.setDiscovery(discovery);
 		attachPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
 		attachPluginConfigVO.setIntrospection_endpoint_auth_method(introspectionEndpointAuthMethod);
