@@ -199,19 +199,13 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								if(readCollabs!=null && !readCollabs.isEmpty())
 									updatedAccessRules.getTables().add(readAccessRules);
 								
-								TrinoTableRules writeAccessRules = new TrinoTableRules();
-								writeAccessRules.setCatalog(catalog);
-								writeAccessRules.setPrivileges(writePrivileges);
-								writeAccessRules.setSchema(schema);
-								writeAccessRules.setTable(".*");
-								writeAccessRules.setUser(String.join("|", writeCollabs));
-								if(writeCollabs!=null && !writeCollabs.isEmpty())
-									updatedAccessRules.getTables().add(writeAccessRules);
-								
+								List<String> ownershipUsers = new ArrayList<>();
+								ownershipUsers.addAll(ownershipCollabs);
+								ownershipUsers.addAll(writeCollabs);
 								TrinoTableRules techUserTableRule = new TrinoTableRules();
 								techUserTableRule.setCatalog(catalog);
 								techUserTableRule.setSchema(schema);
-								techUserTableRule.setUser(String.join("|", ownershipCollabs));
+								techUserTableRule.setUser(String.join("|", ownershipUsers));
 								techUserTableRule.setTable(".*");
 								techUserTableRule.setPrivileges(ownerShipPrivileges);
 								updatedAccessRules.getTables().add(techUserTableRule);
@@ -404,19 +398,13 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								if(readCollabs!=null && !readCollabs.isEmpty())
 									updatedAccessRules.getTables().add(readAccessRules);
 								
-								TrinoTableRules writeAccessRules = new TrinoTableRules();
-								writeAccessRules.setCatalog(catalog);
-								writeAccessRules.setPrivileges(writePrivileges);
-								writeAccessRules.setSchema(schema);
-								writeAccessRules.setTable(".*");
-								writeAccessRules.setUser(String.join("|", writeCollabs));
-								if(writeCollabs!=null && !writeCollabs.isEmpty())
-									updatedAccessRules.getTables().add(writeAccessRules);
-								
+								List<String> ownershipUsers = new ArrayList<>();
+								ownershipUsers.addAll(writeCollabs);
+								ownershipUsers.addAll(ownershipCollabs);
 								TrinoTableRules techUserTableRule = new TrinoTableRules();
 								techUserTableRule.setCatalog(catalog);
 								techUserTableRule.setSchema(schema);
-								techUserTableRule.setUser(String.join("|", ownershipCollabs));
+								techUserTableRule.setUser(String.join("|", ownershipUsers));
 								techUserTableRule.setTable(".*");
 								techUserTableRule.setPrivileges(ownerShipPrivileges);
 								updatedAccessRules.getTables().add(techUserTableRule);
@@ -588,14 +576,27 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					responseMsg.setWarnings(warnings);
 					return responseMsg;
 				}
+				
 				schemaRules.setUser(updatedSchemaUsers);
 				updatedAccessRules.getSchemas().removeIf(x->x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
 															&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
 				updatedAccessRules.getSchemas().add(schemaRules);
+				
+				List<String> ownershipUsers = new ArrayList<>();
+				ownershipUsers.add(existingProject.getCreatedBy().getId());
+				ownershipUsers.add(clientId);
+				List<DataLakeTableCollabDetailsVO> collabs = existingProject.getCollabs();
+				if(collabs!=null && !collabs.isEmpty()) {
+					for(DataLakeTableCollabDetailsVO collab : collabs) {
+						if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
+							ownershipUsers.add(collab.getCollaborator().getId());
+						}
+					}
+				}
 				TrinoTableRules techUserTableRule = new TrinoTableRules();
 				techUserTableRule.setCatalog(catalog);
 				techUserTableRule.setSchema(schema);
-				techUserTableRule.setUser(clientId+"|"+existingProject.getCreatedBy().getId());
+				techUserTableRule.setUser(String.join("|", ownershipUsers));
 				techUserTableRule.setTable(".*");
 				techUserTableRule.setPrivileges(ownerShipPrivileges);
 				updatedAccessRules.getTables().add(techUserTableRule);

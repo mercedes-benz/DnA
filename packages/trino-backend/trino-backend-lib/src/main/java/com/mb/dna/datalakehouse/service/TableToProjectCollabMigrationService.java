@@ -93,11 +93,7 @@ public class TableToProjectCollabMigrationService {
 								}
 							}
 						}
-						//remove existing table rules
-						updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
-								&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
-								&& x.getTable()!=null && x.getTable().equalsIgnoreCase(table.getTableName()));
-						log.info("Removed table rule for table {} of record {} {} during migration", table.getTableName(),  entity.getId(), entity.getData().getProjectName());
+						
 					}
 					projectCollabs = (List<DataLakeTableCollabDetails>) projectCollabMap.values();
 				}
@@ -110,6 +106,11 @@ public class TableToProjectCollabMigrationService {
 				updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 
 						&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
 				log.info("Removed schema rule of {} for record {} {} during migration", schema,  entity.getId(), entity.getData().getProjectName());
+				//remove existing table rules
+				updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+						&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+				log.info("Removed all existing table rules including tech user table rule if exists, of record {} {} during migration", entity.getId(), entity.getData().getProjectName());
+				
 				List<String> schemaCollaborators = new ArrayList<>();
 				List<String> readCollabs = new ArrayList<>();
 				List<String> writeCollabs = new ArrayList<>();
@@ -118,23 +119,6 @@ public class TableToProjectCollabMigrationService {
 				schemaCollaborators.add(data.getCreatedBy().getId());
 				if(data.getTechUserClientId()!=null)
 					schemaCollaborators.add(data.getTechUserClientId());
-				
-				//removing existing techuser table rule
-				updatedAccessRules.getTables().removeIf(x->x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
-						&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
-						&& x.getUser()!=null 
-						&& x.getUser().equalsIgnoreCase(data.getTechUserClientId()));
-				log.info("Removed techuser table rule of {} for record {} {} during migration", data.getTechUserClientId(),  entity.getId(), entity.getData().getProjectName());
-				
-				//adding ownership rights at tables level for owner and techuser
-				TrinoTableRules techUserTableRule = new TrinoTableRules();
-				techUserTableRule.setCatalog(catalog);
-				techUserTableRule.setSchema(schema);
-				techUserTableRule.setUser(String.join("|", schemaCollaborators));
-				techUserTableRule.setTable(null);
-				techUserTableRule.setPrivileges(ownerShipPrivileges);
-				updatedAccessRules.getTables().add(techUserTableRule);
-				log.info("Added updated owner n techuser table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
 				
 				if(projectCollabs!=null && !projectCollabs.isEmpty()) {
 					for(DataLakeTableCollabDetails collab: projectCollabs) {
@@ -166,15 +150,21 @@ public class TableToProjectCollabMigrationService {
 				updatedAccessRules.getTables().add(readAccessRules);
 				log.info("Added new read collabs table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
 				
-				//adding new table rule for readwrite collabs
-				TrinoTableRules writeAccessRules = new TrinoTableRules();
-				writeAccessRules.setCatalog(catalog);
-				writeAccessRules.setPrivileges(writePrivileges);
-				writeAccessRules.setSchema(schema);
-				writeAccessRules.setTable(".*");
-				writeAccessRules.setUser(String.join("|", writeCollabs));
-				updatedAccessRules.getTables().add(writeAccessRules);
-				log.info("Added new write collabs table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
+				List<String> ownershipUsers = new ArrayList<>();
+				ownershipUsers.add(data.getCreatedBy().getId());
+				if(data.getTechUserClientId()!=null)
+					ownershipUsers.add(data.getTechUserClientId());
+				ownershipUsers.addAll(writeCollabs);
+				//adding ownership rights at tables level for owner and techuser and readwrite collabs
+				TrinoTableRules techUserTableRule = new TrinoTableRules();
+				techUserTableRule.setCatalog(catalog);
+				techUserTableRule.setSchema(schema);
+				techUserTableRule.setUser(String.join("|", ownershipUsers));
+				techUserTableRule.setTable(null);
+				techUserTableRule.setPrivileges(ownerShipPrivileges);
+				updatedAccessRules.getTables().add(techUserTableRule);
+				log.info("Added updated owner n techuser table rule for record {} {} during migration", entity.getId(), entity.getData().getProjectName());
+				
 			}
 			
 			accessNsql.setData(updatedAccessRules);
