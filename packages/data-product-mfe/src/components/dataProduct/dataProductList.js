@@ -10,7 +10,7 @@ import HeadingSection from 'dna-container/HeadingSection';
 // import TagSection from 'dna-container/TagSection';
 import DataProductFilter from 'dna-container/DataProductFilter';
 
-import { setDataProductList, setPagination } from './redux/dataProductSlice';
+import { setPagination ,setFilterQueryParams} from './redux/dataProductSlice';
 import { GetDataProducts } from './redux/dataProduct.services';
 import DataCardItem from './Layout/CardView/DataProductCardItem';
 import DataListItem from './Layout/ListView/DataProductListItem';
@@ -19,50 +19,72 @@ import { dataProductApi } from '../../apis/dataproducts.api';
 import headerImageUrl from '../../assets/Data-Products-Landing.png';
 import { Envs } from '../../Utility/envs';
 
+
+
 const DataProductList = ({ user, history }) => {
   const dispatch = useDispatch();
   const {
     data,
-    pagination: { dataListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
+    pagination: {  totalNumberOfPages, currentPageNumber, maxItemsPerPage },
+    FilterQueryParams
   } = useSelector((state) => state.dataProduct);
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
+  const [dpFilterApplied, setDpFilterApplied] = useState(false);
 
-  useEffect(() => {
-    dispatch(GetDataProducts());
-  }, [dispatch]);
+  const getFilteredData = (FilterQueryValues) => {
+    const queryData = {
+      arts: FilterQueryValues?.artIds,
+      platforms: FilterQueryValues?.platformIds,
+      frontendTools: FilterQueryValues?.frontendToolIds,
+      divisions: FilterQueryValues?.divisionIds,
+      departments: FilterQueryValues?.departmentIds,
+      productOwners: FilterQueryValues?.productOwners,
+      informationOwners: FilterQueryValues?.informationOwners,
+      dataStewards: FilterQueryValues?.dataStewards,
+      offset: 0,
+      limit: maxItemsPerPage
+    };
+    dispatch(setPagination({ currentPageNumber: 1 }));
+    dispatch(setFilterQueryParams(queryData));
+    dispatch(GetDataProducts(queryData));
+  }
+
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
-    const modifiedData = dataListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setDataProductList(modifiedData));
+    let queryData = {...FilterQueryParams}
+    queryData.offset = currentPageOffset;
+    dispatch(setFilterQueryParams(queryData));
     dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
+    dispatch(GetDataProducts(queryData));
   };
   const onPaginationNextClick = () => {
     let currentPageNumberTemp = currentPageNumber;
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
-    currentPageNumberTemp = currentPageNumber + 1;
-    const modifiedData = dataListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setDataProductList(modifiedData));
+    currentPageNumberTemp = currentPageNumber + 1; 
+    let queryData = {...FilterQueryParams}
+    queryData.offset = currentPageOffset;
+    dispatch(setFilterQueryParams(queryData));
     dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
+    dispatch(GetDataProducts(queryData));
   };
   const onViewByPageNum = (pageNum) => {
-    const totalNumberOfPages = Math.ceil(dataListResponse?.length / pageNum);
-    const modifiedData = dataListResponse.slice(0, pageNum);
-    dispatch(setDataProductList(modifiedData));
+    let queryData = {...FilterQueryParams}
+    queryData.limit = pageNum;
+    dispatch(setFilterQueryParams(queryData));
+    dispatch(GetDataProducts(queryData));
     dispatch(
       setPagination({
-        totalNumberOfPages,
         maxItemsPerPage: pageNum,
         currentPageNumber: 1,
       }),
     );
   };
 
-  // const [openFilters, setOpenFilters]  = useState(false);
-  const [openFilters]  = useState(false);
+  const [openFilters, setOpenFilters]  = useState(false);
 
   const [tagValues, setTagValues] = useState([]);
   // const [tagFilterValues, setTagFilterValues] = useState([]);
@@ -96,9 +118,6 @@ const DataProductList = ({ user, history }) => {
 
   console.log(setAllDataProductsFirstTimeDataLoaded);
 
-  // const getFilteredSolutions = (queryParams) => {
-  //   dispatch(GetDataProducts(queryParams));
-  // }
 
   const [showDataProductsFilter] = useState(false);
 
@@ -132,9 +151,9 @@ const DataProductList = ({ user, history }) => {
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.caption)}>
             <h3>Data Products</h3>
-            {/* <div>
-              <TagSection tags={tagValues.map(item=>item.name)} selectedTags={selectedTags} setSeletedTags={setSelectedFilter}></TagSection>
-            </div> */}
+            <div>
+              {/* <TagSection tags={tagValues.map(item=>item.name)} selectedTags={selectedTags} setSeletedTags={setSelectedFilter}></TagSection> */}
+            </div>
             <div className={classNames(Styles.listHeader)}>
               <div tooltip-data="Card View">
                 <span
@@ -157,31 +176,31 @@ const DataProductList = ({ user, history }) => {
                   <i className="icon mbc-icon listview big" />
                 </span>
               </div>
-              {/* <span className={Styles.dividerLine}> &nbsp; </span>
+              <span className={Styles.dividerLine}> &nbsp; </span>
               <div tooltip-data="Filters">
                 <span
                   className={openFilters ? Styles.activeFilters : ''}
                   onClick={() => setOpenFilters(!openFilters)}
                 >
+                  {dpFilterApplied && <i className="active-status" />}
                   <i className="icon mbc-icon filter big" />
                 </span>
-            </div> */}
+            </div>
           </div>
           </div>
           <DataProductFilter
             user={user}
-            // getFilterQueryParams={(queryParams) =>
-            //   getFilteredSolutions(queryParams)
-            // }
+            getFilteredData={(FilterQueryValues) => getFilteredData(FilterQueryValues)}
             dataProductsDataLoaded={true}
             setDataProductsDataLoaded={(value) => allDataProductsFirstTimeDataLoaded(value)}
             showDataProductsFilter={showDataProductsFilter}
             openFilters={openFilters}
             getAllTags={(tags)=>{setTagValues(tags)}}
             getValuesFromFilter={(value) => {
-              // setTagFilterValues(value.tagFilterValues ? value.tagFilterValues : []);
+              //setTagFilterValues(value.tagFilterValues ? value.tagFilterValues : []);
               setSelectedTags(value.tagFilterValues ? value.tagFilterValues.map((item)=>item.name) : []);
             }}
+            setDpFilterApplied = {(value) => setDpFilterApplied(value) }
             tagsList={tagValues.map(item=>item.name)}
             setSelectedTags={selectedTagsToPass}
             />

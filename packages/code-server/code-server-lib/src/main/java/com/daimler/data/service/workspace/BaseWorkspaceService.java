@@ -1379,17 +1379,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 					log.info(
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
-					// boolean apiRecipe = false;
-					// String serviceName = projectName;
-					// if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-					// 		|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
-					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
-					// } else {
-					// 	apiRecipe = true;
-					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
-					// }
+					boolean apiRecipe = false;
+					String serviceName = projectName;
+					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
+					} else {
+						apiRecipe = true;
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
+					}
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
