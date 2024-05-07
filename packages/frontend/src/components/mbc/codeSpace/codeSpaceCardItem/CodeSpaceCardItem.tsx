@@ -277,7 +277,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
               <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
-              {!enableOnboard && !creationFailed && (
+              {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
                   tooltip-data="Open workspace in new tab"
