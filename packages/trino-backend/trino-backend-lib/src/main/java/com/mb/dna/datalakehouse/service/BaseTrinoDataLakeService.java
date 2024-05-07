@@ -181,7 +181,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 							if(updatedAccessRules!=null) {
 								TrinoSchemaRules schemaRules = new TrinoSchemaRules();
 								schemaRules.setCatalog(catalog);
-								schemaRules.setOwner(true);
+								schemaRules.setOwner(false);
 								schemaRules.setSchema(schema);
 								schemaRules.setUser(String.join("|", schemaCollaborators));
 								updatedAccessRules.getSchemas().add(schemaRules);
@@ -385,7 +385,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								//added new schema rules
 								TrinoSchemaRules schemaRules = new TrinoSchemaRules();
 								schemaRules.setCatalog(catalog);
-								schemaRules.setOwner(true);
+								schemaRules.setOwner(false);
 								schemaRules.setSchema(schema);
 								schemaRules.setUser(String.join("|", schemaCollaborators));
 								updatedAccessRules.getSchemas().add(schemaRules);
@@ -566,7 +566,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			if(updatedAccessRules!=null) {
 				TrinoSchemaRules schemaRules = new TrinoSchemaRules();
 				schemaRules.setCatalog(catalog);
-				schemaRules.setOwner(true);
+				schemaRules.setOwner(false);
 				schemaRules.setSchema(schema);
 				if(!updateTechUser) {
 					updatedSchemaUsers = existingSchemaUsers + "|"+ clientId;
@@ -575,8 +575,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					updatedSchemaUsers = existingSchemaUsers.replaceAll(existingClientId, clientId);
 					updatedAccessRules.getTables().removeIf(x->x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
 															&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
-															&& x.getUser()!=null 
-															&& x.getUser().equalsIgnoreCase(existingProject.getTechUserClientId()));
+															&& x.getPrivileges().contains("OWNERSHIP"));
 				}
 				try {
 					kubeClient.operateRecordToConfigMap(operation,existingClientId, clientId, clientSecret);
@@ -596,8 +595,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				TrinoTableRules techUserTableRule = new TrinoTableRules();
 				techUserTableRule.setCatalog(catalog);
 				techUserTableRule.setSchema(schema);
-				techUserTableRule.setUser(clientId);
-				techUserTableRule.setTable(null);
+				techUserTableRule.setUser(clientId+"|"+existingProject.getCreatedBy().getId());
+				techUserTableRule.setTable(".*");
 				techUserTableRule.setPrivileges(ownerShipPrivileges);
 				updatedAccessRules.getTables().add(techUserTableRule);
 				accessNsql.setData(updatedAccessRules);

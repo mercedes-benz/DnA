@@ -150,7 +150,7 @@ public class TableToProjectCollabMigrationService {
 				//adding new schema rule
 				TrinoSchemaRules schemaRules = new TrinoSchemaRules();
 				schemaRules.setCatalog(catalog);
-				schemaRules.setOwner(true);
+				schemaRules.setOwner(false);
 				schemaRules.setSchema(schema);
 				schemaRules.setUser(String.join("|", schemaCollaborators));
 				updatedAccessRules.getSchemas().add(schemaRules);
