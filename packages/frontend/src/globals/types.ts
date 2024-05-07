@@ -1141,6 +1141,11 @@ export interface IDataProductListItem {
 }
 
 export interface IDataProductFilterParams {
+  division: string[],
+  subDivision: string[]
+  department: string[],
+  dataSteward: string[],
+  informationOwner: string[],
   art: string[];
   platform: string[];
   frontendTool: string[];
