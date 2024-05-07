@@ -35,6 +35,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
+  const [fabricTags] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -511,7 +512,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                           title={'Tags'}
                           max={100}
                           chips={tags}
-                          tags={tags}
+                          tags={fabricTags}
                           setTags={(selectedTags) => {
                             let tag = selectedTags?.map((item) => item.toUpperCase());
                             setTags(tag);

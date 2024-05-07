@@ -205,7 +205,7 @@ const Workspaces = (props) => {
                                   <button
                                     className={classNames('btn btn-primary', Styles.projectLink)}
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEditWorkspace(true); }}
+                                    onClick={(e) => { e.stopPropagation(); setSelectedItem(workspace); setEditWorkspace(true); }}
                                   >
                                     {/* <i className="icon mbc-icon edit"></i> */}
                                     <span>Edit</span>
