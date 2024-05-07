@@ -80,7 +80,7 @@ const FabricWorkspaceCard = ({user,workspace,onRefresh}) => {
           buttonAlignment="right"
           show={editWorkspace}
           content={<FabricWorkspaceForm edit={true} workspace={workspace} onSave={() => {setEditWorkspace(false); onRefresh()}} />}
-          scrollableContent={false}
+          scrollableContent={true}
           onCancel={() => setEditWorkspace(false)}
           modalStyle={{
             padding: '50px 35px 35px 35px',
