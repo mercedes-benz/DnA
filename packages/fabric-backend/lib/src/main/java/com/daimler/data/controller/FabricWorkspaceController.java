@@ -278,6 +278,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 			
 			if(workspaceUpdateRequestVO.getArcherId()!=null)
 				existingFabricWorkspace.setArcherId(workspaceUpdateRequestVO.getArcherId());
+			if(workspaceUpdateRequestVO.getProcedureId()!=null)
+				existingFabricWorkspace.setProcedureId(workspaceUpdateRequestVO.getProcedureId());
 			if(workspaceUpdateRequestVO.getCostCenter()!=null)
 				existingFabricWorkspace.setCostCenter(workspaceUpdateRequestVO.getCostCenter());
 			if(workspaceUpdateRequestVO.getDataClassification()!=null)
