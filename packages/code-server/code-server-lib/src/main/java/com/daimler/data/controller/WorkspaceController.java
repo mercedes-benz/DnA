@@ -1910,7 +1910,7 @@ import lombok.extern.slf4j.Slf4j;
 			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 		}
 
-		String shortId = data.getProjectDetails().getProjectOwner().getId().toLowerCase();
+		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
 		String wsId = data.getWorkspaceId();
 		responseMessage = service.startServer(shortId,wsId);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);

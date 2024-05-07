@@ -513,8 +513,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
-			String url = jupyterUrl+"/"+projectOwnerId.toLowerCase()+"/"+ownerwsid+"/?folder=/home/coder";
-			entity.getData().setWorkspaceUrl(url);
+			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId());
+			entity.getData().setWorkspaceUrl(workspaceUrl);
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
@@ -1771,7 +1772,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Transactional
 	public String getServerStatus(CodeServerWorkspaceVO vo)
 	{
-		String userName = vo.getProjectDetails().getProjectOwner().getId().toLowerCase();
+		String userName = vo.getWorkspaceOwner().getId().toLowerCase();
 		String id = vo.getWorkspaceId(); 
 		CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
 			String statusValue = "false";
@@ -1838,7 +1839,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		String wsid = vo.getWorkspaceId();
-		String userName = vo.getGitUserName().toLowerCase();
+		String userName = vo.getWorkspaceOwner().getId().toLowerCase();
 		CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
 
 		try {
