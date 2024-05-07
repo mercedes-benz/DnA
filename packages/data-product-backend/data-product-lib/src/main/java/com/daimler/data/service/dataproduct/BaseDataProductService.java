@@ -32,11 +32,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.dataproduct.DataProductLovVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.datatransfer.ConsumerVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferLovVO;
 import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
 import com.daimler.data.dto.datatransfer.ProviderVO;
+import com.daimler.data.dto.userinfo.dashboard.dataProduct.DataProductTeamLov;
+import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
 import com.daimler.data.service.datatransfer.DataTransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,10 +99,10 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		public List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
 				String sortOrder, String recordStatus, List<String> artsList,
 				List<String> carlafunctionsList, List<String> platformsList,
-				List<String> frontendToolsList, List<String> productOwnerList) {
+				List<String> frontendToolsList, List<String> productOwnerList,List<String> dataStewardsList, List<String> informationOwnerList, List<String> departmentList, String division) {
 			List<DataProductNsql> dataProductEntities = dataProductCustomRepository
 					.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus,
-							artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
+							artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList,dataStewardsList,informationOwnerList,departmentList,division);
 			if (!ObjectUtils.isEmpty(dataProductEntities))
 				return dataProductEntities.stream().map(n -> dataProductAssembler.toVo(n)).collect(Collectors.toList());
 			else
@@ -127,9 +131,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		public Long getCount(Boolean published, String recordStatus,
 			List<String> artsList, List<String> carlafunctionsList,
 			List<String> platformsList, List<String> frontendToolsList,
-			List<String> productOwnerList) {
+			List<String> productOwnerList, List<String> dataStewardsList,List<String> informationOwnerList,List<String> departmentList,String division) {
 			return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus,
-					artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
+					artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList,dataStewardsList,informationOwnerList,departmentList,division);
 		}
 
 		@Override
@@ -164,6 +168,31 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public Integer getCountBasedPublishReport(Boolean published) {
 		return dataProductCustomRepository.getCountBasedPublishReport(published);
 	}
+
+	@Override
+	public List<DataProductLovVO> getDataStweardLov()
+	{
+		List<DataProductTeamLov> listOfMembs = dataProductCustomRepository.getAllDataStweardLov();
+		if (!ObjectUtils.isEmpty(listOfMembs)){
+			List<DataProductLovVO> finalData = listOfMembs.stream().map(n -> dataProductAssembler.dtoToVo(n)).collect(Collectors.toList());
+			return finalData;	
+		}else{
+			return new ArrayList<>();
+		}
+	}
+
+	@Override
+    public List<DataProductLovVO> getInformationOfficerLov()
+	{
+		List<DataProductTeamLov> listOfMembs = dataProductCustomRepository.getAllIOLov();
+		if (!ObjectUtils.isEmpty(listOfMembs)){
+			List<DataProductLovVO> finalData = listOfMembs.stream().map(n -> dataProductAssembler.dtoToVo(n)).collect(Collectors.toList());
+			return finalData;	
+		}else{
+			return new ArrayList<>();
+		}
+	}
+
 
 
 }
