@@ -1384,11 +1384,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					} else {
 						apiRecipe = true;
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					}
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
