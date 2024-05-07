@@ -101,6 +101,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Value("${codeServer.jupyter.url}")
 	private String jupyterUrl;
 
+	@Value("${codeServer.workspace.url}")
+	private String codespaceUrl;
+
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
 	@Autowired
@@ -793,7 +796,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
 	{
-		String workspaceUrl = jupyterUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
 		return workspaceUrl;
 	}
 

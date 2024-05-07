@@ -85,6 +85,7 @@ codeServer:
   git.appname: ${CODE_SERVER_APPLICATION_NAME:XXX}
   jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
   jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
+  workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
