@@ -782,7 +782,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin,boolean valutInjectorEnable, String clientID, String clientSecret) {
+			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -839,22 +839,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
-					boolean apiRecipe = false;
-					String serviceName = projectName;
-					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					String reactRecipeId = RecipeIdEnum.REACT.toString();
-					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					String workspaceId = entity.getData().getWorkspaceId();
-					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					} else {
-						apiRecipe = true;
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					}
+					// deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
+					
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
@@ -870,6 +856,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
+					//calling kong to create service, route and plugins
+					boolean apiRecipe = false;
+					String serviceName = projectName;
+					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					String reactRecipeId = RecipeIdEnum.REACT.toString();
+					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					String workspaceId = entity.getData().getWorkspaceId();
+					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					} else {
+						apiRecipe = true;
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					}
 					status = "SUCCESS";
 				} else {
 					status = "FAILED";
@@ -1384,11 +1386,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 					// if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 					// 		|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
+					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					// } else {
 					// 	apiRecipe = true;
 					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
+					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					// }
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);

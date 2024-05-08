@@ -941,8 +941,8 @@ definitions:
         description: "URL of the project deployed"
       secureWithIAMRequired:
         type: boolean
-      technicalUserDetailsForIAMLogin:
-        type: string    
+      # technicalUserDetailsForIAMLogin:
+      #   type: string    
       lastDeployedBy:
         $ref: "#/definitions/UserInfoVO" 
       lastDeployedBranch:
