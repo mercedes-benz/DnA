@@ -349,7 +349,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
 
-              {typeOfProject === 'Playground' &&
+              {typeOfProject !== 'Playground' &&
               <div className={Styles.flexLayout} >
                 <div className={classNames(Styles.bucketNameInputField, 'input-field-group')}>
                   <div>
@@ -499,7 +499,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   </div>
                 </div>
                 <div>
-                {typeOfProject === 'Playground' &&
+                {typeOfProject !== 'Playground' &&
                   <div
                     className={classNames(
                       Styles.bucketNameInputField,
@@ -609,7 +609,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            {typeOfProject === 'Playground' &&
+            {typeOfProject !== 'Playground' &&
             <div>
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
