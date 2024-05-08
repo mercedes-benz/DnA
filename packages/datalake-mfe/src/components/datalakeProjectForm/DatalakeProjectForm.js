@@ -123,7 +123,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
     divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
     subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
     subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
-    collabs:[...table],
+    collabs: table,
     department: departmentName[0],
     status: '',
     classificationType: values.dataClassification,
@@ -150,7 +150,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
       divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
       subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
       subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
-      collabs:[...table],
+      collabs: table,
       department: departmentName[0],
       status: '',
       classificationType: values.dataClassification,
@@ -172,7 +172,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
 
 
   const onProjCollabAdd =(collabs)=>{
-    setTable(collabs);
+        setTable(collabs);
   }
 
   return (

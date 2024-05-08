@@ -36,6 +36,7 @@ const Graph = ({user, hostHistory}) => {
         project,
         isLoading,
     } = useSelector(state => state.graph);
+    const [hasWritePermission, setHasWritePermission] = useState(false);
 
     const methods = useForm();
     const {
@@ -45,7 +46,7 @@ const Graph = ({user, hostHistory}) => {
     } = methods;
 
     const isOwner = user.id === project?.createdBy?.id;
-
+    
     useEffect(() => {
         dispatch(getProjectDetails(id));
     }, [id, dispatch]);
@@ -55,6 +56,13 @@ const Graph = ({user, hostHistory}) => {
       return Tooltip.clear();
       //eslint-disable-next-line
     }, []);
+
+    useEffect(() =>{
+      if(!isOwner){
+        const hasPermission = project?.collabs?.some((collab)=> (collab.collaborator.id === 'PADESHP' && collab.hasWritePermission ));
+        setHasWritePermission(hasPermission);
+      }
+    },[isOwner])
   
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
@@ -591,7 +599,7 @@ const Graph = ({user, hostHistory}) => {
                    )}
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, (!isOwner || !hasWritePermission) && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setToggleModal(!toggleModal)}}
                         >
@@ -631,6 +639,7 @@ const Graph = ({user, hostHistory}) => {
                             onEditColumn={handleEditColumn}
                             onEditTable={handleEditTable}
                             isOwner={isOwner}
+                            hasWritePermission={hasWritePermission}
                         />
                     </>
                 );
