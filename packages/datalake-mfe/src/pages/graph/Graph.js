@@ -36,7 +36,7 @@ const Graph = ({user, hostHistory}) => {
         project,
         isLoading,
     } = useSelector(state => state.graph);
-    const [hasWritePermission, setHasWritePermission] = useState(false);
+    const [hasWritePermission, setHasWritePermission] = useState(true);
 
     const methods = useForm();
     const {
@@ -599,7 +599,7 @@ const Graph = ({user, hostHistory}) => {
                    )}
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, (!isOwner || !hasWritePermission) && Styles.btnDisabled)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, (!hasWritePermission) && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setToggleModal(!toggleModal)}}
                         >
