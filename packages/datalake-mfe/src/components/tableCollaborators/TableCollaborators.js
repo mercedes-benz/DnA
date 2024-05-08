@@ -6,7 +6,7 @@ import TeamSearch from 'dna-container/TeamSearch';
 import { setTables } from '../../redux/graphSlice';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
-const TableCollaborators = ({ table, onSave, user }) => {
+const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLevelCollab}) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
@@ -32,6 +32,9 @@ const TableCollaborators = ({ table, onSave, user }) => {
         hasWritePermission: false
       }
       setCollabs([...collabs, memberObj]);
+      if(isProjectLevelCollab){
+        onProjCollabAdd(memberObj);
+      }
     }
     setShowUserAlreadyExistsError(false);
   }
@@ -52,6 +55,9 @@ const TableCollaborators = ({ table, onSave, user }) => {
     });
 
     setCollabs(collabItem);
+    if(isProjectLevelCollab){
+      onProjCollabAdd(collabItem);
+    }
   };
 
   const onCollabaratorDelete = (id) => {
@@ -162,7 +168,7 @@ const TableCollaborators = ({ table, onSave, user }) => {
                   },
                 )}
               </div>
-              <div className={Styles.btnRight}>
+              <div className={classNames(Styles.btnRight , isProjectLevelCollab ? 'hidden' : '') }>
                 <button className={'btn btn-tertiary'} onClick={onSave}>Ok</button>
               </div>
             </React.Fragment>

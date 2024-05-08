@@ -50,6 +50,7 @@
   color: #99a5b3;
 }
 .btnContainer {
+    margin-top: 25px;
     display: flex;
     justify-content: flex-end;
 }
@@ -116,4 +117,16 @@
 
 .projectWrapper {
   padding: 10px 0;
+}
+.collabratorSection {
+  padding: 8px,10px,8px,10px;
+  width: 100%;
+  border: 1px solid #383f49;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .collabratorSelectionModel{
+    width: 90%;
+
+  }
 }

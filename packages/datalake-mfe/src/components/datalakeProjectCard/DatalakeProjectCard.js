@@ -87,7 +87,7 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
-            <button className={classNames("btn btn-primary", Styles.btnDisabled)}>
+            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide", Styles.btnDisabled)}>
               <i className="icon delete"></i>
               <span tooltip-data={'Coming Soon'}>Delete</span>
             </button>
@@ -106,7 +106,7 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} user={user} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
