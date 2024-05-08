@@ -18,8 +18,8 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dna.trino.config.KubernetesClient;
 import com.daimler.data.dna.trino.config.TrinoClient;
-import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 import com.daimler.data.service.common.BaseCommonService;
 import com.mb.dna.datalakehouse.db.entities.TrinoAccessNsql;
@@ -117,9 +117,12 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		List<MessageDescription> warnings = new ArrayList<>();
 		responseMsg.setErrors(errors);
 		responseMsg.setWarnings(warnings);
-		List<UserInfoVO> collaborators = new ArrayList<>();
+		List<DataLakeTableCollabDetailsVO> collaborators = new ArrayList<>();
 		List<String> schemaCollaborators = new ArrayList<>();
-		collaborators.add(vo.getCreatedBy());
+		DataLakeTableCollabDetailsVO ownerAsCollab = new DataLakeTableCollabDetailsVO();
+		ownerAsCollab.setCollaborator(vo.getCreatedBy());
+		ownerAsCollab.setHasWritePermission(true);
+		collaborators.add(ownerAsCollab);
 		schemaCollaborators.add(vo.getCreatedBy().getId());
 		List<String> ownershipCollabs = new ArrayList<>();
 		List<String> readCollabs = new ArrayList<>();
@@ -130,7 +133,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		}
 		if(vo.getCollabs()!=null && !vo.getCollabs().isEmpty()) {
 			for(DataLakeTableCollabDetailsVO collab : vo.getCollabs()) {
-				collaborators.add(collab.getCollaborator());
+				collaborators.add(collab);
 				schemaCollaborators.add(collab.getCollaborator().getId());
 				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
 					writeCollabs.add(collab.getCollaborator().getId());
@@ -310,9 +313,12 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		List<MessageDescription> warnings = new ArrayList<>();
 		responseMsg.setErrors(errors);
 		responseMsg.setWarnings(warnings);
-		List<UserInfoVO> collaborators = new ArrayList<>();
+		List<DataLakeTableCollabDetailsVO> collaborators = new ArrayList<>();
 		List<String> schemaCollaborators = new ArrayList<>();
-		collaborators.add(existingVO.getCreatedBy());
+		DataLakeTableCollabDetailsVO ownerAsCollab = new DataLakeTableCollabDetailsVO();
+		ownerAsCollab.setCollaborator(existingVO.getCreatedBy());
+		ownerAsCollab.setHasWritePermission(true);
+		collaborators.add(ownerAsCollab);
 		schemaCollaborators.add(existingVO.getCreatedBy().getId());
 		List<String> ownershipCollabs = new ArrayList<>();
 		List<String> readCollabs = new ArrayList<>();
@@ -323,7 +329,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		}
 		if(existingVO.getCollabs()!=null && !existingVO.getCollabs().isEmpty()) {
 			for(DataLakeTableCollabDetailsVO collab : existingVO.getCollabs()) {
-				collaborators.add(collab.getCollaborator());
+				collaborators.add(collab);
 				schemaCollaborators.add(collab.getCollaborator().getId());
 				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
 					writeCollabs.add(collab.getCollaborator().getId());
@@ -616,6 +622,68 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			responseMsg.setWarnings(warnings);
 		}
 		return responseMsg;
+	}
+
+	@Override
+	public GenericMessage deleteProjectById(String id) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		TrinoAccessNsql accessNsql = null;
+		TrinoAccess accessRules = null;
+		TrinoAccess updatedAccessRules = null;
+		TrinoDataLakeProjectVO existingVO = super.getById(id);
+		String schema = existingVO.getSchemaName();
+		String catalog = existingVO.getCatalogName();
+		String bucketName = existingVO.getBucketName();
+		try {
+			//deleted record from db
+			jpaRepo.deleteById(id);
+			log.info("Deleted datalake record from db successfully");
+			List<TrinoAccessNsql> accessRecords = accessJpaRepo.findAll();
+			if(accessRecords!=null && !accessRecords.isEmpty() && accessRecords.get(0)!=null && accessRecords.get(0).getData()!=null) {
+				accessNsql = accessRecords.get(0);
+				accessRules = accessRecords.get(0).getData();
+				updatedAccessRules = accessRecords.get(0).getData();
+			}
+			//removing existing schema
+			updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 
+					&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+			log.info("Removed schema rule of {} for record during deletion", schema);
+			//remove existing table rules
+			updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+					&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+			log.info("Removed all existing table rules including tech user table rule if exists, of record during deletion for schema {} ",schema);
+			accessNsql.setData(updatedAccessRules);
+			accessJpaRepo.save(accessNsql);
+			
+		}catch(Exception e) {
+			MessageDescription error = new MessageDescription("Failed to delete the record with exception, please try again later");
+			log.error("Failed to delete record with id {} catalog {} schema {} with exception {}",id,catalog,schema,e.getMessage());
+			errors.add(error);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}
+		// dropping schema 
+		try {
+			trinoClient.executeStatments("DROP SCHEMA IF EXISTS " + catalog + "." + schema );
+		}catch(Exception e) {
+			MessageDescription warning = new MessageDescription("Failed to drop schema while deleting datalake, Will be automatically dropped during daily cleanup.");
+			log.error("Failed to drop schema while deleting datalake with id {} catalog {} schema {} with exception {}",id,catalog,schema,e.getMessage());
+			warnings.add(warning);
+		}
+		//deleting bucket
+		DeleteBucketResponseWrapperDto response = storageClient.deleteBucket(bucketName);
+		if (response != null && "FAILED".equalsIgnoreCase(response.getStatus())) {
+			MessageDescription warning = new MessageDescription("Failed to delete storage bucket while deleting datalake, Will be automatically delete during daily cleanup.");
+			warnings.add(warning);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		return responseMessage;
 	}
 	
 	

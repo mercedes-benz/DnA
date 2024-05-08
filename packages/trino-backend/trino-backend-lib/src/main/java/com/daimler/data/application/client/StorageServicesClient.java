@@ -40,6 +40,7 @@ import com.daimler.data.dto.storage.PermissionsDto;
 import com.daimler.data.dto.storage.UpdateBucketRequestDto;
 import com.daimler.data.dto.storage.UpdateBucketRequestWrapperDto;
 import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
+import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,7 +71,7 @@ public class StorageServicesClient {
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	public CreateBucketResponseWrapperDto createBucket(String bucketName, List<UserInfoVO> collaborators) {
+	public CreateBucketResponseWrapperDto createBucket(String bucketName, List<DataLakeTableCollabDetailsVO> collaborators) {
 		CreateBucketResponseWrapperDto createBucketResponse = new CreateBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -84,9 +85,6 @@ public class StorageServicesClient {
 				String uploadFileUrl = storageBaseUri + BUCKETS_PATH;
 				CreateBucketRequestWrapperDto requestWrapper = new CreateBucketRequestWrapperDto();
 				CreateBucketRequestDto data = new CreateBucketRequestDto();
-				PermissionsDto permissions = new PermissionsDto();
-				permissions.setRead(true);
-				permissions.setWrite(false);
 				data.setBucketName(bucketName);
 				data.setClassificationType(BUCKET_CLASSIFICATION);
 				data.setPiiData(PII_DATE_DEFAULT);
@@ -94,8 +92,11 @@ public class StorageServicesClient {
 				if(collaborators!=null && !collaborators.isEmpty()) {
 						List<CollaboratorsDto> bucketCollaborators = collaborators.stream().map
 										(n -> { CollaboratorsDto collaborator = new CollaboratorsDto();
-										BeanUtils.copyProperties(n,collaborator);
-										collaborator.setAccesskey(n.getId());
+										BeanUtils.copyProperties(n.getCollaborator(),collaborator);
+										collaborator.setAccesskey(n.getCollaborator().getId());
+										PermissionsDto permissions = new PermissionsDto();
+										permissions.setRead(true);
+										permissions.setWrite(n.getHasWritePermission()!=null?n.getHasWritePermission():false);
 										collaborator.setPermission(permissions);
 										return collaborator;
 								}).collect(Collectors.toList());
@@ -155,7 +156,7 @@ public class StorageServicesClient {
 		return getBucketByNameResonse;
 	}
 
-	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId, List<UserInfoVO> collaborators) {
+	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId,  List<DataLakeTableCollabDetailsVO>  collaborators) {
 		UpdateBucketResponseWrapperDto updateBucketResponse = new UpdateBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -169,9 +170,6 @@ public class StorageServicesClient {
 			String uploadFileUrl = storageBaseUri + BUCKETS_PATH;
 			UpdateBucketRequestWrapperDto requestWrapper = new UpdateBucketRequestWrapperDto();
 			UpdateBucketRequestDto data = new UpdateBucketRequestDto();
-			PermissionsDto permissions = new PermissionsDto();
-			permissions.setRead(true);
-			permissions.setWrite(false);
 			data.setBucketName(bucketName);
 			data.setId(bucketId);
 			data.setClassificationType(BUCKET_CLASSIFICATION);
@@ -180,8 +178,11 @@ public class StorageServicesClient {
 			if (collaborators != null && !collaborators.isEmpty()) {
 				List<CollaboratorsDto> bucketCollaborators = collaborators.stream().map(n -> {
 					CollaboratorsDto collaborator = new CollaboratorsDto();
-					BeanUtils.copyProperties(n, collaborator);
-					collaborator.setAccesskey(n.getId());
+					BeanUtils.copyProperties(n.getCollaborator(),collaborator);
+					collaborator.setAccesskey(n.getCollaborator().getId());
+					PermissionsDto permissions = new PermissionsDto();
+					permissions.setRead(true);
+					permissions.setWrite(n.getHasWritePermission()!=null?n.getHasWritePermission():false);
 					collaborator.setPermission(permissions);
 					return collaborator;
 				}).collect(Collectors.toList());
