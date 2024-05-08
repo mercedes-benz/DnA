@@ -195,6 +195,9 @@ public class StorageServicesClient {
 
 			CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
 			creatorAsCollab.setAccesskey(trinoUser);
+			PermissionsDto permissions = new PermissionsDto();
+			permissions.setRead(true);
+			permissions.setWrite(true);
 			creatorAsCollab.setPermission(permissions);
 			data.getCollaborators().add(creatorAsCollab);
 
