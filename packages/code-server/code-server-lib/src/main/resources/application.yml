@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.1.4
+    version: 1.1.5
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -83,7 +83,9 @@ codeServer:
   env.value: ${CODE_SERVER_GIT_ENV:Development}
   env.url: ${CODE_SERVER_ENVURL:XXXX}
   git.appname: ${CODE_SERVER_APPLICATION_NAME:XXX}
-
+  jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
+  jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
+  workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true

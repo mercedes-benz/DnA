@@ -28,6 +28,37 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
+// const getAllSolutions = () => {
+//   return hostServer.get(`/solutions?limit=0`, {
+//     data: {},
+//   });
+// };
+
+const getAllSolutions = () => {
+  const reqQuery = `limit:0,published:true`;
+  let resQuery = `totalCount
+    records {
+      id,
+      productName
+    }`;
+
+  const apiQuery = {
+    query: `query {
+      solutions(${reqQuery}){
+        ${resQuery}
+      }
+    }`,
+  };
+
+  return hostServer.post('minified', apiQuery);
+}
+
+const getAllReports = () => {
+  return reportsServer.get(`/reports?limit=0`, {
+    data: {},
+  });
+};
+
 const getLovData = () => {
   return Promise.all([
     storageServer.get(`/classifications`, {
@@ -46,5 +77,7 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
+  getAllReports,
+  getAllSolutions,
   getLovData,
 };

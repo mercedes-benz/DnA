@@ -1,0 +1,57 @@
+.solContainer {
+  display: block;
+
+  .solCard {
+    background: #30343a;
+    margin: 0 15px 15px 0;
+
+    .solHead {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      //align-items: center;
+      position: relative;
+      // overflow: hidden;
+      // height: 110px;
+      padding: 20px;
+      padding-bottom: 0;
+      cursor: pointer;
+
+      .solTitle {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        position: relative;
+        overflow-wrap: break-word;
+        padding-right: 10px;
+        padding-bottom: 5px;
+
+        i {
+          font-size: var(--font-size-default);
+          margin-left: 15px;
+        }
+      }
+
+      .solTitleDiv {
+        max-width: calc((100%) - 50px);
+      }
+
+      .scoreIndicator {
+        padding: 2px 8px;
+        border: 1px solid #697582;
+        font-size: var(--font-size-small);
+        line-height: 22px;
+        letter-spacing: 1px;
+        border-radius: 2px;
+        margin-left: 15px;
+      }
+
+      &:hover .solTitle {
+        color: #00adef;
+      }
+    }
+
+    .solbodysection {
+      padding: 0 20px 20px 20px;
+    }
+  }
+}

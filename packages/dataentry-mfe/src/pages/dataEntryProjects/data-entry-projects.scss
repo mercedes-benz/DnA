@@ -1,0 +1,198 @@
+.mainPanel {
+  padding: 72px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0px;
+      margin-bottom: 10px;
+      h3 {
+        color: #dee3e8;
+      }
+    }
+
+    .listHeader {
+      margin-top: 10px;
+      float: right;
+      height: 29px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      .iconactive {
+          opacity: 0.5;
+          cursor: default;
+      }
+      .dividerLine {
+          height: 25px;
+          display: inline-block;
+          background-color: #252a33;
+          height: 25px;
+          margin: 0 10px 0 5px;
+          padding: 0;
+          width: 1px;
+      }
+      .iconInActive {
+          &:hover {
+              color: #00adef;
+          }
+      }
+    }
+  }
+
+  .listHeaderContent {
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    flex-direction: column;
+    padding-left: 0px;
+    padding-bottom: 14px;
+    padding-left: 0px;
+    padding-right: 0;
+    .createNewArea {
+      width: 100%;
+      button {
+        transition: none;
+        width: 100%;
+        padding: 16px 0;
+        height: auto;
+        font-size: var(--font-size-headline);
+        .addCircle {
+          display: inline-block;
+          height: 45px;
+          width: 45px;
+          border-radius: 50%;
+          border: 2px solid #99A5B3;
+          vertical-align: middle;
+          margin-right: 20px;
+          position: relative;
+          i {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            color: #00adef;
+            font-weight: bold;
+            font-size: var(--font-size-icon);
+          }
+        }
+        &:hover {
+          border-color: #00adef;
+          color: #00adef;
+        }
+      }
+    }
+  }
+
+  .content {
+    background-color: #252a33;
+    padding: 0 0 0px 0px;
+    min-width: 518px;
+    .listHeader {
+      align-items: flex-start;
+      display: flex;
+      justify-content: space-between;
+      margin: 0px;
+      position: relative;
+      background-color: #0a0b0e;
+      min-height: 36px;
+      i {
+        font-size: var(--font-size-icon-content);
+      }
+      .iconsmd {
+        font-size: var(--font-size-icon-medium);
+        color: #8c8787;
+        cursor: pointer;
+      }
+      button {
+        background: none;
+        border: none;
+        color: #c0c8d0;
+        height: auto;
+        margin: 0px;
+        outline: none;
+        padding: 0 2px;
+        i {
+          margin-top: 2px;
+        }
+        a {
+          color: #c0c8d0;
+        }
+      }
+    }
+    i {
+      font-size: var(--font-size-icon-content);
+    }
+    .iconsmd {
+      display: flex;
+      margin-top: 10px;
+      margin-left: auto;
+      color: #8c8787;
+      cursor: pointer;
+      font-size: var(--font-size-icon-medium);
+    }
+    .listContent {
+      min-height: 435px;
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      padding: 25px 31px 25px 38px;
+      align-items: flex-start;
+
+      p {
+        color: #979baf;
+        font-size: var(--font-size-default);
+        line-height: 17px;
+        margin-bottom: 20px;
+        margin-left: 0;
+        margin-top: 0;
+        text-align: left;
+      }
+      .subscriptionList {
+        width: 100%;
+      }
+      .subscriptionListEmpty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        justify-content: center;
+        height: 300px;
+        position: relative;
+        border: 1px solid #383f49;
+        width: 100%;
+      }
+      .emptyBuckets {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+      button {
+        a {
+          color: #fff;
+        }
+      }
+    }
+
+    &.cardView {
+      background-color: transparent;
+      .listContent {
+        padding-left: 0;
+        padding-right: 0;
+        width: calc(100% + 15px);
+        .subscriptionList {
+          display: flex;
+          flex-wrap: wrap;
+        }
+      }
+    }
+  }
+}
+
+.infoPopup {
+  width: 500px;
+}

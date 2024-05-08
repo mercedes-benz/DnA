@@ -2,10 +2,7 @@ import { Envs } from 'globals/Envs';
 
 const enableMalwareScanService = Envs.ENABLE_MALWARE_SCAN_SERVICE;
 const enableDataPipelineService = Envs.ENABLE_DATA_PIPELINE_SERVICE;
-const enableMyModelRegistryService = Envs.ENABLE_MY_MODEL_REGISTRY_SERVICE;
-const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
 const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
-const mLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
 const enableChronosForecastingService = Envs.ENABLE_CHRONOS_FORECASTING_SERVICE;
 const enableMatomoService = Envs.ENABLE_MATOMO_SERVICE;
 const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
@@ -19,9 +16,8 @@ const dataikuTrainingUrl = Envs.DATAIKU_TRAINING_URL;
 const powerbiTrainingUrl = Envs.POWERBI_TRAINING_URL;
 const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
-const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
+const fabricTrainingUrl = Envs.FABRIC_TRAINING_URL;
 const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
-const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
 const dataQToolUrl = Envs.DATAQ_TOOL_URL;
@@ -35,6 +31,7 @@ const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
+const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -147,6 +144,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableChronosForecastingService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'chronos',
@@ -164,6 +162,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableMatomoService,
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -181,6 +180,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDatalakeService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -197,26 +197,27 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableFabricService,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
   {
-    id: 'kubeflow',
-    name: 'Kubeflow',
+    id: 'dataentry',
+    name: 'Data Entry as a Service',
     description:
-      'Kubeflow is a platform for data scientists who want to build and experiment with Machine Learning [ML] pipelines. Kubeflow is also for ML engineers and operational teams who want to deploy ML systems to various environments for development, testing, and production-level serving.',
-    tags: ['Data Pipeline', 'Data Science', 'Machine Learning', 'FOSS', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
-    url: mLPipelineUrl,
-    isExternalLink: true,
+      'Easy, self service way to collect user input - either for planning purpose or simply to gather desired information.',
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+    url: '/dataentry',
+    isExternalLink: false,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !enableMLPipelineService,
-    isDetailedPage: false,
+    isDisabled: !enableDataEntryService,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'kubeflow',
+    svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
   {
@@ -231,6 +232,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDataikuWorkspace,
     isDetailedPage: true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataiku-new',
@@ -248,6 +250,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableSapAnalyticsCloud,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
@@ -265,9 +268,27 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !powerBIUrl?.startsWith('http'),
     isDetailedPage: true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'powerbi',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'powerPlatform',
+    name: 'Power Platform',
+    description: 'Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.',
+    tags: ['No / Low Code'],
+    url: '',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: true,
+    isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
     isDnAInternalTool: false,
   },
   {
@@ -282,6 +303,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableMalwareScanService,
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
@@ -299,6 +321,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !clamavImagwUrl?.startsWith('reg'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
@@ -316,6 +339,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableStorageService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'storage',
@@ -333,6 +357,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableCodeSpace,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'codespace',
@@ -350,6 +375,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !dataOasisUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'data-oasis',
@@ -367,6 +393,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !dataQToolUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -384,27 +411,11 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableJupiyterNoteWorkspace,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'jupyter',
     isDnAInternalTool: true,
-  },
-  {
-    id: 'AFO',
-    name: 'AFO',
-    description:
-      'SAP Analysis for Office (AfO) is an office add-in that enables multidimensional ad-hoc analyzes on OLAP data sources in Excel. In addition, the product enables workbook-based application design and the creation of BI presentations in PowerPoint. Connectivity to our SBISS platform is fully supported.',
-    tags: ['Frontend Reporting', 'FOSS', 'SAP', 'No / Low Code', 'Onprem'],
-    url: afoUrl,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !afoUrl?.startsWith('http'),
-    isDetailedPage: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'afo',
-    isDnAInternalTool: false,
   },
   {
     id: 'airflow',
@@ -418,6 +429,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableDataPipelineService,
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'airflow',
@@ -435,6 +447,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !extolloUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'extollo',
@@ -452,6 +465,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !btpUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'btp',
@@ -468,27 +482,11 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !datasphereUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
     isDnAInternalTool: false,
-  },
-  {
-    id: 'modelRegistry',
-    name: 'Model Registry',
-    description:
-      'Model registry provides access to published models resulting out of kubeflow model development.',
-    tags: ['Data Science', 'Machine Learning', 'FOSS', 'Cloud', 'Onprem'],
-    url: '/modelregistry',
-    isExternalLink: false,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !enableMyModelRegistryService,
-    isDetailedPage: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'modelregistry',
-    isDnAInternalTool: true,
   },
   {
     id: 'spire',
@@ -501,6 +499,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !spireUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'spire',
@@ -698,14 +697,14 @@ export const TrainingsLandingPageElements = [
     svgIconId: 'tools-mini',
   },
   {
-    name: 'Digital College',
+    name: 'Fabric',
     description:
-      'The Digital College is available to all colleagues in Finance & Controlling worldwide and helps us to build the right skills for digitization.',
+      'To get a first insight into Microsoft Fabric, to complete a specific training or to read up on different topics, we have collected some recommendations for you below.',
     tags: ['Self Service', 'FOSS'],
-    url: digitalCaseProgramUrl,
+    url: fabricTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !digitalCaseProgramUrl?.startsWith('http'),
+    isDisabled: !fabricTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'tools-mini',

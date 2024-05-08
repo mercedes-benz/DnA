@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import Styles from './fabric-workspace.scss';
 import Caption from 'dna-container/Caption';
 // utils
@@ -11,6 +11,7 @@ import { fabricApi } from '../../apis/fabric.api';
 
 const FabricWorkspace = () => {
   const { id: workspaceId } = useParams();
+  const history = useHistory();
 
   const [loading, setLoading] = useState(true);
   const [workspace, setWorkspace] = useState();
@@ -32,12 +33,17 @@ const FabricWorkspace = () => {
         .catch((e) => {
           ProgressIndicator.hide();
           setLoading(false);
-          Notification.show(
-            e.response.data.errors?.length
-              ? e.response.data.errors[0].message
-              : 'Fetching fabric workspace failed!',
-            'alert',
-          );
+          if(e?.response?.status === 403) {
+            Notification.show('Access denied', 'alert');
+            history.push(`/`);
+          } else {
+            Notification.show(
+              e.response.data.errors?.length
+                ? e.response.data.errors[0].message
+                : 'Fetching fabric workspace failed!',
+              'alert',
+            );
+          }
         });
   };
 
@@ -86,7 +92,7 @@ const FabricWorkspace = () => {
                       <div id="description">
                         <label className="input-label summary">Description</label>
                         <br />
-                        {workspace?.decription ? workspace?.decription : 'N/A'}
+                        {workspace?.description ? workspace?.description : 'N/A'}
                       </div>
                       <div id="divisionField">
                       </div>
@@ -96,7 +102,7 @@ const FabricWorkspace = () => {
                       <div id="typeOfProjectOption">
                         <label className="input-label summary">Cost Center</label>
                         <br />
-                        {workspace?.costCenter === '0' || !workspace?.costCenter ? 'N/A' : workspace?.costCenter}
+                        {workspace?.costCenter ? workspace?.costCenter : 'N/A'}
                       </div>
                       <div id="description">
                         <label className="input-label summary">Internal Order</label>
@@ -106,10 +112,10 @@ const FabricWorkspace = () => {
                       <div id="tags">
                         <label className="input-label summary">Related Solutions</label>
                         <br />
-                        {workspace?.relatedSolutions ? workspace.relatedSolutions?.map((chip) => {
+                        {workspace?.relatedSolutions.length > 0 ? workspace.relatedSolutions?.map((chip) => {
                           return (
                             <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
+                              <label className="chips">{chip.name}</label>&nbsp;&nbsp;
                             </>
                           );
                         }) : 'N/A'}
@@ -120,10 +126,10 @@ const FabricWorkspace = () => {
                       <div id="tags">
                         <label className="input-label summary">Related Reports</label>
                         <br />
-                        {workspace?.relatedReports ? workspace.relatedReports?.map((chip) => {
+                        {workspace?.relatedReports.length > 0 ? workspace.relatedReports?.map((chip) => {
                           return (
                             <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
+                              <label className="chips">{chip.name}</label>&nbsp;&nbsp;
                             </>
                           );
                         }) : 'N/A'}
@@ -168,7 +174,7 @@ const FabricWorkspace = () => {
                       <div id="PiiData">
                         <label className="input-label summary">PII</label>
                         <br />
-                        {workspace?.piiData === true ? 'Yes' : 'No'}
+                        {workspace?.hasPii === true ? 'Yes' : 'No'}
                       </div>
                       <div id="archerId">
                         <label className="input-label summary">Archer ID</label>

@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.4.4
+    version: 1.4.5
   kafka:
     bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
@@ -23,7 +23,7 @@ spring:
       port: ${VAULT_PORT:8200}
       scheme: ${VAULT_SCHEME:http}
       authentication: ${VAULT_AUTHENTICATION:TOKEN}
-      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
+      token: ${VAULT_TOKEN:xxxx-xxxx-xxxx-xxxx}
       mountpath: ${VAULT_MOUNTPATH:kv}
       vaultpath: ${VAULT_PATH:dna/chronos}
       kv:

@@ -9,6 +9,15 @@ declare global {
   }
 }
 
+const isValidURL = (urlString: string) => {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:3000/api`;
 
 export const createQueryParams = (obj: any): string => {
@@ -259,6 +268,13 @@ export const isSolutionFilterApplied = (
 ) => {
   const { division, subDivision, phase, location, status, useCaseType, tag } = queryParams;
   let filterApplied = false;
+  const currentYear = new Date().getFullYear();
+  const defaultStartYear = currentYear - 2 + '';
+  const defaultEndYear = currentYear + 1 + '';
+
+  if(!(queryParams.dataValueRange.startYear === defaultStartYear && queryParams.dataValueRange.endYear === defaultEndYear)){
+    filterApplied = true;
+  }
 
   if (division.length && division.length !== divisionLength) {
     filterApplied = true;
@@ -348,9 +364,13 @@ export const csvSeparator = (region: string) => {
     return  ";";  
 };
 
-export const buildLogViewURL = (deployedUrl: string, isStagging?: boolean) => {
+export const buildLogViewURL = (deployedInstance: string, isStagging?: boolean) => {
   try {
-    return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', new URL(deployedUrl).pathname.split("/")[1] + (isStagging ? '-int' : '-prod'));
+    let instanceId = deployedInstance;
+    if(isValidURL(deployedInstance)) {
+      instanceId = new URL(deployedInstance).pathname.split("/")[1];
+    }
+    return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', instanceId + (isStagging ? '-int' : '-prod'));
   } catch {
     return "Error in building log view Url. Please check the deployment Url."
   }
@@ -362,6 +382,11 @@ export const buildGitJobLogViewURL = (gitJobRunId: string) => {
   } catch {
     return "Error in building git job log view Url. Please check the git job run id."
   }
+};
+
+export const buildGitUrl = (gitRepoInfo: string) => {
+  if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
+  return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
 };
 
 export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) => {
@@ -407,6 +432,10 @@ export const recipesMaster = [
   { id: 'public-dna-matomo-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Matomo Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/matomo-mfe/*' },
   { id: 'public-dna-matomo-backend', resource: '4Gi,3000Mi,1500m,5000Mi,2000m', name: 'DnA Matomo Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/matomo-backend/*' },
   { id: 'public-dna-datalake-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Lakehouse Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/datalake-mfe/*' },
+  { id: 'public-dna-fabric-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Fabric Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/fabric-mfe/*' },
+  { id: 'public-dna-fabric-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Fabric Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/fabric-backend/*' },
+  { id: 'public-dna-dataentry-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-mfe/*' },
+  { id: 'public-dna-dataentry-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-backend/*' },
 
   ...PRIVATE_RECIPES,
 

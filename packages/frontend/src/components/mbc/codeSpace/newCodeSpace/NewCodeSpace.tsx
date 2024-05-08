@@ -425,7 +425,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         );
       } else {
         Notification.show(
-          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.`,
+          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.\n ${res.errors[0].message}`,
           'alert',
         );
       }
@@ -570,21 +570,40 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const enableLivelinessCheck = (id: string) => {
     clearInterval(livelinessInterval);
     const intervalId = window.setInterval(() => {
-      CodeSpaceApiClient.getCodeSpaceStatus(id)
-        .then((res: ICodeSpaceData) => {
+      CodeSpaceApiClient.workSpaceStatus()
+        .then((response: any) => {
           try {
-            if (res.status === 'CREATED') {
-              props.toggleProgressMessage(false);
-              ProgressIndicator.hide();
-              clearInterval(livelinessInterval);
-              props.isCodeSpaceCreationSuccess(true, {
-                ...res,
-                running: true,
-              });
-              Notification.show('Code space succesfully created.');
+            if (response.status.includes(id)) {
+              CodeSpaceApiClient.getCodeSpaceStatus(id)
+                .then((res: ICodeSpaceData) => {
+                  props.toggleProgressMessage(false);
+                  ProgressIndicator.hide();
+                  clearInterval(livelinessInterval);
+                  props.isCodeSpaceCreationSuccess(true, {
+                    ...res,
+                    running: true,
+                  });
+                  Notification.show('Code space succesfully created and started.');
+                })
+                .catch((err: Error) => {
+                  clearInterval(livelinessInterval);
+                  props.toggleProgressMessage(false);
+                  ProgressIndicator.hide();
+                  Notification.show(
+                    'Error getting codespace status. Please refresh and try again - ' + err.message,
+                    'alert',
+                  );
+                });
             }
           } catch (err: any) {
             console.log(err);
+            clearInterval(livelinessInterval);
+            props.toggleProgressMessage(false);
+            ProgressIndicator.hide();
+            Notification.show(
+              'Error getting codespace status. Please refresh and try again.',
+              'alert',
+            );
           }
         })
         .catch((err: Error) => {
@@ -708,7 +727,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.createCodeSpace(createCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if (res.data.status === 'CREATE_REQUESTED') {
+          if (res.data.status === 'CREATED' || res.data.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
             enableLivelinessCheck(res.data.workspaceId);
@@ -778,7 +797,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if (res.data?.status === 'CREATE_REQUESTED') {
+          if (res.data?.status === 'CREATED' || res.data?.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
             enableLivelinessCheck(res.data.workspaceId);

@@ -177,6 +177,11 @@ const getLovData = () => {
   ]);
 }
 
+const getBannerDetails = () => {
+  return server.get(`/banner`, {
+    data: {},
+  });
+};
 
 
 export const chronosApi = {
@@ -210,4 +215,5 @@ export const chronosApi = {
     deleteProjectConfigFile,
     cancelForecastRun,
     getLovData,
+    getBannerDetails
 };

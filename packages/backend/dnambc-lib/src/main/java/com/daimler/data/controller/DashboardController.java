@@ -69,6 +69,7 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.dashboard.DashboardService;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.dto.dashboard.SolDataValueMinMaxYearVO;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -524,7 +525,9 @@ public class DashboardController implements DashboardApi {
 			@ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
 			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
 			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
-			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags) 
+			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags,
+			@ApiParam(value = "Start date to filter solutions. Start date is a string used to search date and ProductName of solutions. Example \"BAT, java\"", defaultValue = "2022") @Valid @RequestParam(value = "startdate", required = false, defaultValue = "2022") String startdate,
+			@ApiParam(value = "End date to filter solutions. End date is a string used to search date and ProductName of solutions. Example \"BAT, java\"", defaultValue = "2025") @Valid @RequestParam(value = "enddate", required = false, defaultValue = "2025") String enddate)
 			{
 				try {
 					Boolean isAdmin = false;
@@ -549,11 +552,13 @@ public class DashboardController implements DashboardApi {
 					List<BigDecimal> totalDataValue = dashboardService.getSolDataValue(published, assembler.toList(phase),
 							assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 							useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-							assembler.toList(tags), divisionsAdmin);
+							assembler.toList(tags), divisionsAdmin,startdate,enddate);
 					SolDataValueWidgetResponseVO responseVO = new SolDataValueWidgetResponseVO();
 					if(Objects.nonNull(totalDataValue) && totalDataValue.size() > 0) {
 						responseVO.setTotalDataValueRevenue(totalDataValue.get(0));
 						responseVO.setTotalDataValueSavings(totalDataValue.get(1));
+						responseVO.setStartYear(startdate);
+						responseVO.setEndYear(enddate);
 					}					
 //					responseVO.setTotalDataValue(totalDataValue);
 					return new ResponseEntity<>(responseVO, HttpStatus.OK);
@@ -566,6 +571,37 @@ public class DashboardController implements DashboardApi {
 					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 				}				
 			}
+
+	@Override
+	@ApiOperation(value = "Get min and max year values.", nickname = "getMinMixDataValueYear", notes = "Get min and max years in Data Value details of solution with given filter.", response = SolDataValueMinMaxYearVO.class, tags={ "dashboard", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure.", response = SolDataValueMinMaxYearVO.class),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error.") })
+    @RequestMapping(value = "/dashboard/datavalue/minmaxyear",
+        method = RequestMethod.GET)
+    public ResponseEntity<SolDataValueMinMaxYearVO> getMinMixDataValueYear(){
+		SolDataValueMinMaxYearVO resultData = new SolDataValueMinMaxYearVO();
+			try
+			{
+				SolDataValueMinMaxYearVO vo = new SolDataValueMinMaxYearVO();
+				List<Integer> minmax = dashboardService.getMinMaxYears();
+				vo.setMaxYear(minmax.get(0));
+				vo.setMinYear(minmax.get(1));
+				return new ResponseEntity<>(vo, HttpStatus.OK);
+			}
+			catch(Exception e)
+			{
+				LOGGER.error("Internal server error occured while getting data value details::{}", e.getMessage());
+				SolDataValueMinMaxYearVO resVO = new SolDataValueMinMaxYearVO();
+				List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
+				resVO.setErrors(errors);
+				return new ResponseEntity<>(resVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+	}
 
 	@Override
 	@ApiOperation(value = "Get summary of Data values.", nickname = "getDataValuesummary", notes = "Get Data Value summary of solution with given filter.", response = SolDataValueSummaryResponseVO.class, tags={ "dashboard", })
@@ -587,7 +623,10 @@ public class DashboardController implements DashboardApi {
 			@ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
 			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
 			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
-			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags) {
+			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags,
+			@ApiParam(value = "Start date to filter solutions. Start date is a string used to search date and ProductName of solutions. Example \"BAT, java\"", defaultValue = "2022") @Valid @RequestParam(value = "startdate", required = false, defaultValue = "2022") String startdate,
+			@ApiParam(value = "End date to filter solutions. End date is a string used to search date and ProductName of solutions. Example \"BAT, java\"", defaultValue = "2025") @Valid @RequestParam(value = "enddate", required = false, defaultValue = "2025") String enddate)
+			{
 		try {
 			Boolean isAdmin = false;
 			CreatedByVO currentUser = this.userStore.getVO();
@@ -612,7 +651,7 @@ public class DashboardController implements DashboardApi {
 			List<SolDataValueSummaryVO> solDataValuesummaryVO = dashboardService.getSolDataValueSummary(
 					published, assembler.toList(phase), assembler.toList(dataVolume), division,
 					assembler.toList(location), assembler.toList(projectstatus), useCaseType, userId, isAdmin,
-					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags), divisionsAdmin);
+					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags), divisionsAdmin,startdate,enddate);
 			SolDataValueSummaryResponseVO resVO = new SolDataValueSummaryResponseVO();
 			resVO.setSolDataValueSummary(solDataValuesummaryVO);
 			return new ResponseEntity<>(resVO, HttpStatus.OK);

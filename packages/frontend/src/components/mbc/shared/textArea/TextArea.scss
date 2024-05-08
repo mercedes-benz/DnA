@@ -1,0 +1,9 @@
+.infoContent {
+  font-size: var(--font-size-small);
+  position: absolute;
+  right: 0;
+
+  &:hover {
+    cursor: pointer;
+  }
+}

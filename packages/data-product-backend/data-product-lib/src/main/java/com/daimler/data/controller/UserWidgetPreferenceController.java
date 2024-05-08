@@ -42,7 +42,30 @@ public class UserWidgetPreferenceController implements UserWidgetPreferenceApi {
     public ResponseEntity<UserWidgetPreferenceVO> create(
             @ApiParam(value = "Request Body that contains data required for creating a new widgetPreference", required = true)
             @Valid @RequestBody UserWidgetPreferenceRequestVO userWidgetPreferenceRequestVO) {
-        return userWidgetPrefService.createUserWidgetPreference(userWidgetPreferenceRequestVO.getData());
+        // return userWidgetPrefService.createUserWidgetPreference(userWidgetPreferenceRequestVO.getData());
+        UserWidgetPreferenceVO requestUserWidgetPrefVO = userWidgetPreferenceRequestVO.getData();
+        boolean requesteCreated = true;
+        try {
+                UserWidgetPreferenceVO existingUserWidgetPrefVO = userWidgetPrefService.getByUniqueliteral("userId",
+                                requestUserWidgetPrefVO.getUserId());
+                if (existingUserWidgetPrefVO != null && existingUserWidgetPrefVO.getUserId() != null) {
+                        // return new ResponseEntity<>(existingUserWidgetPrefVO, HttpStatus.CONFLICT);
+                        requestUserWidgetPrefVO.setId(existingUserWidgetPrefVO.getId());
+                        requesteCreated = false;
+                } else
+                        requestUserWidgetPrefVO.setId(null);
+                UserWidgetPreferenceVO userWidgetPrefVO = userWidgetPrefService.create(requestUserWidgetPrefVO);
+                if (userWidgetPrefVO != null && userWidgetPrefVO.getId() != null) {
+                        log.info("Creating new userWidget preferences for userId {}", requestUserWidgetPrefVO.getUserId());
+                        return new ResponseEntity<>(userWidgetPrefVO, requesteCreated ? HttpStatus.CREATED : HttpStatus.OK);
+                } else {
+                        log.info("Failed due to unknown internal error while creating new userWidget preferences for userId {}", requestUserWidgetPrefVO.getUserId());
+                        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+        } catch (Exception e) {
+                log.error("Failed while creating new userWidget preferences for userId {}", requestUserWidgetPrefVO.getUserId());
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
@@ -134,5 +157,6 @@ public class UserWidgetPreferenceController implements UserWidgetPreferenceApi {
         }
         return new ResponseEntity<>(userWidgetPreferenceCollection,
                 userWidgetPreferenceCollection.size() > 0 ? HttpStatus.OK : HttpStatus.NO_CONTENT);
+
     }
 }

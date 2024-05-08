@@ -72,10 +72,9 @@ public class BasePlanningITService extends BaseCommonService<PlanningITVO, Plann
 	@Override
 	public void bulkInsert(List<PlanningITVO> volist) throws Exception {
 		if(volist!=null && !volist.isEmpty()) {
+			jpaRepository.deleteAll();
 			List<PlanningITNsql> entities = volist.stream().map(n -> planningItAssembler.toEntity(n)).collect(Collectors.toList());
-			for(PlanningITNsql entity: entities) {
-				jpaRepository.save(entity);
-			}
+			jpaRepository.saveAllAndFlush(entities);
 		}
 	}
 

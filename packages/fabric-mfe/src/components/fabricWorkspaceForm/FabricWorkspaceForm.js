@@ -11,7 +11,6 @@ import SelectBox from 'dna-container/SelectBox';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 // Utils
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import { Envs } from '../../utilities/envs';
 // Api
 import { hostServer } from '../../server/api';
@@ -34,21 +33,24 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-  const [solutions] = useState([]);
-  const [reports] = useState([]);
+  const [solutions, setSolutions] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [fabricTags] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
   const [division, setDivision] = useState(edit ? (workspace?.divisionId ? workspace?.divisionId + '@-@' + workspace?.division : '0') : '');
   const [subDivision, setSubDivision] = useState(edit ? (workspace?.subDivisionId ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0') : '');
-  const [description, setDescription] = useState(edit && workspace?.decription ? workspace?.decription : '');
+  const [description, setDescription] = useState(edit && workspace?.description ? workspace?.description : '');
   const [departmentName, setDepartmentName] = useState(edit && workspace?.department ? [workspace?.department] : []);
   const [typeOfProject, setTypeOfProject] = useState(edit && workspace?.typeOfProject ? workspace?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
-  const [PII, setPII] = useState(edit && workspace?.piiData ? workspace?.piiData : false);
-  const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace?.tags || undefined] : []);
-  const [relatedSolutions, setRelatedSolutions] = useState(edit && workspace?.relatedSolutions !== null ? [...workspace?.relatedSolutions || undefined] : []);
-  const [relatedReports, setRelatedReports] = useState(edit && workspace?.relatedReports !== null ? [...workspace?.relatedReports || undefined] : []);
+  const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
+  const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace.tags] : []);
+  const [relatedSolutionsTags, setRelatedSolutionsTags] = useState(edit && workspace?.relatedSolutions !== null ? workspace.relatedSolutions.map(sols => sols.name) : []);
+  const [relatedReportsTags, setRelatedReportsTags] = useState(edit && workspace?.relatedReports !== null ? workspace.relatedReports.map(repos => repos.name) : []);
+  const [relatedSolutions, setRelatedSolutions] = useState(edit && workspace?.relatedSolutions !== null ? [...workspace.relatedSolutions] : []);
+  const [relatedReports, setRelatedReports] = useState(edit && workspace?.relatedReports !== null ? [...workspace.relatedReports] : []);
   const [archerId, setArcherID] = useState(edit && workspace?.archerId ? workspace?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
@@ -74,6 +76,36 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         } else {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllSolutions()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const solutionsTemp = res?.data?.data?.solutions?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
+        setSolutions([...solutionsTemp]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllReports()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const reportsTemp = res?.data?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
+        setReports([...reportsTemp]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -116,18 +148,38 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     SelectBox.defaultSetup();
   }, [division, subDivision]);
 
+  const onRelatedSolutionsChange = (selectedTags) => {
+    const tempSolutions = solutions.filter(solution => {
+      if(selectedTags.includes(solution.name)) {
+        return solution;
+      }
+    });
+    setRelatedSolutions([...tempSolutions]);
+    setRelatedSolutionsTags([...selectedTags]);
+  }
+
+  const onRelatedReportsChange = (selectedTags) => {
+    const tempReports = reports.filter(report => {
+      if(selectedTags.includes(report.name)) {
+        return report;
+      }
+    });
+    setRelatedReports([...tempReports]);
+    setRelatedReportsTags([...selectedTags]);
+  }
+
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
       name: values.name,
       tags: tags,
-      piiData: values?.pii,
+      hasPii: values?.pii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      decription: values?.description,
+      description: values?.description,
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
@@ -145,21 +197,22 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating fabric workspace',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating fabric workspace',
         'alert',
       );
     });
   };
   const handleEditWorkspace = (values) => {
     const data = {
+      name: values.name,
       tags: tags,
-      piiData: values?.pii,
+      hasPii: values?.pii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      decription: values?.description,
+      description: values?.description,
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
@@ -171,7 +224,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       relatedReports: relatedReports,
     }
     ProgressIndicator.show();
-    fabricApi.updateFabricWorkspace(data, workspace.id).then(() => {
+    fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Fabric workspace successfully updated');
       onSave();
@@ -187,31 +240,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   return (
     <>
       <FormProvider {...methods}>
-        <div className={classNames(Styles.content, 'mbc-scroll')}>
+        <div className={classNames(Styles.content)}>
           <div className={Styles.formGroup}>
-            {
-              edit &&
-              <div className={Styles.workspaceWrapper}>
-                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                  <div id="productDescription">
-                    <label className="input-label summary">Workspace Name</label>
-                    <br />
-                    {workspace.name}
-                  </div>
-                  <div id="tags">
-                    <label className="input-label summary">Created on</label>
-                    <br />
-                    {workspace.createdOn !== undefined && regionalDateAndTimeConversionSolution(workspace.createdOn)}
-                  </div>
-                  <div id="isExistingSolution">
-                    <label className="input-label summary">Created by</label>
-                    <br />
-                    {workspace.createdBy?.firstName} {workspace.createdBy?.lastName}
-                  </div>
-                </div>
-              </div>
-            }
-
             <div className={Styles.flexLayout}>
               <div
                 className={classNames(
@@ -256,16 +286,15 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     id="workspaceName"
                     placeholder="Type here"
                     autoComplete="off"
-                    maxLength={55}
-                    readOnly={edit}
+                    maxLength={256}
                     defaultValue={nameOfWorkspace}
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-zA-Z0-9-. ]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                   />
-                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of uppercase, lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                 </div>
               </div>
             </div>
-            {typeOfProject !== 'Playground' && <div>
+            <div>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
                   Description <sup>*</sup>
@@ -294,16 +323,15 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      readOnly={edit}
                       defaultValue={costCenter}
                       {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
-                    <span className={classNames('error-message')}>{errors?.name?.message}</span>
+                    <span className={classNames('error-message')}>{errors?.costCenter?.message}</span>
                   </div>
                 </div>
-                <div className={classNames('input-field-group')}>
+                <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Internal Order
+                    Internal Order <sup>*</sup>
                   </label>
                   <div>
                     <input
@@ -313,14 +341,15 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      readOnly={edit}
                       defaultValue={internalOrder}
                       {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
+                    <span className={classNames('error-message')}>{errors?.internalOrder?.message}</span>
                   </div>
                 </div>
               </div>
 
+              {typeOfProject !== 'Playground' &&
               <div className={Styles.flexLayout} >
                 <div className={classNames(Styles.bucketNameInputField, 'input-field-group')}>
                   <div>
@@ -328,12 +357,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       <Tags
                         title={'Related Solutions'}
                         max={100}
-                        chips={relatedSolutions}
-                        tags={solutions}
-                        setTags={(selectedTags) => {
-                          let solution = selectedTags?.map((item) => item.toUpperCase());
-                          setRelatedSolutions(solution);
-                        }}
+                        chips={relatedSolutionsTags}
+                        tags={solutions.length > 0 ? solutions : []}
+                        setTags={onRelatedSolutionsChange}
                         isMandatory={false}
                       // {...register('department', {required: '*Missing entry'})}
                       />
@@ -348,12 +374,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         <Tags
                           title={'Related Reports'}
                           max={100}
-                          chips={relatedReports}
+                          chips={relatedReportsTags}
                           tags={reports}
-                          setTags={(selectedTags) => {
-                            let report = selectedTags?.map((item) => item.toUpperCase());
-                            setRelatedReports(report);
-                          }}
+                          setTags={onRelatedReportsChange}
                           isMandatory={false}
                         //showMissingEntryError={errors?.tags?.message}
                         // {...register('tags', {required: '*Missing entry'})}
@@ -363,7 +386,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div>}
 
               <div className={Styles.flexLayout}>
                 <div
@@ -476,6 +499,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   </div>
                 </div>
                 <div>
+                {typeOfProject !== 'Playground' &&
                   <div
                     className={classNames(
                       Styles.bucketNameInputField,
@@ -490,7 +514,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                           title={'Tags'}
                           max={100}
                           chips={tags}
-                          tags={tags}
+                          tags={fabricTags}
                           setTags={(selectedTags) => {
                             let tag = selectedTags?.map((item) => item.toUpperCase());
                             setTags(tag);
@@ -502,10 +526,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
 
                       </div>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               </div>
-            </div>}
+            </div>
             <div className={Styles.flexLayout}>
               <div
                 className={classNames(
@@ -585,8 +609,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            {typeOfProject !== 'Playground' && <div>
-
+            {typeOfProject !== 'Playground' &&
+            <div>
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>

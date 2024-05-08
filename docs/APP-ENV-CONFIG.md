@@ -124,7 +124,7 @@
 | *VAULT_PORT<br />`string`                        | `8200`                                                     |                     | Port number of Hashicorp vault                                                                        |
 | *VAULT_SCHEME<br />`string`                      | `http`                                                     |                     | Protocol to connect with Hashicorp vault                                                              |
 | *VAULT_AUTHENTICATION<br />`string`              | `TOKEN`                                                    |                     | Authentication method to connect with Hashicorp vault                                                 |
-| *VAULT_TOKEN<br />`secret`                       | `00000000-0000-0000-0000-000000000000`                     |                     | Admin token to connect with Hashicorp. vault                                                           |
+| *VAULT_TOKEN<br />`secret`                       | `xxxx-xxxx-xxxx-xxxx`                     |                     | Admin token to connect with Hashicorp. vault                                                           |
 | *VAULT_MOUNTPATH<br />`string`                   | `secret`                                                   |                     | Mount path to store secret in Hashicorp. vault                                                         |
 | *VAULT_PATH<br />`string`                        | `dna/avscan`                                               |                     | Path in which secrets to be stored in Hashicorp. vault                                                 |
 
@@ -247,7 +247,7 @@
 | *VAULT_PORT<br />`string`                 | 8200                                 | NA              | Port number of Hashicorp vault.                        |
 | *VAULT_SCHEME<br />`string`               | http                                 | NA              | Protocol to connect with Hashicorp vault.              |
 | *VAULT_AUTHENTICATION<br />`string`       | TOKEN                                | NA              | Authentication method to connect with Hashicorp vault. |
-| *VAULT_TOKEN<br />`secret`                | 00000000-0000-0000-0000-000000000000 | NA              | Admin token to connect with Hashicorp vault.           |
+| *VAULT_TOKEN<br />`secret`                | xxxx-xxxx-xxxx-xxxx | NA              | Admin token to connect with Hashicorp vault.           |
 | *VAULT_MOUNTPATH<br />`string`            | secret                               | NA              | Mount path to store secret in Hashicorp vault.         |
 | *VAULT_PATH<br />`string`                 | dna/storage                          | NA              | Path in which secrets to be stored in Hashicorp vault. |
 

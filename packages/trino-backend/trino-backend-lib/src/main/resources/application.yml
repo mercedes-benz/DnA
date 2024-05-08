@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: trinio-registry-service
-    version: 1.2.3
+    version: 1.2.5
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -91,6 +91,7 @@ trino:
     namespace: ${TRINO_KUBE_NAMESPACE:XXXX}
     configmap: ${TRINO_KUBE_CONFIGMAP:XXXX}
    
+datalake.table2projectCollab.migration: ${TABLE2PROJECT_COLLAB_MIGRATION:false} 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true

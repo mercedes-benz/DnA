@@ -28,7 +28,6 @@ const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
 const ToolsDetailedPage = React.lazy(() => import('components/mbc/tools/toolsDetailedPage/ToolsDetailedPage'));
-const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
 const Comingsoon = React.lazy(() => import('components/mbc/comingsoon/Comingsoon'));
@@ -52,6 +51,7 @@ const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
 const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
 const DatalakeComponent = React.lazy(() => import('datalake-mfe/Datalake'));
 const FabricComponent = React.lazy(() => import('fabric-mfe/Fabric'));
+const DataEntryComponent = React.lazy(() => import('data-entry-mfe/DataEntry'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -274,13 +274,6 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
-    component: Services,
-    exact: false,
-    path: '/services',
-    title: 'Services',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
     component: CreateNewPipeline,
     exact: false,
     path: '/createnewpipeline',
@@ -392,7 +385,7 @@ const protectedRoutes = [
     title: 'Your Code Spaces',
   },
   {
-    allowedRoles: AdminRole,
+    allowedRoles: UserAndAdminRole,
     component:CodeSpaceRecipe ,
     exact: false,
     path: '/codespaceRecipes',
@@ -425,6 +418,13 @@ const protectedRoutes = [
     exact: false,
     path: '/fabric',
     title: 'Fabric',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataEntryComponent,
+    exact: false,
+    path: '/dataentry',
+    title: 'Data Entry as a Service',
   },
 ];
 

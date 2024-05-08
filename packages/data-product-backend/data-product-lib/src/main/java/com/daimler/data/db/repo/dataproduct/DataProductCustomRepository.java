@@ -32,7 +32,9 @@ import java.util.List;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.dto.dataproduct.DataProductLovVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
+import com.daimler.data.dto.userinfo.dashboard.dataProduct.DataProductTeamLov;
 
 public interface DataProductCustomRepository extends CommonDataRepository<DataProductNsql, String> {
 
@@ -41,12 +43,14 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 			String sortOrder, String recordStatus,
 			List<String> artsList, List<String> carlafunctionsList,
 			List<String> platformsList, List<String> frontendToolsList,
-			List<String> productOwnerList);
+			List<String> productOwnerList, List<String> dataStewardsList, List<String> informationOwnerList,
+			List<String> departmentList, String division);
 
 	Long getCountUsingNativeQuery(Boolean published, String recordStatus,
-		List<String> artsList, List<String> carlafunctionsList,
-		List<String> platformsList, List<String> frontendToolsList,
-		List<String> productOwnerList);
+			List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsList,
+			List<String> productOwnerList, List<String> dataStewardsList, List<String> informationOwnerList,
+			List<String> departmentList, String division);
 
 	Long getCountOwnersUsingNativeQuery(Boolean published, String recordStatus);
 
@@ -58,5 +62,9 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 	GenericMessage updateDataProductData();
 
 	Integer getCountBasedPublishReport(Boolean published);
+
+    List<DataProductTeamLov> getAllDataStweardLov();
+
+    List<DataProductTeamLov> getAllIOLov();
 
 }
