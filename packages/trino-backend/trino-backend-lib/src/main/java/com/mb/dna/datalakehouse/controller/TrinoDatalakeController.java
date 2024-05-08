@@ -24,6 +24,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.UserInfoVO;
+import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 import com.mb.dna.datalakehouse.dto.TrinoConnectorsCollectionVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectDetails;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectVO;
@@ -362,12 +363,21 @@ public class TrinoDatalakeController {
 			errorMessage.addErrors(invalidMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 		}
-		//check if user is project owner
+		//check if user is project owner or collab with write permissions
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
-		if(!(existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))){
+		List<String> writeCollabs = new ArrayList<>();
+		List<DataLakeTableCollabDetailsVO> collabs = existingProject.getCollabs();
+		if(collabs!=null && !collabs.isEmpty()) {
+			for(DataLakeTableCollabDetailsVO collab : collabs) {
+				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
+					writeCollabs.add(collab.getCollaborator().getId());
+				}
+			}
+		}
+		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)) || (writeCollabs.contains(user)))){
 			log.error("Datalake project with id {} is not found ", id);
-			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
+			MessageDescription invalidMsg = new MessageDescription("Only Owner or collaborators with write permissions can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
 			errorMessage.addErrors(invalidMsg);
