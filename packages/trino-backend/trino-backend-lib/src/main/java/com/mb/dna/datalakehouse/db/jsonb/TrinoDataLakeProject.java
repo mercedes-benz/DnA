@@ -26,6 +26,7 @@ public class TrinoDataLakeProject implements Serializable {
 	private String connectorType;
 	private String bucketName;
 	private String bucketId;
+	private List<DataLakeTableCollabDetails> collabs;
 	private List<DatalakeTable> tables;
 	
 	private String classificationType;

@@ -98,7 +98,9 @@ const EditOrCreateEntitlement = (props: any) => {
   }, [props?.editEntitlementModal, props?.editEntitlementList?.name]);
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    setTimeout(() => {
+      SelectBox.defaultSetup();
+    }, 200);
     setEntitlementNameError('');
   }, []);
 
@@ -115,12 +117,10 @@ const EditOrCreateEntitlement = (props: any) => {
                     max={100}
                     chips={entitlementName}
                     setTags={(selectedTags) => {
-                      console.log(selectedTags);
                       setEntitlementName(selectedTags);
                       selectedTags.length ? setEntitlementNameError('') : setEntitlementNameError('missing');
                     }}
                     tags={[]}
-                    isDataSource={true}
                     isMandatory={true}
                     showMissingEntryError={entitlementNameError !== ''}
                   />

@@ -25,6 +25,19 @@ const initialState = {
       email: '',
       department: '',
     },
+    collabs: [
+      {
+        collaborator: {
+          id: '',
+          firstName: '',
+          lastName: '',
+          department: '',
+          email: '',
+          mobileNumber: '',
+        },
+        hasWritePermission: true
+      }
+    ],
     tables: [
       {
         tableName: '',
@@ -41,19 +54,19 @@ const initialState = {
             notNullConstraintEnabled: true,
           }
         ],
-        collabs: [
-          {
-            collaborator: {
-              id: '',
-              firstName: '',
-              lastName: '',
-              department: '',
-              email: '',
-              mobileNumber: '',
-            },
-            hasWritePermission: true
-          }
-        ]
+        // collabs: [
+        //   {
+        //     collaborator: {
+        //       id: '',
+        //       firstName: '',
+        //       lastName: '',
+        //       department: '',
+        //       email: '',
+        //       mobileNumber: '',
+        //     },
+        //     hasWritePermission: true
+        //   }
+        // ]
       }
     ]
   },

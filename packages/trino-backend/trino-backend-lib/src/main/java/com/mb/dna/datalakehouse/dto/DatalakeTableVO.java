@@ -23,7 +23,7 @@ public class DatalakeTableVO implements Serializable {
 	private String description;
 	private BigDecimal xCoOrdinate ;
 	private BigDecimal yCoOrdinate;
-	private List<DataLakeTableCollabDetailsVO> collabs;
+//	private List<DataLakeTableCollabDetailsVO> collabs;
 	private List<DataLakeTableColumnDetailsVO> columns;
 	private String externalLocation;
 }

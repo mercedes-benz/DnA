@@ -241,6 +241,37 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+          
+  /workspaces/server/{id}: 
+    delete:
+      tags:
+        - "code-server"
+      summary: "Stop server of workspace for a given Id."
+      description: "Selete the server for workspace for a given identifier."
+      operationId: "StopServer"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID of server to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
   /workspaces/{id}/{userid}/validate:
     get:
@@ -779,6 +810,93 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/serverstatus:
+    get:
+      tags:
+        - "code-server"
+      summary: "Getting status of all servers of particular user"
+      description: "Get server status of codeserver workspace"
+      operationId: "getAllWorkspaceServerStatus"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/WorkspaceServerStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/serverstatus/{name}:
+    get:
+      tags:
+        - "code-server"
+      summary: "Getting status of server for workspace"
+      description: "Get server status of codeserver workspace"
+      operationId: "getServerStatus"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ServerStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/startserver/{id}:
+    post:
+      tags:
+        - "code-server"
+      summary: "Starting server for workspace"
+      description: "to start server of codeserver workspace"
+      operationId: "startServer"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
           
 definitions:
 
@@ -804,6 +922,22 @@ definitions:
       count:
         type: integer
         description: "Number of workspaces"
+
+  ServerStatusVO:
+    type: object
+    properties:
+      status:
+        type: string
+        description: "status of server"
+
+  WorkspaceServerStatusVO:
+    type: object
+    properties:
+      status:
+        type: array
+        items: 
+          type: string
+
   WorkspaceCollectionVO:
     type: object
     properties:
@@ -871,6 +1005,9 @@ definitions:
         type: string
         description: "Status of workspace - COLLABORATION_REQUESTED,CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
         DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
+      serverStatus:
+        type: string
+        description: "Status of server - SERVER-STARTED,SERVER-STOPPED"
       required:
         -projectDetails
         -workspaceOwner

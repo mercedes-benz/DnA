@@ -26,6 +26,9 @@ export const graphSlice = createSlice({
     setVersion: (state, action) => {
       state.version = {...action.payload};
     },
+    setCollaborators: (state, action) =>{
+      state.project.collabs = [...action.payload];
+    }
     // setEditingTable: (state, action) => {
     //   state.editingTable = {...action.payload};
     // },
@@ -89,6 +92,7 @@ export const graphSlice = createSlice({
 export const { 
   setTables,
   setBox,
-  setVersion
+  setVersion,
+  setCollaborators
 } = graphSlice.actions;
 export default graphSlice.reducer;

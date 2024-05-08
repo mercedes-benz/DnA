@@ -253,4 +253,113 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/PlatformVO"
+      dataSteward:
+        type: array
+        items:
+          $ref: "#/definitions/DataStewardVO"
+      informationOwner:
+        type: array
+        items:
+          $ref: "#/definitions/InformationOwnerVO"
+      department:
+        type: array
+        items:
+          $ref: "#/definitions/DepartmentVO"
+      divisions:
+        type: array
+        items:
+          $ref: "#/definitions/DivisionVO"
+
+  CarlaFunctionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of carla"
+      name:
+        type: string
+        description: "Name of the carla"
+        
+  FrontEndToolsVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of frontend tool"
+      name:
+        type: string
+        description: "Name of the frontend tool"
+
+  AgileReleaseTrainVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of agile relsease"
+      name:
+        type: string
+        description: "Name of the agile release"
+
+  PlatformVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of platform"
+      name:
+        type: string
+        description: "Name of the platform"
+
+  DataStewardVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of datasteward"
+      name:
+        type: string
+        description: "Name of the datasteward"
+
+  InformationOwnerVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of information owner"
+      name:
+        type: string
+        description: "Name of the information owner"
+
+  DepartmentVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of depertemnt"
+      name:
+        type: string
+        description: "Name of the depertment"
+
+  DivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of division
+      name:
+        type: string
+        description: name of division
+      subdivision:
+        $ref: "#/definitions/SubdivisionVO"
+
+  SubdivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of subdivision
+      name:
+        type: string
+        description: name of subdivision
+      
 

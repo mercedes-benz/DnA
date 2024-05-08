@@ -193,4 +193,8 @@ export class CodeSpaceApiClient {
     if (serverStarted) return this.delete(`/workspaces/server/${id}`);
     return this.post(`/workspaces/startserver/${id}`);
   }
+
+  public static workSpaceStatus(): Promise<any> {
+    return this.get(`/workspaces/serverstatus`);
+  }
 }

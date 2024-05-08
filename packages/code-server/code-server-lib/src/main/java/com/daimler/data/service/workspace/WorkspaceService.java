@@ -81,4 +81,10 @@ public interface WorkspaceService {
 			@Valid DataGovernanceRequestInfo dataGovernanceInfo);
 
 	CodeServerWorkspaceVO getByProjectName(String projectName);
+
+    String getServerStatus(CodeServerWorkspaceVO vo);
+
+	GenericMessage startServer(String userId,String wsId);
+
+    GenericMessage stopServer(CodeServerWorkspaceVO vo);
 }

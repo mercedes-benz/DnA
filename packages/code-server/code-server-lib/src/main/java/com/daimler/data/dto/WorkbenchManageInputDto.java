@@ -21,5 +21,12 @@ public class WorkbenchManageInputDto {
 	private String resource;
 	private String pat;
 	private String isCollaborator;
+	private String profile;
+	private String storage_capacity;
+	private String mem_guarantee;
+	private String mem_limit;
+	private double cpu_limit;
+	private double cpu_guarantee;
+	private String pathCheckout;
 	
 }

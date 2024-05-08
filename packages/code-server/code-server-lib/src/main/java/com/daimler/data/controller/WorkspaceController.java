@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
+import java.util.Collections;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.api.workspace.admin.CodeServerAdminApi;
 import com.daimler.data.application.auth.UserStore;
@@ -99,7 +99,9 @@ import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
-
+import com.daimler.data.db.json.CodeServerWorkspace;
+import com.daimler.data.dto.workspace.WorkspaceServerStatusVO;
+import com.daimler.data.dto.workspace.ServerStatusVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -130,6 +132,9 @@ import lombok.extern.slf4j.Slf4j;
 
 	 @Autowired
 	private WorkspaceCustomRepository workspaceCustomRepository;
+
+	@Autowired
+	private CodeServerClient client;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -725,6 +730,7 @@ import lombok.extern.slf4j.Slf4j;
 		 reqVO.setWorkspaceId(null);
 		 reqVO.setWorkspaceUrl("");
 		 reqVO.setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+		 reqVO.setServerStatus("SERVER_STOPPED");
 		 reqVO.getProjectDetails().setGitRepoName(reqVO.getProjectDetails().getProjectName());
 		 reqVO.getProjectDetails().setIntDeploymentDetails(new CodeServerDeploymentDetailsVO());
 		 reqVO.getProjectDetails().setProjectOwner(currentUserVO);
@@ -1811,5 +1817,183 @@ import lombok.extern.slf4j.Slf4j;
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
+	@Override
+    @ApiOperation(value = "Getting status of server for workspace", nickname = "getServerStatus", notes = "Get server status of codeserver workspace", response = ServerStatusVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = ServerStatusVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/serverstatus/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<ServerStatusVO> getServerStatus(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id)
+	{
+		ServerStatusVO statusvo = new ServerStatusVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspace data = entity.getData();
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+			 if (Objects.nonNull(data) && data!=null){
+			 	// String userName = data.getProjectDetails().getProjectOwner().getId().toLowerCase();
+				// String wsId = data.getWorkspaceId();
+				String status = service.getServerStatus(vo);
+				if(status.equalsIgnoreCase("true"))
+				{
+					statusvo.setStatus("SERVER_STARTED");
+					return new ResponseEntity<>(statusvo, HttpStatus.OK);
+				}
+				else
+				{
+					statusvo.setStatus("SERVER_STOPPED");
+					return new ResponseEntity<>(statusvo, HttpStatus.OK);
+				}
+			 } 
+			  else {
+				 log.info("Cannnot fetch workspace with id {} ",id);
+				 return new ResponseEntity<>(statusvo, HttpStatus.NOT_FOUND);
+			  }
+
+	}
+
+	@Override
+    @ApiOperation(value = "Starting server for workspace", nickname = "startServer", notes = "to start server of codeserver workspace", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/startserver/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id)
+	{
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspace data = entity.getData();
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+		GenericMessage responseMessage = new GenericMessage();
+		if (data == null || data.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) {
+			log.debug("Cannont start server user is not workspace owner");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("Failed to start server user is not authorized");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
+		}
+
+		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
+		String wsId = data.getWorkspaceId();
+		responseMessage = service.startServer(shortId,wsId);
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
+	@Override
+	@ApiOperation(value = "Stop server of workspace for a given Id.", nickname = "stopServer", notes = "Selete the server for workspace for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/server/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id)
+	{
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) {
+			log.debug("Cannont start server user is not workspace owner");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("Failed to stop server user is not authorized");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
+		}
+
+		responseMessage = service.stopServer(vo);
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
+	@Override
+    @ApiOperation(value = "Getting status of all servers of particular user", nickname = "getAllWorkspaceServerStatus", notes = "Get server status of codeserver workspace", response = WorkspaceServerStatusVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = WorkspaceServerStatusVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/serverstatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+		public ResponseEntity<WorkspaceServerStatusVO> getAllWorkspaceServerStatus() {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId().toLowerCase() : null;
+			List<String> statusVo = client.getAllWorkspaceStatus(userId);
+			WorkspaceServerStatusVO vo = new WorkspaceServerStatusVO();
+			if (statusVo != null && !statusVo.isEmpty()) {
+				vo.setStatus(statusVo);
+				return ResponseEntity.ok(vo);
+			} else {
+				vo.setStatus(Collections.emptyList()); // Set status to empty list
+			log.info("No workspace server is running");
+			return ResponseEntity.ok(vo);
+			}
+		}
 
  }
