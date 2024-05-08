@@ -107,6 +107,49 @@ public class TrinoDatalakeController {
 		}
 	}
 	
+	@ApiOperation(value = "Delete datalake project details for a given Id.", nickname = "deleteById", notes = "Delete datalake project details for a given Id.", response = TrinoDataLakeProjectVO.class, tags = {
+			"datalakes", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = TrinoDataLakeProjectVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datalakes/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteById(
+			@ApiParam(value = "Data Lake project ID to be deleted", required = true) @PathVariable("id") String id){
+		try {
+			TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getUpdatedById(id);
+			if(existingProject==null || !id.equalsIgnoreCase(existingProject.getId())) {
+				log.warn("No datalake project found with id {}, failed to fetch saved inputs for given id", id);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}else {
+				CreatedByVO requestUser = this.userStore.getVO();
+				String user = requestUser.getId();
+				if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
+					log.error("Datalake project with id {} is not found ", id);
+					MessageDescription invalidMsg = new MessageDescription("Only Owner or collaborators with write permissions can edit project details. Access denied.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess("FAILED");
+					errorMessage.addErrors(invalidMsg);
+					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+				}
+			}
+			GenericMessage deleteResponse = trinoDatalakeService.deleteProjectById(id);
+			if(deleteResponse!=null && "SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
+				return new ResponseEntity<>(deleteResponse, HttpStatus.OK); 
+			}else {
+				return new ResponseEntity<>(deleteResponse, HttpStatus.INTERNAL_SERVER_ERROR); 
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	@ApiOperation(value = "Get datalake project details for a given Id.", nickname = "getById", notes = "Get datalake project details for a given Id.", response = TrinoDataLakeProjectVO.class, tags = {
 			"datalakes", })
 	@ApiResponses(value = {
@@ -122,23 +165,22 @@ public class TrinoDatalakeController {
 	public ResponseEntity<TrinoDataLakeProjectVO> getById(
 			@ApiParam(value = "Data Lake project ID to be fetched", required = true) @PathVariable("id") String id){
 		try {
-		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getUpdatedById(id);
-		if(existingProject==null || !id.equalsIgnoreCase(existingProject.getId())) {
-			log.warn("No datalake project found with id {}, failed to fetch saved inputs for given id", id);
-			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-		}else {
-			CreatedByVO requestUser = this.userStore.getVO();
-			String user = requestUser.getId();
-			Long count = trinoDatalakeService.getCountForUserAndProject(user,id);
-			if(count<=0) {
-				log.warn("User {} , not part of datalake project with id {}, access denied",user, id);
-				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getUpdatedById(id);
+			if(existingProject==null || !id.equalsIgnoreCase(existingProject.getId())) {
+				log.warn("No datalake project found with id {}, failed to fetch saved inputs for given id", id);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}else {
+				CreatedByVO requestUser = this.userStore.getVO();
+				String user = requestUser.getId();
+				Long count = trinoDatalakeService.getCountForUserAndProject(user,id);
+				if(count<=0) {
+					log.warn("User {} , not part of datalake project with id {}, access denied",user, id);
+					return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+				}
 			}
-		}
-		
-		return new ResponseEntity<>(existingProject, HttpStatus.OK);
+			return new ResponseEntity<>(existingProject, HttpStatus.OK);
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Failed to fetch record with id {} with exception {}",id,e.getMessage());
 			return null;
 		}
 	}
@@ -366,16 +408,7 @@ public class TrinoDatalakeController {
 		//check if user is project owner or collab with write permissions
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
-		List<String> writeCollabs = new ArrayList<>();
-		List<DataLakeTableCollabDetailsVO> collabs = existingProject.getCollabs();
-		if(collabs!=null && !collabs.isEmpty()) {
-			for(DataLakeTableCollabDetailsVO collab : collabs) {
-				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
-					writeCollabs.add(collab.getCollaborator().getId());
-				}
-			}
-		}
-		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)) || (writeCollabs.contains(user)))){
+		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
 			log.error("Datalake project with id {} is not found ", id);
 			MessageDescription invalidMsg = new MessageDescription("Only Owner or collaborators with write permissions can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
@@ -458,7 +491,16 @@ public class TrinoDatalakeController {
 		//check if user is project owner
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
-		if(!(existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))){
+		List<String> writeCollabs = new ArrayList<>();
+		List<DataLakeTableCollabDetailsVO> collabs = existingProject.getCollabs();
+		if(collabs!=null && !collabs.isEmpty()) {
+			for(DataLakeTableCollabDetailsVO collab : collabs) {
+				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
+					writeCollabs.add(collab.getCollaborator().getId());
+				}
+			}
+		}
+		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))) || (writeCollabs.contains(user))){
 			log.error("Datalake project with id {} is not found ", id);
 			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
