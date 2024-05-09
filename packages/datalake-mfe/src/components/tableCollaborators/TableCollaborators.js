@@ -15,7 +15,7 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
   const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
-  const [collabs, setCollabs] = useState(table?.collabs?.length > 0 ? [...table.collabs] : []);
+  const [collabs, setCollabs] = useState(table?.length > 0 ? table : []);
 
   const addMemberFromTeamSearch = (member) => {
     const isMemberExists = collabs.filter(item => item.id === member.shortId);

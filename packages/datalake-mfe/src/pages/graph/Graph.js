@@ -37,7 +37,7 @@ const Graph = ({user, hostHistory}) => {
         isLoading,
     } = useSelector(state => state.graph);
     const [hasWritePermission, setHasWritePermission] = useState(true);
-
+    
     const methods = useForm();
     const {
       register,
@@ -56,13 +56,6 @@ const Graph = ({user, hostHistory}) => {
       return Tooltip.clear();
       //eslint-disable-next-line
     }, []);
-
-    useEffect(() =>{
-      if(!isOwner){
-        const hasPermission = project?.collabs?.some((collab)=> (collab.collaborator.id === 'PADESHP' && collab.hasWritePermission ));
-        setHasWritePermission(hasPermission);
-      }
-    },[isOwner])
   
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
@@ -90,6 +83,10 @@ const Graph = ({user, hostHistory}) => {
     useEffect (()=>{
       setHasTable(project.tables.length > 0 );
       setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
+      if(!isOwner && project?.collabs?.length > 0){
+        const hasPermission = project?.collabs?.some(collab => collab.collaborator.id === user.id && collab.hasWritePermission);
+        setHasWritePermission(hasPermission);
+      }
     },[project])
 
     /* A callback function that is used to update the viewbox of the svg. */
