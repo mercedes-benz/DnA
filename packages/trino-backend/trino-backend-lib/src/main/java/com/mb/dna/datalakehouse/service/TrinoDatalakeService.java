@@ -34,5 +34,7 @@ public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProject
 	GenericMessage updateTechUserDetails(TrinoDataLakeProjectVO existingProject, String clientId, String clientSecret);
 
 	Boolean isKeyExists(String key, String projectName) throws ApiException;
+
+	GenericMessage deleteProjectById(String id);
 	
 }

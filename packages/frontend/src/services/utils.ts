@@ -384,6 +384,11 @@ export const buildGitJobLogViewURL = (gitJobRunId: string) => {
   }
 };
 
+export const buildGitUrl = (gitRepoInfo: string) => {
+  if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
+  return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
+};
+
 export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
   const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\.git)(\\/)?');

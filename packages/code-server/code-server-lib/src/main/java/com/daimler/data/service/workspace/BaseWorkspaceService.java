@@ -98,6 +98,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Value("${codeServer.git.orguri}")
 	private String gitOrgUri;
 
+	@Value("${codeServer.jupyter.url}")
+	private String jupyterUrl;
+
+	@Value("${codeServer.workspace.url}")
+	private String codespaceUrl;
+
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
 	@Autowired
@@ -297,9 +303,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 		ownerWorkbenchDeleteInputsDto.setType(recipeType);
 		ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		GenericMessage deleteOwnerWSResponse = client.manageWorkBench(ownerWorkbenchDeleteDto);
-		warnings.addAll(deleteOwnerWSResponse.getErrors());
-		warnings.addAll(deleteOwnerWSResponse.getWarnings());
+		boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+		if(!deleteAction)
+		{
+			log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
+			MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
+			errors.add(prodUndeployTriggerFailed);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+
+		}
 		// }
 		// update all workspaces for the project to deleted state in db if user is
 		// projectOwner otherwise change state to deleted only for individual workspace
@@ -323,6 +337,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 		workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 		// }
 		// Deleting Kong route
+		if((entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null
+		&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch() != null
+		&& entity.getData().getProjectDetails().getIntDeploymentDetails()
+				.getLastDeploymentStatus() != null) ||(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null
+				&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch() != null
+				&& entity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getLastDeploymentStatus() != null) ){
 		GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
 				entity.getData().getWorkspaceId());
 		if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
@@ -344,6 +365,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deleteServiceResponse.getErrors().get(0).getMessage());
 			}
 		}
+	}
 		// deleting kong route and service if codespace is deployed to staging/production
 //		if (isCodespaceDeployed) {
 //			String serviceName = entity.getData().getWorkspaceId() + "-api";
@@ -440,7 +462,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
-			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
+			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
+			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
@@ -459,8 +488,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
-
-			GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
+			String codespaceName = vo.getProjectDetails().getProjectName();
+			String ownerwsid = vo.getWorkspaceId();
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			if (createOwnerWSResponse != null) {
 				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
@@ -481,7 +511,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 			Date initatedOn = new Date();
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
-			entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId());
+			entity.getData().setWorkspaceUrl(workspaceUrl);
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
@@ -631,6 +665,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
+			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
+			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			ownerWorkbenchCreateInputsDto.setProfile(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
@@ -653,8 +693,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setWsid(ownerwsid);
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
-
-			GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
+			String codespaceName = vo.getProjectDetails().getProjectName();
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			if (createOwnerWSResponse != null) {
 				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
@@ -702,8 +742,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
 			String projectName = ownerEntity.getData().getProjectDetails().getProjectName();
 			ownerEntity.getData().setIntiatedOn(now);
-			ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
-			ownerEntity.getData().setWorkspaceUrl("");
+			//  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+				String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+			ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
 					vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ||
@@ -752,6 +795,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 	}
 
+	private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
+	{
+		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		return workspaceUrl;
+	}
+
+
 	@Override
 	public CodeServerWorkspaceVO getById(String userId, String id) {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
@@ -761,7 +811,20 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	public List<CodeServerWorkspaceVO> getAll(String userId, int offset, int limit) {
 		List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findAll(userId, limit, offset);
-		return entities.stream().map(n -> workspaceAssembler.toVo(n)).collect(Collectors.toList());
+		entities.forEach(entity -> {
+			CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+			String serverStatus = getServerStatus(vo); // Update server status
+			if(serverStatus.equalsIgnoreCase("true"))
+			{
+				vo.setServerStatus("SERVER_STARTED");
+			}
+			else
+			{
+				vo.setServerStatus("SERVER_STOPPED");
+			}
+		});
+
+		return entities.stream().map(workspaceAssembler::toVo).collect(Collectors.toList());
 	}
 
 	@Override
@@ -782,7 +845,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin,boolean valutInjectorEnable ) {
+			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -838,9 +901,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					;
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
+					// deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
+					
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
@@ -856,6 +919,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
+					//calling kong to create service, route and plugins
+					boolean apiRecipe = false;
+					String serviceName = projectName;
+					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					String reactRecipeId = RecipeIdEnum.REACT.toString();
+					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					String workspaceId = entity.getData().getWorkspaceId();
+					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					} else {
+						apiRecipe = true;
+						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					}
 					status = "SUCCESS";
 				} else {
 					status = "FAILED";
@@ -1365,17 +1444,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 					log.info(
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
-					boolean apiRecipe = false;
-					String serviceName = projectName;
-					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
-					} else {
-						apiRecipe = true;
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
-					}
+					// boolean apiRecipe = false;
+					// String serviceName = projectName;
+					// if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
+					// } else {
+					// 	apiRecipe = true;
+					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
+					// }
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
@@ -1430,7 +1509,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	@Override
 	@Transactional
-	public GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo , Boolean isPublished) {
+	public GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo , Boolean isPublished, String env) {
 		GenericMessage responseMessage = new GenericMessage();
 		try {
 
@@ -1445,7 +1524,36 @@ public class BaseWorkspaceService implements WorkspaceService {
 						entity.getData().getProjectDetails().setSecurityConfig(config);
 
 						if(isPublished){
-							entity.getData().getProjectDetails().setPublishedSecurityConfig(config);
+							if("int".equalsIgnoreCase(env)){
+								if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null){
+									entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
+								}else{
+									log.info("APPID and Entitlement should not be empty while publishing");
+									MessageDescription msg = new MessageDescription();
+									List<MessageDescription> errorMessage = new ArrayList<>();
+									msg.setMessage("APPID and Entitlement should not be empty while publishing");
+									errorMessage.add(msg);
+									responseMessage.addErrors(msg);
+									responseMessage.setSuccess("FAILED");
+									responseMessage.setErrors(errorMessage);
+									return responseMessage;
+								}
+							}
+							if("prod".equalsIgnoreCase(env)){
+								if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null){
+									entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
+								}else{
+									log.info("APPID and Entitlement should not be empty while publishing");
+									MessageDescription msg = new MessageDescription();
+									List<MessageDescription> errorMessage = new ArrayList<>();
+									msg.setMessage("APPID and Entitlement should not be empty while publishing");
+									errorMessage.add(msg);
+									responseMessage.addErrors(msg);
+									responseMessage.setSuccess("FAILED");
+									responseMessage.setErrors(errorMessage);
+									return responseMessage;
+								}
+							}
 						}
 						entities.add(entity);
 					}
@@ -1455,7 +1563,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
-			//e.printStackTrace();
 			log.error("caught exception while saving security config {}", e.getMessage());
 			MessageDescription msg = new MessageDescription();
 			List<MessageDescription> errorMessage = new ArrayList<>();
@@ -1466,104 +1573,104 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setErrors(errorMessage);
 		}
 
-		CreatedByVO currentUser = this.userStore.getVO();
-		String userId = currentUser != null ? currentUser.getId() : null;
+		// CreatedByVO currentUser = this.userStore.getVO();
+		// String userId = currentUser != null ? currentUser.getId() : null;
 
-		String resourceID = vo.getWorkspaceId();
-		List<String> teamMembers = new ArrayList<>();
-		List<String> teamMembersEmails = new ArrayList<>();
-		List<ChangeLogVO> changeLogs = new ArrayList<>();
-		UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
-		teamMembers.add(projectOwner.getId());
-		teamMembersEmails.add(projectOwner.getEmail());
-		List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
-		if (Objects.nonNull(projectCollaborators)) {
-			if (projectCollaborators.size() > 0) {
-				for (UserInfoVO collab : projectCollaborators) {
-					teamMembers.add(collab.getId());
-					teamMembersEmails.add(collab.getEmail());
-				}
-			}
-		}
-		String eventType = "Codespace-SecurityConfig Status Update";
-		String message = ""; 
+		// String resourceID = vo.getWorkspaceId();
+		// List<String> teamMembers = new ArrayList<>();
+		// List<String> teamMembersEmails = new ArrayList<>();
+		// List<ChangeLogVO> changeLogs = new ArrayList<>();
+		// UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
+		// teamMembers.add(projectOwner.getId());
+		// teamMembersEmails.add(projectOwner.getEmail());
+		// List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
+		// if (Objects.nonNull(projectCollaborators)) {
+		// 	if (projectCollaborators.size() > 0) {
+		// 		for (UserInfoVO collab : projectCollaborators) {
+		// 			teamMembers.add(collab.getId());
+		// 			teamMembersEmails.add(collab.getEmail());
+		// 		}
+		// 	}
+		// }
+		// String eventType = "Codespace-SecurityConfig Status Update";
+		// String message = ""; 
 
-		if (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") ||vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED")) {
-			message = "Codespace " + vo.getProjectDetails().getProjectName() + " is accepted / published by Codespace Admin.";
-			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-		} 
-		if ( vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") ) {
-			message = "Codespace " + vo.getProjectDetails().getProjectName() + " is requesting to publish security config. ";
-			//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-			notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
-		}
+		// if (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") ||vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED")) {
+		// 	message = "Codespace " + vo.getProjectDetails().getProjectName() + " is accepted / published by Codespace Admin.";
+		// 	kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+		// } 
+		// if ( vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") ) {
+		// 	message = "Codespace " + vo.getProjectDetails().getProjectName() + " is requesting to publish security config. ";
+		// 	//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+		// 	notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
+		// }
 
-
-		return responseMessage;
-
-	}
-
-	@Override
-	@Transactional
-	public GenericMessage updateSecurityConfigStatus(String projectName, String status, String userId,
-			CodeServerWorkspaceVO vo) {
-		GenericMessage responseMessage = new GenericMessage();
-
-		try {
-
-			responseMessage = workspaceCustomRepository.updateSecurityConfigStatus(projectName, status);
-
-			// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-			// jpaRepo.save(entity);
-			// MessageDescription msg = new MessageDescription();
-			// List<MessageDescription> errorMessage = new ArrayList<>();
-
-			// responseMessage.setSuccess("SUCCESS");
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("caught exception while saving security config {}", e.getMessage());
-			MessageDescription msg = new MessageDescription();
-			List<MessageDescription> errorMessage = new ArrayList<>();
-			msg.setMessage("No workspace found for given id and the user");
-			errorMessage.add(msg);
-			responseMessage.addErrors(msg);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errorMessage);
-		}
-
-		String resourceID = vo.getWorkspaceId();
-		List<String> teamMembers = new ArrayList<>();
-		List<String> teamMembersEmails = new ArrayList<>();
-		List<ChangeLogVO> changeLogs = new ArrayList<>();
-		UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
-		teamMembers.add(projectOwner.getId());
-		teamMembersEmails.add(projectOwner.getEmail());
-		List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
-		if (Objects.nonNull(projectCollaborators)) {
-			if (projectCollaborators.size() > 0) {
-				for (UserInfoVO collab : projectCollaborators) {
-					teamMembers.add(collab.getId());
-					teamMembersEmails.add(collab.getEmail());
-				}
-			}
-		}
-		String eventType = "Codespace-SecurityConfig Status Update";
-		String message = ""; 
-
-		if (status.equalsIgnoreCase("ACCEPTED") ||status.equalsIgnoreCase("PUBLISHED")) {
-			message = "Codespace " + projectName + " is accepted / published by Codespace Admin.";
-			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-		}
-		if ( status.equalsIgnoreCase("REQUESTED") ) {
-			message = "Codespace " + projectName + " is requesting to publish security config. ";
-			//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-			notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
-		}
 
 		return responseMessage;
 
 	}
+
+	// @Override
+	// @Transactional
+	// public GenericMessage updateSecurityConfigStatus(String projectName, String status, String userId,
+	// 		CodeServerWorkspaceVO vo) {
+	// 	GenericMessage responseMessage = new GenericMessage();
+
+	// 	try {
+
+	// 		responseMessage = workspaceCustomRepository.updateSecurityConfigStatus(projectName, status);
+
+	// 		// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+	// 		// jpaRepo.save(entity);
+	// 		// MessageDescription msg = new MessageDescription();
+	// 		// List<MessageDescription> errorMessage = new ArrayList<>();
+
+	// 		// responseMessage.setSuccess("SUCCESS");
+
+	// 	} catch (Exception e) {
+	// 		e.printStackTrace();
+	// 		log.error("caught exception while saving security config {}", e.getMessage());
+	// 		MessageDescription msg = new MessageDescription();
+	// 		List<MessageDescription> errorMessage = new ArrayList<>();
+	// 		msg.setMessage("No workspace found for given id and the user");
+	// 		errorMessage.add(msg);
+	// 		responseMessage.addErrors(msg);
+	// 		responseMessage.setSuccess("FAILED");
+	// 		responseMessage.setErrors(errorMessage);
+	// 	}
+
+	// 	String resourceID = vo.getWorkspaceId();
+	// 	List<String> teamMembers = new ArrayList<>();
+	// 	List<String> teamMembersEmails = new ArrayList<>();
+	// 	List<ChangeLogVO> changeLogs = new ArrayList<>();
+	// 	UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
+	// 	teamMembers.add(projectOwner.getId());
+	// 	teamMembersEmails.add(projectOwner.getEmail());
+	// 	List<UserInfoVO> projectCollaborators = vo.getProjectDetails().getProjectCollaborators();
+	// 	if (Objects.nonNull(projectCollaborators)) {
+	// 		if (projectCollaborators.size() > 0) {
+	// 			for (UserInfoVO collab : projectCollaborators) {
+	// 				teamMembers.add(collab.getId());
+	// 				teamMembersEmails.add(collab.getEmail());
+	// 			}
+	// 		}
+	// 	}
+	// 	String eventType = "Codespace-SecurityConfig Status Update";
+	// 	String message = ""; 
+
+	// 	if (status.equalsIgnoreCase("ACCEPTED") ||status.equalsIgnoreCase("PUBLISHED")) {
+	// 		message = "Codespace " + projectName + " is accepted / published by Codespace Admin.";
+	// 		kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+	// 	}
+	// 	if ( status.equalsIgnoreCase("REQUESTED") ) {
+	// 		message = "Codespace " + projectName + " is requesting to publish security config. ";
+	// 		//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+	// 		notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
+	// 	}
+
+	// 	return responseMessage;
+
+	// }
 
 	@Override
 	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName) {
@@ -1579,33 +1686,33 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 	}
 
-	public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
-			List<ChangeLogVO> changeLogs) {
-		log.info("Notifying all Codespace Admin users on " + eventType + " for " + message);
-		UsersCollection usersCollection = dnaAuthClient.getAll();
-		List<com.daimler.data.dto.userinfo.UserInfoVO> allUsers = usersCollection.getRecords();
-		List<String> codespaceAdminUsersIds = new ArrayList<>();
-		List<String> codespaceAdminUsersEmails = new ArrayList<>();
-		for (com.daimler.data.dto.userinfo.UserInfoVO user : allUsers) {
-			boolean isCodespaceAdmin = false;
-			if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
-				isCodespaceAdmin = user.getRoles().stream().anyMatch(role -> "CodespaceAdmin".equalsIgnoreCase(role.getName()));
-			}
-			if (isCodespaceAdmin) {
-				codespaceAdminUsersIds.add(user.getId());
-				codespaceAdminUsersEmails.add(user.getEmail());
-			}
-		}
-		try {
-			String id = resourceId.toString();
-			kafkaProducer.send(eventType, id, "", triggeringUser, message, true, codespaceAdminUsersIds,
-					codespaceAdminUsersEmails, changeLogs);
-			log.info("Successfully notified all codespace admin users for event {} for {} ", eventType, message);
-		} catch (Exception e) {
-			log.error("Exception occurred while notifying all codespace Admin users on {}  for {} . Failed with exception {}",
-					eventType, message, e.getMessage());
-		}
-	}
+	// public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+	// 		List<ChangeLogVO> changeLogs) {
+	// 	log.info("Notifying all Codespace Admin users on " + eventType + " for " + message);
+	// 	UsersCollection usersCollection = dnaAuthClient.getAll();
+	// 	List<com.daimler.data.dto.userinfo.UserInfoVO> allUsers = usersCollection.getRecords();
+	// 	List<String> codespaceAdminUsersIds = new ArrayList<>();
+	// 	List<String> codespaceAdminUsersEmails = new ArrayList<>();
+	// 	for (com.daimler.data.dto.userinfo.UserInfoVO user : allUsers) {
+	// 		boolean isCodespaceAdmin = false;
+	// 		if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+	// 			isCodespaceAdmin = user.getRoles().stream().anyMatch(role -> "CodespaceAdmin".equalsIgnoreCase(role.getName()));
+	// 		}
+	// 		if (isCodespaceAdmin) {
+	// 			codespaceAdminUsersIds.add(user.getId());
+	// 			codespaceAdminUsersEmails.add(user.getEmail());
+	// 		}
+	// 	}
+	// 	try {
+	// 		String id = resourceId.toString();
+	// 		kafkaProducer.send(eventType, id, "", triggeringUser, message, true, codespaceAdminUsersIds,
+	// 				codespaceAdminUsersEmails, changeLogs);
+	// 		log.info("Successfully notified all codespace admin users for event {} for {} ", eventType, message);
+	// 	} catch (Exception e) {
+	// 		log.error("Exception occurred while notifying all codespace Admin users on {}  for {} . Failed with exception {}",
+	// 				eventType, message, e.getMessage());
+	// 	}
+	// }
 
 	@Override
 	@Transactional
@@ -1662,6 +1769,104 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 		return responseMessage;
 
+	}
+	@Override
+	@Transactional
+	public String getServerStatus(CodeServerWorkspaceVO vo)
+	{
+		String userName = vo.getWorkspaceOwner().getId().toLowerCase();
+		String id = vo.getWorkspaceId(); 
+		CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
+			String statusValue = "false";
+			GenericMessage responseMessage = new GenericMessage();
+			try {
+
+				boolean response = client.serverStatus(userName.toLowerCase(),id);
+				if (response) {
+					statusValue = "true";
+					savedOwnerEntity.getData().setServerStatus("SERVER_STARTED");
+					log.info("Server started sucessfully for {} user of workspace {}",userName,id);
+				} else {
+					log.warn("Server is not started for {} user of workspace {}",userName,id);
+					statusValue = "false";
+					savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
+				}
+			} catch (Exception e) {
+				log.error("caught exception while getting server status", e.getMessage());
+			}
+			jpaRepo.save(savedOwnerEntity);
+			return statusValue;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage startServer(String userId,String wsId)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+
+			GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId);
+				if (startServer != null) {
+					if (!"SUCCESS".equalsIgnoreCase(startServer.getSuccess()) ||
+							(startServer.getErrors() != null && !startServer.getErrors().isEmpty()) ||
+							(startServer.getWarnings() != null
+									&& !startServer.getWarnings().isEmpty())) {
+					MessageDescription msg = new MessageDescription();
+					List<MessageDescription> errorMessage = new ArrayList<>(); 
+						msg.setMessage("Failed to start workbench.");
+						responseMessage.setSuccess("FAILED");
+					}
+					responseMessage.setSuccess("SUCCESS");
+				}
+
+		} catch (Exception e) {
+			log.error("caught exception while saving security config {}", e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("caught exception while saving security config");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errorMessage);
+		}
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage stopServer(CodeServerWorkspaceVO vo) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		String wsid = vo.getWorkspaceId();
+		String userName = vo.getWorkspaceOwner().getId().toLowerCase();
+		CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
+
+		try {
+			boolean stopServerResponse = client.stopServer(wsid, userName);
+
+			if (stopServerResponse) {
+				responseMessage.setSuccess("SUCCESS");
+				savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
+				jpaRepo.save(savedOwnerEntity);
+			} else {
+				MessageDescription errorMsg = new MessageDescription();
+				errorMsg.setMessage("Failed to stop server.");
+				errors.add(errorMsg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+			}
+		} catch (Exception e) {
+			log.error("Caught exception while stopping server: {}", e.getMessage());
+			MessageDescription errorMsg = new MessageDescription();
+			errorMsg.setMessage("Exception occurred while stopping server: " + e.getMessage());
+			errors.add(errorMsg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+		}
+		return responseMessage;
 	}
 
 }

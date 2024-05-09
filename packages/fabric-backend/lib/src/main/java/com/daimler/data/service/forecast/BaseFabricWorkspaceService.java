@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.client.FabricWorkspaceClient;
@@ -23,6 +22,7 @@ import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
+import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
@@ -66,22 +66,76 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
-	@Transactional(isolation = Isolation.SERIALIZABLE)
+	@Transactional
 	public List<FabricWorkspaceVO> getAll( int limit,  int offset, String user) {
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
 		List<FabricWorkspaceNsql> entities = customRepo.getAll(user, offset, limit);
-		if (entities != null && !entities.isEmpty())
-			return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
-		else
-			return new ArrayList<>();
+		if (entities != null && !entities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : entities) {
+				try {
+					String id = entity.getId();
+					log.info("Fetched fabric project record from db successfully for id {} ", id);
+					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+					if(dtoFromFabric!=null) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+								jpaRepo.deleteById(id);
+								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+						}else {
+							entity.getData().setName(dtoFromFabric.getDisplayName());
+							entity.getData().setDescription(dtoFromFabric.getDescription());
+							jpaRepo.save(entity);
+							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+							vos.add(updatedVO);
+						}
+					}
+				}catch(Exception e) {
+					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+		return vos;
 	}
 
 	@Override
-	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Long getCount(String user) {
 		return customRepo.getTotalCount(user);
 	}
 	
 	@Override
+	@Transactional
+	public FabricWorkspaceVO getById(String id) {
+		FabricWorkspaceVO voFromDb =  super.getById(id);
+		log.info("Fetched fabric project record from db successfully for id {} ", id);
+		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+		if(dtoFromFabric!=null) {
+			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+				try{
+					jpaRepo.deleteById(id);
+					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+				}catch(Exception e) {
+					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
+				}
+				return null;
+			}
+			voFromDb.setName(dtoFromFabric.getDisplayName());
+			voFromDb.setDescription(dtoFromFabric.getDescription());
+			try {
+				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
+				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
+				jpaRepo.save(updatedEntity);
+			}catch(Exception e) {
+				log.error("Failed to update latest displayName and description from Fabric to Database for project id {} . Will be updated in next fetch", id);
+			}
+		}
+		return voFromDb;
+	}
+
+	@Override
+	@Transactional
 	public ResponseEntity<FabricWorkspaceResponseVO> createWorkspace(FabricWorkspaceVO vo) {
 		FabricWorkspaceResponseVO responseData = new FabricWorkspaceResponseVO();
 		GenericMessage responseMessage = new GenericMessage();
@@ -180,6 +234,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
+	@Transactional
 	public GenericMessage delete(String id) {
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -209,6 +264,22 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
 			return responseMessage;
 		}
+	}
+
+	@Override
+	@Transactional
+	public FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace) {
+		WorkspaceUpdateDto updateRequest = new WorkspaceUpdateDto();
+		try {
+			updateRequest.setDescription(existingFabricWorkspace.getDescription());
+			updateRequest.setDisplayName(existingFabricWorkspace.getName());
+			WorkspaceDetailDto updateResponse = fabricWorkspaceClient.updateWorkspace(existingFabricWorkspace.getId(), updateRequest);
+		}catch(Exception e) {
+			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
+		}
+		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
+		jpaRepo.save(updatedEntity);
+		return existingFabricWorkspace;
 	}
 
 }

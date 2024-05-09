@@ -346,7 +346,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"mobileNumber\": " + addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber()) + "}," +
 				" \"lastDeployedOn\":" + longdate + "," +
 				" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
-				" \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
+				// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
 				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
@@ -507,7 +507,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
-                  "cast(jsonb_extract_path_text(data,'projectDetails','publishedSecurityConfig') as text) as SECURITY_CONFIG " +
+                  "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
                   "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
 				  }
 		if (limit > 0)
@@ -532,7 +532,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						CodespaceSecurityConfig recordDetails = mapper.readValue(rowData[3].toString(), CodespaceSecurityConfig.class);
 						rowDetails.setSecurityConfig(recordDetails);
 					}catch(Exception e){
-						log.error("");
+						log.error("exception occure while mapping data :{} ",e.getMessage());
 						rowDetails.setSecurityConfig(null);
 					}
 					data.add(rowDetails);

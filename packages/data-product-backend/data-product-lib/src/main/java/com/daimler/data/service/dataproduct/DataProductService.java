@@ -31,10 +31,12 @@ import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
+import com.daimler.data.dto.dataproduct.DataProductLovVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.datatransfer.ConsumerVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferLovVO;
 import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
 import com.daimler.data.dto.datatransfer.ProviderVO;
 import com.daimler.data.service.common.CommonService;
@@ -44,7 +46,9 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 
 	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
 			String recordStatus, List<String> artsList, List<String> carlafunctionsList,
-			List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
+			List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList,
+			List<String> dataStewardsList, List<String> informationOwnerList, List<String> departmentList,
+			String division);
 
 	List<DataProductTeamMemberVO> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
 															  String recordStatus);
@@ -54,8 +58,10 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO);
 
 	Long getCount(Boolean published, String recordStatus,
-				  List<String> artsList, List<String> carlafunctionsList,
-				  List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
+			List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList,
+			List<String> dataStewardsList, List<String> informationOwnerList, List<String> departmentList,
+			String division);
 
 	List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status);
 
@@ -66,4 +72,9 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 	String getNextSeqId();
 
 	Integer getCountBasedPublishReport(Boolean published);
+
+    List<DataProductLovVO> getDataStweardLov();
+
+    List<DataProductLovVO> getInformationOfficerLov();
+
 }

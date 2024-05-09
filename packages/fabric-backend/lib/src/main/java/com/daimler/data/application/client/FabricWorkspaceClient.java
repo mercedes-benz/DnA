@@ -148,7 +148,7 @@ public class FabricWorkspaceClient {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				workspaceDetailDto.setErrorCode("500");
 				workspaceDetailDto.setMessage("Failed to login using service principal, please try later.");
-				return workspaceDetailDto;
+				return null;
 			}
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -162,9 +162,47 @@ public class FabricWorkspaceClient {
 				workspaceDetailDto = response.getBody();
 			}
 		}catch(Exception e) {
-			log.error("Failed to get workspace details for id {} with {} exception ", workspaceId, e.getMessage());
+			if(e.getMessage()!=null) 
+				if(e.getMessage().contains("InsufficientPrivileges")) {
+					workspaceDetailDto.setErrorCode("InsufficientPrivileges");
+					workspaceDetailDto.setMessage("Failed to fetch details, InsufficientPrivileges. Record might not exist.");
+					log.error("Failed to get workspace details for id {} with {} exception . Which could mean that workspace doesnt exist anymore.", workspaceId, e.getMessage());
+				}else if (e.getMessage().contains("WorkspaceNotFound")) {
+					workspaceDetailDto.setErrorCode("WorkspaceNotFound");
+					workspaceDetailDto.setMessage("Failed to fetch details, WorkspaceNotFound. Record might not exist.");
+					log.error("Failed to get workspace details for id {} with {} exception . Which could mean that workspace doesnt exist anymore.", workspaceId, e.getMessage());
+				}
+			return workspaceDetailDto;
 		}
 		return workspaceDetailDto;
+	}
+	
+	public WorkspacesCollectionDto getAllWorkspacesDetails() {
+		WorkspacesCollectionDto collectionDto = new WorkspacesCollectionDto();
+		WorkspaceDetailDto workspaceDetailDto = new WorkspaceDetailDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				workspaceDetailDto.setErrorCode("500");
+				workspaceDetailDto.setMessage("Failed to login using service principal, please try later.");
+				return collectionDto;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String workspacesUrl = workspacesBaseUrl;
+			ResponseEntity<WorkspacesCollectionDto> response = proxyRestTemplate.exchange(workspacesUrl , HttpMethod.GET,
+					requestEntity, WorkspacesCollectionDto.class);
+			if (response !=null && response.hasBody()) {
+				collectionDto = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get workspaces details with {} exception ", e.getMessage());
+		}
+		return collectionDto;
 	}
 	
 	public WorkspacesCollectionDto listWorkspaces() {
@@ -251,7 +289,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<WorkspaceUpdateDto> requestEntity = new HttpEntity<>(updateRequest,headers);
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId;
-			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl, HttpMethod.POST,
+			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl, HttpMethod.PATCH,
 					requestEntity, WorkspaceDetailDto.class);
 			if (response!=null && response.hasBody()) {
 				workspaceDetailDto = response.getBody();

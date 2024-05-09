@@ -10,7 +10,6 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tabs from '../../../../assets/modules/uilab/js/src/tabs';
-import { CODE_SPACE_STATUS } from 'globals/constants';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 
 // @ts-ignore
@@ -20,9 +19,7 @@ import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import Styles from './SecurityConfig.scss';
 import Entitlement from './entitlement/Entitlement';
 import Caption from '../../shared/caption/Caption';
-import Roles from './roles/Roles';
 // @ts-ignore
-import RoleMapping from './roleMapping/RoleMapping';
 import { CodeSpaceApiClient } from '../../../../../src/services/CodeSpaceApiClient';
 import { history } from '../../../../router/History';
 
@@ -34,15 +31,15 @@ export interface ICreateNewSecurityConfigState {
   currentTab: string;
   nextTab: string;
   clickedTab: string;
+  // isSaved: boolean;
   saveActionType: string;
   tabClassNames: Map<string, string>;
   currentState: any;
   showAlertChangesModal: boolean;
   config: any;
   readOnlyMode: boolean;
-  isCodeSpaceAdminPage: boolean;
   editModeNavigateModal: boolean;
-  isPublished: boolean;
+  showStagingModal: boolean;
 }
 
 export interface ICreateNewSecurityConfigProps {
@@ -59,38 +56,31 @@ export default class SecurityConfig extends React.Component<
       id: '',
       projectName: '',
       editMode: false,
-      currentTab: 'entitlement',
-      nextTab: 'roles',
+      currentTab: 'stagingEntitlement',
+      nextTab: 'productionEntitlement',
       clickedTab: '',
       saveActionType: '',
       tabClassNames: new Map<string, string>(),
       currentState: null,
       showAlertChangesModal: false,
+      //isSaved: false,
       config: {
         entitlements: [],
-        roles: [],
-        userRoleMappings: [],
-        openSegments: [],
       },
       readOnlyMode: false,
-      isCodeSpaceAdminPage: false,
       editModeNavigateModal: false,
-      isPublished: false,
+      showStagingModal: true,
     };
   }
 
   public componentDidMount() {
     const params = getParams();
     let id = params?.id;
-    if (id.includes('?pub=')) {
-      id = params?.id.split('?pub')[0];
+    if (id.includes('?name=')) {
+      id = params?.id.split('?name=')[0];
     }
-    const query = getQueryParam('pub');
     const name = getQueryParam('name');
     this.setState({ projectName: name });
-    if (query) {
-      this.setState({ isPublished: query === 'true' });
-    }
     const path = getPath();
     SelectBox.defaultSetup();
     InputFields.defaultSetup();
@@ -100,218 +90,142 @@ export default class SecurityConfig extends React.Component<
         readOnlyMode: true,
       });
       Tabs.defaultSetup();
-      this.getPublishedConfig(id);
-    } else if (path.includes('adminSecurityconfig')) {
-      this.setState(
-        {
-          readOnlyMode: true,
-          isCodeSpaceAdminPage: true,
-          currentTab: 'roles',
-          nextTab: 'rolemapping',
-        },
-        () => {
-          Tabs.defaultSetup();
-        },
-      );
-      this.getConfig(id);
+      this.getPublishedConfig(id, 'int');
     } else {
-      this.getConfig(id);
+      this.getConfig(id, 'int');
       Tabs.defaultSetup();
     }
   }
 
-  public getPublishedConfig = (id: string) => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getPublishedConfig(id)
-      .then((res: any) => {
-        const response = {
-          ...res,
-          entitlements: res.entitlements || [],
-          roles: res.roles || [],
-          userRoleMappings: res.userRoleMappings || [],
-          openSegments: res.openSegments || [],
-          status: res.status || 'DRAFT',
-        };
-        this.setState(
-          {
-            config: response,
-          },
-          () => {
-            this.setOpenTabs(this.state.config.openSegments);
-          },
-        );
-        ProgressIndicator.hide();
-      })
-      .catch((error) => {
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        ProgressIndicator.hide();
-      });
-  };
-
-  public getConfig = (id: string) => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpaceConfig(id)
-      .then((res: any) => {
-        const response = {
-          ...res,
-          entitlements: res.entitlements || [],
-          roles: res.roles || [],
-          userRoleMappings: res.userRoleMappings || [],
-          openSegments: res.openSegments || [],
-          status: res.status || 'DRAFT',
-        };
-        this.setState(
-          {
-            config: response,
-          },
-          () => {
-            this.setOpenTabs(this.state.config.openSegments);
-          },
-        );
-        ProgressIndicator.hide();
-      })
-      .catch((error) => {
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        ProgressIndicator.hide();
-      });
-  };
-
-  public setOpenTabs = (openSegments: string[]) => {
-    if (openSegments != null && openSegments.length > 0) {
-      const tabClasses = new Map<string, string>();
-      openSegments.forEach((openSegment) => {
-        tabClasses.set(openSegment, 'tab valid');
-      });
-      this.setState({ tabClassNames: tabClasses });
-    } else {
-      const tabClasses = new Map<string, string>();
-      tabClasses.set('Roles', 'tab disabled');
-      tabClasses.set('RoleMappings', 'tab disabled');
-      this.setState({ tabClassNames: tabClasses });
+  public componentDidUpdate(prevProps: ICreateNewSecurityConfigProps, prevState: ICreateNewSecurityConfigState) {
+    if (this.state.currentTab !== prevState.currentTab) {
+      // this.setState({ isSaved: false });
+      const params = getParams();
+      let id = params?.id;
+      if (id.includes('?name=')) {
+        id = params?.id.split('?name=')[0];
+      }
+      const name = getQueryParam('name');
+      this.setState({ projectName: name });
+      const path = getPath();
+      SelectBox.defaultSetup();
+      InputFields.defaultSetup();
+      this.setState({ id: id });
+      if (path.includes('publishedSecurityconfig')) {
+        this.setState({
+          readOnlyMode: true,
+        });
+        !this.state.showStagingModal ? this.getPublishedConfig(id, 'prod') : this.getPublishedConfig(id, 'int');
+      } else {
+        !this.state.showStagingModal ? this.getConfig(id, 'prod') : this.getConfig(id, 'int');
+      }
     }
+  }
+
+  public getPublishedConfig = (id: string, env: string) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getPublishedConfig(id, env)
+      .then((res: any) => {
+        const response = {
+          ...res,
+          entitlements: res.entitlements || [],
+          appId: res.appID || '',
+        };
+        this.setState(
+          {
+            config: response,
+          },
+          () => {
+            this.setOpenTabs();
+          },
+        );
+        ProgressIndicator.hide();
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        ProgressIndicator.hide();
+      });
+  };
+
+  public getConfig = (id: string, env: string) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getCodeSpaceConfig(id, env)
+      .then((res: any) => {
+        const response = {
+          ...res,
+          entitlements: res.entitlements || [],
+          appId: res.appID || '',
+        };
+        this.setState(
+          {
+            config: response,
+          },
+          () => {
+            this.setOpenTabs();
+          },
+        );
+        ProgressIndicator.hide();
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        ProgressIndicator.hide();
+      });
+  };
+
+  public setOpenTabs = () => {
+    const tabClasses = new Map<string, string>();
+    tabClasses.set('ProductionEntitlement', 'tab valid');
+    tabClasses.set('StagingEntitlement', 'tab valid');
+    this.setState({ tabClassNames: tabClasses });
   };
 
   public onCancellingUpdateChanges = () => {
-    this.getConfig(this.state.id);
+    document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
+    this.setState({
+      showAlertChangesModal: false,
+      clickedTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? false : true,
+    });
   };
 
   public onAcceptUpdateChanges = () => {
-    document.getElementById(this.state.currentTab).click();
+    const clickedTab = this.state.clickedTab;
     this.setState({
+      currentTab: clickedTab,
+      saveActionType: '',
+      nextTab: clickedTab === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+      showStagingModal: clickedTab === 'stagingEntitlement' ? true : false,
       showAlertChangesModal: false,
     });
   };
 
   protected onSaveDraft = (tabToBeSaved: string, config: any, previousTab?: string) => {
-    if (config?.entitlements?.length === 0) {
-      config.openSegments = [];
-    }
     this.setState(
       {
         config: config,
+        // isSaved: true,
       },
       () => {
-        if (this.state.config?.entitlements?.length === 0) {
-          if (!this.state.readOnlyMode) {
-            this.callApiToSave(this.state.config.status, 'entitlement');
-          }
-          Notification.show('Please add atleast one entitlement to go to next tab', 'warning');
-          return;
-        }
-
-        if (tabToBeSaved === 'roles') {
-          if (this.state.config?.roles?.length === 0) {
-            if (!this.state.readOnlyMode) {
-              this.callApiToSave(this.state.config.status, 'roles');
-            }
-            Notification.show('Please add atleast one role to go to next tab', 'warning');
-            return;
-          }
-        }
-
-        // const currentTab = this.state.currentTab;
-        const currentTab = tabToBeSaved;
-        this.setState({ saveActionType: 'btn' });
-        if (currentTab === 'entitlement') {
-          this.saveEntitlement(previousTab);
-        } else if (currentTab === 'roles') {
-          this.saveRole(previousTab);
-        } else if (currentTab === 'rolemapping') {
-          this.saveRoleMapping(previousTab);
-        } else {
-          // If multiple clicks on save happens then the currenttab doesnt get updated in that case
-          // just save not moving to another tab.
-          this.callApiToSave('DRAFT', 'rolemapping');
+        if (tabToBeSaved === 'stagingEntitlement') {
+          this.callApiToSave('int');
+        } else if (tabToBeSaved === 'productionEntitlement') {
+          this.callApiToSave('prod');
         }
       },
     );
   };
 
-  protected onRequest = (config: any) => {
+  protected onPublish = (config: any, env: string) => {
     this.setState(
       {
         config: config,
+        // isSaved: true,
       },
       () => {
-        if (CODE_SPACE_STATUS.includes(this.state.config?.status)) {
-          this.callApiToSave(this.state.config.status, 'rolemapping', true);
-        } else {
-          ProgressIndicator.show();
-          CodeSpaceApiClient.addCodeSpaceRequest(this.state.id)
-            .then((res: any) => {
-              this.getConfig(this.state.id);
-              Notification.show('Requested successfully.');
-              ProgressIndicator.hide();
-            })
-            .catch((error: any) => {
-              ProgressIndicator.hide();
-              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-            });
-        }
+        this.callApiToSave(env, true);
       },
     );
-    config.openSegments.push('RoleMappings');
-  };
-
-  protected onPublish = (config: any) => {
-    ProgressIndicator.show();
-    const id = this.state.id;
-    CodeSpaceApiClient.publishSecurityConfigRequest(id)
-      .then((res: any) => {
-        ProgressIndicator.hide();
-        Notification.show('Published Successfully.');
-        history.push('/codespace/manageCodespace');
-      })
-      .catch((error: any) => {
-        ProgressIndicator.hide();
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
-  };
-
-  protected onAccept = (config: any) => {
-    ProgressIndicator.show();
-    const id = this.state.id;
-    CodeSpaceApiClient.acceptSecurityConfigRequest(id)
-      .then((res: any) => {
-        this.getConfig(this.state.id);
-        Notification.show('Request Accepted successfully.');
-        ProgressIndicator.hide();
-      })
-      .catch((error: any) => {
-        ProgressIndicator.hide();
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
-  };
-
-  protected setTabsAndClick = (nextTab: string) => {
-    const nextTabToClick = nextTab;
-    this.setState({
-      currentTab: nextTab,
-      nextTab: nextTabToClick,
-    });
-    if (nextTabToClick) {
-      document.getElementById(nextTabToClick).click();
-    }
   };
 
   protected setCurrentTab = (event: React.MouseEvent) => {
@@ -319,103 +233,54 @@ export default class SecurityConfig extends React.Component<
     const newState = this.state.config;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
+    // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
+    const showAlertChangesModal = !this.state.readOnlyMode;
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
-      this.setState({ currentTab: target.id, saveActionType: '' });
-    } else {
-      if (!this.state.showAlertChangesModal) {
-        // this.setState({ showAlertChangesModal: true, clickedTab: target.id });
+      if (target.id !== this.state.currentTab) {
+        !this.state.readOnlyMode
+          ? this.setState({
+              clickedTab: target.id,
+              showAlertChangesModal: showAlertChangesModal,
+            })
+          : this.setState({
+            currentTab: target.id,
+            saveActionType: '',
+            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
+            showAlertChangesModal: false,
+          });
       }
     }
   };
 
-  protected saveEntitlement = (previousTab?: string) => {
-    const nextTab = previousTab ? previousTab : 'roles';
-    const { config, readOnlyMode } = this.state;
-
-    this.state.config.openSegments.push('Entitlement');
-
-    if (readOnlyMode || !CODE_SPACE_STATUS.includes(config?.status)) {
-      this.goToNextPageWithoutSaving(nextTab);
-    } else {
-      this.callApiToSave(config.status, nextTab);
-    }
-  };
-
-  protected saveRole = (previousTab?: string) => {
-    const nextTab = previousTab ? previousTab : 'rolemapping';
-    const { config, readOnlyMode } = this.state;
-
-    config.openSegments.push('Roles');
-
-    if (readOnlyMode || !CODE_SPACE_STATUS.includes(config?.status)) {
-      this.goToNextPageWithoutSaving(nextTab);
-    } else {
-      this.callApiToSave(config.status, nextTab);
-    }
-  };
-
-  protected saveRoleMapping = (previousTab?: string) => {
-    const nextTab = previousTab ? previousTab : 'rolemapping';
-    const { config, readOnlyMode } = this.state;
-
-    config.openSegments.push('RoleMappings');
-
-    if (readOnlyMode || !CODE_SPACE_STATUS.includes(config?.status)) {
-      this.goToNextPageWithoutSaving(nextTab);
-    } else {
-      this.callApiToSave(config.status, nextTab);
-    }
-  };
-
-  protected goToNextPageWithoutSaving = (nextTab: string) => {
+  protected callApiToSave = (env: string, callPublishApi?: boolean) => {
     const config = this.state.config;
-    const distinct = (value: any, index: any, self: any) => {
-      return self.indexOf(value) === index;
-    };
-    this.state.config.openSegments = config.openSegments?.filter(distinct);
-
-    this.setState({
-      config: { ...this.state.config },
-    });
-    this.setOpenTabs(this.state.config.openSegments);
-    this.setTabsAndClick(nextTab);
-  };
-
-  protected callApiToSave = (status: string, nextTab: string, callPublishApi?: boolean) => {
-    const config = this.state.config;
-    const distinct = (value: any, index: any, self: any) => {
-      return self.indexOf(value) === index;
-    };
-    this.state.config.openSegments = config.openSegments?.filter(distinct);
     const data: any = {
       data: {
-        status: status || 'DRAFT',
         entitlements: config.entitlements,
-        roles: config.roles,
-        userRoleMappings: config.userRoleMappings,
-        openSegments: config.openSegments,
-        isProtectedByDna: config.isProtectedByDna,
+        appID: config.appId,
       },
     };
     ProgressIndicator.show();
-    CodeSpaceApiClient.createOrUpdateCodeSpaceConfig(this.state.id, data)
+    CodeSpaceApiClient.createOrUpdateCodeSpaceConfig(this.state.id, data, env)
       .then((response: any) => {
         if (response) {
-          if (response?.response?.success === 'SUCCESS') {
-            this.setState({
-              config: response?.data,
-            });
-          }
+          // if (response?.response?.success === 'SUCCESS') {
+          //   this.setState({
+          //     config: response?.data,
+          //   });
+            this.getConfig(this.state.id, env);
+          // }
           Notification.show('Saved successfully.');
 
           if (callPublishApi) {
             ProgressIndicator.show();
-            CodeSpaceApiClient.addCodeSpaceRequest(this.state.id)
+            CodeSpaceApiClient.addCodeSpaceRequest(this.state.id, env)
               .then((res: any) => {
                 ProgressIndicator.hide();
-                this.getConfig(this.state.id);
-                Notification.show('Requested successfully.');
+                this.getConfig(this.state.id, env);
+                Notification.show('Published successfully.');
               })
               .catch((error: any) => {
                 ProgressIndicator.hide();
@@ -429,8 +294,6 @@ export default class SecurityConfig extends React.Component<
         ProgressIndicator.hide();
         this.showErrorNotification(error && error[0]?.length > 0 ? error[0].message : 'Some Error Occured');
       });
-    this.setOpenTabs(config?.openSegments);
-    this.setTabsAndClick(nextTab);
   };
 
   protected showErrorNotification(message: string) {
@@ -440,7 +303,7 @@ export default class SecurityConfig extends React.Component<
 
   protected navigateEditOrReadOnlyMode = () => {
     if (this.state.readOnlyMode) {
-      history.push(`/codespace/securityconfig/${this.state.id}?pub=true&name=${this.state.projectName}`);
+      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}`);
     } else {
       this.setState({
         editModeNavigateModal: true,
@@ -450,138 +313,101 @@ export default class SecurityConfig extends React.Component<
 
   public render() {
     const currentTab = this.state.currentTab;
-    const { readOnlyMode, isCodeSpaceAdminPage, projectName } = this.state;
-    const publishedSuffix = readOnlyMode && !isCodeSpaceAdminPage ? ' (Published)' : '';
+    const { readOnlyMode, projectName } = this.state;
+    const publishedSuffix = readOnlyMode ? ' (Published)' : '';
     const title = `${projectName} - Security config${publishedSuffix}`;
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
           <Caption title={title} />
-          {!isCodeSpaceAdminPage ? (
-            <div className={classNames(Styles.publishedConfig)}>
-              {this.state.isPublished && (
-                <button
-                  className={classNames('btn add-dataiku-container btn-primary', Styles.editOrViewMode)}
-                  type="button"
-                  onClick={this.navigateEditOrReadOnlyMode}
-                >
-                  {this.state.readOnlyMode ? (
-                    <>
-                      <i className="icon mbc-icon edit" />
-                      <span> Edit security config</span>
-                    </>
-                  ) : (
-                    <>
-                      <i className="icon mbc-icon visibility-show" />
-                      <span> View published security config</span>
-                    </>
-                  )}
-                </button>
+          <div className={classNames(Styles.publishedConfig)}>
+            <button
+              className={classNames('btn add-dataiku-container btn-primary', Styles.editOrViewMode)}
+              type="button"
+              onClick={this.navigateEditOrReadOnlyMode}
+            >
+              {this.state.readOnlyMode ? (
+                <>
+                  <i className="icon mbc-icon edit" />
+                  <span> Edit security config</span>
+                </>
+              ) : (
+                <>
+                  <i className="icon mbc-icon visibility-show" />
+                  <span> View published security config</span>
+                </>
               )}
-            </div>
-          ) : (
-            <></>
-          )}
+            </button>
+          </div>
           <div id="create-security-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
-                  {!isCodeSpaceAdminPage && (
-                    <li
-                      className={
-                        this.state.tabClassNames.has('Entitlement')
-                          ? this.state.tabClassNames.get('Entitlement')
-                          : 'tab active'
-                      }
-                    >
-                      <a href="#tab-content-1" id="entitlement" onClick={this.setCurrentTab}>
-                        Entitlement<sup>{!isCodeSpaceAdminPage ? '*' : ''}</sup>
-                      </a>
-                    </li>
-                  )}
                   <li
                     className={
-                      this.state.tabClassNames.has('Roles')
-                        ? this.state.tabClassNames.get('Roles')
-                        : isCodeSpaceAdminPage
-                        ? 'tab active'
-                        : 'tab disabled'
+                      this.state.tabClassNames.has('StagingEntitlement')
+                        ? this.state.tabClassNames.get('StagingEntitlement')
+                        : 'tab active'
                     }
                   >
-                    <a href="#tab-content-2" id="roles" onClick={this.setCurrentTab}>
-                      Roles<sup>{!isCodeSpaceAdminPage ? '*' : ''}</sup>
+                    <a href="#tab-content-1" id="stagingEntitlement" onClick={this.setCurrentTab}>
+                      Staging Entitlement
+                      <sup>*</sup>
                     </a>
                   </li>
                   <li
                     className={
-                      this.state.tabClassNames.has('RoleMappings')
-                        ? this.state.tabClassNames.get('RoleMappings')
+                      this.state.tabClassNames.has('ProductionEntitlement')
+                        ? this.state.tabClassNames.get('ProductionEntitlement')
                         : 'tab disabled'
                     }
                   >
-                    <a href="#tab-content-3" id="rolemapping" onClick={this.setCurrentTab}>
-                      User-Role Mappings<sup>{!isCodeSpaceAdminPage ? '*' : ''}</sup>
+                    <a href="#tab-content-2" id="productionEntitlement" onClick={this.setCurrentTab}>
+                      Production Entitlement
+                      <sup>*</sup>
                     </a>
                   </li>
                 </ul>
               </nav>
             </div>
             <div className="tabs-content-wrapper">
-              {!isCodeSpaceAdminPage && (
-                <div id="tab-content-1" className="tab-content">
+              <div id="tab-content-1" className="tab-content">
+                {currentTab === 'stagingEntitlement' && (
                   <Entitlement
                     onSaveDraft={this.onSaveDraft}
+                    onPublish={this.onPublish}
+                    env="int"
                     id={this.state.id}
                     config={this.state.config}
                     readOnlyMode={this.state.readOnlyMode}
-                    projectName={projectName}
-                    isCodeSpaceAdminPage={isCodeSpaceAdminPage}
-                  />
-                </div>
-              )}
-              <div id="tab-content-2" className="tab-content">
-                {currentTab === 'roles' && (
-                  <Roles
-                    config={this.state.config}
-                    user={this.props.user}
-                    onSaveDraft={this.onSaveDraft}
-                    id={this.state.id}
-                    readOnlyMode={this.state.readOnlyMode}
-                    isCodeSpaceAdminPage={isCodeSpaceAdminPage}
                     projectName={projectName}
                   />
                 )}
               </div>
-              <div id="tab-content-3" className="tab-content">
-                {currentTab === 'rolemapping' && (
-                  <RoleMapping
+
+              <div id="tab-content-2" className="tab-content">
+                {currentTab === 'productionEntitlement' && (
+                  <Entitlement
                     onSaveDraft={this.onSaveDraft}
+                    onPublish={this.onPublish}
+                    env="prod"
                     id={this.state.id}
                     config={this.state.config}
-                    onRequest={this.onRequest}
-                    onPublish={this.onPublish}
-                    onAccept={this.onAccept}
                     readOnlyMode={this.state.readOnlyMode}
-                    isCodeSpaceAdminPage={isCodeSpaceAdminPage}
+                    projectName={projectName}
                   />
                 )}
               </div>
             </div>
           </div>
           <ConfirmModal
-            title="Save Changes?"
-            acceptButtonTitle="Close"
+            title="Are you sure you want to Navigate ?"
+            acceptButtonTitle="Navigate"
             cancelButtonTitle="Cancel"
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.showAlertChangesModal}
-            content={
-              <div id="contentparentdiv">
-                Press &#187;Close&#171; to save your changes or press
-                <br />
-                &#187;Cancel&#171; to discard changes.
-              </div>
-            }
+            content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={this.onCancellingUpdateChanges}
             onAccept={this.onAcceptUpdateChanges}
           />
@@ -593,20 +419,19 @@ export default class SecurityConfig extends React.Component<
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.editModeNavigateModal}
-            content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            // content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
+            content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={() => {
               this.setState({
                 editModeNavigateModal: !this.state.editModeNavigateModal,
               });
             }}
             onAccept={() => {
-              history.push(
-                `/codespace/publishedSecurityconfig/${this.state.id}?pub=true&name=${this.state.projectName}`,
-              );
+              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}`);
             }}
           />
         </div>
-        {!isCodeSpaceAdminPage ? <div className={Styles.mandatoryInfo}>* mandatory fields</div> : <></>}
+        <div className={Styles.mandatoryInfo}>* mandatory fields</div>
       </React.Fragment>
     );
   }
