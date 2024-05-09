@@ -21,6 +21,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 
 @Component
@@ -301,6 +302,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
+		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
 		if(Objects.nonNull(prodDeploymentDetails)) {
@@ -431,7 +433,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
 		AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
 		AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
-		apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+
+		if(env!=null){
+			if("int".equalsIgnoreCase(env)){
+				if(securityConfig.getStaging().getPublished().getAppID()!=null)
+					apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
+			}
+			if("prod".equalsIgnoreCase(env)){
+				if(securityConfig.getProduction().getPublished().getAppID()!=null)
+					apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
+			}
+		}
+		// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
 		apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
 		apiAuthoriserPluginConfigVO.setLogType(logType);
 		apiAuthoriserPluginConfigVO.setPoolID(poolID);
