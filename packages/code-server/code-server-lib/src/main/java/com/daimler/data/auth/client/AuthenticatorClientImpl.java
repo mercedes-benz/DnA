@@ -524,11 +524,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 						if(intSecureIAM || prodSecureIAM) {
 								if(Objects.nonNull(clientID) &&Objects.nonNull(clientSecret)){
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
-										//deleting OIDC plugin if already available
+										//deleting OIDC  and Authorizer plugin if already available
 										GenericMessage deletePluginResponse = new GenericMessage();
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+										
 										//request for attaching ODIC plugin to authorize service with new client id and secret
 										AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
 										AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
