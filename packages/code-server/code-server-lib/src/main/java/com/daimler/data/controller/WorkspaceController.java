@@ -464,7 +464,7 @@ import lombok.extern.slf4j.Slf4j;
 						saveConfigResponse.setResponse(responseMessage);
 						saveConfigResponse.setData(data);
 						if("FAILED".equalsIgnoreCase(saveConfigResponse.getResponse().getSuccess())){
-							return new ResponseEntity<>(saveConfigResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+							return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 						}
 						return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 
@@ -480,6 +480,9 @@ import lombok.extern.slf4j.Slf4j;
 						responseMessage = service.saveSecurityConfig(vo,false,env);
 						saveConfigResponse.setResponse(responseMessage);
 						saveConfigResponse.setData(data);
+						if("FAILED".equalsIgnoreCase(saveConfigResponse.getResponse().getSuccess())){
+							return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+						}
 						return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 					}
 				// }
@@ -937,26 +940,26 @@ import lombok.extern.slf4j.Slf4j;
 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				}
 			 }
-			 if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
-					 && deployRequestDto.isSecureWithIAMRequired())
-					 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
-				 UserRequestVO userRequestVO = new UserRequestVO();
-				 com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
-				 com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
-				 userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-				 userRequestVO.setData(userInfoVO);
-				 userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
-				 if (Objects.nonNull(userInfoVOResponse) && Objects.isNull(userInfoVOResponse.getId())) {
-					 log.info(
-							 "Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",
-							 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-					 MessageDescription exceptionMsg = new MessageDescription(
-							 "Failed to onboard/fetch technical user, Please try again.");
-					 GenericMessage errorMessage = new GenericMessage();
-					 errorMessage.addErrors(exceptionMsg);
-					 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-				 }
-			 }
+			//  if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
+			// 		 && deployRequestDto.isSecureWithIAMRequired())
+			// 		 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
+			// 	 UserRequestVO userRequestVO = new UserRequestVO();
+			// 	 com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
+			// 	 com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
+			// 	 userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+			// 	 userRequestVO.setData(userInfoVO);
+			// 	 userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
+			// 	 if (Objects.nonNull(userInfoVOResponse) && Objects.isNull(userInfoVOResponse.getId())) {
+			// 		 log.info(
+			// 				 "Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",
+			// 				 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+			// 		 MessageDescription exceptionMsg = new MessageDescription(
+			// 				 "Failed to onboard/fetch technical user, Please try again.");
+			// 		 GenericMessage errorMessage = new GenericMessage();
+			// 		 errorMessage.addErrors(exceptionMsg);
+			// 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+			// 	 }
+			//  }
 			 if(deployRequestDto.isValutInjectorEnable()!=null)
 			 {              
 				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi"))
@@ -973,8 +976,7 @@ import lombok.extern.slf4j.Slf4j;
 				deployRequestDto.setValutInjectorEnable(false);
 			 }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),
-					 deployRequestDto.getTechnicalUserDetailsForIAMLogin(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
