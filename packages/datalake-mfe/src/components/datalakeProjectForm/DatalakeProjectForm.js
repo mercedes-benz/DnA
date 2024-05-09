@@ -42,7 +42,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
   const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0) : '');
   // const [statusValue, setStatusValue] = useState('');
   // const [statusError] = useState('');
-  const [table, setTable] = useState(edit && project?.data?.collabs !== null ? [project?.data?.collabs] : []);
+  const [table, setTable] = useState(edit && project && project.data && project.data.collabs !== null ? [...project.data.collabs] : []);
 
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   
@@ -72,7 +72,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
   }, []);
 
   useEffect(() => {
-    edit && setDatalakeSubDivision(project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0);
+        edit && setDatalakeSubDivision(project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0);
   }, [datalakeSubDivision, edit, project]);
 
   useEffect(() => {
@@ -172,7 +172,8 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
 
 
   const onProjCollabAdd =(collabs)=>{
-        setTable(collabs);
+    const newCollab = [collabs]
+    setTable(prevTable => [...prevTable, ...newCollab]);
   }
 
   return (
