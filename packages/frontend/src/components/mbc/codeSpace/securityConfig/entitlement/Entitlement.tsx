@@ -12,7 +12,7 @@ import Notification from '../../../../../assets/modules/uilab/js/src/notificatio
 import Modal from '../../../../../components/formElements/modal/Modal';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import EntitlementSubList from './EntitlementSubList';
-import Pagination from 'components/mbc/pagination/Pagination';
+// import Pagination from 'components/mbc/pagination/Pagination';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import EditOrCreateEntitlement from './EditOrCreateEntitlement';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -330,7 +330,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                     <input
                       type="text"
                       className="input-field"
-                      required={true}
+                      required={this.props.readOnlyMode ? false : true}
                       id="AppId"
                       maxLength={50}
                       placeholder="Type here"
@@ -341,7 +341,14 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                           : this.setState({ appId: e.target.value, appIdErrorMessage: '*Missing entry' });
                       }}
                       value={this.state.appId}
+                      readOnly={this.props.readOnlyMode}
                     />
+                    <p
+                    style={{ color: 'var(--color-orange)' }}
+                    className={classNames(this.state?.appId === this.props?.config?.appId || !this.props?.config?.appId ? ' hide' : '')}
+                  >
+                    <i className="icon mbc-icon alert circle"></i> Please redeploy with the new client id and client secret for the application id changes to be reflected. Note that the old credentials will be used until then.
+                  </p>
                     <span className={classNames('error-message', this.state?.appIdErrorMessage?.length ? '' : 'hide')}>
                       {this.state?.appIdErrorMessage}
                     </span>
@@ -380,14 +387,14 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                       env={this.props.env}
                     />
                   </div>
-                  <Pagination
+                  {/* <Pagination
                     totalPages={this.state.totalNumberOfPages}
                     pageNumber={this.state.currentPageNumber}
                     onPreviousClick={this.onPaginationPreviousClick}
                     onNextClick={this.onPaginationNextClick}
                     onViewByNumbers={this.onViewByPageNum}
                     displayByPage={true}
-                  />
+                  /> */}
                 </>
               ) : (
                 <div className={classNames('no-data', Styles.noData)}> No Entitlements found</div>
@@ -447,7 +454,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
             onCancel={this.editCreateEditEntitlementModal}
           />
         )}
-        {
+        {!this.props.readOnlyMode && (
           <div className="btnConatiner">
             <div className="btn-set">
               <button className="btn btn-primary" type="button" onClick={this.onEntitlementSubmit}>
@@ -462,7 +469,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
               </button>
             </div>
           </div>
-        }
+        )}
       </React.Fragment>
     );
   }

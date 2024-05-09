@@ -6,6 +6,7 @@ import {
   regionalDateAndTimeConversionSolution,
   buildLogViewURL,
   buildGitJobLogViewURL,
+  buildGitUrl,
 } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import Modal from 'components/formElements/modal/Modal';
@@ -271,12 +272,12 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div
             className={classNames(
               Styles.cardHeadInfo,
-              deleteInProgress || createInProgress || creationFailed ? Styles.disable : null,
+              deleteInProgress || createInProgress || creationFailed || !serverStarted ? Styles.disable : null,
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
               <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
-              {!enableOnboard && !creationFailed && (
+              {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
                   tooltip-data="Open workspace in new tab"
@@ -317,6 +318,14 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         Deploy Code
                       </span>
                     </li>
+                    {projectDetails?.gitRepoName && (
+                      <li>
+                        <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
+                          Goto code repo
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
                     <li>
                       <hr />
                     </li>
@@ -697,7 +706,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         <div className={Styles.cardFooter}>
           {enableOnboard ? (
             <div>
-              <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>
+              <span onClick={onCardNameClick} className={classNames(Styles.statusIndicator, Styles.colloboration)}>
                 Collaboration Requested...
               </span>
             </div>
@@ -705,7 +714,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             <>
               <div>
                 {!createInProgress && !creationFailed && (
-                  <span onClick={() => props.onStartStopCodeSpace(codeSpace)} tooltip-data={((serverStarted ? "Stop" : "Start") + " the Codespace")} className={classNames(Styles.statusIndicator, Styles.wsStartStop, serverStarted ? Styles.wsStarted : '')}>
+                  <span
+                    onClick={() => props.onStartStopCodeSpace(codeSpace)}
+                    tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
+                    className={classNames(
+                      Styles.statusIndicator,
+                      Styles.wsStartStop,
+                      serverStarted ? Styles.wsStarted : '',
+                    )}
+                  >
                     {serverStarted ? 'Stop' : 'Start'}
                   </span>
                 )}
@@ -760,6 +777,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
+                  isAPIRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />

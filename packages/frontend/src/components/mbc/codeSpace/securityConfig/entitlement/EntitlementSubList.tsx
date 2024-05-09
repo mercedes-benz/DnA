@@ -152,7 +152,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                                 ? item?.name?.map((chip: any) => {
                                     return (
                                       <>
-                                        <label className="chips">{chip}</label>&nbsp;&nbsp;
+                                        <label className="chips read-only">{chip}</label>&nbsp;&nbsp;
                                       </>
                                     );
                                   })

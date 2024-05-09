@@ -68,11 +68,35 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 	@Transactional
 	public List<FabricWorkspaceVO> getAll( int limit,  int offset, String user) {
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
 		List<FabricWorkspaceNsql> entities = customRepo.getAll(user, offset, limit);
-		if (entities != null && !entities.isEmpty())
-			return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
-		else
-			return new ArrayList<>();
+		if (entities != null && !entities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : entities) {
+				try {
+					String id = entity.getId();
+					log.info("Fetched fabric project record from db successfully for id {} ", id);
+					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+					if(dtoFromFabric!=null) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+								jpaRepo.deleteById(id);
+								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+						}else {
+							entity.getData().setName(dtoFromFabric.getDisplayName());
+							entity.getData().setDescription(dtoFromFabric.getDescription());
+							jpaRepo.save(entity);
+							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+							vos.add(updatedVO);
+						}
+					}
+				}catch(Exception e) {
+					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+		return vos;
 	}
 
 	@Override
@@ -87,7 +111,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		log.info("Fetched fabric project record from db successfully for id {} ", id);
 		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
 		if(dtoFromFabric!=null) {
-			if(dtoFromFabric.getErrorCode()!=null && "WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode())) {
+			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
 				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
 				try{
 					jpaRepo.deleteById(id);
