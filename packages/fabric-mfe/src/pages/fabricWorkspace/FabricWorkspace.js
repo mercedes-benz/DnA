@@ -34,7 +34,7 @@ const FabricWorkspace = () => {
           ProgressIndicator.hide();
           setLoading(false);
           if(e?.response?.status === 403) {
-            Notification.show('Access denied', 'alert');
+            Notification.show('Unauthorized to view this page or not found', 'alert');
             history.push(`/`);
           } else {
             Notification.show(

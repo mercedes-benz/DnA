@@ -187,20 +187,15 @@ const FabricWorkspaces = (props) => {
       { createWorkspace &&
         <Modal
           title={'Create Fabric Workspace'}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'60%'}
+          modalWidth={'800px'}
           buttonAlignment="right"
           show={createWorkspace}
           content={<FabricWorkspaceForm edit={false} onSave={() => {setCreateWorkspace(false); getWorkspaces();}} />}
           scrollableContent={true}
           onCancel={() => setCreateWorkspace(false)}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
         />
       }
     </>
