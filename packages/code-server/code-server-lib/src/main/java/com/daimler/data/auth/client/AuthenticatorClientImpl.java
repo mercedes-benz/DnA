@@ -21,6 +21,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 
 @Component
@@ -44,7 +45,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private String clientId;
 	
 	@Value("${kong.clientSecret}")
-	private String clientSecret;
+	private String clientSec;
 	
 	@Value("${kong.discovery}")
 	private String discovery;
@@ -301,6 +302,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
+		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
 		if(Objects.nonNull(prodDeploymentDetails)) {
@@ -383,7 +385,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
-		attachPluginConfigVO.setClient_secret(clientSecret);
+		attachPluginConfigVO.setClient_secret(clientSec);
 		attachPluginConfigVO.setDiscovery(discovery);
 		attachPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
 		attachPluginConfigVO.setIntrospection_endpoint_auth_method(introspectionEndpointAuthMethod);
@@ -431,7 +433,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
 		AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
 		AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
-		apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+
+		if(env!=null){
+			if("int".equalsIgnoreCase(env)){
+				if(securityConfig.getStaging().getPublished().getAppID()!=null)
+					apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
+			}
+			if("prod".equalsIgnoreCase(env)){
+				if(securityConfig.getProduction().getPublished().getAppID()!=null)
+					apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
+			}
+		}
+		// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
 		apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
 		apiAuthoriserPluginConfigVO.setLogType(logType);
 		apiAuthoriserPluginConfigVO.setPoolID(poolID);
@@ -493,7 +506,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
 				}
 				else {
@@ -507,61 +520,69 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					// 	LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 					// 	attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 					// }else {
-					if(intSecureIAM || prodSecureIAM) {
-						if(Objects.nonNull(clientID)&&Objects.nonNull(clientSecret)){
-							//deleting OIDC plugin if already available
+					if(apiRecipe){
+						if(intSecureIAM || prodSecureIAM) {
+								if(Objects.nonNull(clientID) &&Objects.nonNull(clientSecret)){
+									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
+										//deleting OIDC  and Authorizer plugin if already available
+										GenericMessage deletePluginResponse = new GenericMessage();
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+										
+										//request for attaching ODIC plugin to authorize service with new client id and secret
+										AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
+										AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
+										AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
+
+										attachOIDCPluginVO.setName(OIDC_PLUGIN);
+
+										String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
+										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+
+										attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
+										attachOIDCPluginConfigVO.setClient_id(clientID);
+										attachOIDCPluginConfigVO.setClient_secret(clientSecret);
+										attachOIDCPluginConfigVO.setDiscovery(discovery);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
+										attachOIDCPluginConfigVO.setLogout_path(logoutPath);
+										attachOIDCPluginConfigVO.setRealm(realm);
+										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(redirectAfterLogoutUri);
+										attachOIDCPluginConfigVO.setRedirect_uri(authRedirectUri);
+										attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
+										attachOIDCPluginConfigVO.setResponse_type(responseType);
+										attachOIDCPluginConfigVO.setScope(authoriserScope);
+										attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
+										attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+										attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
+										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+
+										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
+										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
+										attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+									}
+								}
+							
+							// attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
+							// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						}else{
+							
 							GenericMessage deletePluginResponse = new GenericMessage();
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							//request for attaching ODIC plugin to authorize service with new client id and secret
-							AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
-							AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
-							AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
-
-							attachOIDCPluginVO.setName(OIDC_PLUGIN);
-
-							String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
-							String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
-
-							attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
-							attachOIDCPluginConfigVO.setClient_id(clientID);
-							attachOIDCPluginConfigVO.setClient_secret(clientSecret);
-							attachOIDCPluginConfigVO.setDiscovery(discovery);
-							attachOIDCPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
-							attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
-							attachOIDCPluginConfigVO.setLogout_path(logoutPath);
-							attachOIDCPluginConfigVO.setRealm(realm);
-							attachOIDCPluginConfigVO.setRedirect_after_logout_uri(redirectAfterLogoutUri);
-							attachOIDCPluginConfigVO.setRedirect_uri(authRedirectUri);
-							attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
-							attachOIDCPluginConfigVO.setResponse_type(responseType);
-							attachOIDCPluginConfigVO.setScope(authoriserScope);
-							attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
-							attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
-							attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
-							attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
-							attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
-
-							LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
-							attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-							LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
-							attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
 						}
-						
-						// attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
-						// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-					}else{
-						
-						GenericMessage deletePluginResponse = new GenericMessage();
-						deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
-						LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-						deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-						deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
-						LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-						deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+						// }
 					}
-					// }
 					
 				}
 			}
@@ -595,8 +616,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					createRouteResponse.getErrors(), createRouteResponse.getWarnings());
 			LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachPluginResponse.getSuccess(),
 					attachPluginResponse.getErrors(), attachPluginResponse.getWarnings());
-			LOGGER.info("kong attach jwtissuer plugin to service status is: {} and errors if any: {}, warnings if any:", attachJwtPluginResponse.getSuccess(),
-					attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
+			// LOGGER.info("kong attach jwtissuer plugin to service status is: {} and errors if any: {}, warnings if any:", attachJwtPluginResponse.getSuccess(),
+			// 		attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
 		}
 
 	}

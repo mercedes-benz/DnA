@@ -266,11 +266,12 @@ export default class SecurityConfig extends React.Component<
     CodeSpaceApiClient.createOrUpdateCodeSpaceConfig(this.state.id, data, env)
       .then((response: any) => {
         if (response) {
-          if (response?.response?.success === 'SUCCESS') {
-            this.setState({
-              config: response?.data,
-            });
-          }
+          // if (response?.response?.success === 'SUCCESS') {
+          //   this.setState({
+          //     config: response?.data,
+          //   });
+            this.getConfig(this.state.id, env);
+          // }
           Notification.show('Saved successfully.');
 
           if (callPublishApi) {

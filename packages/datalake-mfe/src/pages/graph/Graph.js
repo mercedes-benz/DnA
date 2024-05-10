@@ -36,7 +36,8 @@ const Graph = ({user, hostHistory}) => {
         project,
         isLoading,
     } = useSelector(state => state.graph);
-
+    const [hasWritePermission, setHasWritePermission] = useState(true);
+    
     const methods = useForm();
     const {
       register,
@@ -45,7 +46,7 @@ const Graph = ({user, hostHistory}) => {
     } = methods;
 
     const isOwner = user.id === project?.createdBy?.id;
-
+    
     useEffect(() => {
         dispatch(getProjectDetails(id));
     }, [id, dispatch]);
@@ -82,6 +83,10 @@ const Graph = ({user, hostHistory}) => {
     useEffect (()=>{
       setHasTable(project.tables.length > 0 );
       setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
+      if(!isOwner && project?.collabs?.length > 0){
+        const hasPermission = project?.collabs?.some(collab => collab.collaborator.id === user.id && collab.hasWritePermission);
+        setHasWritePermission(hasPermission);
+      }
     },[project])
 
     /* A callback function that is used to update the viewbox of the svg. */
@@ -591,7 +596,7 @@ const Graph = ({user, hostHistory}) => {
                    )}
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, (!hasWritePermission) && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setToggleModal(!toggleModal)}}
                         >
@@ -631,6 +636,7 @@ const Graph = ({user, hostHistory}) => {
                             onEditColumn={handleEditColumn}
                             onEditTable={handleEditTable}
                             isOwner={isOwner}
+                            hasWritePermission={hasWritePermission}
                         />
                     </>
                 );
@@ -716,7 +722,7 @@ setUploadFile({});
         modalWidth={'60%'}
         buttonAlignment="right"
         show={showCollabModal}
-        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} user={user} />}
+        content={<TableCollaborators edit={false} table={table} isProjectLevelCollab ={false} onSave={() => setShowCollabModal(false)} user={user} />}
         scrollableContent={false}
         onCancel={() => setShowCollabModal(false)}
         modalStyle={{

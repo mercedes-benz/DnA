@@ -10,11 +10,12 @@ import Tags from 'dna-container/Tags';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
 // Api
 import { hostServer } from '../../server/api';
 import { datalakeApi } from '../../apis/datalake.api';
 
-const DatalakeProjectForm = ({project, edit, onSave}) => {
+const DatalakeProjectForm = ({project, edit, onSave, user}) => {
   let history = useHistory();
   
   const methods = useForm();
@@ -41,6 +42,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0) : '');
   // const [statusValue, setStatusValue] = useState('');
   // const [statusError] = useState('');
+  const [table, setTable] = useState(edit && project && project.data && project.data.collabs !== null ? [...project.data.collabs] : []);
 
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   
@@ -70,7 +72,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   }, []);
 
   useEffect(() => {
-    edit && setDatalakeSubDivision(project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0);
+        edit && setDatalakeSubDivision(project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0);
   }, [datalakeSubDivision, edit, project]);
 
   useEffect(() => {
@@ -121,6 +123,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
     subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
     subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+    collabs: table,
     department: departmentName[0],
     status: '',
     classificationType: values.dataClassification,
@@ -139,7 +142,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     });
   };
   const handleEditProject = (values) => {
-      const data = {
+    const data = {
       projectName: project?.data?.projectName,
       connectorType: project?.data?.connectorType,
       description: values.description,
@@ -147,6 +150,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
       subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
       subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+      collabs: table,
       department: departmentName[0],
       status: '',
       classificationType: values.dataClassification,
@@ -165,7 +169,13 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       );
     });
   };
-  
+
+
+  const onProjCollabAdd =(collabs)=>{
+    const newCollab = [collabs]
+    setTable(prevTable => [...prevTable, ...newCollab]);
+  }
+
   return (
     <>
       <FormProvider {...methods}>
@@ -492,6 +502,13 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   </div>
                 </div>
               </div>
+              <label className="input-label">Find and add the collaborators you want to your project (Optional)</label>
+              <div className={Styles.collabratorSection}>
+                <div className={Styles.collabratorSelectionModel}>
+                  <TableCollaborators edit={edit} table={table}  user={user} isProjectLevelCollab ={true} onProjCollabAdd = {onProjCollabAdd}/>
+                </div>
+              </div>
+              
             </div>
             <div className={Styles.btnContainer}>
               <button

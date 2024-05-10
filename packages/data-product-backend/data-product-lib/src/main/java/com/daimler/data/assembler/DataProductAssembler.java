@@ -43,8 +43,9 @@ import com.daimler.data.dto.dataproduct.SubdivisionVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
-import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
 import com.daimler.data.dto.tag.TagVO;
+import com.daimler.data.dto.userinfo.dashboard.dataProduct.DataProductTeamLov;
+import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
 
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
@@ -58,8 +59,8 @@ import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public class DataProductAssembler implements GenericAssembler<DataProductVO, DataProductNsql> {
@@ -868,5 +869,22 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		datatransferConsumerData.getConsumerInformation().setOpenSegments(List.copyOf(openSegmentsEnumList));
 
 		return dataTransferConsumerRequestVO;
+	}
+
+	public DataProductLovVO dtoToVo(DataProductTeamLov n)
+	 {
+		DataProductLovVO lov = new DataProductLovVO();
+		DataProductLovVO member = null;
+		 if(n!=null)
+		 {
+			 BeanUtils.copyProperties(n, lov);
+			 member = new DataProductLovVO();
+			 if(n.getMember()!=null)
+			 {
+				 lov.setTeamMemeber(this.toTeamMemberVO(n.getMember()));
+			 }
+		 }
+		 return lov;
+ 
 	}
 }

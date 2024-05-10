@@ -31,6 +31,16 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
     setShowConnectionModel(false)
   }
 
+   const isOwner = user.id === graph?.createdBy?.id;
+   const [hasWritePermission, setHasWritePermission] = useState(true);
+
+  useEffect(() =>{
+    if(!isOwner && graph?.collabs.length > 0){
+      const hasPermission = graph?.collabs?.some((collab)=> (collab.collaborator.id === user.id && collab.hasWritePermission));
+      setHasWritePermission(hasPermission);
+    }
+  },[graph])
+
   // delete project
   // const handleDeleteProject = () => {
   //   setShowDeleteModal(false);
@@ -83,11 +93,11 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide")} onClick={() => setEditProject(true)}>
+            <button className={classNames("btn btn-primary",hasWritePermission ? "" :"hide")} onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
-            <button className={classNames("btn btn-primary", Styles.btnDisabled)}>
+            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide", Styles.btnDisabled)}>
               <i className="icon delete"></i>
               <span tooltip-data={'Coming Soon'}>Delete</span>
             </button>
@@ -106,7 +116,7 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} user={user} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{

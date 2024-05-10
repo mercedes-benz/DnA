@@ -46,4 +46,8 @@ public class FilterPreferences implements Serializable {
     private List<WidgetUserPlatform> platform;
     private List<String> productOwner;
     private List<WidgetUserAgileReleaseTrain> agileReleaseTrain;
+    private List<String> dataSteward;
+    private List<String> informationOwner;
+    private List<String> department;
+    private List<WidgetPreferenceDivision> divisions;
 }

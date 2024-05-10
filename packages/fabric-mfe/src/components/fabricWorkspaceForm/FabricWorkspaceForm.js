@@ -240,7 +240,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   return (
     <>
       <FormProvider {...methods}>
-        <div className={classNames(Styles.content, 'mbc-scroll')}>
+        <div className={classNames(Styles.content)}>
           <div className={Styles.formGroup}>
             <div className={Styles.flexLayout}>
               <div
@@ -286,11 +286,11 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     id="workspaceName"
                     placeholder="Type here"
                     autoComplete="off"
-                    maxLength={55}
+                    maxLength={256}
                     defaultValue={nameOfWorkspace}
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-zA-Z0-9-. ]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                   />
-                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of uppercase, lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                 </div>
               </div>
             </div>
@@ -349,6 +349,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
 
+              {typeOfProject !== 'Playground' &&
               <div className={Styles.flexLayout} >
                 <div className={classNames(Styles.bucketNameInputField, 'input-field-group')}>
                   <div>
@@ -385,7 +386,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div>}
 
               <div className={Styles.flexLayout}>
                 <div
@@ -498,6 +499,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   </div>
                 </div>
                 <div>
+                {typeOfProject !== 'Playground' &&
                   <div
                     className={classNames(
                       Styles.bucketNameInputField,
@@ -524,7 +526,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
 
                       </div>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               </div>
             </div>
@@ -607,6 +609,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
             </div>
+            {typeOfProject !== 'Playground' &&
             <div>
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
@@ -646,7 +649,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>}
             <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
               <div className={Styles.termsOfUseContent}>
                 <div>

@@ -272,12 +272,12 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div
             className={classNames(
               Styles.cardHeadInfo,
-              deleteInProgress || createInProgress || creationFailed ? Styles.disable : null,
+              deleteInProgress || createInProgress || creationFailed || !serverStarted ? Styles.disable : null,
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
               <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
-              {!enableOnboard && !creationFailed && (
+              {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
                   tooltip-data="Open workspace in new tab"
@@ -706,7 +706,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         <div className={Styles.cardFooter}>
           {enableOnboard ? (
             <div>
-              <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>
+              <span onClick={onCardNameClick} className={classNames(Styles.statusIndicator, Styles.colloboration)}>
                 Collaboration Requested...
               </span>
             </div>
