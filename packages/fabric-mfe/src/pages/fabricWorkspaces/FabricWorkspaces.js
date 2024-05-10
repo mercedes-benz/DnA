@@ -45,7 +45,6 @@ const FabricWorkspaces = (props) => {
     setMaxItemsPerPage(pageNum);
   };
 
-
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
     const currentPageNumberTemp = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
@@ -167,7 +166,16 @@ const FabricWorkspaces = (props) => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <Workspaces isCardView={cardViewMode} user={props.user} workspaces={workspaces} callWorkspaces={getWorkspaces} onCreateWorkspace={(val) => setCreateWorkspace(val)} />
+                  {workspaces?.length ? 
+                    <Workspaces 
+                      isCardView={cardViewMode} 
+                      user={props.user} 
+                      workspaces={workspaces} 
+                      callWorkspaces={getWorkspaces} 
+                      onCreateWorkspace={(val) => setCreateWorkspace(val)} 
+                    /> 
+                    : null
+                  }
                   {workspaces?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
