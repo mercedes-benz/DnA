@@ -903,7 +903,7 @@ public class BaseStorageService implements StorageService {
 	 	LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
 
 		 // To delete bucket cascade.
-		 MinioGenericResponse minioObjectResponse = dnaMinioClient.deleteBucketCascade(currentUser, bucketName);
+		 MinioGenericResponse minioObjectResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
 
 	 	 if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 	 	 	LOGGER.info("Success from minio remove bucket.");
