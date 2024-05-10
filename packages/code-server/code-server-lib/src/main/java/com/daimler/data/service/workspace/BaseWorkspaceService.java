@@ -1869,4 +1869,85 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return responseMessage;
 	}
 
+	@Override
+	public GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try
+		{
+			CodeServerWorkspace workspace = vo.getData();
+			String repoName = "";
+			String repoNameWithOrg = "";
+			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
+			if(workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")
+			|| workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("bat")) {
+				repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+				repoNameWithOrg =  workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			else {
+				repoName = workspace.getProjectDetails().getGitRepoName();
+				String repoUrl = gitOrgUri + gitOrgName + "/" + repoName;
+			}
+				ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
+				WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
+				ownerWorkbenchCreateInputsDto.setStorage_capacity("4Gi");
+				ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
+				ownerWorkbenchCreateInputsDto.setMem_limit("4000M");
+				ownerWorkbenchCreateInputsDto.setCpu_limit(2);
+				ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+				ownerWorkbenchCreateInputsDto.setProfile(workspace.getProjectDetails().getRecipeDetails().getRecipeId());
+				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
+				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
+				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
+				ownerWorkbenchCreateInputsDto.setType(
+						client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
+				ownerWorkbenchCreateInputsDto.setWsid(workspace.getWorkspaceId());
+				ownerWorkbenchCreateInputsDto.setResource(workspace.getProjectDetails().getRecipeDetails().getResource());
+				ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+				String codespaceName = workspace.getProjectDetails().getProjectName();
+				String ownerwsid = workspace.getWorkspaceId();
+				GenericMessage createOwnerWSResponse = client.toMoveExistingtoJupyterhub(ownerWorkbenchCreateDto,codespaceName);
+				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
+				(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
+				(createOwnerWSResponse.getWarnings() != null
+						&& !createOwnerWSResponse.getWarnings().isEmpty())) {
+				responseMessage.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription("Failed to create workspace.");
+				errors.add(errMsg);
+				errors.addAll(createOwnerWSResponse.getErrors());
+				warnings.addAll(createOwnerWSResponse.getWarnings());
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+				}
+				workspace.setStatus(ConstantsUtility.CREATEDSTATE);//added
+				String recipeId = workspace.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+				String projectOwnerId = workspace.getWorkspaceOwner().getId();
+					String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+					workspace.setWorkspaceUrl(workspaceUrl);
+				workspace.setServerStatus("SERVER_STOPPED");
+				vo.setData(workspace);
+				jpaRepo.save(vo);
+				MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+				errors.add(errMsg);
+				errors.addAll(createOwnerWSResponse.getErrors());
+				warnings.addAll(createOwnerWSResponse.getWarnings());
+				responseMessage.setSuccess("SUCCESS");
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+		}
+		catch(Exception e)
+		{
+			MessageDescription errMsg = new MessageDescription(
+					"Failed with exception {}. Please delete repository manually if created and retry create workspaces");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+	}
+
 }

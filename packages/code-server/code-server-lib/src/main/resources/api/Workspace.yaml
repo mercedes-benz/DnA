@@ -683,6 +683,38 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/migrate:
+    patch:
+      tags:
+        - "code-server"
+      summary: "Initialize/Create Workbench for user in code-server."
+      description: "Create workspace for user in code-server with given password"
+      operationId: "updateExistingWorkspace"
+      parameters:
+        - name: "codeServerMigrateVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/CodeServerWorkspaceVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/transparency:
     get:
       tags:
