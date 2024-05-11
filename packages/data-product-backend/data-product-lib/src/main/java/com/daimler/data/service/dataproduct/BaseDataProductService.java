@@ -193,6 +193,15 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		}
 	}
 
+	public List<DataProductLovVO> getProductOwnerLov()
+	{
+		List<DataProductTeamLov> listOfMembs = dataProductCustomRepository.getAllProductOwnerLov();
+		if (!ObjectUtils.isEmpty(listOfMembs)){
+			List<DataProductLovVO> finalData = listOfMembs.stream().map(n -> dataProductAssembler.dtoToVo(n)).collect(Collectors.toList());
+			return finalData;	
+		}else{
+			return new ArrayList<>();
+		}
 
-
+	}
 }
