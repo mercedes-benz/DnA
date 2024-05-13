@@ -14,6 +14,7 @@ const getInjectedEnv = (key) => {
   
   export const Envs = {
     CODE_SPACE_API_BASEURL: getInjectedEnv('CODE_SPACE_API_BASEURL') || process.env.CODE_SPACE_API_BASEURL,
+    API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
     CODE_SPACE_GIT_PAT_APP_URL: getInjectedEnv('CODE_SPACE_GIT_PAT_APP_URL') || process.env.CODE_SPACE_GIT_PAT_APP_URL,
     CODE_SPACE_GIT_ORG_NAME: getDNAInjectedEnv('CODE_SPACE_GIT_ORG_NAME') || process.env.CODE_SPACE_GIT_ORG_NAME,
     CODESPACE_OPENSEARCH_LOGS_URL: getDNAInjectedEnv('CODESPACE_OPENSEARCH_LOGS_URL') || process.env.CODESPACE_OPENSEARCH_LOGS_URL,
