@@ -165,6 +165,6 @@ export const dataSlice = createSlice({
   },
 });
 
-export const { setPagination, setDataProductList, setSelectedDataProduct, setDivisionList, setFilterQueryParams } =
+export const { setPagination, setDataProductList, setSelectedDataProduct, setDivisionList, setFilterQueryParams, resetDataTransferList } =
   dataSlice.actions;
 export default dataSlice.reducer;
