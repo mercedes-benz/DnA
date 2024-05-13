@@ -64,21 +64,24 @@ const FabricWorkspaces = (props) => {
       fabricApi
         .getFabricWorkspaces(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          const sortedWorkspaces = res?.data?.records.sort((x, y) => {
-              let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
-              if (fx < fy) {
-                  return -1;
-              }
-              if (fx > fy) {
-                  return 1;
-              }
-              return 0;
-          });
-          setWorkspaces(sortedWorkspaces);
-          const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
-          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
-          setTotalNumberOfPages(totalNumberOfPagesTemp);
-          
+          if(res.status !== 204) {
+            const sortedWorkspaces = res?.data?.records.sort((x, y) => {
+                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+                if (fx < fy) {
+                    return -1;
+                }
+                if (fx > fy) {
+                    return 1;
+                }
+                return 0;
+            });
+            setWorkspaces(sortedWorkspaces);
+            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+            setTotalNumberOfPages(totalNumberOfPagesTemp);
+          } else {
+            setWorkspaces([]);
+          }
           ProgressIndicator.hide();
         })
         .catch((e) => {
