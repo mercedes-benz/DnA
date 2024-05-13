@@ -720,7 +720,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 					client.toDeployType(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
 			ownerWorkbenchCreateInputsDto.setWsid(ownerwsid);
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
-			System.out.println(ownerWorkbenchCreateInputsDto);
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			String codespaceName = vo.getProjectDetails().getProjectName();
 			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
