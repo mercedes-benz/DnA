@@ -32,6 +32,8 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 
@@ -87,4 +89,6 @@ public interface WorkspaceService {
 	GenericMessage startServer(String userId,String wsId);
 
     GenericMessage stopServer(CodeServerWorkspaceVO vo);
+
+    GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo);
 }

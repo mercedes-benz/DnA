@@ -1999,4 +1999,43 @@ import lombok.extern.slf4j.Slf4j;
 			}
 		}
 
+	@Override
+	@ApiOperation(value = "Initialize/Create Workbench for user in code-server.", nickname = "createWorkspace_0", notes = "Create workspace for user in code-server with given password", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/migrate",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> updateExistingWorkspace(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody CodeServerWorkspaceVO codeServerMigrateVO)
+	{
+		GenericMessage response = new GenericMessage();
+		String userId = codeServerMigrateVO.getWorkspaceOwner().getId();
+		String projectName= codeServerMigrateVO.getProjectDetails().getProjectName();
+		CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findbyProjectName(userId,projectName);
+		if(entity!=null && Objects.nonNull(entity))
+		{
+			response = service.moveExistingWorkspace(entity);
+		}
+		else
+		{
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+		return null;
+	}
+
  }

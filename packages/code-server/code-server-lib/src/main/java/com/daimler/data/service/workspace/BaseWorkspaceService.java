@@ -463,11 +463,25 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
-			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
-			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
-			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
-			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
-			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
+			String[] parts = resource.split(",");
+			int diskSpaceGi = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+			int minRamMi = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
+			int minCpu = Integer.parseInt(parts[2].replaceAll("[^0-9]", ""));
+			int maxRamMi = Integer.parseInt(parts[3].replaceAll("[^0-9]", ""));
+			int maxCpu = Integer.parseInt(parts[4].replaceAll("[^0-9]", ""));
+
+			int diskSpace = diskSpaceGi;
+			String memGuarantee = minRamMi + "M";
+			String memLimit = maxRamMi + "M";
+			double cpuLimit = maxCpu / 1000.0; 
+			double cpuGuarantee = minCpu / 1000.0; 
+			// Set the values in the DTO
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(diskSpace + "Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(memGuarantee);
+			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
@@ -665,11 +679,25 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
-			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
-			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
-			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
-			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
-			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			String resource = ownerEntity.getData().getProjectDetails().getRecipeDetails().getResource() ;
+			String[] parts = resource.split(",");
+			int diskSpaceGi = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+			int minRamMi = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
+			int minCpu = Integer.parseInt(parts[2].replaceAll("[^0-9]", ""));
+			int maxRamMi = Integer.parseInt(parts[3].replaceAll("[^0-9]", ""));
+			int maxCpu = Integer.parseInt(parts[4].replaceAll("[^0-9]", ""));
+
+			int diskSpace = diskSpaceGi;
+			String memGuarantee = minRamMi + "M";
+			String memLimit = maxRamMi + "M";
+			double cpuLimit = maxCpu / 1000.0; // Convert to decimal
+			double cpuGuarantee = minCpu / 1000.0; // Convert to decimal
+			// Set the values in the DTO
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(diskSpace + "Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(memGuarantee);
+			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
@@ -1867,6 +1895,87 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setErrors(errors);
 		}
 		return responseMessage;
+	}
+
+	@Override
+	public GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try
+		{
+			CodeServerWorkspace workspace = vo.getData();
+			String repoName = "";
+			String repoNameWithOrg = "";
+			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
+			if(workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")
+			|| workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("bat")) {
+				repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+				repoNameWithOrg =  workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			else {
+				repoName = workspace.getProjectDetails().getGitRepoName();
+				String repoUrl = gitOrgUri + gitOrgName + "/" + repoName;
+			}
+				ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
+				WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
+				ownerWorkbenchCreateInputsDto.setStorage_capacity("4Gi");
+				ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
+				ownerWorkbenchCreateInputsDto.setMem_limit("4000M");
+				ownerWorkbenchCreateInputsDto.setCpu_limit(2);
+				ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+				ownerWorkbenchCreateInputsDto.setProfile(workspace.getProjectDetails().getRecipeDetails().getRecipeId());
+				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
+				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
+				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
+				ownerWorkbenchCreateInputsDto.setType(
+						client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
+				ownerWorkbenchCreateInputsDto.setWsid(workspace.getWorkspaceId());
+				ownerWorkbenchCreateInputsDto.setResource(workspace.getProjectDetails().getRecipeDetails().getResource());
+				ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+				String codespaceName = workspace.getProjectDetails().getProjectName();
+				String ownerwsid = workspace.getWorkspaceId();
+				GenericMessage createOwnerWSResponse = client.toMoveExistingtoJupyterhub(ownerWorkbenchCreateDto,codespaceName);
+				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
+				(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
+				(createOwnerWSResponse.getWarnings() != null
+						&& !createOwnerWSResponse.getWarnings().isEmpty())) {
+				responseMessage.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription("Failed to create workspace.");
+				errors.add(errMsg);
+				errors.addAll(createOwnerWSResponse.getErrors());
+				warnings.addAll(createOwnerWSResponse.getWarnings());
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+				}
+				workspace.setStatus(ConstantsUtility.CREATEDSTATE);//added
+				String recipeId = workspace.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+				String projectOwnerId = workspace.getWorkspaceOwner().getId();
+					String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+					workspace.setWorkspaceUrl(workspaceUrl);
+				workspace.setServerStatus("SERVER_STOPPED");
+				vo.setData(workspace);
+				jpaRepo.save(vo);
+				MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+				errors.add(errMsg);
+				errors.addAll(createOwnerWSResponse.getErrors());
+				warnings.addAll(createOwnerWSResponse.getWarnings());
+				responseMessage.setSuccess("SUCCESS");
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+		}
+		catch(Exception e)
+		{
+			MessageDescription errMsg = new MessageDescription(
+					"Failed with exception {}. Please delete repository manually if created and retry create workspaces");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
 	}
 
 }

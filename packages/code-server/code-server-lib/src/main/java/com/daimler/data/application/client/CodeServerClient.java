@@ -235,9 +235,8 @@ public class CodeServerClient {
 	private boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
-			String repoUrl = codeserverGitOrgUri + codeServerGitOrgName + "/" + codespaceName;
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
-					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + repoUrl
+					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 					+ "\",\"GITHUB_TOKEN\" : \"" + manageDto.getInputs().getPat() + "\",\"SHORTID\" : \""
 					+ manageDto.getInputs().getShortid().toLowerCase()
 					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"\""
@@ -501,6 +500,70 @@ public class CodeServerClient {
 			log.info("Failed while getting all codeserver status details" + e.getMessage());
 		}
 		return null;
+	}
+
+	public GenericMessage toMoveExistingtoJupyterhub(WorkbenchManageDto manageDto, String codespaceName) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		String userId = manageDto.getInputs().getShortid().toLowerCase();
+		try {
+			boolean isUserCreated = isUserPresent(userId)
+					|| createUser(userId, manageDto.getInputs().getIsCollaborator());
+
+			if (isUserCreated) {
+				boolean isCreateServerStatus = createServerforExisting(manageDto, codespaceName);
+				if (isCreateServerStatus) {
+					status = "SUCCESS";
+				} else {
+					LOGGER.info(
+							"Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
+							manageDto.getInputs().getAction(), userId);
+					MessageDescription warning = new MessageDescription();
+					warnings.add(warning);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(
+					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
+					userId, manageDto.getInputs().getAction(), e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failed while managing codeserver workbench with exception: " + e.getMessage());
+			errors.add(error);
+		}
+
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
+
+	private boolean createServerforExisting(WorkbenchManageDto manageDto, String codespaceName) {
+		try {
+			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
+			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
+					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
+					+ "\",\"SHORTID\" : \""
+					+ manageDto.getInputs().getShortid().toLowerCase()
+					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"\""
+					+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
+					+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
+					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
+					+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
+					+ manageDto.getInputs().getCpu_guarantee() + "}";
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
+					String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("Completed creating Jupiter server {} initiated by user with status {}", codespaceName,
+						manageWorkbenchResponse.getStatusCode());
+				return true;
+			}
+		} catch (Exception e) {
+			log.error("Error occurred while creating git repo {} with exception: {}", codespaceName, e.getMessage());
+		}
+		return false;
 	}
 	
 	
