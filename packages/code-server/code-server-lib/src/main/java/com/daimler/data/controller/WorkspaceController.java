@@ -2017,8 +2017,6 @@ import lombok.extern.slf4j.Slf4j;
 		GenericMessage response = new GenericMessage();
 		String userId = codeServerMigrateVO.getWorkspaceOwner().getId();
 		String projectName= codeServerMigrateVO.getProjectDetails().getProjectName();
-		System.out.println(userId);
-		System.out.println(projectName);
 		CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findbyProjectName(userId,projectName);
 		if(entity!=null && Objects.nonNull(entity))
 		{
