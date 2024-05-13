@@ -45,7 +45,6 @@ const FabricWorkspaces = (props) => {
     setMaxItemsPerPage(pageNum);
   };
 
-
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
     const currentPageNumberTemp = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
@@ -167,7 +166,16 @@ const FabricWorkspaces = (props) => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <Workspaces isCardView={cardViewMode} user={props.user} workspaces={workspaces} callWorkspaces={getWorkspaces} onCreateWorkspace={(val) => setCreateWorkspace(val)} />
+                  {workspaces?.length ? 
+                    <Workspaces 
+                      isCardView={cardViewMode} 
+                      user={props.user} 
+                      workspaces={workspaces} 
+                      callWorkspaces={getWorkspaces} 
+                      onCreateWorkspace={(val) => setCreateWorkspace(val)} 
+                    /> 
+                    : null
+                  }
                   {workspaces?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
@@ -187,20 +195,15 @@ const FabricWorkspaces = (props) => {
       { createWorkspace &&
         <Modal
           title={'Create Fabric Workspace'}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'60%'}
+          modalWidth={'800px'}
           buttonAlignment="right"
           show={createWorkspace}
           content={<FabricWorkspaceForm edit={false} onSave={() => {setCreateWorkspace(false); getWorkspaces();}} />}
           scrollableContent={true}
           onCancel={() => setCreateWorkspace(false)}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
         />
       }
     </>
