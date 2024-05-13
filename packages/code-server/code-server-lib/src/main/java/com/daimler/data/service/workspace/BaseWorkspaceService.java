@@ -463,11 +463,25 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
-			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
-			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
-			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
-			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
-			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
+			String[] parts = resource.split(",");
+			int diskSpaceGi = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+			int minRamMi = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
+			int minCpu = Integer.parseInt(parts[2].replaceAll("[^0-9]", ""));
+			int maxRamMi = Integer.parseInt(parts[3].replaceAll("[^0-9]", ""));
+			int maxCpu = Integer.parseInt(parts[4].replaceAll("[^0-9]", ""));
+
+			int diskSpace = diskSpaceGi;
+			String memGuarantee = minRamMi + "M";
+			String memLimit = maxRamMi + "M";
+			double cpuLimit = maxCpu / 1000.0; 
+			double cpuGuarantee = minCpu / 1000.0; 
+			// Set the values in the DTO
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(diskSpace + "Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(memGuarantee);
+			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
@@ -665,11 +679,25 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
-			ownerWorkbenchCreateInputsDto.setStorage_capacity("3Gi");
-			ownerWorkbenchCreateInputsDto.setMem_guarantee("200M");
-			ownerWorkbenchCreateInputsDto.setMem_limit("500M");
-			ownerWorkbenchCreateInputsDto.setCpu_limit(0.5);
-			ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
+			String resource = ownerEntity.getData().getProjectDetails().getRecipeDetails().getResource() ;
+			String[] parts = resource.split(",");
+			int diskSpaceGi = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+			int minRamMi = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
+			int minCpu = Integer.parseInt(parts[2].replaceAll("[^0-9]", ""));
+			int maxRamMi = Integer.parseInt(parts[3].replaceAll("[^0-9]", ""));
+			int maxCpu = Integer.parseInt(parts[4].replaceAll("[^0-9]", ""));
+
+			int diskSpace = diskSpaceGi;
+			String memGuarantee = minRamMi + "M";
+			String memLimit = maxRamMi + "M";
+			double cpuLimit = maxCpu / 1000.0; // Convert to decimal
+			double cpuGuarantee = minCpu / 1000.0; // Convert to decimal
+			// Set the values in the DTO
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(diskSpace + "Gi");
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(memGuarantee);
+			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());

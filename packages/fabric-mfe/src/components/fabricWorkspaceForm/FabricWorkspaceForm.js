@@ -23,6 +23,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = methods;
 
@@ -68,7 +69,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       })
       .catch((err) => {
         ProgressIndicator.hide();
-        SelectBox.defaultSetup();
         if (err?.response?.data?.errors?.length > 0) {
           err?.response?.data?.errors.forEach((err) => {
             Notification.show(err?.message || 'Something went wrong.', 'alert');
@@ -148,6 +148,11 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     SelectBox.defaultSetup();
   }, [division, subDivision]);
 
+  useEffect(() => {
+    setValue('department', departmentName[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [departmentName[0]]);
+
   const onRelatedSolutionsChange = (selectedTags) => {
     const tempSolutions = solutions.filter(solution => {
       if(selectedTags.includes(solution.name)) {
@@ -155,7 +160,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       }
     });
     setRelatedSolutions([...tempSolutions]);
-    setRelatedSolutionsTags([...selectedTags]);
+    setRelatedSolutionsTags(tempSolutions.map(sol => sol.name));
   }
 
   const onRelatedReportsChange = (selectedTags) => {
@@ -165,13 +170,13 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       }
     });
     setRelatedReports([...tempReports]);
-    setRelatedReportsTags([...selectedTags]);
+    setRelatedReportsTags(tempReports.map(rep => rep.name));
   }
 
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
-      name: values.name,
+      name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
@@ -179,14 +184,14 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description,
+      description: values?.description.trim(),
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter,
-      internalOrder: values?.internalOrder,
+      costCenter: values?.costCenter.trim(),
+      internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
     };
@@ -204,7 +209,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   };
   const handleEditWorkspace = (values) => {
     const data = {
-      name: values.name,
+      name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
@@ -212,14 +217,14 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description,
+      description: values?.description.trim(),
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter,
-      internalOrder: values?.internalOrder,
+      costCenter: values?.costCenter.trim(),
+      internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
     }
@@ -240,16 +245,20 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   return (
     <>
       <FormProvider {...methods}>
-        <div className={classNames(Styles.content)}>
-          <div className={Styles.formGroup}>
-            <div className={Styles.flexLayout}>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  errors?.typeOfProject?.message ? 'error' : '',
-                )}
+        <div className={classNames(Styles.form)}>
+          <div className={Styles.formHeader}>
+            <h3>{edit ? 'Edit' : 'Create'} your Fabric Workspace</h3>
+            <p>{edit ? 'Edit the information and save!' : 'Enter the information to start creating!'}</p>
+          </div>
+          <div className={Styles.flex}>
+            <div className={Styles.col2}>
+              <div className={
+                    classNames(
+                      'input-field-group include-error',
+                      errors?.typeOfProject?.message ? 'error' : ''
+                  )}
               >
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                <label className={'input-label'}>
                   Type of Project <sup>*</sup>
                 </label>
                 <div className={classNames('custom-select')}>
@@ -275,269 +284,229 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   {errors?.typeOfProject?.message}
                 </span>
               </div>
+            </div>
+            <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                <label className={'input-label'}>
                   Name of Workspace <sup>*</sup>
                 </label>
-                <div>
-                  <input
-                    type="text"
-                    className={classNames('input-field', Styles.workspaceNameField)}
-                    id="workspaceName"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    maxLength={256}
-                    defaultValue={nameOfWorkspace}
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-zA-Z0-9-. ]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
-                  />
-                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of uppercase, lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
-                </div>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="workspaceName"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  defaultValue={nameOfWorkspace}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d -]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                />
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain characters only - is allowed. Admin monitoring name is not allowed.'}</span>
               </div>
             </div>
-            <div>
+            <div className={Styles.col}>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
                   Description <sup>*</sup>
                 </label>
                 <textarea
                   id="description"
-                  className="input-field-area"
+                  className={'input-field-area'}
                   type="text"
                   defaultValue={description}
-                  {...register('description', { required: '*Missing entry', onChange: (e) => { setDescription(e.target.value) } })}
                   rows={50}
+                  {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
                 />
-                <span className={classNames('error-message')}>{errors?.description?.message}</span>
+                <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
               </div>
-
-              <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+            </div>  
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
+                  <label className={'input-label'}>
                     Cost Center <sup>*</sup>
                   </label>
                   <div>
                     <input
                       type="text"
-                      className={classNames('input-field', Styles.workspaceNameField)}
+                      className={'input-field'}
                       id="costCenter"
                       placeholder="Type here"
                       autoComplete="off"
-                      maxLength={55}
+                      maxLength={256}
                       defaultValue={costCenter}
-                      {...register('costCenter', { required: '*Missing entry', onChange: (e) => { setCostCenter(e.target.value) } })}
+                      {...register('costCenter', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
-                    <span className={classNames('error-message')}>{errors?.costCenter?.message}</span>
+                    <span className={'error-message'}>{errors?.costCenter?.message}{errors.costCenter?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
                   </div>
                 </div>
-                <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
+                  <label className={'input-label'}>
                     Internal Order <sup>*</sup>
                   </label>
                   <div>
                     <input
                       type="text"
-                      className={classNames('input-field', Styles.workspaceNameField)}
+                      className={'input-field'}
                       id="internalOrder"
                       placeholder="Type here"
                       autoComplete="off"
-                      maxLength={55}
+                      maxLength={256}
                       defaultValue={internalOrder}
-                      {...register('internalOrder', { required: '*Missing entry', onChange: (e) => { setInternalOrder(e.target.value) } })}
+                      {...register('internalOrder', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
-                    <span className={classNames('error-message')}>{errors?.internalOrder?.message}</span>
+                    <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
                 </div>
+            </div>
+            {typeOfProject !== 'Playground' && 
+              <>
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group')}>
+                    <Tags
+                      title={'Related Solutions'}
+                      max={100}
+                      chips={relatedSolutionsTags}
+                      tags={solutions.length > 0 ? solutions : []}
+                      setTags={onRelatedSolutionsChange}
+                      isMandatory={false}
+                    />
+                  </div>
+                </div>
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group')}>
+                    <Tags
+                      title={'Related Reports'}
+                      max={100}
+                      chips={relatedReportsTags}
+                      tags={reports}
+                      setTags={onRelatedReportsChange}
+                      isMandatory={false}
+                    />
+                  </div>
+                </div>
+              </>
+            }
+            <div className={Styles.col2}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors?.division?.message ? 'error' : '',
+                )}
+              >
+                <label className={'input-label'}>
+                  Division <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select
+                    id="divisionField"
+                    defaultValue={division}
+                    value={division}
+                    {...register('division', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => { setDivision(e.target.value) }
+                    })}
+                  >
+                    <option id="divisionOption" value={0}>
+                      Choose
+                    </option>
+                    {divisions?.map((obj) => {
+                      return (
+                        <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                          {obj.name}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
+                  {errors?.division?.message}
+                </span>
               </div>
-
-              {typeOfProject !== 'Playground' &&
-              <div className={Styles.flexLayout} >
-                <div className={classNames(Styles.bucketNameInputField, 'input-field-group')}>
-                  <div>
-                    <div className={Styles.departmentTags}>
-                      <Tags
-                        title={'Related Solutions'}
-                        max={100}
-                        chips={relatedSolutionsTags}
-                        tags={solutions.length > 0 ? solutions : []}
-                        setTags={onRelatedSolutionsChange}
-                        isMandatory={false}
-                      // {...register('department', {required: '*Missing entry'})}
-                      />
-
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className={classNames(Styles.bucketNameInputField, 'input-field-group')}>
-                    <div>
-                      <div className={Styles.departmentTags}>
-                        <Tags
-                          title={'Related Reports'}
-                          max={100}
-                          chips={relatedReportsTags}
-                          tags={reports}
-                          setTags={onRelatedReportsChange}
-                          isMandatory={false}
-                        //showMissingEntryError={errors?.tags?.message}
-                        // {...register('tags', {required: '*Missing entry'})}
-                        />
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>}
-
-              <div className={Styles.flexLayout}>
-                <div
-                  className={classNames(
-                    'input-field-group include-error',
-                    errors?.division?.message ? 'error' : '',
-                  )}
-                >
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Division <sup>*</sup>
-                  </label>
-                  <div className={classNames('custom-select')}>
-                    <select
-                      id="divisionField"
-                      defaultValue={division}
-                      value={division}
-                      {...register('division', {
-                        required: '*Missing entry',
-                        validate: (value) => value !== '0' || '*Missing entry',
-                        onChange: (e) => { setDivision(e.target.value) }
-                      })}
-                    >
-                      <option id="divisionOption" value={0}>
-                        Choose
+            </div>
+            <div className={Styles.col2}>
+              <div className={'input-field-group'}>
+                <label className={'input-label'}>
+                  Sub Division
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select id="subDivisionField"
+                    defaultValue={subDivision}
+                    value={subDivision}
+                    required={false}
+                    {...register('subDivision', {
+                      onChange: (e) => { setSubDivision(e.target.value) }
+                    })}
+                  >
+                    {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                      <option id="subDivisionDefault" value={0}>
+                        None
                       </option>
-                      {divisions?.map((obj) => {
-                        return (
+                    ) : (
+                      <>
+                        <option id="subDivisionDefault" value={0}>
+                          Choose
+                        </option>
+                        {subDivisions?.map((obj) => (
                           <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
                             {obj.name}
                           </option>
-                        )
-                      })}
-                    </select>
-                  </div>
-                  <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
-                    {errors?.division?.message}
-                  </span>
-                </div>
-
-                <div
-                  className={classNames(
-                    'input-field-group include-error',
-                    // datalakeSubDivisionError?.length ? 'error' : '',
-                  )}
-                >
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Sub Division
-                  </label>
-                  <div className={classNames('custom-select')}>
-
-                    <select id="subDivisionField"
-                      defaultValue={subDivision}
-                      value={subDivision}
-                      required={false}
-                      {...register('subDivision', {
-                        onChange: (e) => { setSubDivision(e.target.value) }
-                      })}
-                    >
-                      {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
-                        <option id="subDivisionDefault" value={0}>
-                          None
-                        </option>
-                      ) : (
-                        <>
-                          <option id="subDivisionDefault" value={0}>
-                            Choose
-                          </option>
-                          {subDivisions?.map((obj) => (
-                            <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
-                              {obj.name}
-                            </option>
-                          ))}
-                        </>
-                      )}
-                    </select>
-
-                  </div>
-                  {/* <span className={classNames('error-message', subDivisionError?.length ? '' : 'hide')}>
-                      {subDivisionError}
-                    </span> */}
-                </div>
-              </div>
-
-              <div className={Styles.flexLayout} >
-                <div
-                  className={classNames(
-                    Styles.bucketNameInputField,
-                    'input-field-group include-error',
-                    errors?.department?.message ? 'error' : '',
-                  )}
-                >
-                  <div>
-                    <div className={Styles.departmentTags}>
-
-                      <Tags
-                        title={'Department'}
-                        max={1}
-                        chips={departmentName}
-                        tags={departments}
-                        setTags={(selectedTags) => {
-                          let dept = selectedTags?.map((item) => item.toUpperCase());
-                          setDepartmentName(dept);
-                        }}
-                        isMandatory={true}
-                        showMissingEntryError={errors?.department?.message}
-                      // {...register('department', {required: '*Missing entry'})}
-                      />
-
-                    </div>
-                  </div>
-                </div>
-                <div>
-                {typeOfProject !== 'Playground' &&
-                  <div
-                    className={classNames(
-                      Styles.bucketNameInputField,
-                      'input-field-group include-error',
-                      errors?.tags?.message ? 'error' : '',
+                        ))}
+                      </>
                     )}
-                  >
-                    <div>
-                      <div className={Styles.departmentTags}>
-
-                        <Tags
-                          title={'Tags'}
-                          max={100}
-                          chips={tags}
-                          tags={fabricTags}
-                          setTags={(selectedTags) => {
-                            let tag = selectedTags?.map((item) => item.toUpperCase());
-                            setTags(tag);
-                          }}
-                          isMandatory={false}
-                        //showMissingEntryError={errors?.tags?.message}
-                        // {...register('tags', {required: '*Missing entry'})}
-                        />
-
-                      </div>
-                    </div>
-                  </div>}
+                  </select>
                 </div>
               </div>
             </div>
-            <div className={Styles.flexLayout}>
+            <div className={Styles.col2}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  Object.keys(errors).length > 0 && (departmentName.length === 0 ? 'error' : ''),
+                )}
+              >
+                <Tags
+                  title={'Department'}
+                  max={1}
+                  chips={departmentName}
+                  tags={departments}
+                  setTags={(selectedTags) => {
+                    let dept = selectedTags?.map((item) => item.toUpperCase());
+                    setDepartmentName(dept);
+                  }}
+                  isMandatory={true}
+                  showMissingEntryError={Object.keys(errors).length > 0 && departmentName.length === 0}
+                />
+                {/* workaround for validating department Tags field */}
+                <input type={'hidden'} defaultValue={departmentName[0]} value={departmentName[0]} {...register('department', {required: '*Missing entry'})} />
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              {typeOfProject !== 'Playground' &&
+                <div className={'input-field-group'}>
+                  <Tags
+                    title={'Tags'}
+                    max={100}
+                    chips={tags}
+                    tags={fabricTags}
+                    setTags={(selectedTags) => {
+                      let tag = selectedTags?.map((item) => item.toUpperCase());
+                      setTags(tag);
+                    }}
+                    isMandatory={false}
+                  />
+                </div>
+              }
+            </div>
+            <div className={Styles.col2}>
               <div
                 className={classNames(
                   'input-field-group include-error',
                   errors?.dataClassification?.message ? 'error' : '',
                 )}
               >
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                <label className={'input-label'}>
                   Data Classification <sup>*</sup>
                 </label>
                 <div className={classNames('custom-select')}>
@@ -569,8 +538,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   {errors?.dataClassification?.message}
                 </span>
               </div>
+            </div>
+            <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error')}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                <label className={'input-label'}>
                   PII (Personally Identifiable Information) <sup>*</sup>
                 </label>
                 <div className={Styles.pIIField}>
@@ -610,96 +581,100 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
               </div>
             </div>
             {typeOfProject !== 'Playground' &&
-            <div>
-              <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Archer ID
-                  </label>
-                  <div>
-                    <input
-                      type="text"
-                      className={classNames('input-field', Styles.workspaceNameField)}
-                      id="archerId"
-                      placeholder="Type here eg.[INFO-XXXXX]"
-                      autoComplete="off"
-                      maxLength={55}
-                      defaultValue={archerId}
-                      {...register('archerId', { pattern: /^(INFO)-\d{5}$/, onChange: (e) => { setArcherID(e.target.value) } })}
-                    />
-                    <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
-                  </div>
-                </div>
-                <div className={classNames('input-field-group include-error', errors?.procedureId ? 'error' : '')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Procedure ID
-                  </label>
-                  <div>
-                    <input
-                      type="text"
-                      className={classNames('input-field', Styles.workspaceNameField)}
-                      id="procedureId"
-                      placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
-                      autoComplete="off"
-                      maxLength={55}
-                      defaultValue={procedureId}
-                      {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
-                    />
-                    <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>}
-            <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
-              <div className={Styles.termsOfUseContent}>
-                <div>
-                  <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
-                    <span className="wrapper">
+              <>
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
+                    <label className={'input-label'}>
+                      Archer ID
+                    </label>
+                    <div>
                       <input
-                        name="write"
-                        type="checkbox"
-                        className="ff-only"
-                        defaultChecked={termsOfUse}
-                        {...register('termsOfUse', {
-                          required: 'Please agree to terms of use',
-                          validate: (value) => {
-                            value || 'Please agree to terms of use';
-                          },
-                          onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
-                        })}
+                        type="text"
+                        className={classNames('input-field', Styles.workspaceNameField)}
+                        id="archerId"
+                        placeholder="Type here eg.[INFO-XXXXX]"
+                        autoComplete="off"
+                        maxLength={55}
+                        defaultValue={archerId}
+                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/, onChange: (e) => { setArcherID(e.target.value) } })}
                       />
-                    </span>
-                  </label>
+                      <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
+                    </div>
+                  </div>
                 </div>
-                <div
-                  className={classNames(Styles.termsOfUseText)}
-                  style={{
-                     ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
-                  }}
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group include-error', errors?.procedureId ? 'error' : '')}>
+                    <label className={'input-label'}>
+                      Procedure ID
+                    </label>
+                    <div>
+                      <input
+                        type="text"
+                        className={classNames('input-field', Styles.workspaceNameField)}
+                        id="procedureId"
+                        placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                        autoComplete="off"
+                        maxLength={55}
+                        defaultValue={procedureId}
+                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
+                      />
+                      <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            }
+            <div className={Styles.col}>
+              <div className={classNames(errors?.termsOfUse?.message ? 'error' : '')}>
+                <div className={Styles.termsOfUseContent}>
+                  <div>
+                    <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
+                      <span className="wrapper">
+                        <input
+                          name="write"
+                          type="checkbox"
+                          className="ff-only"
+                          defaultChecked={termsOfUse}
+                          {...register('termsOfUse', {
+                            required: 'Please agree to terms of use',
+                            validate: (value) => {
+                              value || 'Please agree to terms of use';
+                            },
+                            onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
+                          })}
+                        />
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    className={classNames(Styles.termsOfUseText)}
+                    style={{
+                        ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
+                    }}
+                  >
+                    <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
+                    <sup>*</sup>
+                  </div>
+                </div>
+                <span
+                  style={{ marginTop: 0 }}
+                  className={classNames('error-message', errors?.termsOfUse?.message ? '' : 'hide')}
                 >
-                  <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
-                  <sup>*</sup>
-                </div>
+                  {errors?.termsOfUse?.message}
+                </span>
               </div>
-              <span
-                style={{ marginTop: 0 }}
-                className={classNames('error-message', errors?.termsOfUse?.message ? '' : 'hide')}
-              >
-                {errors?.termsOfUse?.message}
-              </span>
             </div>
-
-            <div className={Styles.btnContainer}>
-              <button
-                className="btn btn-tertiary"
-                type="button"
-                onClick={handleSubmit((values) => {
-                  edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
-                })}
-              >
-                {edit ? 'Save Workspace' : 'Create Workspace'}
-              </button>
-            </div>
+          </div>
+          <div className={Styles.formFooter}>
+            <button
+              className="btn btn-tertiary"
+              type="button"
+              onClick={handleSubmit((values) => {
+                edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
+              })}
+            >
+              {edit ? 'Save Workspace' : 'Create Workspace'}
+            </button>
           </div>
         </div>
       </FormProvider>

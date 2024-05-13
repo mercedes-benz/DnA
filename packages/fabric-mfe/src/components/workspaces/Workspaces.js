@@ -248,20 +248,15 @@ const Workspaces = (props) => {
       { editWorkspace &&
         <Modal
           title={'Edit Fabric Workspace'}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'60%'}
+          modalWidth={'800px'}
           buttonAlignment="right"
           show={editWorkspace}
           content={<FabricWorkspaceForm edit={true} workspace={selectedItem} onSave={() => {setEditWorkspace(false); props.callWorkspaces(); }} />}
           scrollableContent={true}
           onCancel={() => setEditWorkspace(false)}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
         />
       }
     </>
