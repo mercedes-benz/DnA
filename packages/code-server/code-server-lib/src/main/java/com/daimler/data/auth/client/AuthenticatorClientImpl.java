@@ -440,6 +440,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachPluginResponse = new GenericMessage();
 		GenericMessage attachJwtPluginResponse = new GenericMessage();
 		GenericMessage attachCorsPluginResponse = new GenericMessage();
+		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
 		
 		try {	
 			boolean isServiceAlreadyCreated = false;
