@@ -176,7 +176,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
-      name: values.name,
+      name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
@@ -184,14 +184,14 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description,
+      description: values?.description.trim(),
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter,
-      internalOrder: values?.internalOrder,
+      costCenter: values?.costCenter.trim(),
+      internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
     };
@@ -209,7 +209,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   };
   const handleEditWorkspace = (values) => {
     const data = {
-      name: values.name,
+      name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
@@ -217,14 +217,14 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description,
+      description: values?.description.trim(),
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter,
-      internalOrder: values?.internalOrder,
+      costCenter: values?.costCenter.trim(),
+      internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
     }
@@ -298,9 +298,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={nameOfWorkspace}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)\s*\S.*$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d -]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain characters. Admin monitoring name is not allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain characters only - is allowed. Admin monitoring name is not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col}>
@@ -314,9 +314,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   type="text"
                   defaultValue={description}
                   rows={50}
-                  {...register('description', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z0-1\s]*$/, onChange: (e) => { setDescription(e.target.value) } })}
+                  {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
                 />
-                <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces not allowed as field value.`}</span>
+                <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
               </div>
             </div>  
             <div className={Styles.col2}>
@@ -333,9 +333,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={costCenter}
-                      {...register('costCenter', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z0-1\s]*$/, onChange: (e) => { setCostCenter(e.target.value) } })}
+                      {...register('costCenter', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
-                    <span className={'error-message'}>{errors?.costCenter?.message}{errors.costCenter?.type === 'pattern' && `Spaces not allowed as field value.`}</span>
+                    <span className={'error-message'}>{errors?.costCenter?.message}{errors.costCenter?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
                   </div>
                 </div>
             </div>
@@ -353,7 +353,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={internalOrder}
-                      {...register('internalOrder', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z0-1\s]*$/, onChange: (e) => { setInternalOrder(e.target.value) } })}
+                      {...register('internalOrder', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
