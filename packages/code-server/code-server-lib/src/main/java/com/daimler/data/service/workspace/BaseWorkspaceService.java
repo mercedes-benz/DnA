@@ -1956,6 +1956,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwnerId = workspace.getWorkspaceOwner().getId();
 					String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
 					workspace.setWorkspaceUrl(workspaceUrl);
+				String resource = "4Gi,200M,0.3,4000M,2";
+				workspace.getProjectDetails().getRecipeDetails().setResource(resource);
 				workspace.setServerStatus("SERVER_STOPPED");
 				vo.setData(workspace);
 				jpaRepo.save(vo);
