@@ -413,10 +413,11 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	}
 
 	private String getProductOwnerPredicateString(List<String> productOwnerList) {
-		if (productOwnerList != null && !productOwnerList.isEmpty()) {
-			String commaSeparatedProductOwner = productOwnerList.stream().map(s -> "%\"" + s + "\"%")
-					.collect(Collectors.joining("|"));
-			return " and (jsonb_extract_path_text(data, 'contactInformation', 'informationOwner','shortId') similar to '" + commaSeparatedProductOwner + "' )";
+		if(productOwnerList!= null && !productOwnerList.isEmpty())
+		{
+			String productOwnerJson = String.join("','",productOwnerList);
+			String productOwner = " and (jsonb_extract_path_text(data,'contactInformation','productOwner','shortId') in ('" + productOwnerJson + "'))";
+			return productOwner;
 		}
 		return "";
 	}
@@ -663,6 +664,48 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			LOGGER.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
 		return data;
+	}
+
+	public List<DataProductTeamLov> getAllProductOwnerLov()
+	{
+		List<DataProductTeamLov> data = new ArrayList<>();
+		List<Object[]> results = new ArrayList<>();
+		String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data,'contactInformation', 'productOwner', 'shortId')) " +
+					  "cast(jsonb_extract_path_text(data,'contactInformation', 'productOwner') as text) as TEAM_NAME, " +
+					  "cast(id as text) as COLUMN_ID " +
+				  "FROM " +
+					  "dataproduct_nsql  where jsonb_extract_path_text(data, 'contactInformation', 'productOwner') is not null";
+
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			results = q.getResultList();
+
+			ObjectMapper mapper = new ObjectMapper();
+			for(Object[] rowData : results){
+				DataProductTeamLov rowDetails = new DataProductTeamLov();
+				if(rowData !=null){
+					rowDetails.setId((String)rowData[1]);
+					try{
+						TeamMember teamDetails = mapper.readValue(rowData[0].toString(),TeamMember.class);
+						rowDetails.setMember(teamDetails);
+					
+					}catch(Exception e){
+						LOGGER.error("failed in repo Impl while fetching data");
+						rowDetails.setId(null);
+					}
+					data.add(rowDetails);
+				}
+			}
+			if(data!=null && !data.isEmpty()) {
+																
+				LOGGER.info("Found {} productowners", data.size());
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			LOGGER.error("Failed to query product owners");
+		}
+		return data;
+
 	}
 
 }

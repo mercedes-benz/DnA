@@ -911,4 +911,34 @@ public class DataProductController implements DataproductsApi{
 		return new ResponseEntity<>(dataStewardCollection, HttpStatus.NO_CONTENT);
 		}
 	}
+
+	@Override
+	@ApiOperation(value = "Get lov of Information Officer.", nickname = "getProductOwnerLov", notes = "Get lov of IO in dataproducts. This endpoints will be used to get a dataproducts for a given identifier.", response = ProductOwnerCollectionVO.class, tags={ "dataproducts", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = ProductOwnerCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/dataproducts/productOwner",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<ProductOwnerCollectionVO> getProductOwnerLov()
+	{
+		List<DataProductLovVO> datasweard = service.getProductOwnerLov();
+		ProductOwnerCollectionVO dataStewardCollection = new ProductOwnerCollectionVO();
+		if(datasweard!=null && datasweard.size()>0)
+		{
+			dataStewardCollection.setData(datasweard);
+			LOGGER.info("Returning all available project owners");
+			return new ResponseEntity<>(dataStewardCollection, HttpStatus.OK);
+		}
+		else {
+		LOGGER.info("No project owners available, returning empty");
+		return new ResponseEntity<>(dataStewardCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 }
