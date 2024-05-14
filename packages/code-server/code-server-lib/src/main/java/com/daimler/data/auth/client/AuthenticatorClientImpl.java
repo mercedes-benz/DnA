@@ -305,11 +305,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
-		if(Objects.nonNull(prodDeploymentDetails)) {
-			prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); 
+		if("prod".equalsIgnoreCase(env)){
+			if(Objects.nonNull(prodDeploymentDetails)) {
+				prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); 
+			}
 		}
-		if(Objects.nonNull(intDeploymentDetails)) {
-			intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); 
+		if("int".equalsIgnoreCase(env)){
+			if(Objects.nonNull(intDeploymentDetails)) {
+				intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); 
+			}
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
 		LOGGER.info("Codespace deployed to staging with enabling secureIAM is :{}",intSecureIAM);

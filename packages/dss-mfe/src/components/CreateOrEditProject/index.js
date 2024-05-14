@@ -7,7 +7,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { dataikuApi } from '../../apis/dataiku.api';
 import SelectBox from 'dna-container/SelectBox';
 import Tags from 'dna-container/Tags';
-
+import { Envs } from '../../Utility/envs';
 const classNames = cn.bind(Styles);
 
 const CreateOrEditProject = (props) => {
@@ -34,6 +34,8 @@ const CreateOrEditProject = (props) => {
     const [divisionError, setDivisionError] = useState('');
     const departmentValue = selectedDepartmentTags?.map((department) => department?.toUpperCase());
     const [showDepartmentMissingError, setShowDepartmentMissingError] = useState(false);
+    const [extolloTou, setExtolloTou] = useState(false);
+    const [touErrorMessage ,setTouErrorMessage] = useState('');
     const statuses = [{
         id: 1,
         name: 'Active'
@@ -53,7 +55,7 @@ const CreateOrEditProject = (props) => {
     useEffect(() => {
         ProgressIndicator.show();
         dataikuApi.getLovData()
-            .then((response) => {
+            .then((response) => {               
                 setDataClassificationDropdown(response[0]?.data?.data || []);
                 setDivisions(response[1]?.data || []);
                 setDepartmentTags(response[2]?.data?.data || []);
@@ -141,6 +143,9 @@ const CreateOrEditProject = (props) => {
                     if (data?.cloudProfile) {
                         setProjectGroup(data?.cloudProfile);
                     }
+                    if (data?.hasTermsOfUse) {
+                        setExtolloTou(data?.hasTermsOfUse)
+                    }
 
                     if (data?.collaborators && data?.collaborators.length > 0) {
                         const currentUserCollabList = [];
@@ -205,6 +210,10 @@ const CreateOrEditProject = (props) => {
             setShowDepartmentMissingError(true);
             isFormValid = false;
         }
+        if(projectGroup === 'eXtollo' && extolloTou === false){
+            setTouErrorMessage(errorMissingEntry);
+            isFormValid = false;
+        }
 
         if (
             (dataClassification && !(dataClassification === '0'))
@@ -228,6 +237,7 @@ const CreateOrEditProject = (props) => {
             setProjectGroupErrorMessage('');
             setProjectErrorMessage('');
             setStatusError('');
+            setTouErrorMessage('')
             if (!props.isEdit) {
                 createDataikuProject();
             } else {
@@ -257,7 +267,8 @@ const CreateOrEditProject = (props) => {
                     divisionValue.subdivision.name === 'Choose'
                         ? '' : divisionValue.subdivision.name === 'None'
                             ? '' : divisionValue.subdivision.name,
-                department: selectedDepartmentTags[0]
+                department: selectedDepartmentTags[0],
+                hasTermsOfUse: extolloTou
             }
         }
         dataikuApi
@@ -313,7 +324,8 @@ const CreateOrEditProject = (props) => {
                     divisionValue.subdivision.name === 'Choose'
                         ? '' : divisionValue.subdivision.name === 'None'
                             ? '' : divisionValue.subdivision.name,
-                department: selectedDepartmentTags[0]
+                department: selectedDepartmentTags[0],
+                hasTermsOfUse: extolloTou
             }
         }
         dataikuApi
@@ -463,6 +475,15 @@ const CreateOrEditProject = (props) => {
             setDataikuCollaborators(currentCollList);
         };
     };
+
+    const onExtolloTOuChange = () => {
+        setExtolloTou(!extolloTou);
+        setTouErrorMessage('');
+    }
+
+    const onTouNavigate = () => {
+        window.open(`${Envs.DATAIKU_TOU_URL}`, "_blank")
+    }
 
     return (
         <div className={Styles.createDataikuWrapper}>
@@ -826,6 +847,30 @@ const CreateOrEditProject = (props) => {
                     </div>
                 )}
             </div>
+            {(projectGroup === 'eXtollo') && (
+                <div className={Styles.extolloTou}>
+                    <label className={classNames("checkbox", touErrorMessage.length ? "error" : '')}>
+                        <span className="wrapper">
+                            <input
+                                type="checkbox"
+                                className="ff-only"
+                                value={extolloTou}
+                                onChange={onExtolloTOuChange}
+                            />
+                        </span>
+                        <span className={classNames("label", touErrorMessage.length ? "error" : '')}>
+                            I here by declare that I agree to the  eXtollo{' '}
+                            <span className={classNames(Styles.configLink)} onClick={onTouNavigate}>
+                                <a target="_blank" rel="noreferrer">
+                                    terms and conditions
+                                </a>
+                            </span>
+                        </span>
+                    </label>
+                    <span className={classNames(Styles.errorMsg, 'error-message', touErrorMessage.length ? '' : 'hide')}>
+                        {touErrorMessage}
+                    </span>
+                </div>)}
             <div className={Styles.submitButtton}>
                 <button
                     className={classNames(!props.isUserCanCreateDataiku ? 'btn indraft' : 'btn btn-tertiary')}
