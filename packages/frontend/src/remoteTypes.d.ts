@@ -37,3 +37,8 @@ declare module 'data-entry-mfe/DataEntry' {
   const DataEntry: React.ComponentType;
   export default DataEntry;
 }
+
+declare module 'code-space-mfe/CodeSpace' {
+  const CodeSpace: React.ComponentType;
+  export default CodeSpace;
+}
