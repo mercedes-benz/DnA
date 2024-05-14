@@ -173,7 +173,10 @@ const DeployModal = (props: DeployModalProps) => {
     let formValid = true;
     if (
       secureWithIAMSelected &&
-      (!projectDetails.intDeploymentDetails.secureWithIAMRequired || changeSelected) &&
+      ((deployEnvironment === 'staging'
+        ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
+        : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
+        changeSelected) &&
       clientSecret.length === 0
     ) {
       formValid = false;
@@ -181,7 +184,10 @@ const DeployModal = (props: DeployModalProps) => {
     }
     if (
       secureWithIAMSelected &&
-      (!projectDetails.intDeploymentDetails.secureWithIAMRequired || changeSelected) &&
+      ((deployEnvironment === 'staging'
+        ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
+        : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
+        changeSelected) &&
       clientSecret.length === 0
     ) {
       formValid = false;
