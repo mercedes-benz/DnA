@@ -193,6 +193,7 @@ public class DataikuAssembler {
 			summaryDto.setStatus(projectDto.getStatus());
 			summaryDto.setClassificationType(projectDto.getClassificationType());
 			summaryDto.setHasPii(projectDto.getHasPii());
+			summaryDto.setHasTermsOfUse(projectDto.getHasTermsOfUse());
 			summaryDto.setDivisionId(projectDto.getDivisionId());
 			summaryDto.setDivisionName(projectDto.getDivisionName());
 			summaryDto.setSubdivisionId(projectDto.getSubdivisionId());
