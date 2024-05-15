@@ -270,7 +270,7 @@ export default class SecurityConfig extends React.Component<
           //   this.setState({
           //     config: response?.data,
           //   });
-            this.getConfig(this.state.id, env);
+            // this.getConfig(this.state.id, env);
           // }
           Notification.show('Saved successfully.');
 
@@ -279,7 +279,7 @@ export default class SecurityConfig extends React.Component<
             CodeSpaceApiClient.addCodeSpaceRequest(this.state.id, env)
               .then((res: any) => {
                 ProgressIndicator.hide();
-                this.getConfig(this.state.id, env);
+                // this.getConfig(this.state.id, env);
                 Notification.show('Published successfully.');
               })
               .catch((error: any) => {
