@@ -34,6 +34,7 @@ import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.CreateServiceRequestVO;
 import com.daimler.data.dto.kongGateway.CreateServiceVO;
 import com.daimler.data.kong.client.KongClient;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
 import io.swagger.annotations.Api;
@@ -303,72 +304,72 @@ public class KongGatewayController implements KongApi{
 	@Override
 	@ApiOperation(value = "Delete a route.", nickname = "deleteRoute", notes = "Delete a route", response = GenericMessage.class, tags={ "kong", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
-        @ApiResponse(code = 500, message = "Internal error") })
+    @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
+    @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+    @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+    @ApiResponse(code = 403, message = "Request is not authorized."),
+    @ApiResponse(code = 405, message = "Method not allowed"),
+    @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+    @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/kong/services/{serviceName}/routes/{routeName}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.DELETE)
+    produces = { "application/json" }, 
+    consumes = { "application/json" },
+    method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteRoute(String serviceName, String routeName) {
-		GenericMessage response = new GenericMessage();		
-		try {
-			if(Objects.nonNull(serviceName) && Objects.nonNull(routeName)) {
-				response = kongClient.deleteRoute(serviceName, routeName);
-			}
+	GenericMessage response = new GenericMessage();		
+	try {
+	if(Objects.nonNull(serviceName) && Objects.nonNull(routeName)) {
+	response = kongClient.deleteRoute(serviceName, routeName);
+	}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
-				LOGGER.info("Kong route {} deleted successfully", routeName);
-				return new ResponseEntity<>(response, HttpStatus.OK);
-			}
+	LOGGER.info("Kong route {} deleted successfully", routeName);
+	return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 			else {
-				LOGGER.info("Kong route {} deletion failed", routeName);
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
+	LOGGER.info("Kong route {} deletion failed", routeName);
+	return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 							
-		}catch(Exception e) {
-			LOGGER.error("Failed to delete Kong route {} with exception {} ", routeName,e.getMessage());
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	}catch(Exception e) {
+	LOGGER.error("Failed to delete Kong route {} with exception {} ", routeName,e.getMessage());
+	return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 		
 	}
 
 	@Override
 	@ApiOperation(value = "Delete the existing service ", nickname = "deleteService", notes = "Delete the existing service.", response = GenericMessage.class, tags={ "kong", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
+    @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+    @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+    @ApiResponse(code = 400, message = "Bad request."),
+    @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+    @ApiResponse(code = 403, message = "Request is not authorized."),
+    @ApiResponse(code = 405, message = "Method not allowed"),
+    @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/kong/services/{serviceName}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.DELETE)
+    produces = { "application/json" }, 
+    consumes = { "application/json" },
+    method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteService(String serviceName) {
-		GenericMessage response = new GenericMessage();		
-		try {
-			if(Objects.nonNull(serviceName)) {
-				response = kongClient.deleteService(serviceName);
-			}
+	GenericMessage response = new GenericMessage();		
+	try {
+	if(Objects.nonNull(serviceName)) {
+	response = kongClient.deleteService(serviceName);
+	}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
-				LOGGER.info("Kong service {} deleted successfully", serviceName);
-				return new ResponseEntity<>(response, HttpStatus.OK);
-			}
+	LOGGER.info("Kong service {} deleted successfully", serviceName);
+	return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 			else {
-				LOGGER.info("Kong service {} deletion failed", serviceName);
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
+	LOGGER.info("Kong service {} deletion failed", serviceName);
+	return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 							
-		}catch(Exception e) {
-			LOGGER.error("Failed to delete Kong service {} with exception {} ", serviceName,e.getMessage());
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	}catch(Exception e) {
+	LOGGER.error("Failed to delete Kong service {} with exception {} ", serviceName,e.getMessage());
+	return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	}
 
 	@Override
@@ -450,24 +451,52 @@ public class KongGatewayController implements KongApi{
 	}
 
 	@Override
-	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
-	CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
-	if(Objects.nonNull(createRouteResponseVO)) {
-	return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
-	}
-		else {
-	return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+	@ApiOperation(value = "Get a service by Name.", nickname = "getServiceByName", notes = "Get a service by Name", response = CreateServiceResponseVO.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = CreateServiceResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<CreateServiceResponseVO> getServiceByName(@ApiParam(value = "Name of the service to be fetched",required=true) @PathVariable("serviceName") String serviceName)
+	{
+			CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
+			if(Objects.nonNull(response.getData())) {
+			return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+				else {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 	}
 
 	@Override
-    public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
-	CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
-	if(Objects.nonNull(response.getData())) {
-	return new ResponseEntity<>(response, HttpStatus.OK);
-	}
-		else {
-	return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+	@ApiOperation(value = "Get a route by ID.", nickname = "getRouteByName", notes = "Get a route by ID", response = CreateRouteResponseVO.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = CreateRouteResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/routes/{routeName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<CreateRouteResponseVO> getRouteByName(@ApiParam(value = "Name of the service for which route has to be fetched",required=true) @PathVariable("serviceName") String serviceName,@ApiParam(value = "Name of the route to be fetched",required=true) @PathVariable("routeName") String routeName)
+	{
+		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
+		if(Objects.nonNull(createRouteResponseVO)) {
+		return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
+		}
+			else {
+		return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	}
