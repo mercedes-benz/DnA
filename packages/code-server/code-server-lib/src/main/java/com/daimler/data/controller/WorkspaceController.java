@@ -31,6 +31,7 @@
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -336,6 +337,36 @@ import lombok.extern.slf4j.Slf4j;
 						 userId, vo.getWorkspaceId());
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
+			}
+			if(data!=null){
+				//not allowing duplicate names for same apiPattern and httpMethod clubing the names with already available entitlement
+				HashMap<String,List<String>> entitlmentMap = new HashMap<>();
+				List<CodespaceSecurityEntitlementVO> entilements = data.getEntitlements();
+
+				for (CodespaceSecurityEntitlementVO entitlement : entilements) {
+						String key = entitlement.getHttpMethod().toString()+"-"+entitlement.getApiPattern();
+						if(entitlmentMap.get(key)!=null){
+							List<String> namesList = entitlmentMap.get(key);
+							List<String> names = entitlement.getName();
+							namesList.addAll(names);
+						}
+						else{
+							List<String> names = entitlement.getName();
+							entitlmentMap.put(key,names);
+						}
+				}
+				CodespaceSecurityConfigDetailVO newCodeCodespaceSecurityConfigDetailVO = new CodespaceSecurityConfigDetailVO();
+				entitlmentMap.forEach((key, value) -> {
+					CodespaceSecurityEntitlementVO entitlementVO = new CodespaceSecurityEntitlementVO ();
+					String[] separatedStrings = key.split("-");
+					entitlementVO.setHttpMethod(CodespaceSecurityEntitlementVO.HttpMethodEnum.valueOf(separatedStrings[0]));
+					entitlementVO.apiPattern(separatedStrings[1]);
+					entitlementVO.setName(value);
+					newCodeCodespaceSecurityConfigDetailVO.addEntitlementsItem(entitlementVO);
+					
+				});
+				newCodeCodespaceSecurityConfigDetailVO.setAppID(data.getAppID());
+				data = newCodeCodespaceSecurityConfigDetailVO;
 			}
 			// if(data.isIsProtectedByDna()== null){
 			// 	data.isProtectedByDna(false);
