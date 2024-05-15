@@ -39,6 +39,7 @@ public class ConstantsUtility {
 	public static final String GRADLE = "gradle";
 	public static final String QUARKUS = "quarkus";
 	public static final String MICRONAUT = "micronaut";
+	public static final String DASHPYTHON = "dash";
 	public static final String DEFAULT = "default";
 	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
 	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
