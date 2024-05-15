@@ -139,7 +139,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                 {allEntitlementList?.map((item: any, index: number) => {
                   return (
                     <div
-                      key={index + item.id}
+                      key={`${item.id}-${index}`}
                       className={'expansion-panel-group airflowexpansionPanel ' + Styles.dagGrpListItemPanel}
                     >
                       <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
