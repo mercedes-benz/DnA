@@ -66,7 +66,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
+import com.daimler.data.dto.kongGateway.CreateServiceResponseVO;
+import com.daimler.data.dto.kongGateway.ServiceResponse;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
+
+import com.daimler.data.dto.kongGateway.RouteResponse;
 @Component
 public class KongClientImpl implements KongClient {
 

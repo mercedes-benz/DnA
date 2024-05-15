@@ -36,6 +36,8 @@ import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
+import com.daimler.data.dto.kongGateway.CreateServiceResponseVO;
 
 public interface KongClient {
 

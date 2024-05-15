@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
+import com.daimler.data.dto.kongGateway.CreateServiceResponseVO;
 import com.daimler.data.api.kongGateway.KongApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -450,25 +451,25 @@ public class KongGatewayController implements KongApi{
 
 	@Override
 	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
-		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
-		if(Objects.nonNull(createRouteResponseVO)) {
-			return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
-		}
+	CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
+	if(Objects.nonNull(createRouteResponseVO)) {
+	return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
+	}
 		else {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	}
 
 	@Override
-	public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
-		CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
-		if(Objects.nonNull(response.getData())) {
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		}
+    public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
+	CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
+	if(Objects.nonNull(response.getData())) {
+	return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 		else {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
+	return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 	}
 
 }
