@@ -57,6 +57,9 @@ public class DataikuSql implements Serializable{
 	
 	@Column(name = "has_pii")
 	private Boolean hasPii;
+
+	@Column(name="has_termsOfUse")
+	private Boolean hasTermsOfUse;
 	
 	@Column(name = "division_id")
 	private String divisionId;
@@ -82,7 +85,7 @@ public class DataikuSql implements Serializable{
 
 	public DataikuSql(String id, @NotNull String projectName, String description, String cloudProfile,
 			List<CollaboratorSql> collaborators, String createdBy, Date createdOn, String status,
-			String classificationType, Boolean hasPii, String divisionId, String divisionName, String subdivisionId,
+			String classificationType, Boolean hasPii,Boolean hasTermsOfUse, String divisionId, String divisionName, String subdivisionId,
 			String subdivisionName, String department, String solutionId) {
 		super();
 		this.id = id;
@@ -95,6 +98,7 @@ public class DataikuSql implements Serializable{
 		this.status = status;
 		this.classificationType = classificationType;
 		this.hasPii = hasPii;
+		this.hasTermsOfUse = hasTermsOfUse;
 		this.divisionId = divisionId;
 		this.divisionName = divisionName;
 		this.subdivisionId = subdivisionId;
@@ -190,6 +194,13 @@ public class DataikuSql implements Serializable{
 
 	public void setHasPii(Boolean hasPii) {
 		this.hasPii = hasPii;
+	}
+	public Boolean getHasTermsOfUse() {
+		return hasTermsOfUse;
+	}
+
+	public void setHasTermsOfUse(Boolean hasTermsOfUse) {
+		this.hasTermsOfUse = hasTermsOfUse;
 	}
 
 	public String getDivisionId() {

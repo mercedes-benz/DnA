@@ -511,7 +511,7 @@ export default class AllSolutions extends React.Component<
                             updateBookmark={this.updateBookmark}
                             showDigitalValue={enablePortfolioSolutionsView}
                             noteBookData={this.state.noteBookData}
-                            onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.productName, solution.description, isGenAI)}
+                            onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.id, solution.productName, solution.description, isGenAI)}
                           />
                         );
                       })}
@@ -888,22 +888,25 @@ export default class AllSolutions extends React.Component<
       });
   };
 
-  protected onShowSimilarSolutionModal = (selectedSolutionName: string, selectedSolutionDescription: string, isGenAI: boolean) => {
+  protected onShowSimilarSolutionModal = (selectedSolutionId: string, selectedSolutionName: string, selectedSolutionDescription: string, isGenAI: boolean) => {
     ProgressIndicator.show();
-    ApiClient.getSimilarSolutions(`${isGenAI ? 'search' : 'solutionssearch'}?q=${selectedSolutionDescription}`).then((res: any) => {
+    ApiClient.getSimilarSolutions(`${isGenAI ? 'search' : 'solutionssearch'}?input=${selectedSolutionDescription}`).then((res: any) => {
       ProgressIndicator.hide();
       if(res?.result?.length) {
         const similarSolutionsBasedOnInputData:ISimilarSolutionsListItem[] = [];
         res?.result.forEach((item: any) => {
           const solutionItem = item[0];
-          const score = item[1];
-          similarSolutionsBasedOnInputData.push({
-            id: solutionItem.id,
-            productName: solutionItem.productName,
-            description: solutionItem.description,
-            businessNeed: solutionItem.businessNeed,
-            score
-          });
+          if (selectedSolutionId !== solutionItem.id) {
+            // Show only the solutions exxcept the selected solution after getting similar solution search list
+            const score = item[1];
+            similarSolutionsBasedOnInputData.push({
+              id: solutionItem.id,
+              productName: solutionItem.productName,
+              description: solutionItem.description,
+              businessNeed: solutionItem.businessNeed,
+              score,
+            });
+          }
         });
 
         this.setState({showSimilarSolutionsModal: true, similarSolutionsBasedOnDescription: similarSolutionsBasedOnInputData, selectedSolutionNameForSimilarityCheck: selectedSolutionName});

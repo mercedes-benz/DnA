@@ -303,7 +303,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           break;     
       }
 
-      ApiClient.getSimilarSolutions(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?q=${inputData}`).then((res: any) => {
+      ApiClient.getSimilarSolutions(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?input=${inputData}`).then((res: any) => {
         if(res?.result?.length) {
           const similarSolutionsBasedOnInputData:ISimilarSolutionsListItem[] = [];
           res?.result.forEach((item: any) => {

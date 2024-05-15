@@ -123,7 +123,7 @@ const DataProductFilter = ({
           const arts = response[0].data;
           const platforms = response[1].data;
           const frontendTools = response[2].data;
-          const productOwners = response[3].records;
+          const productOwners = response[3].data;
           const divisions = response[4];
           const departments = response[5].data;
           const dataSteward = response[6].data;
@@ -795,8 +795,8 @@ const DataProductFilter = ({
                   Choose
                   </option>
                 {productOwners?.map((obj: any, index) => (
-                <option key={index} value={obj?.shortId}>
-                  {`${obj?.firstName} ${obj?.lastName}`}
+                <option key={index} value={obj?.teamMemeber.shortId}>
+                  {`${obj?.teamMemeber.firstName} ${obj?.teamMemeber.lastName}`}
                 </option>
               ))}
               </select>
