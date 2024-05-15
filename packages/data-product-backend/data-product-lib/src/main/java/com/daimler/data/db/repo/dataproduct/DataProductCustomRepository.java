@@ -67,4 +67,6 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 
     List<DataProductTeamLov> getAllIOLov();
 
+    List<DataProductTeamLov> getAllProductOwnerLov();
+
 }
