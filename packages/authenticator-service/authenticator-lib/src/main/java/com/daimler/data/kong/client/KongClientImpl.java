@@ -745,117 +745,117 @@ public class KongClientImpl implements KongClient {
 		}
 		return pluginIdMap;
 	}
-//	@Override
-//	public CreateServiceResponseVO getServiceByName(String serviceName) {
-//		
-//		CreateServiceResponseVO createServiceResponseVO = new CreateServiceResponseVO();
-//		ServiceResponse serviceResponse = null;
-//		MessageDescription messageDescription = new MessageDescription();
-//		List<MessageDescription> errors = new ArrayList<>();		
-//		JSONObject res = null;
-//		try {
-//			String kongUri = kongBaseUri + "/services/" + serviceName;
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("Accept", "application/json");
-//			headers.set("Content-Type", "application/x-www-form-urlencoded");
-//			HttpEntity entity = new HttpEntity<>(headers);
-//			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
-//			if (response != null && response.hasBody()) {
-//				HttpStatus statusCode = response.getStatusCode();
-//				if (statusCode == HttpStatus.OK) {
-//					JSONObject jsonResponse = new JSONObject(response.getBody());
-//					String jsonString = response.getBody();
-//					ObjectMapper mapper = new ObjectMapper();
-//					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//					try {
-//						serviceResponse = mapper.readValue(jsonString, ServiceResponse.class);
-//					} catch (JsonMappingException e) {
-//						LOGGER.error("JsonMappingException for get service {}", e.getMessage());
-//						e.printStackTrace();
-//					} catch (JsonProcessingException e) {
-//						LOGGER.error("JsonProcessingException for get service {}", e.getMessage());
-//						e.printStackTrace();
-//					}
-//					createServiceResponseVO.setData(serviceResponse);					
-//					return createServiceResponseVO;
-//				}
-//			}
-//		} catch (HttpClientErrorException ex) {
-//			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
-//			LOGGER.error("Service {} does not exist", serviceName);
-//			messageDescription.setMessage("Service does not exist");
-//			errors.add(messageDescription);
-//			createServiceResponseVO.setErrors(errors);
-//			return createServiceResponseVO;
-//			}
-//			LOGGER.error("Exception occured while getting service: {} details", serviceName);			
-//			messageDescription.setMessage(ex.getMessage());
-//			errors.add(messageDescription);
-//			createServiceResponseVO.setErrors(errors);
-//			return createServiceResponseVO;
-//		} catch (Exception e) {
-//			LOGGER.error("Error while getting service: {} details", serviceName);			
-//			messageDescription.setMessage(e.getMessage());
-//			errors.add(messageDescription);
-//			createServiceResponseVO.setErrors(errors);
-//			return createServiceResponseVO;
-//		}
-//		return createServiceResponseVO;
-//	
-//	}
-//
-//	@Override
-//	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName) {
-//
-//		
-//		CreateRouteResponseVO createRouteResponseVO = new CreateRouteResponseVO();
-//		RouteResponse routeResponse = null;
-//		MessageDescription messageDescription = new MessageDescription();
-//		List<MessageDescription> errors = new ArrayList<>();				
-//		try {
-//			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes/" + routeName;
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("Accept", "application/json");
-//			headers.set("Content-Type", "application/x-www-form-urlencoded");
-//			HttpEntity entity = new HttpEntity<>(headers);
-//			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
-//			if (response != null && response.hasBody()) {
-//				HttpStatus statusCode = response.getStatusCode();
-//				if (statusCode == HttpStatus.OK) {					
-//					String jsonString = response.getBody();
-//					ObjectMapper mapper = new ObjectMapper();
-//					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//					try {
-//						routeResponse = mapper.readValue(jsonString, RouteResponse.class);
-//					} catch (JsonMappingException e) {
-//						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
-//						e.printStackTrace();
-//					} catch (JsonProcessingException e) {
-//						LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
-//						e.printStackTrace();
-//					}
-//					createRouteResponseVO.setData(routeResponse);					
-//					return createRouteResponseVO;
-//				}
-//			}
-//		} catch (HttpClientErrorException ex) {
-//			messageDescription.setMessage(ex.getMessage());
-//			LOGGER.error("Error while getting service  {}", serviceName);
-//			messageDescription.setMessage("Error while getting service details");
-//			errors.add(messageDescription);
-//			createRouteResponseVO.setErrors(errors);
-//			return createRouteResponseVO;
-//			
-//		} 
-//		catch (Exception e) {
-//			LOGGER.error("Exception occured while getting service: {} details", serviceName);			
-//			messageDescription.setMessage(e.getMessage());
-//			errors.add(messageDescription);
-//			createRouteResponseVO.setErrors(errors);
-//			return createRouteResponseVO;
-//		}
-//		return createRouteResponseVO;
-//	}
+	@Override
+	public CreateServiceResponseVO getServiceByName(String serviceName) {
+		
+		CreateServiceResponseVO createServiceResponseVO = new CreateServiceResponseVO();
+		ServiceResponse serviceResponse = null;
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();		
+		JSONObject res = null;
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.OK) {
+					JSONObject jsonResponse = new JSONObject(response.getBody());
+					String jsonString = response.getBody();
+					ObjectMapper mapper = new ObjectMapper();
+					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+					try {
+						serviceResponse = mapper.readValue(jsonString, ServiceResponse.class);
+					} catch (JsonMappingException e) {
+						LOGGER.error("JsonMappingException for get service {}", e.getMessage());
+						e.printStackTrace();
+					} catch (JsonProcessingException e) {
+						LOGGER.error("JsonProcessingException for get service {}", e.getMessage());
+						e.printStackTrace();
+					}
+					createServiceResponseVO.setData(serviceResponse);					
+					return createServiceResponseVO;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("Service {} does not exist", serviceName);
+			messageDescription.setMessage("Service does not exist");
+			errors.add(messageDescription);
+			createServiceResponseVO.setErrors(errors);
+			return createServiceResponseVO;
+			}
+			LOGGER.error("Exception occured while getting service: {} details", serviceName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			createServiceResponseVO.setErrors(errors);
+			return createServiceResponseVO;
+		} catch (Exception e) {
+			LOGGER.error("Error while getting service: {} details", serviceName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			createServiceResponseVO.setErrors(errors);
+			return createServiceResponseVO;
+		}
+		return createServiceResponseVO;
+	
+	}
+
+	@Override
+	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName) {
+
+		
+		CreateRouteResponseVO createRouteResponseVO = new CreateRouteResponseVO();
+		RouteResponse routeResponse = null;
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();				
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes/" + routeName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.OK) {					
+					String jsonString = response.getBody();
+					ObjectMapper mapper = new ObjectMapper();
+					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+					try {
+						routeResponse = mapper.readValue(jsonString, RouteResponse.class);
+					} catch (JsonMappingException e) {
+						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
+						e.printStackTrace();
+					} catch (JsonProcessingException e) {
+						LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
+						e.printStackTrace();
+					}
+					createRouteResponseVO.setData(routeResponse);					
+					return createRouteResponseVO;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			messageDescription.setMessage(ex.getMessage());
+			LOGGER.error("Error while getting service  {}", serviceName);
+			messageDescription.setMessage("Error while getting service details");
+			errors.add(messageDescription);
+			createRouteResponseVO.setErrors(errors);
+			return createRouteResponseVO;
+			
+		} 
+		catch (Exception e) {
+			LOGGER.error("Exception occured while getting service: {} details", serviceName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			createRouteResponseVO.setErrors(errors);
+			return createRouteResponseVO;
+		}
+		return createRouteResponseVO;
+	}
 
 
 }

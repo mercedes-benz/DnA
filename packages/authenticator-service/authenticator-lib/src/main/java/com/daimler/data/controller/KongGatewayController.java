@@ -448,27 +448,27 @@ public class KongGatewayController implements KongApi{
 		
 	}
 
-//	@Override
-//	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
-//		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
-//		if(Objects.nonNull(createRouteResponseVO)) {
-//			return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
-//		}
-//		else {
-//			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//	}
+	@Override
+	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
+		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
+		if(Objects.nonNull(createRouteResponseVO)) {
+			return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
+		}
+		else {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-//	@Override
-//	public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
-//		CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
-//		if(Objects.nonNull(response.getData())) {
-//			return new ResponseEntity<>(response, HttpStatus.OK);
-//		}
-//		else {
-//			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//		
-//	}
+	@Override
+	public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
+		CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
+		if(Objects.nonNull(response.getData())) {
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		else {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
 
 }

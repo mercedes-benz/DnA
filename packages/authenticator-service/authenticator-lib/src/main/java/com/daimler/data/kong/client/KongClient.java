@@ -41,11 +41,11 @@ public interface KongClient {
 
 	public GenericMessage createService(String name, String url);
 	
-//	public CreateServiceResponseVO getServiceByName(String serviceName);
+	public CreateServiceResponseVO getServiceByName(String serviceName);
 
 	public GenericMessage createRoute(CreateRouteVO createRouteVO, String serviceName);
 	
-//	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
+	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
 
 	public GenericMessage attachPluginToService(AttachPluginVO attachPluginVO, String serviceName);
 	
