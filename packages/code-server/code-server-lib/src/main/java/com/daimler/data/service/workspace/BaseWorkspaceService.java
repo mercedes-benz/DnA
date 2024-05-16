@@ -1961,10 +1961,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspace.setServerStatus("SERVER_STOPPED");
 				vo.setData(workspace);
 				jpaRepo.save(vo);
-			GenericMessage isRoutePresentResponse = authenticatorClient.getRouteByName(vo.getData().getWorkspaceId(),
-			 			vo.getData().getWorkspaceId());
-			if(isRoutePresentResponse != null && isRoutePresentResponse.getSuccess() != null && isRoutePresentResponse.getSuccess().equalsIgnoreCase("Success"))
-			{
 				GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(vo.getData().getWorkspaceId(),
 				vo.getData().getWorkspaceId());
 				if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
@@ -1975,11 +1971,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 								deleteRouteResponse.getErrors().get(0).getMessage());
 					}
 				}
-			}
 				// Deleting Kong service
-			GenericMessage isServicePresentResponse = authenticatorClient.getServiceByName(vo.getData().getWorkspaceId());
-			if(isServicePresentResponse != null && isServicePresentResponse.getSuccess() != null && isServicePresentResponse.getSuccess().equalsIgnoreCase("Success"))
-			{
 				GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId());
 				if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
 					log.info("Kong service: {} deleted successfully", vo.getData().getWorkspaceId());
@@ -1989,7 +1981,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 								deleteServiceResponse.getErrors().get(0).getMessage());
 					}
 				}
-			}
 			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
 			errors.add(errMsg);
 			errors.addAll(createOwnerWSResponse.getErrors());
