@@ -302,6 +302,31 @@ paths:
         500:
           description: "Internal error"
 
+  /dataproducts/bookmarked:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get my dataproducts"
+      description: "Get all dataproducts for which user is either creator or product owner"
+      operationId: "getMyDataProducts"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
   /dataproducts/owners:
     get:
       tags:

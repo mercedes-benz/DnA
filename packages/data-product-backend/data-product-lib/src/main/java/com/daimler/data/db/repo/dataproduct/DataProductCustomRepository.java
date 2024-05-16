@@ -69,4 +69,6 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 
     List<DataProductTeamLov> getAllProductOwnerLov();
 
+	List<DataProductNsql> getMyDataProducts(String userId);
+
 }

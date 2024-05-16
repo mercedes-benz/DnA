@@ -79,4 +79,6 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 
     List<DataProductLovVO> getProductOwnerLov();
 
+	List<DataProductVO> getMyDataproducts(String userId);
+
 }
