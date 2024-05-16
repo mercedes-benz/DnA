@@ -35,13 +35,13 @@ const AllReports = React.lazy(() => import('components/mbc/allReports/AllReports
 const CreateNewReport = React.lazy(() => import('components/mbc/createNewReport/CreateNewReport'));
 const ReportSummary = React.lazy(() => import('components/mbc/reportSummary/ReportSummary'));
 const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSettings'));
-const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
-const CodeSpaceSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/securityConfig/SecurityConfig'));
-const ManageCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/manageCodeSpace/ManageCodeSpace'));
-const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
+// const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
+// const CodeSpaceSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/securityConfig/SecurityConfig'));
+// const ManageCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/manageCodeSpace/ManageCodeSpace'));
+// const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
 const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
-const CodeSpaceRecipe = React.lazy(() => import('components/mbc/codeSpace/codeSpaceRecipe/CodeSpaceRecipe'));
+// const CodeSpaceRecipe = React.lazy(() => import('components/mbc/codeSpace/codeSpaceRecipe/CodeSpaceRecipe'));
 const AzureBlobService = React.lazy(() => import('components/mbc/azureBlobService/AzureBlobService')) ;
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -52,6 +52,7 @@ const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
 const DatalakeComponent = React.lazy(() => import('datalake-mfe/Datalake'));
 const FabricComponent = React.lazy(() => import('fabric-mfe/Fabric'));
 const DataEntryComponent = React.lazy(() => import('data-entry-mfe/DataEntry'));
+const CodeSpaceComponent = React.lazy(() => import('code-space-mfe/CodeSpace'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -342,54 +343,61 @@ const protectedRoutes = [
     path: '/data',
     title: 'Data',
   },
-  {
-    allowedRoles: AdminRole ,
-    component: ManageCodeSpaces,
-    exact: false,
-    path: '/codespace/manageCodespace',
-    title: 'Manage codeSpace'
-  },
+  // {
+  //   allowedRoles: AdminRole ,
+  //   component: ManageCodeSpaces,
+  //   exact: false,
+  //   path: '/codespace/manageCodespace',
+  //   title: 'Manage codeSpace'
+  // },
+  // {
+  //   allowedRoles: UserAndAdminRole,
+  //   component: CodeSpaceSecurityConfig,
+  //   exact: false,
+  //   path: '/codespace/securityconfig/:id?',
+  //   title: 'Security Config',
+  // },
+  // {
+  //   allowedRoles: UserAndAdminRole,
+  //   component: CodeSpaceSecurityConfig,
+  //   exact: false,
+  //   path: '/codespace/publishedSecurityconfig/:id?',
+  //   title: 'Published Security Config',
+  // },
+  // {
+  //   allowedRoles: AdminRole,
+  //   component: CodeSpaceSecurityConfig,
+  //   exact: false,
+  //   path: '/codespace/adminSecurityconfig/:id?',
+  //   title: 'View Security Config',
+  // },
+  // {
+  //   allowedRoles: UserAndAdminRole,
+  //   component: CodeSpace,
+  //   exact: false,
+  //   path: '/codespace/:id?',
+  //   title: 'Code Space',
+  // },
+  // {
+  //   allowedRoles: UserAndAdminRole,
+  //   component: AllCodeSpaces,
+  //   exact: false,
+  //   path: '/codespaces',
+  //   title: 'Your Code Spaces',
+  // },
+  // {
+  //   allowedRoles: UserAndAdminRole,
+  //   component:CodeSpaceRecipe ,
+  //   exact: false,
+  //   path: '/codespaceRecipes',
+  //   title: 'Code Space recipes',
+  // },
   {
     allowedRoles: UserAndAdminRole,
-    component: CodeSpaceSecurityConfig,
-    exact: false,
-    path: '/codespace/securityconfig/:id?',
-    title: 'Security Config',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: CodeSpaceSecurityConfig,
-    exact: false,
-    path: '/codespace/publishedSecurityconfig/:id?',
-    title: 'Published Security Config',
-  },
-  {
-    allowedRoles: AdminRole,
-    component: CodeSpaceSecurityConfig,
-    exact: false,
-    path: '/codespace/adminSecurityconfig/:id?',
-    title: 'View Security Config',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: CodeSpace,
-    exact: false,
-    path: '/codespace/:id?',
-    title: 'Code Space',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: AllCodeSpaces,
+    component: CodeSpaceComponent,
     exact: false,
     path: '/codespaces',
     title: 'Your Code Spaces',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component:CodeSpaceRecipe ,
-    exact: false,
-    path: '/codespaceRecipes',
-    title: 'Code Space recipes',
   },
   {
     allowedRoles: UserAndAdminRole,
