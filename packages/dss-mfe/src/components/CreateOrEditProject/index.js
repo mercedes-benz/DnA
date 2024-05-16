@@ -214,7 +214,7 @@ const CreateOrEditProject = (props) => {
             setTouErrorMessage(errorMissingEntry);
             isFormValid = false;
         }
-
+        
         if (
             (dataClassification && !(dataClassification === '0'))
             && (statusValue && !(statusValue === '0'))
@@ -223,6 +223,7 @@ const CreateOrEditProject = (props) => {
             && projectKey?.trim()?.length > 0
             && projectDescription?.trim()?.length > 0
             && selectedDepartmentTags.length > 0
+            &&( (projectGroup === 'eXtollo' && extolloTou === true) || projectGroup === 'onPremise')
         ) {
             isFormValid = true;
         } else {
@@ -856,6 +857,7 @@ const CreateOrEditProject = (props) => {
                                 className="ff-only"
                                 value={extolloTou}
                                 onChange={onExtolloTOuChange}
+                                checked = {extolloTou}
                             />
                         </span>
                         <span className={classNames("label", touErrorMessage.length ? "error" : '')}>
