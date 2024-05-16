@@ -1962,14 +1962,34 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspace.setServerStatus("SERVER_STOPPED");
 				vo.setData(workspace);
 				jpaRepo.save(vo);
-				MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
-				errors.add(errMsg);
-				errors.addAll(createOwnerWSResponse.getErrors());
-				warnings.addAll(createOwnerWSResponse.getWarnings());
-				responseMessage.setSuccess("SUCCESS");
-				responseMessage.setErrors(errors);
-				responseMessage.setWarnings(warnings);
-				return responseMessage;
+				GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(vo.getData().getWorkspaceId(),
+				vo.getData().getWorkspaceId());
+				if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong route: {} deleted successfully", vo.getData().getWorkspaceId());
+				else {
+					if (deleteRouteResponse.getErrors() != null && deleteRouteResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong route: {} with exception : {}", vo.getData().getWorkspaceId(),
+								deleteRouteResponse.getErrors().get(0).getMessage());
+					}
+				}
+				// Deleting Kong service
+				GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId());
+				if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong service: {} deleted successfully", vo.getData().getWorkspaceId());
+				else {
+					if (deleteServiceResponse.getErrors() != null && deleteServiceResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong service: {} with exception : {}", vo.getData().getWorkspaceId(),
+								deleteServiceResponse.getErrors().get(0).getMessage());
+					}
+				}
+			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+			errors.add(errMsg);
+			errors.addAll(createOwnerWSResponse.getErrors());
+			warnings.addAll(createOwnerWSResponse.getWarnings());
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
 		}
 		catch(Exception e)
 		{
