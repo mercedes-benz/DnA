@@ -22,7 +22,7 @@ export interface ISolutionCardItemProps {
   onDelete: (solutionId: string) => void;
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
   noteBookData: INotebookInfoSolutionId;
-  onShowSimilarSolutionModal: (solutionName: string) => void;
+  onShowSimilarSolutionModal: () => void;
 }
 
 const goToSummary = (solutionId: string) => {
@@ -325,7 +325,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
               <span
                 onClick={(e: React.FormEvent<HTMLSpanElement>) => {
                   e.stopPropagation();
-                  props.onShowSimilarSolutionModal(solution.productName);
+                  props.onShowSimilarSolutionModal();
                 }}
               >
                 Similar Solutions

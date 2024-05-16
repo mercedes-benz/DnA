@@ -4,6 +4,10 @@ import * as React from 'react';
 import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import {
   ITag,
   IProductPhase,
@@ -18,6 +22,7 @@ import {
   ISubDivision,
   IDivisionAndSubDivision,
   IDepartment,
+  ISimilarSearchListItem,
 } from 'globals/types';
 import Styles from './Description.scss';
 import Tags from 'components/formElements/tags/Tags';
@@ -26,6 +31,7 @@ import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import { Envs } from 'globals/Envs';
+import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
 const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
@@ -83,6 +89,13 @@ export interface IDescriptionState {
   piiError: string;
   procedureId: string;
   procedureIdError: string;
+  selectedSimilarReportsType: string;
+  showSimilarReportsModal: boolean;
+  lastSearchedDescriptionInput: string;
+  similarReportsBasedOnDescription: ISimilarSearchListItem[];
+  lastSearchedProductNameInput: string;
+  similarReportsBasedOnProductName: ISimilarSearchListItem[];
+  similarReportstoShow: ISimilarSearchListItem[];
 }
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
@@ -142,6 +155,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       piiError: null,
       procedureId: '',
       procedureIdError: null,
+      selectedSimilarReportsType: "Description",
+      showSimilarReportsModal: false,
+      lastSearchedDescriptionInput: '',
+      similarReportsBasedOnDescription: [],
+      lastSearchedProductNameInput: '',
+      similarReportsBasedOnProductName: [],
+      similarReportstoShow: [],
     };
   }
 
@@ -395,6 +415,62 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     this.setState({ frontEndTechValue: selectedValues });
   };
 
+  public showSimilarReports = (type: string) => {
+    let similarReportstoShow: ISimilarSearchListItem[] = [];
+    switch (type) {
+      case 'Name': 
+        similarReportstoShow = this.state.similarReportsBasedOnProductName;
+        break;
+      case 'Description':
+        similarReportstoShow = this.state.similarReportsBasedOnDescription;
+        break;
+    }
+    this.setState({ selectedSimilarReportsType: type, showSimilarReportsModal: true, similarReportstoShow });
+  };
+
+  public onFocusOut = (fieldType: string, data: string) => {
+    const inputData = data.trim();
+    if(inputData !== '') {
+      switch(fieldType) {
+        case 'Name':
+          if(inputData === this.state.lastSearchedProductNameInput) return;
+          this.setState({similarReportsBasedOnProductName: []});
+          break;   
+        case 'Description':
+          if(inputData === this.state.lastSearchedDescriptionInput) return;
+          this.setState({similarReportsBasedOnDescription: []});
+          break;  
+      }
+
+      ApiClient.getSimilarSearchResult(`reportssearch?input=${inputData}`).then((res: any) => {
+        if(res?.result?.length) {
+          const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
+          res?.result.forEach((item: any) => {
+            const reportItem = item[0];
+            const score = item[1];
+            similarSolutionsBasedOnInputData.push({
+              id: reportItem.id,
+              productName: reportItem.productName,
+              description: reportItem.description,
+              score
+            });
+          });
+
+          switch(fieldType) {
+            case 'Name':
+              this.setState({similarReportsBasedOnProductName: similarSolutionsBasedOnInputData, lastSearchedProductNameInput: inputData});
+              break;    
+            case 'Description':
+              this.setState({similarReportsBasedOnDescription: similarSolutionsBasedOnInputData, lastSearchedDescriptionInput: inputData}); 
+          }
+
+          Notification.show(`Similar reports found based on your Report ${fieldType}.`);
+          Tooltip.defaultSetup();
+        }
+      });
+    }
+  };
+
   public render() {
     const divisionError = this.state.divisionError || '';
     const productNameError = this.state.productNameError || '';
@@ -461,6 +537,19 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         required={true}
                         maxLength={200}
                         onChange={this.onProductNameOnChange}
+                        onBlur={() => this.onFocusOut("Name", this.state.productName)}
+                        infoContent={
+                          this.state.similarReportsBasedOnProductName.length > 0 && (
+                            <span
+                              className={Styles.similarReportInfo}
+                              onClick={() => this.showSimilarReports('Name')}
+                              tooltip-data="Click to view"
+                            >
+                              <i className="icon mbc-icon alert circle" />
+                              Similar Reports Found
+                            </span>
+                          )
+                        }
                       />
                     </div>
                     {!this.props.enableQuickPath ? (
@@ -526,6 +615,19 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       errorText={descriptionError}
                       required={true}
                       onChange={this.onDescChange}
+                      onBlur={() => this.onFocusOut("Description", this.state.description)}
+                      infoContent={
+                        this.state.similarReportsBasedOnDescription.length > 0 && (
+                          <span
+                            className={Styles.similarReportInfo}
+                            onClick={() => this.showSimilarReports('Description')}
+                            tooltip-data="Click to view"
+                          >
+                            <i className="icon mbc-icon alert circle" />
+                            Similar Reports Found
+                          </span>
+                        )
+                      }
                     />
                   </div>
                   <div>
@@ -843,6 +945,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
               </div>
             </div>
           </div>
+          {this.state.showSimilarReportsModal && (
+            <SimilarSearchListModal
+              setShowSimilarSearchListModal={(showSimilarReportsModal: boolean) => this.setState({ showSimilarReportsModal })}
+              similarSearchList={this.state.similarReportstoShow}
+              searchBasedOnInputType={this.state.selectedSimilarReportsType}
+              isReportSearchType={true}
+            />
+          )}
           <div className="btnConatiner">
             {!this.props.enableQuickPath ? (
               <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmit}>
