@@ -140,7 +140,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
     'alert',
     );
     });
-  };
+      };
   const handleEditProject = (values) => {
     const data = {
       projectName: project?.data?.projectName,
@@ -168,12 +168,11 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
         'alert',
       );
     });
-  };
+      };
 
 
   const onProjCollabAdd =(collabs)=>{
-    const newCollab = [collabs]
-    setTable(prevTable => [...prevTable, ...newCollab]);
+    setTable([...collabs]);
   }
 
   return (
@@ -376,8 +375,8 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
                           tags={departments}
                           setTags={(selectedTags) => {
                           let dept = selectedTags?.map((item) => item.toUpperCase());
-                            setDepartmentName(dept);
-                            setDepartmentError('');
+                          setDepartmentName(dept);
+                          setDepartmentError('');
                           }}
                           isMandatory={true}
                           showMissingEntryError={departmentError}
