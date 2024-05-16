@@ -211,7 +211,7 @@ const CreateOrEditProject = (props) => {
             isFormValid = false;
         }
         if(projectGroup === 'eXtollo' && extolloTou === false){
-            setTouErrorMessage(errorMissingEntry);
+            setTouErrorMessage('Please agree to terms of use');
             isFormValid = false;
         }
         
@@ -861,10 +861,10 @@ const CreateOrEditProject = (props) => {
                             />
                         </span>
                         <span className={classNames("label", touErrorMessage.length ? "error" : '')}>
-                            I here by declare that I agree to the  eXtollo{' '}
+                            I here by declare that I agree to eXtollo{' '}
                             <span className={classNames(Styles.configLink)} onClick={onTouNavigate}>
                                 <a target="_blank" rel="noreferrer">
-                                    terms and conditions
+                                    terms of use
                                 </a>
                             </span>
                         </span>
