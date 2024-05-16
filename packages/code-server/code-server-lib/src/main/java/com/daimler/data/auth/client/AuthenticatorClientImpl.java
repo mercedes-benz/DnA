@@ -775,6 +775,79 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
+	public GenericMessage getRouteByName(String serviceName, String routeName) {
+
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String getRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE + "/" + routeName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(getRouteUri, HttpMethod.GET, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					message.setSuccess("Success");		
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					LOGGER.info("Kong route:{} for the service {} is present", routeName, serviceName);
+					return message;
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured: {} while getting  route: {} details", e.getMessage(),routeName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+		return message;
+	
+	}
+
+	@Override
+	public GenericMessage getServiceByName(String serviceName)
+	{
+		
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String getServiceUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(getServiceUri, HttpMethod.GET, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					message.setSuccess("Success");		
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					LOGGER.info("Kong for the service {} is present", serviceName);
+					return message;
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured: {} while getting  route: {} details", e.getMessage(),serviceName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+		return message;
+
+	}
+
+	@Override
 	public GenericMessage deletePlugin(String serviceName, String pluginName) {
 
 		GenericMessage message = new GenericMessage();
