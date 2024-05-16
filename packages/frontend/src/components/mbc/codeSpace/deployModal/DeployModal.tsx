@@ -318,7 +318,7 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableIntIAM}
+                          disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
@@ -423,7 +423,7 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableProdIAM}
+                          disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">

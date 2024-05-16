@@ -220,6 +220,7 @@ public class DataikuServiceImpl implements DataikuService	{
 			existingRecord.setStatus(updateData.getStatus());
 			existingRecord.setClassificationType(updateData.getClassificationType());
 			existingRecord.setHasPii(updateData.getHasPii());
+			existingRecord.setHasTermsOfUse(updateData.getHasTermsOfUse());
 			existingRecord.setDivisionId(updateData.getDivisionId());
 			existingRecord.setDivisionName(updateData.getDivisionName());
 			existingRecord.setSubdivisionId(updateData.getSubdivisionId());

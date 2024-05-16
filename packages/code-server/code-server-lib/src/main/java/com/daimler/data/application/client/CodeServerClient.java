@@ -75,6 +75,7 @@ public class CodeServerClient {
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
 			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
 			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
+			case "dash-python" : deployType = ConstantsUtility.DASHPYTHON; break;
 			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;
