@@ -1436,7 +1436,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				}
 				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
-				|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+				|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
 				|| expressjsRecipeId.equalsIgnoreCase(projectRecipe) || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				}
