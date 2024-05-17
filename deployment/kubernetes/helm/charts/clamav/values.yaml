@@ -122,3 +122,8 @@ podDisruptionBudget:
   # Uncomment only one of the following when enabled is set to true
   # maxUnavailable: "50%"
   # minAvailable: "50%"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 3
