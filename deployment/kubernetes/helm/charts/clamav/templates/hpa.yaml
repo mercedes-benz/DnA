@@ -2,6 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -13,8 +14,12 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: 70
+      target:
+        type: Utilization
+        averageUtilization: 70      
   - type: Resource
     resource:
       name: memory
-      targetAverageUtilization: 70
+      target:
+        type: Utilization
+        averageUtilization: 70  
