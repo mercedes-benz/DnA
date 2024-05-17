@@ -993,7 +993,9 @@ import lombok.extern.slf4j.Slf4j;
 			//  }
 			 if(deployRequestDto.isValutInjectorEnable()!=null)
 			 {              
-				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi"))
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi")
+				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("dash-python") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("streamlit-python")
+				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("express-node") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("nestjs-node"))
 				{
 					deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());
 				}

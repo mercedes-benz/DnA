@@ -77,7 +77,7 @@ public class CodeServerClient {
 			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
 			case "dash-python" : deployType = ConstantsUtility.DASHPYTHON; break;
 			case "streamlit-python" : deployType = ConstantsUtility.STREAMLIT; break;
-			case "express-node" : deployType = ConstantsUtility.EXPRESSNODE; break;
+			case "express-node" : deployType = ConstantsUtility.EXPRESSJS; break;
 			case "nestjs-node" : deployType = ConstantsUtility.NESTJS; break;
 			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
