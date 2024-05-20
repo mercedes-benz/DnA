@@ -140,7 +140,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
     'alert',
     );
     });
-  };
+    };
   const handleEditProject = (values) => {
     const data = {
       projectName: project?.data?.projectName,
@@ -172,8 +172,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
 
 
   const onProjCollabAdd =(collabs)=>{
-    const newCollab = [collabs]
-    setTable(prevTable => [...prevTable, ...newCollab]);
+    setTable([...collabs]);
   }
 
   return (

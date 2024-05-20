@@ -888,11 +888,11 @@ export interface IMonth {
   name: string;
 }
 
-export interface ISimilarSolutionsListItem {
+export interface ISimilarSearchListItem {
   id?: string;
   productName: string;
   description: string;
-  businessNeed: string;
+  businessNeed?: string;
   score: number;
 }
 

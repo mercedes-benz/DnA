@@ -31,12 +31,14 @@
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
@@ -108,7 +110,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
- 
+import org.springframework.beans.factory.annotation.Value;
+
  @RestController
  @Api(value = "Workspace API", tags = { "code-server" })
  @RequestMapping("/api")
@@ -135,6 +138,12 @@ import lombok.extern.slf4j.Slf4j;
 
 	@Autowired
 	private CodeServerClient client;
+
+	@Autowired
+	HttpServletRequest httpRequest;
+
+	@Value("${codeServer.workspace.apikey}")
+	private String apiKeyValue;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -336,6 +345,36 @@ import lombok.extern.slf4j.Slf4j;
 						 userId, vo.getWorkspaceId());
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
+			}
+			if(data!=null){
+				//not allowing duplicate names for same apiPattern and httpMethod clubing the names with already available entitlement
+				HashMap<String,List<String>> entitlmentMap = new HashMap<>();
+				List<CodespaceSecurityEntitlementVO> entilements = data.getEntitlements();
+
+				for (CodespaceSecurityEntitlementVO entitlement : entilements) {
+						String key = entitlement.getHttpMethod().toString()+"-"+entitlement.getApiPattern();
+						if(entitlmentMap.get(key)!=null){
+							List<String> namesList = entitlmentMap.get(key);
+							List<String> names = entitlement.getName();
+							namesList.addAll(names);
+						}
+						else{
+							List<String> names = entitlement.getName();
+							entitlmentMap.put(key,names);
+						}
+				}
+				CodespaceSecurityConfigDetailVO newCodeCodespaceSecurityConfigDetailVO = new CodespaceSecurityConfigDetailVO();
+				entitlmentMap.forEach((key, value) -> {
+					CodespaceSecurityEntitlementVO entitlementVO = new CodespaceSecurityEntitlementVO ();
+					String[] separatedStrings = key.split("-");
+					entitlementVO.setHttpMethod(CodespaceSecurityEntitlementVO.HttpMethodEnum.valueOf(separatedStrings[0]));
+					entitlementVO.apiPattern(separatedStrings[1]);
+					entitlementVO.setName(value);
+					newCodeCodespaceSecurityConfigDetailVO.addEntitlementsItem(entitlementVO);
+					
+				});
+				newCodeCodespaceSecurityConfigDetailVO.setAppID(data.getAppID());
+				data = newCodeCodespaceSecurityConfigDetailVO;
 			}
 			// if(data.isIsProtectedByDna()== null){
 			// 	data.isProtectedByDna(false);
@@ -2014,6 +2053,18 @@ import lombok.extern.slf4j.Slf4j;
         method = RequestMethod.PATCH)
     public ResponseEntity<GenericMessage> updateExistingWorkspace(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody CodeServerWorkspaceVO codeServerMigrateVO)
 	{
+		String apiKey = httpRequest.getHeader("x-api-key");
+		if (apiKey == null || !apiKey.equalsIgnoreCase(apiKeyValue)) {
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("Authentication failed");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.UNAUTHORIZED);
+		}
 		GenericMessage response = new GenericMessage();
 		String userId = codeServerMigrateVO.getWorkspaceOwner().getId();
 		String projectName= codeServerMigrateVO.getProjectDetails().getProjectName();

@@ -31,17 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.dataproduct.DataProductLovVO;
-import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
-import com.daimler.data.dto.datatransfer.ConsumerVO;
-import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
-import com.daimler.data.dto.datatransfer.DataTransferLovVO;
-import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
-import com.daimler.data.dto.datatransfer.ProviderVO;
-import com.daimler.data.dto.userinfo.dashboard.dataProduct.DataProductTeamLov;
-import com.daimler.data.dto.userinfo.dataTransfer.DataTransferTeamMemLov;
-import com.daimler.data.service.datatransfer.DataTransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +42,21 @@ import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DataProductAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.repo.dataproduct.DataProductCustomRepository;
 import com.daimler.data.db.repo.dataproduct.DataProductRepository;
+import com.daimler.data.dto.dataproduct.DataProductLovVO;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.datatransfer.ConsumerVO;
+import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
+import com.daimler.data.dto.datatransfer.ProviderVO;
+import com.daimler.data.dto.userinfo.dashboard.dataProduct.DataProductTeamLov;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.datatransfer.DataTransferService;
 import com.daimler.data.service.department.DepartmentService;
 
 @Service
@@ -203,5 +201,16 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			return new ArrayList<>();
 		}
 
+	}
+
+	@Override
+	public List<DataProductVO> getMyDataproducts(String userId) {
+		List<DataProductNsql> entities = dataProductCustomRepository.getMyDataProducts(userId);
+		if (entities!= null && !entities.isEmpty()){
+			List<DataProductVO> finalData = entities.stream().map(n -> dataProductAssembler.toVo(n)).collect(Collectors.toList());
+			return finalData;	
+		}else{
+			return new ArrayList<>();
+		}
 	}
 }

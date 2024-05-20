@@ -32,9 +32,6 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
         hasWritePermission: false
       }
       setCollabs([...collabs, memberObj]);
-      if(isProjectLevelCollab){
-        onProjCollabAdd(memberObj);
-      }
     }
     setShowUserAlreadyExistsError(false);
   }
@@ -43,6 +40,13 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
     console.log('reset user already exists');
   }
 
+  useEffect(()=>{
+    if(isProjectLevelCollab){
+      onProjCollabAdd(collabs);
+    }
+  },[collabs])
+
+  
   const onPermissionChange = (collab) => {
     const collabItem = collabs.map((item) => {
       if (item.collaborator.id === collab.collaborator.id) {

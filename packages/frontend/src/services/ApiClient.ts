@@ -1196,7 +1196,7 @@ export class ApiClient {
     return this.get('users/transparency');
   }
 
-  public static getSimilarSolutions(endpoint: string):Promise<any> {
+  public static getSimilarSearchResult(endpoint: string):Promise<any> {
     return this.fetch(getSimilaritySearchUrl(endpoint), HTTP_METHOD.GET);
   } 
 }
