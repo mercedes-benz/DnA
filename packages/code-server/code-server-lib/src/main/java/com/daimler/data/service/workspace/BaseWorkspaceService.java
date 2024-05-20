@@ -1294,6 +1294,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
 			String vueRecipeId = RecipeIdEnum.VUE.toString();
+			String dashRecipeId = RecipeIdEnum.DASH.toString();
 //			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
 //			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
 //			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
@@ -1431,7 +1432,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				}
-				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) || vueRecipeId.equalsIgnoreCase(projectRecipe)) {
+				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
@@ -1553,7 +1554,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 						if(isPublished){
 							if("int".equalsIgnoreCase(env)){
-								if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null){
+								if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null && !config.getStaging().getDraft().getAppID().isEmpty() && !config.getStaging().getDraft().getEntitlements().isEmpty() ){
 									entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
 								}else{
 									log.info("APPID and Entitlement should not be empty while publishing");
@@ -1568,7 +1569,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 								}
 							}
 							if("prod".equalsIgnoreCase(env)){
-								if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null){
+								if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null && !config.getProduction().getDraft().getAppID().isEmpty() && !config.getProduction().getDraft().getEntitlements().isEmpty()){
 									entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
 								}else{
 									log.info("APPID and Entitlement should not be empty while publishing");
@@ -1961,14 +1962,34 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspace.setServerStatus("SERVER_STOPPED");
 				vo.setData(workspace);
 				jpaRepo.save(vo);
-				MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
-				errors.add(errMsg);
-				errors.addAll(createOwnerWSResponse.getErrors());
-				warnings.addAll(createOwnerWSResponse.getWarnings());
-				responseMessage.setSuccess("SUCCESS");
-				responseMessage.setErrors(errors);
-				responseMessage.setWarnings(warnings);
-				return responseMessage;
+				GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(vo.getData().getWorkspaceId(),
+				vo.getData().getWorkspaceId());
+				if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong route: {} deleted successfully", vo.getData().getWorkspaceId());
+				else {
+					if (deleteRouteResponse.getErrors() != null && deleteRouteResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong route: {} with exception : {}", vo.getData().getWorkspaceId(),
+								deleteRouteResponse.getErrors().get(0).getMessage());
+					}
+				}
+				// Deleting Kong service
+				GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId());
+				if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong service: {} deleted successfully", vo.getData().getWorkspaceId());
+				else {
+					if (deleteServiceResponse.getErrors() != null && deleteServiceResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong service: {} with exception : {}", vo.getData().getWorkspaceId(),
+								deleteServiceResponse.getErrors().get(0).getMessage());
+					}
+				}
+			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+			errors.add(errMsg);
+			errors.addAll(createOwnerWSResponse.getErrors());
+			warnings.addAll(createOwnerWSResponse.getWarnings());
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
 		}
 		catch(Exception e)
 		{

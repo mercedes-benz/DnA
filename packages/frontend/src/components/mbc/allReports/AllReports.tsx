@@ -31,6 +31,7 @@ import {
   IART,
   IDepartment,
   ITeams,
+  ISimilarSearchListItem,
 } from 'globals/types';
 import { history } from '../../../router/History';
 import Pagination from '../pagination/Pagination';
@@ -50,6 +51,8 @@ import ReportsFilter from '../filters/ReportsFilter';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from '../shared/landingSummary/tagSection/TagSection';
+import SimilarSearchListModal from '../shared/similarSearchListModal/SimilarSearchListModal';
+import { ApiClient } from '../../../services/ApiClient';
 
 const classNames = cn.bind(Styles);
 
@@ -103,6 +106,9 @@ export interface IAllReportsState {
   openFilters: boolean;
   selectedTags: string[];
   selectedTagsToPass: string[];
+  selectedReportNameForSimilarityCheck: string;
+  showSimilarReportsModal: boolean;
+  similarReportsBasedOnDescription: ISimilarSearchListItem[];
 }
 
 interface IDropdownValues {
@@ -178,6 +184,9 @@ export default class AllReports extends React.Component<
       openFilters: false,
       selectedTags: [],
       selectedTagsToPass: [],
+      selectedReportNameForSimilarityCheck: '',
+      showSimilarReportsModal: false,
+      similarReportsBasedOnDescription: [],
     };
   }
 
@@ -230,6 +239,37 @@ export default class AllReports extends React.Component<
     this.setState({ selectedTags: values, selectedTagsToPass: values });
   };
 
+  protected onShowSimilarReportModal = (selectedReportId: string, selectedReportName: string, selectedReportDescription: string) => {
+    ProgressIndicator.show();
+    ApiClient.getSimilarSearchResult(`reportssearch?input=${selectedReportDescription}`).then((res: any) => {
+      ProgressIndicator.hide();
+      if(res?.result?.length) {
+        const similarReportsBasedOnInputData:ISimilarSearchListItem[] = [];
+        res?.result.forEach((item: any) => {
+          const reportItem = item[0];
+          if (selectedReportId !== reportItem.id) {
+            // Show only the Reports except the selected report after getting similar report search list
+            const score = item[1];
+            similarReportsBasedOnInputData.push({
+              id: reportItem.id,
+              productName: reportItem.productName,
+              description: reportItem.description,
+              score,
+            });
+          }
+        });
+
+        this.setState({showSimilarReportsModal: true, similarReportsBasedOnDescription: similarReportsBasedOnInputData, selectedReportNameForSimilarityCheck: selectedReportName});
+      } else {
+        Notification.show('No similar reports found. Pleae try again later.', 'warning');
+      }
+    }).catch((error: Error) => {
+      ProgressIndicator.hide();
+      Notification.show('Error while fetching similar reports. Please try again later.', 'alert');
+      console.error('Error while fetching similar reports', error);
+    });
+  };
+
   public render() {
     const userInfo = this.props.user;
     const isSuperAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
@@ -255,6 +295,7 @@ export default class AllReports extends React.Component<
           }
           onEdit={() => this.onEditReport(report?.reportId)}
           onDelete={() => this.onDeleteReport(report?.id)}
+          onShowSimilarReportModal={() => this.onShowSimilarReportModal(report.id, report.description.productName, report.description.productDescription)}
         />
       );
     });
@@ -411,6 +452,7 @@ export default class AllReports extends React.Component<
                             }
                             onEdit={() => this.onEditReport(report?.reportId)}
                             onDelete={() => this.onDeleteReport(report?.id)}
+                            onShowSimilarReportModal={() => this.onShowSimilarReportModal(report.id, report.description.productName, report.description.productDescription)}
                           />
                         );
                       })}
@@ -560,6 +602,17 @@ export default class AllReports extends React.Component<
                   </>
                 )} */}
             </div>
+            {this.state.showSimilarReportsModal && (
+              <SimilarSearchListModal
+                setShowSimilarSearchListModal={(showSimilarReportsModal: boolean) =>
+                  this.setState({ showSimilarReportsModal })
+                }
+                selectedProductName={this.state.selectedReportNameForSimilarityCheck}
+                similarSearchList={this.state.similarReportsBasedOnDescription}
+                searchBasedOnInputType={"Description"}
+                isReportSearchType={true}
+              />
+            )}
           </div>
         </LandingSummary>
       </React.Fragment>
