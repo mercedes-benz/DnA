@@ -146,14 +146,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.authoriserScope}")
 	private String authoriserScope;
 
-	@Value("${kong.authRedirectAfterLogoutUri}")
+	@Value("${kong.authoriserRedirectAfterLogoutUri}")
 	private String authRedirectAfterLogoutUri;
-
+ 
 	@Value("${kong.authoriserIntrospectionEndpoint}")
 	private String authIntrospectionEndpoint;
-
+ 
 	@Value("${kong.authoriserDiscovery}")
 	private String authDiscovery;
+	
 
 
 
