@@ -222,7 +222,7 @@ const workSpaceStatus = () => {
     });
 };
 
-export const CodeSpaceApi = {
+export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
     editCodeSpace,

@@ -83,11 +83,11 @@ const DeployModal = (props) => {
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
     setVault();
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setVault();
-  }, [deployEnvironment]);
+  }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
@@ -151,7 +151,7 @@ const DeployModal = (props) => {
         ProgressIndicator.hide();
         Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
       })
-      .catch((err) => {
+      .catch(() => {
         ProgressIndicator.hide();
         // if (err?.response?.data?.errors?.length > 0) {
         //   err?.response?.data?.errors.forEach((err: any) => {

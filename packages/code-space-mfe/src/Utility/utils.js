@@ -25,6 +25,15 @@ export const buildGitUrl = (gitRepoInfo) => {
     return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
 };
 
+const isValidURL = (urlString) => {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 export const buildLogViewURL = (deployedInstance, isStagging) => { //isstagingOptional
     try {
       let instanceId = deployedInstance;

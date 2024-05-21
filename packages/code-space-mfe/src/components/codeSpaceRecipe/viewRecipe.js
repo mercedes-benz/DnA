@@ -28,13 +28,13 @@ import Styles from './viewRecipe.scss';
 //   users: ICodeCollaborator[];
 // }
 
-const viewRecipe = (props) => {
+const ViewRecipe = (props) => {
   const [recipeField, setRecipeField] = useState();
   const [teamMembers, setTeamMembers] = useState([]);
   const classNames = cn.bind(Styles);
   useEffect(() => {
     getCodeSpaceRecipe(props.recipeName);
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
   
   useEffect(() => {
     if (!recipeField?.isPublic && recipeField?.users !== null) {
@@ -182,4 +182,4 @@ const viewRecipe = (props) => {
   );
 };
 
-export default viewRecipe;
+export default ViewRecipe;

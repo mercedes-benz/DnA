@@ -95,7 +95,7 @@ const EditOrCreateEntitlement = (props) => {
       setbeforeUpdateEntitlName(props.editEntitlementList.name);
     }
     setCurrentEntitlement(props.editEntitlementList);
-  }, [props?.editEntitlementModal, props?.editEntitlementList?.name]);
+  }, [props?.editEntitlementModal, props?.editEntitlementList?.name]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setTimeout(() => {

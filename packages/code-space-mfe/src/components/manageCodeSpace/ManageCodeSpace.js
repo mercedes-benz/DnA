@@ -100,7 +100,7 @@ const ManageCodeSpace = () => {
     const currentPageOffsetInit = pageNumberOnQuery ? (currentPageNumber - 1) * maxItemsPerPage : 0;
     setCurrentPageNumber(currentPageNumberInit);
     setCurrentPageOffset(currentPageOffsetInit);
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     // if (currentTab === 'securityConfig') {
     //   getRequestedSecurityConfig();
@@ -108,7 +108,7 @@ const ManageCodeSpace = () => {
     //   getRequestedNewCodeSpaces();
     // }
     getRequestedNewCodeSpaces();
-  }, [currentPageOffset, maxItemsPerPage]);
+  }, [currentPageOffset, maxItemsPerPage]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const showErrorNotification = (message) => {
     setLoading(false);

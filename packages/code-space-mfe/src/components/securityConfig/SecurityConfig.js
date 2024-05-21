@@ -14,14 +14,14 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 
 // @ts-ignore
 import * as _ from 'lodash';
-import { IUserInfo } from 'globals/types';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+// import { IUserInfo } from 'globals/types';
+import SelectBox from 'dna-container/SelectBox';
 import Styles from './SecurityConfig.scss';
 import Entitlement from './entitlement/Entitlement';
-import Caption from '../../shared/caption/Caption';
+import Caption from 'dna-container/Caption';
 // @ts-ignore
-import { CodeSpaceApiClient } from '../../../../../src/services/CodeSpaceApiClient';
-import { history } from '../../../../router/History';
+import { CodeSpaceApiClient } from '../../apis/codespace.api';
+import { history } from '../../store';
 
 const classNames = cn.bind(Styles);
 // export interface ICreateNewSecurityConfigState {
@@ -197,7 +197,7 @@ export default class SecurityConfig extends React.Component {
     });
   };
 
-  onSaveDraft = (tabToBeSaved, config, previousTab) => {
+  onSaveDraft = (tabToBeSaved, config) => {
     this.setState(
       {
         config: config,
@@ -274,7 +274,7 @@ export default class SecurityConfig extends React.Component {
           if (callPublishApi) {
             ProgressIndicator.show();
             CodeSpaceApiClient.addCodeSpaceRequest(this.state.id, env)
-              .then((res) => {
+              .then(() => {
                 ProgressIndicator.hide();
                 this.getConfig(this.state.id, env);
                 Notification.show('Published successfully.');

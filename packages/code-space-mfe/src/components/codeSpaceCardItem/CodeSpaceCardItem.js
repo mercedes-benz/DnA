@@ -72,7 +72,7 @@ const CodeSpaceCardItem = (props) => {
       document.removeEventListener('touchend', handleContextMenuOutside, true);
       document.removeEventListener('click', handleContextMenuOutside, true);
     };
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   const handleContextMenuOutside = (event) => {
     if (event.type === 'touchend') {
@@ -138,7 +138,7 @@ const CodeSpaceCardItem = (props) => {
                 You have collaborators in your project.
                 <br />
                 Please transfer your ownership to any one of the collaborator <br /> or remove the collaborator(s)
-                before deleting this code space '{codeSpace?.projectDetails?.projectName}'.
+                before deleting this code space &apos;{codeSpace?.projectDetails?.projectName}&apos;.
               </>
             ) : (
               <>

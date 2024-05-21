@@ -55,7 +55,7 @@ const VaultManagement = (props) => {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   const onKeyChange = (evnt) => {
     const keyVal = evnt.currentTarget.value;

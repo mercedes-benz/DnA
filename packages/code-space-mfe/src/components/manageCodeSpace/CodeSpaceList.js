@@ -19,7 +19,7 @@ import Modal from 'dna-container/Modal';
 //   isConfigList: boolean;
 // }
 
-const codeSpaceList = (props) => {
+const CodeSpaceList = (props) => {
   const [viewInfoModel, setviewInfoModel] = useState(false);
   const classNames = cn.bind(Styles);
   const onSecrityConfigClick = () => {
@@ -40,7 +40,7 @@ const codeSpaceList = (props) => {
     if (props.isConfigList) {
       const id = props.id;
       CodeSpaceApiClient.publishSecurityConfigRequest(id)
-        .then((res) => {
+        .then(() => {
           Notification.show('Published successfully.');
           ProgressIndicator.hide();
           props.onDataChanged();
@@ -52,7 +52,7 @@ const codeSpaceList = (props) => {
     } else {
       const name = props.projectName;
       CodeSpaceApiClient.publishCodeSpaceRecipeRequest(name)
-        .then((res) => {
+        .then(() => {
           Notification.show('Published successfully.');
           ProgressIndicator.hide();
           props.onDataChanged();
@@ -71,7 +71,7 @@ const codeSpaceList = (props) => {
     if (props.isConfigList) {
       const id = props.id;
       CodeSpaceApiClient.acceptSecurityConfigRequest(id)
-        .then((res) => {
+        .then(() => {
           Notification.show('Request Accepted.');
           ProgressIndicator.hide();
           props.onDataChanged();
@@ -83,7 +83,7 @@ const codeSpaceList = (props) => {
     } else {
       const name = props.projectName;
       CodeSpaceApiClient.acceptCodeSpaceRecipeRequest(name)
-        .then((res) => {
+        .then(() => {
           Notification.show('Request Accepted.');
           ProgressIndicator.hide();
           props.onDataChanged();
@@ -155,4 +155,4 @@ const codeSpaceList = (props) => {
     </React.Fragment>
   );
 };
-export default codeSpaceList;
+export default CodeSpaceList;

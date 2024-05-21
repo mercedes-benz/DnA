@@ -312,7 +312,7 @@ const CodeSpaceRecipe = (props) => {
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
-        .then((res) => {
+        .then(() => {
           ProgressIndicator.hide();
           history.push('/codespaces');
           Notification.show('New Recipe Created successfully');

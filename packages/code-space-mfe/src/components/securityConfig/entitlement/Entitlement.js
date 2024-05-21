@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
-import Button from '../../../common/modules/uilab/js/src/button';
+// import Button from '../../../common/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
@@ -86,7 +86,7 @@ export default class Entitlement extends React.Component {
     this.handleEntitementEdit = this.handleEntitementEdit.bind(this);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     // Check if the parent component has updated
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
@@ -212,7 +212,7 @@ export default class Entitlement extends React.Component {
     });
   };
 
-  getRefreshedDagPermission = (name, dagIndex) => {};
+  getRefreshedDagPermission = () => {};
 
   getProjectSorted = (entitel) => {
     this.setState({

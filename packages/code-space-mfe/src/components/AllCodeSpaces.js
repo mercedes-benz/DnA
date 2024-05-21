@@ -358,7 +358,7 @@ const AllCodeSpaces = (props) => {
                     enableSecureWithIAM={onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi'}
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={(isDeploying) => getCodeSpacesData()}
+                    setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />

@@ -171,7 +171,7 @@ const CodeSpace = (props) => {
       document.removeEventListener('touchend', handleContextMenuOutside, true);
       document.removeEventListener('click', handleContextMenuOutside, true);
     };
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   const handleContextMenuOutside = (event) => {
     if (event.type === 'touchend') {
@@ -305,7 +305,7 @@ const CodeSpace = (props) => {
       Notification.show('Codespace id is missing. Please choose your codespace to open.', 'warning');
       history.replace('/codespaces');
     }
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     livelinessIntervalRef.current = livelinessInterval;

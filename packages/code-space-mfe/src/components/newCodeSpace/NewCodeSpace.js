@@ -140,13 +140,13 @@ const NewCodeSpace = (props) => {
         }
       });
     }  
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
     if (divId && divId!=='0' ) {
       ProgressIndicator.show();
-      ApiClient.get('/subdivisions/' + divId)
+      CodeSpaceApiClient.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res?.data || []);
           onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
@@ -158,7 +158,7 @@ const NewCodeSpace = (props) => {
     } else {
       setSubDivisions([]);
     }
-  }, [division]);
+  }, [division]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     SelectBox.defaultSetup(true);
@@ -166,10 +166,10 @@ const NewCodeSpace = (props) => {
 
   useEffect(() => {
     if (onEditingMode && props.onEditingCodeSpace.projectDetails?.projectCollaborators) {
-      setCodeSpaceCollaborators([...props.onEditingCodeSpace.projectDetails?.projectCollaborators]);
+      setCodeSpaceCollaborators([...props.onEditingCodeSpace.projectDetails?.projectCollaborators || {}]);
     }
     SelectBox.defaultSetup(true);
-  }, []);
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     livelinessIntervalRef.current = livelinessInterval;
@@ -183,7 +183,7 @@ const NewCodeSpace = (props) => {
       addNewCollaborator();
     }
     Tooltip.defaultSetup();
-  }, [codeSpaceCollaborators]);
+  }, [codeSpaceCollaborators]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const sanitizedRepositoryName = (name) => {
     return name.replace(/[^\w.-]/g, '-');
@@ -549,7 +549,7 @@ const NewCodeSpace = (props) => {
     return formValid;
   };
 
-  const validateOnBoardCodeSpaceForm = (isPublicRecipeChoosen) => {
+  const validateOnBoardCodeSpaceForm = () => {
     let formValid = true;
     // if (isPublicRecipeChoosen && githubUserName === '') {
     //   setGithubUserNameError(requiredError);
@@ -663,7 +663,7 @@ const NewCodeSpace = (props) => {
 
       ProgressIndicator.show();
       CodeSpaceApiClient.editCodeSpace(props.onEditingCodeSpace.id, editCodeSpaceRequest)
-      .then((res) => {
+      .then(() => {
         Notification.show('Code space updated successfully');
         ProgressIndicator.hide();
         props.onUpdateCodeSpaceComplete();
@@ -781,9 +781,9 @@ const NewCodeSpace = (props) => {
   };
 
   const onBoardToCodeSpace = () => {
-    const isPublicRecipeChoosen = recipeValue.startsWith('public');
+    // const isPublicRecipeChoosen = recipeValue.startsWith('public');
 
-    if (validateOnBoardCodeSpaceForm(isPublicRecipeChoosen)) {
+    if (validateOnBoardCodeSpaceForm()) {
 
       const onBoardCodeSpaceRequest = {
         pat: githubToken
@@ -1784,7 +1784,7 @@ const NewCodeSpace = (props) => {
                   <>
                     {collaboratorToDelete && (
                       <div>
-                        Are you sure to delete colloborator '{collaboratorToDelete?.firstName}'?
+                        Are you sure to delete colloborator &apos;{collaboratorToDelete?.firstName}&apos;?
                         <p>
                           Removing collaborator from codespace make him/her deny the acccess to the code space and code.
                         </p>
@@ -1792,8 +1792,8 @@ const NewCodeSpace = (props) => {
                     )}
                     {collaboratorToTransferOwnership && (
                       <div>
-                        Are you sure to transfer code space ownership to the colloborator '
-                        {collaboratorToTransferOwnership?.firstName}'?
+                        Are you sure to transfer code space ownership to the colloborator &apos;
+                        {collaboratorToTransferOwnership?.firstName}&apos;?
                         <p>
                           Transfering ownership to another collaborator will deny you to acccess this code space edit
                           mode.

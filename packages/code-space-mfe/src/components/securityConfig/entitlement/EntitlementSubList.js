@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Styles from './EntitlementSubList.scss';
 // @ts-ignore
-import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
-import Modal from 'components/formElements/modal/Modal';
+// import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import Modal from 'dna-container/Modal';
 
 // @ts-ignore
-import Notification from '../../../common/modules/uilab/js/src/notification';
+// import Notification from '../../../common/modules/uilab/js/src/notification';
 // @ts-ignore
 import ExpansionPanel from '../../../common/modules/uilab/js/src/expansion-panel';
 // @ts-ignore
@@ -25,7 +25,7 @@ import EditOrCreateEntitlement from './EditOrCreateEntitlement';
 // }
 
 const EntitlementSubList = (props) => {
-  const [collEditEntitlementModel, setCollEditEntitlementModel] = useState<boolean>(false);
+  const [collEditEntitlementModel, setCollEditEntitlementModel] = useState(false);
   const [currentSortOrder, setCurrentSortOrder] = useState('desc');
   const [nextSortOrder, setNextSortOrder] = useState('asc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('name');
