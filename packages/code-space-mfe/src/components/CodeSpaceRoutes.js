@@ -12,6 +12,9 @@ import SessionExpired from './SessionExpired';
 
 import AllCodeSpaces from './AllCodeSpaces';
 import CodeSpace from './CodeSpace';
+import CodeSpaceSecurityConfig from './securityConfig/SecurityConfig';
+import ManageCodeSpaces from './manageCodeSpace/ManageCodeSpace';
+import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
 
 export const protectedRoutes = [
     {
@@ -23,6 +26,31 @@ export const protectedRoutes = [
         component: CodeSpace,
         exact: true,
         path: '/codespace/:id?',
+    },
+    {
+        component: ManageCodeSpaces,
+        exact: false,
+        path: '/codespace/manageCodespace',
+    },
+    {
+        component: CodeSpaceSecurityConfig,
+        exact: false,
+        path: '/codespace/securityconfig/:id?',
+    },
+    {
+        component: CodeSpaceSecurityConfig,
+        exact: false,
+        path: '/codespace/publishedSecurityconfig/:id?',
+    },
+    {
+        component: CodeSpaceSecurityConfig,
+        exact: false,
+        path: '/codespace/adminSecurityconfig/:id?',
+    },
+    {
+        component: CodeSpaceRecipe,
+        exact: false,
+        path: '/codespaceRecipes',
     },
 ];
 
