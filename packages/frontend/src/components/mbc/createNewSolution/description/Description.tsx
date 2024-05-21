@@ -22,7 +22,7 @@ import {
   ILogoDetails,
   IProjectStatus,
   IRelatedProduct,
-  ISimilarSolutionsListItem,
+  ISimilarSearchListItem,
   ISubDivision,
   ITag,
 } from 'globals/types';
@@ -41,7 +41,7 @@ import TextArea from 'components/mbc/shared/textArea/TextArea';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { history } from '../../../../router/History';
 import { isSolutionFixedTagIncluded, isSolutionFixedTagIncludedInArray } from '../../../../services/utils';
-import SimilarSolutionsModal from '../similarSolutionsModal/SimilarSolutionsModal';
+import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
 
@@ -122,12 +122,12 @@ export interface IDescriptionState {
   selectedSimilarSolutionsType: string;
   showSimilarSolutionsModal: boolean;
   lastSearchedDescriptionInput: string;
-  similarSolutionsBasedOnDescription: ISimilarSolutionsListItem[];
+  similarSolutionsBasedOnDescription: ISimilarSearchListItem[];
   lastSearchedBusinessNeedInput: string;
-  similarSolutionsBasedOnBusinessNeed: ISimilarSolutionsListItem[];
+  similarSolutionsBasedOnBusinessNeed: ISimilarSearchListItem[];
   lastSearchedProductNameInput: string;
-  similarSolutionsBasedOnProductName: ISimilarSolutionsListItem[];
-  similarSolutionstoShow: ISimilarSolutionsListItem[];
+  similarSolutionsBasedOnProductName: ISimilarSearchListItem[];
+  similarSolutionstoShow: ISimilarSearchListItem[];
 }
 
 export interface IDescriptionRequest {
@@ -303,9 +303,9 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           break;     
       }
 
-      ApiClient.getSimilarSolutions(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?input=${inputData}`).then((res: any) => {
+      ApiClient.getSimilarSearchResult(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?input=${inputData}`).then((res: any) => {
         if(res?.result?.length) {
-          const similarSolutionsBasedOnInputData:ISimilarSolutionsListItem[] = [];
+          const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
           res?.result.forEach((item: any) => {
             const solutionItem = item[0];
             const score = item[1];
@@ -330,7 +330,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               break;    
           }
 
-          Notification.show(`Similar solution found based on your Solution ${fieldType}.`);
+          Notification.show(`Similar solutions found based on your Solution ${fieldType}.`);
           Tooltip.defaultSetup();
         }
       });
@@ -572,7 +572,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   };
 
   public showSimilarSolutions = (type: string) => {
-    let similarSolutionstoShow: ISimilarSolutionsListItem[] = [];
+    let similarSolutionstoShow: ISimilarSearchListItem[] = [];
     switch (type) {
       case 'Name': 
         similarSolutionstoShow = this.state.similarSolutionsBasedOnProductName;
@@ -1079,9 +1079,9 @@ export default class Description extends React.Component<IDescriptionProps, IDes
             </div>
           </div>
           {this.state.showSimilarSolutionsModal && (
-            <SimilarSolutionsModal
-              setShowSimilarSolutionsModal={(showSimilarSolutionsModal: boolean) => this.setState({ showSimilarSolutionsModal })}
-              similarSolutionsList={this.state.similarSolutionstoShow}
+            <SimilarSearchListModal
+              setShowSimilarSearchListModal={(showSimilarSolutionsModal: boolean) => this.setState({ showSimilarSolutionsModal })}
+              similarSearchList={this.state.similarSolutionstoShow}
               searchBasedOnInputType={this.state.selectedSimilarSolutionsType}
             />
           )}

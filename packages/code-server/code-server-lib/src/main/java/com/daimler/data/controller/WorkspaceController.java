@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
@@ -109,7 +110,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
- 
+import org.springframework.beans.factory.annotation.Value;
+
  @RestController
  @Api(value = "Workspace API", tags = { "code-server" })
  @RequestMapping("/api")
@@ -136,6 +138,12 @@ import lombok.extern.slf4j.Slf4j;
 
 	@Autowired
 	private CodeServerClient client;
+
+	@Autowired
+	HttpServletRequest httpRequest;
+
+	@Value("${codeServer.workspace.apikey}")
+	private String apiKeyValue;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -2047,6 +2055,18 @@ import lombok.extern.slf4j.Slf4j;
         method = RequestMethod.PATCH)
     public ResponseEntity<GenericMessage> updateExistingWorkspace(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody CodeServerWorkspaceVO codeServerMigrateVO)
 	{
+		String apiKey = httpRequest.getHeader("x-api-key");
+		if (apiKey == null || !apiKey.equalsIgnoreCase(apiKeyValue)) {
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("Authentication failed");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.UNAUTHORIZED);
+		}
 		GenericMessage response = new GenericMessage();
 		String userId = codeServerMigrateVO.getWorkspaceOwner().getId();
 		String projectName= codeServerMigrateVO.getProjectDetails().getProjectName();
