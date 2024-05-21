@@ -146,6 +146,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.authoriserScope}")
 	private String authoriserScope;
 
+	@Value("${kong.authRedirectAfterLogoutUri}")
+	private String authRedirectAfterLogoutUri;
+
+	@Value("${kong.authoriserIntrospectionEndpoint}")
+	private String authIntrospectionEndpoint;
+
+	@Value("${kong.authoriserDiscovery}")
+	private String authDiscovery;
+
 
 
 	@Autowired
@@ -504,6 +513,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+										//deleteing jwy issuer plugin if any
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										
 										//request for attaching ODIC plugin to authorize service with new client id and secret
 										AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
@@ -516,14 +529,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
 										if("int".equalsIgnoreCase(env)){
-											attachOIDCPluginConfigVO.setDiscovery(discovery);
-											attachOIDCPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
-											attachOIDCPluginConfigVO.setRedirect_after_logout_uri(redirectAfterLogoutUri);
+											attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
+											attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
+											attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
 										}
 										if("prod".equalsIgnoreCase(env)){
-											String prodDiscovery = discovery.replace("-int","");
-											String prodIntrospectionEndpoint = introspectionEndpoint.replace("-int", "");
-											String prodRedirectAfterLogoutUri =redirectAfterLogoutUri.replace("-int", "");
+											String prodDiscovery = authDiscovery.replace("-int","");
+											String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
+											String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
 
 											attachOIDCPluginConfigVO.setDiscovery(prodDiscovery);
 											attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
@@ -588,6 +601,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//deleteing jwy issuer plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 						// }
