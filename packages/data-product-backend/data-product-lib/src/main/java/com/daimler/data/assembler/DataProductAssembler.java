@@ -823,6 +823,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		dataTransferConsumerRequestVO.getData().setId(dataTransferConsumerRequestVO.getData().getId());
 		dataTransferConsumerRequestVO.getData().setConsumerInformation(new ConsumerResponseVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().setContactInformation(new ConsumerContactInformationVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setLeanIXDetails(new com.daimler.data.dto.datatransfer.LeanIXDetailsVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setDivision(new com.daimler.data.dto.datatransfer.DivisionVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().getDivision().setSubdivision(new com.daimler.data.dto.datatransfer.SubdivisionVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setOwnerName(new DataTransferTeamMemberVO());
@@ -838,6 +839,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData(), datatransferConsumerData.getConsumerInformation().getPersonalRelatedData());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getLeanIXDetails(),datatransferConsumerData.getConsumerInformation().getContactInformation().getLeanIXDetails());
 
 		if (dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded() != null) {
 			datatransferConsumerData.getConsumerInformation().getContactInformation().setLcoNeeded(dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded());
@@ -859,6 +861,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (dataproductConsumerData.isNotifyUsers() != null) {
 			datatransferConsumerData.setNotifyUsers(dataproductConsumerData.isNotifyUsers());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getLeanIXDetails() != null) {
+			datatransferConsumerData.getConsumerInformation().getContactInformation().setLeanIXDetails(dataproductConsumerData.getConsumerInformation().getContactInformation().getLeanIXDetails());
 		}
 
 		datatransferConsumerData.getConsumerInformation().setCreatedDate(new Date());
