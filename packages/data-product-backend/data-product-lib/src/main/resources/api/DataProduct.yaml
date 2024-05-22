@@ -609,6 +609,10 @@ definitions:
       appId:
         type: string
         description: "planning IT App-ID "
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
+
+
       #    required:
       #      - informationOwner
       #      - name

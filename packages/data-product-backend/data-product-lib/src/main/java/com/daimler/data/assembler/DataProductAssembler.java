@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 
 import com.daimler.data.db.jsonb.*;
 import com.daimler.data.db.jsonb.dataproduct.*;
+import com.daimler.data.db.jsonb.datatransfer.LeanIXDetails;
 import com.daimler.data.dto.dataproduct.*;
 import com.daimler.data.dto.dataproduct.ChangeLogVO;
 import com.daimler.data.dto.dataproduct.DivisionVO;
@@ -227,9 +228,15 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 //					DataProductTeamMemberVO productOwnerVo = new DataProductTeamMemberVO();												
 //					BeanUtils.copyProperties(productOwner,productOwnerVo);
 //					contactInformationVO.setProductOwner(productOwnerVo);
-				
+					LeanIXDetails leanIXDetails = dataProductContactInformation.getLeanIXDetails();
+					LeanIXDetailsVO  leanIXDetailsVo= new LeanIXDetailsVO();
+					if(leanIXDetails!=null){
+						BeanUtils.copyProperties(leanIXDetails, leanIXDetailsVo);
+					}		
+					contactInformationVO.setLeanIXDetails(leanIXDetailsVo);
 					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));				
 					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));	
+
 					vo.setProductOwner(toTeamMemberVO(dataProductContactInformation.getProductOwner()));					
 					vo.setContactInformation(contactInformationVO);
 				}
@@ -448,6 +455,13 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 //					TeamMember productOwner = new TeamMember();
 //					BeanUtils.copyProperties(productOwnerVo, productOwner);
 //					contactInformation.setProductOwner(productOwner);
+
+					LeanIXDetailsVO leanIXDetailsVo = dataProductContactInformationVO.getLeanIXDetails();
+					LeanIXDetails leanIXDetails = new LeanIXDetails();
+					if(leanIXDetailsVo!=null){
+						BeanUtils.copyProperties(leanIXDetailsVo, leanIXDetails);
+					}
+					contactInformation.setLeanIXDetails(leanIXDetails);
 					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
 					contactInformation.setProductOwner(toTeamMemberJson(vo.getProductOwner()));					
@@ -736,6 +750,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		providerResponseVO.getContactInformation().getDivision().setSubdivision(new com.daimler.data.dto.datatransfer.SubdivisionVO());
 		providerResponseVO.getContactInformation().setInformationOwner(new DataTransferTeamMemberVO());
 		providerResponseVO.getContactInformation().setName(new DataTransferTeamMemberVO());
+		providerResponseVO.getContactInformation().setLeanIXDetails(new com.daimler.data.dto.datatransfer.LeanIXDetailsVO());
 		providerResponseVO.setClassificationConfidentiality(new ProviderClassificationConfidentialityVO());
 		providerResponseVO.setPersonalRelatedData(new ProviderPersonalRelatedDataVO());
 		providerResponseVO.setTransnationalDataTransfer(new ProviderTransnationalDataTransferVO());
@@ -777,6 +792,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (contactInformation.getName().isAddedByProvider() != null) {
 			providerResponseVO.getContactInformation().getName().setAddedByProvider(contactInformation.getInformationOwner().isAddedByProvider());
+		}
+		if (contactInformation.getLeanIXDetails() != null) {
+			providerResponseVO.getContactInformation().setLeanIXDetails(contactInformation.getLeanIXDetails());
 		}
 		if (existingDataProduct.getPersonalRelatedData().isPersonalRelatedData() != null) {
 			providerResponseVO.getPersonalRelatedData().setPersonalRelatedData(existingDataProduct.getPersonalRelatedData().isPersonalRelatedData());
