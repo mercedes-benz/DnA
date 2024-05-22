@@ -227,20 +227,21 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     if (id) {
+      setLoading(true);
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
 
           const serverStarted = res.serverStatus === 'SERVER_STARTED';
 
           if (serverStarted) {
-            const loginWindow = window.open(
-              Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
-              'codeSpaceSessionWindow',
-              'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
-            );
+            // const loginWindow = window.open(
+            //   Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
+            //   'codeSpaceSessionWindow',
+            //   'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
+            // );
 
-            setTimeout(() => {
-              loginWindow?.close();
+            // setTimeout(() => {
+              // loginWindow?.close();
 
               setLoading(false);
               const status = res.status;
@@ -302,10 +303,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   'warning',
                 );
               }
-            }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+            // }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
           } else {
+            setLoading(true);
             CodeSpaceApiClient.startStopWorkSpace(res.id, false)
               .then((response: any) => {
+                setLoading(false);
                 if (response.success === 'SUCCESS') {
                   Notification.show(
                     'Your Codespace for project ' +
@@ -317,6 +320,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 }
               })
               .catch((err: Error) => {
+                setLoading(false);
                 Notification.show(
                   'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
                   'alert',
@@ -325,6 +329,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           }
         })
         .catch((err: Error) => {
+          setLoading(false)
           Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
           history.replace('/codespaces');
         });
