@@ -33,7 +33,7 @@ interface CodeSpaceCardItemProps {
   onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => void;
   onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
   onShowDeployModal: (codeSpace: ICodeSpaceData) => void;
-  onStartStopCodeSpace: (codeSpaceId: ICodeSpaceData) => void;
+  onStartStopCodeSpace: (codeSpace: ICodeSpaceData) => void;
 }
 
 let isTouch = false;
@@ -187,6 +187,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const onCardNameClick = () => {
     if (enableOnboard) {
       props.onShowCodeSpaceOnBoard(codeSpace);
+    } else if (!serverStarted) {
+      props.onStartStopCodeSpace(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
@@ -272,7 +274,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div
             className={classNames(
               Styles.cardHeadInfo,
-              deleteInProgress || createInProgress || creationFailed || !serverStarted ? Styles.disable : null,
+              deleteInProgress || createInProgress || creationFailed ? Styles.disable : null,
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
@@ -321,7 +323,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     {projectDetails?.gitRepoName && (
                       <li>
                         <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
-                          Goto code repo
+                          Go to code repo
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>

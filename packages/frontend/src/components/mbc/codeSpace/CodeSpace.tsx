@@ -230,72 +230,99 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
 
-          const loginWindow = window.open(
-            Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
-            'codeSpaceSessionWindow',
-            'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
-          );
+          const serverStarted = res.serverStatus === 'SERVER_STARTED';
 
-          setTimeout(() => {
-            loginWindow?.close();
+          if (serverStarted) {
+            const loginWindow = window.open(
+              Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
+              'codeSpaceSessionWindow',
+              'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
+            );
 
-            setLoading(false);
-            const status = res.status;
-            if (
-              status !== 'CREATE_REQUESTED' &&
-              status !== 'CREATE_FAILED' &&
-              status !== 'DELETE_REQUESTED' &&
-              status !== 'DELETED' &&
-              status !== 'DELETE_FAILED'
-            ) {
-              const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
-              const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
-              const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
-              const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
-              const intDeployed =
-                intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-                (intDeployedUrl !== null && intDeployedUrl !== 'null');
-              const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';  
-              const prodDeployed =
-                prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-                (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-              const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';    
-              const deployingInProgress =
-                (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
-              // const deployed =
-              //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-              //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-              //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-              //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+            setTimeout(() => {
+              loginWindow?.close();
 
-              setCodeSpaceData({
-                ...res,
-                running: !!res.intiatedOn,
-              });
-              
-              setCodeDeployedUrl(intDeployedUrl);
-              setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
-              setCodeDeployed(intDeployed);
-              setIntCodeDeployFailed(intDeployFailed);
+              setLoading(false);
+              const status = res.status;
+              if (
+                status !== 'CREATE_REQUESTED' &&
+                status !== 'CREATE_FAILED' &&
+                status !== 'DELETE_REQUESTED' &&
+                status !== 'DELETED' &&
+                status !== 'DELETE_FAILED'
+              ) {
+                const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
+                const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
+                const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+                const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+                const intDeployed =
+                  intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                  (intDeployedUrl !== null && intDeployedUrl !== 'null');
+                const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+                const prodDeployed =
+                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                  (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+                const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+                const deployingInProgress =
+                  intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+                // const deployed =
+                //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
+                //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
 
-              setProdCodeDeployedUrl(prodDeployedUrl);
-              setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
-              setProdCodeDeployed(prodDeployed);
-              setProdCodeDeployFailed(prodDeployFailed);
+                setCodeSpaceData({
+                  ...res,
+                  running: !!res.intiatedOn,
+                });
 
-              Tooltip.defaultSetup();
-              Tabs.defaultSetup();
-              if (deployingInProgress) {
-                const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
-                // setDeployEnvironment(deployingEnv);
-                setCodeDeploying(true);
-                enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+                setCodeDeployedUrl(intDeployedUrl);
+                setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+                setCodeDeployed(intDeployed);
+                setIntCodeDeployFailed(intDeployFailed);
+
+                setProdCodeDeployedUrl(prodDeployedUrl);
+                setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+                setProdCodeDeployed(prodDeployed);
+                setProdCodeDeployFailed(prodDeployFailed);
+
+                Tooltip.defaultSetup();
+                Tabs.defaultSetup();
+                if (deployingInProgress) {
+                  const deployingEnv =
+                    intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+                  // setDeployEnvironment(deployingEnv);
+                  setCodeDeploying(true);
+                  enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+                }
+              } else {
+                Notification.show(
+                  `Code space ${res.projectDetails.projectName} is getting created. Please try again later.`,
+                  'warning',
+                );
               }
-            } else {
-              Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
-            }
-          }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+            }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+          } else {
+            CodeSpaceApiClient.startStopWorkSpace(res.id, false)
+              .then((response: any) => {
+                if (response.success === 'SUCCESS') {
+                  Notification.show(
+                    'Your Codespace for project ' +
+                      res.projectDetails?.projectName +
+                      ' is requested to start. Please refresh the page after some time.',
+                  );
+                } else {
+                  Notification.show('Error in starting your code spaces. Please try again later.', 'alert');
+                }
+              })
+              .catch((err: Error) => {
+                Notification.show(
+                  'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
+                  'alert',
+                );
+              });
+          }
         })
         .catch((err: Error) => {
           Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
@@ -625,7 +652,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           <>
                             <li>
                               <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName)} rel="noreferrer">
-                                Goto code repo
+                                Go to code repo
                                 <i className="icon mbc-icon new-tab" />
                               </a>
                             </li>
