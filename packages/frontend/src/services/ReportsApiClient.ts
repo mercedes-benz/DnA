@@ -17,6 +17,12 @@ const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
 
+const baseUrlSolutions = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+
+const getSolutionsUrl = (endpoint: string) => {
+  return `${baseUrlSolutions}/${endpoint}`;
+};
+
 export class ReportsApiClient {
   public static get(endpoint: string) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.GET);
@@ -36,6 +42,9 @@ export class ReportsApiClient {
   public static delete(endpoint: string, body?: any) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
+  public static postSolutions(endpoint: string, body?:any) {
+    return ApiClient.fetch(getSolutionsUrl(endpoint), HTTP_METHOD.POST, body);
+  }
 
   public static getCreateNewReportData(): Promise<any[]> {
     return Promise.all([
@@ -54,12 +63,30 @@ export class ReportsApiClient {
       ApiClient.get('divisions'),
       this.get('departments'),
       this.get('lov/dataclassifications'),
-      this.get('lov/kpiClassifications'),
+      this.get('lov/kpiClassifications'), 
+      ReportsApiClient.allAllSolutions(),
     ]);
   }
 
   public static createNewReport(data: ICreateNewReportRequest): Promise<ICreateNewReportRequest> {
     return this.post('reports', data);
+  }
+
+  public static allAllSolutions():Promise<any> {
+    const reqQuery = `limit:0,published:true`;
+      let resQuery = `totalCount
+        records {
+          id,
+          productName
+        }`;
+      const apiQuery = {
+        query: `query {
+          solutions(${reqQuery}){
+            ${resQuery}
+          }
+        }`,
+      };
+     return this.postSolutions('minified',apiQuery);
   }
 
   public static getReportById(id: string): Promise<ICreateNewReport> {
