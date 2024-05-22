@@ -166,7 +166,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
               codeSpace.projectDetails?.projectName +
               ' is requested to ' +
               (serverStarted ? 'stop' : 'start') +
-              '. Please check status after some time.',
+              '. Please refresh and check status after some time.',
           );
         } else {
           Notification.show(
