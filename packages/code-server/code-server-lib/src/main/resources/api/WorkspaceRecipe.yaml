@@ -131,6 +131,38 @@ paths:
         500:
           description: "Internal error"
 
+  /recipeDetails/validate:
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "To validate GitHub Url and to check if user is collaborator"
+      description: "To validate GitHub Url and to check if user is collaborator"
+      operationId: "validateGitHub"
+      parameters:
+        - name: "gitHubUrl"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/GitHubVo"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /recipeDetails/{recipeName}:
     get:
       tags:
@@ -317,6 +349,12 @@ paths:
           description: "Internal error"
 
 definitions:
+  GitHubVo:
+    type: object
+    properties: 
+      gitHubUrl:
+        type: string
+        
   RecipeVO:
     type: object
     properties:
@@ -345,6 +383,15 @@ definitions:
       minRam:
         type: string
         description: "min RAM capacity required"
+      deployPath:
+        type: string
+        description: "Deployment path required"
+      gitRepoLoc:
+        type: string
+        description: "Git  Repo location required"
+      gitPath:
+        type: string
+        description: "Git Path required"
       oSName:
         type: string
         enum: [Debian-OS-11]
