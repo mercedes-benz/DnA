@@ -110,6 +110,46 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			String requestJsonString = "{\"permission\":\"admin\"}";
+			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				log.info("completed adding user {}  as admin to git repo {} initated by user , with status {} ", username, gitOrgName,response.getStatusCode());
+				return response.getStatusCode();
+			}
+		} catch (Exception e) {
+			log.error("Error occured while adding {} as admin to git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
+	public HttpStatus removeAdminAccessFromRepo(String username, String repoName) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "token " + personalAccessToken);
+			String url = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName + "/collaborators/" + username;
+			String requestJsonString = "{\"permission\":\"write\"}";
+			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				log.info("Completed removing user {} as admin from git repo {} initiated by user, with status {}", username, gitOrgName, response.getStatusCode());
+				return response.getStatusCode();
+			}
+		} catch (Exception e) {
+			log.error("Error occurred while removing {} as admin from git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+	
+
 	public HttpStatus deleteUserFromRepo( String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
