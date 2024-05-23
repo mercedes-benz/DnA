@@ -109,7 +109,6 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-
 	public HttpStatus validateGitUser(String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -137,9 +136,10 @@ public class GitClient {
 			}
 		} catch (Exception e) {
 			log.error("Error occured while onboarding PID {} to git repo {} with exception {}", pidValue, repoName, e.getMessage());
-    }
-  return HttpStatus.INTERNAL_SERVER_ERROR;
-}
+    	}
+  		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -159,7 +159,6 @@ public class GitClient {
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
-
 
 	public HttpStatus removeAdminAccessFromRepo(String username, String repoName) {
 		try {
