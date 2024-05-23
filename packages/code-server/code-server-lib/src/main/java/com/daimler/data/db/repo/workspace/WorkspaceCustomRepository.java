@@ -86,4 +86,5 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	CodeServerWorkspaceNsql findbyProjectName(String projectName);
 
+	List<CodeServerWorkspaceNsql> findAllByUniqueLiteral();
 }
