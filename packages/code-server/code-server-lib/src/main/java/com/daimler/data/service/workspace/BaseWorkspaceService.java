@@ -1342,7 +1342,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
-			String vueRecipeId = RecipeIdEnum.VUE.toString();
+			String vueRecipeId = RecipeIdEnum.VUEJS.toString();
 			String dashRecipeId = RecipeIdEnum.DASH.toString();
 			String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
 			String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
