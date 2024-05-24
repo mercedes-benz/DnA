@@ -144,7 +144,7 @@ const ContactInformation = ({
   }, [selectedcomplianceOfficer]);
 
   useEffect(() => {
-    if (planningIT?.appId.length) {
+    if (planningIT?.appId?.length) {
       setSelectedPlanningIT(planningIT);
     }
   }, [planningIT]);
