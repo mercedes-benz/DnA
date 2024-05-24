@@ -172,7 +172,7 @@ const ContactInformation = ({
   }, [businessOwnerName]);
 
   useEffect(() => {
-    if (planningIT?.appId.length) {
+    if (planningIT?.appId?.length) {
       setSelectedPlanningIT(planningIT);
     }
   }, [planningIT]);
