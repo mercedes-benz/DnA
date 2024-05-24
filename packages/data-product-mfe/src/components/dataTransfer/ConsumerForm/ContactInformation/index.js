@@ -172,7 +172,7 @@ const ContactInformation = ({
   }, [businessOwnerName]);
 
   useEffect(() => {
-    if (planningIT?.length) {
+    if (planningIT?.appId.length) {
       setSelectedPlanningIT(planningIT);
     }
   }, [planningIT]);
@@ -487,11 +487,24 @@ const ContactInformation = ({
                     <TypeAheadBox
                       label={'planningIT App-ID'}
                       placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                      defaultValue={selectedPlanningIT}
+                      defaultValue={selectedPlanningIT.appId}
                       list={planningITList}
                       setSelected={(selectedTags) => {
-                        setSelectedPlanningIT(selectedTags.id || []);
-                        field.onChange(selectedTags.id);
+                        const leanIXData = {
+                          appId: selectedTags.id,
+                          leanIXDetails: {
+                            objectState: selectedTags.ObjectState,
+                            appReferenceStr: selectedTags.appReferenceStr,
+                            name: selectedTags.name,
+                            providerOrgDeptid: selectedTags.providerOrgDeptid,
+                            providerOrgId: selectedTags.providerOrgId,
+                            providerOrgRefstr: selectedTags.providerOrgRefstr,
+                            providerOrgShortname: selectedTags.providerOrgShortname,
+                            shortName: selectedTags.shortName,
+                          },
+                        };
+                        setSelectedPlanningIT(selectedTags || {});
+                        field.onChange(leanIXData);
                       }}
                       onInputChange={handlePlanningITSearch}
                       required={false}
