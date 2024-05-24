@@ -303,16 +303,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 		ownerWorkbenchDeleteInputsDto.setType(recipeType);
 		ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
-		if(!deleteAction)
+		if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
 		{
-			log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
-			MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
-			errors.add(prodUndeployTriggerFailed);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errors);
-			return responseMessage;
+			boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+			if(!deleteAction)
+			{
+				log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
+				MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
+				errors.add(prodUndeployTriggerFailed);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
 
+			}
 		}
 		// }
 		// update all workspaces for the project to deleted state in db if user is
@@ -667,7 +670,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseVO;
 				}
 			}
-
+			HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
+			if(!addAdminAccessToGitUser.is2xxSuccessful())
+			{
+				MessageDescription warnMsg = new MessageDescription("Failed while adding " + owner.getGitUserName()
+				+ " as admin to repository");
+				log.info("Failed while adding {} as collaborator to repository. Please add manually",
+				owner.getGitUserName());
+				warnings.add(warnMsg);
+				responseVO.setWarnings(warnings);
+			}
 			vo.getProjectDetails().setGitRepoName(repoName);
 			// add records to db
 			CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
@@ -825,7 +837,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
 	{
-		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder/app";
 		return workspaceUrl;
 	}
 
@@ -1005,6 +1017,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 				// To update project owner.
 				GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
 						.updateProjectOwnerDetails(projectName, newOwner);
+				String repoName = vo.getProjectDetails().getGitRepoName();
+				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
+						.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+					repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				}
+				//adding new owner as repo admin
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(newOwner.getGitUserName(), repoName);
+				if(!addAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +newOwner.getGitUserName()
+					+ " as admin to repository");
+					log.info("Failed while adding {} as admin to repository. Please add manually",
+					newOwner.getGitUserName());
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 
 				// To add current owner as collaborator.
 				GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository
@@ -1013,6 +1041,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 				// To remove new owner from collaborator.
 				GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository
 						.updateCollaboratorDetails(projectName, newOwner, true);
+				//removing old user as repo admin
+				HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(projectOwnerId, repoName);
+				if(!removeAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
+					+ " as admin to repository");
+					log.info("Failed while removing {} as admin to repository. Please add manually",
+					projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 
 				if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
 						|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
@@ -1133,6 +1172,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 										+ " is valid git user and add this user manually in the git repo.");
 						warnings.add(errMsg);
 					}
+				}
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
+				if(!addAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
+					+ " as admin to repository");
+					log.info("Failed while adding {} as collaborator to repository. Please add manually",
+					projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
 				}
 					responseMessage.setWarnings(warnings);
 					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
@@ -1293,7 +1342,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
-			String vueRecipeId = RecipeIdEnum.VUE.toString();
+			String vueRecipeId = RecipeIdEnum.VUEJS.toString();
+			String dashRecipeId = RecipeIdEnum.DASH.toString();
+			String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+			String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+			String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 //			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
 //			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
 //			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
@@ -1431,7 +1484,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				}
-				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) || vueRecipeId.equalsIgnoreCase(projectRecipe)) {
+				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
+				|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+				|| expressjsRecipeId.equalsIgnoreCase(projectRecipe) || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
@@ -1553,7 +1608,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 						if(isPublished){
 							if("int".equalsIgnoreCase(env)){
-								if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null){
+								if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null && !config.getStaging().getDraft().getAppID().isEmpty() && !config.getStaging().getDraft().getEntitlements().isEmpty() ){
 									entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
 								}else{
 									log.info("APPID and Entitlement should not be empty while publishing");
@@ -1568,7 +1623,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 								}
 							}
 							if("prod".equalsIgnoreCase(env)){
-								if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null){
+								if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null && !config.getProduction().getDraft().getAppID().isEmpty() && !config.getProduction().getDraft().getEntitlements().isEmpty()){
 									entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
 								}else{
 									log.info("APPID and Entitlement should not be empty while publishing");
@@ -1961,14 +2016,34 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspace.setServerStatus("SERVER_STOPPED");
 				vo.setData(workspace);
 				jpaRepo.save(vo);
-				MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
-				errors.add(errMsg);
-				errors.addAll(createOwnerWSResponse.getErrors());
-				warnings.addAll(createOwnerWSResponse.getWarnings());
-				responseMessage.setSuccess("SUCCESS");
-				responseMessage.setErrors(errors);
-				responseMessage.setWarnings(warnings);
-				return responseMessage;
+				GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(vo.getData().getWorkspaceId(),
+				vo.getData().getWorkspaceId());
+				if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong route: {} deleted successfully", vo.getData().getWorkspaceId());
+				else {
+					if (deleteRouteResponse.getErrors() != null && deleteRouteResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong route: {} with exception : {}", vo.getData().getWorkspaceId(),
+								deleteRouteResponse.getErrors().get(0).getMessage());
+					}
+				}
+				// Deleting Kong service
+				GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId());
+				if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong service: {} deleted successfully", vo.getData().getWorkspaceId());
+				else {
+					if (deleteServiceResponse.getErrors() != null && deleteServiceResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong service: {} with exception : {}", vo.getData().getWorkspaceId(),
+								deleteServiceResponse.getErrors().get(0).getMessage());
+					}
+				}
+			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+			errors.add(errMsg);
+			errors.addAll(createOwnerWSResponse.getErrors());
+			warnings.addAll(createOwnerWSResponse.getWarnings());
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
 		}
 		catch(Exception e)
 		{

@@ -24,6 +24,7 @@ public class DataikuProjectUpdateDto implements Serializable{
 	private String status;
 	private String classificationType;
 	private Boolean hasPii;
+	private Boolean hasTermsOfUse;
 	private String divisionId;
 	private String divisionName;
 	private String subdivisionId;

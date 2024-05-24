@@ -70,11 +70,15 @@ public class CodeServerClient {
 		switch(recipeType) {
 			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
-			case "vue" : deployType = ConstantsUtility.VUE; break;
+			case "vuejs" : deployType = ConstantsUtility.VUEJS; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
 			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
 			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
+			case "dash-python" : deployType = ConstantsUtility.DASHPYTHON; break;
+			case "streamlit-python" : deployType = ConstantsUtility.STREAMLIT; break;
+			case "express-node" : deployType = ConstantsUtility.EXPRESSJS; break;
+			case "nestjs-node" : deployType = ConstantsUtility.NESTJS; break;
 			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;

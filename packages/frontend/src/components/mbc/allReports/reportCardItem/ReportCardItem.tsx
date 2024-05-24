@@ -21,6 +21,7 @@ export interface IReportCardItemProps {
   onEdit: (reportId: string) => void;
   onDelete: (reportId: string) => void;
   updateBookmark?: (reportId: string, isRemove: boolean) => void;
+  onShowSimilarReportModal: () => void;
 }
 
 const goToSummary = (reportId: string) => {
@@ -211,7 +212,22 @@ const ReportCardItem = (props: IReportCardItemProps) => {
           <span>{report?.description?.productPhase || ''}</span>
         </div>
         <div className={Styles.solInfo}>{attachEllipsis(report?.description?.productDescription, 125)}</div>
-        <div className={Styles.solLink}></div>
+        <div className={Styles.solLink}>
+          <div></div>
+          <div className={Styles.solBm}>
+            <span className={Styles.similarSolLink}>
+              <i className="icon mbc-icon dublicate" />
+              <span
+                onClick={(e: React.FormEvent<HTMLSpanElement>) => {
+                  e.stopPropagation();
+                  props.onShowSimilarReportModal();
+                }}
+              >
+                Similar Reports
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

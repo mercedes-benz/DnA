@@ -333,7 +333,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                       required={this.props.readOnlyMode ? false : true}
                       id="AppId"
                       maxLength={50}
-                      placeholder="Type here"
+                      placeholder="Application id registered in Alice"
                       autoComplete="off"
                       onChange={(e) => {
                         e.target.value.length !== 0

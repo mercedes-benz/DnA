@@ -28,7 +28,7 @@ import {
   IUserInfo,
   INotebookInfoSolutionId,
   IFilterParams,
-  ISimilarSolutionsListItem,
+  ISimilarSearchListItem,
 } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
@@ -50,7 +50,7 @@ import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from 'components/mbc/shared/landingSummary/tagSection/TagSection';
-import SimilarSolutionsModal from '../createNewSolution/similarSolutionsModal/SimilarSolutionsModal';
+import SimilarSearchListModal from '../shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
 
@@ -108,7 +108,7 @@ export interface IAllSolutionsState {
   selectedTagsToPass: string[];
   selectedSolutionNameForSimilarityCheck: string;
   showSimilarSolutionsModal: boolean;
-  similarSolutionsBasedOnDescription: ISimilarSolutionsListItem[];
+  similarSolutionsBasedOnDescription: ISimilarSearchListItem[];
 }
 
 export default class AllSolutions extends React.Component<
@@ -340,6 +340,7 @@ export default class AllSolutions extends React.Component<
           updateBookmark={this.updateBookmark}
           showDigitalValue={enablePortfolioSolutionsView}
           noteBookData={this.state.noteBookData}
+          onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.id, solution.productName, solution.description, isGenAI)}
         />
       );
     });
@@ -511,7 +512,7 @@ export default class AllSolutions extends React.Component<
                             updateBookmark={this.updateBookmark}
                             showDigitalValue={enablePortfolioSolutionsView}
                             noteBookData={this.state.noteBookData}
-                            onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.productName, solution.description, isGenAI)}
+                            onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.id, solution.productName, solution.description, isGenAI)}
                           />
                         );
                       })}
@@ -617,7 +618,7 @@ export default class AllSolutions extends React.Component<
                           </tr>
                           <tr>
                             <th
-                              colSpan={enablePortfolioSolutionsView ? 8 : 7}
+                              colSpan={8}
                               className={classNames(Styles.listViewContainer)}
                               onClick={() =>
                                 isGenAITagOnPath
@@ -698,12 +699,12 @@ export default class AllSolutions extends React.Component<
                 /> */}
             </div>
             {this.state.showSimilarSolutionsModal && (
-              <SimilarSolutionsModal
-                setShowSimilarSolutionsModal={(showSimilarSolutionsModal: boolean) =>
+              <SimilarSearchListModal
+                setShowSimilarSearchListModal={(showSimilarSolutionsModal: boolean) =>
                   this.setState({ showSimilarSolutionsModal })
                 }
-                selectedSolutionName={this.state.selectedSolutionNameForSimilarityCheck}
-                similarSolutionsList={this.state.similarSolutionsBasedOnDescription}
+                selectedProductName={this.state.selectedSolutionNameForSimilarityCheck}
+                similarSearchList={this.state.similarSolutionsBasedOnDescription}
                 searchBasedOnInputType={"Description"}
               />
             )}
@@ -888,22 +889,25 @@ export default class AllSolutions extends React.Component<
       });
   };
 
-  protected onShowSimilarSolutionModal = (selectedSolutionName: string, selectedSolutionDescription: string, isGenAI: boolean) => {
+  protected onShowSimilarSolutionModal = (selectedSolutionId: string, selectedSolutionName: string, selectedSolutionDescription: string, isGenAI: boolean) => {
     ProgressIndicator.show();
-    ApiClient.getSimilarSolutions(`${isGenAI ? 'search' : 'solutionssearch'}?q=${selectedSolutionDescription}`).then((res: any) => {
+    ApiClient.getSimilarSearchResult(`${isGenAI ? 'search' : 'solutionssearch'}?input=${selectedSolutionDescription}`).then((res: any) => {
       ProgressIndicator.hide();
       if(res?.result?.length) {
-        const similarSolutionsBasedOnInputData:ISimilarSolutionsListItem[] = [];
+        const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
         res?.result.forEach((item: any) => {
           const solutionItem = item[0];
-          const score = item[1];
-          similarSolutionsBasedOnInputData.push({
-            id: solutionItem.id,
-            productName: solutionItem.productName,
-            description: solutionItem.description,
-            businessNeed: solutionItem.businessNeed,
-            score
-          });
+          if (selectedSolutionId !== solutionItem.id) {
+            // Show only the solutions except the selected solution after getting similar solution search list
+            const score = item[1];
+            similarSolutionsBasedOnInputData.push({
+              id: solutionItem.id,
+              productName: solutionItem.productName,
+              description: solutionItem.description,
+              businessNeed: solutionItem.businessNeed,
+              score,
+            });
+          }
         });
 
         this.setState({showSimilarSolutionsModal: true, similarSolutionsBasedOnDescription: similarSolutionsBasedOnInputData, selectedSolutionNameForSimilarityCheck: selectedSolutionName});

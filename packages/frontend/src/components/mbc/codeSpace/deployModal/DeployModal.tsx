@@ -11,7 +11,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import Modal from 'components/formElements/modal/Modal';
 import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from 'globals/constants';
-import { Envs } from 'globals/Envs';
+// import { Envs } from 'globals/Envs';
 import { trackEvent } from '../../../../services/utils';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 
@@ -173,7 +173,10 @@ const DeployModal = (props: DeployModalProps) => {
     let formValid = true;
     if (
       secureWithIAMSelected &&
-      (!projectDetails.intDeploymentDetails.secureWithIAMRequired || changeSelected) &&
+      ((deployEnvironment === 'staging'
+        ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
+        : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
+        changeSelected) &&
       clientSecret.length === 0
     ) {
       formValid = false;
@@ -181,7 +184,10 @@ const DeployModal = (props: DeployModalProps) => {
     }
     if (
       secureWithIAMSelected &&
-      (!projectDetails.intDeploymentDetails.secureWithIAMRequired || changeSelected) &&
+      ((deployEnvironment === 'staging'
+        ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
+        : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
+        changeSelected) &&
       clientSecret.length === 0
     ) {
       formValid = false;
@@ -312,11 +318,11 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableIntIAM}
+                          disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
-                        Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
+                        Secure with your own IAM Credentials{' '}
                         <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
@@ -417,11 +423,11 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableProdIAM}
+                          disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
-                        Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
+                        Secure with your own IAM Credentials{' '}
                         <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (

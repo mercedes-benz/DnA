@@ -248,6 +248,14 @@
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 		 if (vo != null) {
 			 BeanUtils.copyProperties(vo, deploymentDetails);
+			 if(vo.isSecureWithIAMRequired()!=null)
+			 {
+				deploymentDetails.setSecureWithIAMRequired(vo.isSecureWithIAMRequired());
+			 }
+			 else
+			 {
+				deploymentDetails.setSecureWithIAMRequired(false);
+			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -294,6 +302,10 @@
 			 deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
 			 if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				 deploymentDetailsVO.setSecureWithIAMRequired(false);
+			 }
+			 else
+			 {
+				deploymentDetailsVO.setSecureWithIAMRequired(deploymentDetails.getSecureWithIAMRequired());
 			 }
 			 if (deploymentDetails.getLastDeployedOn() != null){
 				 deploymentDetailsVO

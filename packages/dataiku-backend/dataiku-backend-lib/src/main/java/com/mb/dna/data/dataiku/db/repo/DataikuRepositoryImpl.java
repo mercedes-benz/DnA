@@ -38,7 +38,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		List<DataikuSql> results = new ArrayList<>();
 		try {
 			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on, "
-					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department,solution_id "
+					+ "status,classification_type,has_pii,has_termsOfUse,division_id,division_name,subdivision_id,subdivision_name,department,solution_id "
 					+ "FROM dataiku_sql ";
 			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
 				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' and LOWER(cloud_profile) = '" + cloudProfile.toLowerCase() + "'";
@@ -150,9 +150,9 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 
 	public void insertDataiku(DataikuSql dataikuProject) {
 		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description"
-				+ ",project_name,status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department,solution_id) "
+				+ ",project_name,status,classification_type,has_pii,has_termsOfUse,division_id,division_name,subdivision_id,subdivision_name,department,solution_id) "
 				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName"
-				+ ",:status,:classification_type,:has_pii,:division_id,:division_name,:subdivision_id,:subdivision_name,:department, :solution_id)";
+				+ ",:status,:classification_type,:has_pii,:has_termsOfUse,:division_id,:division_name,:subdivision_id,:subdivision_name,:department, :solution_id)";
 		Query q = entityManager.createNativeQuery(insertStmt);
 		q.setParameter("id", dataikuProject.getId());
 		q.setParameter("cloudProfile", dataikuProject.getCloudProfile());
@@ -164,6 +164,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		q.setParameter("status", dataikuProject.getStatus());
 		q.setParameter("classification_type", dataikuProject.getClassificationType());
 		q.setParameter("has_pii", dataikuProject.getHasPii());
+		q.setParameter("has_termsOfUse", dataikuProject.getHasTermsOfUse());
 		q.setParameter("division_id", dataikuProject.getDivisionId());
 		q.setParameter("division_name", dataikuProject.getDivisionName());
 		q.setParameter("subdivision_id", dataikuProject.getSubdivisionId());
@@ -196,9 +197,9 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		log.info("successfully deleted old collab records for dataiku id {}",dataikuid);
 	}
 	
-	public void updateDataiku(String id,String description, String classificationType, String department, String divisionId, String divisionName, Boolean hasPii, String status, String subDivisionId, String subDivisionName) {
+	public void updateDataiku(String id,String description, String classificationType, String department, String divisionId, String divisionName, Boolean hasPii,Boolean hasTermsOfUse, String status, String subDivisionId, String subDivisionName) {
 		String updateStmt = "update dataiku_sql set  description = :updatedDescription, "
-				+ "status = :status, classification_type = :classificationType, has_pii = :hasPii, division_id = :divisionId, division_name = :divisionName,  "
+				+ "status = :status, classification_type = :classificationType, has_pii = :hasPii, has_termsOfUse = :hasTermsOfUse, division_id = :divisionId, division_name = :divisionName,  "
 				+ "subdivision_id = :subdivisionId, subdivision_name = :subdivisionName, department = :department "
 				+ " where id = :id";
 		Query q = entityManager.createNativeQuery(updateStmt);
@@ -206,6 +207,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		q.setParameter("status", status);
 		q.setParameter("classificationType", classificationType);
 		q.setParameter("hasPii", hasPii);
+		q.setParameter("hasTermsOfUse", hasTermsOfUse);
 		q.setParameter("divisionId", divisionId);
 		q.setParameter("divisionName", divisionName);
 		q.setParameter("subdivisionId", subDivisionId);
@@ -232,7 +234,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	public void update(DataikuSql dataikuProject) {
 		if(dataikuProject!=null) {
 			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription(),dataikuProject.getClassificationType(),dataikuProject.getDepartment(),
-					dataikuProject.getDivisionId(),dataikuProject.getDivisionName(),dataikuProject.getHasPii(),dataikuProject.getStatus(),dataikuProject.getSubdivisionId(),dataikuProject.getSubdivisionName());
+					dataikuProject.getDivisionId(),dataikuProject.getDivisionName(),dataikuProject.getHasPii(),dataikuProject.getHasTermsOfUse(),dataikuProject.getStatus(),dataikuProject.getSubdivisionId(),dataikuProject.getSubdivisionName());
 			deleteExistingCollabs(dataikuProject.getId());
 			List<CollaboratorSql> collabs = dataikuProject.getCollaborators();
 			if(collabs!=null && !collabs.isEmpty()) {

@@ -116,7 +116,7 @@ export class DataProductFilterApiClient {
     return this.getReport('lov/frontendtechnologies');
   }
   public static getProductOwners(): Promise<IDataProductListItem[]> {
-    return this.get('dataproducts/owners');
+    return this.get('dataproducts/productOwner');
   }
   public static getCarlaFunctions(): Promise<IDataProductListItem[]> {
     return this.get('carlafunctions');

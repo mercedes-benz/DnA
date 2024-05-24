@@ -31,7 +31,7 @@ public class ConstantsUtility {
 
 	public static final String CREATEACTION = "create";
 	public static final String SPRINGBOOT = "springboot";
-	public static final String VUE = "vue";
+	public static final String VUEJS = "vuejs";
 	public static final String PYFASTAPI = "py-fastapi";
 	public static final String REACT = "react";
 	public static final String ANGULAR = "angular";
@@ -39,6 +39,10 @@ public class ConstantsUtility {
 	public static final String GRADLE = "gradle";
 	public static final String QUARKUS = "quarkus";
 	public static final String MICRONAUT = "micronaut";
+	public static final String DASHPYTHON = "dash";
+	public static final String STREAMLIT = "streamlit";
+	public static final String EXPRESSJS ="expressjs";
+	public static final String NESTJS ="nestjs";
 	public static final String DEFAULT = "default";
 	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
 	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
