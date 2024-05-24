@@ -186,7 +186,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   }, [codeSpaceCollaborators]);
 
   const sanitizedRepositoryName = (name: string) => {
-    return name.replace(/[^\w.-]/g, '-');
+    return name.replace(/[\s._-]/g, '-');
   };
 
   const onProjectNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
