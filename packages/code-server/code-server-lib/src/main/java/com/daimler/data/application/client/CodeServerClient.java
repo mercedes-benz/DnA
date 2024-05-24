@@ -106,7 +106,8 @@ public class CodeServerClient {
 			case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
 			case "public-dna-fabric-mfe" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-dataentry-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			
+			case "public-dna-fabric-backend" : deployType = ConstantsUtility.PUBLIC; break;
+				
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
 		return deployType;
