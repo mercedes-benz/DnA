@@ -10,7 +10,8 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
         ? {
             providerInformation: {
               contactInformation: {
-                appId: values.planningIT,
+                leanIXDetails: values?.planningIT?.leanIXDetails,
+                appId: values?.planningIT?.appId,
                 department: values.department === '' ? undefined : values.department?.toString(),
                 division,
                 localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -103,7 +104,8 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   description: values.classificationOfTransferedData || '',
                 },
                 contactInformation: {
-                  appId: values.planningIT,
+                  leanIXDetails: values?.planningIT?.leanIXDetails,
+                  appId: values?.planningIT?.appId,
                   department: values.department === '' ? undefined : values.department?.toString(),
                   division,
                   localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -194,7 +196,8 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   oneApi: values.oneApi,
                   productOwner: values.productOwner,
                   contactInformation: {
-                    appId: values.planningIT,
+                    leanIXDetails: values?.planningIT?.leanIXDetails,
+                    appId: values?.planningIT?.appId,
                     department: values.department === '' ? undefined : values.department?.toString(),
                     division,
                     informationOwner: values.informationOwner,
@@ -264,8 +267,11 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           productName: item.dataTransferName,
           publish: item.publish,
           name: item.providerInformation?.contactInformation?.name,
-          informationOwner: item.providerInformation?.contactInformation?.informationOwner,
-          planningIT: item.providerInformation?.contactInformation?.appId,
+          informationOwner: item?.providerInformation?.contactInformation?.informationOwner,
+          planningIT:{
+            appId: item?.providerInformation?.contactInformation?.appId,
+            leanIXDetails: item?.providerInformation?.contactInformation?.leanIXDetails
+          },
           department: item.providerInformation?.contactInformation?.department === '' ? undefined : item.providerInformation?.contactInformation?.department?.split(),
           division: item.providerInformation?.contactInformation?.division?.id,
           subDivision: item.providerInformation?.contactInformation?.division?.subdivision?.id || '0',
@@ -308,7 +314,10 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           modifiedBy: item.providerInformation?.modifiedBy,
           ...((!isProvider || item.consumerInformation) && {
             consumer: {
-              planningIT: item.consumerInformation?.contactInformation?.appId,
+              planningIT: {
+                appId: item?.providerInformation?.contactInformation?.appId,
+                leanIXDetails: item?.providerInformation?.contactInformation?.leanIXDetails,
+              },
               department: item.consumerInformation?.contactInformation?.department === '' ? undefined : item.consumerInformation?.contactInformation?.department?.split(),
               division: item.consumerInformation?.contactInformation?.division.id,
               subDivision: item.consumerInformation?.contactInformation.division.subdivision.id || '0',
@@ -387,8 +396,10 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           division: item?.contactInformation?.division?.id || '0',
           subDivision: item?.contactInformation?.division?.subdivision?.id || '0',
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
-          planningIT: item?.contactInformation?.appId,          
-
+          planningIT: {
+            appId: item?.contactInformation?.appId,
+            leanIXDetails: item?.contactInformation?.leanIXDetails
+          },
           confidentiality: item?.classificationConfidentiality?.confidentiality || item?.access?.confidentiality || 'Internal',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
 
@@ -423,7 +434,10 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
 
           ...(isConsumerForm && {
             consumer: {
-              planningIT: item.consumerFormValues?.consumerInformation?.contactInformation?.appId,
+              planningIT: {
+                appId: item?.consumerFormValues?.consumerInformation?.contactInformation?.appId,
+                leanIXDetails: item?.consumerFormValues?.consumerInformation?.contactInformation?.leanIXDetails
+              },
               department: item.consumerFormValues?.consumerInformation?.contactInformation?.department === '' ? undefined : item.consumerFormValues?.consumerInformation?.contactInformation?.department?.split(),
               division: item.consumerFormValues?.consumerInformation?.contactInformation?.division.id,
               subDivision:
