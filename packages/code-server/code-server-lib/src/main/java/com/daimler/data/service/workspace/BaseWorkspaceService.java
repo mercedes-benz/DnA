@@ -303,16 +303,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 		ownerWorkbenchDeleteInputsDto.setType(recipeType);
 		ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
-		if(!deleteAction)
+		if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
 		{
-			log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
-			MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
-			errors.add(prodUndeployTriggerFailed);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errors);
-			return responseMessage;
+			boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+			if(!deleteAction)
+			{
+				log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
+				MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
+				errors.add(prodUndeployTriggerFailed);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
 
+			}
 		}
 		// }
 		// update all workspaces for the project to deleted state in db if user is
