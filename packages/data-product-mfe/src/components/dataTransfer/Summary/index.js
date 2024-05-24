@@ -8,6 +8,7 @@ import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
 import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
+import { Envs } from '../../../Utility/envs';
 
 import Styles from './styles.scss';
 
@@ -171,7 +172,7 @@ const Summary = ({ history }) => {
                       <div>
                         <label className="input-label summary">PlanningIT App-ID</label>
                         <br />
-                        {data.planningIT || '-'}
+                        {data?.planningIT?.leanIXDetails?.appReferenceStr !== null ? <a href={`${Envs.LEANIX_BASEURL}/${data?.planningIT?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{data?.planningIT?.appId}</a> : data?.planningIT?.appId || '-'}
                       </div>
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
@@ -434,7 +435,7 @@ const Summary = ({ history }) => {
                           <div>
                             <label className="input-label summary">PlanningIT App-ID</label>
                             <br />
-                            {data?.consumer?.planningIT || '-'}
+                            {data?.consumer?.planningIT?.leanIXDetails.appReferenceStr !== null ?<a href={`${Envs.LEANIX_BASEURL}/${data.consumer?.planningIT?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{data?.consumer?.planningIT?.appId}</a>: data?.consumer?.planningIT?.appId || '-'}
                           </div>
                           <div>
                             <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../../Utility/formData';
 import Styles from './styles.scss';
+import {Envs} from '../../../../Utility/envs';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
   const { selectedDataTransfer: data, divisionList } = useSelector((state) => state.provideDataTransfers);
@@ -77,7 +78,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">PlanningIT App-ID</label>
                 <br />
-                {providerInformation.planningIT || '-'}
+                {providerInformation?.planningIT?.leanIXDetails?.appReferenceStr !== null ? <a href={`${Envs.LEANIX_BASEURL}/${providerInformation?.planningIT?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{providerInformation?.planningIT?.appId}</a> : providerInformation?.planningIT?.appId || '-'}
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>

@@ -303,16 +303,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 		ownerWorkbenchDeleteInputsDto.setType(recipeType);
 		ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
-		if(!deleteAction)
+		if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
 		{
-			log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
-			MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
-			errors.add(prodUndeployTriggerFailed);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errors);
-			return responseMessage;
+			boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+			if(!deleteAction)
+			{
+				log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
+				MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
+				errors.add(prodUndeployTriggerFailed);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
 
+			}
 		}
 		// }
 		// update all workspaces for the project to deleted state in db if user is
@@ -667,7 +670,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseVO;
 				}
 			}
-
+			HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
+			if(!addAdminAccessToGitUser.is2xxSuccessful())
+			{
+				MessageDescription warnMsg = new MessageDescription("Failed while adding " + owner.getGitUserName()
+				+ " as admin to repository");
+				log.info("Failed while adding {} as collaborator to repository. Please add manually",
+				owner.getGitUserName());
+				warnings.add(warnMsg);
+				responseVO.setWarnings(warnings);
+			}
 			vo.getProjectDetails().setGitRepoName(repoName);
 			// add records to db
 			CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
@@ -825,7 +837,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
 	{
-		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder/app";
 		return workspaceUrl;
 	}
 
@@ -1005,6 +1017,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 				// To update project owner.
 				GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
 						.updateProjectOwnerDetails(projectName, newOwner);
+				String repoName = vo.getProjectDetails().getGitRepoName();
+				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
+						.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+					repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				}
+				//adding new owner as repo admin
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(newOwner.getGitUserName(), repoName);
+				if(!addAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +newOwner.getGitUserName()
+					+ " as admin to repository");
+					log.info("Failed while adding {} as admin to repository. Please add manually",
+					newOwner.getGitUserName());
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 
 				// To add current owner as collaborator.
 				GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository
@@ -1013,6 +1041,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 				// To remove new owner from collaborator.
 				GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository
 						.updateCollaboratorDetails(projectName, newOwner, true);
+				//removing old user as repo admin
+				HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(projectOwnerId, repoName);
+				if(!removeAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
+					+ " as admin to repository");
+					log.info("Failed while removing {} as admin to repository. Please add manually",
+					projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 
 				if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
 						|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
@@ -1133,6 +1172,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 										+ " is valid git user and add this user manually in the git repo.");
 						warnings.add(errMsg);
 					}
+				}
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
+				if(!addAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
+					+ " as admin to repository");
+					log.info("Failed while adding {} as collaborator to repository. Please add manually",
+					projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
 				}
 					responseMessage.setWarnings(warnings);
 					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
@@ -1293,7 +1342,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
-			String vueRecipeId = RecipeIdEnum.VUE.toString();
+			String vueRecipeId = RecipeIdEnum.VUEJS.toString();
 			String dashRecipeId = RecipeIdEnum.DASH.toString();
 			String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
 			String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();

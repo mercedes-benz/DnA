@@ -25,25 +25,27 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.datatransfer;
+ package com.daimler.data.db.jsonb.datatransfer;
 
-import java.util.Date;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ConsumerContactInformation {
-
-	private boolean lcoNeeded;
-	private TeamMember ownerName;
-	private Division division;
-	private String department;
-	private String localComplianceOfficer;
-	private String appId;
-	private Date dataTransferDate;
-	private LeanIXDetails leanIXDetails;
-}
+ import java.util.Date;
+ 
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+ import lombok.NoArgsConstructor;
+ 
+ @Data
+ @NoArgsConstructor
+ @AllArgsConstructor
+ public class LeanIXDetails {
+ 
+    private String appReferenceStr;
+	private String shortName;
+	private String name;
+	private String objectState;
+	private String providerOrgRefstr;
+	private String providerOrgId;
+	private String providerOrgShortname;
+	private String providerOrgDeptid;
+    
+ }
+ 

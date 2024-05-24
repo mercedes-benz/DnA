@@ -29,6 +29,7 @@ package com.daimler.data.db.jsonb.dataproduct;
 
 import java.util.Date;
 
+import com.daimler.data.db.jsonb.datatransfer.LeanIXDetails;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -48,4 +49,5 @@ public class DataProductContactInformation {
 	private String localComplianceOfficer;
 	private String department;
 	private Division division;
+	private LeanIXDetails leanIXDetails;
 }

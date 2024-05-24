@@ -638,7 +638,7 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">PlanningIT App-ID</label>
                           <br />
-                          {selectedDataProduct.planningIT || '-'}
+                          {selectedDataProduct?.planningIT?.leanIXDetails?.appReferenceStr !== null ? <a href={`${Envs.LEANIX_BASEURL}/${selectedDataProduct?.planningIT?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{selectedDataProduct?.planningIT.appId}</a> : selectedDataProduct?.planningIT?.appId || '-'}
                         </div>
                         <div>
                           <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
