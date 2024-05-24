@@ -1439,6 +1439,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 							case "public-dna-datalake-mfe":
 								workspaceUrl = workspaceUrl + "/" + "packages/datalake-mfe";
 								break;
+							case "public-dna-fabric-mfe":
+								workspaceUrl = workspaceUrl + "/" + "packages/fabric-mfe";
+								break;
+							case "public-dna-dataentry-mfe":
+								workspaceUrl = workspaceUrl + "/" + "packages/dataentry-mfe";
+								break;
 
 						}
 					}
