@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../../Utility/utils';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
 import { GetDataTransfers } from '../../redux/dataTransfer.services';
+import { Envs } from '../../../../Utility/envs';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 
@@ -118,9 +119,21 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false, is
               <label>Provider</label>
               {!isProviderFormSubmitted ? (
                 <span className={Styles.draft}>Draft</span>
+              ) : product.providerInformation?.contactInformation?.leanIXDetails?.appReferenceStr !== null ? (
+                <a
+                  href={`${Envs.LEANIX_BASEURL}/${product.providerInformation?.contactInformation?.leanIXDetails?.appReferenceStr}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {product.providerInformation?.contactInformation?.appId}
+                </a>
               ) : (
-                <span>{product.providerInformation?.contactInformation?.appId || '-'}</span>
-              )}
+                <span>
+                  {product.providerInformation?.contactInformation?.appId ||
+                    "-"}
+                </span>
+              )
+              }
             </div>
             <div>
               {isProviderFormSubmitted && !product?.publish ? (

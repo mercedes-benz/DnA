@@ -440,7 +440,7 @@ export const recipesMaster = [
   { id: 'public-dna-fabric-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Fabric Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/fabric-mfe/*' },
   { id: 'public-dna-fabric-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Fabric Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/fabric-backend/*' },
   { id: 'public-dna-dataentry-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-mfe/*' },
-  { id: 'public-dna-dataentry-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-backend/*' },
+  // { id: 'public-dna-dataentry-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-backend/*' },
 
   ...PRIVATE_RECIPES,
 

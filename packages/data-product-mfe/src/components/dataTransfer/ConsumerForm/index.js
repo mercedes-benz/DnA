@@ -222,7 +222,8 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
       const consumerFormValues = {
       consumerInformation: {
         contactInformation: {
-          appId: values.planningIT,
+          appId: values.planningIT.appId,
+          leanIXDetails: values.planningIT.leanIXDetails,
           department: values.department?.toString(),
           division,
           lcoNeeded: values.lcoNeeded === 'Yes' ? true : false,
