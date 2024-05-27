@@ -104,7 +104,10 @@ public class CodeServerClient {
 			case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
 			case "bat-frontend" : deployType = ConstantsUtility.BAT_FRONTEND; break;
 			case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
-			
+			case "public-dna-fabric-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-dataentry-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-fabric-backend" : deployType = ConstantsUtility.PUBLIC; break;
+				
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
 		return deployType;
@@ -240,15 +243,15 @@ public class CodeServerClient {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
-					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
-					+ "\",\"GITHUB_TOKEN\" : \"" + manageDto.getInputs().getPat() + "\",\"SHORTID\" : \""
-					+ manageDto.getInputs().getShortid().toLowerCase()
-					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"\""
-					+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
-					+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
-					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
-					+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
-					+ manageDto.getInputs().getCpu_guarantee() + "}";
+			+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
+			+ "\",\"GITHUB_TOKEN\" : \"" + manageDto.getInputs().getPat() + "\",\"SHORTID\" : \""
+			+ manageDto.getInputs().getShortid().toLowerCase()
+			+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\""
+			+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
+			+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
+			+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
+			+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
+			+ manageDto.getInputs().getCpu_guarantee() + "}";
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
@@ -548,9 +551,8 @@ public class CodeServerClient {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
 					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
-					+ "\",\"SHORTID\" : \""
-					+ manageDto.getInputs().getShortid().toLowerCase()
-					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"\""
+					+ "\",\"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase()
+					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\""
 					+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
 					+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
 					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "

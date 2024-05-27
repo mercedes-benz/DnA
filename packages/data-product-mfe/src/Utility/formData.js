@@ -10,8 +10,8 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
         ? {
             providerInformation: {
               contactInformation: {
-                leanIXDetails: values?.planningIT?.leanIXDetails,
-                appId: values?.planningIT?.appId,
+                leanIXDetails: values?.leanIX?.leanIXDetails,
+                appId: values?.leanIX?.appId,
                 department: values.department === '' ? undefined : values.department?.toString(),
                 division,
                 localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -104,8 +104,8 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   description: values.classificationOfTransferedData || '',
                 },
                 contactInformation: {
-                  leanIXDetails: values?.planningIT?.leanIXDetails,
-                  appId: values?.planningIT?.appId,
+                  leanIXDetails: values?.leanIX?.leanIXDetails,
+                  appId: values?.leanIX?.appId,
                   department: values.department === '' ? undefined : values.department?.toString(),
                   division,
                   localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -196,8 +196,8 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   oneApi: values.oneApi,
                   productOwner: values.productOwner,
                   contactInformation: {
-                    leanIXDetails: values?.planningIT?.leanIXDetails,
-                    appId: values?.planningIT?.appId,
+                    leanIXDetails: values?.leanIX?.leanIXDetails,
+                    appId: values?.leanIX?.appId,
                     department: values.department === '' ? undefined : values.department?.toString(),
                     division,
                     informationOwner: values.informationOwner,
@@ -268,7 +268,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           publish: item.publish,
           name: item.providerInformation?.contactInformation?.name,
           informationOwner: item?.providerInformation?.contactInformation?.informationOwner,
-          planningIT:{
+          leanIX:{
             appId: item?.providerInformation?.contactInformation?.appId,
             leanIXDetails: item?.providerInformation?.contactInformation?.leanIXDetails
           },
@@ -314,9 +314,9 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           modifiedBy: item.providerInformation?.modifiedBy,
           ...((!isProvider || item.consumerInformation) && {
             consumer: {
-              planningIT: {
-                appId: item?.providerInformation?.contactInformation?.appId,
-                leanIXDetails: item?.providerInformation?.contactInformation?.leanIXDetails,
+              leanIX: {
+                appId: item?.consumerInformation?.contactInformation?.appId,
+                leanIXDetails: item?.consumerInformation?.contactInformation?.leanIXDetails,
               },
               department: item.consumerInformation?.contactInformation?.department === '' ? undefined : item.consumerInformation?.contactInformation?.department?.split(),
               division: item.consumerInformation?.contactInformation?.division.id,
@@ -396,7 +396,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           division: item?.contactInformation?.division?.id || '0',
           subDivision: item?.contactInformation?.division?.subdivision?.id || '0',
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
-          planningIT: {
+          leanIX: {
             appId: item?.contactInformation?.appId,
             leanIXDetails: item?.contactInformation?.leanIXDetails
           },
@@ -434,7 +434,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
 
           ...(isConsumerForm && {
             consumer: {
-              planningIT: {
+              leanIX: {
                 appId: item?.consumerFormValues?.consumerInformation?.contactInformation?.appId,
                 leanIXDetails: item?.consumerFormValues?.consumerInformation?.contactInformation?.leanIXDetails
               },
