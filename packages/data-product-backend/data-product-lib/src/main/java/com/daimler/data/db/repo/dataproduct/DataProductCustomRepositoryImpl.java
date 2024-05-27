@@ -590,7 +590,6 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			CriteriaBuilder cb = em.getCriteriaBuilder();
 			CriteriaQuery<DataProductNsql> cq = cb.createQuery(DataProductNsql.class);
 			Root<DataProductNsql> root = cq.from(DataProductNsql.class);
-			TypedQuery<DataProductNsql> typedQuery = em.createQuery(cq);
 			Predicate con1 = cb.equal(cb.lower(
 					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("createdBy"),  cb.literal("id") )),
 					userId.toLowerCase());
@@ -599,6 +598,7 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 					userId.toLowerCase());
 			Predicate consolidatedCondition = cb.or(con1,con2);
 			cq.where(consolidatedCondition);
+			TypedQuery<DataProductNsql> typedQuery = em.createQuery(cq);
 			List<DataProductNsql> dataproductResults = typedQuery.getResultList();
 			return dataproductResults;		
 		}catch(Exception e) {
