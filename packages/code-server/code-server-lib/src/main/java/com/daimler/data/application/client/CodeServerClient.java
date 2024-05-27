@@ -75,10 +75,10 @@ public class CodeServerClient {
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
 			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
 			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
-			case "dash-python" : deployType = ConstantsUtility.DASHPYTHON; break;
-			case "streamlit-python" : deployType = ConstantsUtility.STREAMLIT; break;
-			case "express-node" : deployType = ConstantsUtility.EXPRESSJS; break;
-			case "nestjs-node" : deployType = ConstantsUtility.NESTJS; break;
+			case "dash" : deployType = ConstantsUtility.DASHPYTHON; break;
+			case "streamlit" : deployType = ConstantsUtility.STREAMLIT; break;
+			case "expressjs" : deployType = ConstantsUtility.EXPRESSJS; break;
+			case "nestjs" : deployType = ConstantsUtility.NESTJS; break;
 			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;

@@ -1691,7 +1691,6 @@ import org.springframework.beans.factory.annotation.Value;
 					return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 				 }
 				 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
-				 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			//  } else {
 			// 	 MessageDescription notAuthorizedMsg = new MessageDescription();
 			// 	 notAuthorizedMsg.setMessage(
