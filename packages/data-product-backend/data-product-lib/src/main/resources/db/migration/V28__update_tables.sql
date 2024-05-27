@@ -32,7 +32,7 @@ WHERE dt.data->'consumerInformation'->'contactInformation'->>'appId'is not NULL;
 
 --  dataproduct table update
 
-UPDATE dataproduct_nsql_backup dt
+UPDATE dataproduct_nsql dt
 SET data = jsonb_set(
     dt.data, 
     '{contactInformation,leanIXDetails}', 
