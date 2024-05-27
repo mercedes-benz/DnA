@@ -1,7 +1,33 @@
 import { Envs } from './envs';
 import { PRIVATE_RECIPES } from './constants';
+import { matchPath } from 'react-router';
+import { routes } from '../components/CodeSpaceRoutes';
 
-export const trackEvent = (category, action, name, value) => { //value optional
+export const getParams = () => {
+  for (const route of routes) {
+    const match = matchPath(window.location.hash, {
+      path: `#/codespaces${route.path}`,
+    });
+    if (match && match.isExact) {
+      return match.params;
+    }
+  }
+};
+
+export const getQueryParam = (paramName) => {
+  const hashParts = window.location.hash?.split('?');
+  const queryString = hashParts[1] || "";
+
+  const params = new URLSearchParams(queryString);
+  return params.get(paramName);
+}
+
+
+export const getPath = () => {
+  return window.location.hash;
+};
+
+export const trackEvent = (category, action, name, value = false) => { //value optional
     // For tracking event in matamo
     if (window._paq) {
       const eventArr = ['trackEvent', category, action, name];
@@ -34,7 +60,7 @@ const isValidURL = (urlString) => {
   }
 }
 
-export const buildLogViewURL = (deployedInstance, isStagging) => { //isstagingOptional
+export const buildLogViewURL = (deployedInstance, isStagging = false) => { //isstagingOptional
     try {
       let instanceId = deployedInstance;
       if(isValidURL(deployedInstance)) {
@@ -80,9 +106,14 @@ export const recipesMaster = [
     { id: 'quarkus', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using QUARKUS (Debian 11 OS, 2GB RAM, 1CPU)' },
     { id: 'micronaut', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using MICRONAUT (Debian 11 OS, 2GB RAM, 1CPU)' },
     { id: 'py-fastapi', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Python FastAPI (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'dash', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Dash Python (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'streamlit', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Streamlit Python (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'expressjs', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Express - Node.js (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'nestjs', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using NestJS - Node.js (Debian 11 OS, 2GB RAM, 1CPU)' },
     { id: 'react', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'React SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
     { id: 'angular', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Angular SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
-  
+    { id: 'vuejs', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Vue3 Webpack SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
+        
     { id: 'public-dna-frontend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/frontend/*' },
     { id: 'public-dna-backend', resource: '4Gi,3000Mi,1500m,5000Mi,2000m', name: 'DnA Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
     { id: 'public-dna-report-backend', resource: '4Gi,3000Mi,1500m,5000Mi,2000m', name: 'DnA Report Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dashboard-backend/*' },
@@ -108,7 +139,7 @@ export const recipesMaster = [
     { id: 'public-dna-fabric-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Fabric Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/fabric-mfe/*' },
     { id: 'public-dna-fabric-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Fabric Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/fabric-backend/*' },
     { id: 'public-dna-dataentry-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-mfe/*' },
-    { id: 'public-dna-dataentry-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-backend/*' },
+    // { id: 'public-dna-dataentry-backend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Entry as a Service Backend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataentry-backend/*' },
   
     ...PRIVATE_RECIPES,
   
