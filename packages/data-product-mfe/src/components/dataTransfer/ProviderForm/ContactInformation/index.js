@@ -47,7 +47,7 @@ const ContactInformation = ({
     department,
     complianceOfficer: selectedcomplianceOfficer,
     name,
-    planningIT,
+    leanIX,
     informationOwner,
     // productOwner,
   } = watch();
@@ -144,10 +144,10 @@ const ContactInformation = ({
   }, [selectedcomplianceOfficer]);
 
   useEffect(() => {
-    if (planningIT?.appId?.length) {
-      setSelectedPlanningIT(planningIT);
+    if (leanIX?.appId?.length) {
+      setSelectedPlanningIT(leanIX);
     }
-  }, [planningIT]);
+  }, [leanIX]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -506,10 +506,10 @@ const ContactInformation = ({
               <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
-                  name="planningIT"
+                  name="leanIX"
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'planningIT App-ID'}
+                      label={'leanIX App-ID'}
                       placeholder={'Select App-ID (Enter minimum 4 characters)'}
                       defaultValue={selectedPlanningIT.appId}
                       list={planningITList}

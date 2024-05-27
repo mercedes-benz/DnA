@@ -46,7 +46,7 @@ const ContactInformation = ({
     department,
     complianceOfficer: selectedcomplianceOfficer,
     businessOwnerName,
-    planningIT,
+    leanIX,
     lcoNeeded,
   } = watch();
 
@@ -172,10 +172,10 @@ const ContactInformation = ({
   }, [businessOwnerName]);
 
   useEffect(() => {
-    if (planningIT?.appId?.length) {
-      setSelectedPlanningIT(planningIT);
+    if (leanIX?.appId?.length) {
+      setSelectedPlanningIT(leanIX);
     }
-  }, [planningIT]);
+  }, [leanIX]);
 
   const handleBusinessOwner = (field, value) => {
     let name = '';
@@ -482,10 +482,10 @@ const ContactInformation = ({
               <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
-                  name="planningIT"
+                  name="leanIX"
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'planningIT App-ID'}
+                      label={'LeanIX App-ID'}
                       placeholder={'Select App-ID (Enter minimum 4 characters)'}
                       defaultValue={selectedPlanningIT.appId}
                       list={planningITList}
@@ -503,12 +503,13 @@ const ContactInformation = ({
                             shortName: selectedTags.shortName,
                           },
                         };
+                        console.log("leanIXData",leanIXData);
                         setSelectedPlanningIT(selectedTags || {});
                         field.onChange(leanIXData);
                       }}
                       onInputChange={handlePlanningITSearch}
                       required={false}
-                      showError={errors.planningIT?.message}
+                      showError={errors.leanIX?.message}
                       render={(item) => (
                         <div className={Styles.optionContainer}>
                           <div>
