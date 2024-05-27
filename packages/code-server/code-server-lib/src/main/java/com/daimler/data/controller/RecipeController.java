@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.recipe.GitHubVo;
 
 @RestController
 @Api(value = "Recipe API", tags = { "code-server-recipe" })
@@ -379,5 +380,27 @@ public class RecipeController implements CodeServerRecipeApi {
 		}
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
-    
+	@Override
+	@ApiOperation(value = "To validate GitHub Url and to check if user is collaborator", nickname = "validateGitHub", notes = "To validate GitHub Url and to check if user is collaborator", response = InitializeRecipeVo.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeRecipeVo.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/validate",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+   	public ResponseEntity<GenericMessage> validateGitHub(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody GitHubVo gitHubUrl) {
+			String gitUrl = gitHubUrl.getGitHubUrl();
+			GenericMessage  genericMessage = service.validateGitHubUrl(gitUrl);
+			if("FAILED".equals(genericMessage.getSuccess()))
+			{
+				return new ResponseEntity<>(genericMessage,HttpStatus.FORBIDDEN);
+			}
+		return new ResponseEntity<>(genericMessage,HttpStatus.OK);
+	}
+
 }
