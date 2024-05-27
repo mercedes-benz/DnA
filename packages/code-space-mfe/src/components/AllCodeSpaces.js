@@ -39,7 +39,7 @@ const AllCodeSpaces = (props) => {
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState();
-    const isCodeSpaceAdmin = props.user.roles.some((role) => role.id === USER_ROLE.CODESPACEADMIN);
+    const isCodeSpaceAdmin = props?.user?.roles?.some((role) => role?.id === USER_ROLE.CODESPACEADMIN);
     const history = useHistory();
     const goback = () => {
         history.goBack();
@@ -136,7 +136,7 @@ const AllCodeSpaces = (props) => {
         getCodeSpacesData();
     };
 
-    const onShowCodeSpaceOnBoard = (codeSpace, isRetryRequest) => { //isRetry optional
+    const onShowCodeSpaceOnBoard = (codeSpace, isRetryRequest = false) => { //isRetry optional
         setOnEditCodeSpace(undefined);
         setOnBoardCodeSpace(codeSpace);
         isRetryRequest && setIsRetryRequest(true);
@@ -167,7 +167,7 @@ const AllCodeSpaces = (props) => {
                         codeSpace.projectDetails?.projectName +
                         ' is requested to ' +
                         (serverStarted ? 'stop' : 'start') +
-                        '. Please check status after some time.',
+                        '. Please refresh and check status after some time.',
                     );
                 } else {
                     Notification.show(

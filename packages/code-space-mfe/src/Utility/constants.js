@@ -19,7 +19,8 @@ export const HTTP_METHOD = {
   }
   
   export const SESSION_STORAGE_KEYS = {
-    PAGINATION_MAX_ITEMS_PER_PAGE : 'paginationMaxItemsPerPage', 
+    PAGINATION_MAX_ITEMS_PER_PAGE : 'paginationMaxItemsPerPage',
+    JWT: 'jwt',
   }
   
   export const PRIVATE_RECIPES = [

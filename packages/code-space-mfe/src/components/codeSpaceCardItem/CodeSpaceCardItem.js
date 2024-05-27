@@ -187,6 +187,8 @@ const CodeSpaceCardItem = (props) => {
   const onCardNameClick = () => {
     if (enableOnboard) {
       props.onShowCodeSpaceOnBoard(codeSpace);
+    } else if (!serverStarted) {
+      props.onStartStopCodeSpace(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
@@ -272,7 +274,7 @@ const CodeSpaceCardItem = (props) => {
           <div
             className={classNames(
               Styles.cardHeadInfo,
-              deleteInProgress || createInProgress || creationFailed || !serverStarted ? Styles.disable : null,
+              deleteInProgress || createInProgress || creationFailed ? Styles.disable : null,
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
@@ -321,7 +323,7 @@ const CodeSpaceCardItem = (props) => {
                     {projectDetails?.gitRepoName && (
                       <li>
                         <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
-                          Goto code repo
+                          Go to code repo
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>

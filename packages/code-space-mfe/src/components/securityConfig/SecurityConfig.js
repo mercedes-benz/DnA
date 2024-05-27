@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { getParams, getPath, getQueryParam } from 'dna-container/RouterUtils';
+import { getParams, getPath, getQueryParam } from '../../Utility/utils';
 
 // @ts-ignore
 import InputFields from '../../common/modules/uilab/js/src/input-fields';
@@ -73,7 +73,7 @@ export default class SecurityConfig extends React.Component {
   componentDidMount() {
     const params = getParams();
     let id = params?.id;
-    if (id.includes('?name=')) {
+    if (id?.includes('?name=')) {
       id = params?.id.split('?name=')[0];
     }
     const name = getQueryParam('name');
@@ -82,7 +82,7 @@ export default class SecurityConfig extends React.Component {
     SelectBox.defaultSetup();
     InputFields.defaultSetup();
     this.setState({ id: id });
-    if (path.includes('publishedSecurityconfig')) {
+    if (path?.includes('publishedSecurityconfig')) {
       this.setState({
         readOnlyMode: true,
       });
@@ -279,9 +279,9 @@ export default class SecurityConfig extends React.Component {
                 this.getConfig(this.state.id, env);
                 Notification.show('Published successfully.');
               })
-              .catch((error) => {
+              .catch((error) => { 
                 ProgressIndicator.hide();
-                this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+                this.showErrorNotification(error.response.status === 400 ? 'APPID and Entitlement should not be empty while publishing.' : error.message ? error.message : 'Some Error Occured');
               });
           }
         }

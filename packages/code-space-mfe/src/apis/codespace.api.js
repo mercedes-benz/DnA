@@ -1,121 +1,121 @@
 import { server, hostServer, reportsServer, vaultServer, storageServer } from '../server/api';
 
-const getCodeSpacesList = () => {
+const getCodeSpacesList = () => { //tested
     return server.get(`workspaces`, {
         data: {},
     });
 };
 
-const createCodeSpace = (data) => {
-    return server.post(`workspaces`, {
+const createCodeSpace = (data) => { //TESTED
+    return server.post(`workspaces`,
         data,
-    });
+    );
 };
 
-const editCodeSpace = (id, data) => {
-    return server.patch(`workspaces/${id}/datagovernance`, {
-        data,
-    });
+const editCodeSpace = (id, data) => { //tested
+    return server.patch(`workspaces/${id}/datagovernance`, 
+        data
+    );
 };
 
-const getCodeSpaceStatus = (id) => {
+const getCodeSpaceStatus = (id) => { //tested
     return server.get(`workspaces/status/${id}`, {
         data: {},
     });
 };
   
-const deleteCodeSpace = (id) => {
+const deleteCodeSpace = (id) => { //tested
     return server.delete(`workspaces/${id}`, {
         data: {},
     });
 };
   
-const getCodeSpacesGitBranchList = (repoName) => {
+const getCodeSpacesGitBranchList = (repoName) => { //tested
     return server.get(`workspaces/${repoName}/branches`, {
         data: {},
     });
 };
   
-const deployCodeSpace = (id, data) => {
-    return server.post(`workspaces/${id}/deploy`, {
+const deployCodeSpace = (id, data) => { //tested
+    return server.post(`workspaces/${id}/deploy`, 
         data,
-    });
+    );
 };
   
-const unDeployCodeSpace = (id, data) => {
+const unDeployCodeSpace = (id, data) => { //not implemented yet
     return server.delete(`workspaces/${id}/deploy`, {
         data,
     });
 };
   
-const onBoardCollaborator = (id, data) => {
-    return server.put(`workspaces/${id}`, {
+const onBoardCollaborator = (id, data) => { //tested
+    return server.put(`workspaces/${id}`, 
         data,
-    });
+    );
 };
 
-const addCollaborator = (id, data) => {
-    return server.post(`workspaces/${id}/collaborator`, {
+const addCollaborator = (id, data) => { //tested
+    return server.post(`workspaces/${id}/collaborator`, 
         data,
-    });
+    );
 };
 
-const deleteCollaborator = (id, userId) => {
+const deleteCollaborator = (id, userId) => { //tested
     return server.delete(`workspaces/${id}/collaborator/${userId}`, {
         data: {},
     });
 };
 
-const transferOwnership = (id, data) => {
-    return server.patch(`workspaces/${id}/projectowner`, {
+const transferOwnership = (id, data) => { //tested
+    return server.patch(`workspaces/${id}/projectowner`, 
         data,
-    });
+    );
 };
 
-  // Usage statistics
-const getWorkSpacesTransparency = () => {
-    return server.get(`workspaces/transparency`, {
-        data: {},
-    });
-};
+//   // Usage statistics
+// const getWorkSpacesTransparency = () => { //for frontend. not used here
+//     return server.get(`workspaces/transparency`, {
+//         data: {},
+//     });
+// };
 
-const createOrUpdateCodeSpaceConfig = (id, data, env) => {
-    return server.patch(`workspaces/${id}/config?env=${env}`, {
+const createOrUpdateCodeSpaceConfig = (id, data, env) => { //tested
+    return server.patch(`workspaces/${id}/config?env=${env}`, 
         data,
-    });
+    );
 };
 
-const getCodeSpaceConfig = (id, env) => {
+const getCodeSpaceConfig = (id, env) => { //tested
     return server.get(`/workspaces/${id}/config?env=${env}`, {
         data: {},
     });
 };
 
-const getPublishedConfig = (id, env) => {
+const getPublishedConfig = (id, env) => { //tested
     return server.get(`/workspaces/${id}/config/publish?env=${env}`, {
         data: {},
     });
 };
 
-const getEntitlements = (id) => {
+const getEntitlements = (id) => { //not needed for now
     return server.get(`/workspaces/${id}/config/entitlements`, {
         data: {},
     });
 };
 
-const getRoles = (id) => {
+const getRoles = (id) => { //not needed for now
     return server.get(`/workspaces/${id}/config/roles`, {
         data: {},
     });
 };
 
-const getRolesMappings = (id) => {
+const getRolesMappings = (id) => { //not needed for now
     return server.get(`/workspaces/${id}/config/mappings`, {
         data: {},
     });
 };
 
-const addCodeSpaceRequest = (id, env) => {
+const addCodeSpaceRequest = (id, env) => { //tested
     return server.post(`/workspaces/${id}/config/publish?env=${env}`, {
         data: {},
     });
@@ -169,7 +169,7 @@ const getSoftwareLov = () => {
     });
 };
 
-const getLovData = () => {
+const getLovData = () => { //tested
     return Promise.all([
       storageServer.get(`/classifications`, {
         data: {},
@@ -181,37 +181,37 @@ const getLovData = () => {
     ]);
 };
   
-const getWorkspaceConfigs = () => {
+const getWorkspaceConfigs = () => { //not needed
     return server.get(`/workspaces/configs`, {
         data: {},
     });
 };
 
-const acceptSecurityConfigRequest = (id) => {
+const acceptSecurityConfigRequest = (id) => { //not needed
     return server.post(`/workspaces/${id}/config/accept`, {
         data: {},
     });
 };
 
-const publishSecurityConfigRequest = (id) => {
+const publishSecurityConfigRequest = (id) => { //not needed
     return server.post(`/workspaces/${id}/config/publish`, {
         data: {},
     });
 };
 
-const read_secret = (codeSpaceName, env) => {
+const read_secret = (codeSpaceName, env) => { //tested
     return vaultServer.get(`/secret/${codeSpaceName}/${env}`, {
         data: {},
     });
 };
 
-const update_secret = (path, secret_value, env) => {
-    return vaultServer.put(`/secret/${path}/${env}`, {
+const update_secret = (path, secret_value, env) => { //tested
+    return vaultServer.put(`/secret/${path}/${env}`, 
         secret_value,
-    });
+    );
 };
 
-const startStopWorkSpace = (id, serverStarted) => {
+const startStopWorkSpace = (id, serverStarted) => { //tested
     if (serverStarted) return server.delete(`/workspaces/server/${id}`, {data: {},});
     return server.post(`/workspaces/startserver/${id}`, {data: {},});
 };
@@ -235,7 +235,7 @@ export const CodeSpaceApiClient = {
     addCollaborator,
     deleteCollaborator,
     transferOwnership,
-    getWorkSpacesTransparency,
+    // getWorkSpacesTransparency,
     createOrUpdateCodeSpaceConfig,
     getCodeSpaceConfig,
     getPublishedConfig,

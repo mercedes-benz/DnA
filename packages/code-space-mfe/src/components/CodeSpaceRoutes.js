@@ -54,6 +54,8 @@ export const protectedRoutes = [
     },
 ];
 
+export const routes = [...protectedRoutes];
+
 const Routes = ({ user, hostHistory }) => {
     return (
         <Suspense fallback={user?.roles?.length ? <Progress show={true} /> : <>Loading</>}>

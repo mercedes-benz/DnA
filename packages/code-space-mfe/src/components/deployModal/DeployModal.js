@@ -225,7 +225,7 @@ const DeployModal = (props) => {
             props.setIsApiCallTakeTime(false);
             ProgressIndicator.hide();
             Notification.show(
-              'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
+              'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
               'alert',
             );
           }

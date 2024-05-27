@@ -15,6 +15,7 @@ import TextBox from 'dna-container/TextBox';
 import { useEffect } from 'react';
 // import { ICodeCollaborator, IUserDetails, IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
+import { hostServer } from '../../server/api';
 // import { ApiClient } from '../../../../services/ApiClient';
 import AddUser from 'dna-container/AddUser';
 import { Envs } from '../../Utility/envs';
@@ -146,7 +147,7 @@ const NewCodeSpace = (props) => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
     if (divId && divId!=='0' ) {
       ProgressIndicator.show();
-      CodeSpaceApiClient.get('/subdivisions/' + divId)
+      hostServer.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res?.data || []);
           onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
@@ -186,24 +187,25 @@ const NewCodeSpace = (props) => {
   }, [codeSpaceCollaborators]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const sanitizedRepositoryName = (name) => {
-    return name.replace(/[^\w.-]/g, '-');
+    return name.replace(/[\s_-]/g, '-');  
   };
 
   const onProjectNameOnChange = (evnt) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
     setProjectName(projectNameVal);
-    const noSpaceNoSpecialChars = /[A-Za-z0-9_.-]/.test(projectNameVal);
-    setProjectNameError(
-      !noSpaceNoSpecialChars
-        ? projectNameVal.length
-          ? 'Invalid name: Space and Special Chars not allowed.'
-          : requiredError
-        : '',
-    );
-    
+    const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
-    if(startsOrEndswith) {
+    if(hasSpecialChars){
+      setProjectNameError('Invalid name: Should not contain any special characters expect for "-".');
+    }
+    else if(!projectNameVal.length){
+      setProjectNameError(requiredError);
+    }
+    else if(startsOrEndswith) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
+    }
+    else{
+      setProjectNameError('');
     }
   };
 
@@ -667,7 +669,7 @@ const NewCodeSpace = (props) => {
         Notification.show('Code space updated successfully');
         ProgressIndicator.hide();
         props.onUpdateCodeSpaceComplete();
-        
+                
       })
       .catch((err) => {
         ProgressIndicator.hide();
@@ -727,15 +729,15 @@ const NewCodeSpace = (props) => {
       CodeSpaceApiClient.createCodeSpace(createCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if (res.data.status === 'CREATED' || res.data.status === 'CREATE_REQUESTED') {
+          if (res.data.data.status === 'CREATED' || res.data.data.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
-            enableLivelinessCheck(res.data.workspaceId);
+            enableLivelinessCheck(res.data.data.workspaceId);
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
             Notification.show(
-              'Error in creating new code space. Please try again later.\n' + res.errors[0].message,
+              'Error in creating new code space. Please try again later.\n' + res.data.errors[0].message,
               'alert',
             );
           }
@@ -743,7 +745,7 @@ const NewCodeSpace = (props) => {
         .catch((err) => {
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          if (err.message === 'Value or Item already exist!') {
+          if (err.response.status === 409) {
             Notification.show(
               `Given Code Space Name '${projectName}' already in use. Please use another name.`,
               'alert',
@@ -797,15 +799,15 @@ const NewCodeSpace = (props) => {
       CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if (res.data?.status === 'CREATED' || res.data?.status === 'CREATE_REQUESTED') {
+          if (res.data?.data?.status === 'CREATED' || res.data?.data?.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
-            enableLivelinessCheck(res.data.workspaceId);
+            enableLivelinessCheck(res.data.data.workspaceId);
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
             Notification.show(
-              'Error in creating new code space. Please try again later.\n' + res.errors[0].message,
+              'Error in creating new code space. Please try again later.\n' + res.data.errors[0].message,
               'alert',
             );
           }
@@ -813,7 +815,7 @@ const NewCodeSpace = (props) => {
         .catch((err) => {
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          if (err.message === 'Value or Item already exist!') {
+          if (err.response.status === 409) {
             Notification.show(
               `Given Code Space Name '${projectName}' already in use. Please use another name.`,
               'alert',
