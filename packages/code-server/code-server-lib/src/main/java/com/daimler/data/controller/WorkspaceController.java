@@ -1687,6 +1687,10 @@ import org.springframework.beans.factory.annotation.Value;
 				// }
 				 //vo.getProjectDetails().setPublishedSecuirtyConfig(vo.getProjectDetails().getSecurityConfig());
 				 //responseMessage = service.saveSecurityConfig(vo);
+			 	if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
+					return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+				 }
+				 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 				 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			//  } else {
 			// 	 MessageDescription notAuthorizedMsg = new MessageDescription();
