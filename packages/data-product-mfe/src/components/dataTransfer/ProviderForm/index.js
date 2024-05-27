@@ -38,7 +38,7 @@ export const tabs = {
     subDivision: '0',
     department: '',
     complianceOfficer: '',
-    planningIT: '',
+    leanIX: '',
     informationOwner: '',
   },
   'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },

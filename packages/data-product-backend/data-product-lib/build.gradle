@@ -367,6 +367,7 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.legalbasis.code.outputDir}/src/main/java"}
     	  java { srcDirs += "${swaggerSources.planningit.code.outputDir}/src/main/java"}
     	  java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java" }
+          java { srcDirs += "${swaggerSources.accesstypes.code.outputDir}/src/main/java" }
     }
 }
 

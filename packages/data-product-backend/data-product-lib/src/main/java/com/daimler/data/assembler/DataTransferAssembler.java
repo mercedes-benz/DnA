@@ -53,12 +53,14 @@ import com.daimler.data.db.jsonb.datatransfer.ConsumerContactInformation;
 import com.daimler.data.db.jsonb.datatransfer.ConsumerPersonalRelatedData;
 import com.daimler.data.db.jsonb.datatransfer.DataTranfer;
 import com.daimler.data.db.jsonb.datatransfer.Division;
+import com.daimler.data.db.jsonb.datatransfer.LeanIXDetails;
 import com.daimler.data.db.jsonb.datatransfer.Provider;
 import com.daimler.data.db.jsonb.datatransfer.ProviderClassificationConfidentiality;
 import com.daimler.data.db.jsonb.datatransfer.ProviderContactInformation;
 import com.daimler.data.db.jsonb.datatransfer.ProviderDeletionRequirement;
 import com.daimler.data.db.jsonb.datatransfer.ProviderPersonalRelatedData;
 import com.daimler.data.db.jsonb.datatransfer.ProviderTransnationalDataTransfer;
+import com.daimler.data.db.jsonb.datatransfer.LeanIXDetails;
 import com.daimler.data.db.jsonb.datatransfer.Subdivision;
 import com.daimler.data.db.jsonb.datatransfer.TeamMember;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
@@ -72,6 +74,7 @@ import com.daimler.data.dto.datatransfer.DataTransferVO;
 import com.daimler.data.dto.datatransfer.DivisionVO;
 import com.daimler.data.dto.datatransfer.ProviderClassificationConfidentialityVO;
 import com.daimler.data.dto.datatransfer.ProviderContactInformationVO;
+import com.daimler.data.dto.datatransfer.LeanIXDetailsVO;
 import com.daimler.data.dto.datatransfer.ProviderDeletionRequirementVO;
 import com.daimler.data.dto.datatransfer.ProviderPersonalRelatedDataVO;
 import com.daimler.data.dto.datatransfer.ProviderResponseVO;
@@ -131,9 +134,15 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 						divisionvo.setSubdivision(subdivisionVO);
 						contactInformationVO.setDivision(divisionvo);
 					}
+					LeanIXDetails leanIXDetails = providerContactInformation.getLeanIXDetails();
+					LeanIXDetailsVO  leanIXDetailsVo= new LeanIXDetailsVO();
+					if(leanIXDetails!=null){
+						BeanUtils.copyProperties(leanIXDetails, leanIXDetailsVo);
+					}
 
 					contactInformationVO.setName(toTeamMemberVO(providerContactInformation.getName()));
 					contactInformationVO.setInformationOwner(toTeamMemberVO(providerContactInformation.getInformationOwner()));
+					contactInformationVO.setLeanIXDetails(leanIXDetailsVo);
 					providerVO.setContactInformation(contactInformationVO);
 				}
 
@@ -205,7 +214,13 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 						divisionvo.setSubdivision(subdivisionVO);
 						contactInformationVO.setDivision(divisionvo);
 					}
+					LeanIXDetails leanIXDetails = consumerContactInformation.getLeanIXDetails();
+					LeanIXDetailsVO  leanIXDetailsVo= new LeanIXDetailsVO();
+					if(leanIXDetails!=null){
+						BeanUtils.copyProperties(leanIXDetails, leanIXDetailsVo);
+					}
 					contactInformationVO.setOwnerName(toTeamMemberVO(consumerContactInformation.getOwnerName()));
+					contactInformationVO.setLeanIXDetails(leanIXDetailsVo);
 					consumerVO.setContactInformation(contactInformationVO);
 				}
 
@@ -277,8 +292,14 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 						}
 						contactInformation.setDivision(division);
 					}
+					LeanIXDetailsVO leanIXDetailsVo = providerContactInformationVO.getLeanIXDetails();
+					LeanIXDetails leanIXDetails = new LeanIXDetails();
+					if(leanIXDetailsVo!=null){
+						BeanUtils.copyProperties(leanIXDetailsVo, leanIXDetails);
+					}
 					contactInformation.setName(toTeamMemberJson(providerContactInformationVO.getName()));
 					contactInformation.setInformationOwner(toTeamMemberJson(providerContactInformationVO.getInformationOwner()));
+					contactInformation.setLeanIXDetails(leanIXDetails);
 					provider.setContactInformation(contactInformation);
 				}
 
@@ -364,7 +385,13 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 						}
 						contactInformation.setDivision(division);
 					}
+					LeanIXDetailsVO leanIXDetailsVo = consumerContactInformationVO.getLeanIXDetails();
+					LeanIXDetails leanIXDetails = new LeanIXDetails();
+					if(leanIXDetailsVo!=null){
+						BeanUtils.copyProperties(leanIXDetailsVo, leanIXDetails);
+					}
 					contactInformation.setOwnerName(toTeamMemberJson(consumerContactInformationVO.getOwnerName()));
+					contactInformation.setLeanIXDetails(leanIXDetails);
 					consumer.setContactInformation(contactInformation);
 				}
 

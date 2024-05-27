@@ -8,6 +8,7 @@ import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
 import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
+import { Envs } from '../../../Utility/envs';
 
 import Styles from './styles.scss';
 
@@ -169,9 +170,9 @@ const Summary = ({ history }) => {
                         {data.department}
                       </div>
                       <div>
-                        <label className="input-label summary">PlanningIT App-ID</label>
+                        <label className="input-label summary">LeanIX App-ID</label>
                         <br />
-                        {data.planningIT || '-'}
+                        {data?.leanIX?.leanIXDetails?.appReferenceStr !== null ? <a href={`${Envs.LEANIX_BASEURL}/${data?.leanIX?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{data?.leanIX?.appId}</a> : data?.leanIX?.appId || '-'}
                       </div>
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
@@ -432,9 +433,9 @@ const Summary = ({ history }) => {
                             {data?.consumer?.lcoNeeded}
                           </div>
                           <div>
-                            <label className="input-label summary">PlanningIT App-ID</label>
+                            <label className="input-label summary">LeanIX App-ID</label>
                             <br />
-                            {data?.consumer?.planningIT || '-'}
+                            {data?.consumer?.leanIX?.leanIXDetails.appReferenceStr !== null ?<a href={`${Envs.LEANIX_BASEURL}/${data.consumer?.leanIX?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{data?.consumer?.leanIX?.appId}</a>: data?.consumer?.leanIX?.appId || '-'}
                           </div>
                           <div>
                             <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
