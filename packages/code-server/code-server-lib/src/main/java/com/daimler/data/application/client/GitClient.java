@@ -1,8 +1,5 @@
 package com.daimler.data.application.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -12,13 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.json.JSONObject;
+
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
 
 @Component
 @Slf4j
@@ -44,6 +40,9 @@ public class GitClient {
 	
 	@Value("${codespace.recipe}")
 	private String DnARecipe;
+
+	@Value("${codeServer.git.pid}")
+	private String pidValue;
 	
 	public HttpStatus createRepo(String repoName, String recipeName) {
 		try {
@@ -110,6 +109,37 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+	public HttpStatus validateGitUser(String repoName) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/vnd.github+json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + applicationName + "/"+ repoName+ "/collaborators/" + pidValue +"/permission";
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				String responseBody = response.getBody();
+				JSONObject jsonResponse = new JSONObject(responseBody);
+				if(jsonResponse!=null) {
+					if(jsonResponse.has("permission")) {
+						String permission =  jsonResponse.getString("permission");
+						if(permission.equalsIgnoreCase("admin")){
+							log.info("PID onboarding into git repo successfull");
+							return HttpStatus.ACCEPTED;
+						} else {
+							log.info("PID onboarding into git repo failed");
+							return HttpStatus.FORBIDDEN;
+						}
+					}
+				 }
+			}
+		} catch (Exception e) {
+			log.error("Error occured while onboarding PID {} to git repo {} with exception {}", pidValue, repoName, e.getMessage());
+    	}
+  		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -149,7 +179,6 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-
 	public HttpStatus deleteUserFromRepo( String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();

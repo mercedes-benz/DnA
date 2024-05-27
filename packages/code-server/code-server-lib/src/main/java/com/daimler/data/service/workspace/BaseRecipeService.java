@@ -10,6 +10,7 @@ import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomSoftwareRepo;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.client.GitClient;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 
@@ -62,6 +64,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	 private UserStore userStore;
+
+	 @Autowired
+	 private GitClient gitClient;
     
 	@Override
 	@Transactional
@@ -85,6 +90,41 @@ public class BaseRecipeService implements RecipeService{
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
 		return recipeAssembler.toVo(savedEntity);
+	}
+
+	@Override
+	public GenericMessage validateGitHubUrl(String gitHubUrl){
+		GenericMessage responseMessage = new GenericMessage();
+		responseMessage.setSuccess("SUCCESS");
+		try
+			{
+				String repoName = null;
+				String[] codespaceSplitValues = gitHubUrl.split("/");
+				int length = codespaceSplitValues.length;
+				repoName = codespaceSplitValues[length-1];
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(repoName);
+				if(!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription msg = new MessageDescription();
+					List<MessageDescription> errorMessage = new ArrayList<>();
+					msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo. Please try again.");
+					errorMessage.add(msg);
+					responseMessage.addErrors(msg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errorMessage);
+					return responseMessage;
+				}
+			}
+			catch(Exception e)
+			{
+				MessageDescription msg = new MessageDescription();
+				List<MessageDescription> errorMessage = new ArrayList<>();
+				msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo.");
+				errorMessage.add(msg);
+				responseMessage.addErrors(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errorMessage);
+			}
+			return responseMessage;
 	}
 
 	@Override

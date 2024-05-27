@@ -25,4 +25,6 @@ public interface RecipeService {
 	GenericMessage saveRecipeInfo(String name);
 
 	GenericMessage publishRecipeInfo(String name);
+
+    GenericMessage validateGitHubUrl(String gitHubUrl);
 }
