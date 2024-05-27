@@ -76,9 +76,9 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 {providerInformation.department}
               </div>
               <div>
-                <label className="input-label summary">PlanningIT App-ID</label>
+                <label className="input-label summary">LeanIX App-ID</label>
                 <br />
-                {providerInformation?.planningIT?.leanIXDetails?.appReferenceStr !== null ? <a href={`${Envs.LEANIX_BASEURL}/${providerInformation?.planningIT?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{providerInformation?.planningIT?.appId}</a> : providerInformation?.planningIT?.appId || '-'}
+                {providerInformation?.leanIX?.leanIXDetails?.appReferenceStr !== null ? <a href={`${Envs.LEANIX_BASEURL}/${providerInformation?.leanIX?.leanIXDetails?.appReferenceStr}`} target="_blank" rel="noopener noreferrer">{providerInformation?.leanIX?.appId}</a> : providerInformation?.leanIX?.appId || '-'}
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>

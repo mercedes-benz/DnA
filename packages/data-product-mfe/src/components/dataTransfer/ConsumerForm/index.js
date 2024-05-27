@@ -34,7 +34,7 @@ const tabs = {
     subDivision: '0',
     department: '',
     dateOfDataTransfer: '',
-    planningIT: '',
+    leanIX: '',
     lcoNeeded: 'No',
     complianceOfficer: '',
   },
@@ -222,8 +222,8 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
       const consumerFormValues = {
       consumerInformation: {
         contactInformation: {
-          appId: values.planningIT.appId,
-          leanIXDetails: values.planningIT.leanIXDetails,
+          appId: values.leanIX.appId,
+          leanIXDetails: values.leanIX.leanIXDetails,
           department: values.department?.toString(),
           division,
           lcoNeeded: values.lcoNeeded === 'Yes' ? true : false,
