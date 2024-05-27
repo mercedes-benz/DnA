@@ -1002,8 +1002,8 @@ import org.springframework.beans.factory.annotation.Value;
 			 if(deployRequestDto.isValutInjectorEnable()!=null)
 			 {              
 				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi")
-				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("dash-python") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("streamlit-python")
-				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("express-node") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("nestjs-node"))
+				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("dash") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("streamlit")
+				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("expressjs") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("nestjs"))
 				{
 					deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());
 				}
