@@ -354,10 +354,16 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       {showDeployCodeSpaceModal && (
         <DeployModal
           codeSpaceData={onDeployCodeSpace}
-          enableSecureWithIAM={onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-          onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi'}
-          setShowCodeDeployModal={(isVisible: boolean)=> setShowDeployCodeSpaceModal(isVisible)}
-          setCodeDeploying={(isDeploying: boolean)=> getCodeSpacesData()}
+          enableSecureWithIAM={
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs'
+          }
+          setShowCodeDeployModal={(isVisible: boolean) => setShowDeployCodeSpaceModal(isVisible)}
+          setCodeDeploying={(isDeploying: boolean) => getCodeSpacesData()}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
           navigateSecurityConfig={navigateSecurityConfig}
         />

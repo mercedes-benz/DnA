@@ -162,7 +162,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const isAPIRecipe =
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi';
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs';
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -230,7 +234,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       setLoading(true);
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
-
           const serverStarted = res.serverStatus === 'SERVER_STARTED';
 
           if (serverStarted) {
@@ -329,7 +332,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           }
         })
         .catch((err: Error) => {
-          setLoading(false)
+          setLoading(false);
           Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
           history.replace('/codespaces');
         });
@@ -398,7 +401,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             const intDeploymentDetails = res.projectDetails?.intDeploymentDetails;
             const prodDeploymentDetails = res.projectDetails?.prodDeploymentDetails;
 
-            const deployStatus = deployEnvironmentValue === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
+            const deployStatus =
+              deployEnvironmentValue === 'staging'
+                ? intDeploymentDetails?.lastDeploymentStatus
+                : prodDeploymentDetails?.lastDeploymentStatus;
             if (deployStatus === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
@@ -424,14 +430,16 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeploying(false);
               setShowCodeDeployModal(false);
               setIsApiCallTakeTime(false);
-              Notification.show(`Deployment failed for code space ${res.projectDetails?.projectName}. Please try again.`, 'alert');
+              Notification.show(
+                `Deployment failed for code space ${res.projectDetails?.projectName}. Please try again.`,
+                'alert',
+              );
             }
 
             setCodeSpaceData({
               ...res,
               running: !!res.intiatedOn,
             });
-
           } catch (err: any) {
             console.log(err);
           }
@@ -458,7 +466,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
-  const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment =
+    projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+    DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -477,11 +487,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
+      window.open(
+        `${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`,
+        '_blank',
+      );
       return;
     }
-    window.open(`${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
-  }
+    window.open(
+      `${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`,
+      '_blank',
+    );
+  };
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
