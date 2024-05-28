@@ -1055,9 +1055,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 					String reactRecipeId = RecipeIdEnum.REACT.toString();
 					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					String dashRecipeId = RecipeIdEnum.DASH.toString();
+					String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					String workspaceId = entity.getData().getWorkspaceId();
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+							|| projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+							|| projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+							|| projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
 					} else {
