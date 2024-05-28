@@ -73,11 +73,16 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     {
         List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        String getQuery = "SELECT id as RECIPE_ID, " +
+        // String getQuery = "SELECT id as RECIPE_ID, " +
+        //                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
+        //                 "FROM public.recipe_nsql " +
+        //                 "WHERE lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
+        //                "AND jsonb_extract_path_text(data, 'isPublic') = 'true'";
+         String getQuery = "SELECT id as RECIPE_ID, " +
                         "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
                         "FROM public.recipe_nsql " +
-                        "WHERE lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-                       "AND jsonb_extract_path_text(data, 'isPublic') = 'true'";
+                        "WHERE " +
+                       "jsonb_extract_path_text(data, 'isPublic') = 'true'";
         try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -104,19 +109,31 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     {
          List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
+        // String getQuery = "SELECT " +
+        //                 "id as RECIPE_ID, " +
+        //                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
+        //             "FROM " +
+        //                 "public.recipe_nsql " +
+        //             "WHERE " +
+        //                 "lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
+        //                 "AND jsonb_extract_path_text(data, 'isPublic') = 'false' " +
+        //                 "AND EXISTS (" +
+        //                     "SELECT 1 " +
+        //                     "FROM jsonb_array_elements(data->'users') AS u(usr) " +
+        //                     "WHERE jsonb_extract_path_text(u.usr, 'gitUserName') = '" + id + "'" +
+        //                 ")";
         String getQuery = "SELECT " +
-                        "id as RECIPE_ID, " +
-                        "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-                    "FROM " +
-                        "public.recipe_nsql " +
-                    "WHERE " +
-                        "lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-                        "AND jsonb_extract_path_text(data, 'isPublic') = 'false' " +
-                        "AND EXISTS (" +
-                            "SELECT 1 " +
-                            "FROM jsonb_array_elements(data->'users') AS u(usr) " +
-                            "WHERE jsonb_extract_path_text(u.usr, 'gitUserName') = '" + id + "'" +
-                        ")";
+                "id as RECIPE_ID, " +
+                "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
+            "FROM " +
+                "public.recipe_nsql " +
+            "WHERE " +
+                "jsonb_extract_path_text(data, 'isPublic') = 'false' " +
+                "AND EXISTS (" +
+                    "SELECT 1 " +
+                    "FROM jsonb_array_elements(data->'users') AS u(usr) " +
+                    "WHERE jsonb_extract_path_text(u.usr, 'gitUserName') = '" + id + "'" +
+                ")";
         try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -139,52 +156,52 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 
     }
 
-    @Override
-    public List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
-        Root<CodeServerRecipeNsql> root = cq.from(entityClass);
-        CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
-        Predicate con = cb.equal(cb.lower(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-                "requested");
-        Predicate con1 = cb.equal(cb.lower(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-                "accepted");
-        Predicate pMain = cb.or(con, con1);
-        cq.where(pMain);
-        TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
-        if (offset >= 0)
-            getAllQuery.setFirstResult(offset);
-        if (limit > 0)
-            getAllQuery.setMaxResults(limit);
-        return getAllQuery.getResultList();
+    // @Override
+    // public List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit) {
+    //     CriteriaBuilder cb = em.getCriteriaBuilder();
+    //     CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
+    //     Root<CodeServerRecipeNsql> root = cq.from(entityClass);
+    //     CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+    //     Predicate con = cb.equal(cb.lower(
+    //             cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+    //             "requested");
+    //     Predicate con1 = cb.equal(cb.lower(
+    //             cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+    //             "accepted");
+    //     Predicate pMain = cb.or(con, con1);
+    //     cq.where(pMain);
+    //     TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
+    //     if (offset >= 0)
+    //         getAllQuery.setFirstResult(offset);
+    //     if (limit > 0)
+    //         getAllQuery.setMaxResults(limit);
+    //     return getAllQuery.getResultList();
  
-    }
+    // }
 
-    @Override
-    public GenericMessage updateRecipeInfo(String name,String status)
-    {
-        GenericMessage updateResponse = new GenericMessage();
-		updateResponse.setSuccess("FAILED");
-		List<MessageDescription> errors = new ArrayList<>();
-		List<MessageDescription> warnings = new ArrayList<>();
-        String updateQuery = "UPDATE recipe_nsql SET data = jsonb_set(data, '{status}', '\""+ status +"\"') "
-        + " WHERE lower(jsonb_extract_path_text(data,'recipeName')) = '" + name.toLowerCase() + "'";
+    // @Override
+    // public GenericMessage updateRecipeInfo(String name,String status)
+    // {
+    //     GenericMessage updateResponse = new GenericMessage();
+	// 	updateResponse.setSuccess("FAILED");
+	// 	List<MessageDescription> errors = new ArrayList<>();
+	// 	List<MessageDescription> warnings = new ArrayList<>();
+    //     String updateQuery = "UPDATE recipe_nsql SET data = jsonb_set(data, '{status}', '\""+ status +"\"') "
+    //     + " WHERE lower(jsonb_extract_path_text(data,'recipeName')) = '" + name.toLowerCase() + "'";
 
-		try {
-			Query q = em.createNativeQuery(updateQuery);
-			q.executeUpdate();
-			updateResponse.setSuccess("SUCCESS");
-			updateResponse.setErrors(new ArrayList<>());
-			updateResponse.setWarnings(new ArrayList<>());
-			log.info("updated status of recipe {} to ACCPETED state", name);
-		}catch(Exception e) {
-			e.printStackTrace();
-			MessageDescription errMsg = new MessageDescription("Failed while updating the recipe  status.");
-			errors.add(errMsg);
-			log.error("Failed to update status of recipe  {} to ACCPETED state with exception {}", name, e.getMessage());
-		}
-        return updateResponse;
-    }
+	// 	try {
+	// 		Query q = em.createNativeQuery(updateQuery);
+	// 		q.executeUpdate();
+	// 		updateResponse.setSuccess("SUCCESS");
+	// 		updateResponse.setErrors(new ArrayList<>());
+	// 		updateResponse.setWarnings(new ArrayList<>());
+	// 		log.info("updated status of recipe {} to ACCPETED state", name);
+	// 	}catch(Exception e) {
+	// 		e.printStackTrace();
+	// 		MessageDescription errMsg = new MessageDescription("Failed while updating the recipe  status.");
+	// 		errors.add(errMsg);
+	// 		log.error("Failed to update status of recipe  {} to ACCPETED state with exception {}", name, e.getMessage());
+	// 	}
+    //     return updateResponse;
+    // }
 }
