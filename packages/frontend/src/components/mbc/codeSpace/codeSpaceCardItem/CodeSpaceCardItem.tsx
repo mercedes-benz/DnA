@@ -245,8 +245,12 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const allowDelete = isOwner ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
   const isAPIRecipe =
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi';
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs';
 
   const securedWithIAMContent: React.ReactNode = (
     <svg
