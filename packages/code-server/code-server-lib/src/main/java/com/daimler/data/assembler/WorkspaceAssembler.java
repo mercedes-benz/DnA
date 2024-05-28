@@ -96,6 +96,12 @@
 		 UserInfoVO vo = new UserInfoVO();
 		 if (userInfo != null) {
 			 BeanUtils.copyProperties(userInfo, vo);
+			 if(userInfo.getIsAdmin()!=null){
+				vo.setIsAdmin(userInfo.getIsAdmin());
+			 }
+			 else{
+				vo.setIsAdmin(false);
+			 }
 		 }
 		 return vo;
 	 }
@@ -104,6 +110,12 @@
 		 UserInfo entity = new UserInfo();
 		 if (userInfo != null) {
 			 BeanUtils.copyProperties(userInfo, entity);
+		 }
+		 if(userInfo.isIsAdmin()!=null){
+			entity.setIsAdmin(userInfo.isIsAdmin());
+		 }
+		 else{
+			entity.setIsAdmin(false);
 		 }
 		 return entity;
 	 }
@@ -628,6 +640,12 @@
 							 List<UserInfoVO> collabsVO = collabs.stream().map
 									 (n -> { UserInfoVO user = new UserInfoVO();
 											 BeanUtils.copyProperties(n,user);
+											 if(n.getIsAdmin()==null){
+												user.setIsAdmin(false);
+											 }
+											 else{
+												user.setIsAdmin(n.getIsAdmin());
+											 }
 											 return user;
 									 }).collect(Collectors.toList());
 							 projectDetailsVO.setProjectCollaborators(collabsVO);

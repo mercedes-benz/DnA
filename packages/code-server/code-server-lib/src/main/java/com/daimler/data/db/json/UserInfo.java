@@ -45,4 +45,5 @@ public class UserInfo implements Serializable{
 	private String email;
 	private String mobileNumber;
 	private String gitUserName;
+	private Boolean isAdmin;
 }
