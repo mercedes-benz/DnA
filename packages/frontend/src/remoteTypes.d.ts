@@ -37,3 +37,8 @@ declare module 'data-entry-mfe/DataEntry' {
   const DataEntry: React.ComponentType;
   export default DataEntry;
 }
+
+declare module 'power-platform-mfe/PowerPlatform' {
+  const PowerPlatform: React.ComponentType;
+  export default PowerPlatform;
+}
