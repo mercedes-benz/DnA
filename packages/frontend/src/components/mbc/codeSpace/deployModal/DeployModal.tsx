@@ -14,6 +14,7 @@ import { CODE_SPACE_TITLE } from 'globals/constants';
 // import { Envs } from 'globals/Envs';
 import { trackEvent } from '../../../../services/utils';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
+import { IUserInfo } from 'globals/types';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -32,6 +33,7 @@ export interface IDeployRequest {
 }
 
 interface DeployModalProps {
+  userInfo: IUserInfo;
   codeSpaceData: ICodeSpaceData;
   enableSecureWithIAM: boolean;
   setShowCodeDeployModal: (show: boolean) => void;
@@ -59,6 +61,7 @@ const DeployModal = (props: DeployModalProps) => {
   const [disableProdIAM, setDisableProdIAM] = useState(true);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
+  const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id;
 
   useEffect(() => {
     setClientId('');
@@ -323,7 +326,7 @@ const DeployModal = (props: DeployModalProps) => {
                       </span>
                       <span className="label">
                         Secure with your own IAM Credentials{' '}
-                        <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -331,7 +334,7 @@ const DeployModal = (props: DeployModalProps) => {
                               'New'}
                             )
                           </a>
-                        </span>
+                        </span>)}
                       </span>
                     </label>
                   </div>
@@ -428,7 +431,7 @@ const DeployModal = (props: DeployModalProps) => {
                       </span>
                       <span className="label">
                         Secure with your own IAM Credentials{' '}
-                        <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -436,7 +439,7 @@ const DeployModal = (props: DeployModalProps) => {
                               'New'}
                             )
                           </a>
-                        </span>
+                        </span>)}
                       </span>
                     </label>
                   </div>

@@ -252,6 +252,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs';
 
+  const isIAMRecipe =
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs';
+
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -783,7 +788,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
-                  isAPIRecipe &&
+                  isIAMRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />

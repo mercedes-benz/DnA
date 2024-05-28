@@ -168,6 +168,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs';
 
+  const isIAMRecipe =
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs';
+
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('click', handleContextMenuOutside, true);
@@ -469,6 +474,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const disableDeployment =
     projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
     DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const deployingInProgress =
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -524,7 +532,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {isOwner && (
+                      {(isOwner && !deployingInProgress) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -653,7 +661,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
-                  <div>
+                  {!disableDeployment && <div>
                     <span
                       onClick={toggleContextMenu}
                       className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
@@ -819,7 +827,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         )}
                       </ul>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               )}
             </div>
@@ -973,8 +981,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
       {showCodeDeployModal && (
         <DeployModal
+          userInfo={props.user}
           codeSpaceData={codeSpaceData}
-          enableSecureWithIAM={isAPIRecipe}
+          enableSecureWithIAM={isIAMRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}

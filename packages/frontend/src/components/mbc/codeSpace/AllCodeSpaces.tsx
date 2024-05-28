@@ -353,14 +353,12 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       )}
       {showDeployCodeSpaceModal && (
         <DeployModal
+          userInfo={props.user}
           codeSpaceData={onDeployCodeSpace}
           enableSecureWithIAM={
             onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
             onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs'
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs'
           }
           setShowCodeDeployModal={(isVisible: boolean) => setShowDeployCodeSpaceModal(isVisible)}
           setCodeDeploying={(isDeploying: boolean) => getCodeSpacesData()}
