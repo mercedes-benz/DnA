@@ -47,4 +47,5 @@ public class ProviderContactInformation {
 	private String localComplianceOfficer;
 	private String department;
 	private Division division;
+	private LeanIXDetails leanIXDetails;
 }

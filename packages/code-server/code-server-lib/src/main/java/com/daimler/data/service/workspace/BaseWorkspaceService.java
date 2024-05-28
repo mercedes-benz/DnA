@@ -303,16 +303,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 		ownerWorkbenchDeleteInputsDto.setType(recipeType);
 		ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
-		if(!deleteAction)
+		if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
 		{
-			log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
-			MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
-			errors.add(prodUndeployTriggerFailed);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errors);
-			return responseMessage;
+			boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+			if(!deleteAction)
+			{
+				log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
+				MessageDescription prodUndeployTriggerFailed = new MessageDescription("Failed while deleting codespace for user.");
+				errors.add(prodUndeployTriggerFailed);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
 
+			}
 		}
 		// }
 		// update all workspaces for the project to deleted state in db if user is
@@ -419,18 +422,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 			boolean isOwner = false;
 			List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
 			String projectName = vo.getProjectDetails().getProjectName();
-			if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public"))
-			{
-				vo.getProjectDetails().getRecipeDetails().setRepodetails(vo.getProjectDetails().getGitRepoName());
-			}
-			if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")
-					|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+			repoName = vo.getProjectDetails().getGitRepoName();
+			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
+					.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-				repoNameWithOrg =  vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
-			else {
-				repoName = vo.getProjectDetails().getGitRepoName();
-				repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
+			String pathCheckout = "";
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
+					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+							.startsWith("private")
+					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+							.startsWith("bat")) {
+				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+			} else {
+				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				String url[] = repoNameWithOrg.split(",");
+				repoNameWithOrg = url[0];
+				pathCheckout = url[1];
 			}
 			UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
 			UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
@@ -482,10 +490,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
-			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+			ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+			ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 				 isOwner = true;
@@ -667,7 +675,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseVO;
 				}
 			}
-
+			HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
+			if(!addAdminAccessToGitUser.is2xxSuccessful())
+			{
+				MessageDescription warnMsg = new MessageDescription("Failed while adding " + owner.getGitUserName()
+				+ " as admin to repository");
+				log.info("Failed while adding {} as collaborator to repository. Please add manually",
+				owner.getGitUserName());
+				warnings.add(warnMsg);
+				responseVO.setWarnings(warnings);
+			}
 			vo.getProjectDetails().setGitRepoName(repoName);
 			// add records to db
 			CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
@@ -698,12 +715,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
-			ownerWorkbenchCreateInputsDto.setProfile(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+			ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			ownerWorkbenchCreateInputsDto.setPat(pat);
 			String repoNameWithOrg = "";
+			String pathCheckout = "";
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
@@ -712,6 +730,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			} else {
 				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				String url[] = repoNameWithOrg.split(",");
+				repoNameWithOrg = url[0];
+				pathCheckout = url[1];
 			}
 			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
@@ -720,6 +741,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					client.toDeployType(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
 			ownerWorkbenchCreateInputsDto.setWsid(ownerwsid);
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
+			ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			String codespaceName = vo.getProjectDetails().getProjectName();
 			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
@@ -825,7 +847,87 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
 	{
+		String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
 		String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		if (!defaultRecipeId.equalsIgnoreCase(recipeId))
+			workspaceUrl += "/app";
+		if (recipeId.toLowerCase().startsWith("public")) {
+			switch (recipeId) {
+				case "public-dna-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/backend";
+					break;
+				case "public-dna-frontend":
+					workspaceUrl = workspaceUrl + "/" + "packages/frontend";
+					break;
+				case "public-dna-report-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/dashboard-backend";
+					break;
+				case "public-dna-codespace-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/code-server";
+					break;
+				case "public-dna-malware-scanner":
+					workspaceUrl = workspaceUrl + "/" + "packages/malware-scanner";
+					break;
+				case "public-dna-storage-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/storage-mfe";
+					break;
+				case "public-dna-storage-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/storage-backend";
+					break;
+				case "public-dna-chronos-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/chronos-mfe";
+					break;
+				case "public-dna-chronos-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/chronos";
+					break;
+				case "public-dna-data-product-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/data-product-mfe";
+					break;
+				case "public-dna-data-product-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/data-product-backend";
+					break;
+				case "public-dna-dss-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/dss-mfe";
+					break;
+				case "public-dna-dataiku-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/dataiku-backend";
+					break;
+				case "public-dna-airflow-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/airflow-backend";
+					break;
+				case "public-dna-modal-registry-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/model-registry";
+					break;
+				case "public-dna-trino-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/trino-backend";
+					break;
+				case "public-dna-nass":
+					workspaceUrl = workspaceUrl + "/" + "packages/naas";
+					break;
+				case "public-dna-authenticator-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/authenticator-service";
+					break;
+				case "public-dna-matomo-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/matomo-mfe";
+					break;
+				case "public-dna-matomo-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/matomo-backend";
+					break;
+				case "public-dna-datalake-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/datalake-mfe";
+					break;
+					case "public-dna-fabric-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/fabric-mfe";
+					break;
+				case "public-dna-dataentry-mfe":
+					workspaceUrl = workspaceUrl + "/" + "packages/dataentry-mfe";
+					break;
+				case "public-dna-fabric-backend":
+					workspaceUrl = workspaceUrl + "/" + "packages/fabric-backend";
+					break;
+
+			}
+		}
 		return workspaceUrl;
 	}
 
@@ -953,9 +1055,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 					String reactRecipeId = RecipeIdEnum.REACT.toString();
 					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					String dashRecipeId = RecipeIdEnum.DASH.toString();
+					String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					String workspaceId = entity.getData().getWorkspaceId();
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+							|| projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+							|| projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+							|| projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
 					} else {
@@ -1005,6 +1113,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 				// To update project owner.
 				GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
 						.updateProjectOwnerDetails(projectName, newOwner);
+				String repoName = vo.getProjectDetails().getGitRepoName();
+				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
+						.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+					repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				}
+				//adding new owner as repo admin
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(newOwner.getGitUserName(), repoName);
+				if(!addAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +newOwner.getGitUserName()
+					+ " as admin to repository");
+					log.info("Failed while adding {} as admin to repository. Please add manually",
+					newOwner.getGitUserName());
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 
 				// To add current owner as collaborator.
 				GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository
@@ -1013,6 +1137,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 				// To remove new owner from collaborator.
 				GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository
 						.updateCollaboratorDetails(projectName, newOwner, true);
+				//removing old user as repo admin
+				HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(projectOwnerId, repoName);
+				if(!removeAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
+					+ " as admin to repository");
+					log.info("Failed while removing {} as admin to repository. Please add manually",
+					projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 
 				if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
 						|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
@@ -1159,6 +1294,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 										+ " is valid git user and add this user manually in the git repo.");
 						warnings.add(errMsg);
 					}
+				}
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
+				if(!addAdminAccessToGitUser.is2xxSuccessful())
+				{
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
+					+ " as admin to repository");
+					log.info("Failed while adding {} as collaborator to repository. Please add manually",
+					projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
 				}
 					responseMessage.setWarnings(warnings);
 					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
@@ -1319,7 +1464,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
-			String vueRecipeId = RecipeIdEnum.VUE.toString();
+			String vueRecipeId = RecipeIdEnum.VUEJS.toString();
 			String dashRecipeId = RecipeIdEnum.DASH.toString();
 			String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
 			String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
@@ -1416,6 +1561,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 							case "public-dna-datalake-mfe":
 								workspaceUrl = workspaceUrl + "/" + "packages/datalake-mfe";
 								break;
+							case "public-dna-fabric-mfe":
+								workspaceUrl = workspaceUrl + "/" + "packages/fabric-mfe";
+								break;
+							case "public-dna-dataentry-mfe":
+								workspaceUrl = workspaceUrl + "/" + "packages/dataentry-mfe";
+								break;
+							case "public-dna-fabric-backend":
+								workspaceUrl = workspaceUrl + "/" + "packages/fabric-backend";
+								break;
 
 						}
 					}
@@ -1463,7 +1617,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
 				|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
-				|| expressjsRecipeId.equalsIgnoreCase(projectRecipe) || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+				|| streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
+				expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
@@ -1953,14 +2108,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String repoName = "";
 			String repoNameWithOrg = "";
 			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
-			if(workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")
-			|| workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("bat")) {
+			repoName = workspace.getProjectDetails().getGitRepoName();
+			if (workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace
+					.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")) {
 				repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
-				repoNameWithOrg =  workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
-			else {
-				repoName = workspace.getProjectDetails().getGitRepoName();
-				String repoUrl = gitOrgUri + gitOrgName + "/" + repoName;
+			String pathCheckout = "";
+			if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
+					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+							.startsWith("private")
+					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+							.startsWith("bat")) {
+				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+			} else {
+				repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+				String url[] = repoNameWithOrg.split(",");
+				repoNameWithOrg = url[0];
+				pathCheckout = url[1];
 			}
 				ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 				WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -1969,7 +2133,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				ownerWorkbenchCreateInputsDto.setMem_limit("4000M");
 				ownerWorkbenchCreateInputsDto.setCpu_limit(2);
 				ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
-				ownerWorkbenchCreateInputsDto.setProfile(workspace.getProjectDetails().getRecipeDetails().getRecipeId());
+				ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
 				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
 				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
@@ -1978,6 +2142,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
 				ownerWorkbenchCreateInputsDto.setWsid(workspace.getWorkspaceId());
 				ownerWorkbenchCreateInputsDto.setResource(workspace.getProjectDetails().getRecipeDetails().getResource());
+				ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 				ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 				String codespaceName = workspace.getProjectDetails().getProjectName();
 				String ownerwsid = workspace.getWorkspaceId();

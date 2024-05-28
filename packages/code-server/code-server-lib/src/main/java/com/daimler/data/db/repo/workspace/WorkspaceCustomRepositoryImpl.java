@@ -711,5 +711,17 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 	}
 
+	@Override
+	public List<CodeServerWorkspaceNsql> findAllByUniqueLiteral()
+	{
+		String query = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName')) *"
+		+" FROM workspace_nsql"
+		+" WHERE jsonb_extract_path_text(data, 'status') != 'DELETED'";
+		Query q = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		List<CodeServerWorkspaceNsql> result = q.getResultList();
+        return result != null ? result : new ArrayList<>();
+	}
+
+
 }
 

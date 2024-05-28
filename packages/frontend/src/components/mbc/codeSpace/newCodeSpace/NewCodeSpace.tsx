@@ -186,24 +186,25 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   }, [codeSpaceCollaborators]);
 
   const sanitizedRepositoryName = (name: string) => {
-    return name.replace(/[^\w.-]/g, '-');
+    return name.replace(/[\s_-]/g, '-');
   };
 
   const onProjectNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
     setProjectName(projectNameVal);
-    const noSpaceNoSpecialChars = /[A-Za-z0-9_.-]/.test(projectNameVal);
-    setProjectNameError(
-      !noSpaceNoSpecialChars
-        ? projectNameVal.length
-          ? 'Invalid name: Space and Special Chars not allowed.'
-          : requiredError
-        : '',
-    );
-    
+    const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
-    if(startsOrEndswith) {
+    if(hasSpecialChars){
+      setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
+    }
+    else if(!projectNameVal.length){
+      setProjectNameError(requiredError);
+    }
+    else if(startsOrEndswith) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
+    }
+    else{
+      setProjectNameError('');
     }
   };
 

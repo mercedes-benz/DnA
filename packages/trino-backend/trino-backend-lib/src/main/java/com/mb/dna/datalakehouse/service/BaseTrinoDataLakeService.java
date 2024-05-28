@@ -417,6 +417,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								
 								//removing deleted tables
 								 existingTables = trinoClient.showTables(catalog, schema, "%%");
+								if(createdTablesResponse.getTables()!= null && !createdTablesResponse.getTables().isEmpty()) {
+									 existingTablesInDna = createdTablesResponse.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
+								 }
 								for(String trinoTable : existingTables) {
 									if(!existingTablesInDna.contains(trinoTable)) {
 										try {

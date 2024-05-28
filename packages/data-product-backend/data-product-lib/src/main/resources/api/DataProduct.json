@@ -11,6 +11,7 @@
     "MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
     "CreatedByVO": "com.daimler.data.dto.datacompliance.CreatedByVO",
     "ConsumerContactInformationVO": "com.daimler.data.dto.datatransfer.ConsumerContactInformationVO",
+    "LeanIXDetailsVO": "com.daimler.data.dto.datatransfer.LeanIXDetailsVO",
     "ConsumerPersonalRelatedDataVO": "com.daimler.data.dto.datatransfer.ConsumerPersonalRelatedDataVO",
     "providerResponseVO": "com.daimler.data.dto.datatransfer.providerResponseVO",
     "ProviderClassificationConfidentialityVO":  "com.daimler.data.dto.datatransfer.ProviderClassificationConfidentialityVO",

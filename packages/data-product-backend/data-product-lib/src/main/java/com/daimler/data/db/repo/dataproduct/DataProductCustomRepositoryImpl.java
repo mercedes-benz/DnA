@@ -590,15 +590,19 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			CriteriaBuilder cb = em.getCriteriaBuilder();
 			CriteriaQuery<DataProductNsql> cq = cb.createQuery(DataProductNsql.class);
 			Root<DataProductNsql> root = cq.from(DataProductNsql.class);
-			TypedQuery<DataProductNsql> typedQuery = em.createQuery(cq);
 			Predicate con1 = cb.equal(cb.lower(
 					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("createdBy"),  cb.literal("id") )),
 					userId.toLowerCase());
 			Predicate con2 = cb.equal(cb.lower(
 					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("contactInformation"),  cb.literal("productOwner"), cb.literal("id") )),
 					userId.toLowerCase());
-			Predicate consolidatedCondition = cb.or(con1,con2);
+			Predicate con3 = cb.equal(cb.lower(
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("recordStatus"))),
+					"open");
+			Predicate myDataProductsCondition = cb.or(con1,con2);
+			Predicate consolidatedCondition = cb.and(myDataProductsCondition,con3);
 			cq.where(consolidatedCondition);
+			TypedQuery<DataProductNsql> typedQuery = em.createQuery(cq);
 			List<DataProductNsql> dataproductResults = typedQuery.getResultList();
 			return dataproductResults;		
 		}catch(Exception e) {

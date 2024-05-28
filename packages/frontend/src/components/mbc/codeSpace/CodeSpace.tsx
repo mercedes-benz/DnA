@@ -162,7 +162,16 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const isAPIRecipe =
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi';
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs';
+
+  const isIAMRecipe =
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs';
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -227,14 +236,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     if (id) {
+      setLoading(true);
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
-
           const serverStarted = res.serverStatus === 'SERVER_STARTED';
 
           if (serverStarted) {
             const loginWindow = window.open(
-              Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
+              Envs.CODESPACE_OIDC_POPUP_URL + `user/${props.user.id.toLowerCase()}/${res.workspaceId}/`,
               'codeSpaceSessionWindow',
               'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
             );
@@ -304,8 +313,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               }
             }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
           } else {
+            setLoading(true);
             CodeSpaceApiClient.startStopWorkSpace(res.id, false)
               .then((response: any) => {
+                setLoading(false);
                 if (response.success === 'SUCCESS') {
                   Notification.show(
                     'Your Codespace for project ' +
@@ -317,6 +328,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 }
               })
               .catch((err: Error) => {
+                setLoading(false);
                 Notification.show(
                   'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
                   'alert',
@@ -325,6 +337,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           }
         })
         .catch((err: Error) => {
+          setLoading(false);
           Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
           history.replace('/codespaces');
         });
@@ -393,7 +406,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             const intDeploymentDetails = res.projectDetails?.intDeploymentDetails;
             const prodDeploymentDetails = res.projectDetails?.prodDeploymentDetails;
 
-            const deployStatus = deployEnvironmentValue === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
+            const deployStatus =
+              deployEnvironmentValue === 'staging'
+                ? intDeploymentDetails?.lastDeploymentStatus
+                : prodDeploymentDetails?.lastDeploymentStatus;
             if (deployStatus === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
@@ -419,14 +435,16 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeploying(false);
               setShowCodeDeployModal(false);
               setIsApiCallTakeTime(false);
-              Notification.show(`Deployment failed for code space ${res.projectDetails?.projectName}. Please try again.`, 'alert');
+              Notification.show(
+                `Deployment failed for code space ${res.projectDetails?.projectName}. Please try again.`,
+                'alert',
+              );
             }
 
             setCodeSpaceData({
               ...res,
               running: !!res.intiatedOn,
             });
-
           } catch (err: any) {
             console.log(err);
           }
@@ -453,7 +471,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
-  const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment =
+    projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+    DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const deployingInProgress =
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -472,11 +495,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
+      window.open(
+        `${window.location.pathname}#/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`,
+        '_blank',
+      );
       return;
     }
-    window.open(`${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
-  }
+    window.open(
+      `${window.location.pathname}#/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`,
+      '_blank',
+    );
+  };
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
@@ -503,7 +532,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {isOwner && (
+                      {(isOwner && !deployingInProgress) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -632,7 +661,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
-                  <div>
+                  {!disableDeployment && <div>
                     <span
                       onClick={toggleContextMenu}
                       className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
@@ -798,7 +827,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         )}
                       </ul>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               )}
             </div>
@@ -952,8 +981,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
       {showCodeDeployModal && (
         <DeployModal
+          userInfo={props.user}
           codeSpaceData={codeSpaceData}
-          enableSecureWithIAM={isAPIRecipe}
+          enableSecureWithIAM={isIAMRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
