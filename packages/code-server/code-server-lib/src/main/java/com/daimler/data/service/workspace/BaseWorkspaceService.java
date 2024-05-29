@@ -2227,7 +2227,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 						 projectCollabs = projectCollabsVO.stream().map(n -> workspaceAssembler.toUserInfo(n))
 							 .collect(Collectors.toList());
 					}
-					
 					if(entity != null){
 						if(vo.getProjectDetails().getProjectCollaborators()!=null){
 							entity.getData().getProjectDetails().setProjectCollaborators(projectCollabs);

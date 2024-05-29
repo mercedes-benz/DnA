@@ -929,7 +929,7 @@ paths:
         500:
           description: "Internal error"
 
-  /workspaces/{id}/collaborator/{userid}/admin:
+  /workspaces/{id}/collaborator/{collabUserId}/admin:
     post:
       tags:
         - "code-server"
@@ -942,16 +942,15 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
-        - name: "userid"
+        - name: "collabUserId"
           in: "path"
-          description: "User ID to be deleted"
+          description: "Collaborator user id"
           required: true
           type: "string"
         - name: isAdmin
           in: query
-          description: environment variable to select the target environment
           required: true
-          type: boolean
+          type: "boolean"
       responses:
         201:
           description: "Returns message of success or failure"
