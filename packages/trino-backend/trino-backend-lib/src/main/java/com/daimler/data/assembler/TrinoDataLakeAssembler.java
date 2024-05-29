@@ -11,18 +11,19 @@ import com.daimler.data.dto.UserInfoVO;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableCollabDetails;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableColumnDetails;
+import com.mb.dna.datalakehouse.db.jsonb.DataProductDetails;
 import com.mb.dna.datalakehouse.db.jsonb.DatalakeTable;
 import com.mb.dna.datalakehouse.db.jsonb.TrinoDataLakeProject;
 import com.mb.dna.datalakehouse.db.jsonb.UserInfo;
 import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
+import com.mb.dna.datalakehouse.dto.DataProductDetailsVO;
 import com.mb.dna.datalakehouse.dto.DatalakeTableVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
 @Component
 public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakeProjectVO, TrinoDataLakeNsql>{
 
-	
 	@Override
 	public TrinoDataLakeProjectVO toVo(TrinoDataLakeNsql entity) {
 		TrinoDataLakeProjectVO datalakeProjectVO = null;
@@ -65,6 +66,13 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 				}
 				datalakeProjectVO.setCollabs(collabsVO);
 				
+				DataProductDetails dataproductDetails = projectDetails.getDataProductDetails();
+				DataProductDetailsVO dataProductDetailsVO = new DataProductDetailsVO();
+				if(dataproductDetails!=null) {
+					BeanUtils.copyProperties(dataproductDetails, dataProductDetailsVO);
+					dataProductDetailsVO.setInvalidState(dataproductDetails.getInvalidState());
+					datalakeProjectVO.setDataProductDetails(dataProductDetailsVO);
+				}
 			}
 		}
 		return datalakeProjectVO;
@@ -111,6 +119,15 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 				}
 				projectDetails.setCollabs(collabs);
 			}
+			
+			DataProductDetails dataproductDetails = new DataProductDetails(); 
+			DataProductDetailsVO dataProductDetailsVO = vo.getDataProductDetails();
+			if(dataProductDetailsVO!=null) {
+				BeanUtils.copyProperties(dataProductDetailsVO,dataproductDetails);
+				dataproductDetails.setInvalidState(dataProductDetailsVO.getInvalidState());
+				projectDetails.setDataProductDetails(dataproductDetails);
+			}
+			
 			entity.setId(vo.getId());
 			entity.setData(projectDetails);
 		}
