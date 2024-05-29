@@ -354,9 +354,13 @@ const AllCodeSpaces = (props) => {
             )}
             {showDeployCodeSpaceModal && (
                 <DeployModal
+                    userInfo={props.user}
                     codeSpaceData={onDeployCodeSpace}
-                    enableSecureWithIAM={onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi'}
+                    enableSecureWithIAM={
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs'
+                    }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}

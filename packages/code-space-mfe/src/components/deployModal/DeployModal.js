@@ -59,6 +59,7 @@ const DeployModal = (props) => {
   const [disableProdIAM, setDisableProdIAM] = useState(true);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
+  const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id;
 
   useEffect(() => {
     setClientId('');
@@ -323,7 +324,7 @@ const DeployModal = (props) => {
                       </span>
                       <span className="label">
                         Secure with your own IAM Credentials{' '}
-                        <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -331,7 +332,7 @@ const DeployModal = (props) => {
                               'New'}
                             )
                           </a>
-                        </span>
+                        </span>)}
                       </span>
                     </label>
                   </div>
@@ -428,7 +429,7 @@ const DeployModal = (props) => {
                       </span>
                       <span className="label">
                         Secure with your own IAM Credentials{' '}
-                        <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -436,7 +437,7 @@ const DeployModal = (props) => {
                               'New'}
                             )
                           </a>
-                        </span>
+                        </span>)}
                       </span>
                     </label>
                   </div>

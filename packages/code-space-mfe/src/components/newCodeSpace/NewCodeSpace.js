@@ -196,7 +196,7 @@ const NewCodeSpace = (props) => {
     const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
     if(hasSpecialChars){
-      setProjectNameError('Invalid name: Should not contain any special characters expect for "-".');
+      setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
     }
     else if(!projectNameVal.length){
       setProjectNameError(requiredError);

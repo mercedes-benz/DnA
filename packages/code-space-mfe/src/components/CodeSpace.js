@@ -162,7 +162,17 @@ const CodeSpace = (props) => {
 
   const isAPIRecipe =
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi';
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs';
+
+  const isIAMRecipe =
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs';
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -459,6 +469,9 @@ const CodeSpace = (props) => {
 
   const projectDetails = codeSpaceData?.projectDetails;
   const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const deployingInProgress =
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -508,7 +521,7 @@ const CodeSpace = (props) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {isOwner && (
+                      {(isOwner && !deployingInProgress) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -637,7 +650,7 @@ const CodeSpace = (props) => {
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
-                  <div>
+                  {!disableDeployment && <div>
                     <span
                       onClick={toggleContextMenu}
                       className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
@@ -803,7 +816,7 @@ const CodeSpace = (props) => {
                         )}
                       </ul>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               )}
             </div>
@@ -957,8 +970,9 @@ const CodeSpace = (props) => {
 
       {showCodeDeployModal && (
         <DeployModal
+          userInfo={props.user}
           codeSpaceData={codeSpaceData}
-          enableSecureWithIAM={isAPIRecipe}
+          enableSecureWithIAM={isIAMRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}

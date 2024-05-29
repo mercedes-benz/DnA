@@ -246,7 +246,18 @@ const CodeSpaceCardItem = (props) => {
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
   const isAPIRecipe =
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi';
+    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs';
+
+  const isIAMRecipe =
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs';
 
   const securedWithIAMContent = (
     <svg
@@ -779,7 +790,7 @@ const CodeSpaceCardItem = (props) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
-                  isAPIRecipe &&
+                  isIAMRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />
