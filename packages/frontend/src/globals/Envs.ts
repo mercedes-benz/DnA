@@ -172,6 +172,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_DATA_ENTRY_SERVICE, false),
+  ENABLE_POWER_PLATFORM_SERVICE:
+    getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_POWER_PLATFORM_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')

@@ -32,6 +32,7 @@ const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
+const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -279,11 +280,11 @@ export const ToolsLandingPageElements = [
     name: 'Power Platform',
     description: 'Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.',
     tags: ['No / Low Code'],
-    url: '',
+    url: '/powerplatform',
     isExternalLink: false,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: true,
+    isDisabled: !enablePowerPlatformService,
     isDetailedPage: false,
     isMoreServicesCard:false,
     isSmallCard: false,

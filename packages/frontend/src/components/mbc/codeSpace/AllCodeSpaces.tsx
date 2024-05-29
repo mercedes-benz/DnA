@@ -353,11 +353,15 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       )}
       {showDeployCodeSpaceModal && (
         <DeployModal
+          userInfo={props.user}
           codeSpaceData={onDeployCodeSpace}
-          enableSecureWithIAM={onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-          onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi'}
-          setShowCodeDeployModal={(isVisible: boolean)=> setShowDeployCodeSpaceModal(isVisible)}
-          setCodeDeploying={(isDeploying: boolean)=> getCodeSpacesData()}
+          enableSecureWithIAM={
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs'
+          }
+          setShowCodeDeployModal={(isVisible: boolean) => setShowDeployCodeSpaceModal(isVisible)}
+          setCodeDeploying={(isDeploying: boolean) => getCodeSpacesData()}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
           navigateSecurityConfig={navigateSecurityConfig}
         />
