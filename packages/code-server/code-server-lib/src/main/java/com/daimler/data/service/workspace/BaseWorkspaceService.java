@@ -476,8 +476,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
 			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
-			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
-			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
+			double cpuLimit = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
@@ -690,9 +690,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String[] parts = resource.split(",");	
 			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
-			ownerWorkbenchCreateInputsDto.setMem_limit(parts[2]);
-			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
-			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
+			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
+			double cpuLimit = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
 			
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
