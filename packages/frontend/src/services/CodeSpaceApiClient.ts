@@ -25,6 +25,10 @@ const getUrlStorage = (endpoint: string) => {
   return `${baseUrlStorage}/${endpoint}`;
 };
 
+const getUrlHub = (endpoint: string) => {
+  return `${new URL('../hub/api/', baseUrl).href}${endpoint}`;
+};
+
 export class CodeSpaceApiClient {
   public static get(endpoint: string) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.GET);
