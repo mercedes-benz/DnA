@@ -110,13 +110,14 @@
 		 UserInfo entity = new UserInfo();
 		 if (userInfo != null) {
 			 BeanUtils.copyProperties(userInfo, entity);
+			 if(userInfo.isIsAdmin()!=null){
+				entity.setIsAdmin(userInfo.isIsAdmin());
+			 }
+			 else{
+				entity.setIsAdmin(false);
+			 }
 		 }
-		 if(userInfo.isIsAdmin()!=null){
-			entity.setIsAdmin(userInfo.isIsAdmin());
-		 }
-		 else{
-			entity.setIsAdmin(false);
-		 }
+		
 		 return entity;
 	 }
  
