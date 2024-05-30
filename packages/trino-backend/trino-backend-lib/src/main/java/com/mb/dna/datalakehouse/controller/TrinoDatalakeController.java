@@ -177,7 +177,7 @@ public class TrinoDatalakeController {
 			}else {
 				CreatedByVO requestUser = this.userStore.getVO();
 				String user = requestUser.getId();
-				Long count = trinoDatalakeService.getCountForUserAndProject(user,id);
+				Long count = trinoDatalakeService.getCountForUserAndProject(user,id); 
 				if(count<=0) {
 					log.warn("User {} , not part of datalake project with id {}, access denied",user, id);
 					return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
@@ -428,9 +428,10 @@ public class TrinoDatalakeController {
 		try{
 			if(request == null || request.getId()==null) {
 				log.info("Dataproduct id sent as null, unlinking dataproduct");
+				existingProject.setDataProductDetails(new DataProductDetailsVO());
 			}else {
 				isExists =	trinoDatalakeService.isValidDataProduct(request.getId());
-				if(isExists!=null && isExists.getId()!=null) {
+				if(isExists==null || isExists.getId()==null) {
 					log.error("Given Data Product {} is invalid",id);
 					MessageDescription invalidMsg = new MessageDescription("Given Dataproduct is invalid, please make sure that Dataproduct provided exists and you are either Product Owner or Creator of it.");
 					GenericMessage errorMessage = new GenericMessage();
@@ -438,6 +439,8 @@ public class TrinoDatalakeController {
 					errorMessage.addErrors(invalidMsg);
 					responseAggregateVO.setResponse(errorMessage);
 					return new ResponseEntity<>(responseAggregateVO, HttpStatus.BAD_REQUEST);
+				}else {
+					existingProject.setDataProductDetails(isExists);
 				}
 			}
 		}catch(Exception e) {
@@ -452,7 +455,6 @@ public class TrinoDatalakeController {
 		String name = existingProject.getProjectName();
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
 		try {
-			existingProject.setDataProductDetails(isExists);
 			TrinoDataLakeProjectVO updatedDataLakeProjectDetails = trinoDatalakeService.create(existingProject);
 			GenericMessage successMessage = new GenericMessage();
 			successMessage.setSuccess("SUCCESS");

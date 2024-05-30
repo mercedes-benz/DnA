@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.application.client.DataProductClient;
 import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.assembler.TrinoDataLakeAssembler;
 import com.daimler.data.assembler.TrinoTableUtility;
@@ -18,6 +19,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dna.trino.config.KubernetesClient;
 import com.daimler.data.dna.trino.config.TrinoClient;
+import com.daimler.data.dto.dataproduct.DataProductCollection;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
@@ -78,6 +80,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	
 	@Autowired
 	private TrinoTableUtility tableUtility;
+	
+	@Autowired
+	private DataProductClient dataProductClient;
 	
 	private static String createSchema = "CREATE SCHEMA IF NOT EXISTS ";
 	
@@ -450,24 +455,6 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								techUserTableRule.setPrivileges(ownerShipPrivileges);
 								updatedAccessRules.getTables().add(techUserTableRule);
 								
-//								//removing deleted tables
-//								 existingTables = trinoClient.showTables(catalog, schema, "%%");
-//								 if(createdTablesResponse.getTables()!= null && !createdTablesResponse.getTables().isEmpty()) {
-//									 existingTablesInDna = createdTablesResponse.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
-//								 }
-//								for(String trinoTable : existingTables) {
-//									if(!existingTablesInDna.contains(trinoTable)) {
-//										try {
-//											trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + trinoTable);
-//											existingVO.getTables().removeIf(x-> x.getTableName().equalsIgnoreCase(trinoTable));
-//										}catch(Exception e) {
-//											log.error("Failed while dropping table {} under schema {} . Caused due to Exception {}", trinoTable, schema, e.getMessage());
-//											MessageDescription msg = new MessageDescription("Failed to drop table " + trinoTable + ", retry deleting");
-//											warnings.add(msg);
-//										}
-//									}
-//								}
-								
 								accessNsql.setData(updatedAccessRules);
 								accessJpaRepo.save(accessNsql);
 							}
@@ -532,26 +519,43 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	public TrinoDataLakeProjectVO getUpdatedById(String id) {
 		TrinoDataLakeProjectVO existingVO = super.getById(id);
 		List<DatalakeTableVO> existingTablesVO = existingVO.getTables();
+		String catalog = existingVO.getCatalogName();
+		String schema = existingVO.getSchemaName();
 		List<String> latestTables = trinoClient.showTables(existingVO.getCatalogName(), existingVO.getSchemaName(), "%%");
 		List<String> existingTablesInDNA = existingVO.getTables().stream().map(n->n.getTableName()).collect(Collectors.toList());
-		for(String table : latestTables) {
-			if(!existingTablesInDNA.contains(table)) {
-				DatalakeTableVO newTable = new DatalakeTableVO();
-				newTable.setDescription("");
-				newTable.setTableName(table);
-				newTable.setExternalLocation("");
-				newTable.setDataFormat("");
-				newTable.setXCoOrdinate(new BigDecimal("0"));
-				newTable.setYCoOrdinate(new BigDecimal("0")); 
-				List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
-				columns = trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), table);
-				newTable.setColumns(columns);
-				existingTablesVO.add(newTable);
+		if(latestTables!=null && !latestTables.isEmpty()) {
+			for(String table : latestTables) {
+				if(!existingTablesInDNA.contains(table)) {
+					DatalakeTableVO newTable = new DatalakeTableVO();
+					newTable.setDescription("");
+					newTable.setTableName(table);
+					newTable.setExternalLocation("");
+					newTable.setDataFormat("");
+					newTable.setXCoOrdinate(new BigDecimal("0"));
+					newTable.setYCoOrdinate(new BigDecimal("0")); 
+					List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
+					columns = trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), table);
+					newTable.setColumns(columns);
+					existingTablesVO.add(newTable);
+				}
 			}
 		}
-		//remove tables that are not present in schema
-		//invalidate dataproduct
-		existingVO.setTables(existingTablesVO);
+		List<DatalakeTableVO> updatedTablesVO = existingTablesVO;
+		Boolean tablesDeletedFromOutsideDna = existingVO.getDataProductDetails().getInvalidState();
+		for(DatalakeTableVO vo : existingTablesVO) {
+			if((latestTables!=null && !latestTables.isEmpty() && !latestTables.contains(vo.getTableName())) || latestTables == null || latestTables.isEmpty()) {
+				updatedTablesVO.remove(vo);
+				tablesDeletedFromOutsideDna = true;
+				try {
+					trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + vo.getTableName());
+					log.info("Removed table {} from catalog {} and schema {} during get operation while syncing", vo.getTableName(), catalog, schema);
+				}catch(Exception e) {
+					log.error("Failed while dropping table {} under catalog {} schema {} . Caused due to Exception {}", vo.getTableName(),catalog, schema, e.getMessage());
+				}
+			}
+		}
+		existingVO.getDataProductDetails().setInvalidState(tablesDeletedFromOutsideDna);
+		existingVO.setTables(updatedTablesVO);
 		TrinoDataLakeProjectVO updatedVO = super.create(existingVO);
 		return updatedVO;
 	}
@@ -569,8 +573,21 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	@Override
 	@Transactional
 	public DataProductDetailsVO isValidDataProduct(String id) throws Exception {
-		//call mydataproducts api and check if this id exists in the results fetched
-		return null;
+		DataProductDetailsVO details = new DataProductDetailsVO();
+		DataProductCollection collection = dataProductClient.getMyDataProducts();
+		if(collection==null || collection.getRecords()==null) {
+			return null;
+		}else {
+			if(!collection.getRecords().isEmpty()) {
+				for(DataProductDetailsVO vo : collection.getRecords() ) {
+					if(vo.getId()!=null && vo.getId().equals(id)) {
+						details = vo;
+						break;
+					}
+				}
+			}	
+			return details;
+		}
 	}
 	
 	@Override
