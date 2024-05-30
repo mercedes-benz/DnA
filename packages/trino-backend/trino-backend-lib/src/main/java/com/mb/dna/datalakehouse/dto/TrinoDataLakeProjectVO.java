@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.daimler.data.dto.UserInfoVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.mb.dna.datalakehouse.db.jsonb.DataProductDetails;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,4 +44,6 @@ public class TrinoDataLakeProjectVO implements Serializable {
 	private UserInfoVO createdBy;
 	
 	private String techUserClientId;
+	
+	private DataProductDetailsVO dataProductDetails;
 }

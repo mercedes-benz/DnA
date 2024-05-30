@@ -151,6 +151,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState<number>(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState<number>(0);
 
+  const [serverStarted, setServerStarted] = useState(true);
+  const [serverProgress, setServerProgress] = useState(0);
+
   const livelinessIntervalRef = React.useRef<number>();
 
   // const [branchValue, setBranchValue] = useState('main');
@@ -240,78 +243,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           const serverStarted = res.serverStatus === 'SERVER_STARTED';
-
+          setServerStarted(serverStarted);
           if (serverStarted) {
-            const loginWindow = window.open(
-              Envs.CODESPACE_OIDC_POPUP_URL + `user/${props.user.id.toLowerCase()}/${res.workspaceId}/`,
-              'codeSpaceSessionWindow',
-              'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
-            );
-
-            setTimeout(() => {
-              loginWindow?.close();
-
-              setLoading(false);
-              const status = res.status;
-              if (
-                status !== 'CREATE_REQUESTED' &&
-                status !== 'CREATE_FAILED' &&
-                status !== 'DELETE_REQUESTED' &&
-                status !== 'DELETED' &&
-                status !== 'DELETE_FAILED'
-              ) {
-                const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
-                const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
-                const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
-                const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
-                const intDeployed =
-                  intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-                  (intDeployedUrl !== null && intDeployedUrl !== 'null');
-                const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-                const prodDeployed =
-                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-                  (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-                const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-                const deployingInProgress =
-                  intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
-                // const deployed =
-                //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-                //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-                //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-                //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-
-                setCodeSpaceData({
-                  ...res,
-                  running: !!res.intiatedOn,
-                });
-
-                setCodeDeployedUrl(intDeployedUrl);
-                setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
-                setCodeDeployed(intDeployed);
-                setIntCodeDeployFailed(intDeployFailed);
-
-                setProdCodeDeployedUrl(prodDeployedUrl);
-                setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
-                setProdCodeDeployed(prodDeployed);
-                setProdCodeDeployFailed(prodDeployFailed);
-
-                Tooltip.defaultSetup();
-                Tabs.defaultSetup();
-                if (deployingInProgress) {
-                  const deployingEnv =
-                    intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
-                  // setDeployEnvironment(deployingEnv);
-                  setCodeDeploying(true);
-                  enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
-                }
-              } else {
-                Notification.show(
-                  `Code space ${res.projectDetails.projectName} is getting created. Please try again later.`,
-                  'warning',
-                );
-              }
-            }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+            handleOIDCLogin(res);
           } else {
             setLoading(true);
             CodeSpaceApiClient.startStopWorkSpace(res.id, false)
@@ -321,8 +255,24 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   Notification.show(
                     'Your Codespace for project ' +
                       res.projectDetails?.projectName +
-                      ' is requested to start. Please refresh the page after some time.',
+                      ' is requested to start.',
                   );
+
+                  
+                  CodeSpaceApiClient.serverStatusFromHub(props.user.id.toLowerCase(), res.workspaceId, (e: any) => {
+                    const data = JSON.parse(e.data);
+                    if (data.progress === 100 && data.ready) {
+                      setServerProgress(100);
+                      setTimeout(() => {
+                        setServerStarted(true);
+                        handleOIDCLogin(res);
+                      }, 300);
+                    } else if(!data.failed) {
+                      setServerProgress(data.progress);
+                    }
+                    console.log(JSON.parse(e.data));
+                  });
+
                 } else {
                   Notification.show('Error in starting your code spaces. Please try again later.', 'alert');
                 }
@@ -357,6 +307,79 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   useEffect(() => {
     showLogsView && Tabs.defaultSetup();
   }, [showLogsView]);
+
+  const handleOIDCLogin = (res: ICodeSpaceData) => {
+    const loginWindow = window.open(
+      Envs.CODESPACE_OIDC_POPUP_URL + `user/${props.user.id.toLowerCase()}/${res.workspaceId}/`,
+      'codeSpaceSessionWindow',
+      'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
+    );
+
+    setTimeout(() => {
+      loginWindow?.close();
+
+      setLoading(false);
+      const status = res.status;
+      if (
+        status !== 'CREATE_REQUESTED' &&
+        status !== 'CREATE_FAILED' &&
+        status !== 'DELETE_REQUESTED' &&
+        status !== 'DELETED' &&
+        status !== 'DELETE_FAILED'
+      ) {
+        const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
+        const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
+        const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+        const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+        const intDeployed =
+          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          (intDeployedUrl !== null && intDeployedUrl !== 'null');
+        const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+        const prodDeployed =
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+        const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+        const deployingInProgress =
+          intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+        // const deployed =
+        //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+        //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+        //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
+        //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+
+        setCodeSpaceData({
+          ...res,
+          running: !!res.intiatedOn,
+        });
+
+        setCodeDeployedUrl(intDeployedUrl);
+        setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+        setCodeDeployed(intDeployed);
+        setIntCodeDeployFailed(intDeployFailed);
+
+        setProdCodeDeployedUrl(prodDeployedUrl);
+        setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+        setProdCodeDeployed(prodDeployed);
+        setProdCodeDeployFailed(prodDeployFailed);
+
+        Tooltip.defaultSetup();
+        Tabs.defaultSetup();
+        if (deployingInProgress) {
+          const deployingEnv =
+            intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+          // setDeployEnvironment(deployingEnv);
+          setCodeDeploying(true);
+          enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+        }
+      } else {
+        Notification.show(
+          `Code space ${res.projectDetails.projectName} is getting created. Please try again later.`,
+          'warning',
+        );
+      }
+    }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+  };
 
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
@@ -994,6 +1017,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
       {isApiCallTakeTime && (
         <ProgressWithMessage message={'Please wait as this process can take up 2 to 5 minutes....'} />
+      )}
+
+      {!serverStarted && (
+        <ProgressWithMessage message={`Starting...${serverProgress}%`} />
       )}
     </div>
   );
