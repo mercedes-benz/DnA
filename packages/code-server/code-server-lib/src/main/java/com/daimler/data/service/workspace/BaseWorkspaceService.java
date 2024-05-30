@@ -473,7 +473,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
 			String[] parts = resource.split(",");
-			System.out.println(Arrays.asList(parts));
 			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
 			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
@@ -689,7 +688,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			String resource = ownerEntity.getData().getProjectDetails().getRecipeDetails().getResource() ;
 			String[] parts = resource.split(",");
-			System.out.println(Arrays.asList(parts));
 			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
 			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
