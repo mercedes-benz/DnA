@@ -473,11 +473,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
 			String[] parts = resource.split(",");
+			System.out.println(Arrays.asList(parts));
 			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
 			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
-			double cpuLimit = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
-			double cpuGuarantee = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
@@ -687,12 +688,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			String resource = ownerEntity.getData().getProjectDetails().getRecipeDetails().getResource() ;
-			String[] parts = resource.split(",");	
+			String[] parts = resource.split(",");
+			System.out.println(Arrays.asList(parts));
 			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
 			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
-			double cpuLimit = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
-			double cpuGuarantee = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
 			
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
