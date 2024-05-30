@@ -1,3 +1,4 @@
+import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
@@ -196,5 +197,21 @@ export class CodeSpaceApiClient {
 
   public static workSpaceStatus(): Promise<any> {
     return this.get(`/workspaces/serverstatus`);
+  }
+
+  public static serverStatusFromHub(userId: string, workspaceId: string, onMessageCB: (e: any) => void, onCloseCB?: (e: any) => void) {
+    const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
+      withCredentials: true,
+      headers: { Authorization: ApiClient.readJwt() },
+    });
+
+    sse.onmessage = onMessageCB;
+
+    sse.onerror = (e: any) => {
+      onCloseCB && onCloseCB(e);
+      console.log(e);
+      console.error('Event stream closed');
+      sse.close();
+    };
   }
 }
