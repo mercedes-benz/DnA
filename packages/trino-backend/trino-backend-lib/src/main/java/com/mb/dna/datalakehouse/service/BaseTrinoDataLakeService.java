@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.application.client.DataProductClient;
 import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.assembler.TrinoDataLakeAssembler;
 import com.daimler.data.assembler.TrinoTableUtility;
@@ -18,6 +19,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dna.trino.config.KubernetesClient;
 import com.daimler.data.dna.trino.config.TrinoClient;
+import com.daimler.data.dto.dataproduct.DataProductCollection;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
@@ -35,6 +37,7 @@ import com.mb.dna.datalakehouse.db.repo.TrinoDataLakeCustomRepo;
 import com.mb.dna.datalakehouse.db.repo.TrinoDataLakeRepo;
 import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
+import com.mb.dna.datalakehouse.dto.DataProductDetailsVO;
 import com.mb.dna.datalakehouse.dto.DatalakeTableVO;
 import com.mb.dna.datalakehouse.dto.GenerateTableStmtResponseVO;
 import com.mb.dna.datalakehouse.dto.TablesCollectionResponseDto;
@@ -77,6 +80,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	
 	@Autowired
 	private TrinoTableUtility tableUtility;
+	
+	@Autowired
+	private DataProductClient dataProductClient;
 	
 	private static String createSchema = "CREATE SCHEMA IF NOT EXISTS ";
 	
@@ -167,7 +173,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					return responseVO;
 				}
 				if(vo.getTables()!=null && !vo.getTables().isEmpty()) {
-					TablesCollectionResponseDto createdTablesResponse = this.createTables(connectorType, catalog, schema, externalLocation, vo.getTables(), null);
+					TablesCollectionResponseDto createdTablesResponse = this.createTables(connectorType, catalog, schema, externalLocation,null, vo.getTables(), null);
 					GenericMessage createResponses = createdTablesResponse.getResponse();
 					vo.setTables(createdTablesResponse.getTables());
 					if(createdTablesResponse.getTables() !=null && !createdTablesResponse.getTables().isEmpty()) {
@@ -235,7 +241,6 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				responseVO.setResponse(responseMsg);
 				return responseVO;
 			}catch(Exception e) {
-//				e.printStackTrace();
 				log.error("Failed at datalake project creation, with exception {}", e.getMessage());
 				MessageDescription err = new MessageDescription("Error at Datalake project creation.");
 				errors.add(err);
@@ -258,30 +263,61 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	}
 
 	@Transactional
-	public TablesCollectionResponseDto createTables(String connectorType, String catalog, String schema, String externalLocationForSchema, List<DatalakeTableVO> createTablesVO, List<String> existingTables) {
+	public TablesCollectionResponseDto createTables(String connectorType, String catalog, String schema, String externalLocationForSchema,List<String> existingTablesInDB, List<DatalakeTableVO> createRequestTablesVO, List<String> existingTablesInSchema) {
 		TablesCollectionResponseDto responseDto = new TablesCollectionResponseDto();
 		List<DatalakeTableVO> successfullyCreatedTables = new ArrayList<>();
 		GenericMessage responseMsg = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<String> dataTypes = this.connectorSpecificDataTypes(connectorType); 
-			for(DatalakeTableVO tableVO : createTablesVO) {
-				if(existingTables==null || (existingTables!=null && existingTables.isEmpty()) || (existingTables!=null && !existingTables.isEmpty() && !existingTables.contains(tableVO.getTableName()))) {
-				GenerateTableStmtResponseVO generateCreateStmtResponse = tableUtility.generateCreateTableStatement(dataTypes, catalog, schema, externalLocationForSchema, tableVO);
-				if(generateCreateStmtResponse!= null) {
-					if(generateCreateStmtResponse.getTableStmt()!=null && !"".equalsIgnoreCase(generateCreateStmtResponse.getTableStmt())) {
-						try {
-							trinoClient.executeStatments(generateCreateStmtResponse.getTableStmt());
-							successfullyCreatedTables.add(generateCreateStmtResponse.getGeneratedTable());
-						}catch(Exception e) {
-							MessageDescription errMsg = new MessageDescription("Failed to execute create table statement for table " + tableVO.getTableName() + " with exception " + e.getMessage());
-							errors.add(errMsg);
+			for(DatalakeTableVO tableVO : createRequestTablesVO) {
+				if(existingTablesInSchema==null || (existingTablesInSchema!=null && existingTablesInSchema.isEmpty()) || (existingTablesInSchema!=null && !existingTablesInSchema.isEmpty() && !existingTablesInSchema.contains(tableVO.getTableName()))) {
+					if(existingTablesInDB==null || existingTablesInDB.isEmpty() ||  !existingTablesInDB.contains(tableVO.getTableName())) {	
+						GenerateTableStmtResponseVO generateCreateStmtResponse = tableUtility.generateCreateTableStatement(dataTypes, catalog, schema, externalLocationForSchema, tableVO);
+						if(generateCreateStmtResponse!= null) {
+							if(generateCreateStmtResponse.getTableStmt()!=null && !"".equalsIgnoreCase(generateCreateStmtResponse.getTableStmt())) {
+								try {
+									trinoClient.executeStatments( generateCreateStmtResponse.getTableStmt());
+									successfullyCreatedTables.add(generateCreateStmtResponse.getGeneratedTable());
+								}catch(Exception e) {
+									MessageDescription errMsg = new MessageDescription("Failed to execute create table statement for table " + tableVO.getTableName() + " with exception " + e.getMessage());
+									warnings.add(errMsg);
+								}
+							}
+							warnings.addAll(generateCreateStmtResponse.getResponseMsg().getWarnings());
 						}
 					}
-					warnings.addAll(generateCreateStmtResponse.getResponseMsg().getWarnings());
-				}
 				}else {
 					successfullyCreatedTables.add(tableVO);
+				}
+			}
+			if(existingTablesInSchema!=null && !existingTablesInSchema.isEmpty()) {
+				List<String> successfullyCreatedTablesString = new ArrayList<>();
+				successfullyCreatedTablesString = successfullyCreatedTables.stream().map(n->n.getTableName()).collect(Collectors.toList());
+				for(String schemaTable : existingTablesInSchema) {
+					if(!successfullyCreatedTablesString.contains(schemaTable) && (existingTablesInDB==null || existingTablesInDB.isEmpty() || !existingTablesInDB.contains(schemaTable))) {
+						DatalakeTableVO schemaTableVO = new DatalakeTableVO();
+						schemaTableVO.setDescription("");
+						schemaTableVO.setTableName(schemaTable);
+						schemaTableVO.setExternalLocation("");
+						schemaTableVO.setDataFormat("");
+						schemaTableVO.setXCoOrdinate(new BigDecimal("0"));
+						schemaTableVO.setYCoOrdinate(new BigDecimal("0")); 
+						List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
+						columns = trinoClient.showColumns(catalog, schema, schemaTable);
+						schemaTableVO.setColumns(columns);
+						successfullyCreatedTables.add(schemaTableVO);
+					}else {
+						if(existingTablesInDB!=null && !existingTablesInDB.isEmpty() && existingTablesInDB.contains(schemaTable)) {
+							try {
+								trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + schemaTable);
+							}catch(Exception e) {
+								log.error("Failed while dropping table {} under schema {} . Caused due to Exception {}", schemaTable, schema, e.getMessage());
+								MessageDescription msg = new MessageDescription("Failed to drop table " + schemaTable + ", retry deleting");
+								warnings.add(msg);
+							}
+						}
+					}
 				}
 			}
 		responseMsg.setErrors(errors);
@@ -359,10 +395,14 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			String externalLocation = "s3a://"+existingVO.getBucketName()+"/"+ schema;
 			try {
 				if(updateRequestVO.getTables()!=null && !updateRequestVO.getTables().isEmpty()) {
-					List<String> existingTables = trinoClient.showTables(catalog, schema, "%%");
+					List<String> existingTablesInSchema = trinoClient.showTables(catalog, schema, "%%");
 					List<String> existingTablesInDna = new ArrayList<>();
+					if(existingVO.getTables()!=null && !existingVO.getTables().isEmpty()) {
+						existingTablesInDna = existingVO.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
+					}
+//					if()
 					List<String> tablesForDrop = new ArrayList<>();
-					TablesCollectionResponseDto createdTablesResponse = this.createTables(connectorType, catalog, schema, externalLocation, updateRequestVO.getTables(), existingTables);
+					TablesCollectionResponseDto createdTablesResponse = this.createTables(connectorType, catalog, schema, externalLocation,existingTablesInDna, updateRequestVO.getTables(), existingTablesInSchema);
 					GenericMessage createResponses = createdTablesResponse.getResponse();
 					existingVO.setTables(createdTablesResponse.getTables());
 					if(createdTablesResponse.getTables() !=null && !createdTablesResponse.getTables().isEmpty()) {
@@ -415,24 +455,6 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								techUserTableRule.setPrivileges(ownerShipPrivileges);
 								updatedAccessRules.getTables().add(techUserTableRule);
 								
-								//removing deleted tables
-								 existingTables = trinoClient.showTables(catalog, schema, "%%");
-								if(createdTablesResponse.getTables()!= null && !createdTablesResponse.getTables().isEmpty()) {
-									 existingTablesInDna = createdTablesResponse.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
-								 }
-								for(String trinoTable : existingTables) {
-									if(!existingTablesInDna.contains(trinoTable)) {
-										try {
-											trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + trinoTable);
-											existingVO.getTables().removeIf(x-> x.getTableName().equalsIgnoreCase(trinoTable));
-										}catch(Exception e) {
-											log.error("Failed while dropping table {} under schema {} . Caused due to Exception {}", trinoTable, schema, e.getMessage());
-											MessageDescription msg = new MessageDescription("Failed to drop table " + trinoTable + ", retry deleting");
-											warnings.add(msg);
-										}
-									}
-								}
-								
 								accessNsql.setData(updatedAccessRules);
 								accessJpaRepo.save(accessNsql);
 							}
@@ -454,7 +476,6 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				responseVO.setResponse(responseMsg);
 				return responseVO;
 			}catch(Exception e) {
-//				e.printStackTrace();
 				log.error("Failed at datalake project updation, with exception {}", e.getMessage());
 				MessageDescription err = new MessageDescription("Error at Datalake project updation.");
 				errors.add(err);
@@ -498,26 +519,43 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	public TrinoDataLakeProjectVO getUpdatedById(String id) {
 		TrinoDataLakeProjectVO existingVO = super.getById(id);
 		List<DatalakeTableVO> existingTablesVO = existingVO.getTables();
+		String catalog = existingVO.getCatalogName();
+		String schema = existingVO.getSchemaName();
 		List<String> latestTables = trinoClient.showTables(existingVO.getCatalogName(), existingVO.getSchemaName(), "%%");
 		List<String> existingTablesInDNA = existingVO.getTables().stream().map(n->n.getTableName()).collect(Collectors.toList());
-		for(String table : latestTables) {
-			if(!existingTablesInDNA.contains(table)) {
-				DatalakeTableVO newTable = new DatalakeTableVO();
-				List<DataLakeTableCollabDetailsVO> collabs = new ArrayList<>();
-//				newTable.setCollabs(collabs);
-				newTable.setDescription("");
-				newTable.setTableName(table);
-				newTable.setExternalLocation("");
-				newTable.setDataFormat("");
-				newTable.setXCoOrdinate(new BigDecimal("0"));
-				newTable.setYCoOrdinate(new BigDecimal("0")); 
-				List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
-				columns = trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), table);
-				newTable.setColumns(columns);
-				existingTablesVO.add(newTable);
+		if(latestTables!=null && !latestTables.isEmpty()) {
+			for(String table : latestTables) {
+				if(!existingTablesInDNA.contains(table)) {
+					DatalakeTableVO newTable = new DatalakeTableVO();
+					newTable.setDescription("");
+					newTable.setTableName(table);
+					newTable.setExternalLocation("");
+					newTable.setDataFormat("");
+					newTable.setXCoOrdinate(new BigDecimal("0"));
+					newTable.setYCoOrdinate(new BigDecimal("0")); 
+					List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
+					columns = trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), table);
+					newTable.setColumns(columns);
+					existingTablesVO.add(newTable);
+				}
 			}
 		}
-		existingVO.setTables(existingTablesVO);
+		List<DatalakeTableVO> updatedTablesVO = existingTablesVO;
+		Boolean tablesDeletedFromOutsideDna = existingVO.getDataProductDetails().getInvalidState();
+		for(DatalakeTableVO vo : existingTablesVO) {
+			if((latestTables!=null && !latestTables.isEmpty() && !latestTables.contains(vo.getTableName())) || latestTables == null || latestTables.isEmpty()) {
+				updatedTablesVO.remove(vo);
+				tablesDeletedFromOutsideDna = true;
+				try {
+					trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + vo.getTableName());
+					log.info("Removed table {} from catalog {} and schema {} during get operation while syncing", vo.getTableName(), catalog, schema);
+				}catch(Exception e) {
+					log.error("Failed while dropping table {} under catalog {} schema {} . Caused due to Exception {}", vo.getTableName(),catalog, schema, e.getMessage());
+				}
+			}
+		}
+		existingVO.getDataProductDetails().setInvalidState(tablesDeletedFromOutsideDna);
+		existingVO.setTables(updatedTablesVO);
 		TrinoDataLakeProjectVO updatedVO = super.create(existingVO);
 		return updatedVO;
 	}
@@ -530,6 +568,26 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			return true;
 		}
 		return kubeClient.isKeyExists(key);
+	}
+	
+	@Override
+	@Transactional
+	public DataProductDetailsVO isValidDataProduct(String id) throws Exception {
+		DataProductDetailsVO details = new DataProductDetailsVO();
+		DataProductCollection collection = dataProductClient.getMyDataProducts();
+		if(collection==null || collection.getRecords()==null) {
+			return null;
+		}else {
+			if(!collection.getRecords().isEmpty()) {
+				for(DataProductDetailsVO vo : collection.getRecords() ) {
+					if(vo.getId()!=null && vo.getId().equals(id)) {
+						details = vo;
+						break;
+					}
+				}
+			}	
+			return details;
+		}
 	}
 	
 	@Override

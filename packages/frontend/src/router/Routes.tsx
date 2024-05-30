@@ -52,6 +52,7 @@ const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
 const DatalakeComponent = React.lazy(() => import('datalake-mfe/Datalake'));
 const FabricComponent = React.lazy(() => import('fabric-mfe/Fabric'));
 const DataEntryComponent = React.lazy(() => import('data-entry-mfe/DataEntry'));
+const PowerPlatformComponent = React.lazy(() => import('power-platform-mfe/PowerPlatform'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -425,6 +426,13 @@ const protectedRoutes = [
     exact: false,
     path: '/dataentry',
     title: 'Data Entry as a Service',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: PowerPlatformComponent,
+    exact: false,
+    path: '/powerplatform',
+    title: 'Power Platform',
   },
 ];
 

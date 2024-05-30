@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "power-platform-mfe.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "power-platform-mfe.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "power-platform-mfe.selectorLabels" . | nindent 4 }}
