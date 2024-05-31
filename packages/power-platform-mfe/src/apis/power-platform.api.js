@@ -40,11 +40,18 @@ const getLovData = () => {
   ]);
 }
 
-export const fabricApi = {
+const getSubDivisions = (id) => {
+  return hostServer.get(`/subdivisions/${id}`, {
+    data: {},
+  });
+}
+
+export const powerPlatformApi = {
   getPowerPlatformWorkspaces,
   getPowerPlatformWorkspace,
   createPowerPlatformWorkspace,
   updatePowerPlatformWorkspace,
   deletePowerPlatformWorkspace,
   getLovData,
+  getSubDivisions,
 };

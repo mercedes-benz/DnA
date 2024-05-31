@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
-import powerPlatformSlice from './redux/powerPlatformSlice';
 import logger from 'redux-logger';
+import lovsReducer from './redux/lovsSlice';
 
 export const history = createHashHistory({
   basename: '/powerplatform',
@@ -11,7 +11,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default configureStore({
   reducer: {
-    powerPlatform: powerPlatformSlice,
+    lovs: lovsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     isDev
