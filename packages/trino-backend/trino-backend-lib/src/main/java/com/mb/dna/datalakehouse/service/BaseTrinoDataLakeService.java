@@ -400,10 +400,25 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					if(existingVO.getTables()!=null && !existingVO.getTables().isEmpty()) {
 						existingTablesInDna = existingVO.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
 					}
-//					if()
-					List<String> tablesForDrop = new ArrayList<>();
 					TablesCollectionResponseDto createdTablesResponse = this.createTables(connectorType, catalog, schema, externalLocation,existingTablesInDna, updateRequestVO.getTables(), existingTablesInSchema);
 					GenericMessage createResponses = createdTablesResponse.getResponse();
+					List<String> updatedTablesList = new ArrayList<>();
+					if(createdTablesResponse!=null && createdTablesResponse.getTables()!=null && !createdTablesResponse.getTables().isEmpty()) {
+						updatedTablesList = createdTablesResponse.getTables().stream().map(n->n.getTableName()).collect(Collectors.toList());
+					}
+					if(existingTablesInDna!=null && !existingTablesInDna.isEmpty()) {
+						if(updatedTablesList==null || updatedTablesList.isEmpty()) {
+							existingVO.getDataProductDetails().setInvalidState(true);
+						}else {
+							for(String existingTable : existingTablesInDna) {
+								if(!updatedTablesList.contains(existingTable)) {
+									existingVO.getDataProductDetails().setInvalidState(true);
+									break;
+								}
+							}
+						}
+						
+					}
 					existingVO.setTables(createdTablesResponse.getTables());
 					if(createdTablesResponse.getTables() !=null && !createdTablesResponse.getTables().isEmpty()) {
 						TrinoAccessNsql accessNsql = null;
@@ -727,8 +742,19 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			responseMessage.setWarnings(warnings);
 			return responseMessage;
 		}
-		// dropping schema 
+		// dropping tables and schema 
 		try {
+			List<String> latestTables = trinoClient.showTables(existingVO.getCatalogName(), existingVO.getSchemaName(), "%%");
+				if(latestTables != null && !latestTables.isEmpty()) {
+					for(String deleteTableName : latestTables) {
+						try {
+							trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + deleteTableName);
+							log.info("Removed table {} from catalog {} and schema {} during project delete", deleteTableName, catalog, schema);
+						}catch(Exception e) {
+							log.error("Failed while dropping table {} under catalog {} schema {} .During project delete, Caused due to Exception {}", deleteTableName,catalog, schema, e.getMessage());
+						}
+					}
+				}
 			trinoClient.executeStatments("DROP SCHEMA IF EXISTS " + catalog + "." + schema );
 		}catch(Exception e) {
 			MessageDescription warning = new MessageDescription("Failed to drop schema while deleting datalake, Will be automatically dropped during daily cleanup.");
