@@ -403,5 +403,24 @@ public class RecipeController implements CodeServerRecipeApi {
 			}
 		return new ResponseEntity<>(genericMessage,HttpStatus.OK);
 	}
-    
+
+	@Override
+    @ApiOperation(value = "Delete recipe with given Id.", nickname = "deleteRecipe", notes = "Delete recipe for a given identifier.", response = GenericMessage.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/{recipeName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteRecipe(@ApiParam(value = "recipe to be deleted",required=true) @PathVariable("recipeName") String recipeName){
+		// TODO Auto-generated method stub
+		GenericMessage  genericMessage = service.deleteRecipe(recipeName);
+		return ResponseEntity.ok(genericMessage);
+	}
 }

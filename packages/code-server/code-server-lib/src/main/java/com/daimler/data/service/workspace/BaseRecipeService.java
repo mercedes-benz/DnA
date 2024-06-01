@@ -288,4 +288,18 @@ public class BaseRecipeService implements RecipeService{
 	// 	return responseMessage;
 
 	// }
+
+	@Override
+	public GenericMessage deleteRecipe(String recipeName)
+	{
+		GenericMessage msg = new GenericMessage();
+		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+        if (recipe != null) {
+			GenericMessage val =   workspaceCustomRecipeRepo.deleteRecipe(recipe);
+            return new GenericMessage("Recipe deleted successfully");
+        } else {
+            return new GenericMessage("Recipe not found");
+        }
+
+	}
 }

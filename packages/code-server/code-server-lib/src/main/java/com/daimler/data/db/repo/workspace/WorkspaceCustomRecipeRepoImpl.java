@@ -8,11 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -66,6 +69,25 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
             return entities.get(0);
         else
             return null;
+    }
+
+    @Override
+    @Transactional
+    public GenericMessage deleteRecipe(CodeServerRecipeNsql recipe) {
+        try {
+            if (recipe != null) {
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaDelete<CodeServerRecipeNsql> cd = cb.createCriteriaDelete(CodeServerRecipeNsql.class);
+                Root<CodeServerRecipeNsql> root = cd.from(CodeServerRecipeNsql.class);
+                cd.where(cb.equal(root.get("id"), recipe.getId()));
+                em.createQuery(cd).executeUpdate();
+                return new GenericMessage("Recipe deleted successfully");
+            } else {
+                return new GenericMessage("Recipe not found");
+            }
+        } catch (Exception e) {
+            return new GenericMessage("Failed to delete recipe: " + e.getMessage());
+        }
     }
 
     @Override

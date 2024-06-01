@@ -27,4 +27,6 @@ public interface RecipeService {
 	// GenericMessage publishRecipeInfo(String name);
 	
     GenericMessage validateGitHubUrl(String gitHubUrl);
+
+    GenericMessage deleteRecipe(String recipeName);
 }

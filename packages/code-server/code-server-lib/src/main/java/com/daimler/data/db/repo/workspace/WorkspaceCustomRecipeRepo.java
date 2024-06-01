@@ -19,4 +19,6 @@ public interface WorkspaceCustomRecipeRepo extends CommonDataRepository<CodeServ
     // List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit);
     // GenericMessage updateRecipeInfo(String name,String status);
 
+    GenericMessage deleteRecipe(CodeServerRecipeNsql recipe);
+
 }
