@@ -52,7 +52,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
   const recipes = recipesMaster;
-  const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
+  const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
+  const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment =
     codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
@@ -266,13 +267,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)).getTime();
 
-  const deployed = intDeployed || prodDeployed;
+  const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = isOwner ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
   const isAPIRecipe =
@@ -782,11 +785,82 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 ) : (
                   <>
                     {!creationFailed && deployingInProgress && (
+                      <a
+                      href={intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={Styles.deployingLink}
+                      tooltip-data={intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'? 'Deploying to Staging' : 'Deploying to Production'}
+                    >
                       <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                    </a>
                     )}
                     {!creationFailed && deployed && (
                       <>
-                        {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
+                        {!deployingInProgress &&
+                          (intLastDeployedTime > prodLastDeployedTime ? (
+                            intCodeDeployFailed ? (
+                              <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                                <a
+                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={Styles.deployFailLink}
+                                  tooltip-data={
+                                    'Deployment to Staging failed on ' +
+                                    regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)
+                                  }
+                                >
+                                  Failed
+                                </a>
+                              </span>
+                            ) : (
+                              <span className={Styles.statusIndicator}>
+                                <a
+                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={Styles.deployedLink}
+                                  tooltip-data={
+                                    'Deployed to Staging on ' +
+                                    regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)
+                                  }
+                                >
+                                  Deployed
+                                </a>
+                              </span>
+                            )
+                          ) : prodCodeDeployFailed ? (
+                            <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                              <a
+                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={Styles.deployFailLink}
+                                tooltip-data={
+                                  'Deployment to Production failed on ' +
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                }
+                              >
+                                Failed
+                              </a>
+                            </span>
+                          ) : (
+                            <span className={Styles.statusIndicator}>
+                              <a
+                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={Styles.deployedLink}
+                                tooltip-data={
+                                  'Deployed to Production on ' +
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                }
+                              >
+                                Deployed
+                              </a>
+                            </span>
+                          ))}
                         {/* {intDeployed && (
                           <a
                             href={intDeployedUrl}
