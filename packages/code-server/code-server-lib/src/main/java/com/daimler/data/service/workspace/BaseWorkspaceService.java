@@ -1168,13 +1168,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 		GenericMessage responseMessage = new GenericMessage();
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUserUserId, vo.getId());
 		boolean isProjectOwner = false;
-
+		boolean isAdmin = false;
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		if (projectOwnerId.equalsIgnoreCase(currentUserUserId)) {
 			isProjectOwner = true;
 		}
+		List<UserInfo>collabList =entity.getData().getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfo user : collabList){
+				if(currentUserUserId.equalsIgnoreCase(user.getId())){
+					if(user.getIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
 
-		if (isProjectOwner) {
+		if (isProjectOwner || isAdmin) {
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(removeUserId, projectName);
 			if (technincalId=="" || technincalId.isEmpty() || technincalId == null) {
@@ -1208,7 +1218,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		GenericMessage responseMessage = new GenericMessage();
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
 		boolean isProjectOwner = false;
-
+		boolean isAdmin = false;
 		if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
@@ -1225,14 +1235,30 @@ public class BaseWorkspaceService implements WorkspaceService {
 		if (projectOwnerId.equalsIgnoreCase(userId)) {
 			isProjectOwner = true;
 		}
+		
+		List<UserInfo>collabList =entity.getData().getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfo user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.getIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
 
-		if (isProjectOwner) {
+		if (isProjectOwner || isAdmin) {
 			try {
 				String repoName = entity.getData().getProjectDetails().getGitRepoName();
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 
 				UserInfo collaborator = new UserInfo();
 				BeanUtils.copyProperties(userRequestDto, collaborator);
+				if(!userRequestDto.isIsAdmin()){
+					collaborator.setIsAdmin(false);
+				}else{
+					collaborator.setIsAdmin(true);
+				}
 
 				String gitUser = userRequestDto.getGitUserName();
 				if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
@@ -1893,13 +1919,25 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> warnings = new ArrayList<>();
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 		boolean isProjectOwner = false;
+		boolean isAdmin = false;
 
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		String projectName = entity.getData().getProjectDetails().getProjectName();
 		if (projectOwnerId.equalsIgnoreCase(userId)) {
 			isProjectOwner = true;
 		}
-		if (isProjectOwner) {
+		List<UserInfo>collabList =entity.getData().getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfo user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.getIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
+
+		if (isProjectOwner || isAdmin) {
 			try {
 				CodeServerLeanGovernanceFeilds newGovFeilds = new CodeServerLeanGovernanceFeilds();
 				BeanUtils.copyProperties(dataGovernanceInfo.getData(), newGovFeilds);
@@ -2150,6 +2188,48 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setErrors(errors);
 			return responseMessage;
 		}
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage makeAdmin(CodeServerWorkspaceVO vo){
+		GenericMessage responseMessage = new GenericMessage();
+		try {
+
+			List<String> workspaceIds = workspaceCustomRepository
+					.getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
+			if (!workspaceIds.isEmpty()) {
+				List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+				for (String id : workspaceIds) {
+					CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+					List<UserInfoVO> projectCollabsVO = vo.getProjectDetails().getProjectCollaborators();
+					List<UserInfo> projectCollabs = new ArrayList<UserInfo>();
+					if (projectCollabsVO != null && !projectCollabsVO.isEmpty()) {
+						 projectCollabs = projectCollabsVO.stream().map(n -> workspaceAssembler.toUserInfo(n))
+							 .collect(Collectors.toList());
+					}
+					if(entity != null){
+						if(vo.getProjectDetails().getProjectCollaborators()!=null){
+							entity.getData().getProjectDetails().setProjectCollaborators(projectCollabs);
+							entities.add(entity);
+						}
+					}
+				}
+				jpaRepo.saveAllAndFlush(entities);
+			}
+			responseMessage.setSuccess("SUCCESS");
+
+		} catch (Exception e) {
+			log.error("caught exception while making collaborator as admin :{}", e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("caught exception while making collaborator as admin");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errorMessage);
+		}
+		return responseMessage;
 	}
 
 }
