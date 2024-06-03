@@ -2215,16 +2215,32 @@ import org.springframework.beans.factory.annotation.Value;
 				emptyResponse.setSuccess("FAILED");
 				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
 			}
+			boolean isCollabIdPartOfProject = false;
 			if (collabList != null) {
 				for (UserInfoVO user : collabList) {
 					if (collabUserId.equalsIgnoreCase(user.getId())) {
 						user.setIsAdmin(isAdmin);
+						isCollabIdPartOfProject = true;
 					}
 				}
 			}
-			vo.getProjectDetails().setProjectCollaborators(collabList);
-			responseMessage = service.makeAdmin(vo);
-			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+			if(isCollabIdPartOfProject){
+				vo.getProjectDetails().setProjectCollaborators(collabList);
+				responseMessage = service.makeAdmin(vo);
+				if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
+					return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+				return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+			}else{
+				log.error("collab user should be part of the project");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("Invalid User, Please make sure that collab user should be part of the project. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
 		} else {
 			log.info("Not authorized to make collabrator as admin . User does not have privileges. {}", currentUserId, vo.getWorkspaceId());
 			msg.setMessage("Not authorized to make collabrator as admin. User does not have privileges.");
