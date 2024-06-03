@@ -2227,6 +2227,9 @@ import org.springframework.beans.factory.annotation.Value;
 			if(isCollabIdPartOfProject){
 				vo.getProjectDetails().setProjectCollaborators(collabList);
 				responseMessage = service.makeAdmin(vo);
+				if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
+					return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
 				return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			}else{
 				log.error("collab user should be part of the project");
