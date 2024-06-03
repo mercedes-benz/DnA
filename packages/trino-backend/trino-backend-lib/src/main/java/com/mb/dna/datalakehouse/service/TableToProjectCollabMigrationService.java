@@ -121,7 +121,7 @@ public class TableToProjectCollabMigrationService {
 					if(bucketCollabs!=null && !bucketCollabs.isEmpty()) {
 						for(DataLakeTableCollabDetails collabDetails : bucketCollabs) {
 							DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
-							BeanUtils.copyProperties(collabDetails, collabVO);
+							collabVO.setHasWritePermission(collabDetails.getHasWritePermission());
 							UserInfoVO userinfoVO = new UserInfoVO();
 							if(collabDetails.getCollaborator()!=null) {
 									BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
