@@ -33,6 +33,12 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = entity.getData();
 			if(projectDetails!=null) {
 				BeanUtils.copyProperties(projectDetails, datalakeProjectVO);
+				UserInfo createdBy = projectDetails.getCreatedBy();
+				UserInfoVO createdByVO = new UserInfoVO();
+				if(createdBy!=null) {
+					BeanUtils.copyProperties(createdBy, createdByVO);
+					datalakeProjectVO.setCreatedBy(createdByVO);
+				}
 				List<DatalakeTableVO> tablesVO = new ArrayList<>();
 				if(projectDetails.getTables()!=null && !projectDetails.getTables().isEmpty()) {
 					for(DatalakeTable table: projectDetails.getTables()) {
@@ -86,6 +92,12 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = new TrinoDataLakeProject();
 			if(vo!=null) {
 				BeanUtils.copyProperties(vo,projectDetails);
+				UserInfoVO createdByVO = vo.getCreatedBy();
+				UserInfo createdBy = new UserInfo();
+				if(createdByVO!=null) {
+					BeanUtils.copyProperties(createdByVO,createdBy);
+					projectDetails.setCreatedBy(createdBy);
+				}
 				List<DatalakeTable> tables = new ArrayList<>();
 				if(vo.getTables()!=null && !vo.getTables().isEmpty()) {
 					for(DatalakeTableVO tableVO: vo.getTables()) {

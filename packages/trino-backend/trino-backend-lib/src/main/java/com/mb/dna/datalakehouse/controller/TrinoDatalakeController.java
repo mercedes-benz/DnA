@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -131,13 +132,21 @@ public class TrinoDatalakeController {
 				CreatedByVO requestUser = this.userStore.getVO();
 				String user = requestUser.getId();
 				if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
-					log.error("Datalake project with id {} is not found ", id);
+					log.error("Only Owner or collaborators with write permissions can edit project details. Access denied");
 					MessageDescription invalidMsg = new MessageDescription("Only Owner or collaborators with write permissions can edit project details. Access denied.");
 					GenericMessage errorMessage = new GenericMessage();
 					errorMessage.setSuccess("FAILED");
 					errorMessage.addErrors(invalidMsg);
 					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 				}
+			}
+			if(!((existingProject.getDataProductDetails()!=null && existingProject.getDataProductDetails().getId()!=null ))){
+				log.error("Cannot delete given Datalake project {} as it is linked to Dataproduct {}. Delete denied.",existingProject.getId(),existingProject.getDataProductDetails().getId());
+				MessageDescription invalidMsg = new MessageDescription("Cannot delete given Datalake project as it is linked to Dataproduct. Please unlink and retry deleting.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
 			GenericMessage deleteResponse = trinoDatalakeService.deleteProjectById(id);
 			if(deleteResponse!=null && "SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
@@ -604,6 +613,39 @@ public class TrinoDatalakeController {
 			responseVO.setData(new TrinoDataLakeProjectVO());
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		if(existingProject.getDataProductDetails()!=null && existingProject.getDataProductDetails().getId()!=null){
+			List<String> existingTablesInDna = new ArrayList<>();
+			if(existingProject.getTables()!=null && !existingProject.getTables().isEmpty()) {
+				existingTablesInDna = existingProject.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
+			}
+			List<String> updateTablesList = new ArrayList<>();
+			if(datalakeUpdateRequestVO!=null && datalakeUpdateRequestVO.getTables()!=null && !datalakeUpdateRequestVO.getTables().isEmpty()) {
+				updateTablesList = datalakeUpdateRequestVO.getTables().stream().map(n->n.getTableName()).collect(Collectors.toList());
+			}
+			Boolean tryingToInValidateDataProduct = false;
+			if(existingTablesInDna!=null && !existingTablesInDna.isEmpty()) {
+				if(updateTablesList==null || updateTablesList.isEmpty()) {
+					tryingToInValidateDataProduct = true;
+				}else {
+					for(String existingTable : existingTablesInDna) {
+						if(!updateTablesList.contains(existingTable)) {
+							tryingToInValidateDataProduct = true;
+							break;
+						}
+					}
+				}
+			}
+			if(tryingToInValidateDataProduct) {
+			log.error("Datalake project with id {} is linked to DataProduct {}, cannot remove tables. Bad Request.", id,existingProject.getDataProductDetails().getId());
+			MessageDescription invalidMsg = new MessageDescription("Datalake project is linked with DataProduct. Cannot remove tables when linked. Bad Request.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(new TrinoDataLakeProjectVO());
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
 		}
 		String name = existingProject.getProjectName();
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
