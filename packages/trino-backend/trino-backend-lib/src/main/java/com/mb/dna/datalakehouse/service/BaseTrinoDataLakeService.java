@@ -408,12 +408,15 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					}
 					if(existingTablesInDna!=null && !existingTablesInDna.isEmpty()) {
 						if(updatedTablesList==null || updatedTablesList.isEmpty()) {
-							existingVO.getDataProductDetails().setInvalidState(true);
+							if(existingVO.getDataProductDetails()!=null && existingVO.getDataProductDetails().getId()!=null)
+								existingVO.getDataProductDetails().setInvalidState(true);
 						}else {
 							for(String existingTable : existingTablesInDna) {
 								if(!updatedTablesList.contains(existingTable)) {
-									existingVO.getDataProductDetails().setInvalidState(true);
-									break;
+									if(existingVO.getDataProductDetails()!=null && existingVO.getDataProductDetails().getId()!=null) {
+										existingVO.getDataProductDetails().setInvalidState(true);
+										break;
+									}
 								}
 							}
 						}
@@ -556,7 +559,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			}
 		}
 		List<DatalakeTableVO> updatedTablesVO = existingTablesVO;
-		Boolean tablesDeletedFromOutsideDna = existingVO.getDataProductDetails().getInvalidState();
+		Boolean tablesDeletedFromOutsideDna = existingVO.getDataProductDetails()!=null && existingVO.getDataProductDetails().getId()!=null ? existingVO.getDataProductDetails().getInvalidState() : null;
 		for(DatalakeTableVO vo : existingTablesVO) {
 			if((latestTables!=null && !latestTables.isEmpty() && !latestTables.contains(vo.getTableName())) || latestTables == null || latestTables.isEmpty()) {
 				updatedTablesVO.remove(vo);
@@ -569,7 +572,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				}
 			}
 		}
-		existingVO.getDataProductDetails().setInvalidState(tablesDeletedFromOutsideDna);
+		if(existingVO.getDataProductDetails()!=null && existingVO.getDataProductDetails().getId()!=null ) {
+			existingVO.getDataProductDetails().setInvalidState(tablesDeletedFromOutsideDna);
+		}
 		existingVO.setTables(updatedTablesVO);
 		TrinoDataLakeProjectVO updatedVO = super.create(existingVO);
 		return updatedVO;
