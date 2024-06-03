@@ -513,7 +513,7 @@ public class TrinoDatalakeController {
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
-			log.error("Datalake project with id {} is not found ", id);
+			log.error("Datalake owner {} can update tech user details for project with id {}. current user is {} ", id,existingProject.getCreatedBy().getId(),user);
 			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
@@ -604,8 +604,8 @@ public class TrinoDatalakeController {
 				}
 			}
 		}
-		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))) || (writeCollabs.contains(user))){
-			log.error("Datalake project with id {} is not found ", id);
+		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)) || (writeCollabs.contains(user)))){
+			log.error("Only owner {} or collabs with write access, can edit Datalake project with id {} . Current user is {} ", existingProject.getCreatedBy().getId(), id, user);
 			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
