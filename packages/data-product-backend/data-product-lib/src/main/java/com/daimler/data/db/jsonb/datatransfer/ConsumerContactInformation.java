@@ -45,4 +45,5 @@ public class ConsumerContactInformation {
 	private String localComplianceOfficer;
 	private String appId;
 	private Date dataTransferDate;
+	private LeanIXDetails leanIXDetails;
 }

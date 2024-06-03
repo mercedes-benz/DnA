@@ -533,6 +533,7 @@ export interface IUserDetails {
   id?: string;
   lastName: string;
   mobileNumber?: string;
+  isAdmin?: boolean;
 }
 
 export interface IUserPrivilege {
@@ -553,6 +554,7 @@ export interface ICodeCollaborator {
   status?: string;
   canDeploy?: boolean;
   gitUserName: string;
+  isAdmin: boolean;
 }
 export interface IError {
   message: string;

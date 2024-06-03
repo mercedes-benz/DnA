@@ -186,24 +186,25 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   }, [codeSpaceCollaborators]);
 
   const sanitizedRepositoryName = (name: string) => {
-    return name.replace(/[^\w.-]/g, '-');
+    return name.replace(/[\s_-]/g, '-');
   };
 
   const onProjectNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
     setProjectName(projectNameVal);
-    const noSpaceNoSpecialChars = /[A-Za-z0-9_.-]/.test(projectNameVal);
-    setProjectNameError(
-      !noSpaceNoSpecialChars
-        ? projectNameVal.length
-          ? 'Invalid name: Space and Special Chars not allowed.'
-          : requiredError
-        : '',
-    );
-    
+    const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
-    if(startsOrEndswith) {
+    if(hasSpecialChars){
+      setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
+    }
+    else if(!projectNameVal.length){
+      setProjectNameError(requiredError);
+    }
+    else if(startsOrEndswith) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
+    }
+    else{
+      setProjectNameError('');
     }
   };
 
@@ -307,6 +308,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       email: collaborator.email,
       mobileNumber: collaborator.mobileNumber,
       gitUserName: collaborator.shortId,
+      isAdmin: collaborator.isAdmin,
       // permission: { read: true, write: false },
     };
 
@@ -314,7 +316,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     duplicateMember = codeSpaceCollaborators.filter((member: ICodeCollaborator) => member.id === collaborator.shortId)?.length
       ? true
       : false;
-    const isCreator = props.user.id === collaborator.shortId;
+    const isCreator = props.user.id === collaborator.shortId; //now need to check for owner
 
     if (duplicateMember) {
       Notification.show('Collaborator Already Exist.', 'warning');
@@ -335,9 +337,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     });
 
     if (e.target.checked) {
-      codeSpaceCollaborator.canDeploy = true;
+      codeSpaceCollaborator.isAdmin = true;
+      if (onEditingMode) {
+        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, true);
+      }
     } else {
-      codeSpaceCollaborator.canDeploy = false;
+      codeSpaceCollaborator.isAdmin = false;
+      if (onEditingMode) {
+        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, false);
+      }
     }
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
   };
@@ -1851,7 +1859,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                           readOnly
                                         />
                                       </span>
-                                      <span className="label">Develop</span>
+                                      <label className={Styles.permissionContent}>Develop</label>
                                     </label>
                                   </div>
                                   &nbsp;&nbsp;&nbsp;
@@ -1865,10 +1873,26 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                           checked={true}
                                           readOnly
                                           // checked={item?.permission !== null ? item?.canDeploy : false}
-                                          onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                          // onChange={(e) => onCollaboratorPermission(e, item.id)}
                                         />
                                       </span>
-                                      <span className="label">Deploy</span>
+                                      <label className={Styles.permissionContent}>Deploy</label>
+                                    </label>
+                                  </div>
+                                  &nbsp;&nbsp;&nbsp;
+                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                    <label className={'checkbox'}>
+                                      <span className="wrapper">
+                                        <input
+                                          type="checkbox"
+                                          className="ff-only"
+                                          value="admin"
+                                          // readOnly
+                                          checked={item?.isAdmin || false}
+                                          onChange={(e) => onCollaboratorPermission(e, item?.id)}
+                                        />
+                                      </span>
+                                      <label className={Styles.permissionContent}>Admin</label>
                                     </label>
                                   </div>
                                 </div>

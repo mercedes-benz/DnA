@@ -47,7 +47,7 @@ const ContactInformation = ({
     department,
     complianceOfficer: selectedcomplianceOfficer,
     name,
-    planningIT,
+    leanIX,
     informationOwner,
     // productOwner,
   } = watch();
@@ -144,10 +144,10 @@ const ContactInformation = ({
   }, [selectedcomplianceOfficer]);
 
   useEffect(() => {
-    if (planningIT?.length) {
-      setSelectedPlanningIT(planningIT);
+    if (leanIX?.appId?.length) {
+      setSelectedPlanningIT(leanIX);
     }
-  }, [planningIT]);
+  }, [leanIX]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -506,16 +506,29 @@ const ContactInformation = ({
               <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
-                  name="planningIT"
+                  name="leanIX"
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'planningIT App-ID'}
+                      label={'leanIX App-ID'}
                       placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                      defaultValue={selectedPlanningIT}
+                      defaultValue={selectedPlanningIT.appId}
                       list={planningITList}
-                      setSelected={(selectedTags) => {
+                      setSelected={(selectedTags) => {          
+                        const leanIXData = {
+                          appId: selectedTags.id,
+                          leanIXDetails: {
+                            objectState: selectedTags.ObjectState,
+                            appReferenceStr: selectedTags.appReferenceStr,
+                            name: selectedTags.name,
+                            providerOrgDeptid: selectedTags.providerOrgDeptid,
+                            providerOrgId: selectedTags.providerOrgId,
+                            providerOrgRefstr: selectedTags.providerOrgRefstr,
+                            providerOrgShortname: selectedTags.providerOrgShortname,
+                            shortName: selectedTags.shortName,
+                          },
+                        };
                         setSelectedPlanningIT(selectedTags.id || []);
-                        field.onChange(selectedTags.id);
+                        field.onChange(leanIXData);
                       }}
                       onInputChange={handlePlanningITSearch}
                       required={false}

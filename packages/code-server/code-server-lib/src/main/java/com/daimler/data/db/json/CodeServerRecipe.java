@@ -55,6 +55,9 @@ public class CodeServerRecipe implements Serializable {
     private String minRam;
     private String maxRam;
     private String oSName;
+    private String gitPath;
+    private String gitRepoLoc;
+    private String deployPath;
     private List<String> software;
     private Date createdOn;
     private UserInfo createdBy;

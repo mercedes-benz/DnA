@@ -304,6 +304,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"firstName\": " + addQuotes(updatedcollaborators.getFirstName()) + ","
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
+						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
 						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
@@ -709,6 +710,18 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return updateResponse;
 
 	}
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findAllByUniqueLiteral()
+	{
+		String query = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName')) *"
+		+" FROM workspace_nsql"
+		+" WHERE jsonb_extract_path_text(data, 'status') != 'DELETED'";
+		Query q = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		List<CodeServerWorkspaceNsql> result = q.getResultList();
+        return result != null ? result : new ArrayList<>();
+	}
+
 
 }
 

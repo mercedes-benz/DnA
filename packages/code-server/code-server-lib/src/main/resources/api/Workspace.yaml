@@ -929,6 +929,46 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/collaborator/{collabUserId}/admin:
+    post:
+      tags:
+        - "code-server"
+      summary: "make or remove collaborator admin for workspace project ."
+      description: "make or remove collaborator admin for workspace project."
+      operationId: "makeAdmin"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "collabUserId"
+          in: "path"
+          description: "Collaborator user id"
+          required: true
+          type: "string"
+        - name: isAdmin
+          in: query
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
           
 definitions:
 
@@ -1133,7 +1173,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,vue,py-fastapi,react,angular,gradle,quarkus,dash,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
+        enum: [default,springboot,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
@@ -1347,6 +1387,10 @@ definitions:
       gitUserName:
         type: string
         description: git Username
+      isAdmin:
+        type: boolean
+        description: "is the user has Admin rights"
+        default: false
       required:
         -id
         -gitUserName
