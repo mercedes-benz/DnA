@@ -558,7 +558,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				}
 			}
 		}
-		List<DatalakeTableVO> updatedTablesVO = existingTablesVO;
+		List<DatalakeTableVO> updatedTablesVO = new ArrayList<>();// existingTablesVO;
 		Boolean tablesDeletedFromOutsideDna = existingVO.getDataProductDetails()!=null && existingVO.getDataProductDetails().getId()!=null ? existingVO.getDataProductDetails().getInvalidState() : null;
 		for(DatalakeTableVO vo : existingTablesVO) {
 			if((latestTables!=null && !latestTables.isEmpty() && !latestTables.contains(vo.getTableName())) || latestTables == null || latestTables.isEmpty()) {
@@ -570,6 +570,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				}catch(Exception e) {
 					log.error("Failed while dropping table {} under catalog {} schema {} . Caused due to Exception {}", vo.getTableName(),catalog, schema, e.getMessage());
 				}
+			}else {
+				updatedTablesVO.add(vo);
 			}
 		}
 		if(existingVO.getDataProductDetails()!=null && existingVO.getDataProductDetails().getId()!=null ) {
