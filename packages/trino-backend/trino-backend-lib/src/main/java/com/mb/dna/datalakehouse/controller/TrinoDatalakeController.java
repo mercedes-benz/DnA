@@ -195,7 +195,7 @@ public class TrinoDatalakeController {
 			return new ResponseEntity<>(existingProject, HttpStatus.OK);
 		}catch(Exception e) {
 			log.error("Failed to fetch record with id {} with exception {}",id,e.getMessage());
-			return null;
+			return new ResponseEntity<>(new TrinoDataLakeProjectVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
