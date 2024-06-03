@@ -108,6 +108,10 @@ public class TableToProjectCollabMigrationService {
 					Collection<DataLakeTableCollabDetails> collection = projectCollabMap.values();
 					projectCollabs =  collection.stream().collect(Collectors.toList());
 				}
+
+				data.setCollabs(projectCollabs);
+				entity.setData(data);
+				updatedEntities.add(entity);
 				
 				try {
 					//updating storage permissions
@@ -137,10 +141,6 @@ public class TableToProjectCollabMigrationService {
 				}catch(Exception e) {
 					log.error("Failed while migrating details of collaborator for storage bucket {} Caused due to Exception {}",data.getBucketName(), e.getMessage());
 				}
-				
-				data.setCollabs(projectCollabs);
-				entity.setData(data);
-				updatedEntities.add(entity);
 				
 				// remove existing schema rule
 				updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 
