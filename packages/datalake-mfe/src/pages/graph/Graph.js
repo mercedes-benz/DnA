@@ -590,11 +590,6 @@ const Graph = ({user, hostHistory}) => {
                 <div className={Styles.headerright}>
                 {hasTable && (
                   <div className={classNames(Styles.dpWrapper)}>
-                    {(project?.dataProductDetails?.invalidState && isOwner) && (
-                      <button className={classNames('btn btn-primary', Styles.btnOutline, Styles.warningBtn)} onClick={() => { setShowInvalidDpModal(true) }}>
-                        <i className={classNames("icon mbc-icon alert circle", Styles.warningIcon)} />
-                      </button>
-                    )}
                     <button
                       className={classNames('btn btn-primary', Styles.btnOutline, Styles.dataProduct,(!isOwner && project?.dataProductDetails?.dataProductId?.length < 0) && Styles.btnDisabled, Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
                       type="button"
@@ -609,6 +604,11 @@ const Graph = ({user, hostHistory}) => {
                     <button className={classNames('btn btn-primary', Styles.btnOutline, Styles.unLinkbtn)} onClick={() => setShowUnLinkModal(true)}>
                       <i className="icon mbc-icon link" tooltip-data={"Unlink Data Product"} />
                     </button>)}
+                    {(project?.dataProductDetails?.invalidState && isOwner) && (
+                      <button className={classNames('btn btn-primary', Styles.btnOutline, Styles.warningBtn)} onClick={() => { setShowInvalidDpModal(true) }}>
+                        <i className={classNames("icon mbc-icon alert circle", Styles.warningIcon)} />
+                      </button>
+                    )}
                   </div>)}
                     { hasTable &&( 
                     <div>
