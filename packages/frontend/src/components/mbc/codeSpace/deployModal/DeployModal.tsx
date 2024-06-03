@@ -61,7 +61,8 @@ const DeployModal = (props: DeployModalProps) => {
   const [disableProdIAM, setDisableProdIAM] = useState(true);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
-  const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id;
+  const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
+  const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
 
   useEffect(() => {
     setClientId('');

@@ -101,6 +101,10 @@ export class CodeSpaceApiClient {
     return this.patch(`workspaces/${id}/projectowner`, data);
   }
 
+  public static assignAdminRole(id: string, userId: string, data: any){
+    return this.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`);
+  }
+  
   // Usage statistics
   public static getWorkSpacesTransparency(): Promise<any> {
     return this.get('workspaces/transparency');
