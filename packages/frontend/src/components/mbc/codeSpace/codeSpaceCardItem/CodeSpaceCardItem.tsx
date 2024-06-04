@@ -267,13 +267,13 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)).getTime();
+  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails?.deploymentAuditLogs && intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn )).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)).getTime();
+  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails?.deploymentAuditLogs && prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn )).getTime();
 
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = isOwner ? !hasCollaborators : true;
@@ -808,7 +808,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                   className={Styles.deployFailLink}
                                   tooltip-data={
                                     'Deployment to Staging failed on ' +
-                                    regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)
+                                    regionalDateAndTimeConversionSolution(intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1].triggeredOn)
                                   }
                                 >
                                   Failed
@@ -839,7 +839,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 className={Styles.deployFailLink}
                                 tooltip-data={
                                   'Deployment to Production failed on ' +
-                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1].triggeredOn)
                                 }
                               >
                                 Failed
