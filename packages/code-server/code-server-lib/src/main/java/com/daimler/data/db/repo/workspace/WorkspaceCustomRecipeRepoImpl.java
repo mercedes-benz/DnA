@@ -8,15 +8,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
@@ -69,15 +73,58 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     }
 
     @Override
+    @Transactional
+    public GenericMessage deleteRecipe(CodeServerRecipeNsql recipe) {
+        try {
+            if (recipe != null) {
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaDelete<CodeServerRecipeNsql> cd = cb.createCriteriaDelete(CodeServerRecipeNsql.class);
+                Root<CodeServerRecipeNsql> root = cd.from(CodeServerRecipeNsql.class);
+                cd.where(cb.equal(root.get("id"), recipe.getId()));
+                em.createQuery(cd).executeUpdate();
+                return new GenericMessage("Recipe deleted successfully");
+            } else {
+                return new GenericMessage("Recipe not found");
+            }
+        } catch (Exception e) {
+            return new GenericMessage("Failed to delete recipe: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public String findBySoftwareName(String addInfo)
+    {
+        try {
+            String selectQuery = "SELECT jsonb_extract_path_text(data, 'additionalProperties') " +
+                                 "FROM software_nsql " +
+                                 "WHERE lower(jsonb_extract_path_text(data, 'softwareName')) = ?1";
+            
+            Query query = em.createNativeQuery(selectQuery);
+            query.setParameter(1, addInfo.toLowerCase());
+    
+            List<String> results = query.getResultList();
+    
+            return results.isEmpty() ? null : results.get(0);
+        } catch (Exception e) {
+            log.info("Failed while fetching instruction set details in repo");
+            return null;
+        }
+    }
+
+    @Override
     public List<CodeServerRecipeDto> getAllPublicRecipeLov()
     {
         List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        String getQuery = "SELECT id as RECIPE_ID, " +
-                        "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-                        "FROM public.recipe_nsql " +
-                        "WHERE lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-                       "AND jsonb_extract_path_text(data, 'isPublic') = 'true'";
+        String getQuery = "SELECT id as RECIPE_ID,"+
+                "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+                "cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
+                "cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
+                "cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_RAM "+
+                "FROM public.recipe_nsql "+
+            "WHERE "+
+            "jsonb_extract_path_text(data, 'isPublic') = 'true';";
         try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -87,13 +134,15 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
+                    rowDetails.setOsName((String)rowData[2]);
+                    rowDetails.setMaxRam((String)rowData[3]);
+                    rowDetails.setMaxCpu((String)rowData[4]);
 				}
                 lov.add(rowDetails);
 			}
             return lov;
         }
         catch(Exception e) {
-			e.printStackTrace();
 			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
         return null;
@@ -104,19 +153,14 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     {
          List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        String getQuery = "SELECT " +
-                        "id as RECIPE_ID, " +
-                        "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-                    "FROM " +
-                        "public.recipe_nsql " +
-                    "WHERE " +
-                        "lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-                        "AND jsonb_extract_path_text(data, 'isPublic') = 'false' " +
-                        "AND EXISTS (" +
-                            "SELECT 1 " +
-                            "FROM jsonb_array_elements(data->'users') AS u(usr) " +
-                            "WHERE jsonb_extract_path_text(u.usr, 'gitUserName') = '" + id + "'" +
-                        ")";
+        String getQuery = "SELECT id as RECIPE_ID, cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+        " cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
+        " cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
+        " cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_CPU "+ 
+    "FROM public.recipe_nsql "+
+        "WHERE "+ 
+            "jsonb_extract_path_text(data, 'isPublic') = 'false' and "+
+            "jsonb_extract_path_text(data,'createdBy','id') = '" + id + "'";
         try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -126,65 +170,66 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
+                    rowDetails.setOsName((String)rowData[2]);
+                    rowDetails.setMaxRam((String)rowData[3]);
+                    rowDetails.setMaxCpu((String)rowData[4]);
 				}
                 lov.add(rowDetails);
 			}
             return lov;
         }
         catch(Exception e) {
-			e.printStackTrace();
 			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
         return null;
 
     }
 
-    @Override
-    public List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
-        Root<CodeServerRecipeNsql> root = cq.from(entityClass);
-        CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
-        Predicate con = cb.equal(cb.lower(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-                "requested");
-        Predicate con1 = cb.equal(cb.lower(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-                "accepted");
-        Predicate pMain = cb.or(con, con1);
-        cq.where(pMain);
-        TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
-        if (offset >= 0)
-            getAllQuery.setFirstResult(offset);
-        if (limit > 0)
-            getAllQuery.setMaxResults(limit);
-        return getAllQuery.getResultList();
+    // @Override
+    // public List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit) {
+    //     CriteriaBuilder cb = em.getCriteriaBuilder();
+    //     CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
+    //     Root<CodeServerRecipeNsql> root = cq.from(entityClass);
+    //     CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+    //     Predicate con = cb.equal(cb.lower(
+    //             cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+    //             "requested");
+    //     Predicate con1 = cb.equal(cb.lower(
+    //             cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+    //             "accepted");
+    //     Predicate pMain = cb.or(con, con1);
+    //     cq.where(pMain);
+    //     TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
+    //     if (offset >= 0)
+    //         getAllQuery.setFirstResult(offset);
+    //     if (limit > 0)
+    //         getAllQuery.setMaxResults(limit);
+    //     return getAllQuery.getResultList();
  
-    }
+    // }
 
-    @Override
-    public GenericMessage updateRecipeInfo(String name,String status)
-    {
-        GenericMessage updateResponse = new GenericMessage();
-		updateResponse.setSuccess("FAILED");
-		List<MessageDescription> errors = new ArrayList<>();
-		List<MessageDescription> warnings = new ArrayList<>();
-        String updateQuery = "UPDATE recipe_nsql SET data = jsonb_set(data, '{status}', '\""+ status +"\"') "
-        + " WHERE lower(jsonb_extract_path_text(data,'recipeName')) = '" + name.toLowerCase() + "'";
+    // @Override
+    // public GenericMessage updateRecipeInfo(String name,String status)
+    // {
+    //     GenericMessage updateResponse = new GenericMessage();
+	// 	updateResponse.setSuccess("FAILED");
+	// 	List<MessageDescription> errors = new ArrayList<>();
+	// 	List<MessageDescription> warnings = new ArrayList<>();
+    //     String updateQuery = "UPDATE recipe_nsql SET data = jsonb_set(data, '{status}', '\""+ status +"\"') "
+    //     + " WHERE lower(jsonb_extract_path_text(data,'recipeName')) = '" + name.toLowerCase() + "'";
 
-		try {
-			Query q = em.createNativeQuery(updateQuery);
-			q.executeUpdate();
-			updateResponse.setSuccess("SUCCESS");
-			updateResponse.setErrors(new ArrayList<>());
-			updateResponse.setWarnings(new ArrayList<>());
-			log.info("updated status of recipe {} to ACCPETED state", name);
-		}catch(Exception e) {
-			e.printStackTrace();
-			MessageDescription errMsg = new MessageDescription("Failed while updating the recipe  status.");
-			errors.add(errMsg);
-			log.error("Failed to update status of recipe  {} to ACCPETED state with exception {}", name, e.getMessage());
-		}
-        return updateResponse;
-    }
+	// 	try {
+	// 		Query q = em.createNativeQuery(updateQuery);
+	// 		q.executeUpdate();
+	// 		updateResponse.setSuccess("SUCCESS");
+	// 		updateResponse.setErrors(new ArrayList<>());
+	// 		updateResponse.setWarnings(new ArrayList<>());
+	// 		log.info("updated status of recipe {} to ACCPETED state", name);
+	// 	}catch(Exception e) {
+	// 		MessageDescription errMsg = new MessageDescription("Failed while updating the recipe  status.");
+	// 		errors.add(errMsg);
+	// 		log.error("Failed to update status of recipe  {} to ACCPETED state with exception {}", name, e.getMessage());
+	// 	}
+    //     return updateResponse;
+    // }
 }
