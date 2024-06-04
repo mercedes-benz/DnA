@@ -148,6 +148,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		RecipeLovVO vo = new RecipeLovVO();
 		if(entity!=null || Objects.nonNull(entity))
 		{
+			BeanUtils.copyProperties(entity, vo);
 			vo.setId(entity.getId());
 			vo.setRecipeName(entity.getRecipeName());
 		}

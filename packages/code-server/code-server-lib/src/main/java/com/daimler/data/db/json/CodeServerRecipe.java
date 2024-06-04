@@ -63,6 +63,7 @@ public class CodeServerRecipe implements Serializable {
     private UserInfo createdBy;
     private List<String> plugins;
     private Boolean isPublic;
+    private String toDeployType;
     // private List<UserInfo> users;
     // private String status;
 }

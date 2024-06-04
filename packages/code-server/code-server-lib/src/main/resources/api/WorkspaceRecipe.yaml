@@ -253,7 +253,7 @@ paths:
         500:
           description: "Internal error"
 
-  /recipeDetails/recipeLov:
+  /recipeDetails/recipelov:
     get:
       tags:
         - "code-server-recipe"
@@ -452,6 +452,8 @@ definitions:
       deployPath:
         type: string
         description: "deploy path for recipe" 
+      toDeployType:
+        type: string
       # users:
       #   type: array
       #   items:
@@ -551,6 +553,13 @@ definitions:
       recipeName:
         type: string
         description: "name of the recipe"
+      osName:
+        type: string
+      maxRam:
+        type: string
+      maxCpu:
+        type: string
+
 
   SoftwareCollection:
     type: object

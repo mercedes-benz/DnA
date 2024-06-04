@@ -21,4 +21,6 @@ public interface WorkspaceCustomRecipeRepo extends CommonDataRepository<CodeServ
 
     GenericMessage deleteRecipe(CodeServerRecipeNsql recipe);
 
+    String findBySoftwareName(String addInfo);
+
 }

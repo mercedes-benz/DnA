@@ -20,6 +20,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
@@ -91,20 +92,39 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     }
 
     @Override
+    @Transactional
+    public String findBySoftwareName(String addInfo)
+    {
+        try {
+            String selectQuery = "SELECT jsonb_extract_path_text(data, 'additionalProperties') " +
+                                 "FROM software_nsql " +
+                                 "WHERE lower(jsonb_extract_path_text(data, 'softwareName')) = ?1";
+            
+            Query query = em.createNativeQuery(selectQuery);
+            query.setParameter(1, addInfo.toLowerCase());
+    
+            List<String> results = query.getResultList();
+    
+            return results.isEmpty() ? null : results.get(0);
+        } catch (Exception e) {
+            log.info("Failed while fetching instruction set details in repo");
+            return null;
+        }
+    }
+
+    @Override
     public List<CodeServerRecipeDto> getAllPublicRecipeLov()
     {
         List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        // String getQuery = "SELECT id as RECIPE_ID, " +
-        //                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-        //                 "FROM public.recipe_nsql " +
-        //                 "WHERE lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-        //                "AND jsonb_extract_path_text(data, 'isPublic') = 'true'";
-         String getQuery = "SELECT id as RECIPE_ID, " +
-                        "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-                        "FROM public.recipe_nsql " +
-                        "WHERE " +
-                       "jsonb_extract_path_text(data, 'isPublic') = 'true'";
+        String getQuery = "SELECT id as RECIPE_ID,"+
+                "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+                "cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
+                "cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
+                "cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_RAM "+
+                "FROM public.recipe_nsql "+
+            "WHERE "+
+            "jsonb_extract_path_text(data, 'isPublic') = 'true';";
         try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -114,13 +134,15 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
+                    rowDetails.setOsName((String)rowData[2]);
+                    rowDetails.setMaxRam((String)rowData[3]);
+                    rowDetails.setMaxCpu((String)rowData[4]);
 				}
                 lov.add(rowDetails);
 			}
             return lov;
         }
         catch(Exception e) {
-			e.printStackTrace();
 			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
         return null;
@@ -131,31 +153,14 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     {
          List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        // String getQuery = "SELECT " +
-        //                 "id as RECIPE_ID, " +
-        //                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-        //             "FROM " +
-        //                 "public.recipe_nsql " +
-        //             "WHERE " +
-        //                 "lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-        //                 "AND jsonb_extract_path_text(data, 'isPublic') = 'false' " +
-        //                 "AND EXISTS (" +
-        //                     "SELECT 1 " +
-        //                     "FROM jsonb_array_elements(data->'users') AS u(usr) " +
-        //                     "WHERE jsonb_extract_path_text(u.usr, 'gitUserName') = '" + id + "'" +
-        //                 ")";
-        String getQuery = "SELECT " +
-                "id as RECIPE_ID, " +
-                "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-            "FROM " +
-                "public.recipe_nsql " +
-            "WHERE " +
-                "jsonb_extract_path_text(data, 'isPublic') = 'false' " +
-                "AND EXISTS (" +
-                    "SELECT 1 " +
-                    "FROM jsonb_array_elements(data->'users') AS u(usr) " +
-                    "WHERE jsonb_extract_path_text(u.usr, 'gitUserName') = '" + id + "'" +
-                ")";
+        String getQuery = "SELECT id as RECIPE_ID, cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+        " cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
+        " cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
+        " cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_CPU "+ 
+    "FROM public.recipe_nsql "+
+        "WHERE "+ 
+            "jsonb_extract_path_text(data, 'isPublic') = 'false' and "+
+            "jsonb_extract_path_text(data,'createdBy','id') = '" + id + "'";
         try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -165,13 +170,15 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
+                    rowDetails.setOsName((String)rowData[2]);
+                    rowDetails.setMaxRam((String)rowData[3]);
+                    rowDetails.setMaxCpu((String)rowData[4]);
 				}
                 lov.add(rowDetails);
 			}
             return lov;
         }
         catch(Exception e) {
-			e.printStackTrace();
 			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
         return null;
@@ -219,7 +226,6 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 	// 		updateResponse.setWarnings(new ArrayList<>());
 	// 		log.info("updated status of recipe {} to ACCPETED state", name);
 	// 	}catch(Exception e) {
-	// 		e.printStackTrace();
 	// 		MessageDescription errMsg = new MessageDescription("Failed while updating the recipe  status.");
 	// 		errors.add(errMsg);
 	// 		log.error("Failed to update status of recipe  {} to ACCPETED state with exception {}", name, e.getMessage());

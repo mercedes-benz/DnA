@@ -6,6 +6,8 @@ import java.util.Objects;
 
 import javax.validation.Valid;
 import com.daimler.data.dto.workspace.recipe.InitializeSoftwareLovVo;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.recipe.GitHubVo;
 
 @RestController
@@ -62,7 +65,11 @@ public class RecipeController implements CodeServerRecipeApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<InitializeRecipeVo> createRecipe(
 			@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user", required = true) @Valid @RequestBody RecipeVO recipeRequestVO) {
-				
+			
+		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		recipeRequestVO.setCreatedBy(currentUserVO);
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
@@ -217,7 +224,7 @@ public class RecipeController implements CodeServerRecipeApi {
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/recipeDetails/recipeLov",
+    @RequestMapping(value = "/recipeDetails/recipelov",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
