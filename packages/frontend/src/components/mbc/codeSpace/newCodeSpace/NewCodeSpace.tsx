@@ -316,7 +316,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     duplicateMember = codeSpaceCollaborators.filter((member: ICodeCollaborator) => member.id === collaborator.shortId)?.length
       ? true
       : false;
-    const isCreator = props.user.id === collaborator.shortId; //now need to check for owner
+    const isCreator = props.user.id === collaborator.shortId || (onEditingMode && props?.onEditingCodeSpace?.projectDetails?.projectOwner?.id === collaborator?.shortId); 
 
     if (duplicateMember) {
       Notification.show('Collaborator Already Exist.', 'warning');
@@ -1904,7 +1904,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                   >
                                     <i className="icon mbc-icon trash-outline" />
                                   </span>
-                                  {onEditingMode && (
+                                  {onEditingMode && (props?.onEditingCodeSpace?.projectDetails?.projectOwner?.id === props?.user?.id) && (
                                     <>
                                       &nbsp;| &nbsp;
                                       <span
