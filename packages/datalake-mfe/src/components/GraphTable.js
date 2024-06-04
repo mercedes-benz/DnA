@@ -48,7 +48,7 @@ const GraphTable = (props) => {
     }
 
     // 12: box-shadow
-    const height = table.columns.length * fieldHeight + titleHeight + commentHeight + 12;
+    const height = table.columns?.length * fieldHeight + titleHeight + commentHeight + 12;
 
     return (
         <>
@@ -92,7 +92,7 @@ const GraphTable = (props) => {
                             >
                                 <i className="icon mbc-icon edit fill"></i>
                             </button> */}
-                            <button tooltip-data={'Delete Table'} className={Styles.btnDelete} onClick={() => onDeleteTable(table.tableName)}>
+                            <button tooltip-data={props.hasDataProduct ? 'unlink data product to delete tables' :'Delete Table'} className={classNames( Styles.btnDelete , props.hasDataProduct ? Styles.btnDisable : '' )} onClick={() => !props.hasDataProduct ?onDeleteTable(table.tableName) : ''}>
                                 <i className="icon delete"></i>
                             </button>
                         </div>

@@ -161,9 +161,14 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String userinfo = httpRequest.getHeader("dna-request-userdetails");
-			headers.set("Accept", "application/json");
+			String userinfo = "";
+			try {
+				userinfo = httpRequest.getHeader("dna-request-userdetails");
+			}catch(Exception ex) {
+				log.info("No Http Context, call outside of webrequest or during startup.");
+			}
 			headers.set("dna-request-userdetails", userinfo);
+			headers.set("Accept", "application/json");
 			headers.set("chronos-api-key",trinoAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -207,11 +212,12 @@ public class StorageServicesClient {
 
 			requestWrapper.setData(data);
 			HttpEntity<UpdateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper, headers);
-			ResponseEntity<UpdateBucketResponseWrapperDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.PUT, requestEntity, UpdateBucketResponseWrapperDto.class);
-			if (response.hasBody()) {
-				updateBucketResponse = response.getBody();
-				log.info("Bucket {} updation status is {}", bucketName, updateBucketResponse.getStatus());
-			}
+				ResponseEntity<UpdateBucketResponseWrapperDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.PUT, requestEntity, UpdateBucketResponseWrapperDto.class);
+				if (response.hasBody()) {
+					updateBucketResponse = response.getBody();
+					log.info("Bucket {} updation status is {}", bucketName, updateBucketResponse.getStatus());
+				}
+			
 		} catch (Exception e) {
 			log.error("Failed while updating the bucket {} with exception {}", bucketName, e.getMessage());
 			MessageDescription errMsg = new MessageDescription("Failed while updating the bucket with exception " + e.getMessage());

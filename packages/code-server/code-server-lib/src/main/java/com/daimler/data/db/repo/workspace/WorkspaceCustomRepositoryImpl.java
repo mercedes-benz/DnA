@@ -303,6 +303,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"firstName\": " + addQuotes(updatedcollaborators.getFirstName()) + ","
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
+						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
 						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}

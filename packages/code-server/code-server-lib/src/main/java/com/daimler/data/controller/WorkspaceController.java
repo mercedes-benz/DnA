@@ -178,8 +178,18 @@ import org.springframework.beans.factory.annotation.Value;
 			 emptyResponse.setErrors(errorMessage);
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		 }
- 
-		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(currentUserUserId)) {
+		Boolean isAdmin =false;
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(currentUserUserId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+							isAdmin =true;
+					}
+				}
+			}
+		}
+		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(currentUserUserId) && !isAdmin) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
 					 "Not authorized to update workspace. User does not have privileges.");
@@ -252,8 +262,19 @@ import org.springframework.beans.factory.annotation.Value;
 			 emptyResponse.setErrors(errorMessage);
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		 }
- 
-		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
+		Boolean isAdmin =false;
+
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
+		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId) && ! isAdmin) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
 					 "Not authorized to update workspace. User does not have privileges.");
@@ -333,8 +354,19 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
 		 }
 		if (vo.getStatus().equalsIgnoreCase("CREATED")) {
- 
-			 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
+
+			Boolean isAdmin =false;
+			List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+			if(collabList!=null){
+				for(UserInfoVO user : collabList){
+					if(userId.equalsIgnoreCase(user.getId())){
+						if(user.isIsAdmin()){
+							isAdmin =true;
+						}
+					}
+				}
+			}
+			 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId) && !isAdmin) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Only owners can edit security configurations for workspace. Access Denied, user does not have privileges.");
@@ -1000,17 +1032,8 @@ import org.springframework.beans.factory.annotation.Value;
 			// 	 }
 			//  }
 			 if(deployRequestDto.isValutInjectorEnable()!=null)
-			 {              
-				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi")
-				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("dash") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("streamlit")
-				|| vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("expressjs") || vo.getProjectDetails().getRecipeDetails().toString().equalsIgnoreCase("nestjs"))
-				{
-					deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());
-				}
-				else
-				{
-					deployRequestDto.setValutInjectorEnable(false);
-				}
+			 {
+				deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
 			 }
 			 else
 			 {
@@ -1452,8 +1475,19 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
  
 		 }
+		Boolean isAdmin =false;
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) && !(userStore.getUserInfo().hasCodespaceAdminAccess())) {
+				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) && !(userStore.getUserInfo().hasCodespaceAdminAccess()) && !isAdmin) {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "security configurations for workspace can be view only by workspace owners and Codespace admins. Access Denied, user does not have privileges.");
@@ -1656,8 +1690,19 @@ import org.springframework.beans.factory.annotation.Value;
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errorMessage = new ArrayList<>();
 		 MessageDescription msg = new MessageDescription();
- 
-		 if (vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
+
+		Boolean isAdmin =false;
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
+		 if (vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId) || isAdmin) {
  
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
@@ -1846,8 +1891,18 @@ import org.springframework.beans.factory.annotation.Value;
 			emptyResponse.setErrors(errorMessage);
 			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		}
-
-		if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
+		Boolean isAdmin =false;
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
+		if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId) && !isAdmin){
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage(
 					"Not authorized to update workspace. User does not have privileges.");
@@ -2092,6 +2147,108 @@ import org.springframework.beans.factory.annotation.Value;
 			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		}
 		return null;
+	}
+
+	@Override
+	@ApiOperation(value = "make or remove collaborator admin for workspace project .", nickname = "makeAdmin", notes = "make or remove collaborator admin for workspace project.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/collaborator/{collabUserId}/admin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> makeAdmin(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "Collaborator user id",required=true) @PathVariable("collabUserId") String collabUserId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "isAdmin", required = true) Boolean isAdmin){
+		CreatedByVO currentUser = this.userStore.getVO();
+		String currentUserId = currentUser != null ? currentUser.getId() : null;
+
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		MessageDescription msg = new MessageDescription();
+
+		boolean isCurrentUserAdmin = false;
+		List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+		if (collabList != null) {
+			for (UserInfoVO user : collabList) {
+				if (currentUserId.equalsIgnoreCase(user.getId())) {
+					if (user.isIsAdmin()){
+						isCurrentUserAdmin = true;
+					}
+				}
+			}
+		}
+		if (vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(currentUserId) || isCurrentUserAdmin) {
+
+			if (vo == null || vo.getWorkspaceId() == null) {
+				log.debug("No workspace found, returning empty");
+				msg.setMessage("No workspace found for given id and the user");
+				errorMessage.add(msg);
+				responseMessage.setErrors(errorMessage);
+				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+			}
+			if(vo.getProjectDetails().getProjectCollaborators() == null){
+				log.error("No collabrators are part of this project");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("No collabrators are part of this project, Please add collabrators to the project. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+	
+			if (collabUserId == null ) {
+				log.error("Userid should not be empty");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("Invalid User, Please make sure that User id is not empty. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+			boolean isCollabIdPartOfProject = false;
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (collabUserId.equalsIgnoreCase(user.getId())) {
+						user.setIsAdmin(isAdmin);
+						isCollabIdPartOfProject = true;
+					}
+				}
+			}
+			if(isCollabIdPartOfProject){
+				vo.getProjectDetails().setProjectCollaborators(collabList);
+				responseMessage = service.makeAdmin(vo);
+				if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
+					return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+				return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+			}else{
+				log.error("collab user should be part of the project");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("Invalid User, Please make sure that collab user should be part of the project. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+		} else {
+			log.info("Not authorized to make collabrator as admin . User does not have privileges. {}", currentUserId, vo.getWorkspaceId());
+			msg.setMessage("Not authorized to make collabrator as admin. User does not have privileges.");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 	}
 
  }
