@@ -35,6 +35,70 @@
   }
 }
 
+.refreshBtn {
+  background: none;
+  border: none !important;
+  color: #00adef;
+  height: auto;
+  margin: 10px 10px 0px 10px;
+  outline: none;
+  padding: 0 2px;
+  align-content: baseline;
+
+  &:hover {
+    color: #c0c8d0 ;
+    background: unset;
+  }
+  &:focus{
+    outline: none;
+  }
+
+  i {
+    margin-top: 10px;
+  }
+}
+
+.dpWrapper {
+  display: flex;
+
+  .unLinkbtn {
+    color: #00adef;
+    margin-left: 0px;
+    margin-right: 0px;
+    i {
+      font-size: 12px;
+      color: #00adef;
+    }
+  }
+
+  .dataProduct {
+    margin-right: 0px;
+    margin-left: 0px;
+    padding-left: 0px;
+  }
+
+  .warningBtn {
+    margin-left: 0px;
+    padding-left: 0px;
+
+    i {
+      font-size: 11px;
+      color: var(--color-orange);
+    }
+  }
+}
+
+.inValidDpModal {
+  h3 {
+    font-size: var(--font-size-icon-medium);
+    margin: 50px;
+  }
+
+  .unLinkBtn {
+    text-align: center;
+  }
+}
+
 .datalakeWrapper {
 .nbheader {
     display: flex;
@@ -72,7 +136,7 @@
       max-width: 100%;
       min-width: 210px;
       h2 {
-        display: inline-block;
+        display: inline-flex;
         margin-left: 15px;
         position: relative;
         top:3px;
@@ -80,6 +144,8 @@
         span {
           font-size: 12px;
           opacity: 0.75;
+          margin-top: 5px;
+          margin-left: 4px;
         }
       }
 
@@ -192,7 +258,7 @@
 
 .btnOutline {
     background: none;
-    border: none;
+    border: none !important;
     color: #c0c8d0;
     height: auto;
     margin: 0px 10px;
