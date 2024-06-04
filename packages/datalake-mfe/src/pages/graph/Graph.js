@@ -536,7 +536,7 @@ const Graph = ({user, hostHistory}) => {
     ProgressIndicator.show();
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
-      Notification.show('Table(s) published successfully');
+      Notification.show('Data saved successfully');
       }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -672,9 +672,11 @@ const Graph = ({user, hostHistory}) => {
                             <span>Add Table</span>
                         </button>
                     </div>
-                    <div style={{textAlign: 'right', padding: '5px'}}>
-                      <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save</button>
-                    </div>
+                    {hasTable && (
+                      <div style={{textAlign: 'right', padding: '5px'}}>
+                        <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save</button>
+                      </div>
+                    )}
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
