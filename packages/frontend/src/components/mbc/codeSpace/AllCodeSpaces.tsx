@@ -253,7 +253,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   onClick={onShowSecurityConfigRequest}
                 >
                   <IconGear size={'14'} />
-                  <span>&nbsp;Manage Code Spaces</span>
+                  <span>&nbsp;Manage Recipes</span>
                 </button>
               </>
             ) : null}

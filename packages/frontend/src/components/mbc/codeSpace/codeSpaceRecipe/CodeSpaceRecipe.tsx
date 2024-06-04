@@ -3,16 +3,15 @@ import React, { useState, useEffect } from 'react';
 import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
-import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
-import IconAvatarNew from 'components/icons/IconAvatarNew';
 import { Envs } from 'globals/Envs';
-import { ICodeCollaborator, IUserInfo } from 'globals/types';
+import { ICodeCollaborator, ITag, IUserInfo } from 'globals/types';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import { isValidGITRepoUrl } from '../../../../services/utils';
-import { useHistory } from 'react-router-dom';const classNames = cn.bind(Styles);
+import { useHistory } from 'react-router-dom'; const classNames = cn.bind(Styles);
+import Tags from 'components/formElements/tags/Tags';
+import Modal from 'components/formElements/modal/Modal';
 export interface ICreateRecipe {
   createdBy: IUserInfo;
   recipeName: string;
@@ -27,7 +26,7 @@ export interface ICreateRecipe {
   users: ICodeCollaborator[];
   software: string[];
   plugins: string[];
-  
+
 }
 export interface Isoftware {
   name: string;
@@ -43,144 +42,56 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const repeatedError = '*Recipe name already exists';
   const history = useHistory();
 
-  const [softwares, setSoftwares] = useState([]);
-
+  const [notificationMsg, setNotificationMsg] = useState(false);
+  const [softwares, setSoftwares] = useState<ITag[]>([]);
+  const [enableCreate, setEnableCreate] = useState(false);
   const [recipeName, setRecipeName] = useState('');
-  const [recipeType, setRecipeType] = useState('');
+  const recipeType = 'private';
   const [gitUrl, setGitUrl] = useState('');
+
+  const [gitPath, setGitPath] = useState('');
+  const [gitRepoLoc, setGitRepoLoc] = useState('');
+  const [deployPath, setDeployPath] = useState('');
   const [diskSpace, setDiskSpace] = useState('');
-  const [minCpu, setMinCpu] = useState('');
+  const minCpu = 0;
   const [maxCpu, setMaxCpu] = useState('');
-  const [minRam, setMinRam] = useState('');
+  const minRam = 0;
   const [maxRam, setMaxRam] = useState('');
+  const [hardware, setHardware] = useState('large');
   const [software, setSoftware] = useState([]);
-  const [isPublic, setIsPublic] = useState(true);
-  
-
-  const [teamMembers, setTeamMembers] = useState([]);
-  // const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
-  const [editTeamMember, setEditTeamMember] = useState(false);
-  const [selectedTeamMember, setSelectedTeamMember] = useState();
-  const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
-  const [addedCollaborators, setAddedCollaborators] = useState([]);
-  const [removedCollaborators, setRemovedCollaborators] = useState([]);
-
-  const addTeamMemberModalRef : any = React.createRef();
-  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
-  const showAddTeamMemberModalView = () => {
-    setShowAddTeamMemberModal(true);
-    setEditTeamMember(false);
-    setEditTeamMemberIndex(0);
-  }
-
-  const onAddTeamMemberModalCancel = () => {
-    setShowAddTeamMemberModal(false);
-    setEditTeamMember(false);
-    setEditTeamMemberIndex(0);
-  }
-
-  const updateTeamMemberList = (teamMember : any) => {
-    onAddTeamMemberModalCancel();
-    console.log(teamMember);
-    const teamMemberTemp = { ...teamMember, id: teamMember.shortId, email: teamMember.email, lastName: teamMember.lastName, firstName: teamMember.firstName, department: teamMember.department, mobileNumber: teamMember.mobileNumber };
-    delete teamMemberTemp.teamMemberPosition;
-    const teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
-    let addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
-    let removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    if (editTeamMember) {
-      const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
-      addedCollaboratorsTemp = checkMembers(addedCollaborators, deletedMember[0]);
-      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
-      removedCollaboratorsTemp.push({ ...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, email: deletedMember[0].email, lastName: deletedMember[0].lastName, firstName: deletedMember[0].firstName, department: deletedMember[0].department, mobileNumber: deletedMember[0].mobileNumber });
-      teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
-      addedCollaboratorsTemp.push({ ...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, email: teamMember.email, lastName: teamMember.lastName, firstName: teamMember.firstName, department: teamMember.department, mobileNumber: teamMember.mobileNumber });
-    } else {
-      teamMembersTemp.push(teamMemberTemp);
-      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
-      addedCollaboratorsTemp.push({ ...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, email: teamMember.email, lastName: teamMember.lastName, firstName: teamMember.firstName, department: teamMember.department, mobileNumber: teamMember.mobileNumber });
-    }
-    setAddedCollaborators(addedCollaboratorsTemp);
-    setRemovedCollaborators(removedCollaboratorsTemp);
-    setTeamMembers(teamMembersTemp);
-  }
-
-  const checkMembers = (members : any, member : any) => {
-    let membersTemp = members.length > 0 ? [...members] : [];
-    const isCommon = members.filter((mber : any) => mber.shortId === member.shortId);
-    if (isCommon.length === 1) {
-      membersTemp = members.filter((mber : any) => mber.shortId !== member.shortId);
-      return membersTemp;
-    } else {
-      return members;
-    }
-  }
-
-  const validateMembersList = (teamMemberObj : any) => {
-    let duplicateMember = false;
-    duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
-    return duplicateMember;
-  };
-
-  const onTeamMemberEdit = (index : any) => {
-    setEditTeamMember(true);
-    setShowAddTeamMemberModal(true);
-    const teamMemberTemp = teamMembers[index];
-    setSelectedTeamMember(teamMemberTemp);
-    setEditTeamMemberIndex(index);
-  };
-
-  const onTeamMemberDelete = (index : any) => {
-    const teamMembersTemp = [...teamMembers];
-    const deletedMember = teamMembersTemp.splice(index, 1);
-
-    const newCollabs = checkMembers(addedCollaborators, deletedMember[0]);
-    setAddedCollaborators(newCollabs);
-
-    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    removedCollaboratorsTemp.push({ ...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, email: deletedMember[0].email, lastName: deletedMember[0].lastName, firstName: deletedMember[0].firstName, department: deletedMember[0].department, mobileNumber: deletedMember[0].mobileNumber });
-    setRemovedCollaborators(removedCollaboratorsTemp);
-
-    setTeamMembers(teamMembersTemp);
-  };
-
-  const teamMembersList = teamMembers?.map((member, index) => {
-    return (
-      <TeamMemberListItem
-        key={index}
-        itemIndex={index}
-        teamMember={{ ...member, shortId: member?.id, userType: 'internal' }}
-        hidePosition={true}
-        showInfoStacked={true}
-        showMoveUp={false}
-        showMoveDown={false}
-        onMoveUp={() => {}}
-        onMoveDown={() => {}}
-        onEdit={onTeamMemberEdit}
-        onDelete={onTeamMemberDelete}
-      />
-    );
-  });
-
+  const [isPublic, setIsPublic] = useState(false);
+  const [isSoftwareMissing, setSoftwareMissing] = useState(false);
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
+    hardware: '',
     recipeType: '',
     gitUrl: '',
+    gitPath: '',
+    software: '',
+    gitRepoLoc: '',
+    deployPath: '',
     discSpace: '',
     minCpu: '',
     maxCpu: '',
     minRam: '',
     maxRam: '',
   });
-  const isPublicRecipeChoosen = recipeType.startsWith('public');
-  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
 
+  const gitHubUrl = {
+    gitHubUrl: gitUrl
+  };
   useEffect(() => {
-    ProgressIndicator.show();
+
     CodeSpaceApiClient.getSoftwareLov()
       .then((response) => {
         ProgressIndicator.hide();
-        console.log(JSON.stringify(response.data));
-        setSoftwares(response.data);
+        const res = response.data;
+        let softwares: any = [];
+        softwares = res.map((item: any) => {
+          return { id: item.softwareName, name: item.softwareName };
+        }
+        );
+        setSoftwares(softwares);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -196,9 +107,6 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       });
   }, []);
 
-  useEffect(() => {
-    SelectBox.defaultSetup();
-  }, []);
 
   const onRecipeNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
@@ -209,11 +117,11 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     }));
   };
 
-  const validateGitUrl = (githubUrlVal: string) => {
-    const errorText = githubUrlVal.length
-      ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
+  const validateGitUrl = (githubUrl: string) => {
+    const errorText = githubUrl.length
+      ? isValidGITRepoUrl(githubUrl, isPublic)
         ? ''
-        : `provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
+        : `provide valid ${isPublic ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
       : requiredError;
     setErrorObj((prevState) => ({
       ...prevState,
@@ -221,68 +129,111 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     }));
   };
 
-  const onRecipeTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOption = e.currentTarget.value;
-    setRecipeType(selectedOption);
-    if (gitUrl) {
-      validateGitUrl(gitUrl);
-    }
-  };
 
   const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const githubUrlVal = e.currentTarget.value.trim();
+    setEnableCreate(false);
     setGitUrl(githubUrlVal);
     validateGitUrl(githubUrlVal);
   };
 
-  const onDiskSpaceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.currentTarget.value;
-    setDiskSpace(value);
+  const onSoftwareChange = (selectedTags: React.SetStateAction<any[]>) => {
+    setSoftware(selectedTags);
+    setSoftwareMissing(false);
+    setErrorObj((prevState) => ({
+      ...prevState,
+      software: '',
+    }));
   };
 
-  const onMinCpuChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.currentTarget.value;
-    setMinCpu(value);
-  };
+  const onGitPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const gitPath = e.currentTarget.value.trim();
+    setGitPath(gitPath);
+    setErrorObj((prevState) => ({
+      ...prevState,
+      gitPath: '',
+    }));
+  }
 
-  const onMaxCpuChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.currentTarget.value;
-    setMaxCpu(value);
-  };
+  const onGitRepoLocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const gitRepoLoc = e.currentTarget.value.trim();
+    setGitRepoLoc(gitRepoLoc);
+    setErrorObj((prevState) => ({
+      ...prevState,
+      gitRepoLoc: '',
+    }));
+  }
+  const onDeployPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const deployPath = e.currentTarget.value.trim();
+    setDeployPath(deployPath);
+    setErrorObj((prevState) => ({
+      ...prevState,
+      deployPath: '',
+    }));
+  }
 
-  const onMinRamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const onHardwareChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.currentTarget.value;
-    setMinRam(value);
-  };
-
-  const onMaxRamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.currentTarget.value;
-    console.log(value);
-    setMaxRam(value);
-  };
-
-  const onSoftwareChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: any = [];
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        selectedValues.push(option.label);
-      });
+    setHardware(value);
+    if (value === 'small') {
+      setMaxCpu('0.5');
+      setMaxRam('2');
+      setDiskSpace('5');
+    } else if (value === 'medium') {
+      setMaxCpu('1');
+      setMaxRam('3');
+      setDiskSpace('10');
+    } else {
+      setMaxCpu('1.5');
+      setMaxRam('4');
+      setDiskSpace('15');
     }
-    setSoftware(selectedValues);
   };
 
   const onIsPublicChange = (e: React.FormEvent<HTMLInputElement>) => {
     const currentValue = e.currentTarget.value;
     if (currentValue === 'true') {
       setIsPublic(true);
+      setNotificationMsg(true);
     } else {
       setIsPublic(false);
+      setNotificationMsg(false);
     }
   };
-  
+
+  const onNotificationMsgAccept = () => {
+    setIsPublic(true);
+    setNotificationMsg(false);
+  };
+  const onNotificationMsgCancel = () => {
+    setIsPublic(false);
+
+    setNotificationMsg(false);
+
+  }
+  const verifyRequest = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.verifyGitUser(gitHubUrl)
+      .then((response) => {
+        ProgressIndicator.hide();
+        if (response?.success === 'SUCCESS') {
+          setEnableCreate(true);
+        } else {
+          setEnableCreate(false);
+        }
+      })
+      .catch((err: Error) => {
+        ProgressIndicator.hide();
+        Notification.show(err.message, 'alert');
+        if (err.message === 'Value or Item already exist!') {
+          setErrorObj((prevState) => ({
+            ...prevState,
+            recipeName: repeatedError,
+          }));
+        }
+      });
+  };
   const onRequest = () => {
-    console.log(software);
     if (validateForm()) {
       const CreateNewRecipe = {
         createdBy: {
@@ -307,7 +258,9 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
-        users: teamMembers
+        gitPath: gitPath,
+        gitRepoLoc: gitRepoLoc,
+        deployPath: deployPath,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
@@ -338,13 +291,6 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         recipeName: requiredError,
       }));
     }
-    if (recipeType === '') {
-      isValid = false;
-      setErrorObj((prevState) => ({
-        ...prevState,
-        recipeType: requiredError,
-      }));
-    }
     if (gitUrl === '') {
       isValid = false;
       setErrorObj((prevState) => ({
@@ -359,25 +305,11 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         discSpace: requiredError,
       }));
     }
-    if (minCpu === '0') {
-      isValid = false;
-      setErrorObj((prevState) => ({
-        ...prevState,
-        minCpu: requiredError,
-      }));
-    }
     if (maxCpu === '0') {
       isValid = false;
       setErrorObj((prevState) => ({
         ...prevState,
         maxCpu: requiredError,
-      }));
-    }
-    if (minRam === '0') {
-      isValid = false;
-      setErrorObj((prevState) => ({
-        ...prevState,
-        minRam: requiredError,
       }));
     }
     if (maxRam === '0') {
@@ -387,319 +319,277 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         maxRam: requiredError,
       }));
     }
+    if (software.length === 0) {
+      isValid = false;
+      setSoftwareMissing(true)
+      setErrorObj((prevState) => ({
+        ...prevState,
+        software: requiredError,
+      }));
+    }
+    if (isPublic) {
+      if (gitRepoLoc === '') {
+        isValid = false;
+        setErrorObj((prevState) => ({
+          ...prevState,
+          gitRepoLoc: requiredError,
+        }));
+      }
+      if (gitPath === '') {
+        isValid = false;
+        setErrorObj((prevState) => ({
+          ...prevState,
+          gitPath: requiredError,
+        }));
+      }
+      if (deployPath === '') {
+        isValid = false;
+        setErrorObj((prevState) => ({
+          ...prevState,
+          deployPath: requiredError,
+        }));
+
+      }
+    }
     return isValid;
   };
 
   return (
     <div>
-      <div className={classNames(Styles.mainPanel)}>
-        <div>
-          <h3>Recipe Management</h3>
-          <div className={classNames(Styles.wrapper)}>
-            <div className={classNames(Styles.firstPanel, 'addRecipe')}>
-              <h3>Recipe Details</h3>
-              <div className={classNames(Styles.formWrapper)}>
-                <div className={classNames(Styles.flexLayout)}>
-                  <TextBox
-                    type="text"
-                    controlId={'recipeNameInput'}
-                    labelId={'recipeNameLabel'}
-                    label={'Recipe Name'}
-                    placeholder={'Type here'}
-                    value={recipeName}
-                    errorText={errorObj.recipeName}
-                    required={true}
-                    maxLength={200}
-                    onChange={onRecipeNameChange}
-                  />
-                  <div className={classNames('input-field-group include-error')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Publicly Available <sup>*</sup>
-                    </label>
-                    <div className={Styles.pIIField}>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value="true"
-                            name="isPublic"
-                            defaultChecked={isPublic === true}
-                            onChange={onIsPublicChange}
-                          />
-                        </span>
-                        <span className="label">Yes</span>
-                      </label>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value="false"
-                            name="isPublic"
-                            defaultChecked={isPublic === false}
-                            onChange={onIsPublicChange}
-                          />
-                        </span>
-                        <span className="label">No</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div className={classNames(Styles.flexLayout)}>
-                  <div className={classNames('input-field-group include-error', errorObj.recipeType ? 'error' : '')}>
-                    <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
-                      Recipe Location<sup>*</sup>
-                    </label>
-                    <div id="selectBox" className="custom-select">
-                      <select
-                        id="recipeTypeField"
-                        required={true}
-                        required-error={errorObj.recipeType}
-                        value={recipeType}
-                        onChange={onRecipeTypeChange}
-                      >
-                        <option value="">Choose</option>
-                        <option value="public">Public GitHub</option>
-                        <option value="private">Private GitHub</option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errorObj.recipeType.length ? '' : 'hide')}>
-                      {errorObj.recipeType}
-                    </span>
-                  </div>
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'gitUrlInput'}
-                      labelId={'gitUrlLabel'}
-                      label={
-                        !recipeType || recipeType === '' || recipeType === 'from Storage'
-                          ? 'GitHub Url'
-                          : `GitHub Url (Ex. ${githubUrlValue}orgname-or-username/your-repo-name.git)`
-                      }
-                      placeholder={'Type here'}
-                      value={gitUrl}
-                      errorText={errorObj.gitUrl}
-                      required={true}
-                      maxLength={200}
-                      onChange={onGitUrlChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            {!isPublic && (
+      <div>
+        <div className={classNames(Styles.mainPanel)}>
+          <div>
+            <h3>Recipe Management</h3>
+            <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
-                <h3>Collaborator Details</h3>
+                <h3>Recipe Details</h3>
                 <div className={classNames(Styles.formWrapper)}>
-                  <div className={classNames('input-field-group include-error')}>
-                    <div className={Styles.collabContainer}>
-                      {/* <h3 className={Styles.modalSubTitle}>Add Users (Optional)</h3> */}
-                      <div className={Styles.collabAvatar}>
-                        <div className={Styles.teamListWrapper}>
-                          <div className={Styles.addTeamMemberWrapper}>
-                            <IconAvatarNew className={Styles.avatarIcon} />
-                            <button id="AddTeamMemberBtn" onClick={showAddTeamMemberModalView}>
-                              <i className="icon mbc-icon plus" />
-                              <span>Add user</span>
-                            </button>
+                  <div className={classNames(Styles.flex)}>
+                    <div className={(Styles.col2)}>
+                      <TextBox
+                        type="text"
+                        controlId={'recipeNameInput'}
+                        labelId={'recipeNameLabel'}
+                        label={'Recipe Name'}
+                        placeholder={'Type here'}
+                        value={recipeName}
+                        errorText={errorObj.recipeName}
+                        required={true}
+                        maxLength={200}
+                        onChange={onRecipeNameChange}
+                      />
+                    </div>
+                    <div className={(Styles.col2)}>
+                      <div className={classNames('input-field-group include-error')}>
+                        <label className={classNames(Styles.inputLabel, Styles.m5, 'input-label')}>
+                          Recipe Visibility <sup>*</sup>
+                        </label>
+                        <div className={Styles.pIIField}>
+                          <label className={classNames('radio')}>
+                            <span className="wrapper">
+                              <input
+                                type="radio"
+                                className="ff-only"
+                                value="true"
+                                name="isPublic"
+                                checked={isPublic === true}
+                                onChange={onIsPublicChange}
+                              />
+                            </span>
+                            <span className="label">Public</span>
+                          </label>
+                          <label className={classNames('radio')}>
+                            <span className="wrapper">
+                              <input
+                                type="radio"
+                                className="ff-only"
+                                value="false"
+                                name="isPublic"
+                                checked={isPublic === false}
+                                onChange={onIsPublicChange}
+                              />
+                            </span>
+                            <span className="label">Private</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <Modal
+                        title="Public Visibility"
+                        show={notificationMsg}
+                        showAcceptButton={false}
+                        showCancelButton={false}
+                        acceptButtonTitle="Confirm"
+                        cancelButtonTitle="Cancel"
+                        buttonAlignment='right'
+                        scrollableContent={false}
+                        hideCloseButton={true}
+                        content={
+                          <div>
+                            <header>
+                              <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
+                            </header>
+                            <div>
+                              <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
+                            </div>
+                            <div className="btn-set footerRight">
+                              <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
+                              <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
+                            </div>
                           </div>
-                          {teamMembers?.length > 0 && <div className={Styles.membersList}>{teamMembersList}</div>}
+                        }
+                      />
+                    </div>
+                    <div className={classNames(Styles.col2)}>
+                      <div className={classNames(Styles.inputLabel, 'input-label')}>
+                        <TextBox
+                          type="text"
+                          controlId={'gitUrlInput'}
+                          labelId={'gitUrlLabel'}
+                          label={'GitHub Url'}
+                          placeholder={'Type here'}
+                          value={gitUrl}
+                          errorText={errorObj.gitUrl}
+                          required={true}
+                          maxLength={200}
+                          onChange={onGitUrlChange}
+                        />
+                        {(!enableCreate &&
+                          <button className={classNames('btn btn-tertiary', Styles.verifyButton)} type="button" onClick={verifyRequest}>
+                            <i className="icon mbc-icon alert circle"></i>Kindly add the PID6C39 as admin contributor in your gitHub repo and click here to verify.
+                          </button>
+                        )}
+                        <p
+                          style={{ color: 'var(--color-green)' }}
+                          className={classNames(enableCreate ? '' : ' hide')}
+                        >
+                          <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
+                        </p>
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.col2)}>
+                      <div className={classNames('input-field-group include-error')}>
+                        <label className={classNames(Styles.inputLabel, 'input-label')}>
+                          Hardware Configuration <sup>*</sup>
+                        </label>
+                        <div id="HardwareBox" className='custom-select'>
+                          <select
+                            id="HardewareField"
+                            required={true}
+                            required-error={errorObj.hardware}
+                            value={hardware}
+                            onChange={onHardwareChange}>
+                            <option value={'small'}>DiskSpace - 5GB CPU - 0.5 RAM - 2GB</option>
+                            <option value={'medium'}>DiskSpace - 10GB CPU - 1 RAM - 3GB</option>
+                            <option value={'large'}>DiskSpace - 15GB CPU - 1.5 RAM - 4GB</option>
+                          </select>
+                          <span className={classNames('error-message', errorObj.discSpace.length ? '' : 'hide')}>
+                            {errorObj.discSpace}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={classNames(Styles.request)} >
+                        <a href={Envs.CODESPACE_HARDWARE_REQUEST_TEMPLATE} target="_blank" rel="noopener noreferrer">
+                          Request new Hardware
+                        </a>
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.col2)}>
+                      <Tags
+                        title={'Software Configuration'}
+                        max={100}
+                        chips={software}
+                        placeholder={'Type here...e.g Java11'}
+                        tags={softwares}
+                        setTags={(selectedTags) => {
+                          onSoftwareChange(selectedTags);
+                        }}
+                        isMandatory={true}
+                        showMissingEntryError={isSoftwareMissing}
+                      />
+                      <div className={classNames(Styles.request)} >
+                        <a href={Envs.CODESPACE_SOFTWARE_REQUEST_TEMPLATE} target="_blank" rel="noopener noreferrer">
+                          Request new Software
+                        </a>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {isPublic && (
+                  <div>
+                    <h4 className={classNames(Styles.sectionHeader)}>CI/CD</h4>
+                    <div className={classNames(Styles.formWrapper, Styles.mT)}>
+                      <div className={classNames(Styles.flex)}>
+                        <div className={classNames(Styles.col2)}>
+                          <div className={classNames('input-field-group include-error')}>
+                            <div>
+                              <TextBox
+                                type="text"
+                                controlId={'gitPath'}
+                                label={'Git Repository'}
+                                labelId={'gitPathLabel'}
+                                placeholder={'Type here '}
+                                value={gitPath}
+                                errorText={errorObj.gitPath}
+                                required={true}
+                                maxLength={200}
+                                onChange={onGitPathChange}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className={classNames(Styles.col2)}>
+                          <div className={classNames('input-field-group include-error')}>
+                            <div>
+                              <TextBox
+                                type="text"
+                                controlId={'deployPath'}
+                                label={'Helm File Path'}
+                                labelId={'deployPathLabel'}
+                                placeholder={'e.g /deploy/helm'}
+                                value={deployPath}
+                                errorText={errorObj.deployPath}
+                                required={true}
+                                maxLength={200}
+                                onChange={onDeployPathChange}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className={classNames(Styles.col2)}>
+                          <div className={classNames('input-field-group include-error')}>
+                            <div>
+                              <TextBox
+                                type="text"
+                                controlId={'gitRepoLoc'}
+                                label={'Docker File Path'}
+                                labelId={'gitRepoLocLabel'}
+                                placeholder={'e.g /build/docker'}
+                                value={gitRepoLoc}
+                                errorText={errorObj.gitRepoLoc}
+                                required={true}
+                                maxLength={200}
+                                onChange={onGitRepoLocChange}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-            <div className={classNames(Styles.firstPanel, 'addRecipe')}>
-              <h3>Hardware Configurations</h3>
-              <div className={classNames(Styles.formWrapper)}>
-                <div className={classNames(Styles.SelectBoxWrapper)}>
-                  <div className={classNames('input-field-group include-error', errorObj.discSpace ? 'error' : '')}>
-                    <label id="diskSpaceLable" className="input-label" htmlFor="diskSpaceSelect">
-                      Disk-Space(in GB)<sup>*</sup>
-                    </label>
-                    <div id="selectBox" className="custom-select">
-                      <select
-                        id="diskSpaceField"
-                        required={true}
-                        required-error={errorObj.discSpace}
-                        value={diskSpace}
-                        onChange={onDiskSpaceChange}
-                      >
-                        <option value={0}>Choose</option>
-                        <option value={2}> 2 </option>
-                        <option value={5}> 5 </option>
-                        <option value={10}> 10 </option>
-                        <option value={15}> 15 </option>
-                        <option value={20}> 20 </option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errorObj.discSpace.length ? '' : 'hide')}>
-                      {errorObj.discSpace}
-                    </span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', errorObj.maxCpu ? 'error' : '')}>
-                    <label id="maxCpuLable" className="input-label" htmlFor="maxCpuSelect">
-                      MAX CPU<sup>*</sup>
-                    </label>
-                    <div id="selectBox" className="custom-select">
-                      <select
-                        id="maxCpuField"
-                        required={true}
-                        required-error={errorObj.maxCpu}
-                        value={maxCpu}
-                        onChange={onMaxCpuChange}
-                      >
-                        <option value={0}>Choose</option>
-                        <option value={0.5}> 0.5 </option>
-                        <option value={1}> 1 </option>
-                        <option value={1.5}> 1.5 </option>
-                        <option value={2}> 2 </option>
-                        <option value={2.5}> 2.5 </option>
-                        <option value={3}> 3 </option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errorObj.maxCpu.length ? '' : 'hide')}>
-                      {errorObj.maxCpu}
-                    </span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', errorObj.minCpu ? 'error' : '')}>
-                    <label id="minCpuLable" className="input-label" htmlFor="minCpuSelect">
-                      MIN CPU<sup>*</sup>
-                    </label>
-                    <div id="selectBox" className="custom-select">
-                      <select
-                        id="minCpuField"
-                        required={true}
-                        required-error={errorObj.minCpu}
-                        value={minCpu}
-                        onChange={onMinCpuChange}
-                      >
-                        <option value={0}>Choose</option>
-                        <option value={0.5}> 0.5 </option>
-                        <option value={1}> 1 </option>
-                        <option value={1.5}> 1.5 </option>
-                        <option value={2}> 2 </option>
-                        <option value={2.5}> 2.5 </option>
-                        <option value={3}> 3 </option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errorObj.minCpu.length ? '' : 'hide')}>
-                      {errorObj.minCpu}
-                    </span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', errorObj.maxRam ? 'error' : '')}>
-                    <label id="maxRamLable" className="input-label" htmlFor="maxRamSelect">
-                      MAX RAM<sup>*</sup>
-                    </label>
-                    <div id="selectBox" className="custom-select">
-                      <select
-                        id="maxRamField"
-                        required={true}
-                        required-error={errorObj.maxCpu}
-                        value={maxRam}
-                        onChange={onMaxRamChange}
-                      >
-                        <option value={0}>Choose</option>
-                        <option value={2}> 2 </option>
-                        <option value={3}> 3 </option>
-                        <option value={4}> 4 </option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errorObj.maxCpu.length ? '' : 'hide')}>
-                      {errorObj.maxCpu}
-                    </span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', errorObj.minRam ? 'error' : '')}>
-                    <label id="minRamLable" className="input-label" htmlFor="minCpuSelect">
-                      MIN RAM<sup>*</sup>
-                    </label>
-                    <div id="selectBox" className="custom-select">
-                      <select
-                        id="minRamField"
-                        required={true}
-                        required-error={errorObj.minRam}
-                        value={minRam}
-                        onChange={onMinRamChange}
-                      >
-                        <option value={0}>Choose</option>
-                        <option value={2}> 2 </option>
-                        <option value={3}> 3 </option>
-                        <option value={4}> 4 </option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errorObj.minRam.length ? '' : 'hide')}>
-                      {errorObj.minRam}
-                    </span>
-                  </div>
+                )}
+                <div className={Styles.btnConatiner}>
+                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={onRequest}>
+                    Create Recipe
+                  </button>
                 </div>
               </div>
             </div>
-
-            <div className={classNames(Styles.firstPanel, 'addRecipe')}>
-              <h3>Software Configurations</h3>
-              <div className={classNames(Styles.formWrapper)}>
-                <div className={classNames(Styles.flexLayout, Styles.MultiSelectBoxWrapper)}>
-                  {/* <Tags
-                    title={'Software (optional)'}
-                    max={100}
-                    chips={software}
-                    tags={softwares}
-                    setTags={(selectedTags) => {
-                      console.log(selectedTags);
-                      setSoftware(selectedTags);
-                    }}
-                    isMandatory={false}
-                    showMissingEntryError={false}
-                  /> */}
-                  <div className={classNames('input-field-group include-error')}>
-                    <label id="softwareLable" className="input-label" htmlFor="softwareSelect">
-                      Software
-                    </label>
-                    <div id="software" className="custom-select">
-                      <select
-                        id="softwareSelect"
-                        multiple={true}
-                        required={false}
-                        required-error={requiredError}
-                        onChange={onSoftwareChange}
-                        value={software}
-                      >
-                        {softwares?.map((item: any) => (
-                          <option id={item.softwareName} key={item.softwareName} value={item.softwareName}>
-                            {item.softwareName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className={Styles.btnConatiner}>
-            <button className="btn btn-tertiary" type="button" onClick={onRequest}>
-              Request
-            </button>
           </div>
         </div>
-        {showAddTeamMemberModal && (
-          <AddTeamMemberModal
-            ref={addTeamMemberModalRef}
-            modalTitleText={'Collaborator'}
-            showOnlyInteral={true}
-            hideTeamPosition={true}
-            editMode={editTeamMember}
-            showAddTeamMemberModal={showAddTeamMemberModal}
-            teamMember={selectedTeamMember}
-            onUpdateTeamMemberList={updateTeamMemberList}
-            onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
-            validateMemebersList={validateMembersList}
-          />
-        )}
       </div>
     </div>
   );

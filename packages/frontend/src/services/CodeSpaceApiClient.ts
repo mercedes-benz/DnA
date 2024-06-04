@@ -141,7 +141,11 @@ export class CodeSpaceApiClient {
   public static createCodeSpaceRecipe(data: any) {
     return this.post('recipeDetails', data);
   }
-  
+
+  public static verifyGitUser(data: any) {
+    return this.post('recipeDetails/validate', data);
+  }
+
   public static getCodeSpaceRecipeRequests() {
     return this.get('recipeDetails')
   }
