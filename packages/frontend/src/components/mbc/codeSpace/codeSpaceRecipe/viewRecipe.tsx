@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { ICodeCollaborator } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
-import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import Styles from './viewRecipe.scss';
 
@@ -32,7 +31,7 @@ export interface IRecipeField {
 
 const viewRecipe = (props: IViewRecipeProps) => {
   const [recipeField, setRecipeField] = useState<IRecipeField>();
-  const [teamMembers, setTeamMembers] = useState([]);
+  
   const classNames = cn.bind(Styles);
   useEffect(() => {
     getCodeSpaceRecipe(props.recipeName);
@@ -56,24 +55,7 @@ const viewRecipe = (props: IViewRecipeProps) => {
         Notification.show(error.message, 'alert');
       });
   };
-  const teamMembersList = teamMembers?.map((member, index) => {
-    return (
-      <TeamMemberListItem
-        key={index}
-        itemIndex={index}
-        teamMember={member}
-        hidePosition={true}
-        hideContextMenu={true}
-        showInfoStacked={true}
-        showMoveUp={false}
-        showMoveDown={false}
-        onMoveUp={() => {}}
-        onMoveDown={() => {}}
-        onEdit={()=>{}}
-        onDelete={()=>{}}
-      />
-    );
-  });
+  
   const chips =
     recipeField?.software && recipeField?.software?.length
         ? recipeField?.software?.map((chip) => {

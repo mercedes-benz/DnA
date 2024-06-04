@@ -2,8 +2,6 @@ import cn from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceList.scss';
 import { history } from '../../../../router/History';
-import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
-import { Notification, ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import ViewRecipe from '../codeSpaceRecipe/viewRecipe';
 import Modal from 'components/formElements/modal/Modal';
 
@@ -26,76 +24,12 @@ const codeSpaceList = (props: IRecipeList) => {
   const onSecrityConfigClick = () => {
     history.push(`/codespace/adminSecurityconfig/${props.id}?name=${props.projectName}`);
   };
-  const showErrorNotification = (message: string) => {
-    ProgressIndicator.hide();
-    Notification.show(message, 'alert');
-  };
+
 
   const onNewRecipeClick = () => {
     setviewInfoModel(true);
   };
 
-  const onPublish = (e: React.FormEvent<HTMLSpanElement>) => {
-    e.stopPropagation();
-    ProgressIndicator.show();
-    if (props.isConfigList) {
-      const id = props.id;
-      CodeSpaceApiClient.publishSecurityConfigRequest(id)
-        .then((res: any) => {
-          Notification.show('Published successfully.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    } else {
-      const name = props.projectName;
-      CodeSpaceApiClient.publishCodeSpaceRecipeRequest(name)
-        .then((res: any) => {
-          Notification.show('Published successfully.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    }
-    ProgressIndicator.hide();
-  };
-
-  const onAccept = (e: React.FormEvent<HTMLSpanElement>) => {
-    e.stopPropagation();
-    ProgressIndicator.show();
-    if (props.isConfigList) {
-      const id = props.id;
-      CodeSpaceApiClient.acceptSecurityConfigRequest(id)
-        .then((res: any) => {
-          Notification.show('Request Accepted.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    } else {
-      const name = props.projectName;
-      CodeSpaceApiClient.acceptCodeSpaceRecipeRequest(name)
-        .then((res: any) => {
-          Notification.show('Request Accepted.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    }
-    ProgressIndicator.hide();
-  };
 
   const chips =
   props?.software && props?.software?.length
