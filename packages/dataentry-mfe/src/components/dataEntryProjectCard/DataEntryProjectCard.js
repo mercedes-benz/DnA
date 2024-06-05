@@ -31,7 +31,7 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
             <div>
               <div>Data Lakehouse Link</div>
               <div>
-                <a href={`https://app.fabric.microsoft.com/groups/${project?.id}`} target='_blank' rel='noopener noreferrer'>
+                <a href={`${project?.dataLakeDetails.link}`} target='_blank' rel='noopener noreferrer'>
                   Access Lakehouse
                   <i className={classNames('icon mbc-icon new-tab')} />
                 </a>
@@ -44,7 +44,7 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
           </div>
           <div>
             <div>Classification</div>
-            <div>{project?.classificationType || 'N/A'}</div>
+            <div>{project?.dataClassification || 'N/A'}</div>
           </div>
           <div>
             <div>State</div>
