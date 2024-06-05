@@ -31,6 +31,7 @@ public class ConstantsUtility {
 
 	public static final String CREATEACTION = "create";
 	public static final String SPRINGBOOT = "springboot";
+	public static final String SPRINGBOOTWITHMAVEN = "SPRINGBOOTWITHMAVEN";
 	public static final String VUEJS = "vuejs";
 	public static final String PYFASTAPI = "py-fastapi";
 	public static final String REACT = "react";
