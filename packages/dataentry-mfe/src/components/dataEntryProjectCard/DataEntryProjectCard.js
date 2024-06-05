@@ -31,7 +31,7 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
             <div>
               <div>Data Lakehouse Link</div>
               <div>
-                <a href={`${project?.dataLakeDetails.link}`} target='_blank' rel='noopener noreferrer'>
+                <a href={`${project?.dataLakeDetails?.link}`} target='_blank' rel='noopener noreferrer'>
                   Access Lakehouse
                   <i className={classNames('icon mbc-icon new-tab')} />
                 </a>

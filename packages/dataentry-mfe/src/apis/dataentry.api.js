@@ -7,9 +7,7 @@ const getDataEntryProjects = (offset, limit) => {
 };
 
 const createDataEntryProject = (data) => {
-  return server.post(`/dataentries`, {
-    data,
-  });
+  return server.post(`/dataentries`, data);
 };
 
 const getDataEntryProject = (id) => {
