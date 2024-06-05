@@ -25,6 +25,11 @@ export const hostServer = axios.create({
   headers,
 });
 
+export const datalakeServer = axios.create({
+  baseURL: Envs.DATALAKE_API_BASEURL ? Envs.DATALAKE_API_BASEURL : `http://${window.location.hostname}:7170/api`,
+  headers,
+});
+
 export const storageServer = axios.create({
   baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL : `http://${window.location.hostname}:7175/api`,
   headers,
@@ -56,6 +61,7 @@ function createRefreshInterceptor(instance) {
         // Update the Authorization header in Axios instances.
         server.defaults.headers.Authorization = newJwt;
         hostServer.defaults.headers.Authorization = newJwt;
+        datalakeServer.defaults.headers.Authorization = newJwt;
         reportsServer.defaults.headers.Authorization = newJwt;
         storageServer.defaults.headers.Authorization = newJwt;
 
@@ -90,6 +96,9 @@ createRefreshInterceptor(server);
 
 // Apply interceptor to hostServer
 createRefreshInterceptor(hostServer);
+
+// Apply interceptor to datalakeServer
+createRefreshInterceptor(datalakeServer);
 
 // Apply interceptor to reportsServer
 createRefreshInterceptor(reportsServer);

@@ -26,6 +26,7 @@ const getDNAInjectedEnv = (key) => {
 export const Envs = {
   CONTAINER_APP_URL: getInjectedEnv('CONTAINER_APP_URL') || process.env.CONTAINER_APP_URL,
   DATA_ENTRY_API_BASEURL: getInjectedEnv('DATA_ENTRY_API_BASEURL') || process.env.DATA_ENTRY_API_BASEURL,
+  DATALAKE_API_BASEURL: getInjectedEnv('DATALAKE_API_BASEURL') || process.env.DATALAKE_API_BASEURL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
   REPORTS_API_BASEURL: getInjectedEnv('REPORTS_API_BASEURL') || process.env.REPORTS_API_BASEURL,
   STORAGE_API_BASEURL: getInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
