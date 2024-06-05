@@ -61,12 +61,12 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
   
   const getCollabarators = (collaborators) => {
     const collabarationData = {
+      id: collaborators.shortId,
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
-      accesskey: collaborators.shortId,
-      department: collaborators.department,
       email: collaborators.email,
-      mobileNumber: collaborators.mobileNumber,
+      department: collaborators.department,
+      mobileNumber: collaborators.mobileNumber
     };
 
     let duplicateMember = false;

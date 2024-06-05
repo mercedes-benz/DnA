@@ -136,7 +136,14 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
       termsOfUse: values?.termsOfUse ? true : false,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      createdBy: user,
+      createdBy: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        department: user.department,
+        mobileNumber: user.mobileNumber
+      },
       createdOn: formatDateToISO(new Date()),
       dataEntryUsers: 'null',
       dataLakeDetails: {
