@@ -2266,7 +2266,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.PATCH)
-    public ResponseEntity<GenericMessage> updateResourceValue(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "dataGovernanceInfo to add codespace" ,required=true )  @Valid @RequestBody ResourceVO updatedResourceValue)
+    public ResponseEntity<GenericMessage> updateResourceValue(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "resources to add codespace" ,required=true )  @Valid @RequestBody ResourceVO updatedResourceValue)
 	{
 		GenericMessage responseMessage = new GenericMessage();
 		CreatedByVO currentUser = this.userStore.getVO();

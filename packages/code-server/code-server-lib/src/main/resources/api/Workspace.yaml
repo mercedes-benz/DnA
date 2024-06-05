@@ -256,7 +256,7 @@ paths:
           type: "string"
         - name: "updatedResourceValue"
           in: "body"
-          description: "dataGovernanceInfo to add codespace"
+          description: "resources to add codespace"
           required: true
           schema:
            $ref: "#/definitions/ResourceVO"
