@@ -25,7 +25,7 @@ const DataEntryProjects = ({user}) => {
   const [editProject, setEditProject]  = useState(false);
 
   // Pagination 
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [totalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
@@ -98,10 +98,10 @@ const DataEntryProjects = ({user}) => {
       dataEntryApi
         .getDataEntryProjects(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setProjects(res?.data?.records);
-          const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
-          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
-          setTotalNumberOfPages(totalNumberOfPagesTemp);
+          setProjects(res?.data?.data);
+          // const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+          // setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+          // setTotalNumberOfPages(totalNumberOfPagesTemp);
           ProgressIndicator.hide();
         })
         .catch((e) => {
@@ -257,7 +257,7 @@ const DataEntryProjects = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={createProject}
-          content={<DataEntryProjectForm edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
+          content={<DataEntryProjectForm user={user} edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
           scrollableContent={true}
           onCancel={() => setCreateProject(false)}
         />
@@ -282,7 +282,7 @@ const DataEntryProjects = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editProject}
-          content={<DataEntryProjectForm edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
+          content={<DataEntryProjectForm user={user} edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
           scrollableContent={true}
           onCancel={() => setEditProject(false)}
         />

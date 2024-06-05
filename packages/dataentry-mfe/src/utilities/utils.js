@@ -26,3 +26,13 @@ export function getQueryParameterByName(name, url) {
   }
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
+
+export const formatDateToISO = (date) => {
+  // Get the ISO string (e.g., "2024-03-27T04:06:59.245Z")
+  let isoString = date.toISOString();
+
+  // Replace the 'Z' at the end with '+00:00' to indicate UTC
+  let formattedString = isoString.replace('Z', '+00:00');
+
+  return formattedString;
+}
