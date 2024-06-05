@@ -30,14 +30,14 @@ const codeSpaceList = (props: IRecipeList) => {
   };
 
   const chips =
-  props?.software && props?.software?.length
+    props?.software && props?.software?.length
       ? props?.software?.map((chip) => {
-          return (
-            <>
-              <label className="chips">{chip}</label>&nbsp;&nbsp;
-            </>
-          );
-        })
+        return (
+          <>
+            <label className="chips">{chip}</label>&nbsp;&nbsp;
+          </>
+        );
+      })
       : 'N/A';
 
   const onNotificationMsgAccept = () => {
@@ -47,35 +47,37 @@ const codeSpaceList = (props: IRecipeList) => {
     setNotificationMsg(false);
   }
 
-  const deleteModal = ()=> {
+  const deleteModal = () => {
     setNotificationMsg(true);
-    return( <Modal
-      title="Public Visibility"
-      show={notificationMsg}
-      showAcceptButton={false}
-      showCancelButton={false}
-      acceptButtonTitle="Confirm"
-      cancelButtonTitle="Cancel"
-      buttonAlignment='right'
-      scrollableContent={false}
-      hideCloseButton={true}
-      content={
-        <div>
-          <header>
-            <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
-          </header>
-          <div>
-            <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
-          </div>
-          <div className="btn-set footerRight">
-            <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
-            <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
-          </div>
-        </div>
-      } />);
   };
   return (
     <React.Fragment>
+      <div>
+        <Modal
+          title="Public Visibility"
+          show={notificationMsg}
+          showAcceptButton={false}
+          showCancelButton={false}
+          acceptButtonTitle="Confirm"
+          cancelButtonTitle="Cancel"
+          buttonAlignment='right'
+          scrollableContent={false}
+          hideCloseButton={true}
+          content={
+            <div>
+              <header>
+                <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
+              </header>
+              <div>
+                <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
+              </div>
+              <div className="btn-set footerRight">
+                <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
+                <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
+              </div>
+            </div>
+          } />
+      </div>
       <tr
         id={props.id}
         key={props.id}
@@ -86,30 +88,30 @@ const codeSpaceList = (props: IRecipeList) => {
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol}>
           <span className={Styles.securityConfig}>
-            {"Diskspace- "+props.diskSpace +" CPU- "+props.maxCpu+" RAM- "+props.maxRam}
+            {"Diskspace- " + props.diskSpace + " CPU- " + props.maxCpu + " RAM- " + props.maxRam}
           </span>
         </td>
 
         <td className={'wrap-text' + Styles.securityConfigCol}>
           {chips}
         </td>
-         <td className={'wrap-text' + Styles.securityConfigCol}>
+        <td className={'wrap-text' + Styles.securityConfigCol}>
           <span>{props.isPublic ? "Yes" : 'No'}</span>
         </td>
-       <td className={'wrap-text' + Styles.securityConfigCol}>
+        <td className={'wrap-text' + Styles.securityConfigCol}>
           <button
             className={
-              'btn btn-primary '+ Styles.actionBtn
+              'btn btn-primary ' + Styles.actionBtn
             }
             type="button"
             onClick={deleteModal}
           >
-             <i className='icon delete'></i>
+            <i className='icon delete'></i>
           </button>
-          
-        </td> 
+
+        </td>
       </tr>
-      {viewInfoModel&&(<Modal
+      {viewInfoModel && (<Modal
         title={''}
         hiddenTitle={true}
         showAcceptButton={false}
@@ -122,7 +124,7 @@ const codeSpaceList = (props: IRecipeList) => {
           setviewInfoModel(false);
         }}
       />)}
-                         
+
     </React.Fragment>
   );
 };

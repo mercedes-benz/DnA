@@ -18,7 +18,6 @@ import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
 import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
-import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 import { Link } from 'react-router-dom';
@@ -58,7 +57,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
   const [recipeValue, setRecipeValue] = useState(onBoadingMode ? projectDetails.recipeDetails?.recipeId : '0');
-  const recipes = recipesMaster;
+  const [recipesMaster,setRecipeMaster] = useState([]);
 
   const [recipeError, setRecipeError] = useState('');
 
@@ -139,6 +138,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getRecipeLov()
+        .then((res) => {
+          console.log(res.data);
+          setRecipeMaster(res.data);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+  
+        }).catch(() => {
+          ProgressIndicator.hide();
+        });
+  
     }  
   }, []);
 
@@ -159,6 +170,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setSubDivisions([]);
     }
   }, [division]);
+
+  
+
+
 
   useEffect(() => {
     SelectBox.defaultSetup(true);
@@ -908,7 +923,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               <label>Recipe</label>
               </div>
               <div style={{ width: '75%' }}>
-                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+                {recipesMaster.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -1308,9 +1323,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                     <option id="defaultStatus" value={0}>
                       Select Code Recipe
                     </option>
-                    {recipes.map((obj: any) => (
-                      <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
-                        {obj.name}
+                    {recipesMaster.map((obj: any) => (
+                      <option key={obj.id} id={obj.recipeName + obj.id} value={obj.id}>
+                        {'Recipe Name: '+obj.recipeName+ ' OS Name: '+obj.osName+' CPU: '+obj.maxCpu+' RAM: '+obj.maxRam}
                       </option>
                     ))}
                   </select>
@@ -1498,7 +1513,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   <div>
                     <label>Recipe</label>
                   </div>
-                  <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
+                  <div>{recipesMaster.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
                 </div>
                 <div className={Styles.flexLayout}>
                   <div>

@@ -166,9 +166,9 @@ export class CodeSpaceApiClient {
     return this.post(`recipeDetails/${name}/publish`);
   };
 
-  // public static getRecipeLov(){
-  //  return this.get('recipeDetails/recipeLov');
-  // }
+   public static getRecipeLov(){
+     return this.get('recipeDetails/recipelov');
+   }
 
   public static getSoftwareLov(){
     return this.get('recipeDetails/softwareLov');
