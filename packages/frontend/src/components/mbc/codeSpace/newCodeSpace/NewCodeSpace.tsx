@@ -1856,7 +1856,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                           className="ff-only"
                                           value="develop"
                                           checked={true}
-                                          readOnly
+                                          disabled
                                         />
                                       </span>
                                       <label className={Styles.permissionContent}>Develop</label>
@@ -1871,7 +1871,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                           className="ff-only"
                                           value="deploy"
                                           checked={true}
-                                          readOnly
+                                          disabled
                                           // checked={item?.permission !== null ? item?.canDeploy : false}
                                           // onChange={(e) => onCollaboratorPermission(e, item.id)}
                                         />
@@ -1887,7 +1887,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                           type="checkbox"
                                           className="ff-only"
                                           value="admin"
-                                          // readOnly
+                                          disabled={props.user.id === item.id}
                                           checked={item?.isAdmin || false}
                                           onChange={(e) => onCollaboratorPermission(e, item?.id)}
                                         />
@@ -1897,13 +1897,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                   </div>
                                 </div>
                                 <div className={Styles.collaboratorTitleCol}>
-                                  <span
+                                  {item.id !== props.user.id && <span
                                     tooltip-data={'Remove Collaborator'}
                                     className={Styles.deleteEntry}
                                     onClick={onCollaboratorDelete(item.id)}
                                   >
                                     <i className="icon mbc-icon trash-outline" />
-                                  </span>
+                                  </span>}
                                   {onEditingMode && (props?.onEditingCodeSpace?.projectDetails?.projectOwner?.id === props?.user?.id) && (
                                     <>
                                       &nbsp;| &nbsp;
