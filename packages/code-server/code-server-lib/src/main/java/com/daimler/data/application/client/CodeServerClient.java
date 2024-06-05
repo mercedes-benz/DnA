@@ -261,7 +261,6 @@ public class CodeServerClient {
 				return true;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
@@ -472,7 +471,6 @@ public class CodeServerClient {
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
-			e.printStackTrace();
 		}
 		response.setSuccess(status);
 		response.setWarnings(warnings);
