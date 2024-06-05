@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import Styles from './data-entry-project-card.scss';
 import { useHistory } from 'react-router-dom';
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+// import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) => {
@@ -40,7 +40,7 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
           }
           <div>
             <div>Created on</div>
-            <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
+            <div>{project?.createdOn}</div>
           </div>
           <div>
             <div>Classification</div>
