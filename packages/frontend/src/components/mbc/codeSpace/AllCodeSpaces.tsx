@@ -361,7 +361,8 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           enableSecureWithIAM={
             onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
             onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs'
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
           }
           setShowCodeDeployModal={(isVisible: boolean) => setShowDeployCodeSpaceModal(isVisible)}
           setCodeDeploying={(isDeploying: boolean) => getCodeSpacesData()}
