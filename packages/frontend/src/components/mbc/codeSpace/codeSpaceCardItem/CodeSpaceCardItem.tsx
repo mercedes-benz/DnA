@@ -284,12 +284,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs';
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+
 
   const isIAMRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs';
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const securedWithIAMContent: React.ReactNode = (
     <svg
