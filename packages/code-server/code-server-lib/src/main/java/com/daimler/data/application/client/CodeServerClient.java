@@ -239,7 +239,7 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	private boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
@@ -261,6 +261,7 @@ public class CodeServerClient {
 				return true;
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;

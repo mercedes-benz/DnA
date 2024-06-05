@@ -26,6 +26,8 @@ import com.daimler.data.dto.workspace.recipe.InitializeRecipeVo;
 import com.daimler.data.dto.workspace.recipe.RecipeCollectionVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,6 +52,9 @@ public class RecipeController implements CodeServerRecipeApi {
 
 	 @Autowired
 	 private UserStore userStore;
+
+	 @Autowired
+	private WorkspaceCustomRecipeRepo workspaceCustomRecipeRepo;
 
 	@Override
 	@ApiOperation(value = "Initialize/Create recipe for user in code-server-recipe.", nickname = "createRecipe", notes = "Create recipe for user in code-server with given password", response = RecipeVO.class, tags = {
@@ -425,9 +430,23 @@ public class RecipeController implements CodeServerRecipeApi {
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> deleteRecipe(@ApiParam(value = "recipe to be deleted",required=true) @PathVariable("recipeName") String recipeName){
-		// TODO Auto-generated method stub
-		GenericMessage  genericMessage = service.deleteRecipe(recipeName);
-		return ResponseEntity.ok(genericMessage);
-	}
+		public ResponseEntity<GenericMessage> deleteRecipe(@ApiParam(value = "recipe to be deleted", required = true) @PathVariable("recipeName") String recipeName) {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String id = currentUser.getId();
+			CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+		
+			if (entity != null && Objects.nonNull(entity)) {
+				if (id.equalsIgnoreCase(entity.getData().getCreatedBy().getId())) {
+					GenericMessage genericMessage = service.deleteRecipe(recipeName);
+					return ResponseEntity.ok(genericMessage);
+				} else {
+					// not authorized
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this recipe."));
+				}
+			} else {
+				// not found
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericMessage("Recipe not found."));
+			}
+		}
+		
 }
