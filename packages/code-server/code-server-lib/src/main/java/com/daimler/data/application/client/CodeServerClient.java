@@ -69,6 +69,7 @@ public class CodeServerClient {
 			recipeType = recipeId.toLowerCase();
 		switch(recipeType) {
 			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
+			case "springbootwithmaven": deployType = ConstantsUtility.SPRINGBOOTWITHMAVEN; break;
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
 			case "vuejs" : deployType = ConstantsUtility.VUEJS; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
