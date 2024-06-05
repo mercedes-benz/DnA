@@ -141,15 +141,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ProgressIndicator.show();
       CodeSpaceApiClient.getRecipeLov()
         .then((res) => {
-          console.log(res.data);
           setRecipeMaster(res.data);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
-  
         }).catch(() => {
           ProgressIndicator.hide();
         });
-  
     }  
   }, []);
 
