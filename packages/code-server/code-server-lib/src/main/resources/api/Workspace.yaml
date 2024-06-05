@@ -241,6 +241,42 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+    patch:
+      tags:
+        - "code-server"
+      summary: "update resource for give workspace id."
+      description: "updating resource for existing workspace Project "
+      operationId: "updateResourceValue"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "updatedResourceValue"
+          in: "body"
+          description: "resources to add codespace"
+          required: true
+          schema:
+           $ref: "#/definitions/ResourceVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
   /workspaces/server/{id}: 
     delete:
@@ -1020,6 +1056,21 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CodeServerWorkspaceVO"
+
+  ResourceVO:
+    type: object
+    properties:
+      diskSpace:
+        type: string
+      minCpu:
+        type: string
+      maxCpu: 
+        type: string
+      minRam:
+        type: string
+      maxRam:
+        type: string
+
   
   WorkspaceUpdateRequestVO:
     type: object

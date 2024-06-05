@@ -240,7 +240,7 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	private boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
@@ -472,7 +472,6 @@ public class CodeServerClient {
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
-			e.printStackTrace();
 		}
 		response.setSuccess(status);
 		response.setWarnings(warnings);

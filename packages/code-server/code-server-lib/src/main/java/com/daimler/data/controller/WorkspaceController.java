@@ -90,6 +90,7 @@ import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.ManageDeployRequestDto;
+import com.daimler.data.dto.workspace.ResourceVO;
 import com.daimler.data.dto.workspace.RoleCollectionVO;
 import com.daimler.data.dto.workspace.SecurityConfigRequestDto;
 import com.daimler.data.dto.workspace.SecurityConfigResponseDto;
@@ -2249,6 +2250,52 @@ import org.springframework.beans.factory.annotation.Value;
 
 		}
 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	}
+
+	@Override
+	    @ApiOperation(value = "update resource for give workspace id.", nickname = "updateResourceValue", notes = "updating resource for existing workspace Project ", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> updateResourceValue(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "resources to add codespace" ,required=true )  @Valid @RequestBody ResourceVO updatedResourceValue)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+			if(entity!=null && Objects.nonNull(entity) && Objects.nonNull(updatedResourceValue))
+			{
+				responseMessage = service.updateResourceValue(entity,updatedResourceValue);
+			}
+			else
+			{
+				log.info("no workspace found for given workspace id {}"+id);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
+		}
+		else
+		{
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+				 notAuthorizedMsg.setMessage(
+						 "updating resource value can be done by Codespace admins. Access Denied, user does not have privileges.");
+				 responseMessage.addErrors(notAuthorizedMsg);
+			 log.info(
+					 "updating resource value  for workspace can be accessed  only by workspace owners and Codespace admins, insufficient privileges. Workspace name: {}"
+					,id);
+			 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+
+		}
+		return null;
 	}
 
  }
