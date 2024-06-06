@@ -916,8 +916,8 @@ const Graph = ({user, hostHistory}) => {
           showCancelButton={true}
           show={showSaveModel}
           content={
-            <div id="contentparentdiv">a
-              save the table alignment before adding a new table<br></br> or the alignment will not be preserved.
+            <div id="contentparentdiv">
+              Save the current changes before adding a new table.
             </div>
           }
           onCancel={() => {
