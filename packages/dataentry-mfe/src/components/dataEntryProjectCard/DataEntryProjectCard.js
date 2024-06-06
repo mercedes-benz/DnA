@@ -27,7 +27,7 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
       <hr />
       <div className={Styles.cardBodySection}>
         <div>
-          {user.id === project?.createdBy?.id &&
+          {user.id === project?.createdBy?.id && project?.dataLakeDetails?.link !== 'null' &&
             <div>
               <div>Data Lakehouse Link</div>
               <div>

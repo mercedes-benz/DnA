@@ -15,7 +15,7 @@ const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) 
         </span>
       </div>
       <div className={Styles.col2}>
-      {user.id === project?.createdBy?.id ?
+      {user.id === project?.createdBy?.id ? project?.dataLakeDetails?.link !== 'null' &&
         <a href={`${project?.dataLakeDetails?.link}`} target='_blank' rel='noopener noreferrer'>
           Access Data Lakehouse
           <i className={classNames('icon mbc-icon new-tab')} />

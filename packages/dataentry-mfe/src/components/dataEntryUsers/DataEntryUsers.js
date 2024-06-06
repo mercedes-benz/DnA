@@ -12,7 +12,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { dataEntryApi } from '../../apis/dataentry.api';
 import { formatDateToISO } from '../../utilities/utils';
 
-const DataEntryUsers = ({ user, surveyData, project }) => {
+const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
   const { id } = useParams();
 
   const methods = useForm({ 
@@ -32,7 +32,6 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
   } = methods;
 
   const [dataEntryUsers, setDataEntryUsers] = useState([]);
-  const [createdBy] = useState();
   const [datalakeProjects, setDatalakeProjects] = useState([]);
 
   useEffect(() => {
@@ -70,10 +69,10 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
     };
 
     let duplicateMember = false;
-    duplicateMember = dataEntryUsers.filter((member) => member.accesskey === collaborators.shortId)?.length
+    duplicateMember = dataEntryUsers.filter((member) => member.id === collaborators.shortId)?.length
       ? true
       : false;
-    const isCreator = id ? createdBy.id === collaborators.shortId : user.id === collaborators.shortId;
+    const isCreator = id ? project?.createdBy.id === collaborators.shortId : user.id === collaborators.shortId;
 
     if (duplicateMember) {
       Notification.show('User Already Exist.', 'warning');
@@ -124,11 +123,12 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
       dataClassification: project?.dataClassification,
       createdBy: project?.createdBy,
       createdOn: project?.createdOn,
-      state: project?.state,
+      state: 'PUBLISHED',
     }
     dataEntryApi.updateDataEntryProject(id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project successfully published');
+      onPublish();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -194,9 +194,9 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
                     <option
                       id={item.id}
                       key={item.id}
-                      value={`${item.id}@-@${item.name}`}
+                      value={`${item.id}@-@${item.projectName}`}
                     >
-                      {item.name}
+                      {item.projectName}
                     </option>
                   ))}
 
