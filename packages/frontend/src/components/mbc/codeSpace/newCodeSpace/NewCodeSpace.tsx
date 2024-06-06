@@ -920,7 +920,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 <label>Recipe</label>
               </div>
               <div style={{ width: '75%' }}>
-                {recipesMaster.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}
+                {projectDetails?.recipeDetails?.recipeId ? projectDetails?.recipeDetails?.recipeId : 'N/A'}
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -1510,7 +1510,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   <div>
                     <label>Recipe</label>
                   </div>
-                  <div>{recipesMaster.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
+                  <div>{projectDetails?.recipeDetails?.recipeId ? projectDetails?.recipeDetails?.recipeId : 'N/A'}</div>
                 </div>
                 <div className={Styles.flexLayout}>
                   <div>

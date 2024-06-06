@@ -145,7 +145,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
         mobileNumber: user.mobileNumber
       },
       createdOn: formatDateToISO(new Date()),
-      dataEntryUsers: 'null',
+      dataEntryUsers: [],
       dataLakeDetails: {
         id: 'null',
         link: 'null',
@@ -159,7 +159,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
     };
     dataEntryApi.createDataEntryProject(data).then((res) => {
       ProgressIndicator.hide();
-      history.push(`/project/${res.data.data.id}`);
+      history.push(`/project/${res?.data?.id}`);
       Notification.show('Data Entry Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
