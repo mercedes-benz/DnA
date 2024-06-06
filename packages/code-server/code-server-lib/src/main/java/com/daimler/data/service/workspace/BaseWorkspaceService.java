@@ -31,10 +31,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
@@ -556,8 +559,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			RecipeIdEnum recipe = vo.getProjectDetails().getRecipeDetails().getRecipeId();
 			String recipeIdType = client.toDeployType(recipe.toString());
-
-			List<String> gitUsers = new ArrayList<>();
+			//map to store git username and is admin permission to repo
+			Map<String,Boolean> gitUsers = new HashMap<>();
 			UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 
 			String repoName = vo.getProjectDetails().getGitRepoName();
@@ -607,19 +610,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 					// create repo success, adding collabs
 
-					gitUsers.add(owner.getGitUserName());
+					gitUsers.put(owner.getGitUserName(),false);
 //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 //							.equalsIgnoreCase("default")
 //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 //							.startsWith("bat")) {
 						collabs = vo.getProjectDetails().getProjectCollaborators();
 						if (collabs != null && !collabs.isEmpty()) {
-							List<String> collabsGitUserNames = collabs.stream().map(n -> n.getGitUserName())
-									.collect(Collectors.toList());
-							gitUsers.addAll(collabsGitUserNames);
+							// List<String> collabsGitUserNames = collabs.stream().map(n -> n.getGitUserName())
+							// 		.collect(Collectors.toList());
+							// gitUsers.addAll(collabsGitUserNames);
+							for(UserInfoVO user : collabs){
+								gitUsers.put(user.getGitUserName(),user.isIsAdmin());
+							}
 						}
-						for (String gitUser : gitUsers) {
-							HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+						for (Map.Entry<String,Boolean> gitUser: gitUsers.entrySet()) {
+							HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
 							if (!addGitUser.is2xxSuccessful()) {
 								MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser
 										+ " as collaborator to repository. Please add manually");
@@ -651,6 +657,20 @@ public class BaseWorkspaceService implements WorkspaceService {
 								 * return responseVO;
 								 * }
 								 */
+							}
+							if(gitUser.getValue()!=null){
+								if(gitUser.getValue()){
+									HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(gitUser.getKey(), repoName);
+									if(!addAdminAccessToGitUser.is2xxSuccessful())
+									{
+										MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser.getKey()
+										+ " as admin to repository");
+										log.info("Failed while adding {} as collaborator to repository. Please add manually",
+										gitUser.getKey());
+										warnings.add(warnMsg);
+										responseVO.setWarnings(warnings);
+									}
+								}
 							}
 						}
 //					}

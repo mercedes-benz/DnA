@@ -2173,6 +2173,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errorMessage = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
 		MessageDescription msg = new MessageDescription();
 
 		boolean isCurrentUserAdmin = false;
@@ -2226,6 +2227,29 @@ import org.springframework.beans.factory.annotation.Value;
 				}
 			}
 			if(isCollabIdPartOfProject){
+				if(isAdmin){
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					if(!addAdminAccessToGitUser.is2xxSuccessful())
+					{
+						MessageDescription warnMsg = new MessageDescription("Failed while adding " + collabUserId
+						+ " as admin to repository");
+						log.info("Failed while adding {} as collaborator to repository. Please add manually",
+						collabUserId);
+						warnings.add(warnMsg);
+						responseMessage.setWarnings(warnings);
+					}
+				}else{
+					HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					if(!removeAdminAccessToGitUser.is2xxSuccessful())
+					{
+						MessageDescription warnMsg = new MessageDescription("Failed while removing " + collabUserId
+						+ " as admin to repository");
+						log.info("Failed while removing {} as collaborator to repository. Please remove manually",
+						collabUserId);
+						warnings.add(warnMsg);
+						responseMessage.setWarnings(warnings);
+					}
+				}
 				vo.getProjectDetails().setProjectCollaborators(collabList);
 				responseMessage = service.makeAdmin(vo);
 				if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
