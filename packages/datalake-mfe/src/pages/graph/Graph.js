@@ -910,14 +910,14 @@ const Graph = ({user, hostHistory}) => {
      }
     {showSaveModel && 
           <ConfirmModal
-          acceptButtonTitle="Save"
-          cancelButtonTitle="Cancel"
+          acceptButtonTitle="Yes"
+          cancelButtonTitle="No"
           showAcceptButton={true}
           showCancelButton={true}
           show={showSaveModel}
           content={
             <div id="contentparentdiv">
-              Save the current changes before adding a new table.
+             Do you wish to save the alignment changes ?
             </div>
           }
           onCancel={() => {
@@ -927,6 +927,7 @@ const Graph = ({user, hostHistory}) => {
           onAccept={() => {
             setShowSaveModel(false);
             handlePublish;
+            setToggleModal(!toggleModal);
           }}
         />
      }
