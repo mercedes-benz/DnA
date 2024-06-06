@@ -12,7 +12,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { dataEntryApi } from '../../apis/dataentry.api';
 import { formatDateToISO } from '../../utilities/utils';
 
-const DataEntryUsers = ({ user, surveyData, project }) => {
+const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
   const { id } = useParams();
 
   const methods = useForm({ 
@@ -123,11 +123,12 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
       dataClassification: project?.dataClassification,
       createdBy: project?.createdBy,
       createdOn: project?.createdOn,
-      state: project?.state,
+      state: 'PUBLISHED',
     }
     dataEntryApi.updateDataEntryProject(id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project successfully published');
+      onPublish();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(

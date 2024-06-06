@@ -236,7 +236,7 @@ const DataEntryProject = ({ user }) => {
           showCancelButton={false}
           modalWidth={'800px'}
           show={showDeUsersModal}
-          content={<DataEntryUsers user={user} surveyData={() => univerRef.current?.getData()} project={project} />}
+          content={<DataEntryUsers user={user} surveyData={() => univerRef.current?.getData()} project={project} onPublish={() => setShowDeUsersModal(false)} />}
           scrollableContent={true}
           onCancel={() => setShowDeUsersModal(false)}
         />
