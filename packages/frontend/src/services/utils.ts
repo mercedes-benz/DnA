@@ -421,6 +421,7 @@ export const recipesMaster = [
   { id: 'public-dna-backend', resource: '4Gi,2000M,1.5,4000M,2', name: 'DnA Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
   { id: 'public-dna-report-backend', resource: '4Gi,2000M,1.5,4000M,2', name: 'DnA Report Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dashboard-backend/*' },
   { id: 'public-dna-codespace-backend', resource: '4Gi,2000M,1.5,4000M,2', name: 'DnA Code Space Backend (Debian 11 OS, 2GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/code-server/*' },
+  { id: 'public-dna-code-space-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Code Space Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/code-space-mfe/*' },
   { id: 'public-dna-malware-scanner', resource: '4Gi,2000M,1.5,4000M,2', name: 'DnA Malware Scanner (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/malware-scanner/*' },
   { id: 'public-dna-storage-mfe', resource: '4Gi,2000M,1,4000M,2', name: 'DnA Storage Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/storage-mfe/*' },
   { id: 'public-dna-storage-backend', resource: '4Gi,2000M,1.5,4000M,2', name: 'DnA Storage Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/storage-backend/*' },
