@@ -98,7 +98,7 @@ const DataEntryProjects = ({user}) => {
       dataEntryApi
         .getDataEntryProjects(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setProjects(res?.data?.records);
+          setProjects(res?.data?.data);
           const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -257,7 +257,7 @@ const DataEntryProjects = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={createProject}
-          content={<DataEntryProjectForm edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
+          content={<DataEntryProjectForm user={user} edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
           scrollableContent={true}
           onCancel={() => setCreateProject(false)}
         />
@@ -282,7 +282,7 @@ const DataEntryProjects = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editProject}
-          content={<DataEntryProjectForm edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
+          content={<DataEntryProjectForm user={user} edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
           scrollableContent={true}
           onCancel={() => setEditProject(false)}
         />

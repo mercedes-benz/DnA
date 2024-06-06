@@ -404,7 +404,8 @@ export const recipesMaster = [
 
   { id: 'public-user-defined', resource: '4Gi,2000M,1,4000M,2', name: 'Recipe from Public Github(https://github.com/) (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: '' },
   
-  { id: 'springboot', resource: '2Gi,1000M,0.5,2000M,1', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
+  { id: 'springboot', resource: '2Gi,1000M,0.5,2000M,1', name: 'Microservice using Spring Boot with Gradle (Debian 11 OS, 2GB RAM, 1CPU)' },
+  { id: 'springbootwithmaven', resource: '2Gi,1000M,0.5,2000M,1', name: 'Microservice using Spring Boot with Maven (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'quarkus', resource: '2Gi,1000M,0.5,2000M,1', name: 'Microservice using QUARKUS (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'micronaut', resource: '2Gi,1000M,0.5,2000M,1', name: 'Microservice using MICRONAUT (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'py-fastapi', resource: '2Gi,1000M,0.5,2000M,1', name: 'Microservice using Python FastAPI (Debian 11 OS, 2GB RAM, 1CPU)' },

@@ -22,6 +22,7 @@ const DataEntryProject = ({ user }) => {
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
+  const [isDue, setIsDue] = useState(false);
 
   const [showDeUsersModal, setShowDeUsersModal] = useState(false);
   const [showDeUsersInformationModal, setShowDeUsersInformationModal] = useState(false);
@@ -38,6 +39,11 @@ const DataEntryProject = ({ user }) => {
         .getDataEntryProject(projectId)
         .then((res) => {
           setProject(res?.data);
+          if(res?.data?.dueDate) {
+            let dateToCheck = new Date(res?.data?.dueDate);
+            let currentDate = new Date();
+            dateToCheck > currentDate ? setIsDue(true) : setIsDue(false);
+          }
           if(res?.data?.surveyData !== null) {
             const workbook = {...DEFAULT_WORKBOOK_DATA};
             workbook.sheets['sheet-01'].cellData = res?.data?.surveyData;
@@ -58,19 +64,38 @@ const DataEntryProject = ({ user }) => {
         });
   };
 
-  const handleUpdate = () => {
+  const handleSaveAsDraft = () => {
     ProgressIndicator.show(); 
     const surveyDataTemp = univerRef.current?.getData();
     const data = {
       dataLakeDetails: {
-        id: '',
+        id: 'null',
         type: 'DnA',
-        name: '',
+        name: 'null',
+        link: 'null',
       },
-      fillingInstructions: '',
-      dueDate: null,
+      fillingInstructions: 'null',
+      dueDate: 'null',
       dataEntryUsers: [],
       surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: 'DRAFT',
     }
     dataEntryApi.updateDataEntryProject(projectId, data).then(() => {
       ProgressIndicator.hide();
@@ -92,11 +117,30 @@ const DataEntryProject = ({ user }) => {
         id: project?.dataLakeDetails?.id,
         type: project?.dataLakeDetails?.type,
         name: project?.dataLakeDetails?.name,
+        link: project?.dataLakeDetails?.link,
       },
       fillingInstructions: project?.fillingInstructions,
       dueDate: project?.dueDate,
       dataEntryUsers: project?.dataEntryUsers,
       surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: 'PUBLISHED',
     }
     dataEntryApi.publishDataEntryProject(projectId, data).then(() => {
       ProgressIndicator.hide();
@@ -117,7 +161,7 @@ const DataEntryProject = ({ user }) => {
           <div className={Styles.col2}>
             { !loading && 
               <Caption title={project?.name}>
-                {project?.state === 'PUBLISHED' && <span className={Styles.dueDate}>(Survey due date: {project?.dueDate ? regionalDateAndTimeConversionSolution(project?.dueDate) : ''})</span>}
+                {project?.state === 'PUBLISHED' && <span className={Styles.dueDate}>(Survey due date: {project?.dueDate !== 'null' && regionalDateAndTimeConversionSolution(project?.dueDate)})</span>}
               </Caption> 
             }
           </div>
@@ -146,7 +190,7 @@ const DataEntryProject = ({ user }) => {
               <>
                 <button
                   className={'btn btn-primary'}
-                  onClick={handleUpdate}
+                  onClick={handleSaveAsDraft}
                 >
                   Save as Draft
                 </button>
@@ -162,7 +206,7 @@ const DataEntryProject = ({ user }) => {
             }
             {project?.state === 'PUBLISHED' && 
               <button
-                className={'btn btn-tertiary'}
+                className={classNames('btn btn-tertiary', isDue && Styles.btnDisabled)}
                 onClick={handlePublish}
               >
                 Publish
@@ -192,7 +236,7 @@ const DataEntryProject = ({ user }) => {
           showCancelButton={false}
           modalWidth={'800px'}
           show={showDeUsersModal}
-          content={<DataEntryUsers user={user} surveyData={() => univerRef.current?.getData()} />}
+          content={<DataEntryUsers user={user} surveyData={() => univerRef.current?.getData()} project={project} />}
           scrollableContent={true}
           onCancel={() => setShowDeUsersModal(false)}
         />

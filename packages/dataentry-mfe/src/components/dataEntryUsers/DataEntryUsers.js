@@ -10,8 +10,9 @@ import SelectBox from 'dna-container/SelectBox';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { dataEntryApi } from '../../apis/dataentry.api';
+import { formatDateToISO } from '../../utilities/utils';
 
-const DataEntryUsers = ({ user, surveyData }) => {
+const DataEntryUsers = ({ user, surveyData, project }) => {
   const { id } = useParams();
 
   const methods = useForm({ 
@@ -60,12 +61,12 @@ const DataEntryUsers = ({ user, surveyData }) => {
   
   const getCollabarators = (collaborators) => {
     const collabarationData = {
+      id: collaborators.shortId,
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
-      accesskey: collaborators.shortId,
-      department: collaborators.department,
       email: collaborators.email,
-      mobileNumber: collaborators.mobileNumber,
+      department: collaborators.department,
+      mobileNumber: collaborators.mobileNumber
     };
 
     let duplicateMember = false;
@@ -100,15 +101,32 @@ const DataEntryUsers = ({ user, surveyData }) => {
         id: datalake[0],
         type: values.type,
         name: datalake[1],
+        link: 'null'
       },
       fillingInstructions: values.fillingInstructions,
-      dueDate: new Date(values.dueDate),
+      dueDate: formatDateToISO(new Date(values.dueDate)),
       dataEntryUsers: dataEntryUsers,
       surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: project?.state,
     }
-    console.log('data');
-    console.log(data);
-    dataEntryApi.publishDataEntryProject(id, data).then(() => {
+    dataEntryApi.updateDataEntryProject(id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project successfully published');
     }).catch(error => {

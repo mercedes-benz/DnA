@@ -241,6 +241,42 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+    patch:
+      tags:
+        - "code-server"
+      summary: "update resource for give workspace id."
+      description: "updating resource for existing workspace Project "
+      operationId: "updateResourceValue"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "updatedResourceValue"
+          in: "body"
+          description: "resources to add codespace"
+          required: true
+          schema:
+           $ref: "#/definitions/ResourceVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
   /workspaces/server/{id}: 
     delete:
@@ -1020,6 +1056,21 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CodeServerWorkspaceVO"
+
+  ResourceVO:
+    type: object
+    properties:
+      diskSpace:
+        type: string
+      minCpu:
+        type: string
+      maxCpu: 
+        type: string
+      minRam:
+        type: string
+      maxRam:
+        type: string
+
   
   WorkspaceUpdateRequestVO:
     type: object
@@ -1173,7 +1224,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
+        enum: [default,springboot,springbootwithmaven,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-fabric-mfe,public-dna-fabric-backend,public-dna-dataentry-mfe,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string

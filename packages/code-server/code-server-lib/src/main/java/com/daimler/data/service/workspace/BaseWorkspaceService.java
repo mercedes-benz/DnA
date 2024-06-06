@@ -77,6 +77,7 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.ResourceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
@@ -2095,6 +2096,87 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setErrors(errors);
 		}
 		return responseMessage;
+	}
+
+	@Override
+	public GenericMessage updateResourceValue(CodeServerWorkspaceNsql entity,ResourceVO updatedResourceValue)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try
+		{
+			CodeServerWorkspace workspace = entity.getData();
+			String repoName = "";
+			String repoNameWithOrg = "";
+			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
+			repoName = workspace.getProjectDetails().getGitRepoName();
+			if (workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace
+					.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")) {
+				repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			String pathCheckout = "";
+			if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
+					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+							.startsWith("private")
+					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+							.startsWith("bat")) {
+				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+			} else {
+				repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+				String url[] = repoNameWithOrg.split(",");
+				repoNameWithOrg = url[0];
+				pathCheckout = url[1];
+			}
+				ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
+				WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
+				ownerWorkbenchCreateInputsDto.setStorage_capacity(updatedResourceValue.getDiskSpace()+"Gi");
+				ownerWorkbenchCreateInputsDto.setMem_guarantee(updatedResourceValue.getMinRam()+"M");
+				ownerWorkbenchCreateInputsDto.setMem_limit(updatedResourceValue.getMaxRam()+"M");
+				ownerWorkbenchCreateInputsDto.setCpu_limit(Double.parseDouble(updatedResourceValue.getMaxCpu()));
+				ownerWorkbenchCreateInputsDto.setCpu_guarantee(Double.parseDouble(updatedResourceValue.getMinCpu()));
+				ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
+				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
+				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
+				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
+				ownerWorkbenchCreateInputsDto.setType(
+						client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
+				ownerWorkbenchCreateInputsDto.setWsid(workspace.getWorkspaceId());
+				ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
+				ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+				String codespaceName = workspace.getProjectDetails().getProjectName();
+				String ownerwsid = workspace.getWorkspaceId();
+				boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName);
+				if (!createOwnerWSResponse) {
+				responseMessage.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription("Failed to create workspace.");
+				errors.add(errMsg);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+				}
+				String resource = updatedResourceValue.getDiskSpace()+"Gi,"+updatedResourceValue.getMinRam()+"M,";
+				resource+= updatedResourceValue.getMinCpu()+","+updatedResourceValue.getMaxRam()+"M,"+updatedResourceValue.getMaxCpu();
+				workspace.getProjectDetails().getRecipeDetails().setResource(resource);
+				entity.setData(workspace);
+				jpaRepo.save(entity);
+				
+			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+			errors.add(errMsg);
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}
+		catch(Exception e)
+		{
+			MessageDescription errMsg = new MessageDescription(
+					"Failed with updating resource value");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
 	}
 
 	@Override

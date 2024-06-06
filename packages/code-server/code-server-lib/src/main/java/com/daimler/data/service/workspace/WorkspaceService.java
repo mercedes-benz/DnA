@@ -93,4 +93,8 @@ public interface WorkspaceService {
     GenericMessage stopServer(CodeServerWorkspaceVO vo);
 
     GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo);
+
+	GenericMessage updateResourceValue(CodeServerWorkspaceNsql entity, @Valid ResourceVO updatedResourceValue);
+
+	
 }
