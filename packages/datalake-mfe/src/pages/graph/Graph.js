@@ -917,7 +917,7 @@ const Graph = ({user, hostHistory}) => {
           show={showSaveModel}
           content={
             <div id="contentparentdiv">
-             Do you wish to save the alignment changes ?
+             Do you wish to save the alignment changes?
             </div>
           }
           onCancel={() => {
