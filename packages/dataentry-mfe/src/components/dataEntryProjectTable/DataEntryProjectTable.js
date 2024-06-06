@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import Styles from './data-entry-project-table.scss';
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+// import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 
 const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) => {
   const history = useHistory();
@@ -16,13 +16,13 @@ const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) 
       </div>
       <div className={Styles.col2}>
       {user.id === project?.createdBy?.id ?
-        <a href={`https://app.fabric.microsoft.com/groups/${project?.id}`} target='_blank' rel='noopener noreferrer'>
+        <a href={`${project?.dataLakeDetails?.link}`} target='_blank' rel='noopener noreferrer'>
           Access Data Lakehouse
           <i className={classNames('icon mbc-icon new-tab')} />
         </a> : 'N/A'}
       </div>
       <div className={Styles.col3}>
-        {regionalDateAndTimeConversionSolution(project?.createdOn)}
+        {project?.createdOn}
       </div>
       <div className={Styles.col4}>
         {project?.dataClassification}

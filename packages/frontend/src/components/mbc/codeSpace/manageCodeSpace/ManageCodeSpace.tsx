@@ -48,12 +48,8 @@ export interface InewRecipeField {
   status: string;
   recipeType: string;
   repodetails: string;
-  software: [
-    {
-      name: string;
-      version: string;
-    },
-  ];
+  software: string[];
+  isPublic: boolean;
 }
 
 const ManageCodeSpace = () => {
@@ -134,7 +130,7 @@ const ManageCodeSpace = () => {
 
   const getRequestedNewCodeSpaces = () => {
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipesStatus()
+    CodeSpaceApiClient.getCodeSpaceRecipeRequests()
       .then((res: any) => {
         setLoading(false);
         ProgressIndicator.hide();
@@ -262,32 +258,20 @@ const ManageCodeSpace = () => {
     setSortBy(newSortField);
   };
 
-  // const configData = workSpaceConfigs?.map((config) => {
-  //   return (
-  //     <CodeSpaceList
-  //       key={config.id}
-  //       id={config.id}
-  //       projectName={config.projectName}
-  //       projectOwner={config.projectOwner}
-  //       projectStatus={config.securityConfig.status}
-  //       requestedDate={config.securityConfig?.requestedDate}
-  //       onDataChanged={handleDataChange}
-  //       isConfigList={isConfigTab}
-  //     />
-  //   );
-  // });
-
+ 
   const recipeData = newRecipes?.map((recipe) => {
     return (
       <CodeSpaceList
         key={recipe.recipeName}
         id={recipe.recipeName}
         projectName={recipe.recipeName}
-        projectOwner={recipe.createdBy}
-        requestedDate={recipe.createdOn}
-        projectStatus={recipe.status}
+        maxRam={recipe.maxRam}
+        maxCpu={recipe.maxCpu}
+        diskSpace={recipe.diskSpace}
         onDataChanged={handleDataChange}
+        software={recipe.software}
         isConfigList={false}
+        isPublic={recipe.isPublic}
       />
     );
   });
@@ -411,7 +395,7 @@ const ManageCodeSpace = () => {
                         <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
                           <thead>
                             <tr className={classNames('header-row', Styles.codeSpaceRow)}>
-                              <th onClick={() => sortByColumn('recipeName', sortBy.nextSortType)}>
+                              <th onClick={() => sortByColumn('', sortBy.nextSortType)}>
                                 <label
                                   className={
                                     'sortable-column-header ' +
@@ -422,40 +406,25 @@ const ManageCodeSpace = () => {
                                   Recipe Name
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('createdBy', sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (sortBy.name === 'createdBy' ? sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Created By
+                              <th>
+                                <label>
+                                  Hardware Configuration
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('projectStatus', sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (sortBy.name === 'projectStatus' ? sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Status
+                              <th >
+                                <label>
+                      
+                                  Software Configuration
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('createdOn', sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (sortBy.name === 'createdOn' ? sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className={'icon sort'} />
-                                  Requested Date
+                              <th >
+                                <label>                            
+                                  CI/CD Management
                                 </label>
                               </th>
-                              <th className="actionColumn">Action</th>
+                              <th className="actionColumn">
+                                <label>Action</label>
+                              </th>
                             </tr>
                           </thead>
                           <tbody>{recipeData}</tbody>

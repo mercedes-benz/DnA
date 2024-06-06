@@ -91,6 +91,7 @@ trino:
     namespace: ${TRINO_KUBE_NAMESPACE:XXXX}
     configmap: ${TRINO_KUBE_CONFIGMAP:XXXX}
    
+dataproduct.baseUri: ${DATAPRODUCT_BASEURI:XXXXXX}
 datalake.table2projectCollab.migration: ${TABLE2PROJECT_COLLAB_MIGRATION:false} 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

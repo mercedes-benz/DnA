@@ -74,6 +74,7 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.ResourceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
@@ -473,21 +474,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
 			String[] parts = resource.split(",");
-			int diskSpaceGi = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
-			int minRamMi = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
-			int minCpu = Integer.parseInt(parts[2].replaceAll("[^0-9]", ""));
-			int maxRamMi = Integer.parseInt(parts[3].replaceAll("[^0-9]", ""));
-			int maxCpu = Integer.parseInt(parts[4].replaceAll("[^0-9]", ""));
-
-			int diskSpace = diskSpaceGi;
-			String memGuarantee = minRamMi + "M";
-			String memLimit = maxRamMi + "M";
-			double cpuLimit = maxCpu / 1000.0; 
-			double cpuGuarantee = minCpu / 1000.0; 
-			// Set the values in the DTO
-			ownerWorkbenchCreateInputsDto.setStorage_capacity(diskSpace + "Gi");
-			ownerWorkbenchCreateInputsDto.setMem_guarantee(memGuarantee);
-			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
+			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
+			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
@@ -698,21 +689,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			String resource = ownerEntity.getData().getProjectDetails().getRecipeDetails().getResource() ;
 			String[] parts = resource.split(",");
-			int diskSpaceGi = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
-			int minRamMi = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
-			int minCpu = Integer.parseInt(parts[2].replaceAll("[^0-9]", ""));
-			int maxRamMi = Integer.parseInt(parts[3].replaceAll("[^0-9]", ""));
-			int maxCpu = Integer.parseInt(parts[4].replaceAll("[^0-9]", ""));
-
-			int diskSpace = diskSpaceGi;
-			String memGuarantee = minRamMi + "M";
-			String memLimit = maxRamMi + "M";
-			double cpuLimit = maxCpu / 1000.0; // Convert to decimal
-			double cpuGuarantee = minCpu / 1000.0; // Convert to decimal
-			// Set the values in the DTO
-			ownerWorkbenchCreateInputsDto.setStorage_capacity(diskSpace + "Gi");
-			ownerWorkbenchCreateInputsDto.setMem_guarantee(memGuarantee);
-			ownerWorkbenchCreateInputsDto.setMem_limit(memLimit);
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
+			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
+			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
+			
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
@@ -1187,13 +1169,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 		GenericMessage responseMessage = new GenericMessage();
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUserUserId, vo.getId());
 		boolean isProjectOwner = false;
-
+		boolean isAdmin = false;
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		if (projectOwnerId.equalsIgnoreCase(currentUserUserId)) {
 			isProjectOwner = true;
 		}
+		List<UserInfo>collabList =entity.getData().getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfo user : collabList){
+				if(currentUserUserId.equalsIgnoreCase(user.getId())){
+					if(user.getIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
 
-		if (isProjectOwner) {
+		if (isProjectOwner || isAdmin) {
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(removeUserId, projectName);
 			if (technincalId=="" || technincalId.isEmpty() || technincalId == null) {
@@ -1227,7 +1219,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		GenericMessage responseMessage = new GenericMessage();
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
 		boolean isProjectOwner = false;
-
+		boolean isAdmin = false;
 		if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
@@ -1244,14 +1236,30 @@ public class BaseWorkspaceService implements WorkspaceService {
 		if (projectOwnerId.equalsIgnoreCase(userId)) {
 			isProjectOwner = true;
 		}
+		
+		List<UserInfo>collabList =entity.getData().getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfo user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.getIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
 
-		if (isProjectOwner) {
+		if (isProjectOwner || isAdmin) {
 			try {
 				String repoName = entity.getData().getProjectDetails().getGitRepoName();
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 
 				UserInfo collaborator = new UserInfo();
 				BeanUtils.copyProperties(userRequestDto, collaborator);
+				if(!userRequestDto.isIsAdmin()){
+					collaborator.setIsAdmin(false);
+				}else{
+					collaborator.setIsAdmin(true);
+				}
 
 				String gitUser = userRequestDto.getGitUserName();
 				if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
@@ -1912,13 +1920,25 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> warnings = new ArrayList<>();
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 		boolean isProjectOwner = false;
+		boolean isAdmin = false;
 
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		String projectName = entity.getData().getProjectDetails().getProjectName();
 		if (projectOwnerId.equalsIgnoreCase(userId)) {
 			isProjectOwner = true;
 		}
-		if (isProjectOwner) {
+		List<UserInfo>collabList =entity.getData().getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfo user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.getIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
+
+		if (isProjectOwner || isAdmin) {
 			try {
 				CodeServerLeanGovernanceFeilds newGovFeilds = new CodeServerLeanGovernanceFeilds();
 				BeanUtils.copyProperties(dataGovernanceInfo.getData(), newGovFeilds);
@@ -2059,6 +2079,87 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
+	public GenericMessage updateResourceValue(CodeServerWorkspaceNsql entity,ResourceVO updatedResourceValue)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try
+		{
+			CodeServerWorkspace workspace = entity.getData();
+			String repoName = "";
+			String repoNameWithOrg = "";
+			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
+			repoName = workspace.getProjectDetails().getGitRepoName();
+			if (workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace
+					.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")) {
+				repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			String pathCheckout = "";
+			if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
+					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+							.startsWith("private")
+					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+							.startsWith("bat")) {
+				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+			} else {
+				repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+				String url[] = repoNameWithOrg.split(",");
+				repoNameWithOrg = url[0];
+				pathCheckout = url[1];
+			}
+				ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
+				WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
+				ownerWorkbenchCreateInputsDto.setStorage_capacity(updatedResourceValue.getDiskSpace()+"Gi");
+				ownerWorkbenchCreateInputsDto.setMem_guarantee(updatedResourceValue.getMinRam()+"M");
+				ownerWorkbenchCreateInputsDto.setMem_limit(updatedResourceValue.getMaxRam()+"M");
+				ownerWorkbenchCreateInputsDto.setCpu_limit(Double.parseDouble(updatedResourceValue.getMaxCpu()));
+				ownerWorkbenchCreateInputsDto.setCpu_guarantee(Double.parseDouble(updatedResourceValue.getMinCpu()));
+				ownerWorkbenchCreateInputsDto.setProfile(client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
+				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
+				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
+				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
+				ownerWorkbenchCreateInputsDto.setType(
+						client.toDeployType(workspace.getProjectDetails().getRecipeDetails().getRecipeId()));
+				ownerWorkbenchCreateInputsDto.setWsid(workspace.getWorkspaceId());
+				ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
+				ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+				String codespaceName = workspace.getProjectDetails().getProjectName();
+				String ownerwsid = workspace.getWorkspaceId();
+				boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName);
+				if (!createOwnerWSResponse) {
+				responseMessage.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription("Failed to create workspace.");
+				errors.add(errMsg);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+				}
+				String resource = updatedResourceValue.getDiskSpace()+"Gi,"+updatedResourceValue.getMinRam()+"M,";
+				resource+= updatedResourceValue.getMinCpu()+","+updatedResourceValue.getMaxRam()+"M,"+updatedResourceValue.getMaxCpu();
+				workspace.getProjectDetails().getRecipeDetails().setResource(resource);
+				entity.setData(workspace);
+				jpaRepo.save(entity);
+				
+			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
+			errors.add(errMsg);
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}
+		catch(Exception e)
+		{
+			MessageDescription errMsg = new MessageDescription(
+					"Failed with updating resource value");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+	}
+
+	@Override
 	public GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo)
 	{
 		GenericMessage responseMessage = new GenericMessage();
@@ -2169,6 +2270,48 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setErrors(errors);
 			return responseMessage;
 		}
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage makeAdmin(CodeServerWorkspaceVO vo){
+		GenericMessage responseMessage = new GenericMessage();
+		try {
+
+			List<String> workspaceIds = workspaceCustomRepository
+					.getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
+			if (!workspaceIds.isEmpty()) {
+				List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+				for (String id : workspaceIds) {
+					CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+					List<UserInfoVO> projectCollabsVO = vo.getProjectDetails().getProjectCollaborators();
+					List<UserInfo> projectCollabs = new ArrayList<UserInfo>();
+					if (projectCollabsVO != null && !projectCollabsVO.isEmpty()) {
+						 projectCollabs = projectCollabsVO.stream().map(n -> workspaceAssembler.toUserInfo(n))
+							 .collect(Collectors.toList());
+					}
+					if(entity != null){
+						if(vo.getProjectDetails().getProjectCollaborators()!=null){
+							entity.getData().getProjectDetails().setProjectCollaborators(projectCollabs);
+							entities.add(entity);
+						}
+					}
+				}
+				jpaRepo.saveAllAndFlush(entities);
+			}
+			responseMessage.setSuccess("SUCCESS");
+
+		} catch (Exception e) {
+			log.error("caught exception while making collaborator as admin :{}", e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("caught exception while making collaborator as admin");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errorMessage);
+		}
+		return responseMessage;
 	}
 
 }

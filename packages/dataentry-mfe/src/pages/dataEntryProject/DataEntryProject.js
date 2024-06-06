@@ -13,15 +13,16 @@ import { DEFAULT_WORKBOOK_DATA } from '../../utilities/template';
 import ProjectDetails from '../../components/projectDetails/ProjectDetails';
 import DeUsersInformation from '../../components/deUsersInformation/DeUsersInformation';
 import DataEntryUsers from '../../components/dataEntryUsers/DataEntryUsers';
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+// import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 
 const DataEntryProject = ({ user }) => {
   const { id: projectId } = useParams();
   const univerRef = useRef();
-  const [data] = useState(DEFAULT_WORKBOOK_DATA);
+  const [data, setData] = useState(DEFAULT_WORKBOOK_DATA);
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
+  const [isDue, setIsDue] = useState(false);
 
   const [showDeUsersModal, setShowDeUsersModal] = useState(false);
   const [showDeUsersInformationModal, setShowDeUsersInformationModal] = useState(false);
@@ -38,6 +39,16 @@ const DataEntryProject = ({ user }) => {
         .getDataEntryProject(projectId)
         .then((res) => {
           setProject(res?.data);
+          if(res?.data?.dueDate) {
+            let dateToCheck = new Date(res?.data?.dueDate);
+            let currentDate = new Date();
+            dateToCheck > currentDate ? setIsDue(true) : setIsDue(false);
+          }
+          if(res?.data?.surveyData !== null) {
+            const workbook = {...DEFAULT_WORKBOOK_DATA};
+            workbook.sheets['sheet-01'].cellData = res?.data?.surveyData;
+            setData({...workbook});
+          }
           ProgressIndicator.hide();
           setLoading(false);
         })
@@ -53,6 +64,96 @@ const DataEntryProject = ({ user }) => {
         });
   };
 
+  const handleUpdate = () => {
+    ProgressIndicator.show(); 
+    const surveyDataTemp = univerRef.current?.getData();
+    const data = {
+      dataLakeDetails: {
+        id: 'null',
+        type: 'DnA',
+        name: 'null',
+        link: 'null',
+      },
+      fillingInstructions: 'null',
+      dueDate: 'null',
+      dataEntryUsers: 'null',
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: 'DRAFT',
+    }
+    dataEntryApi.updateDataEntryProject(projectId, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Entry Project draft saved successfully');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
+        'alert',
+      );
+    });
+  };
+
+  const handlePublish = () => {
+    ProgressIndicator.show(); 
+    const surveyDataTemp = univerRef.current?.getData();
+    const data = {
+      dataLakeDetails: {
+        id: project?.dataLakeDetails?.id,
+        type: project?.dataLakeDetails?.type,
+        name: project?.dataLakeDetails?.name,
+        link: project?.dataLakeDetails?.link,
+      },
+      fillingInstructions: project?.fillingInstructions,
+      dueDate: project?.dueDate,
+      dataEntryUsers: project?.dataEntryUsers,
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: 'PUBLISHED',
+    }
+    dataEntryApi.publishDataEntryProject(projectId, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Entry Project successfully published');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
+        'alert',
+      );
+    });
+  };
+
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
@@ -60,7 +161,7 @@ const DataEntryProject = ({ user }) => {
           <div className={Styles.col2}>
             { !loading && 
               <Caption title={project?.name}>
-                <span className={Styles.dueDate}>(Survey due date: {project?.dueDate ? regionalDateAndTimeConversionSolution(project?.dueDate) : ''})</span>
+                {project?.state === 'PUBLISHED' && <span className={Styles.dueDate}>(Survey due date: {project?.dueDate})</span>}
               </Caption> 
             }
           </div>
@@ -70,36 +171,47 @@ const DataEntryProject = ({ user }) => {
                 <i className={'icon mbc-icon info'}></i>
                 <span>Project Details</span>
               </button>
-              <button className={classNames('btn', Styles.btnLess)} onClick={() => setShowDeUsersInformationModal(true)}>
-                <i className={'icon mbc-icon profile'}></i>
-                <span>Data Entry Users</span>
-              </button>
+              {user.id === project?.createdBy?.id && project?.state === 'PUBLISHED' &&
+                <button className={classNames('btn', Styles.btnLess)} onClick={() => setShowDeUsersInformationModal(true)}>
+                  <i className={'icon mbc-icon profile'}></i>
+                  <span>Data Entry Users</span>
+                </button>
+              }
             </div>
           </div>
         </div>
         <div>
-          <p className={Styles.fillingInstructions}>Filling Instructions</p>
+          {project?.state === 'PUBLISHED' && <p className={Styles.fillingInstructions}>Filling Instructions</p>}
           <div>
             <DataEntrySheet style={{ flex: 1 }} ref={univerRef} data={data} />
           </div>
           <div className={Styles.footer}>
-            <button
-              className={'btn btn-primary'}
-              onClick={() => {
-                console.log(univerRef.current?.getData());
-              }}
-            >
-              Save as Draft
-            </button>
-            <button
-              className={'btn btn-tertiary'}
-              onClick={() => {
-                console.log(univerRef.current?.getData());
-                setShowDeUsersModal(true);
-              }}
-            >
-              Send to Data Entry Users
-            </button>
+            {user.id === project?.createdBy?.id && project?.state === 'DRAFT' &&
+              <>
+                <button
+                  className={'btn btn-primary'}
+                  onClick={handleUpdate}
+                >
+                  Save as Draft
+                </button>
+                <button
+                  className={'btn btn-tertiary'}
+                  onClick={() => {
+                    setShowDeUsersModal(true);
+                  }}
+                >
+                  Send to Data Entry Users
+                </button>
+              </>
+            }
+            {project?.state === 'PUBLISHED' && 
+              <button
+                className={classNames('btn btn-tertiary', isDue && Styles.btnDisabled)}
+                onClick={handlePublish}
+              >
+                Publish
+              </button>
+            }
           </div>
         </div>
       </div>
@@ -124,7 +236,7 @@ const DataEntryProject = ({ user }) => {
           showCancelButton={false}
           modalWidth={'800px'}
           show={showDeUsersModal}
-          content={<DataEntryUsers user={user} />}
+          content={<DataEntryUsers user={user} surveyData={() => univerRef.current?.getData()} project={project} />}
           scrollableContent={true}
           onCancel={() => setShowDeUsersModal(false)}
         />

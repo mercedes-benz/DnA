@@ -6,6 +6,8 @@ import java.util.Objects;
 
 import javax.validation.Valid;
 import com.daimler.data.dto.workspace.recipe.InitializeSoftwareLovVo;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,8 @@ import com.daimler.data.dto.workspace.recipe.InitializeRecipeVo;
 import com.daimler.data.dto.workspace.recipe.RecipeCollectionVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.recipe.GitHubVo;
 
 @RestController
@@ -47,6 +52,9 @@ public class RecipeController implements CodeServerRecipeApi {
 
 	 @Autowired
 	 private UserStore userStore;
+
+	 @Autowired
+	private WorkspaceCustomRecipeRepo workspaceCustomRecipeRepo;
 
 	@Override
 	@ApiOperation(value = "Initialize/Create recipe for user in code-server-recipe.", nickname = "createRecipe", notes = "Create recipe for user in code-server with given password", response = RecipeVO.class, tags = {
@@ -62,13 +70,17 @@ public class RecipeController implements CodeServerRecipeApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<InitializeRecipeVo> createRecipe(
 			@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user", required = true) @Valid @RequestBody RecipeVO recipeRequestVO) {
-				
+			
+		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		recipeRequestVO.setCreatedBy(currentUserVO);
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
-			recipeRequestVO.setStatus("REQUESTED");
+			// recipeRequestVO.setStatus("REQUESTED");
 			RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
 			if (Objects.nonNull(recipeVO)) {
 				responseMessage.setData(recipeVO);
@@ -113,14 +125,14 @@ public class RecipeController implements CodeServerRecipeApi {
 		if (limit == null) {
 			limit = 0;
 		}
-		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+		// if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
 			List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit);
 			if (Objects.nonNull(allRecipes)) {
 				for (RecipeVO recipe : allRecipes) {
 					recipeCollectionVO.addDataItem(recipe);
 				}
 				recipeCollectionVO.setCount(allRecipes.size());
-				recipeCollectionVO.setSuccess("SUCCESS");
+				// recipeCollectionVO.setSuccess("SUCCESS");
 				return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
 			} else {
 				recipeCollectionVO.setData(null);
@@ -130,13 +142,13 @@ public class RecipeController implements CodeServerRecipeApi {
 				return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
 			}
 
-		} else {
-			recipeCollectionVO.setData(null);
-			recipeCollectionVO.setCount(null);
-			recipeCollectionVO.setSuccess("CONFLICT");
-			log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
-			return new ResponseEntity<>(recipeCollectionVO, HttpStatus.UNAUTHORIZED);
-		}
+		// } else {
+		// 	recipeCollectionVO.setData(null);
+		// 	recipeCollectionVO.setCount(null);
+		// 	recipeCollectionVO.setSuccess("CONFLICT");
+		// 	log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+		// 	return new ResponseEntity<>(recipeCollectionVO, HttpStatus.UNAUTHORIZED);
+		// }
 	}
 
 	@Override
@@ -156,7 +168,7 @@ public class RecipeController implements CodeServerRecipeApi {
 			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("recipeName") String recipeName) {
 		
 			InitializeRecipeVo responseMessage = new InitializeRecipeVo();
-		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+		// if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
 			RecipeVO recipeVO = service.getByRecipeName(recipeName);
 			if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
 				responseMessage.setSuccess("SUCCESS");
@@ -168,14 +180,14 @@ public class RecipeController implements CodeServerRecipeApi {
 				log.info("No recipe found for given recipeName: {} ", recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 			}
-		} else {
+		// } else {
 
-			responseMessage.setData(null);
-			responseMessage.setSuccess("UNAUTHORIZED");
-			log.info(" user {} is unauthorized to access codespace" + userStore.getUserInfo().getId());
-			return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
+		// 	responseMessage.setData(null);
+		// 	responseMessage.setSuccess("UNAUTHORIZED");
+		// 	log.info(" user {} is unauthorized to access codespace" + userStore.getUserInfo().getId());
+		// 	return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
 
-		}
+		// }
 	}
 
 	 @ApiOperation(value = "Get all software details in recipe", nickname = "getAllsoftwareLov", notes = "Get all softwares details for recipe in codespace", response = InitializeSoftwareLovVo.class, tags={ "code-server-recipe", })
@@ -217,7 +229,7 @@ public class RecipeController implements CodeServerRecipeApi {
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/recipeDetails/recipeLov",
+    @RequestMapping(value = "/recipeDetails/recipelov",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
@@ -240,146 +252,147 @@ public class RecipeController implements CodeServerRecipeApi {
 		}
 	}
 
-	@Override
-    @ApiOperation(value = "Get all recipes which are in requested and accepted state, waiting for processing.", nickname = "getAllRecipesWhichAreInRequestedAndAcceptedState", notes = "Get all recipes which are in requested and accepted state, waiting for processing", response = RecipeCollectionVO.class, tags={ "code-server-recipe", })
-    @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = RecipeCollectionVO.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/recipeDetails/recipesByStatus",
-        produces = { "application/json" },
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-    public ResponseEntity<RecipeCollectionVO> getAllRecipesWhichAreInRequestedAndAcceptedState(@ApiParam(value = "page number from which listing of SecurityConfigs should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-    @ApiParam(value = "page size to limit the number of SecurityConfigs, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
-        RecipeCollectionVO recipeCollectionVO = new RecipeCollectionVO();
-        if (offset == null) {
-            offset = 0;
-        }
-        if (limit == null) {
-            limit = 0;
-        }
-        if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
-            List<RecipeVO> allRecipes = service.getAllRecipesWhichAreInRequestedAndAcceptedState(offset, limit);
-            if (Objects.nonNull(allRecipes)) {
-                recipeCollectionVO.data(allRecipes);
-                recipeCollectionVO.setCount(allRecipes.size());
-                recipeCollectionVO.setSuccess("SUCCESS");
-                return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
-            } else {
-                recipeCollectionVO.setData(null);
-                recipeCollectionVO.setCount(null);
-                recipeCollectionVO.setSuccess("FAILED");
-                log.info("Failed to fetch all the recipe details for user "+userStore.getUserInfo().getId());
-                return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
-            }
+	// @Override
+    // @ApiOperation(value = "Get all recipes which are in requested and accepted state, waiting for processing.", nickname = "getAllRecipesWhichAreInRequestedAndAcceptedState", notes = "Get all recipes which are in requested and accepted state, waiting for processing", response = RecipeCollectionVO.class, tags={ "code-server-recipe", })
+    // @ApiResponses(value = {
+    //     @ApiResponse(code = 201, message = "Returns message of success or failure", response = RecipeCollectionVO.class),
+    //     @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+    //     @ApiResponse(code = 400, message = "Bad request."),
+    //     @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+    //     @ApiResponse(code = 403, message = "Request is not authorized."),
+    //     @ApiResponse(code = 405, message = "Method not allowed"),
+    //     @ApiResponse(code = 500, message = "Internal error") })
+    // @RequestMapping(value = "/recipeDetails/recipesByStatus",
+    //     produces = { "application/json" },
+    //     consumes = { "application/json" },
+    //     method = RequestMethod.GET)
+    // public ResponseEntity<RecipeCollectionVO> getAllRecipesWhichAreInRequestedAndAcceptedState(@ApiParam(value = "page number from which listing of SecurityConfigs should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    // @ApiParam(value = "page size to limit the number of SecurityConfigs, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
+    //     RecipeCollectionVO recipeCollectionVO = new RecipeCollectionVO();
+    //     if (offset == null) {
+    //         offset = 0;
+    //     }
+    //     if (limit == null) {
+    //         limit = 0;
+    //     }
+    //     if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+    //         List<RecipeVO> allRecipes = service.getAllRecipesWhichAreInRequestedAndAcceptedState(offset, limit);
+    //         if (Objects.nonNull(allRecipes)) {
+    //             recipeCollectionVO.data(allRecipes);
+    //             recipeCollectionVO.setCount(allRecipes.size());
+    //             recipeCollectionVO.setSuccess("SUCCESS");
+    //             return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
+    //         } else {
+    //             recipeCollectionVO.setData(null);
+    //             recipeCollectionVO.setCount(null);
+    //             recipeCollectionVO.setSuccess("FAILED");
+    //             log.info("Failed to fetch all the recipe details for user "+userStore.getUserInfo().getId());
+    //             return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
+    //         }
  
-        } else {
-            recipeCollectionVO.setData(null);
-            recipeCollectionVO.setCount(null);
-            recipeCollectionVO.setSuccess("FAILED");
-            log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
-            return new ResponseEntity<>(recipeCollectionVO, HttpStatus.UNAUTHORIZED);
-        }
+    //     } else {
+    //         recipeCollectionVO.setData(null);
+    //         recipeCollectionVO.setCount(null);
+    //         recipeCollectionVO.setSuccess("FAILED");
+    //         log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+    //         return new ResponseEntity<>(recipeCollectionVO, HttpStatus.UNAUTHORIZED);
+    //     }
  
        
-    }
+    // }
 
-	@ApiOperation(value = "Accepting the changes to be added in access management , marking status as Accepted if success", nickname = "acceptRecipeInfo", notes = "Accepting the changes to be added in access management system", response = GenericMessage.class, tags={ "code-server-recipe", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/recipeDetails/{name}/accept",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> acceptRecipeInfo(@ApiParam(value = "Recipe name to be fetched",required=true) @PathVariable("name") String name)
-	{
-		GenericMessage responseMessage = new GenericMessage();
-		List<MessageDescription> errorMessage = new ArrayList<>();
-		if(!userStore.getUserInfo().hasCodespaceAdminAccess()) 
-		{
-			log.info(
-					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
-			MessageDescription msg = new MessageDescription();
-			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
-			errorMessage.add(msg);
-			responseMessage.setErrors(errorMessage);
-			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
-		}
-		RecipeVO recipeVO = service.getByRecipeName(name);
-		if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
-			recipeVO.setStatus("ACCEPTED");
-			responseMessage = service.saveRecipeInfo(name);
-		}
-		else
-		{
-			log.info(
-					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
-			MessageDescription msg = new MessageDescription();
-			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
-			errorMessage.add(msg);
-			responseMessage.setErrors(errorMessage);
-			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	// @ApiOperation(value = "Accepting the changes to be added in access management , marking status as Accepted if success", nickname = "acceptRecipeInfo", notes = "Accepting the changes to be added in access management system", response = GenericMessage.class, tags={ "code-server-recipe", })
+    // @ApiResponses(value = { 
+    //     @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+    //     @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+    //     @ApiResponse(code = 400, message = "Bad request."),
+    //     @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+    //     @ApiResponse(code = 403, message = "Request is not authorized."),
+    //     @ApiResponse(code = 405, message = "Method not allowed"),
+    //     @ApiResponse(code = 500, message = "Internal error") })
+    // @RequestMapping(value = "/recipeDetails/{name}/accept",
+    //     produces = { "application/json" }, 
+    //     consumes = { "application/json" },
+    //     method = RequestMethod.POST)
+    // public ResponseEntity<GenericMessage> acceptRecipeInfo(@ApiParam(value = "Recipe name to be fetched",required=true) @PathVariable("name") String name)
+	// {
+	// 	GenericMessage responseMessage = new GenericMessage();
+	// 	List<MessageDescription> errorMessage = new ArrayList<>();
+	// 	if(!userStore.getUserInfo().hasCodespaceAdminAccess()) 
+	// 	{
+	// 		log.info(
+	// 				"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+	// 		MessageDescription msg = new MessageDescription();
+	// 		msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+	// 		errorMessage.add(msg);
+	// 		responseMessage.setErrors(errorMessage);
+	// 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	// 	}
+	// 	RecipeVO recipeVO = service.getByRecipeName(name);
+	// 	if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
+	// 		recipeVO.setStatus("ACCEPTED");
+	// 		responseMessage = service.saveRecipeInfo(name);
+	// 	}
+	// 	else
+	// 	{
+	// 		log.info(
+	// 				"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+	// 		MessageDescription msg = new MessageDescription();
+	// 		msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+	// 		errorMessage.add(msg);
+	// 		responseMessage.setErrors(errorMessage);
+	// 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 
-		}
-		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
-	}
+	// 	}
+	// 	return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	// }
 
-	@ApiOperation(value = "Marking status after Publishing the changes added in access management system", nickname = "publishRecipeInfo", notes = "Marking status after Publishing the changes added in access management system", response = GenericMessage.class, tags={ "code-server-recipe", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/recipeDetails/{name}/publish",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> publishRecipeInfo(@ApiParam(value = "recipe name to be fetched",required=true) @PathVariable("name") String name)
-	{
-		GenericMessage responseMessage = new GenericMessage();
-		List<MessageDescription> errorMessage = new ArrayList<>();
-		if(!userStore.getUserInfo().hasCodespaceAdminAccess()) 
-		{
-			log.info(
-					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
-			MessageDescription msg = new MessageDescription();
-			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
-			errorMessage.add(msg);
-			responseMessage.setErrors(errorMessage);
-			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
-		}
-		RecipeVO recipeVO = service.getByRecipeName(name);
-		if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
-			recipeVO.setStatus("PUBLISHED");
-			responseMessage = service.publishRecipeInfo(name);
-		}
-		else
-		{
-			log.info(
-					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
-			MessageDescription msg = new MessageDescription();
-			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
-			errorMessage.add(msg);
-			responseMessage.setErrors(errorMessage);
-			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	// @ApiOperation(value = "Marking status after Publishing the changes added in access management system", nickname = "publishRecipeInfo", notes = "Marking status after Publishing the changes added in access management system", response = GenericMessage.class, tags={ "code-server-recipe", })
+    // @ApiResponses(value = { 
+    //     @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+    //     @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+    //     @ApiResponse(code = 400, message = "Bad request."),
+    //     @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+    //     @ApiResponse(code = 403, message = "Request is not authorized."),
+    //     @ApiResponse(code = 405, message = "Method not allowed"),
+    //     @ApiResponse(code = 500, message = "Internal error") })
+    // @RequestMapping(value = "/recipeDetails/{name}/publish",
+    //     produces = { "application/json" }, 
+    //     consumes = { "application/json" },
+    //     method = RequestMethod.POST)
+    // public ResponseEntity<GenericMessage> publishRecipeInfo(@ApiParam(value = "recipe name to be fetched",required=true) @PathVariable("name") String name)
+	// {
+	// 	GenericMessage responseMessage = new GenericMessage();
+	// 	List<MessageDescription> errorMessage = new ArrayList<>();
+	// 	if(!userStore.getUserInfo().hasCodespaceAdminAccess()) 
+	// 	{
+	// 		log.info(
+	// 				"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+	// 		MessageDescription msg = new MessageDescription();
+	// 		msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+	// 		errorMessage.add(msg);
+	// 		responseMessage.setErrors(errorMessage);
+	// 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	// 	}
+	// 	RecipeVO recipeVO = service.getByRecipeName(name);
+	// 	if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
+	// 		recipeVO.setStatus("PUBLISHED");
+	// 		responseMessage = service.publishRecipeInfo(name);
+	// 	}
+	// 	else
+	// 	{
+	// 		log.info(
+	// 				"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+	// 		MessageDescription msg = new MessageDescription();
+	// 		msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+	// 		errorMessage.add(msg);
+	// 		responseMessage.setErrors(errorMessage);
+	// 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 
-		}
-		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
-	}
+	// 	}
+	// 	return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	// }
+    
 	@Override
 	@ApiOperation(value = "To validate GitHub Url and to check if user is collaborator", nickname = "validateGitHub", notes = "To validate GitHub Url and to check if user is collaborator", response = InitializeRecipeVo.class, tags={ "code-server-recipe", })
     @ApiResponses(value = { 
@@ -403,4 +416,37 @@ public class RecipeController implements CodeServerRecipeApi {
 		return new ResponseEntity<>(genericMessage,HttpStatus.OK);
 	}
 
+	@Override
+    @ApiOperation(value = "Delete recipe with given Id.", nickname = "deleteRecipe", notes = "Delete recipe for a given identifier.", response = GenericMessage.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/{recipeName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+		public ResponseEntity<GenericMessage> deleteRecipe(@ApiParam(value = "recipe to be deleted", required = true) @PathVariable("recipeName") String recipeName) {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String id = currentUser.getId();
+			CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+		
+			if (entity != null && Objects.nonNull(entity)) {
+				if (id.equalsIgnoreCase(entity.getData().getCreatedBy().getId())) {
+					GenericMessage genericMessage = service.deleteRecipe(recipeName);
+					return ResponseEntity.ok(genericMessage);
+				} else {
+					// not authorized
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this recipe."));
+				}
+			} else {
+				// not found
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericMessage("Recipe not found."));
+			}
+		}
+		
 }

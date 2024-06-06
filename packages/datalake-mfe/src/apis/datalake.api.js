@@ -56,14 +56,33 @@ const createDataProduct = (data) => {
   });
 };
 
+const getExistingDataProduts = () => {
+  return dataProductServer.get(`/dataproducts/bookmarked`);
+}
+
+const getLatestDetails = (id,data) => {
+  return server.get(`/datalakes/${id}`,{
+    data,
+  });
+}
+
+const linkDataProduct = (id, data) => {
+  return server.patch(`datalakes/${id}/dataproduct`,
+    data,
+  )
+}
+
 export const datalakeApi = {
   getDatalakeProjectsList,
   createDatalakeProject,
   getDatalakeProject,
   updateDatalakeProject,
+  getLatestDetails,
   updateTechnicalUser,
   getLovData,
   getConnectors,
   getConnectionInfo,
   createDataProduct,
+  linkDataProduct,
+  getExistingDataProduts
 };

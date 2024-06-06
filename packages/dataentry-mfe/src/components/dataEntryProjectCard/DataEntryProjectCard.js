@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import Styles from './data-entry-project-card.scss';
 import { useHistory } from 'react-router-dom';
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+// import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) => {
@@ -31,7 +31,7 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
             <div>
               <div>Data Lakehouse Link</div>
               <div>
-                <a href={`https://app.fabric.microsoft.com/groups/${project?.id}`} target='_blank' rel='noopener noreferrer'>
+                <a href={`${project?.dataLakeDetails?.link}`} target='_blank' rel='noopener noreferrer'>
                   Access Lakehouse
                   <i className={classNames('icon mbc-icon new-tab')} />
                 </a>
@@ -40,11 +40,11 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
           }
           <div>
             <div>Created on</div>
-            <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
+            <div>{project?.createdOn}</div>
           </div>
           <div>
             <div>Classification</div>
-            <div>{project?.classificationType || 'N/A'}</div>
+            <div>{project?.dataClassification || 'N/A'}</div>
           </div>
           <div>
             <div>State</div>

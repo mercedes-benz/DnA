@@ -1,4 +1,4 @@
-import classNames from 'classnames';
+// import classNames from 'classnames';
 import React from 'react';
 import Styles from './de-users-information.scss';
 
@@ -7,7 +7,7 @@ const DeUsersInformation = ({ project }) => {
     <div className={Styles.container}>
       <div className={Styles.header}>
         <h3>{project?.name} Data Entry Users</h3>
-        <p>Know the filling status</p>
+        <p>Know the Data Users</p>
       </div>
       <div className={Styles.flex}>
         <div className={Styles.col}>
@@ -17,19 +17,19 @@ const DeUsersInformation = ({ project }) => {
                 <tr>
                   <th className={Styles.id}>ID</th>
                   <th className={Styles.name}>Name</th>
-                  <th className={Styles.status}>Status</th>
+                  {/* <th className={Styles.status}>Status</th> */}
                 </tr>
               </thead>
               <tbody>
-                {project?.dataEntryUsers?.length > 0 && project?.dataEntryUsers?.map((dataEntryUser) => {
-                  <tr>
-                    <td>{dataEntryUser?.shortId}</td>
+                {project?.dataEntryUsers?.length > 0 && project?.dataEntryUsers?.map((dataEntryUser) =>
+                  <tr key ={dataEntryUser?.id}>
+                    <td>{dataEntryUser?.id}</td>
                     <td>{dataEntryUser?.firstName} {dataEntryUser?.lastName}</td>
-                    <td>
+                    {/* <td>
                       <span className={classNames(Styles.notFilled)}>{dataEntryUser?.fillingStatus}</span>
-                    </td>
+                    </td> */}
                   </tr>
-                })}
+                )}
               </tbody>
             </table>
           </div>

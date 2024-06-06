@@ -1,25 +1,72 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 // styles
 import Styles from './data-entry-users.scss';
 import AddUser from 'dna-container/AddUser';
 import DatePicker from 'dna-container/DatePicker';
+import SelectBox from 'dna-container/SelectBox';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
+import { dataEntryApi } from '../../apis/dataentry.api';
+import { formatDateToISO } from '../../utilities/utils';
 
-const DataEntryUsers = ({ user }) => {
+const DataEntryUsers = ({ user, surveyData, project }) => {
   const { id } = useParams();
+
+  const methods = useForm({ 
+    defaultValues: { 
+      type: 'DnA',
+      dataLakeDetails: '0',
+      fillingInstructions: '',
+      dueDate: new Date()
+    }
+  });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    formState: { errors },
+  } = methods;
+
   const [dataEntryUsers, setDataEntryUsers] = useState([]);
   const [createdBy] = useState();
-  const [dueDate, setDueDate] = useState();
-  const [instructions, setInstructions] = useState('');
+  const [datalakeProjects, setDatalakeProjects] = useState([]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+      dataEntryApi
+        .getDatalakeProjects(0, 0)
+        .then((res) => {
+          setDatalakeProjects(res?.data?.data);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            e.response.data.errors?.length
+              ? e.response.data.errors[0].message
+              : 'Fetching data lakehouse projects failed!',
+            'alert',
+          );
+        });
+  }, []);
+  
   const getCollabarators = (collaborators) => {
     const collabarationData = {
+      id: collaborators.shortId,
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
-      accesskey: collaborators.shortId,
-      department: collaborators.department,
       email: collaborators.email,
-      mobileNumber: collaborators.mobileNumber,
+      department: collaborators.department,
+      mobileNumber: collaborators.mobileNumber
     };
 
     let duplicateMember = false;
@@ -44,14 +91,122 @@ const DataEntryUsers = ({ user }) => {
     const temp = dataEntryUsers.splice(index, 1);
     setDataEntryUsers(temp);
   };
+
+  const handlePublish = (values) => {
+    ProgressIndicator.show();
+    const datalake = values.dataLakeDetails.split('@-@');
+    const surveyDataTemp = surveyData(); 
+    const data = {
+      dataLakeDetails: {
+        id: datalake[0],
+        type: values.type,
+        name: datalake[1],
+        link: 'null'
+      },
+      fillingInstructions: values.fillingInstructions,
+      dueDate: formatDateToISO(new Date(values.dueDate)),
+      dataEntryUsers: dataEntryUsers,
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: project?.state,
+    }
+    dataEntryApi.updateDataEntryProject(id, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Entry Project successfully published');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
+        'alert',
+      );
+    });
+  };
+
   return (
-    <>
+    <FormProvider {...methods}>
       <div className={classNames(Styles.container)}>
         <div className={Styles.header}>
           <h3>Search, Add and Send to Data Entry Users</h3>
-          <p>Enter the information to start creating!</p>
+          <p>Enter the information to start!</p>
         </div>
         <div className={Styles.flex}>
+          <div className={Styles.col2}>
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                errors?.type?.message ? 'error' : '',
+              )}
+            >
+              <label className={'input-label'}>
+                Type <sup>*</sup>
+              </label>
+              <div className={classNames('custom-select')}>
+                <select
+                  {...register('type', {
+                    validate: (value) => value !== '0' || '*Missing entry'
+                  })}
+                >
+                  <option value={'DnA'}>DnA Data Lakehouse</option>
+                  <option value={'Fabric'}>Fabric (Coming Soon)</option>
+                </select>
+              </div>
+              <span className={classNames('error-message', errors?.type?.message ? '' : 'hide')}>
+                {errors?.type?.message}
+              </span>
+            </div>
+          </div>
+          <div className={Styles.col2}>
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                errors?.dataLakeDetails?.message ? 'error' : '',
+              )}
+            >
+              <label className={'input-label'}>
+                Data Lakehouse Project <sup>*</sup>
+              </label>
+              <div className={classNames('custom-select')}>
+                <select
+                  id="classificationField"
+                  {...register('dataLakeDetails', {
+                    validate: (value) => value !== '0' || '*Missing entry'
+                  })}
+                >
+                  <option value={'0'}>Choose</option>
+                  <option value={'id@-@datalakename'}>Datalake</option>
+                  {datalakeProjects?.map((item) => (
+                    <option
+                      id={item.id}
+                      key={item.id}
+                      value={`${item.id}@-@${item.name}`}
+                    >
+                      {item.name}
+                    </option>
+                  ))}
+
+                </select>
+              </div>
+              <span className={classNames('error-message', errors?.dataLakeDetails?.message ? '' : 'hide')}>
+                {errors?.dataLakeDetails?.message}
+              </span>
+            </div>
+          </div>
           <div className={Styles.col}>
             <AddUser
               title={'User'} 
@@ -101,8 +256,9 @@ const DataEntryUsers = ({ user }) => {
                 className={'input-field-area'}
                 type="text"
                 rows={50}
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="Type here"
+                autoComplete="off"
+                {...register('fillingInstructions')}
               />
             </div>
           </div>
@@ -111,14 +267,23 @@ const DataEntryUsers = ({ user }) => {
               <label htmlFor="dueDate" className="input-label">
                 Due Date
               </label>
-              <DatePicker
-                label="Due Date"
-                name={'Due Date'}
-                value={dueDate}
-                // minDate={minDate}
-                onChange={(value) => {
-                  setDueDate(value);
-                }}
+              <Controller
+                control={control}
+                name="dueDate"
+                // rules={{
+                //   validate: validateDate,
+                // }}
+                render={({ field }) => (
+                  <DatePicker
+                    label="Due Date"
+                    value={watch('dueDate')}
+                    name={field.name}
+                    // minDate={minDate}
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  />
+                )}
               />
             </div>
           </div>
@@ -126,13 +291,13 @@ const DataEntryUsers = ({ user }) => {
         <div className={Styles.footer}>
           <button
             className="btn btn-tertiary"
-            onClick={() => console.log('clicked')}
+            onClick={handleSubmit(values => handlePublish(values))}
           >
-            Send to Data Entry Users
+            Publish
           </button>
         </div>
       </div>
-    </>
+    </FormProvider>
   );
 }
 

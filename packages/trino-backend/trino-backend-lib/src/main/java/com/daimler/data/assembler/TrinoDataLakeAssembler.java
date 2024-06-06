@@ -11,18 +11,19 @@ import com.daimler.data.dto.UserInfoVO;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableCollabDetails;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableColumnDetails;
+import com.mb.dna.datalakehouse.db.jsonb.DataProductDetails;
 import com.mb.dna.datalakehouse.db.jsonb.DatalakeTable;
 import com.mb.dna.datalakehouse.db.jsonb.TrinoDataLakeProject;
 import com.mb.dna.datalakehouse.db.jsonb.UserInfo;
 import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
+import com.mb.dna.datalakehouse.dto.DataProductDetailsVO;
 import com.mb.dna.datalakehouse.dto.DatalakeTableVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
 @Component
 public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakeProjectVO, TrinoDataLakeNsql>{
 
-	
 	@Override
 	public TrinoDataLakeProjectVO toVo(TrinoDataLakeNsql entity) {
 		TrinoDataLakeProjectVO datalakeProjectVO = null;
@@ -32,6 +33,12 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = entity.getData();
 			if(projectDetails!=null) {
 				BeanUtils.copyProperties(projectDetails, datalakeProjectVO);
+				UserInfo createdBy = projectDetails.getCreatedBy();
+				UserInfoVO createdByVO = new UserInfoVO();
+				if(createdBy!=null) {
+					BeanUtils.copyProperties(createdBy, createdByVO);
+					datalakeProjectVO.setCreatedBy(createdByVO);
+				}
 				List<DatalakeTableVO> tablesVO = new ArrayList<>();
 				if(projectDetails.getTables()!=null && !projectDetails.getTables().isEmpty()) {
 					for(DatalakeTable table: projectDetails.getTables()) {
@@ -65,6 +72,13 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 				}
 				datalakeProjectVO.setCollabs(collabsVO);
 				
+				DataProductDetails dataproductDetails = projectDetails.getDataProductDetails();
+				DataProductDetailsVO dataProductDetailsVO = new DataProductDetailsVO();
+				if(dataproductDetails!=null) {
+					BeanUtils.copyProperties(dataproductDetails, dataProductDetailsVO);
+					dataProductDetailsVO.setInvalidState(dataproductDetails.getInvalidState());
+					datalakeProjectVO.setDataProductDetails(dataProductDetailsVO);
+				}
 			}
 		}
 		return datalakeProjectVO;
@@ -78,6 +92,12 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = new TrinoDataLakeProject();
 			if(vo!=null) {
 				BeanUtils.copyProperties(vo,projectDetails);
+				UserInfoVO createdByVO = vo.getCreatedBy();
+				UserInfo createdBy = new UserInfo();
+				if(createdByVO!=null) {
+					BeanUtils.copyProperties(createdByVO,createdBy);
+					projectDetails.setCreatedBy(createdBy);
+				}
 				List<DatalakeTable> tables = new ArrayList<>();
 				if(vo.getTables()!=null && !vo.getTables().isEmpty()) {
 					for(DatalakeTableVO tableVO: vo.getTables()) {
@@ -111,6 +131,15 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 				}
 				projectDetails.setCollabs(collabs);
 			}
+			
+			DataProductDetails dataproductDetails = new DataProductDetails(); 
+			DataProductDetailsVO dataProductDetailsVO = vo.getDataProductDetails();
+			if(dataProductDetailsVO!=null) {
+				BeanUtils.copyProperties(dataProductDetailsVO,dataproductDetails);
+				dataproductDetails.setInvalidState(dataProductDetailsVO.getInvalidState());
+				projectDetails.setDataProductDetails(dataproductDetails);
+			}
+			
 			entity.setId(vo.getId());
 			entity.setData(projectDetails);
 		}

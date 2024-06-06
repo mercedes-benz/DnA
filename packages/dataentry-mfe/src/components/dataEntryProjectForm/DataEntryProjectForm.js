@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
+import { v4 as uuidv4 } from 'uuid';
 // styles
 import Styles from './data-entry-project-form.scss';
 // import from DNA Container
@@ -15,8 +16,9 @@ import { Envs } from '../../utilities/envs';
 // Api
 import { hostServer } from '../../server/api';
 import { dataEntryApi } from '../../apis/dataentry.api';
+import { formatDateToISO } from '../../utilities/utils';
 
-const DataEntryProjectForm = ({ project, edit, onSave }) => {
+const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
   let history = useHistory();
   
   const methods = useForm({ 
@@ -50,7 +52,7 @@ const DataEntryProjectForm = ({ project, edit, onSave }) => {
   const [subDivision, setSubDivision] = useState(edit ? (project?.subDivisionId ? project?.subDivisionId + '@-@' + project?.subDivision : '0') : '');
   const [departmentName, setDepartmentName] = useState(edit && project?.department ? [project?.department] : []);
   const [typeOfProject, setTypeOfProject] = useState(edit && project?.typeOfProject ? project?.typeOfProject : '0');
-  const [tags, setTags] = useState(edit && project?.tags !== null ? [...project.tags] : []);
+  const [tags, setTags] = useState(edit && project?.tags !== null ? project.tags.split(',') : []);
 
   const [departmentError, setDepartmentError] = useState(false);
 
@@ -119,8 +121,9 @@ const DataEntryProjectForm = ({ project, edit, onSave }) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = {
+      id: uuidv4(),
       name: values.name.trim(),
-      tags: tags,
+      tags: tags.join(','),
       hasPii: values?.hasPii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
@@ -132,7 +135,27 @@ const DataEntryProjectForm = ({ project, edit, onSave }) => {
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse ? true : false,
       typeOfProject: values?.typeOfProject,
-      dataClassification: values?.dataClassification
+      dataClassification: values?.dataClassification,
+      createdBy: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        department: user.department,
+        mobileNumber: user.mobileNumber
+      },
+      createdOn: formatDateToISO(new Date()),
+      dataEntryUsers: 'null',
+      dataLakeDetails: {
+        id: 'null',
+        link: 'null',
+        name: 'null',
+        type: 'null'
+      },
+      dueDate: 'null',
+      fillingInstructions: 'null',
+      state: 'DRAFT',
+      surveyData: 'null',
     };
     dataEntryApi.createDataEntryProject(data).then((res) => {
       ProgressIndicator.hide();
@@ -148,8 +171,9 @@ const DataEntryProjectForm = ({ project, edit, onSave }) => {
   };
   const handleEditProject = (values) => {
     const data = {
+      id: project?.id,
       name: values.name.trim(),
-      tags: tags,
+      tags: tags.join(','),
       hasPii: values?.hasPii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
@@ -161,7 +185,20 @@ const DataEntryProjectForm = ({ project, edit, onSave }) => {
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse ? true : false,
       typeOfProject: values?.typeOfProject,
-      dataClassification: values?.dataClassification
+      dataClassification: values?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      dataEntryUsers: project?.dataEntryUsers,
+      dataLakeDetails: {
+        id: project?.dataLakeDetails?.id,
+        link: project?.dataLakeDetails?.link,
+        name: project?.dataLakeDetails?.name,
+        type: project?.dataLakeDetails?.type
+      },
+      dueDate: project?.dueDate,
+      fillingInstructions: project?.fillingInstructions,
+      state: project?.state,
+      surveyData: project?.surveyData,
     }
     ProgressIndicator.show();
     dataEntryApi.updateDataEntryProject(project.id, data).then(() => {

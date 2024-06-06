@@ -1,7 +1,6 @@
 export const SESSION_STORAGE_KEYS = {
   JWT: 'jwt',
   PAGINATION_MAX_ITEMS_PER_PAGE: 'paginationMaxItemsPerPage',
-  DATAPRODUCT_ID: 'id',
 };
 
 export const USER_ROLE = {

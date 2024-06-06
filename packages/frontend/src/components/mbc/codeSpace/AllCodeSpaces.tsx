@@ -153,7 +153,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     setShowDeployCodeSpaceModal(true);
   };
 
-  const onStartStopCodeSpace = (codeSpace: ICodeSpaceData) => {
+  const onStartStopCodeSpace = (codeSpace: ICodeSpaceData, startSuccessCB: () => void) => {
     Tooltip.clear();
     const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
     setLoading(true);
@@ -166,8 +166,11 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
               codeSpace.projectDetails?.projectName +
               ' is requested to ' +
               (serverStarted ? 'stop' : 'start') +
-              '. Please refresh and check status after some time.',
+              '.',
           );
+
+          startSuccessCB();
+
         } else {
           Notification.show(
             'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces. Please try again later.',
@@ -250,7 +253,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   onClick={onShowSecurityConfigRequest}
                 >
                   <IconGear size={'14'} />
-                  <span>&nbsp;Manage Code Spaces</span>
+                  <span>&nbsp;Manage Recipes</span>
                 </button>
               </>
             ) : null}
@@ -358,7 +361,8 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           enableSecureWithIAM={
             onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
             onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs'
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
           }
           setShowCodeDeployModal={(isVisible: boolean) => setShowDeployCodeSpaceModal(isVisible)}
           setCodeDeploying={(isDeploying: boolean) => getCodeSpacesData()}

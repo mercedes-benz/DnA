@@ -8,6 +8,7 @@ import Styles from './graph.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
+import ConfirmModal from 'dna-container/ConfirmModal'
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from '../../common/modules/uilab/js/src/select';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -24,7 +25,6 @@ import ColumnForm from '../../components/columnForm/ColumnForm';
 import EditTableForm from '../../components/editTableForm/EditTableForm';
 import DataProductForm from '../../components/dataProductForm/DataProductForm';
 import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
-import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
 
 const Graph = ({user, hostHistory}) => {
@@ -59,10 +59,10 @@ const Graph = ({user, hostHistory}) => {
   
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
-    const [hasDataProduct,setHasDataProduct] =useState(false);
     const [hasTable, setHasTable] = useState(project.tables.length > 0 );
-   
-
+    const [showInvaildDpModal, setShowInvalidDpModal] = useState(false);
+    const [showUnLinkModal, setShowUnLinkModal] = useState(false);
+    const [showRefreshModel, setShowRefreshModel] = useState(false);
     useEffect(() => {
       ProgressIndicator.show();
         datalakeApi.getConnectionInfo(id)
@@ -82,7 +82,6 @@ const Graph = ({user, hostHistory}) => {
     }, [id]);
     useEffect (()=>{
       setHasTable(project.tables.length > 0 );
-      setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
       if(!isOwner && project?.collabs?.length > 0){
         const hasPermission = project?.collabs?.some(collab => collab.collaborator.id === user.id && collab.hasWritePermission);
         setHasWritePermission(hasPermission);
@@ -313,45 +312,84 @@ const Graph = ({user, hostHistory}) => {
 
   const [showDataProductModal, setShowDataProductModal] = useState(false);
 
-  const handleCreateDataProduct = (values) => {
+  const handleCreateDataProduct = (values,isNewDataProduct) => {
     ProgressIndicator.show();
-    const dataProductData = {
-      dataProductName: values?.name,
-      description: values?.description,
-      isPublish: false,
-      createdBy: project?.createdBy,
-      access: {
-        personalRelatedData: project?.hasPii,
-        confidentiality: project?.classificationType,
+    if (isNewDataProduct) {
+      ProgressIndicator.show();
+      const dataProductData = {
+        dataProductName: values?.name,
+        description: values?.description,
+        isPublish: false,
+        createdBy: project?.createdBy,
+        access: {
+          personalRelatedData: project?.hasPii,
+          confidentiality: project?.classificationType,
+        }
+      };
+      datalakeApi.createDataProduct(dataProductData).then((res) => {
+        const dataProductDetails = {
+          id: res?.data?.data.id,
+          dataProductId: res.data.data.dataProductId,
+          dataProductName: res.data.data.dataProductName,
+        }
+        linkDataProduct(dataProductDetails,isNewDataProduct);
+      }).catch((error) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          error?.response?.data?.errors[0]?.message || 'Error while creating dataProduct',
+          'alert',
+        );
+      });
+    } else{
+      const dataProductDetails = {
+        dataProductId: values.dataProductId,
+        dataProductName: values.dataProductName,
+        id: values.id,
       }
-    };
-    datalakeApi.createDataProduct(dataProductData).then((res) => {
-      ProgressIndicator.hide();
-      const id = project.id + ":" + res.data.data.dataProductId;
-      setHasDataProduct(true);
-      sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID, id);
-      Notification.show('Data Product Created successfully');
-    }).catch((error) => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating dataProduct',
-        'alert',
-      );
-    });
+      linkDataProduct(dataProductDetails,isNewDataProduct);
+    }
     setShowDataProductModal(false);
   }
-   const onDataProductClick = () => {
 
-    if(hasDataProduct){
-      const id = sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(":")[1];
-      hostHistory.push(`/data/dataproduct/summary/${id}`)
-
-    }else{
+  const onDataProductClick = () => {
+    if (project?.dataProductDetails?.dataProductId?.length > 0) {
+      hostHistory.push(`/data/dataproduct/summary/${project?.dataProductDetails.dataProductId}`);
+    } else {
       setShowDataProductModal(true);
     }
+  }
 
-   }
-    
+  const linkDataProduct = (dataProductDetails,isNewDataProduct) =>{
+    datalakeApi.linkDataProduct(project?.id, dataProductDetails).then(() => {
+      ProgressIndicator.hide();
+        dispatch(getProjectDetails(id));
+        Notification.show('Data Product Created and linked successfully.');
+      }).catch(() => {
+      ProgressIndicator.hide();    
+        Notification.show(isNewDataProduct ? 'DataProduct created But Failed to link to DataLake Project' : 'Failed to link DataProduct', 'alert');
+    });
+
+  }
+
+  const unLinkDataProduct = () => {
+    const dataProductDetails = {
+      dataProductId: null,
+      dataProductName: null,
+      id: null,
+    }
+      ProgressIndicator.show();
+      datalakeApi.linkDataProduct(project?.id, dataProductDetails).then(() => {
+        ProgressIndicator.hide();
+        dispatch(getProjectDetails(id));
+        Notification.show('Data Product unlinked successfully');
+        setShowUnLinkModal(false);
+        }).catch(() => {
+        ProgressIndicator.hide();
+          Notification.show('failed to unlink data product');
+          setShowUnLinkModal(false);
+      });   
+  }
+
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
 
@@ -361,10 +399,21 @@ const Graph = ({user, hostHistory}) => {
   }
 
   const handleDeleteTable = (tableName) => {
+    ProgressIndicator.show();
     const projectTemp = {...project};
     const tempTables = projectTemp.tables.filter(item => item.tableName !== tableName);
     projectTemp.tables = [...tempTables];
     dispatch(setTables(projectTemp.tables));
+    datalakeApi.updateDatalakeProject(project?.id, projectTemp).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Table Deleted successfully');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
+        'alert',
+      );
+    });
   }
 
   const [connectors,setConnectors] = useState([]);
@@ -487,7 +536,7 @@ const Graph = ({user, hostHistory}) => {
     ProgressIndicator.show();
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
-      Notification.show('Table(s) published successfully');
+      Notification.show('Data saved successfully');
       }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -505,17 +554,18 @@ const Graph = ({user, hostHistory}) => {
 
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   
-  const isValidFile = (file) => ['csv', 'parquet', 'json'].includes(file?.name?.split('.')[1]);
-  const [uploadFile, setUploadFile] = useState({});
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const uploadContent = <>
-    <div>
-      <p>File to Upload: {uploadFile.length > 0 && uploadFile[0]?.name}</p>
-      <div className={Styles.btnContainer}>
-        <button className="btn" disabled={true}>Publish</button>
-      </div>
-    </div>
-  </>
+  
+  // const isValidFile = (file) => ['csv', 'parquet', 'json'].includes(file?.name?.split('.')[1]);
+  // const [uploadFile, setUploadFile] = useState({});
+  // const [showUploadModal, setShowUploadModal] = useState(false);
+  // const uploadContent = <>
+  //   <div>
+  //     <p>File to Upload: {uploadFile.length > 0 && uploadFile[0]?.name}</p>
+  //     <div className={Styles.btnContainer}>
+  //       <button className="btn" disabled={true}>Publish</button>
+  //     </div>
+  //   </div>
+  // </>
      
   return (
     !isLoading ?
@@ -527,21 +577,39 @@ const Graph = ({user, hostHistory}) => {
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
                 <h2>{project?.projectName} <span>({project?.connectorType})</span></h2>
+                <button
+                className={classNames(Styles.refreshBtn)}
+                type='button'
+                onClick={() => { setShowRefreshModel(true) }}
+              >
+                <i className={classNames("icon mbc-icon refresh")} tooltip-data={"refresh"} />
+              </button>
               </div>
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
-                   { hasTable &&( 
-                      <div>
-                        <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled,Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
-                            type="button"
-                            onClick={() => onDataProductClick()}
-                        >
-                            <i className="icon mbc-icon dataproductoverview" />
-                            <span>{!hasDataProduct ? "Provision as a Data Product" : "View Data Product"}</span>
-                        </button>
-                    </div>)}
+                {hasTable && (
+                  <div className={classNames(Styles.dpWrapper)}>
+                    <button
+                      className={classNames('btn btn-primary', Styles.btnOutline, Styles.dataProduct,(!isOwner && project?.dataProductDetails?.dataProductId?.length < 0) && Styles.btnDisabled, Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
+                      type="button"
+                      onClick={() => onDataProductClick()}
+                    >
+                      <i className="icon mbc-icon dataproductoverview" />
+                      <span>
+                        {!project?.dataProductDetails?.dataProductId?.length ? "Provision as a Data Product" : "View Data Product"}
+                      </span>
+                    </button>
+                    {(project?.dataProductDetails?.dataProductId?.length > 0 && isOwner) && (
+                    <button className={classNames('btn btn-primary', Styles.btnOutline, Styles.unLinkbtn)} onClick={() => setShowUnLinkModal(true)}>
+                      <i className="icon mbc-icon link" tooltip-data={"Unlink Data Product"} />
+                    </button>)}
+                    {(project?.dataProductDetails?.invalidState && isOwner) && (
+                      <button className={classNames('btn btn-primary', Styles.btnOutline, Styles.warningBtn)} onClick={() => { setShowInvalidDpModal(true) }}>
+                        <i className={classNames("icon mbc-icon alert circle", Styles.warningIcon)} />
+                      </button>
+                    )}
+                  </div>)}
                     { hasTable &&( 
                     <div>
                         <button
@@ -554,7 +622,7 @@ const Graph = ({user, hostHistory}) => {
                         </button>
                     </div>
                     )}
-                    {hasTable && ( 
+                    {/* {hasTable && ( 
                     <div className={Styles.uploadFile}>
                         <input 
                           type="file" 
@@ -581,7 +649,7 @@ const Graph = ({user, hostHistory}) => {
                             <label htmlFor="uploadFile" tooltip-data="Only .csv, .parquet, and .json files are allowed">Upload File</label>
                         </button>
                     </div>
-                    )}
+                    )} */}
                     {hasTable && ( 
                     <div>
                         <button
@@ -604,6 +672,11 @@ const Graph = ({user, hostHistory}) => {
                             <span>Add Table</span>
                         </button>
                     </div>
+                    {hasTable && (
+                      <div style={{textAlign: 'right', padding: '5px'}}>
+                        <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save</button>
+                      </div>
+                    )}
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
@@ -637,6 +710,7 @@ const Graph = ({user, hostHistory}) => {
                             onEditTable={handleEditTable}
                             isOwner={isOwner}
                             hasWritePermission={hasWritePermission}
+                            hasDataProduct = {project?.dataProductDetails?.dataProductId?.length > 0}
                         />
                     </>
                 );
@@ -645,9 +719,6 @@ const Graph = ({user, hostHistory}) => {
           </div>
         </div>
         
-        <div style={{textAlign: 'right', marginTop: '20px'}}>
-                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save & Publish</button>
-            </div>
       </div>
       
       { toggleModal && 
@@ -659,7 +730,7 @@ const Graph = ({user, hostHistory}) => {
         />
     }
 
-    { showUploadModal &&
+    {/* { showUploadModal &&
         <Modal
             title={'Publish File'}
             showAcceptButton={false}
@@ -670,11 +741,11 @@ const Graph = ({user, hostHistory}) => {
             content={uploadContent}
             scrollableContent={false}
             onCancel={() => {
-                setShowUploadModal(false);
-setUploadFile({});
+              setShowUploadModal(false);
+              setUploadFile({});
             }}
         />
-    }
+    } */}
 
     { showDataProductModal &&
         <Modal
@@ -791,6 +862,68 @@ setUploadFile({});
         />
 
     }
+    {showInvaildDpModal &&
+        <ConfirmModal
+        acceptButtonTitle="unlink"
+        cancelButtonTitle="close"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showInvaildDpModal}
+        content={
+          <div id="contentparentdiv">
+            The schema of the data, which is already linked to the data product, has been changed.<br></br> This modification may affect the data flow for the data product subscribers.<br></br> Please validate and unlink data product if needed.
+          </div>
+        }
+        onCancel={() => {
+          setShowInvalidDpModal(false);
+        }}
+        onAccept={() => {
+          unLinkDataProduct();
+        }}
+      />
+    }
+
+    {showRefreshModel && 
+          <ConfirmModal
+          acceptButtonTitle="refresh"
+          cancelButtonTitle="Cancel"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showRefreshModel}
+          content={
+            <div id="contentparentdiv">
+              Unsaved data will be lost on refresh. Are you sure you want to refresh?
+            </div>
+          }
+          onCancel={() => {
+            setShowRefreshModel(false);
+          }}
+          onAccept={() => {
+            dispatch(getProjectDetails(id));
+            setShowRefreshModel(false);
+          }}
+        />
+     }
+    {showUnLinkModal &&
+      <ConfirmModal
+        acceptButtonTitle="Unlink"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showUnLinkModal}
+        content={
+          <div id="contentparentdiv">
+            Are you sure you want to unlink data product?
+          </div>
+          }
+        onCancel={() => {
+          setShowUnLinkModal(false);
+        }}
+        onAccept={() => {
+          unLinkDataProduct();
+        }}
+      />
+      }
     </div> : <Spinner />
   );
 }

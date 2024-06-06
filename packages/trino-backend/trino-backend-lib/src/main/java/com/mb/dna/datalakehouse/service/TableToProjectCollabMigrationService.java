@@ -9,11 +9,15 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.assembler.TrinoDataLakeAssembler;
+import com.daimler.data.dto.UserInfoVO;
+import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 import com.mb.dna.datalakehouse.db.entities.TrinoAccessNsql;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableCollabDetails;
@@ -26,6 +30,7 @@ import com.mb.dna.datalakehouse.db.repo.TrinoAccessCustomRepo;
 import com.mb.dna.datalakehouse.db.repo.TrinoAccessRepo;
 import com.mb.dna.datalakehouse.db.repo.TrinoDataLakeCustomRepo;
 import com.mb.dna.datalakehouse.db.repo.TrinoDataLakeRepo;
+import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +53,9 @@ public class TableToProjectCollabMigrationService {
 	
 	@Autowired
 	private TrinoDataLakeAssembler assembler;
+	
+	@Autowired
+	private StorageServicesClient storageClient;
 	
 	private static List<String> readPrivileges = Arrays.asList(new String[] {"SELECT"});
 	private static List<String> writePrivileges = Arrays.asList(new String[] {"SELECT","INSERT","DELETE","UPDATE"});
@@ -100,10 +108,39 @@ public class TableToProjectCollabMigrationService {
 					Collection<DataLakeTableCollabDetails> collection = projectCollabMap.values();
 					projectCollabs =  collection.stream().collect(Collectors.toList());
 				}
-				
+
 				data.setCollabs(projectCollabs);
 				entity.setData(data);
 				updatedEntities.add(entity);
+				
+				try {
+					//updating storage permissions
+					List<DataLakeTableCollabDetails> bucketCollabs = new ArrayList<>();
+					bucketCollabs = projectCollabs;
+					DataLakeTableCollabDetails ownerAsCollab = new DataLakeTableCollabDetails();
+					ownerAsCollab.setCollaborator(data.getCreatedBy());
+					ownerAsCollab.setHasWritePermission(true);
+					bucketCollabs.add(ownerAsCollab); 
+					List<DataLakeTableCollabDetailsVO> collabsVO = new ArrayList<>();
+					if(bucketCollabs!=null && !bucketCollabs.isEmpty()) {
+						for(DataLakeTableCollabDetails collabDetails : bucketCollabs) {
+							DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
+							collabVO.setHasWritePermission(collabDetails.getHasWritePermission());
+							UserInfoVO userinfoVO = new UserInfoVO();
+							if(collabDetails.getCollaborator()!=null) {
+									BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
+							}
+							collabVO.setCollaborator(userinfoVO);
+							collabsVO.add(collabVO);
+						}
+					}
+					UpdateBucketResponseWrapperDto updateBucketResponse = storageClient.updateBucket(data.getBucketName(), data.getBucketId(), collabsVO);
+					if (updateBucketResponse.getErrors() != null) {
+						log.error("Failed while migrating details of collaborator for storage bucket {} Caused due to Exception {}", data.getBucketName(), updateBucketResponse.getErrors().get(0).getMessage());
+					}
+				}catch(Exception e) {
+					log.error("Failed while migrating details of collaborator for storage bucket {} Caused due to Exception {}",data.getBucketName(), e.getMessage());
+				}
 				
 				// remove existing schema rule
 				updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 

@@ -69,6 +69,7 @@ public class CodeServerClient {
 			recipeType = recipeId.toLowerCase();
 		switch(recipeType) {
 			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
+			case "springbootwithmaven": deployType = ConstantsUtility.SPRINGBOOTWITHMAVEN; break;
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
 			case "vuejs" : deployType = ConstantsUtility.VUEJS; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
@@ -239,7 +240,7 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	private boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
@@ -261,7 +262,7 @@ public class CodeServerClient {
 				return true;
 			}
 		} catch (Exception e) {
-			log.error("Error occurred while creating git repo {} with exception: {}", codespaceName, e.getMessage());
+			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
 	}
@@ -471,7 +472,6 @@ public class CodeServerClient {
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
-			e.printStackTrace();
 		}
 		response.setSuccess(status);
 		response.setWarnings(warnings);

@@ -268,7 +268,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setWarnings(new ArrayList<>());
 			log.info("collaborator details updated successfully for project {} ", projectName);
 		} catch (Exception e) {
-			e.printStackTrace();
 			MessageDescription errMsg = new MessageDescription("Failed while updating the collaborator details.");
 			errors.add(errMsg);
 			log.error("projectCollaborators details Failed while updating the collaborator with Exception {} ", e.getMessage());
@@ -304,6 +303,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"firstName\": " + addQuotes(updatedcollaborators.getFirstName()) + ","
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
+						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
 						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
@@ -544,7 +544,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				log.info("Found {} workspaces which are in requested and accepted state", data.size());
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
 			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
 		return data;
@@ -570,7 +569,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setWarnings(new ArrayList<>());
 			log.info("security config status updated successfully for project {} ", projectName);
 		} catch (Exception e) {
-			e.printStackTrace();
 			MessageDescription errMsg = new MessageDescription("Failed while updating the security config status.");
 			errors.add(errMsg);
 			log.error("Failed while updating the security config status with Exception {} ", e.getMessage());

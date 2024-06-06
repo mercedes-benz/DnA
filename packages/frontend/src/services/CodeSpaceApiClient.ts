@@ -1,3 +1,4 @@
+import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
@@ -22,6 +23,10 @@ const baseUrlStorage = Envs.DASHBOARD_API_BASEURL
   : `http://${window.location.hostname}:7175/api`;
 const getUrlStorage = (endpoint: string) => {
   return `${baseUrlStorage}/${endpoint}`;
+};
+
+const getUrlHub = (endpoint: string) => {
+  return `${new URL('../hub/api/', baseUrl).href}${endpoint}`;
 };
 
 export class CodeSpaceApiClient {
@@ -96,6 +101,10 @@ export class CodeSpaceApiClient {
     return this.patch(`workspaces/${id}/projectowner`, data);
   }
 
+  public static assignAdminRole(id: string, userId: string, data: any){
+    return this.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`);
+  }
+  
   // Usage statistics
   public static getWorkSpacesTransparency(): Promise<any> {
     return this.get('workspaces/transparency');
@@ -132,7 +141,11 @@ export class CodeSpaceApiClient {
   public static createCodeSpaceRecipe(data: any) {
     return this.post('recipeDetails', data);
   }
-  
+
+  public static verifyGitUser(data: any) {
+    return this.post('recipeDetails/validate', data);
+  }
+
   public static getCodeSpaceRecipeRequests() {
     return this.get('recipeDetails')
   }
@@ -153,9 +166,9 @@ export class CodeSpaceApiClient {
     return this.post(`recipeDetails/${name}/publish`);
   };
 
-  // public static getRecipeLov(){
-  //  return this.get('recipeDetails/recipeLov');
-  // }
+   public static getRecipeLov(){
+     return this.get('recipeDetails/recipelov');
+   }
 
   public static getSoftwareLov(){
     return this.get('recipeDetails/softwareLov');
@@ -196,5 +209,21 @@ export class CodeSpaceApiClient {
 
   public static workSpaceStatus(): Promise<any> {
     return this.get(`/workspaces/serverstatus`);
+  }
+
+  public static serverStatusFromHub(userId: string, workspaceId: string, onMessageCB: (e: any) => void, onCloseCB?: (e: any) => void) {
+    const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
+      withCredentials: true,
+      headers: { Authorization: ApiClient.readJwt() },
+    });
+
+    sse.onmessage = onMessageCB;
+
+    sse.onerror = (e: any) => {
+      onCloseCB && onCloseCB(e);
+      console.log(e);
+      console.error('Event stream closed');
+      sse.close();
+    };
   }
 }
