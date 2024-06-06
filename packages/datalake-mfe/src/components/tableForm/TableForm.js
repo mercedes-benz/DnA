@@ -292,7 +292,7 @@ const TableFormBase = ({ formats }) => {
   );
 };
 
-const TableForm = ({ setToggle, formats, dataTypes ,isSaved}) => {
+const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
 
