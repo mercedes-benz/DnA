@@ -32,7 +32,6 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
   } = methods;
 
   const [dataEntryUsers, setDataEntryUsers] = useState([]);
-  const [createdBy] = useState();
   const [datalakeProjects, setDatalakeProjects] = useState([]);
 
   useEffect(() => {
@@ -70,10 +69,10 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
     };
 
     let duplicateMember = false;
-    duplicateMember = dataEntryUsers.filter((member) => member.accesskey === collaborators.shortId)?.length
+    duplicateMember = dataEntryUsers.filter((member) => member.id === collaborators.shortId)?.length
       ? true
       : false;
-    const isCreator = id ? createdBy.id === collaborators.shortId : user.id === collaborators.shortId;
+    const isCreator = id ? project?.createdBy.id === collaborators.shortId : user.id === collaborators.shortId;
 
     if (duplicateMember) {
       Notification.show('User Already Exist.', 'warning');
@@ -194,9 +193,9 @@ const DataEntryUsers = ({ user, surveyData, project }) => {
                     <option
                       id={item.id}
                       key={item.id}
-                      value={`${item.id}@-@${item.name}`}
+                      value={`${item.id}@-@${item.projectName}`}
                     >
-                      {item.name}
+                      {item.projectName}
                     </option>
                   ))}
 
