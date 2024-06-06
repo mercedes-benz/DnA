@@ -167,12 +167,14 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs';
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
   const isIAMRecipe =
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs';
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
