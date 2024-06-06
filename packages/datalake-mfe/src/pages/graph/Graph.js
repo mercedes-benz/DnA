@@ -63,6 +63,8 @@ const Graph = ({user, hostHistory}) => {
     const [showInvaildDpModal, setShowInvalidDpModal] = useState(false);
     const [showUnLinkModal, setShowUnLinkModal] = useState(false);
     const [showRefreshModel, setShowRefreshModel] = useState(false);
+    const [isSaved, setIsSaved] = useState(true);
+    const [showSaveModel, setShowSaveModel] = useState(false)
     useEffect(() => {
       ProgressIndicator.show();
         datalakeApi.getConnectionInfo(id)
@@ -214,6 +216,7 @@ const Graph = ({user, hostHistory}) => {
             );
             dispatch(setTables([...projectTables]));
         }
+        setIsSaved(false);
     };
 
     const [toggleModal, setToggleModal] = useState(false);
@@ -537,6 +540,7 @@ const Graph = ({user, hostHistory}) => {
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data saved successfully');
+      setIsSaved(true);
       }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -666,7 +670,7 @@ const Graph = ({user, hostHistory}) => {
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, (!hasWritePermission) && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setToggleModal(!toggleModal)}}
+                            onClick={() => { isSaved ? setToggleModal(!toggleModal) : setShowSaveModel(true)}}
                         >
                             <i className="icon mbc-icon plus" />
                             <span>Add Table</span>
@@ -674,7 +678,7 @@ const Graph = ({user, hostHistory}) => {
                     </div>
                     {hasTable && (
                       <div style={{textAlign: 'right', padding: '5px'}}>
-                        <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save</button>
+                        <button className={classNames('btn btn-tertiary', isSaved ? Styles.btnDisabled : '' )} onClick={handlePublish}>Save</button>
                       </div>
                     )}
                   <div onClick={toggleFullScreenMode}>
@@ -726,7 +730,7 @@ const Graph = ({user, hostHistory}) => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} />}
+            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} isSaved ={(val)=>{setIsSaved(val)}} />}
         />
     }
 
@@ -901,6 +905,28 @@ const Graph = ({user, hostHistory}) => {
           onAccept={() => {
             dispatch(getProjectDetails(id));
             setShowRefreshModel(false);
+          }}
+        />
+     }
+    {showSaveModel && 
+          <ConfirmModal
+          acceptButtonTitle="Save"
+          cancelButtonTitle="Cancel"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showSaveModel}
+          content={
+            <div id="contentparentdiv">a
+              save the table alignment before adding a new table<br></br> or the alignment will not be preserved.
+            </div>
+          }
+          onCancel={() => {
+            setShowSaveModel(false);
+            setToggleModal(!toggleModal);
+          }}
+          onAccept={() => {
+            setShowSaveModel(false);
+            handlePublish;
           }}
         />
      }

@@ -292,7 +292,7 @@ const TableFormBase = ({ formats }) => {
   );
 };
 
-const TableForm = ({ setToggle, formats, dataTypes }) => {
+const TableForm = ({ setToggle, formats, dataTypes ,isSaved}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
 
@@ -373,6 +373,7 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Table(s) published successfully');
+      isSaved(true);
       }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
