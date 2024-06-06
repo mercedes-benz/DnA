@@ -860,15 +860,15 @@ const CreateOrEditProject = (props) => {
                                 checked = {extolloTou}
                             />
                         </span>
-                        <span className={classNames("label", touErrorMessage.length ? "error" : '')}>
+                    </label>
+                    <span className={classNames("label",Styles.touLabel, touErrorMessage.length ? "error" : '')}>
                             I here by declare that I agree to eXtollo{' '}
                             <span className={classNames(Styles.configLink)} onClick={onTouNavigate}>
                                 <a target="_blank" rel="noreferrer">
                                     terms of use
                                 </a>
                             </span>
-                        </span>
-                    </label>
+                    </span>
                     <span className={classNames(Styles.errorMsg, 'error-message', touErrorMessage.length ? '' : 'hide')}>
                         {touErrorMessage}
                     </span>
