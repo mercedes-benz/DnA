@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import Styles from './data-entry-project-table.scss';
-// import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+import { regionalDateAndTimeConversionSolution, formatDateToISO } from '../../utilities/utils';
 
 const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) => {
   const history = useHistory();
@@ -22,7 +22,7 @@ const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) 
         </a> : 'N/A'}
       </div>
       <div className={Styles.col3}>
-        {project?.createdOn}
+        {regionalDateAndTimeConversionSolution(formatDateToISO(new Date(project?.createdOn)))}
       </div>
       <div className={Styles.col4}>
         {project?.dataClassification}

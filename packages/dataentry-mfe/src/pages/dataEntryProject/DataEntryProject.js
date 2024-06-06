@@ -13,7 +13,7 @@ import { DEFAULT_WORKBOOK_DATA } from '../../utilities/template';
 import ProjectDetails from '../../components/projectDetails/ProjectDetails';
 import DeUsersInformation from '../../components/deUsersInformation/DeUsersInformation';
 import DataEntryUsers from '../../components/dataEntryUsers/DataEntryUsers';
-// import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 
 const DataEntryProject = ({ user }) => {
   const { id: projectId } = useParams();
@@ -64,7 +64,7 @@ const DataEntryProject = ({ user }) => {
         });
   };
 
-  const handleUpdate = () => {
+  const handleSaveAsDraft = () => {
     ProgressIndicator.show(); 
     const surveyDataTemp = univerRef.current?.getData();
     const data = {
@@ -76,7 +76,7 @@ const DataEntryProject = ({ user }) => {
       },
       fillingInstructions: 'null',
       dueDate: 'null',
-      dataEntryUsers: 'null',
+      dataEntryUsers: [],
       surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
       id: project?.id,
       name: project?.name,
@@ -161,7 +161,7 @@ const DataEntryProject = ({ user }) => {
           <div className={Styles.col2}>
             { !loading && 
               <Caption title={project?.name}>
-                {project?.state === 'PUBLISHED' && <span className={Styles.dueDate}>(Survey due date: {project?.dueDate})</span>}
+                {project?.state === 'PUBLISHED' && <span className={Styles.dueDate}>(Survey due date: {project?.dueDate !== 'null' && regionalDateAndTimeConversionSolution(project?.dueDate)})</span>}
               </Caption> 
             }
           </div>
@@ -190,7 +190,7 @@ const DataEntryProject = ({ user }) => {
               <>
                 <button
                   className={'btn btn-primary'}
-                  onClick={handleUpdate}
+                  onClick={handleSaveAsDraft}
                 >
                   Save as Draft
                 </button>

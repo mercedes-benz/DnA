@@ -145,7 +145,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
         mobileNumber: user.mobileNumber
       },
       createdOn: formatDateToISO(new Date()),
-      dataEntryUsers: 'null',
+      dataEntryUsers: [],
       dataLakeDetails: {
         id: 'null',
         link: 'null',
