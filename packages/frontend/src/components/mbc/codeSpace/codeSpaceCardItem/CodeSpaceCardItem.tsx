@@ -140,7 +140,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
       <h3>
         {/* Are you sure to delete {codeSpace.projectDetails.projectName} Code Space?
         <br /> */}
-        {isOwner ? (
+        {codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? (
           <>
             {hasCollaborators ? (
               <>
