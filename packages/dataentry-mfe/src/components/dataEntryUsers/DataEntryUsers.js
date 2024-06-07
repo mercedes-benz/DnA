@@ -226,9 +226,9 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {dataEntryUsers.map((dataEntryUser, index) => {
-                      <tr>
-                        <td>{dataEntryUser?.shortId}</td>
+                    {dataEntryUsers.map((dataEntryUser, index) => 
+                      <tr key={dataEntryUser?.id}>
+                        <td>{dataEntryUser?.id}</td>
                         <td>{dataEntryUser?.firstName} {dataEntryUser?.lastName}</td>
                         <td>
                           <button className={classNames('btn', Styles.btnAction)} onClick={() => removeDeUser(index)}>
@@ -236,7 +236,7 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
                           </button>
                         </td>
                       </tr>
-                    })}
+                    )}
                   </tbody>
                 </table>
                 : 

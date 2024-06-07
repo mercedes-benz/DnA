@@ -24,7 +24,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
   const methods = useForm({ 
     defaultValues: { 
       name: edit && project?.name !== null ? project?.name : '',
-      description: edit && project?.decription ? project?.decription : '',
+      description: edit && project?.description ? project?.description : '',
       department: edit && project?.department ? [project?.department] : '',
       dataClassification: edit && project?.dataClassification ? project?.dataClassification : '0',
       hasPii: edit && project?.hasPii ? project?.hasPii?.toString() : 'false',
