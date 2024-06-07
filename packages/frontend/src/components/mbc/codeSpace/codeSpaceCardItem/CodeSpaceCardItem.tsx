@@ -533,6 +533,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
             </div>
+            <div>
+              <div>Owner</div>
+              <div>{codeSpace?.projectDetails?.projectOwner?.firstName +' '+codeSpace?.projectDetails?.projectOwner?.lastName+' ('+codeSpace?.projectDetails?.projectOwner?.id +')'}</div>
+            </div>
             {/* {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <>
                 <div className={Styles.deploymentInfo}>
