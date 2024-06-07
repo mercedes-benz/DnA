@@ -2147,10 +2147,24 @@ public class BaseWorkspaceService implements WorkspaceService {
 				ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 				String codespaceName = workspace.getProjectDetails().getProjectName();
 				String ownerwsid = workspace.getWorkspaceId();
+				boolean status = client.serverStatus(workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getWorkspaceId());
+				if(status)
+				{
+					boolean stopserver = client.stopServer(workspace.getWorkspaceId(), workspace.getWorkspaceOwner().getId().toLowerCase());
+					if(!stopserver)
+					{
+						responseMessage.setSuccess("FAILED");
+						MessageDescription errMsg = new MessageDescription("Failed while stoping server. stop before update");
+						errors.add(errMsg);
+						responseMessage.setErrors(errors);
+						responseMessage.setWarnings(warnings);
+						return responseMessage;
+					}
+				}
 				boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName);
 				if (!createOwnerWSResponse) {
 				responseMessage.setSuccess("FAILED");
-				MessageDescription errMsg = new MessageDescription("Failed to create workspace.");
+				MessageDescription errMsg = new MessageDescription("Failed to update resource workspace.");
 				errors.add(errMsg);
 				responseMessage.setErrors(errors);
 				responseMessage.setWarnings(warnings);
