@@ -276,7 +276,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails?.deploymentAuditLogs && prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn )).getTime();
 
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const allowDelete = isOwner ? !hasCollaborators : true;
+  const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
   const isAPIRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
@@ -532,6 +532,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             <div>
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+            </div>
+            <div>
+              <div>Owner</div>
+              <div>{codeSpace?.projectDetails?.projectOwner?.firstName +' '+codeSpace?.projectDetails?.projectOwner?.lastName+' ('+codeSpace?.projectDetails?.projectOwner?.id +')'}</div>
             </div>
             {/* {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <>
