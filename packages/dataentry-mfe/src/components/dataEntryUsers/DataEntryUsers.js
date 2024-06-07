@@ -189,7 +189,6 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
                   })}
                 >
                   <option value={'0'}>Choose</option>
-                  <option value={'id@-@datalakename'}>Datalake</option>
                   {datalakeProjects?.map((item) => (
                     <option
                       id={item.id}
