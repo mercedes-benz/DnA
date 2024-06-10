@@ -175,6 +175,11 @@
         border: 1px solid #f3e537;
         color: #f3e537;
       }
+
+      &.deployFailed {
+        border: 1px solid #e84d47;
+        color: #e84d47;
+      }
   
       &.deleting {
         border: 1px solid #e84d47;
@@ -187,11 +192,22 @@
       }
     }
   
-    .deployedLink {
+    .deployFailLink {
       text-decoration: none;
-      margin-left: 15px;
-      vertical-align: sub;
-      font-size: var(--font-size-small);
+      // margin-left: 15px;
+      // vertical-align: sub;
+      // font-size: var(--font-size-small);
+      color: #e84d47;
+    }
+  
+    .deployedLink{
+      text-decoration: none;
+      color: #0AE6AB;
+    }
+
+    .deployingLink{
+      text-decoration: none;
+      color: #f3e537;
     }
   }
   .cardFooter {

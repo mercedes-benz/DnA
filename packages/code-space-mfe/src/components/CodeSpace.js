@@ -489,7 +489,9 @@ const CodeSpace = (props) => {
     </svg>
   );
 
-  const isOwner = projectDetails?.projectOwner?.id === props.user.id;
+  const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.user?.id })
+  const isOwner = projectDetails?.projectOwner?.id === props.user.id || collaborator?.isAdmin;
+
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
       window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');

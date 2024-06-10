@@ -309,6 +309,7 @@ const NewCodeSpace = (props) => {
       email: collaborator.email,
       mobileNumber: collaborator.mobileNumber,
       gitUserName: collaborator.shortId,
+      isAdmin: collaborator.isAdmin,
       // permission: { read: true, write: false },
     };
 
@@ -316,7 +317,7 @@ const NewCodeSpace = (props) => {
     duplicateMember = codeSpaceCollaborators.filter((member) => member.id === collaborator.shortId)?.length
       ? true
       : false;
-    const isCreator = props.user.id === collaborator.shortId;
+      const isCreator = props.user.id === collaborator.shortId || (onEditingMode && props?.onEditingCodeSpace?.projectDetails?.projectOwner?.id === collaborator?.shortId);
 
     if (duplicateMember) {
       Notification.show('Collaborator Already Exist.', 'warning');
@@ -337,9 +338,15 @@ const NewCodeSpace = (props) => {
     });
 
     if (e.target.checked) {
-      codeSpaceCollaborator.canDeploy = true;
+      codeSpaceCollaborator.isAdmin = true;
+      if (onEditingMode) {
+        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, true);
+      }
     } else {
-      codeSpaceCollaborator.canDeploy = false;
+      codeSpaceCollaborator.isAdmin = false;
+      if (onEditingMode) {
+        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, false);
+      }
     }
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
   };
@@ -1850,10 +1857,10 @@ const NewCodeSpace = (props) => {
                                           className="ff-only"
                                           value="develop"
                                           checked={true}
-                                          readOnly
+                                          disabled
                                         />
                                       </span>
-                                      <span className="label">Develop</span>
+                                      <label className={Styles.permissionContent}>Develop</label>
                                     </label>
                                   </div>
                                   &nbsp;&nbsp;&nbsp;
@@ -1865,24 +1872,40 @@ const NewCodeSpace = (props) => {
                                           className="ff-only"
                                           value="deploy"
                                           checked={true}
-                                          readOnly
+                                          disabled
                                           // checked={item?.permission !== null ? item?.canDeploy : false}
-                                          onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                          // onChange={(e) => onCollaboratorPermission(e, item.id)}
                                         />
                                       </span>
-                                      <span className="label">Deploy</span>
+                                      <label className={Styles.permissionContent}>Deploy</label>
+                                    </label>
+                                  </div>
+                                  &nbsp;&nbsp;&nbsp;
+                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                    <label className={'checkbox'}>
+                                      <span className="wrapper">
+                                        <input
+                                          type="checkbox"
+                                          className="ff-only"
+                                          value="admin"
+                                          disabled={props.user.id === item.id}
+                                          checked={item?.isAdmin || false}
+                                          onChange={(e) => onCollaboratorPermission(e, item?.id)}
+                                        />
+                                      </span>
+                                      <label className={Styles.permissionContent}>Admin</label>
                                     </label>
                                   </div>
                                 </div>
                                 <div className={Styles.collaboratorTitleCol}>
-                                  <span
+                                {item.id !== props.user.id && <span
                                     tooltip-data={'Remove Collaborator'}
                                     className={Styles.deleteEntry}
                                     onClick={onCollaboratorDelete(item.id)}
                                   >
                                     <i className="icon mbc-icon trash-outline" />
-                                  </span>
-                                  {onEditingMode && (
+                                  </span>}
+                                  {onEditingMode && (props?.onEditingCodeSpace?.projectDetails?.projectOwner?.id === props?.user?.id) && (
                                     <>
                                       &nbsp;| &nbsp;
                                       <span

@@ -72,6 +72,12 @@ const transferOwnership = (id, data) => { //tested
     );
 };
 
+const assignAdminRole = (id, userId, data) => {
+  return server.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`, {
+    data: {},
+  });
+};
+
 //   // Usage statistics
 // const getWorkSpacesTransparency = () => { //for frontend. not used here
 //     return server.get(`workspaces/transparency`, {
@@ -235,6 +241,7 @@ export const CodeSpaceApiClient = {
     addCollaborator,
     deleteCollaborator,
     transferOwnership,
+    assignAdminRole,
     // getWorkSpacesTransparency,
     createOrUpdateCodeSpaceConfig,
     getCodeSpaceConfig,
