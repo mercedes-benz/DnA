@@ -14,6 +14,8 @@ public interface WorkspaceCustomRecipeRepo extends CommonDataRepository<CodeServ
 
     CodeServerRecipeNsql findByRecipeName(String recipeName);
 
+    CodeServerRecipeNsql findById(String id);
+
     List<CodeServerRecipeDto> getAllPublicRecipeLov();
     List<CodeServerRecipeDto> getAllPrivateRecipeLov(String id);
     // List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit);

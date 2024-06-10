@@ -23,5 +23,10 @@ public class CodeServerRecipeDetails implements Serializable {
 	private String cloudServiceProvider;
 	private String resource;
 	private String repodetails;
+	private List<String> software;
+	private String toDeployType;
+	private String recipeType;
+	private String gitPath;
+	private String gitRepoLoc;
 	
 }

@@ -73,6 +73,25 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     }
 
     @Override
+    public CodeServerRecipeNsql findById(String id)
+    {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
+        Root<CodeServerRecipeNsql> root = cq.from(entityClass);
+        CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+        Predicate con = cb.equal(root.get("id"),id);
+        Predicate pMain = cb.and(con);
+        cq.where(pMain);
+        TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
+        List<CodeServerRecipeNsql> entities = getAllQuery.getResultList();
+        if (entities != null && entities.size() > 0)
+            return entities.get(0);
+        else
+            return null;
+
+    }
+
+    @Override
     @Transactional
     public GenericMessage deleteRecipe(CodeServerRecipeNsql recipe) {
         try {

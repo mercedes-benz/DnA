@@ -1142,6 +1142,8 @@ definitions:
         type: string
       projectOwner:
         $ref: "#/definitions/UserInfoVO"
+      recipeName:
+        type: string
       projectCollaborators:
         type: array
         items:
@@ -1225,7 +1227,7 @@ definitions:
       recipeId:
         type: string
         enum: [default,springboot,springbootwithmaven,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-fabric-mfe,public-dna-fabric-backend,public-dna-dataentry-mfe,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
-        description: "RecipeId of the workspace. Ex: Springboot Microservice"    
+        description: "RecipeId of the workspace. Ex: Springboot Microservice"  
       environment:
         type: string
         enum: [Development, Testing, Production]
@@ -1250,9 +1252,22 @@ definitions:
         description: "Operating system required"
       resource:
         type: string
-        description: "Storage details of recipe"  
+        description: "Storage details of recipe" 
+      software:
+        type: array
+        items:
+          type: string 
+      toDeployType:
+        type: string
+      recipeType:
+        type: string
+      gitPath:
+        type: string
+      gitRepoLoc:
+        type: string
       required:
         -recipeId
+        -recipeName
 
   SecurityConfigResponseDto: 
     type: object

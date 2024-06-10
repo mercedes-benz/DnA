@@ -577,6 +577,7 @@
 	 private CodeServerRecipeDetails toRecipeDetails(CodeServerRecipeDetailsVO vo) {
 		 CodeServerRecipeDetails recipeDetails = new CodeServerRecipeDetails();
 		 if (vo != null) {
+			BeanUtils.copyProperties(vo, recipeDetails);
 			 recipeDetails.setCpuCapacity(vo.getCpuCapacity().toString());
 			 recipeDetails.setCloudServiceProvider(vo.getCloudServiceProvider().toString());
 			 recipeDetails.setEnvironment(codeServerEnvValue);
@@ -585,6 +586,11 @@
 			 recipeDetails.setRecipeId(vo.getRecipeId().toString());
 			 recipeDetails.setResource(vo.getResource());
 			 recipeDetails.setRepodetails(vo.getRepodetails());
+
+			 if(vo.getSoftware()!=null)
+			 {
+				recipeDetails.setSoftware(vo.getSoftware());
+			 }
 		 }
 		 return recipeDetails;
 	 }
@@ -592,6 +598,7 @@
 	 private CodeServerRecipeDetailsVO toRecipeDetailsVO(CodeServerRecipeDetails recipe) {
 		 CodeServerRecipeDetailsVO recipeDetailsVO = new CodeServerRecipeDetailsVO();
 		 if (recipe != null) {
+			BeanUtils.copyProperties(recipe, recipeDetailsVO);
 			 recipeDetailsVO
 					 .setCloudServiceProvider(CloudServiceProviderEnum.fromValue(recipe.getCloudServiceProvider()));
 			 recipeDetailsVO.setCpuCapacity(CpuCapacityEnum.fromValue(recipe.getCpuCapacity()));
@@ -601,6 +608,10 @@
 			 recipeDetailsVO.setRecipeId(RecipeIdEnum.fromValue(recipe.getRecipeId()));
 			 recipeDetailsVO.setResource(recipe.getResource());
 			 recipeDetailsVO.setRepodetails(recipe.getRepodetails());
+			 if(recipe.getSoftware()!=null)
+			 {
+				recipeDetailsVO.setSoftware(recipe.getSoftware());
+			 }
 		 }
 		 return recipeDetailsVO;
 	 }
@@ -877,7 +888,6 @@
 	 // 				}
 	 // 			}
 	 // 		} catch (Exception e) {
-	 // 			e.printStackTrace();
 	 // 			log.error("Failed in assembler while parsing entitlements/roles with exception {}", e.getMessage());
 	 // 		}
 	 // 	}

@@ -62,57 +62,57 @@ public class CodeServerClient {
 	
 
 	
-	public String toDeployType(String recipeId) {
-		String recipeType = "";
-		String deployType = "";
-		if(recipeId!=null)
-			recipeType = recipeId.toLowerCase();
-		switch(recipeType) {
-			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
-			case "springbootwithmaven": deployType = ConstantsUtility.SPRINGBOOTWITHMAVEN; break;
-			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
-			case "vuejs" : deployType = ConstantsUtility.VUEJS; break;
-			case "react":  deployType = ConstantsUtility.REACT; break;
-			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
-			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
-			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
-			case "dash" : deployType = ConstantsUtility.DASHPYTHON; break;
-			case "streamlit" : deployType = ConstantsUtility.STREAMLIT; break;
-			case "expressjs" : deployType = ConstantsUtility.EXPRESSJS; break;
-			case "nestjs" : deployType = ConstantsUtility.NESTJS; break;
-			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
-			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-codespace-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-malware-scanner" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-storage-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-storage-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-chronos-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-chronos-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-data-product-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-data-product-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-dss-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-dataiku-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-airflow-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-modal-registry-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-trino-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-nass" : deployType = ConstantsUtility.PUBLIC; break;			
-			case "public-dna-authenticator-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-matomo-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-matomo-backend" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-datalake-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
-			case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
-			case "bat-frontend" : deployType = ConstantsUtility.BAT_FRONTEND; break;
-			case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
-			case "public-dna-fabric-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-dataentry-mfe" : deployType = ConstantsUtility.PUBLIC; break;
-			case "public-dna-fabric-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// public String toDeployType(String recipeId) {
+	// 	String recipeType = "";
+	// 	String deployType = "";
+	// 	if(recipeId!=null)
+	// 		recipeType = recipeId.toLowerCase();
+	// 	switch(recipeType) {
+	// 		case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
+	// 		case "springbootwithmaven": deployType = ConstantsUtility.SPRINGBOOTWITHMAVEN; break;
+	// 		case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
+	// 		case "vuejs" : deployType = ConstantsUtility.VUEJS; break;
+	// 		case "react":  deployType = ConstantsUtility.REACT; break;
+	// 		case "angular" : deployType = ConstantsUtility.ANGULAR; break;
+	// 		case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
+	// 		case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
+	// 		case "dash" : deployType = ConstantsUtility.DASHPYTHON; break;
+	// 		case "streamlit" : deployType = ConstantsUtility.STREAMLIT; break;
+	// 		case "expressjs" : deployType = ConstantsUtility.EXPRESSJS; break;
+	// 		case "nestjs" : deployType = ConstantsUtility.NESTJS; break;
+	// 		case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
+	// 		case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-codespace-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-malware-scanner" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-storage-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-storage-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-chronos-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-chronos-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-data-product-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-data-product-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-dss-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-dataiku-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-airflow-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-modal-registry-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-trino-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-nass" : deployType = ConstantsUtility.PUBLIC; break;			
+	// 		case "public-dna-authenticator-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-matomo-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-matomo-backend" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-datalake-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "bat-frontend" : deployType = ConstantsUtility.BAT_FRONTEND; break;
+	// 		case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
+	// 		case "public-dna-fabric-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-dataentry-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+	// 		case "public-dna-fabric-backend" : deployType = ConstantsUtility.PUBLIC; break;
 				
-			default: deployType = ConstantsUtility.DEFAULT; break;
-		}
-		return deployType;
-	}
+	// 		default: deployType = ConstantsUtility.DEFAULT; break;
+	// 	}
+	// 	return deployType;
+	// }
 	
 	public GenericMessage manageWorkBench(WorkbenchManageDto manageDto) {
 		GenericMessage response = new GenericMessage();
@@ -152,7 +152,7 @@ public class CodeServerClient {
 	}
 
     // create code server using jupyter hub for a user 
-	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName) {
+	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName, String instructionSet) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -163,7 +163,7 @@ public class CodeServerClient {
 					|| createUser(userId, manageDto.getInputs().getIsCollaborator());
 
 			if (isUserCreated) {
-				boolean isCreateServerStatus = createServer(manageDto, codespaceName);
+				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName,instructionSet);
 				if (isCreateServerStatus) {
 					status = "SUCCESS";
 				} else {
@@ -240,18 +240,24 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName, String instructionSet) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
-			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
-			+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
-			+ "\",\"GITHUB_TOKEN\" : \"" + manageDto.getInputs().getPat() + "\",\"SHORTID\" : \""
-			+ manageDto.getInputs().getShortid().toLowerCase()
-			+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\""
-			+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
-			+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
-			+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
-			+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
+			String[] instructionsArray = instructionSet.trim().split("\\n");
+			String envInstructions = "";
+			for (String instruction : instructionsArray) {
+				String[] parts = instruction.split("=");
+				if (parts.length == 2) {
+					envInstructions += ", \"" + parts[0].trim() + "\": \"" + parts[1].trim() + "\"";
+				}
+			}
+			String requestJsonString = "{\"profile\": \"springboot\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
+			+ "\", \"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase() + "\", \"isCollaborator\" : \"false\", "
+			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GH_PAT_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" + envInstructions + "}, "
+			+ "\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
+			+ "\", \"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
+			+ "\", \"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\", \"cpu_limit\": "
+			+ manageDto.getInputs().getCpu_limit() + ", \"cpu_guarantee\": "
 			+ manageDto.getInputs().getCpu_guarantee() + "}";
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
