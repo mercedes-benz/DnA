@@ -402,6 +402,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			String externalLocation = "s3a://"+existingVO.getBucketName()+"/"+ schema;
 			try {
 				if(updateRequestVO.getTables()!=null && !updateRequestVO.getTables().isEmpty()) {
+					updateRequestVO.setTables(new ArrayList<>());
+				}
 					List<String> existingTablesInSchema = trinoClient.showTables(catalog, schema, "%%");
 					List<String> existingTablesInDna = new ArrayList<>();
 					if(existingVO.getTables()!=null && !existingVO.getTables().isEmpty()) {
@@ -492,7 +494,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					}
 					responseMsg.getErrors().addAll(createResponses.getErrors());
 					responseMsg.getWarnings().addAll(createResponses.getWarnings());
-				}
+				//}
 				datalakeProjectVO = super.create(existingVO);
 				responseVO.setData(datalakeProjectVO);
 				responseMsg.setSuccess("SUCCESS");
