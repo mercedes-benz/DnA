@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.1.10
+    version: 1.1.18
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
