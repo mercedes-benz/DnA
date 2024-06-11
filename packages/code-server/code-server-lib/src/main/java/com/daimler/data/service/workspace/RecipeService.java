@@ -20,9 +20,13 @@ public interface RecipeService {
 
 	List<RecipeLovVO> getAllRecipeLov(String Id);
 
-	List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit);
+	// List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit);
 
-	GenericMessage saveRecipeInfo(String name);
+	// GenericMessage saveRecipeInfo(String name);
 
-	GenericMessage publishRecipeInfo(String name);
+	// GenericMessage publishRecipeInfo(String name);
+	
+    GenericMessage validateGitHubUrl(String gitHubUrl);
+
+    GenericMessage deleteRecipe(String recipeName);
 }

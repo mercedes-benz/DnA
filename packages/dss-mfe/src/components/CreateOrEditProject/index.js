@@ -211,10 +211,10 @@ const CreateOrEditProject = (props) => {
             isFormValid = false;
         }
         if(projectGroup === 'eXtollo' && extolloTou === false){
-            setTouErrorMessage(errorMissingEntry);
+            setTouErrorMessage('Please agree to terms of use');
             isFormValid = false;
         }
-
+        
         if (
             (dataClassification && !(dataClassification === '0'))
             && (statusValue && !(statusValue === '0'))
@@ -223,6 +223,7 @@ const CreateOrEditProject = (props) => {
             && projectKey?.trim()?.length > 0
             && projectDescription?.trim()?.length > 0
             && selectedDepartmentTags.length > 0
+            &&( (projectGroup === 'eXtollo' && extolloTou === true) || projectGroup === 'onPremise')
         ) {
             isFormValid = true;
         } else {
@@ -856,17 +857,18 @@ const CreateOrEditProject = (props) => {
                                 className="ff-only"
                                 value={extolloTou}
                                 onChange={onExtolloTOuChange}
+                                checked = {extolloTou}
                             />
                         </span>
-                        <span className={classNames("label", touErrorMessage.length ? "error" : '')}>
-                            I here by declare that I agree to the  eXtollo{' '}
+                    </label>
+                    <span className={classNames("label",Styles.touLabel, touErrorMessage.length ? "error" : '')}>
+                            I here by declare that I agree to eXtollo{' '}
                             <span className={classNames(Styles.configLink)} onClick={onTouNavigate}>
                                 <a target="_blank" rel="noreferrer">
-                                    terms and conditions
+                                    terms of use
                                 </a>
                             </span>
-                        </span>
-                    </label>
+                    </span>
                     <span className={classNames(Styles.errorMsg, 'error-message', touErrorMessage.length ? '' : 'hide')}>
                         {touErrorMessage}
                     </span>

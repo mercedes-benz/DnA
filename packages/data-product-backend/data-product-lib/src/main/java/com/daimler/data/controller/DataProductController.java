@@ -1,22 +1,13 @@
 package com.daimler.data.controller;
 
-import com.daimler.data.api.dataproduct.DataproductsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.assembler.DataProductAssembler;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.*;
-import com.daimler.data.dto.dataproduct.DataStewardCollectionVO;
-import com.daimler.data.dto.dataproduct.IoCollectionVO;
-import com.daimler.data.dto.datatransfer.*;
-import com.daimler.data.dto.tag.TagVO;
-import com.daimler.data.service.dataproduct.DataProductService;
-import com.daimler.data.service.datatransfer.DataTransferService;
-import com.daimler.data.service.tag.TagService;
-import com.daimler.data.util.ConstantsUtility;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,18 +16,51 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import com.daimler.data.api.dataproduct.DataproductsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.DataProductAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.datacompliance.CreatedByVO;
+import com.daimler.data.dto.dataproduct.DataProductCollection;
+import com.daimler.data.dto.dataproduct.DataProductLovVO;
+import com.daimler.data.dto.dataproduct.DataProductOwnerCollection;
+import com.daimler.data.dto.dataproduct.DataProductRequestVO;
+import com.daimler.data.dto.dataproduct.DataProductResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
+import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.dataproduct.DataStewardCollectionVO;
+import com.daimler.data.dto.dataproduct.DataTransferConsumerRequestInfoVO;
+import com.daimler.data.dto.dataproduct.DatatransfersAssociatedVO;
+import com.daimler.data.dto.dataproduct.IoCollectionVO;
+import com.daimler.data.dto.dataproduct.ProductOwnerCollectionVO;
+import com.daimler.data.dto.dataproduct.RefreshVo;
+import com.daimler.data.dto.dataproduct.TransparencyVO;
+import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
+import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
+import com.daimler.data.dto.datatransfer.ProviderVO;
+import com.daimler.data.dto.tag.TagVO;
+import com.daimler.data.service.dataproduct.DataProductService;
+import com.daimler.data.service.datatransfer.DataTransferService;
+import com.daimler.data.service.tag.TagService;
+import com.daimler.data.util.ConstantsUtility;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Dataproduct API", tags = { "dataproducts" })
@@ -939,6 +963,40 @@ public class DataProductController implements DataproductsApi{
 		else {
 		LOGGER.info("No project owners available, returning empty");
 		return new ResponseEntity<>(dataStewardCollection, HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@Override
+	 @ApiOperation(value = "Get my dataproducts", nickname = "getMyDataProducts", notes = "Get all dataproducts for which user is either creator or product owner", response = DataProductOwnerCollection.class, tags={ "dataproducts", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = DataProductCollection.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/dataproducts/bookmarked",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<DataProductCollection> getMyDataProducts() {
+		CreatedByVO requestUser = this.userStore.getVO();
+		DataProductCollection responseCollection = new DataProductCollection();
+		String userId = requestUser.getId();
+		try {
+			List<DataProductVO> dataProducts = service.getMyDataproducts(userId);
+			if(dataProducts!=null && !dataProducts.isEmpty()) {
+				responseCollection.setRecords(dataProducts);
+				responseCollection.setTotalCount(dataProducts.size());
+				log.info(userId);
+				return new ResponseEntity<>(responseCollection, HttpStatus.OK);
+			}else {
+				return new ResponseEntity<>(new DataProductCollection(), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch dataProducts of user {} with exception {} ",userId, e.getMessage());
+			return new ResponseEntity<>(new DataProductCollection(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

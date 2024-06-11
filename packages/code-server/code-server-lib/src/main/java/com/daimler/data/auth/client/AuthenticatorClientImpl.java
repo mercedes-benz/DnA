@@ -146,6 +146,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.authoriserScope}")
 	private String authoriserScope;
 
+	@Value("${kong.authoriserRedirectAfterLogoutUri}")
+	private String authRedirectAfterLogoutUri;
+ 
+	@Value("${kong.authoriserIntrospectionEndpoint}")
+	private String authIntrospectionEndpoint;
+ 
+	@Value("${kong.authoriserDiscovery}")
+	private String authDiscovery;
+	
+
 
 
 	@Autowired
@@ -446,7 +456,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachCorsPluginResponse = new GenericMessage();
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
-		
 		try {	
 			boolean isServiceAlreadyCreated = false;
 			boolean isRouteAlreadyCreated = false;
@@ -459,7 +468,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
-			if(createServiceResponse.getSuccess().equalsIgnoreCase("success") || isServiceAlreadyCreated ) {
+			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
 				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
@@ -475,7 +484,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				return;
 			}
 
-			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
+			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
 					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
@@ -492,9 +501,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					// 	LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 					// 	attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 					// }else {
+					
 					if(apiRecipe){
-						if(intSecureIAM || prodSecureIAM) {
-								if(Objects.nonNull(clientID) &&Objects.nonNull(clientSecret)){
+						if(intSecureIAM  || prodSecureIAM) {
+								if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
 										//deleting OIDC  and Authorizer plugin if already available
 										GenericMessage deletePluginResponse = new GenericMessage();
@@ -503,6 +513,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+										//deleteing jwy issuer plugin if any
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										
 										//request for attaching ODIC plugin to authorize service with new client id and secret
@@ -516,14 +530,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
 										if("int".equalsIgnoreCase(env)){
-											attachOIDCPluginConfigVO.setDiscovery(discovery);
-											attachOIDCPluginConfigVO.setIntrospection_endpoint(introspectionEndpoint);
-											attachOIDCPluginConfigVO.setRedirect_after_logout_uri(redirectAfterLogoutUri);
+											attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
+											attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
+											attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
 										}
 										if("prod".equalsIgnoreCase(env)){
-											String prodDiscovery = discovery.replace("-int","");
-											String prodIntrospectionEndpoint = introspectionEndpoint.replace("-int", "");
-											String prodRedirectAfterLogoutUri =redirectAfterLogoutUri.replace("-int", "");
+											String prodDiscovery = authDiscovery.replace("-int","");
+											String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
+											String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
 
 											attachOIDCPluginConfigVO.setDiscovery(prodDiscovery);
 											attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
@@ -582,13 +596,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							// attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 							// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						}else{
-							
 							GenericMessage deletePluginResponse = new GenericMessage();
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//deleteing jwy issuer plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 						// }
@@ -605,15 +622,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			LOGGER.error(e.getMessage());
 		}
 		
-		if (!kongApiForDeploymentURL && createServiceResponse.getSuccess().equalsIgnoreCase("success")
-				&& createRouteResponse.getSuccess().equalsIgnoreCase("success")
-				&& attachPluginResponse.getSuccess().equalsIgnoreCase("success")) {
+		if (!kongApiForDeploymentURL && "success".equalsIgnoreCase(createServiceResponse.getSuccess())
+				&& "success".equalsIgnoreCase(createRouteResponse.getSuccess())
+				&& "success".equalsIgnoreCase(attachPluginResponse.getSuccess())) {
 			LOGGER.info("Kong service, kong route and oidc plugin is attached to the service: {} " + serviceName);
 
 		}
-		if (kongApiForDeploymentURL && createServiceResponse.getSuccess().equalsIgnoreCase("success")
-				&& createRouteResponse.getSuccess().equalsIgnoreCase("success")
-				&& attachJwtPluginResponse.getSuccess().equalsIgnoreCase("success")) {
+		if (kongApiForDeploymentURL && "success".equalsIgnoreCase(createServiceResponse.getSuccess())
+				&& "success".equalsIgnoreCase(createRouteResponse.getSuccess())
+				//&& attachJwtPluginResponse.getSuccess().equalsIgnoreCase("success")
+				) {
 			LOGGER.info("Kong service, kong route and jwtissuer plugin is attached to the service: {} " + serviceName);
 
 		}

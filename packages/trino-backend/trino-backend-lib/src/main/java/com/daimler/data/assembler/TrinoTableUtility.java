@@ -51,8 +51,8 @@ public class TrinoTableUtility {
 					}
 				}
 				if(canCreate) {
-					//format='" + tableDetails.getDataFormat() + "',
-					createTableStatement += " WITH ( location = '" + tableLocation + "')";
+					String format= "ORC".equalsIgnoreCase(tableDetails.getDataFormat()) ? "ORC" : "PARQUET";
+					createTableStatement += " WITH (  location = '" + tableLocation + "')";
 					generateStmtResponse.setGeneratedTable(tableDetails);
 				}
 				generateStmtResponse.setTableStmt(createTableStatement);
@@ -67,7 +67,7 @@ public class TrinoTableUtility {
 		generateStmtResponse.setResponseMsg(responseMsg);
 		return generateStmtResponse;
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Failed to generate create table statements for given catalog {} and schema {}  due to exception {} ", catalog, schema, e.getMessage());
 			return null;
 		}
 	}

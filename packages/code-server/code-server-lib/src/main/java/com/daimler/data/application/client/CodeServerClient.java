@@ -69,12 +69,17 @@ public class CodeServerClient {
 			recipeType = recipeId.toLowerCase();
 		switch(recipeType) {
 			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
+			case "springbootwithmaven": deployType = ConstantsUtility.SPRINGBOOTWITHMAVEN; break;
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
-			case "vue" : deployType = ConstantsUtility.VUE; break;
+			case "vuejs" : deployType = ConstantsUtility.VUEJS; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
 			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
 			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
+			case "dash" : deployType = ConstantsUtility.DASHPYTHON; break;
+			case "streamlit" : deployType = ConstantsUtility.STREAMLIT; break;
+			case "expressjs" : deployType = ConstantsUtility.EXPRESSJS; break;
+			case "nestjs" : deployType = ConstantsUtility.NESTJS; break;
 			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;
@@ -100,7 +105,10 @@ public class CodeServerClient {
 			case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
 			case "bat-frontend" : deployType = ConstantsUtility.BAT_FRONTEND; break;
 			case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
-			
+			case "public-dna-fabric-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-dataentry-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-fabric-backend" : deployType = ConstantsUtility.PUBLIC; break;
+				
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
 		return deployType;
@@ -232,19 +240,19 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	private boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
-					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
-					+ "\",\"GITHUB_TOKEN\" : \"" + manageDto.getInputs().getPat() + "\",\"SHORTID\" : \""
-					+ manageDto.getInputs().getShortid().toLowerCase()
-					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"\""
-					+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
-					+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
-					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
-					+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
-					+ manageDto.getInputs().getCpu_guarantee() + "}";
+			+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
+			+ "\",\"GITHUB_TOKEN\" : \"" + manageDto.getInputs().getPat() + "\",\"SHORTID\" : \""
+			+ manageDto.getInputs().getShortid().toLowerCase()
+			+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\""
+			+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
+			+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
+			+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
+			+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
+			+ manageDto.getInputs().getCpu_guarantee() + "}";
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
@@ -254,7 +262,7 @@ public class CodeServerClient {
 				return true;
 			}
 		} catch (Exception e) {
-			log.error("Error occurred while creating git repo {} with exception: {}", codespaceName, e.getMessage());
+			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
 	}
@@ -464,7 +472,6 @@ public class CodeServerClient {
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
-			e.printStackTrace();
 		}
 		response.setSuccess(status);
 		response.setWarnings(warnings);
@@ -544,9 +551,8 @@ public class CodeServerClient {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
 					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
-					+ "\",\"SHORTID\" : \""
-					+ manageDto.getInputs().getShortid().toLowerCase()
-					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"\""
+					+ "\",\"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase()
+					+ "\",\"isCollaborator\" : \"false\",\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\""
 					+ "},\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
 					+ "\",\"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
 					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "

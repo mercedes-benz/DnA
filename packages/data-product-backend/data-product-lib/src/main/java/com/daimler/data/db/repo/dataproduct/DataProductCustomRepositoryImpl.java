@@ -39,6 +39,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
@@ -582,6 +583,34 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		}
 		return dataProductNsqls;				
 	}
+	
+	@Override
+	public List<DataProductNsql> getMyDataProducts(String userId) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<DataProductNsql> cq = cb.createQuery(DataProductNsql.class);
+			Root<DataProductNsql> root = cq.from(DataProductNsql.class);
+			Predicate con1 = cb.equal(cb.lower(
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("createdBy"),  cb.literal("id") )),
+					userId.toLowerCase());
+			Predicate con2 = cb.equal(cb.lower(
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("contactInformation"),  cb.literal("productOwner"), cb.literal("id") )),
+					userId.toLowerCase());
+			Predicate con3 = cb.equal(cb.lower(
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("recordStatus"))),
+					"open");
+			Predicate myDataProductsCondition = cb.or(con1,con2);
+			Predicate consolidatedCondition = cb.and(myDataProductsCondition,con3);
+			cq.where(consolidatedCondition);
+			TypedQuery<DataProductNsql> typedQuery = em.createQuery(cq);
+			List<DataProductNsql> dataproductResults = typedQuery.getResultList();
+			return dataproductResults;		
+		}catch(Exception e) {
+			LOGGER.error("Failed to fetch my dataproducts for user {} with exception {} ", userId, e.getMessage());
+			return null;
+		}
+	}
+	
 
     public List<DataProductTeamLov> getAllDataStweardLov()
 	{

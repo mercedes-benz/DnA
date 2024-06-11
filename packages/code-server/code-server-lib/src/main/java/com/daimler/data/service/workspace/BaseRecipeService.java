@@ -10,6 +10,7 @@ import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomSoftwareRepo;
@@ -32,9 +33,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.client.GitClient;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
-
+import org.springframework.http.HttpStatus;
+import com.daimler.data.application.client.GitClient;
 
 
 @Service
@@ -62,6 +65,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	 private UserStore userStore;
+
+	 @Autowired
+	 private GitClient gitClient;
     
 	@Override
 	@Transactional
@@ -85,6 +91,41 @@ public class BaseRecipeService implements RecipeService{
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
 		return recipeAssembler.toVo(savedEntity);
+	}
+
+	@Override
+	public GenericMessage validateGitHubUrl(String gitHubUrl){
+		GenericMessage responseMessage = new GenericMessage();
+		responseMessage.setSuccess("SUCCESS");
+		try
+			{
+				String repoName = null;
+				String[] codespaceSplitValues = gitHubUrl.split("/");
+				int length = codespaceSplitValues.length;
+				repoName = codespaceSplitValues[length-1];
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(repoName);
+				if(!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription msg = new MessageDescription();
+					List<MessageDescription> errorMessage = new ArrayList<>();
+					msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo. Please try again.");
+					errorMessage.add(msg);
+					responseMessage.addErrors(msg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errorMessage);
+					return responseMessage;
+				}
+			}
+			catch(Exception e)
+			{
+				MessageDescription msg = new MessageDescription();
+				List<MessageDescription> errorMessage = new ArrayList<>();
+				msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo.");
+				errorMessage.add(msg);
+				responseMessage.addErrors(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errorMessage);
+			}
+			return responseMessage;
 	}
 
 	@Override
@@ -134,118 +175,131 @@ public class BaseRecipeService implements RecipeService{
 
 	}
 
-	@Override
-	@Transactional
-	public List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit){
-        List<CodeServerRecipeNsql> entities = workspaceCustomRecipeRepo.findAllRecipesWithRequestedAndAcceptedState(offset, limit);
-        return entities.stream().map(n -> recipeAssembler.toVo(n)).collect(Collectors.toList());
-    }
+	// @Override
+	// @Transactional
+	// public List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit){
+    //     List<CodeServerRecipeNsql> entities = workspaceCustomRecipeRepo.findAllRecipesWithRequestedAndAcceptedState(offset, limit);
+    //     return entities.stream().map(n -> recipeAssembler.toVo(n)).collect(Collectors.toList());
+    // }
 
-	@Override
-	@Transactional
-	public GenericMessage saveRecipeInfo(String name)
-	{
-		GenericMessage responseMessage = new GenericMessage();
-		if(name != null)
-		{
-			try
-			{
-				responseMessage = workspaceCustomRecipeRepo.updateRecipeInfo(name,"ACCEPTED");
-			}
-			catch(Exception e)
-			{
-				log.info("failed in recipe service while updating status to accept state",e.getMessage());
-				log.error("caught exception while changing status {}", e.getMessage());
-				MessageDescription msg = new MessageDescription();
-				List<MessageDescription> errorMessage = new ArrayList<>();
-				msg.setMessage("caught exception while saving recipe info");
-				errorMessage.add(msg);
-				responseMessage.addErrors(msg);
-				responseMessage.setSuccess("FAILED");
-				responseMessage.setErrors(errorMessage);
-			}
+	// @Override
+	// @Transactional
+	// public GenericMessage saveRecipeInfo(String name)
+	// {
+	// 	GenericMessage responseMessage = new GenericMessage();
+	// 	if(name != null)
+	// 	{
+	// 		try
+	// 		{
+	// 			responseMessage = workspaceCustomRecipeRepo.updateRecipeInfo(name,"ACCEPTED");
+	// 		}
+	// 		catch(Exception e)
+	// 		{
+	// 			log.info("failed in recipe service while updating status to accept state",e.getMessage());
+	// 			log.error("caught exception while changing status {}", e.getMessage());
+	// 			MessageDescription msg = new MessageDescription();
+	// 			List<MessageDescription> errorMessage = new ArrayList<>();
+	// 			msg.setMessage("caught exception while saving recipe info");
+	// 			errorMessage.add(msg);
+	// 			responseMessage.addErrors(msg);
+	// 			responseMessage.setSuccess("FAILED");
+	// 			responseMessage.setErrors(errorMessage);
+	// 		}
 	
-			CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(name);
-			RecipeVO data =  recipeAssembler.toVo(entity);
-			UserInfoVO vo = data.getCreatedBy();
+	// 		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(name);
+	// 		RecipeVO data =  recipeAssembler.toVo(entity);
+	// 		UserInfoVO vo = data.getCreatedBy();
 	
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userId = currentUser != null ? currentUser.getId() : null;
+	// 		CreatedByVO currentUser = this.userStore.getVO();
+	// 		String userId = currentUser != null ? currentUser.getId() : null;
 	
-			String resourceID = name;
-			List<String> teamMembers = new ArrayList<>();
-			List<String> teamMembersEmails = new ArrayList<>();
-			List<ChangeLogVO> changeLogs = new ArrayList<>();
-			UserInfoVO projectOwner = vo;
-			teamMembers.add(projectOwner.getId());
-			teamMembersEmails.add(projectOwner.getEmail());
+	// 		String resourceID = name;
+	// 		List<String> teamMembers = new ArrayList<>();
+	// 		List<String> teamMembersEmails = new ArrayList<>();
+	// 		List<ChangeLogVO> changeLogs = new ArrayList<>();
+	// 		UserInfoVO projectOwner = vo;
+	// 		teamMembers.add(projectOwner.getId());
+	// 		teamMembersEmails.add(projectOwner.getEmail());
 	
-			String eventType = "Codespace-Recipe Status Update";
-			String message = ""; 
+	// 		String eventType = "Codespace-Recipe Status Update";
+	// 		String message = ""; 
 	
-			message = "Codespace Recipe " + data.getRecipeName() + " is accepted by Codespace Admin.";
-			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-		}
-		else
-		{
-			log.info("Failed in recipe service method during accept...");
-		}
-		return responseMessage;
+	// 		message = "Codespace Recipe " + data.getRecipeName() + " is accepted by Codespace Admin.";
+	// 		kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+	// 	}
+	// 	else
+	// 	{
+	// 		log.info("Failed in recipe service method during accept...");
+	// 	}
+	// 	return responseMessage;
 
-	}
+	// }
 
-	@Override
-	@Transactional
-	public GenericMessage publishRecipeInfo(String name)
-	{
-		GenericMessage responseMessage = new GenericMessage();
-		if(name != null)
-		{
-			try
-			{
+	// @Override
+	// @Transactional
+	// public GenericMessage publishRecipeInfo(String name)
+	// {
+	// 	GenericMessage responseMessage = new GenericMessage();
+	// 	if(name != null)
+	// 	{
+	// 		try
+	// 		{
 				
-				responseMessage = workspaceCustomRecipeRepo.updateRecipeInfo(name,"PUBLISHED");
-			}
-			catch(Exception e)
-			{
-				log.info("failed in recipe service while updating status to publish state",e.getMessage());
-				log.error("caught exception while changing status {}", e.getMessage());
-				MessageDescription msg = new MessageDescription();
-				List<MessageDescription> errorMessage = new ArrayList<>();
-				msg.setMessage("caught exception while saving recipe info");
-				errorMessage.add(msg);
-				responseMessage.addErrors(msg);
-				responseMessage.setSuccess("FAILED");
-				responseMessage.setErrors(errorMessage);
-			}
+	// 			responseMessage = workspaceCustomRecipeRepo.updateRecipeInfo(name,"PUBLISHED");
+	// 		}
+	// 		catch(Exception e)
+	// 		{
+	// 			log.info("failed in recipe service while updating status to publish state",e.getMessage());
+	// 			log.error("caught exception while changing status {}", e.getMessage());
+	// 			MessageDescription msg = new MessageDescription();
+	// 			List<MessageDescription> errorMessage = new ArrayList<>();
+	// 			msg.setMessage("caught exception while saving recipe info");
+	// 			errorMessage.add(msg);
+	// 			responseMessage.addErrors(msg);
+	// 			responseMessage.setSuccess("FAILED");
+	// 			responseMessage.setErrors(errorMessage);
+	// 		}
 	
-			CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(name);
-			RecipeVO data =  recipeAssembler.toVo(entity);
-			UserInfoVO vo = data.getCreatedBy();
+	// 		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(name);
+	// 		RecipeVO data =  recipeAssembler.toVo(entity);
+	// 		UserInfoVO vo = data.getCreatedBy();
 	
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userId = currentUser != null ? currentUser.getId() : null;
+	// 		CreatedByVO currentUser = this.userStore.getVO();
+	// 		String userId = currentUser != null ? currentUser.getId() : null;
 	
-			String resourceID = name;
-			List<String> teamMembers = new ArrayList<>();
-			List<String> teamMembersEmails = new ArrayList<>();
-			List<ChangeLogVO> changeLogs = new ArrayList<>();
-			UserInfoVO projectOwner = vo;
-			teamMembers.add(projectOwner.getId());
-			teamMembersEmails.add(projectOwner.getEmail());
+	// 		String resourceID = name;
+	// 		List<String> teamMembers = new ArrayList<>();
+	// 		List<String> teamMembersEmails = new ArrayList<>();
+	// 		List<ChangeLogVO> changeLogs = new ArrayList<>();
+	// 		UserInfoVO projectOwner = vo;
+	// 		teamMembers.add(projectOwner.getId());
+	// 		teamMembersEmails.add(projectOwner.getEmail());
 	
-			String eventType = "Codespace-Recipe Status Update";
-			String message = ""; 
+	// 		String eventType = "Codespace-Recipe Status Update";
+	// 		String message = ""; 
 	
-			message = "Codespace Recipe " + data.getRecipeName() + " is published by Codespace Admin.";
-			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
-		}
-		else
-		{
-			log.info("Failed in recipe service method during publish...");
-		}
-		return responseMessage;
+	// 		message = "Codespace Recipe " + data.getRecipeName() + " is published by Codespace Admin.";
+	// 		kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+	// 	}
+	// 	else
+	// 	{
+	// 		log.info("Failed in recipe service method during publish...");
+	// 	}
+	// 	return responseMessage;
+
+	// }
+
+	@Override
+	public GenericMessage deleteRecipe(String recipeName)
+	{
+		GenericMessage msg = new GenericMessage();
+		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+        if (recipe != null) {
+			GenericMessage val =   workspaceCustomRecipeRepo.deleteRecipe(recipe);
+            return new GenericMessage("Recipe deleted successfully");
+        } else {
+            return new GenericMessage("Recipe not found");
+        }
 
 	}
-
 }

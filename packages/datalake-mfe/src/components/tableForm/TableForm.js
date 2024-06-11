@@ -12,6 +12,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { setTables } from "../../redux/graphSlice";
 import { calcXY } from "../../utilities/utils";
 import Notification from "../../common/modules/uilab/js/src/notification";
+import { datalakeApi } from "../../apis/datalake.api";
+// import { getProjectDetails } from '../../redux/graph.services';
+import ProgressIndicator from "../../common/modules/uilab/js/src/progress-indicator";
 
 const TableFormItem = (props) => {
   const {
@@ -289,7 +292,7 @@ const TableFormBase = ({ formats }) => {
   );
 };
 
-const TableForm = ({ setToggle, formats, dataTypes }) => {
+const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
 
@@ -313,8 +316,23 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
+    ProgressIndicator.show();
+    datalakeApi.getLatestDetails(project.id)
+    .then((res) => {
+      const latestData = res.data;
+      dispatch(setTables(res.data.tables));
+      proceedToSubmit(data, latestData);
+    })
+    .catch(() => {
+      ProgressIndicator.hide();
+      Notification.show("Error in fetching latest details");
+    });
+
+  }
+
+  const proceedToSubmit = (data, latestData) => {
     const { tableName, tableFormat, tableComment } = data;
-    const [x, y] = calcXY([...project.tables], box);
+    const [x, y] = calcXY([...latestData.tables], box);
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
@@ -323,7 +341,7 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
       ycoOrdinate: y,
       columns: [...columns],
     };
-    const projectTemp = { ...project };
+    const projectTemp = { ...latestData };
     if (
       projectTemp.tables.filter((table) => table.tableName === tableName)
         .length > 0
@@ -332,6 +350,7 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
         `Table with the name ${tableName} already exists.`,
         "alert"
       );
+      ProgressIndicator.hide();
     } else {
       const columnNames = columns.map((column) => column.columnName);
       if (new Set(columnNames).size !== columnNames.length) {
@@ -339,20 +358,37 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
           "Column names must be unique within a table.",
           "alert"
         );
+        ProgressIndicator.hide();
       } else {
         projectTemp.tables = [...projectTemp.tables, tableData];
         dispatch(setTables(projectTemp.tables));
         setToggle();
+        handlePublish(projectTemp)     
       }
     }
   };
+
+  const handlePublish = (projectTemp) => {
+    const data = {...projectTemp};
+    datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Table(s) published successfully');
+      isSaved(true);
+      }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
+        'alert',
+      );
+    });
+  }
 
   const addItem = (index) => {
     const newState = [...columns];
     newState.splice(index + 1, 0, {
       columnName: "new_column" + newState.length,
       comment: "",
-      dataType: "",
+      dataType: "BOOLEAN",
       notNullConstraintEnabled: true,
     });
     setFields(newState);
@@ -404,7 +440,7 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
             className="btn btn-tertiary"
             onClick={handleSubmit((values) => onSubmit(values))}
           >
-            Save
+            Publish
           </button>
         </div>
       </div>

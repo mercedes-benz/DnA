@@ -33,7 +33,7 @@ interface CodeSpaceCardItemProps {
   onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => void;
   onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
   onShowDeployModal: (codeSpace: ICodeSpaceData) => void;
-  onStartStopCodeSpace: (codeSpaceId: ICodeSpaceData) => void;
+  onStartStopCodeSpace: (codeSpace: ICodeSpaceData, startSuccessCB: () => void) => void;
 }
 
 let isTouch = false;
@@ -46,13 +46,14 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
-  const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
+  // const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
   const recipes = recipesMaster;
-  const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
+  const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
+  const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment =
     codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
@@ -65,7 +66,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState<number>(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState<number>(0);
 
+  const [serverStarted, setServerStarted] = useState(false);
+  const [serverFailed, setServerFailed] = useState(false);
+  const [serverProgress, setServerProgress] = useState(0);
+
+
   useEffect(() => {
+
+    handleServerStatusAndProgress();
+
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('click', handleContextMenuOutside, true);
     return () => {
@@ -131,7 +140,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
       <h3>
         {/* Are you sure to delete {codeSpace.projectDetails.projectName} Code Space?
         <br /> */}
-        {isOwner ? (
+        {codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? (
           <>
             {hasCollaborators ? (
               <>
@@ -187,6 +196,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const onCardNameClick = () => {
     if (enableOnboard) {
       props.onShowCodeSpaceOnBoard(codeSpace);
+    } else if (!serverStarted) {
+      onStartStopCodeSpace(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
@@ -218,6 +229,29 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     setShowDoraMetricsModal(true);
   };
 
+  const onStartStopCodeSpace = (codespace: ICodeSpaceData) => {
+    props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+  };
+
+  const handleServerStatusAndProgress = () => {
+    codeSpace.serverStatus = 'SERVER_STOPPED';
+    CodeSpaceApiClient.serverStatusFromHub(props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e: any) => {
+      const data = JSON.parse(e.data);
+      if (data.progress === 100 && data.ready) {
+        setServerProgress(100);
+        setTimeout(() => {
+          setServerStarted(true);
+          codeSpace.serverStatus = 'SERVER_STARTED';
+        }, 300);
+      } else if(!data.failed) {
+        setServerProgress(data.progress);
+      } else if(data.progress === 100 && data.failed) {
+        setServerFailed(true);
+      }
+      console.log(JSON.parse(e.data));
+    });
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
@@ -233,18 +267,32 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ? intDeploymentDetails?.lastDeployedOn : (intDeploymentDetails?.deploymentAuditLogs && intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ? prodDeploymentDetails?.lastDeployedOn : (prodDeploymentDetails?.deploymentAuditLogs && prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
 
-  const deployed = intDeployed || prodDeployed;
-  const allowDelete = isOwner ? !hasCollaborators : true;
+  const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
   const isAPIRecipe =
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi';
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+
+
+  const isIAMRecipe =
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const securedWithIAMContent: React.ReactNode = (
     <svg
@@ -272,7 +320,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div
             className={classNames(
               Styles.cardHeadInfo,
-              deleteInProgress || createInProgress || creationFailed || !serverStarted ? Styles.disable : null,
+              deleteInProgress || createInProgress || creationFailed ? Styles.disable : null,
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
@@ -321,7 +369,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     {projectDetails?.gitRepoName && (
                       <li>
                         <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
-                          Goto code repo
+                          Go to code repo
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>
@@ -484,6 +532,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             <div>
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+            </div>
+            <div>
+              <div>Owner</div>
+              <div>{codeSpace?.projectDetails?.projectOwner?.firstName +' '+codeSpace?.projectDetails?.projectOwner?.lastName+' ('+codeSpace?.projectDetails?.projectOwner?.id +')'}</div>
             </div>
             {/* {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <>
@@ -713,9 +765,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           ) : (
             <>
               <div>
-                {!createInProgress && !creationFailed && (
+                {!createInProgress && !creationFailed && !serverFailed && (
                   <span
-                    onClick={() => props.onStartStopCodeSpace(codeSpace)}
+                    onClick={() => onStartStopCodeSpace(codeSpace)}
                     tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
                     className={classNames(
                       Styles.statusIndicator,
@@ -724,6 +776,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     )}
                   >
                     {serverStarted ? 'Stop' : 'Start'}
+                    {!serverStarted && serverProgress > 0 ? `ing... ${serverProgress}%` : ''}
+                  </span>
+                )}
+                {serverFailed && (
+                  <span
+                    title={'Please contact Codespace Admin'}
+                    className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
+                  >
+                    Server Start Failed
                   </span>
                 )}
                 {createInProgress ? (
@@ -731,11 +792,82 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 ) : (
                   <>
                     {!creationFailed && deployingInProgress && (
+                      <a
+                      href={intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={Styles.deployingLink}
+                      tooltip-data={intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'? 'Deploying to Staging' : 'Deploying to Production'}
+                    >
                       <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                    </a>
                     )}
                     {!creationFailed && deployed && (
                       <>
-                        {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
+                        {!deployingInProgress &&
+                          (intLastDeployedTime > prodLastDeployedTime ? (
+                            intCodeDeployFailed ? (
+                              <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                                <a
+                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={Styles.deployFailLink}
+                                  tooltip-data={intDeploymentDetails?.deploymentAuditLogs ?
+                                    'Deployment to Staging failed on ' +
+                                    regionalDateAndTimeConversionSolution(intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1].triggeredOn) : 'Deployment to staging failed'
+                                  }
+                                >
+                                  Failed
+                                </a>
+                              </span>
+                            ) : (
+                              <span className={Styles.statusIndicator}>
+                                <a
+                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={Styles.deployedLink}
+                                  tooltip-data={
+                                    'Deployed to Staging on ' +
+                                    regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)
+                                  }
+                                >
+                                  Deployed
+                                </a>
+                              </span>
+                            )
+                          ) : prodCodeDeployFailed ? (
+                            <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                              <a
+                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={Styles.deployFailLink}
+                                tooltip-data={prodDeploymentDetails?.deploymentAuditLogs ? 
+                                  'Deployment to Production failed on ' +
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1].triggeredOn) : 'Deployment for production failed'
+                                }
+                              >
+                                Failed
+                              </a>
+                            </span>
+                          ) : (
+                            <span className={Styles.statusIndicator}>
+                              <a
+                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={Styles.deployedLink}
+                                tooltip-data={
+                                  'Deployed to Production on ' +
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                }
+                              >
+                                Deployed
+                              </a>
+                            </span>
+                          ))}
                         {/* {intDeployed && (
                           <a
                             href={intDeployedUrl}
@@ -777,7 +909,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
-                  isAPIRecipe &&
+                  isIAMRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />

@@ -11,9 +11,10 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import Modal from 'components/formElements/modal/Modal';
 import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from 'globals/constants';
-import { Envs } from 'globals/Envs';
+// import { Envs } from 'globals/Envs';
 import { trackEvent } from '../../../../services/utils';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
+import { IUserInfo } from 'globals/types';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -32,6 +33,7 @@ export interface IDeployRequest {
 }
 
 interface DeployModalProps {
+  userInfo: IUserInfo;
   codeSpaceData: ICodeSpaceData;
   enableSecureWithIAM: boolean;
   setShowCodeDeployModal: (show: boolean) => void;
@@ -59,6 +61,8 @@ const DeployModal = (props: DeployModalProps) => {
   const [disableProdIAM, setDisableProdIAM] = useState(true);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
+  const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
+  const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
 
   useEffect(() => {
     setClientId('');
@@ -318,12 +322,12 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableIntIAM}
+                          disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
-                        Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
-                        <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        Secure with your own IAM Credentials{' '}
+                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -331,7 +335,7 @@ const DeployModal = (props: DeployModalProps) => {
                               'New'}
                             )
                           </a>
-                        </span>
+                        </span>)}
                       </span>
                     </label>
                   </div>
@@ -423,12 +427,12 @@ const DeployModal = (props: DeployModalProps) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableProdIAM}
+                          disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
-                        Secure with {Envs.DNA_APPNAME_HEADER} IAM{' '}
-                        <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        Secure with your own IAM Credentials{' '}
+                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -436,7 +440,7 @@ const DeployModal = (props: DeployModalProps) => {
                               'New'}
                             )
                           </a>
-                        </span>
+                        </span>)}
                       </span>
                     </label>
                   </div>

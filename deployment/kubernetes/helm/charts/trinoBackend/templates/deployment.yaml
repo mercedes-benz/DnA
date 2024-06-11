@@ -23,7 +23,7 @@ spec:
     spec:
       shareProcessNamespace: true
       {{- if .Values.vaultInjector.enable }}         
-      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      serviceAccountName: trino-backend-sa
       {{- end }}     
       topologySpreadConstraints:
         - maxSkew: 1

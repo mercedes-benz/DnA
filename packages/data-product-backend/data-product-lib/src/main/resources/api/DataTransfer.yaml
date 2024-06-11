@@ -420,7 +420,9 @@ definitions:
 #        minLength: 1
       appId:
         type: string
-        description: "planning IT App-ID "         
+        description: "planning IT App-ID "       
+      leanIXDetails:
+          $ref: "#/definitions/LeanIXDetailsVO"
 #    required:
 #      - name
 #      - division
@@ -543,7 +545,9 @@ definitions:
         description: "planning IT App-ID "
       dataTransferDate:
         type: string
-        format: date                 
+        format: date     
+      leanIXDetails:
+          $ref: "#/definitions/LeanIXDetailsVO"            
 #    required:
 #      - lcoNeeded
 #      - ownerName
@@ -931,5 +935,30 @@ definitions:
         type: string
       teamMemeber:
         $ref: "#/definitions/DataTransferTeamMemberVO"
+      
+  LeanIXDetailsVO:
+    type: object
+    properties :
+      appReferenceStr:
+        type: string
+      name:
+        type: string
+        description: "Name of the LeanIX"
+        minLength: 1
+      shortName:
+        type: string
+        description: "Short Name of the LeanIX"
+      ObjectState:
+        type: string
+        description: "State of the LeanIX"
+      providerOrgRefstr:
+        type: string
+        description: "Details of provider Org of the LeanIX"
+      providerOrgId:
+        type: string
+      providerOrgShortname:
+        type: string
+      providerOrgDeptid:
+        type: string
         
 

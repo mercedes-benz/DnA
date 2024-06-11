@@ -96,6 +96,12 @@
 		 UserInfoVO vo = new UserInfoVO();
 		 if (userInfo != null) {
 			 BeanUtils.copyProperties(userInfo, vo);
+			 if(userInfo.getIsAdmin()!=null){
+				vo.setIsAdmin(userInfo.getIsAdmin());
+			 }
+			 else{
+				vo.setIsAdmin(false);
+			 }
 		 }
 		 return vo;
 	 }
@@ -104,7 +110,14 @@
 		 UserInfo entity = new UserInfo();
 		 if (userInfo != null) {
 			 BeanUtils.copyProperties(userInfo, entity);
+			 if(userInfo.isIsAdmin()!=null){
+				entity.setIsAdmin(userInfo.isIsAdmin());
+			 }
+			 else{
+				entity.setIsAdmin(false);
+			 }
 		 }
+		
 		 return entity;
 	 }
  
@@ -248,6 +261,14 @@
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 		 if (vo != null) {
 			 BeanUtils.copyProperties(vo, deploymentDetails);
+			 if(vo.isSecureWithIAMRequired()!=null)
+			 {
+				deploymentDetails.setSecureWithIAMRequired(vo.isSecureWithIAMRequired());
+			 }
+			 else
+			 {
+				deploymentDetails.setSecureWithIAMRequired(false);
+			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -294,6 +315,10 @@
 			 deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
 			 if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				 deploymentDetailsVO.setSecureWithIAMRequired(false);
+			 }
+			 else
+			 {
+				deploymentDetailsVO.setSecureWithIAMRequired(deploymentDetails.getSecureWithIAMRequired());
 			 }
 			 if (deploymentDetails.getLastDeployedOn() != null){
 				 deploymentDetailsVO
@@ -616,6 +641,12 @@
 							 List<UserInfoVO> collabsVO = collabs.stream().map
 									 (n -> { UserInfoVO user = new UserInfoVO();
 											 BeanUtils.copyProperties(n,user);
+											 if(n.getIsAdmin()==null){
+												user.setIsAdmin(false);
+											 }
+											 else{
+												user.setIsAdmin(n.getIsAdmin());
+											 }
 											 return user;
 									 }).collect(Collectors.toList());
 							 projectDetailsVO.setProjectCollaborators(collabsVO);

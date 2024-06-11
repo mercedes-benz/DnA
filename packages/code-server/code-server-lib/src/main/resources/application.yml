@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.1.5
+    version: 1.1.18
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -81,11 +81,13 @@ codeServer:
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
-  env.url: ${CODE_SERVER_ENVURL:XXXX}
-  git.appname: ${CODE_SERVER_APPLICATION_NAME:XXX}
+  env.url: ${CODE_SERVER_ENVURL:XXX}
+  git.appname: ${CODE_SERVER_APPLICATION_NAME:XXXX}
   jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
   jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
   workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
+  workspace.apikey: ${CODE_SERVER_API_KEY:XXX}
+  git.pid: ${CODE_SERVER_PID_USER:XXXXX}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
@@ -158,6 +160,9 @@ kong:
    authoriserClientSecret: ${AUTHORISER_CLIENT_SECRET:XXXX}
    authoriserIntrospectionEndpointAuthMethod: ${AUTHORISER_INTROSPECTION_ENDPOINT_AUTH_METHOD:XXXX}
    authoriserScope: ${AUTHORISER_SCOPE:XXXX}
+   authoriserRedirectAfterLogoutUri: ${AUTHORISER_REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   authoriserDiscovery: ${AUTHORISER_DISCOVERY:XXXX}
+   authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   

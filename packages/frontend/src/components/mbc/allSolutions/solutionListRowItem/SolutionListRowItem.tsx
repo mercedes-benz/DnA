@@ -21,6 +21,7 @@ export interface ISolutionListRowItemProps {
   onDelete: (solutionId: string) => void;
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
   noteBookData: INotebookInfoSolutionId;
+  onShowSimilarSolutionModal: () => void;
 }
 
 export interface ISolutionListRowItemState {
@@ -188,7 +189,9 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
           <td className={Styles.draftIndicatorCol}>
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
-          <td className="wrap-text" style={{width:"150px"}}>{solution.currentPhase ? solution.currentPhase.name : ''}</td>
+          <td className="wrap-text" style={{ width: '150px' }}>
+            {solution.currentPhase ? solution.currentPhase.name : ''}
+          </td>
           <td>{solution.division?.name || 'N/A'}</td>
           <td>
             {solution.digitalValue &&
@@ -315,6 +318,16 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
                       <span onClick={this.onDeleteSolution}>Delete Solution</span>
                     </li>
                   )}
+                  <li className="contextListItem">
+                    <span
+                      onClick={(e: React.FormEvent<HTMLSpanElement>) => {
+                        e.stopPropagation();
+                        this.props.onShowSimilarSolutionModal();
+                      }}
+                    >
+                      View Similar Solutions
+                    </span>
+                  </li>
                 </ul>
               </div>
             </div>

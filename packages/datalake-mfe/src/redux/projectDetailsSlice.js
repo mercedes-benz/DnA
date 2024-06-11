@@ -25,6 +25,12 @@ const initialState = {
       email: '',
       department: '',
     },
+    dataProductDetails: {
+      id: '',
+      dataProductId: '',
+      dataProductName: '',
+      invalidstate: false,
+    },
     collabs: [
       {
         collaborator: {

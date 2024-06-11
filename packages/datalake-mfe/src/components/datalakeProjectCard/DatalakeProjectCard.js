@@ -16,7 +16,7 @@ import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 // import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({user,graph,onRefresh}) => {
+const DatalakeProjectCard = ({user,graph,onRefresh, hostHistory}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
   // const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -36,7 +36,7 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
 
   useEffect(() =>{
     if(!isOwner && graph?.collabs.length > 0){
-      const hasPermission = graph?.collabs?.some((collab)=> (collab.collaborator.id === user.id && collab.hasWritePermission));
+      const hasPermission = graph?.collabs?.some((collab)=> (collab.collaborator?.id === user?.id && collab.hasWritePermission));
       setHasWritePermission(hasPermission);
     }
   },[graph])
@@ -51,6 +51,10 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
 
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
+  }
+
+  const viewDataProduct = () => {
+    hostHistory.push(`/data/dataproduct/summary/${graph.dataProductDetails.dataProductId}`);
   }
 
   return (
@@ -91,6 +95,11 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
           </div>
         </div>
         <div className={Styles.cardFooter}>
+          <div className={classNames(Styles.dataProduct)}>
+          <button className={classNames("btn btn-primary", graph?.dataProductDetails?.id?.length > 0 ? "" :"hide", Styles.btnDp)} onClick={() => viewDataProduct()}>
+              <i className="icon mbc-icon dataproductoverview" tooltip-data= {"View Linked Data Product"}></i>
+          </button>
+          </div>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
             <button className={classNames("btn btn-primary",hasWritePermission ? "" :"hide")} onClick={() => setEditProject(true)}>

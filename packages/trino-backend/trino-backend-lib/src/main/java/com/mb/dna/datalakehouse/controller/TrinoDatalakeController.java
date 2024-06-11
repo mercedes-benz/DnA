@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -25,6 +26,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.UserInfoVO;
 import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
+import com.mb.dna.datalakehouse.dto.DataProductDetailsVO;
 import com.mb.dna.datalakehouse.dto.TrinoConnectorsCollectionVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectDetails;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectVO;
@@ -130,13 +132,21 @@ public class TrinoDatalakeController {
 				CreatedByVO requestUser = this.userStore.getVO();
 				String user = requestUser.getId();
 				if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
-					log.error("Datalake project with id {} is not found ", id);
+					log.error("Only Owner or collaborators with write permissions can edit project details. Access denied");
 					MessageDescription invalidMsg = new MessageDescription("Only Owner or collaborators with write permissions can edit project details. Access denied.");
 					GenericMessage errorMessage = new GenericMessage();
 					errorMessage.setSuccess("FAILED");
 					errorMessage.addErrors(invalidMsg);
 					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 				}
+			}
+			if(!((existingProject.getDataProductDetails()!=null && existingProject.getDataProductDetails().getId()!=null ))){
+				log.error("Cannot delete given Datalake project {} as it is linked to Dataproduct {}. Delete denied.",existingProject.getId(),existingProject.getDataProductDetails().getId());
+				MessageDescription invalidMsg = new MessageDescription("Cannot delete given Datalake project as it is linked to Dataproduct. Please unlink and retry deleting.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
 			GenericMessage deleteResponse = trinoDatalakeService.deleteProjectById(id);
 			if(deleteResponse!=null && "SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
@@ -145,8 +155,12 @@ public class TrinoDatalakeController {
 				return new ResponseEntity<>(deleteResponse, HttpStatus.INTERNAL_SERVER_ERROR); 
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
-			return null;
+			log.error("Failed to delete Datalake project with id {} with exception {} ", id,e.getMessage());
+			MessageDescription invalidMsg = new MessageDescription("Failed to delete Datalake Project with internal exception. Please retry later.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -172,7 +186,7 @@ public class TrinoDatalakeController {
 			}else {
 				CreatedByVO requestUser = this.userStore.getVO();
 				String user = requestUser.getId();
-				Long count = trinoDatalakeService.getCountForUserAndProject(user,id);
+				Long count = trinoDatalakeService.getCountForUserAndProject(user,id); 
 				if(count<=0) {
 					log.warn("User {} , not part of datalake project with id {}, access denied",user, id);
 					return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
@@ -181,7 +195,7 @@ public class TrinoDatalakeController {
 			return new ResponseEntity<>(existingProject, HttpStatus.OK);
 		}catch(Exception e) {
 			log.error("Failed to fetch record with id {} with exception {}",id,e.getMessage());
-			return null;
+			return new ResponseEntity<>(new TrinoDataLakeProjectVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -378,7 +392,97 @@ public class TrinoDatalakeController {
 		}
 	}
 	
-	@ApiOperation(value = "update datalake project details for a given Id.", nickname = "updateTechUserDetails", notes = "update datalake project tech user details for a given Id.", response = TrinoDataLakeTechUserWrapperDto.class, tags = {
+	@ApiOperation(value = "update datalake project details for a given Id.", nickname = "updateDataProductDetails", notes = "update datalake project dataproduct details for a given Id.", response = TrinoDataLakeProjectResponseVO.class, tags = {
+			"datalakes", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = TrinoDataLakeProjectResponseVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datalakes/{id}/dataproduct", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PATCH)
+	public ResponseEntity<TrinoDataLakeProjectResponseVO> updateDataProductDetails(
+			@ApiParam(value = "Data Lake project ID to be updated", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "Request Body that contains data required for updating of datalake project details of dataproduct", required = true) @Valid @RequestBody DataProductDetailsVO datalakeDataProductUpdateRequestVO) {
+		TrinoDataLakeProjectResponseVO responseAggregateVO = new TrinoDataLakeProjectResponseVO();
+		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getById(id);
+		List<MessageDescription> errors = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		DataProductDetailsVO isExists = new DataProductDetailsVO();
+		DataProductDetailsVO request = datalakeDataProductUpdateRequestVO;
+		if(existingProject==null || existingProject.getId()==null) {
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Datalake project does not exist with given name");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseAggregateVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseAggregateVO, HttpStatus.NOT_FOUND);
+		}
+		//check if user is project owner with write permissions
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
+			log.error("Only owner {} can edit Datalake project with id {} . Current user is {} ", existingProject.getCreatedBy().getId(), id, user);
+			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseAggregateVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseAggregateVO, HttpStatus.FORBIDDEN);
+		}
+		try{
+			if(request == null || request.getId()==null) {
+				log.info("Dataproduct id sent as null, unlinking dataproduct");
+				existingProject.setDataProductDetails(new DataProductDetailsVO());
+			}else {
+				isExists =	trinoDatalakeService.isValidDataProduct(request.getId());
+				if(isExists==null || isExists.getId()==null) {
+					log.error("Given Data Product {} is invalid",id);
+					MessageDescription invalidMsg = new MessageDescription("Given Dataproduct is invalid, please make sure that Dataproduct provided exists and you are either Product Owner or Creator of it.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess("FAILED");
+					errorMessage.addErrors(invalidMsg);
+					responseAggregateVO.setResponse(errorMessage);
+					return new ResponseEntity<>(responseAggregateVO, HttpStatus.BAD_REQUEST);
+				}else {
+					existingProject.setDataProductDetails(isExists);
+				}
+			}
+		}catch(Exception e) {
+			log.error("Failed to check if dataproduct is valid with internal server exception {} . Update request for project {} failed",e.getMessage(),id);
+			MessageDescription invalidMsg = new MessageDescription("Failed to validate given dataproduct, Please retry after a while.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseAggregateVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseAggregateVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		String name = existingProject.getProjectName();
+		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
+		try {
+			TrinoDataLakeProjectVO updatedDataLakeProjectDetails = trinoDatalakeService.create(existingProject);
+			GenericMessage successMessage = new GenericMessage();
+			successMessage.setSuccess("SUCCESS");
+			responseAggregateVO.setResponse(successMessage);
+			responseAggregateVO.setData(updatedDataLakeProjectDetails);
+			return new ResponseEntity<>(responseAggregateVO, HttpStatus.OK);
+		}catch(Exception e) {
+			log.error("Failed with exception {} while updating dataproduct details for Datalake project {}",e.getMessage(),id );
+			GenericMessage errorMessage = new GenericMessage();
+			MessageDescription invalidMsg = new MessageDescription("Failed with internal server error, while updating dataproduct details for Datalake project.");
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseAggregateVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseAggregateVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	
+	@ApiOperation(value = "update datalake project details for a given Id.", nickname = "updateTechUserDetails", notes = "update datalake project tech user details for a given Id.", response = GenericMessage.class, tags = {
 			"datalakes", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of success or failure", response = TrinoDataLakeTechUserWrapperDto.class),
@@ -409,8 +513,8 @@ public class TrinoDatalakeController {
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)))){
-			log.error("Datalake project with id {} is not found ", id);
-			MessageDescription invalidMsg = new MessageDescription("Only Owner or collaborators with write permissions can edit project details. Access denied.");
+			log.error("Datalake owner {} can update tech user details for project with id {}. current user is {} ", id,existingProject.getCreatedBy().getId(),user);
+			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
 			errorMessage.addErrors(invalidMsg);
@@ -500,8 +604,8 @@ public class TrinoDatalakeController {
 				}
 			}
 		}
-		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))) || (writeCollabs.contains(user))){
-			log.error("Datalake project with id {} is not found ", id);
+		if(!((existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user)) || (writeCollabs.contains(user)))){
+			log.error("Only owner {} or collabs with write access, can edit Datalake project with id {} . Current user is {} ", existingProject.getCreatedBy().getId(), id, user);
 			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
@@ -509,6 +613,39 @@ public class TrinoDatalakeController {
 			responseVO.setData(new TrinoDataLakeProjectVO());
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		if(existingProject.getDataProductDetails()!=null && existingProject.getDataProductDetails().getId()!=null){
+			List<String> existingTablesInDna = new ArrayList<>();
+			if(existingProject.getTables()!=null && !existingProject.getTables().isEmpty()) {
+				existingTablesInDna = existingProject.getTables().stream().map(x->x.getTableName()).collect(Collectors.toList()); 
+			}
+			List<String> updateTablesList = new ArrayList<>();
+			if(datalakeUpdateRequestVO!=null && datalakeUpdateRequestVO.getTables()!=null && !datalakeUpdateRequestVO.getTables().isEmpty()) {
+				updateTablesList = datalakeUpdateRequestVO.getTables().stream().map(n->n.getTableName()).collect(Collectors.toList());
+			}
+			Boolean tryingToInValidateDataProduct = false;
+			if(existingTablesInDna!=null && !existingTablesInDna.isEmpty()) {
+				if(updateTablesList==null || updateTablesList.isEmpty()) {
+					tryingToInValidateDataProduct = true;
+				}else {
+					for(String existingTable : existingTablesInDna) {
+						if(!updateTablesList.contains(existingTable)) {
+							tryingToInValidateDataProduct = true;
+							break;
+						}
+					}
+				}
+			}
+			if(tryingToInValidateDataProduct) {
+			log.error("Datalake project with id {} is linked to DataProduct {}, cannot remove tables. Bad Request.", id,existingProject.getDataProductDetails().getId());
+			MessageDescription invalidMsg = new MessageDescription("Datalake project is linked with DataProduct. Cannot remove tables when linked. Bad Request.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(new TrinoDataLakeProjectVO());
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
 		}
 		String name = existingProject.getProjectName();
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();

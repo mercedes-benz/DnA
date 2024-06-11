@@ -2,22 +2,31 @@ import classNames from 'classnames';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Styles from './data-entry-project.scss';
+// Container Components
+import Modal from 'dna-container/Modal';
 import Caption from 'dna-container/Caption';
-// utils
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import DataEntrySheet from '../../components/dataEntrySheet/DataEntrySheet';
 import { dataEntryApi } from '../../apis/dataentry.api';
 import { DEFAULT_WORKBOOK_DATA } from '../../utilities/template';
+import ProjectDetails from '../../components/projectDetails/ProjectDetails';
+import DeUsersInformation from '../../components/deUsersInformation/DeUsersInformation';
+import DataEntryUsers from '../../components/dataEntryUsers/DataEntryUsers';
+import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 
-const DataEntryProject = () => {
+const DataEntryProject = ({ user }) => {
   const { id: projectId } = useParams();
   const univerRef = useRef();
-  const [data] = useState(DEFAULT_WORKBOOK_DATA);
+  const [data, setData] = useState(DEFAULT_WORKBOOK_DATA);
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
+  const [isDue, setIsDue] = useState(false);
+
+  const [showDeUsersModal, setShowDeUsersModal] = useState(false);
+  const [showDeUsersInformationModal, setShowDeUsersInformationModal] = useState(false);
+  const [showProjectDetailsModal, setShowProjectDetailsModal] = useState(false);
 
   useEffect(() => {
     getProject();
@@ -30,6 +39,16 @@ const DataEntryProject = () => {
         .getDataEntryProject(projectId)
         .then((res) => {
           setProject(res?.data);
+          if(res?.data?.dueDate) {
+            let dateToCheck = new Date(res?.data?.dueDate);
+            let currentDate = new Date();
+            dateToCheck > currentDate ? setIsDue(true) : setIsDue(false);
+          }
+          if(res?.data?.surveyData !== 'null') {
+            const workbook = {...DEFAULT_WORKBOOK_DATA};
+            workbook.sheets['sheet-01'].cellData = res?.data?.surveyData;
+            setData({...workbook});
+          }
           ProgressIndicator.hide();
           setLoading(false);
         })
@@ -45,139 +64,196 @@ const DataEntryProject = () => {
         });
   };
 
+  const handleSaveAsDraft = () => {
+    ProgressIndicator.show(); 
+    const surveyDataTemp = univerRef.current?.getData();
+    const data = {
+      dataLakeDetails: {
+        id: 'null',
+        type: 'DnA',
+        name: 'null',
+        link: 'null',
+      },
+      fillingInstructions: 'null',
+      dueDate: 'null',
+      dataEntryUsers: [],
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: 'DRAFT',
+    }
+    dataEntryApi.updateDataEntryProject(projectId, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Entry Project draft saved successfully');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
+        'alert',
+      );
+    });
+  };
+
+  const handlePublish = () => {
+    ProgressIndicator.show(); 
+    const surveyDataTemp = univerRef.current?.getData();
+    const data = {
+      dataLakeDetails: {
+        id: project?.dataLakeDetails?.id,
+        type: project?.dataLakeDetails?.type,
+        name: project?.dataLakeDetails?.name,
+        link: project?.dataLakeDetails?.link,
+      },
+      fillingInstructions: project?.fillingInstructions,
+      dueDate: project?.dueDate,
+      dataEntryUsers: project?.dataEntryUsers,
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
+      id: project?.id,
+      name: project?.name,
+      tags: project?.tags,
+      hasPii: project?.hasPii,
+      archerId: project?.archerId,
+      divisionId: project?.divisionId,
+      division: project?.division,
+      subDivisionId: project?.subDivisionId,
+      subDivision: project?.subDivision,
+      description: project?.description,
+      department: project?.department,
+      procedureId: project?.procedureId,
+      termsOfUse: project?.termsOfUse,
+      typeOfProject: project?.typeOfProject,
+      dataClassification: project?.dataClassification,
+      createdBy: project?.createdBy,
+      createdOn: project?.createdOn,
+      state: 'PUBLISHED',
+    }
+    dataEntryApi.publishDataEntryProject(projectId, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Entry Project successfully published');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
+        'alert',
+      );
+    });
+  };
+
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
-        <div className={classNames(Styles.wrapper)}>
-          {!loading ? 
-            <Caption title={project?.name} /> : null
-          }
-          {/* <div onClick={toggleFullScreenMode}>
-            <FullScreenModeIcon fsNeed={fullScreenMode} />
-          </div> */}
-          <div>
-            <div>
-              <DataEntrySheet style={{ flex: 1 }} ref={univerRef} data={data} />
-            </div>
-            <div className={Styles.btnContainer}>
-              <button
-                className={'btn btn-primary'}
-                onClick={() => {
-                  console.log(univerRef.current?.getData());
-                }}
-              >
-                Save as Draft
-              </button>
-              <button
-                className={'btn btn-tertiary'}
-                onClick={() => {
-                  console.log(univerRef.current?.getData());
-                }}
-              >
-                Send to Fillers
-              </button>
-            </div>
+        <div className={classNames(Styles.flex)}>
+          <div className={Styles.col2}>
+            { !loading && 
+              <Caption title={project?.name}>
+                {project?.state === 'PUBLISHED' && <span className={Styles.dueDate}>(Survey due date: {project?.dueDate !== 'null' && regionalDateAndTimeConversionSolution(project?.dueDate)})</span>}
+              </Caption> 
+            }
           </div>
-          <div className={Styles.content}>
-            <h3 id="productName">Project Details</h3>
-            <div className={Styles.firstPanel}>
-              <div className={Styles.formWrapper}>
-                {!loading &&
-                  <>
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="productDescription">
-                        <label className="input-label summary">Project Name</label>
-                        <br />
-                        {project?.name}
-                      </div>
-                      <div id="tags">
-                        <label className="input-label summary">Created on</label>
-                        <br />
-                        {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
-                      </div>
-                      <div id="isExistingSolution">
-                        <label className="input-label summary">Created by</label>
-                        <br />
-                        {project?.createdBy?.firstName} {project?.createdBy?.lastName}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="typeOfProjectOption">
-                        <label className="input-label summary">Type of Project</label>
-                        <br />
-                        {project?.typeOfProject ? project?.typeOfProject : 'N/A'}
-                      </div>
-                      <div id="description">
-                        <label className="input-label summary">Description</label>
-                        <br />
-                        {project?.decription ? project?.decription : 'N/A'}
-                      </div>
-                      <div id="divisionField">
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="divisionField">
-                        <label className="input-label summary">Division</label>
-                        <br />
-                        {project?.division === '0' || !project?.division ? 'N/A' : project?.division}
-                      </div>
-                      <div id="subDivisonField">
-                        <label className="input-label summary">Sub Division</label>
-                        <br />
-                        {project?.subDivision === '0' || !project?.subDivision ? 'N/A' : project?.subDivision}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="department">
-                        <label className="input-label summary">Department</label>
-                        <br />
-                        {project?.department ? project?.department : 'N/A'}
-                      </div>
-                      <div id="tags">
-                        <label className="input-label summary">Tags</label>
-                        <br />
-                        {project?.tags ? project.tags?.map((chip) => {
-                          return (
-                            <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
-                            </>
-                          );
-                        }) : 'N/A'}
-                      </div>
-                      <div id="dataClassificationField">
-                        <label className="input-label summary">Data Classification</label>
-                        <br />
-                        {project?.dataClassification === '0' || !project?.dataClassification ? 'N/A' : project?.dataClassification}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="PiiData">
-                        <label className="input-label summary">PII</label>
-                        <br />
-                        {project?.piiData === true ? 'Yes' : 'No'}
-                      </div>
-                      <div id="archerId">
-                        <label className="input-label summary">Archer ID</label>
-                        <br />
-                        {project?.archerId ? project?.archerId : 'N/A'}
-                      </div>
-                      <div id="procedureId">
-                        <label className="input-label summary">Procedure ID</label>
-                        <br />
-                        {project?.procedureId ? project?.procedureId : 'N/A'}
-                      </div>
-                    </div>
-                  </>
-                }
-              </div>
+          <div className={Styles.col2}>
+            <div className={Styles.actionsGroup}>
+              <button className={classNames('btn', Styles.btnLess)} onClick={() => setShowProjectDetailsModal(true)}>
+                <i className={'icon mbc-icon info'}></i>
+                <span>Project Details</span>
+              </button>
+              {user.id === project?.createdBy?.id && project?.state === 'PUBLISHED' &&
+                <button className={classNames('btn', Styles.btnLess)} onClick={() => setShowDeUsersInformationModal(true)}>
+                  <i className={'icon mbc-icon profile'}></i>
+                  <span>Data Entry Users</span>
+                </button>
+              }
             </div>
           </div>
         </div>
+        <div>
+          {project?.state === 'PUBLISHED' && <p className={Styles.fillingInstructions}>Filling Instructions</p>}
+          <div>
+            <DataEntrySheet style={{ flex: 1 }} ref={univerRef} data={data} />
+          </div>
+          <div className={Styles.footer}>
+            {user.id === project?.createdBy?.id && project?.state === 'DRAFT' &&
+              <>
+                <button
+                  className={'btn btn-primary'}
+                  onClick={handleSaveAsDraft}
+                >
+                  Save as Draft
+                </button>
+                <button
+                  className={'btn btn-tertiary'}
+                  onClick={() => {
+                    setShowDeUsersModal(true);
+                  }}
+                >
+                  Send to Data Entry Users
+                </button>
+              </>
+            }
+            {project?.state === 'PUBLISHED' && 
+              <button
+                className={classNames('btn btn-tertiary', isDue && Styles.btnDisabled)}
+                onClick={handlePublish}
+              >
+                Publish
+              </button>
+            }
+          </div>
+        </div>
       </div>
+      { showProjectDetailsModal &&
+        <Modal
+          title={'Project Details'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          show={showProjectDetailsModal}
+          content={<ProjectDetails project={project} />}
+          scrollableContent={true}
+          onCancel={() => setShowProjectDetailsModal(false)}
+        />
+      }
+      { showDeUsersModal &&
+        <Modal
+          title={'Add Data Entry Users'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          show={showDeUsersModal}
+          content={<DataEntryUsers user={user} surveyData={() => univerRef.current?.getData()} project={project} onPublish={() => setShowDeUsersModal(false)} />}
+          scrollableContent={true}
+          onCancel={() => setShowDeUsersModal(false)}
+        />
+      }
+      { showDeUsersInformationModal &&
+        <Modal
+          title={'Data Entry Users Information'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          show={showDeUsersInformationModal}
+          content={<DeUsersInformation project={project} />}
+          scrollableContent={true}
+          onCancel={() => setShowDeUsersInformationModal(false)}
+        />
+      }
     </React.Fragment>
   );
 }
