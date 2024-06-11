@@ -24,6 +24,7 @@ import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.mb.dna.datalakehouse.db.entities.TrinoAccessNsql;
 import com.mb.dna.datalakehouse.db.entities.TrinoConnectorNsql;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
@@ -84,6 +85,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	@Autowired
 	private DataProductClient dataProductClient;
 	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
+	
 	private static String createSchema = "CREATE SCHEMA IF NOT EXISTS ";
 	
 	private static List<String> readPrivileges = Arrays.asList(new String[] {"SELECT"});
@@ -133,7 +137,11 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		List<String> ownershipCollabs = new ArrayList<>();
 		List<String> readCollabs = new ArrayList<>();
 		List<String> writeCollabs = new ArrayList<>();
+		List<String> teamMembers = new ArrayList<>();
+		List<String> teamMembersEmails = new ArrayList<>();
 		ownershipCollabs.add(vo.getCreatedBy().getId());
+		teamMembers.add(vo.getCreatedBy().getId());
+		teamMembersEmails.add(vo.getCreatedBy().getEmail());
 		if(vo.getTechUserClientId()!=null) {
 			ownershipCollabs.add(vo.getTechUserClientId());
 		}
@@ -141,6 +149,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			for(DataLakeTableCollabDetailsVO collab : vo.getCollabs()) {
 				collaborators.add(collab);
 				schemaCollaborators.add(collab.getCollaborator().getId());
+				teamMembers.add(collab.getCollaborator().getId());
+				teamMembersEmails.add(collab.getCollaborator().getEmail());
 				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
 					writeCollabs.add(collab.getCollaborator().getId());
 				}else {
@@ -239,6 +249,12 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
 				responseVO.setResponse(responseMsg);
+				try {
+					kafkaProducer.send("Datalake project create", datalakeProjectVO.getId(), "", vo.getCreatedBy().getId(), "Datalake Project "+vo.getProjectName() + " has been created successfully.",
+							true, teamMembers, teamMembersEmails, null);
+				}catch(Exception ex) {
+					log.error("Failed to publish Datalake create notification for project {} with exception {}",datalakeProjectVO.getProjectName(),ex.getMessage());
+				}
 				return responseVO;
 			}catch(Exception e) {
 				log.error("Failed at datalake project creation, with exception {}", e.getMessage());
@@ -366,6 +382,11 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		List<String> ownershipCollabs = new ArrayList<>();
 		List<String> readCollabs = new ArrayList<>();
 		List<String> writeCollabs = new ArrayList<>();
+
+		List<String> teamMembers = new ArrayList<>();
+		List<String> teamMembersEmails = new ArrayList<>();
+		teamMembers.add(existingVO.getCreatedBy().getId());
+		teamMembersEmails.add(existingVO.getCreatedBy().getEmail());
 		ownershipCollabs.add(existingVO.getCreatedBy().getId());
 		if(existingVO.getTechUserClientId()!=null) {
 			ownershipCollabs.add(existingVO.getTechUserClientId());
@@ -374,6 +395,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			for(DataLakeTableCollabDetailsVO collab : existingVO.getCollabs()) {
 				collaborators.add(collab);
 				schemaCollaborators.add(collab.getCollaborator().getId());
+				teamMembers.add(collab.getCollaborator().getId());
+				teamMembersEmails.add(collab.getCollaborator().getEmail());
 				if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
 					writeCollabs.add(collab.getCollaborator().getId());
 				}else {
@@ -401,7 +424,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			String connectorType = existingVO.getConnectorType();
 			String externalLocation = "s3a://"+existingVO.getBucketName()+"/"+ schema;
 			try {
-				if(updateRequestVO.getTables()!=null && !updateRequestVO.getTables().isEmpty()) {
+				if(updateRequestVO.getTables()==null || updateRequestVO.getTables().isEmpty()) {
 					updateRequestVO.setTables(new ArrayList<>());
 				}
 					List<String> existingTablesInSchema = trinoClient.showTables(catalog, schema, "%%");
@@ -501,6 +524,12 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
 				responseVO.setResponse(responseMsg);
+				try {
+					kafkaProducer.send("Datalake project update", datalakeProjectVO.getId(), "", existingVO.getCreatedBy().getId(), "Datalake Project "+existingVO.getProjectName() + " has been updated successfully.",
+							true, teamMembers, teamMembersEmails, null);
+				}catch(Exception ex) {
+					log.error("Failed to publish Datalake update notification for project {} with exception {}",datalakeProjectVO.getProjectName(),ex.getMessage());
+				}
 				return responseVO;
 			}catch(Exception e) {
 				log.error("Failed at datalake project updation, with exception {}", e.getMessage());
@@ -638,6 +667,10 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		boolean updateTechUser = false;
 		String existingClientId = "";
 		String operation = "add";
+		List<String> teamMembers = new ArrayList<>();
+		List<String> teamMembersEmails = new ArrayList<>();
+		teamMembers.add(existingProject.getCreatedBy().getId());
+		teamMembersEmails.add(existingProject.getCreatedBy().getEmail());
 		if(existingProject.getTechUserClientId()!=null && !"".equalsIgnoreCase(existingProject.getTechUserClientId())) {
 			updateTechUser = true;
 			existingClientId = existingProject.getTechUserClientId();
@@ -686,6 +719,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				List<DataLakeTableCollabDetailsVO> collabs = existingProject.getCollabs();
 				if(collabs!=null && !collabs.isEmpty()) {
 					for(DataLakeTableCollabDetailsVO collab : collabs) {
+						teamMembers.add(collab.getCollaborator().getId());
+						teamMembersEmails.add(collab.getCollaborator().getEmail());
 						if(collab.getHasWritePermission()!=null && collab.getHasWritePermission()) {
 							ownershipUsers.add(collab.getCollaborator().getId());
 						}
@@ -705,6 +740,12 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				responseMsg.setSuccess("SUCCESS");
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
+				try {
+					kafkaProducer.send("Datalake project update", existingProject.getId(), "", existingProject.getCreatedBy().getId(), "Datalake Project "+existingProject.getProjectName() + " technical user details updated successfully.",
+							true, teamMembers, teamMembersEmails, null);
+				}catch(Exception ex) {
+					log.error("Failed to publish Datalake update techuser notification for project {} with exception {}",existingProject.getProjectName(),ex.getMessage());
+				}
 			}
 		}catch(Exception e) {
 			log.error("Failed at fetching accessrules from database for updating techUser access rules. Exception {}", e.getMessage());
