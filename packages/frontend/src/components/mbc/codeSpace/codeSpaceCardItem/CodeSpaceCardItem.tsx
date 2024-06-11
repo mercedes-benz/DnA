@@ -267,13 +267,13 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeployed ? intDeploymentDetails?.lastDeployedOn : (intDeploymentDetails?.deploymentAuditLogs && intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
+  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ? intDeploymentDetails?.lastDeployedOn : (intDeploymentDetails?.deploymentAuditLogs && intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeployed ? prodDeploymentDetails?.lastDeployedOn : (prodDeploymentDetails?.deploymentAuditLogs && prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
+  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ? prodDeploymentDetails?.lastDeployedOn : (prodDeploymentDetails?.deploymentAuditLogs && prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
 
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
