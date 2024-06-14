@@ -8,7 +8,7 @@ import { ICodeCollaborator, ITag, IUserInfo } from 'globals/types';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
-import { isValidGITRepoUrl } from '../../../../services/utils';
+import { isValidGitUrl } from '../../../../services/utils';
 import { useHistory } from 'react-router-dom'; const classNames = cn.bind(Styles);
 import Tags from 'components/formElements/tags/Tags';
 import Modal from 'components/formElements/modal/Modal';
@@ -117,9 +117,13 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     }));
   };
 
-  const validateGitUrl = (githubUrl: string) => {
-    const errorText = githubUrl.length
-      ? isValidGITRepoUrl(githubUrl, isPublic)
+  const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const githubUrlVal = e.currentTarget.value.trim();
+    setEnableCreate(false);
+    setGitUrl(githubUrlVal);
+    console.log("AJAY: "+githubUrlVal);
+    const errorText = githubUrlVal.length
+      ? isValidGitUrl(githubUrlVal, isPublic)
         ? ''
         : `provide valid ${isPublic ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
       : requiredError;
@@ -127,14 +131,6 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       ...prevState,
       gitUrl: errorText,
     }));
-  };
-
-
-  const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const githubUrlVal = e.currentTarget.value.trim();
-    setEnableCreate(false);
-    setGitUrl(githubUrlVal);
-    validateGitUrl(githubUrlVal);
   };
 
   const onSoftwareChange = (selectedTags: React.SetStateAction<any[]>) => {
@@ -461,7 +457,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                           </button>
                         )}
                         <p
-                          style={{ color: 'var(--color-green)' }}
+                          style={{ color: 'var(--color-green)'}}
                           className={classNames(enableCreate ? '' : ' hide')}
                         >
                           <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.

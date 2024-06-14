@@ -13,6 +13,10 @@
     }
   }
   .actionBtn{
+    display: block;
+    padding: 0 !important;
+    margin-left: auto !important;
+    margin-right: 32px !important;
     background-color: #252a33 !important;
     border-color: #252a33 !important;
     &:hover{

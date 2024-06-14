@@ -389,6 +389,12 @@ export const buildGitUrl = (gitRepoInfo: string) => {
   return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
 };
 
+export const isValidGitUrl = (str: string, isPublicRecipeChoosen: boolean) => {
+  const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
+  const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\/)?');
+  return (str == null) ? false : regex.test(str);
+};
+
 export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
   const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\.git)(\\/)?');
