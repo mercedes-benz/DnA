@@ -163,6 +163,12 @@ const SolutionsFilter = ({
             portfolioFilterValues.current && portfolioFilterValues.current.division.length > 0
               ? divisions.filter((element: any) => portfolioFilterValues.current.division.includes(element.id))
               : divisions;
+          const minMaxYears = response[6];
+          const data = [];
+          for (let year = minMaxYears.minYear; year <= minMaxYears.maxYear; year++) {
+            data.push(year);
+          }
+          setYears(data);
           ApiClient.getSubDivisionsData(divisionsToPass).then((subDivisionsList) => {
             const projectStatuses = response[2];
             const phases: IPhase[] = response[3];
@@ -266,18 +272,6 @@ const SolutionsFilter = ({
       .catch((error: Error) => {
         showErrorNotification(error.message ? error.message : 'Some Error Occured');
       });
-
-    ApiClient.getDataValueMinMaxYear()
-      .then((res) =>{
-        const data = []
-        for (let year = res.minYear; year <= res.maxYear; year++) {
-          data.push(year);
-        }
-        setYears(data);
-      })
-      .catch((error: Error) => {
-        showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
     
   }, []);
 
@@ -350,7 +344,7 @@ const SolutionsFilter = ({
         .catch((error: Error) => {
           showErrorNotification(error.message ? error.message : 'Some Error Occured');
         });
-  }, [userPreference,years]);
+  }, [userPreference]);
 
 
   useEffect(() => {
