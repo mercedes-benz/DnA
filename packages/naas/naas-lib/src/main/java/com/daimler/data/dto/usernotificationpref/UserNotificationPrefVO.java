@@ -1,14 +1,15 @@
 package com.daimler.data.dto.usernotificationpref;
 
 import java.util.Objects;
-import com.daimler.data.dto.usernotificationpref.NotificationPreferenceVO;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.springframework.validation.annotation.Validated;
+
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+
+import org.springframework.validation.annotation.Validated;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * UserNotificationPrefVO
@@ -49,6 +50,12 @@ public class UserNotificationPrefVO   {
 
   @JsonProperty("airflowNotificationPref")
   private NotificationPreferenceVO airflowNotificationPref = null;
+  
+  @JsonProperty("dataLakeNotificationPref")
+  private NotificationPreferenceVO dataLakeNotificationPref = null;
+  
+  @JsonProperty("dataEntryNotificationPref")
+  private NotificationPreferenceVO dataEntryNotificationPref = null;
 
 public UserNotificationPrefVO id(String id) {
     this.id = id;
@@ -288,6 +295,50 @@ public UserNotificationPrefVO id(String id) {
     this.airflowNotificationPref = airflowNotificationPref;
   }
 
+  public UserNotificationPrefVO dataLakeNotificationPref(NotificationPreferenceVO dataLakeNotificationPref) {
+	    this.dataLakeNotificationPref = dataLakeNotificationPref;
+	    return this;
+	  }
+
+	  /**
+	   * Get dataLakeNotificationPref
+	   * @return dataLakeNotificationPref
+	  **/
+	  @ApiModelProperty(required = true, value = "")
+	  @NotNull
+
+	  @Valid
+
+		public NotificationPreferenceVO getDataLakeNotificationPref() {
+			return dataLakeNotificationPref;
+		}
+
+		public void setDataLakeNotificationPref(NotificationPreferenceVO dataLakeNotificationPref) {
+			this.dataLakeNotificationPref = dataLakeNotificationPref;
+		}
+		
+  public UserNotificationPrefVO dataEntryNotificationPref(NotificationPreferenceVO dataEntryNotificationPref) {
+	    this.dataEntryNotificationPref = dataEntryNotificationPref;
+	    return this;
+	  }
+
+	  /**
+	   * Get dataEntryNotificationPref
+	   * @return dataEntryNotificationPref
+	  **/
+	  @ApiModelProperty(required = true, value = "")
+	  @NotNull
+
+	  @Valid
+
+		public NotificationPreferenceVO getDataEntryNotificationPref() {
+			return dataEntryNotificationPref;
+		}
+
+		public void setDataEntryNotificationPref(NotificationPreferenceVO dataEntryNotificationPref) {
+			this.dataEntryNotificationPref = dataEntryNotificationPref;
+		}
+		
 
 @Override
   public boolean equals(java.lang.Object o) {
@@ -308,12 +359,16 @@ public UserNotificationPrefVO id(String id) {
         Objects.equals(this.dataProductNotificationPref, userNotificationPrefVO.dataProductNotificationPref) &&
         Objects.equals(this.chronosNotificationPref, userNotificationPrefVO.chronosNotificationPref) &&
         Objects.equals(this.codespaceNotificationPref, userNotificationPrefVO.codespaceNotificationPref) &&
-        Objects.equals(this.airflowNotificationPref, userNotificationPrefVO.airflowNotificationPref);
+        Objects.equals(this.airflowNotificationPref, userNotificationPrefVO.airflowNotificationPref) &&
+        Objects.equals(this.dataLakeNotificationPref, userNotificationPrefVO.dataLakeNotificationPref) &&
+        Objects.equals(this.dataEntryNotificationPref, userNotificationPrefVO.dataEntryNotificationPref);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, userId, solutionNotificationPref, notebookNotificationPref, persistenceNotificationPref, dashboardNotificationPref, dataComplianceNotificationPref, dataProductNotificationPref);
+    return Objects.hash(id, userId, solutionNotificationPref, notebookNotificationPref, persistenceNotificationPref, dashboardNotificationPref, 
+    		dataComplianceNotificationPref, dataProductNotificationPref,chronosNotificationPref,codespaceNotificationPref,
+    		codespaceNotificationPref,airflowNotificationPref,dataLakeNotificationPref,dataEntryNotificationPref);
   }
 
   @Override
@@ -332,6 +387,8 @@ public UserNotificationPrefVO id(String id) {
     sb.append("    chronosNotificationPref: ").append(toIndentedString(chronosNotificationPref)).append("\n");
     sb.append("    codespaceNotificationPref: ").append(toIndentedString(codespaceNotificationPref)).append("\n");
     sb.append("    airflowNotificationPref: ").append(toIndentedString(airflowNotificationPref)).append("\n");
+    sb.append("    dataLakeNotificationPref: ").append(toIndentedString(dataLakeNotificationPref)).append("\n");
+    sb.append("    dataEntryNotificationPref: ").append(toIndentedString(dataEntryNotificationPref)).append("\n");
     sb.append("}");
     return sb.toString();
   }
