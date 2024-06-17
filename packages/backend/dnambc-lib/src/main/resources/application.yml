@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.4.3
+    version: 3.4.4
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -94,6 +94,8 @@ notification:
       chronosNotificationPref: ${DEFAULT_EMAIL_CHRONOS_NOTIFICATION_PREF:true}
       codespaceNotificationPref: ${DEFAULT_EMAIL_CODESPACE_NOTIFICATION_PREF:false}
       airflowNotificationPref: ${DEFAULT_EMAIL_AIRFLOW_NOTIFICATION_PREF:false}
+      dataLakeNotificationPref: ${DEFAULT_EMAIL_DATALAKE_NOTIFICATION_PREF:false}
+      dataEntryNotificationPref: ${DEFAULT_EMAIL_DATAENTRY_NOTIFICATION_PREF:false}
   app:
       solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:true}
       notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:true}
@@ -104,6 +106,8 @@ notification:
       chronosNotificationPref: ${DEFAULT_APP_CHRONOS_NOTIFICATION_PREF:true}      
       codespaceNotificationPref: ${DEFAULT_APP_CODESPACE_NOTIFICATION_PREF:true}
       airflowNotificationPref: ${DEFAULT_APP_AIRFLOW_NOTIFICATION_PREF:true}
+      dataLakeNotificationPref: ${DEFAULT_APP_DATALAKE_NOTIFICATION_PREF:true}
+      dataEntryNotificationPref: ${DEFAULT_APP_DATAENTRY_NOTIFICATION_PREF:true}
 graphql:
   servlet:
     mapping: /api/minified
