@@ -334,6 +334,12 @@ const SolutionsFilter = ({
             userPreferenceDataId = userPreference.id;
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
+          if(queryParams.dataValueRange.startYear < years[0]){
+            queryParams.dataValueRange.startYear = years[0];
+          }
+          if(queryParams.dataValueRange.endYear > years[years.length -1]){
+            queryParams.dataValueRange.endYear = years[years.length -1];
+          }
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
@@ -344,7 +350,8 @@ const SolutionsFilter = ({
         .catch((error: Error) => {
           showErrorNotification(error.message ? error.message : 'Some Error Occured');
         });
-  }, [userPreference]);
+  }, [userPreference,years]);
+
 
   useEffect(() => {
     typeof getValuesFromFilter === 'function' &&
@@ -835,11 +842,11 @@ const SolutionsFilter = ({
     const { id, value } = e.currentTarget;
     const data = { ...queryParams.dataValueRange };
     data[id] = value;
+    setQueryParams(prevParams => ({
+      ...prevParams,
+      dataValueRange: data
+    }));
     if (parseInt(data.startYear, 10) < parseInt(data.endYear, 10)) {
-      setQueryParams(prevParams => ({
-        ...prevParams,
-        dataValueRange: data
-      }));
       focusedItems['dataValueRange'] && applyFilter('dataValueRange', data);
       setisDvRangeValid(true);
     } else {
