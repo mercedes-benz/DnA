@@ -595,7 +595,7 @@ const Graph = ({user, hostHistory}) => {
                 {hasTable && (
                   <div className={classNames(Styles.dpWrapper)}>
                     <button
-                      className={classNames('btn btn-primary', Styles.btnOutline, Styles.dataProduct,(!isOwner && project?.dataProductDetails?.dataProductId?.length < 0) && Styles.btnDisabled, Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
+                      className={classNames('btn btn-primary', Styles.btnOutline, Styles.dataProduct,(!isOwner && !project?.dataProductDetails?.dataProductId?.length) && Styles.btnDisabled, Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
                       type="button"
                       onClick={() => onDataProductClick()}
                     >
