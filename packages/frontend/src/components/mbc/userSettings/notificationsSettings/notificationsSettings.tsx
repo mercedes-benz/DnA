@@ -72,7 +72,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'airflowNotificationPref':
             temp.title = 'Configure Notification for Airflow';
             break;
-          case 'datalakeNotificationPref':
+          case 'dataLakeNotificationPref':
             temp.title = 'Configure Notification for Data Lakehouse'
             break;
           case 'dataEntryNotificationPref':
@@ -176,7 +176,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
   };
 
   const onChangeEmailNotificationForDataLake = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const target = notificationPreferences?.datalakeNotificationPref;
+    const target = notificationPreferences?.dataLakeNotificationPref;
     target['enableEmailNotifications'] = e.target.checked;
     setNotificationPreferences(notificationPreferences);
     const messageForNotification = e.target.checked
@@ -243,7 +243,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
       case 'airflowNotificationPref':
         onChangeEmailNotificationForAirflow(e);
         break;  
-      case 'datalakeNotificationPref':
+      case 'dataLakeNotificationPref':
         onChangeEmailNotificationForDataLake(e);
         break;
       case 'dataEntryNotificationPref':
