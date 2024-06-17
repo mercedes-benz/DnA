@@ -1166,6 +1166,8 @@ export interface INoticationModules {
   chronosNotificationPref: INotificationEnableDisable;
   codespaceNotificationPref: INotificationEnableDisable;
   airflowNotificationPref: INotificationEnableDisable;
+  datalakeNotificationPref: INotificationEnableDisable;
+  dataEntryNotificationPref: INotificationEnableDisable;
   termsOfUse: string;
   userId: string;
 }
