@@ -808,6 +808,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
 		// newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
 		String recipeValue = recipeData.getRecipeId()!=null?recipeData.getRecipeId():recipeData.getRecipeName();
+		newRecipeVO.setRecipeName(recipeData.getRecipeName());
 		newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
 		//  newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
 		newRecipeVO.setRepodetails(recipeData.getRepodetails());

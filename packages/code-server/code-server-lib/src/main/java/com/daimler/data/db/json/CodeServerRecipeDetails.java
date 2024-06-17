@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class CodeServerRecipeDetails implements Serializable {
 
 	private String recipeId;
+	private String recipeName;
 	private String ramSize;
 	private String cpuCapacity;
 	private String operatingSystem;
