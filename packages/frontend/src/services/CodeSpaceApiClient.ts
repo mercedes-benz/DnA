@@ -147,9 +147,13 @@ export class CodeSpaceApiClient {
   }
 
   public static getCodeSpaceRecipeRequests() {
-    return this.get('recipeDetails')
+    return this.get('recipeDetails');
   }
 
+  public static deleteCodeSpaceRecipe(name: string) {
+    return this.delete(`recipeDetails/${name}`);
+  }
+  
   public static getCodeSpaceRecipe(id: string){
     return this.get(`recipeDetails/${id}`);
   }
