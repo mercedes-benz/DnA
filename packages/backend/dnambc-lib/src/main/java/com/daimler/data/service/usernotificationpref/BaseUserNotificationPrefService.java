@@ -81,6 +81,12 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	@Value("${notification.email.airflowNotificationPref}")
 	private boolean defaultAirflowEmailNotificationPref;
 
+	@Value("${notification.email.dataLakeNotificationPref}")
+	private boolean defaultDataLakeEmailNotificationPref;
+	
+	@Value("${notification.email.dataEntryNotificationPref}")
+	private boolean defaultDataEntryEmailNotificationPref;
+	
 	@Value("${notification.app.solutionNotificationPref}")
 	private boolean defaultSolutionAppNotificationPref;
 	
@@ -107,6 +113,12 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.app.airflowNotificationPref}")
 	private boolean defaultAirflowAppNotificationPref;
+	
+	@Value("${notification.app.dataLakeNotificationPref}")
+	private boolean defaultDataLakeAppNotificationPref;
+	
+	@Value("${notification.app.dataEntryNotificationPref}")
+	private boolean defaultDataEntryAppNotificationPref;
 
 	public BaseUserNotificationPrefService() {
 		super();
@@ -169,6 +181,14 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				airflowNotificationPref.setEnableAppNotifications(defaultAirflowAppNotificationPref);
 				airflowNotificationPref.setEnableEmailNotifications(defaultAirflowEmailNotificationPref);
 				preferencesVO.setAirflowNotificationPref(airflowNotificationPref);
+				NotificationPreferenceVO dataLakeNotificationPref = new NotificationPreferenceVO();
+				dataLakeNotificationPref.setEnableAppNotifications(defaultDataLakeAppNotificationPref);
+				dataLakeNotificationPref.setEnableEmailNotifications(defaultDataLakeEmailNotificationPref);
+				preferencesVO.setDataLakeNotificationPref(dataLakeNotificationPref);
+				NotificationPreferenceVO dataEntryNotificationPref = new NotificationPreferenceVO();
+				dataEntryNotificationPref.setEnableAppNotifications(defaultDataEntryAppNotificationPref);
+				dataEntryNotificationPref.setEnableEmailNotifications(defaultDataEntryEmailNotificationPref);
+				preferencesVO.setDataEntryNotificationPref(dataEntryNotificationPref);
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);
