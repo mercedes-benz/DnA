@@ -108,7 +108,6 @@ public class TableToProjectCollabMigrationService {
 					Collection<DataLakeTableCollabDetails> collection = projectCollabMap.values();
 					projectCollabs =  collection.stream().collect(Collectors.toList());
 				}
-
 				data.setCollabs(projectCollabs);
 				entity.setData(data);
 				updatedEntities.add(entity);
@@ -116,7 +115,7 @@ public class TableToProjectCollabMigrationService {
 				try {
 					//updating storage permissions
 					List<DataLakeTableCollabDetails> bucketCollabs = new ArrayList<>();
-					bucketCollabs = projectCollabs;
+					bucketCollabs.addAll(projectCollabs);
 					DataLakeTableCollabDetails ownerAsCollab = new DataLakeTableCollabDetails();
 					ownerAsCollab.setCollaborator(data.getCreatedBy());
 					ownerAsCollab.setHasWritePermission(true);
