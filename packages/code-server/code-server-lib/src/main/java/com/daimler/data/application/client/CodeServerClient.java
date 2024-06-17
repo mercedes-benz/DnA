@@ -253,7 +253,7 @@ public class CodeServerClient {
 			}
 			String requestJsonString = "{\"profile\": \"template\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 			+ "\", \"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase() + "\", \"isCollaborator\" : \"false\", "
-			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GH_PAT_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" + envInstructions + "}, "
+			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" + envInstructions + "}, "
 			+ "\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
 			+ "\", \"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
 			+ "\", \"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\", \"cpu_limit\": "
