@@ -2188,7 +2188,20 @@ public class BaseWorkspaceService implements WorkspaceService {
 						return responseMessage;
 					}
 				}
-				boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName,null);
+			List<String> softwares = workspace.getProjectDetails().getRecipeDetails().getSoftware();
+			Set<String> uniqueSoftwares = new HashSet<>();
+			if (softwares != null) {
+				uniqueSoftwares.addAll(softwares);
+			}
+
+			String instructionSet = "";
+			for (String addInfo : uniqueSoftwares) {
+				String additionalInfo = workspaceCustomRecipeRepo.findBySoftwareName(addInfo);
+				if (additionalInfo != null) {
+					instructionSet += "\n" + additionalInfo;
+				}
+			}
+				boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName,instructionSet);
 				if (!createOwnerWSResponse) {
 				responseMessage.setSuccess("FAILED");
 				MessageDescription errMsg = new MessageDescription("Failed to update resource workspace.");
