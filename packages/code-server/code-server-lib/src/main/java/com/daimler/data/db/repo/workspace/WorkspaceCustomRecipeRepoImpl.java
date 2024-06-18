@@ -35,13 +35,15 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
         implements WorkspaceCustomRecipeRepo {
 
     @Override
-    public List<CodeServerRecipeNsql> findAllRecipe(int offset, int limit) {
+    public List<CodeServerRecipeNsql> findAllRecipe(int offset, int limit,String id) {
         // TODO Auto-generated method stub
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
         Root<CodeServerRecipeNsql> root = cq.from(entityClass);
         CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+        Predicate con = cb.equal(cb.lower(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("createdBy"), cb.literal("id"))), id.toLowerCase());
+        cq.where(con);
         TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
         if (offset >= 0)
             getAllQuery.setFirstResult(offset);
