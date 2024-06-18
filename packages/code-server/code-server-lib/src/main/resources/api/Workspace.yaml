@@ -1224,6 +1224,9 @@ definitions:
   CodeServerRecipeDetailsVO:
     type: object
     properties:
+      Id:
+        type: string
+        description: "id generated for particular recipe"
       recipeId:
         type: string
         enum: [default,springboot,springbootwithmaven,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-fabric-mfe,public-dna-fabric-backend,public-dna-dataentry-mfe,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]

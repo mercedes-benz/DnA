@@ -685,6 +685,8 @@
 						 if (projectDetails.getProjectCreatedOn() != null)
 							 projectDetailsVO.setProjectCreatedOn(
 									 isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
+
+						projectDetailsVO.setRecipeName(projectDetails.getRecipeName());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
  
@@ -769,6 +771,7 @@
 				//  if (codespacePublishSecurityConfigVo != null) {
 				// 	 projectDetails.setPublishedSecurityConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
 				//  }
+				projectDetails.setRecipeName(projectDetailsVO.getRecipeName());
 				 data.setProjectDetails(projectDetails);
 				 entity.setData(data);
 			 }
