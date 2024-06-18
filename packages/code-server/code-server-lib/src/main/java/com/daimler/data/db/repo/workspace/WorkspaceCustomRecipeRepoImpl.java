@@ -138,6 +138,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
         List<Object[]> results = new ArrayList<>();
         String getQuery = "SELECT id as RECIPE_ID,"+
                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+                "cast(jsonb_extract_path_text(data, 'recipeId') as text) as ALIAS_NAME,"+
                 "cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
                 "cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
                 "cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_RAM "+
@@ -173,6 +174,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
          List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
         String getQuery = "SELECT id as RECIPE_ID, cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+        "cast(jsonb_extract_path_text(data, 'recipeId') as text) as ALIAS_NAME,"+
         " cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
         " cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
         " cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_CPU "+ 
