@@ -443,6 +443,7 @@ export class ApiClient {
       this.get('phases'),
       this.get('datavolumes'),
       this.get('tags'),
+      this.get('dashboard/datavalue/minmaxyear')
     ]);
   }
 
@@ -832,10 +833,6 @@ export class ApiClient {
     if (dataValueRange !='' && dataValueRange != undefined) reqQuery +=`enddate=${dataValueRange.split(',')[1]}&startdate=${dataValueRange.split(',')[0]}&`;
 
     return this.get(`dashboard/${calledResource}?` + reqQuery);
-  }
-
-  public static getDataValueMinMaxYear(): Promise<any> {
-    return this.get('dashboard/datavalue/minmaxyear');
   }
 
   public static getAllWidgets(): Promise<IWidgetsResponse[]> {
