@@ -163,6 +163,12 @@ const SolutionsFilter = ({
             portfolioFilterValues.current && portfolioFilterValues.current.division.length > 0
               ? divisions.filter((element: any) => portfolioFilterValues.current.division.includes(element.id))
               : divisions;
+          const minMaxYears = response[6];
+          const data = [];
+          for (let year = minMaxYears.minYear; year <= minMaxYears.maxYear; year++) {
+            data.push(year);
+          }
+          setYears(data);
           ApiClient.getSubDivisionsData(divisionsToPass).then((subDivisionsList) => {
             const projectStatuses = response[2];
             const phases: IPhase[] = response[3];
@@ -266,18 +272,6 @@ const SolutionsFilter = ({
       .catch((error: Error) => {
         showErrorNotification(error.message ? error.message : 'Some Error Occured');
       });
-
-    ApiClient.getDataValueMinMaxYear()
-      .then((res) =>{
-        const data = []
-        for (let year = res.minYear; year <= res.maxYear; year++) {
-          data.push(year);
-        }
-        setYears(data);
-      })
-      .catch((error: Error) => {
-        showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
     
   }, []);
 
@@ -334,6 +328,12 @@ const SolutionsFilter = ({
             userPreferenceDataId = userPreference.id;
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
+          if(queryParams.dataValueRange.startYear < years[0]){
+            queryParams.dataValueRange.startYear = years[0];
+          }
+          if(queryParams.dataValueRange.endYear > years[years.length -1]){
+            queryParams.dataValueRange.endYear = years[years.length -1];
+          }
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
@@ -345,6 +345,7 @@ const SolutionsFilter = ({
           showErrorNotification(error.message ? error.message : 'Some Error Occured');
         });
   }, [userPreference]);
+
 
   useEffect(() => {
     typeof getValuesFromFilter === 'function' &&
@@ -835,11 +836,11 @@ const SolutionsFilter = ({
     const { id, value } = e.currentTarget;
     const data = { ...queryParams.dataValueRange };
     data[id] = value;
+    setQueryParams(prevParams => ({
+      ...prevParams,
+      dataValueRange: data
+    }));
     if (parseInt(data.startYear, 10) < parseInt(data.endYear, 10)) {
-      setQueryParams(prevParams => ({
-        ...prevParams,
-        dataValueRange: data
-      }));
       focusedItems['dataValueRange'] && applyFilter('dataValueRange', data);
       setisDvRangeValid(true);
     } else {
