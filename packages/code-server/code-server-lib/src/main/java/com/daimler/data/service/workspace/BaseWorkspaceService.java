@@ -703,6 +703,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					responseVO.setErrors(errors);
 					return responseVO;
 				}
+				repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 			}
 			HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
 			if(!addAdminAccessToGitUser.is2xxSuccessful())
