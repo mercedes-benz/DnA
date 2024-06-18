@@ -5,6 +5,10 @@ import { refreshToken } from 'dna-container/RefreshToken';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
+export const readJwt = () => {
+  return sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+}
+
 export const baseURL = Envs.CODE_SPACE_API_BASEURL
   ? Envs.CODE_SPACE_API_BASEURL
   : `https://${window.location.hostname}:7979/api`;

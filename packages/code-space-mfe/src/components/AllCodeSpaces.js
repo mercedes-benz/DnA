@@ -154,7 +154,7 @@ const AllCodeSpaces = (props) => {
         setShowDeployCodeSpaceModal(true);
     };
 
-    const onStartStopCodeSpace = (codeSpace) => {
+    const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
         setLoading(true);
@@ -167,8 +167,11 @@ const AllCodeSpaces = (props) => {
                         codeSpace.projectDetails?.projectName +
                         ' is requested to ' +
                         (serverStarted ? 'stop' : 'start') +
-                        '. Please refresh and check status after some time.',
+                        '.',
                     );
+
+                    startSuccessCB();
+
                 } else {
                     Notification.show(
                         'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces. Please try again later.',

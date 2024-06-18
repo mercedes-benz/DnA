@@ -1,4 +1,5 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer } from '../server/api';
+import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 const getCodeSpacesList = () => { //tested
     return server.get(`workspaces`, {
@@ -228,6 +229,26 @@ const workSpaceStatus = () => {
     });
 };
 
+const getUrlHub = (endpoint) => {
+    return `${new URL('../hub/api/', baseURL).href}${endpoint}`;
+};
+
+const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => {
+    const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
+      withCredentials: true,
+      headers: { Authorization: readJwt() },
+    });
+
+    sse.onmessage = onMessageCB;
+
+    sse.onerror = (e) => {
+      onCloseCB && onCloseCB(e);
+      console.log(e);
+      console.error('Event stream closed');
+      sse.close();
+    };
+}
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -265,4 +286,5 @@ export const CodeSpaceApiClient = {
     update_secret,
     startStopWorkSpace,
     workSpaceStatus,
+    serverStatusFromHub,
 };

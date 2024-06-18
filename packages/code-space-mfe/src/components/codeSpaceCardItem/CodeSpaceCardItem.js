@@ -33,7 +33,7 @@ import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 //   onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => void;
 //   onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
 //   onShowDeployModal: (codeSpace: ICodeSpaceData) => void;
-//   onStartStopCodeSpace: (codeSpaceId: ICodeSpaceData) => void;
+//   onStartStopCodeSpace: (codeSpace: ICodeSpaceData, startSuccessCB: () => void) => void;
 // }
 
 let isTouch = false;
@@ -46,7 +46,7 @@ const CodeSpaceCardItem = (props) => {
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
-  const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
+  // const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
@@ -66,7 +66,14 @@ const CodeSpaceCardItem = (props) => {
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
 
+  const [serverStarted, setServerStarted] = useState(false);
+  const [serverFailed, setServerFailed] = useState(false);
+  const [serverProgress, setServerProgress] = useState(0);
+
   useEffect(() => {
+
+    handleServerStatusAndProgress();
+
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('click', handleContextMenuOutside, true);
     return () => {
@@ -189,7 +196,7 @@ const CodeSpaceCardItem = (props) => {
     if (enableOnboard) {
       props.onShowCodeSpaceOnBoard(codeSpace);
     } else if (!serverStarted) {
-      props.onStartStopCodeSpace(codeSpace);
+      onStartStopCodeSpace(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
@@ -219,6 +226,29 @@ const CodeSpaceCardItem = (props) => {
 
   const handleOpenDoraMetrics = () => {
     setShowDoraMetricsModal(true);
+  };
+
+  const onStartStopCodeSpace = (codespace) => {
+    props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+  };
+
+  const handleServerStatusAndProgress = () => {
+    codeSpace.serverStatus = 'SERVER_STOPPED';
+    CodeSpaceApiClient.serverStatusFromHub(props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
+      const data = JSON.parse(e.data);
+      if (data.progress === 100 && data.ready) {
+        setServerProgress(100);
+        setTimeout(() => {
+          setServerStarted(true);
+          codeSpace.serverStatus = 'SERVER_STARTED';
+        }, 300);
+      } else if(!data.failed) {
+        setServerProgress(data.progress);
+      } else if(data.progress === 100 && data.failed) {
+        setServerFailed(true);
+      }
+      console.log(JSON.parse(e.data));
+    });
   };
 
   const projectDetails = codeSpace?.projectDetails;
@@ -757,9 +787,9 @@ const CodeSpaceCardItem = (props) => {
           ) : (
             <>
               <div>
-                {!createInProgress && !creationFailed && (
+                {!createInProgress && !creationFailed && !serverFailed && (
                   <span
-                    onClick={() => props.onStartStopCodeSpace(codeSpace)}
+                    onClick={() => onStartStopCodeSpace(codeSpace)}
                     tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
                     className={classNames(
                       Styles.statusIndicator,
@@ -768,6 +798,15 @@ const CodeSpaceCardItem = (props) => {
                     )}
                   >
                     {serverStarted ? 'Stop' : 'Start'}
+                    {!serverStarted && serverProgress > 0 ? `ing... ${serverProgress}%` : ''}
+                  </span>
+                )}
+                {serverFailed && (
+                  <span
+                    title={'Please contact Codespace Admin'}
+                    className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
+                  >
+                    Server Start Failed
                   </span>
                 )}
                 {createInProgress ? (
