@@ -53,9 +53,9 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
   const [diskSpace, setDiskSpace] = useState('');
-  const minCpu = 0;
+  const minCpu = '1';
   const [maxCpu, setMaxCpu] = useState('');
-  const minRam = 0;
+  const minRam = '1000';
   const [maxRam, setMaxRam] = useState('');
   const [hardware, setHardware] = useState('large');
   const [software, setSoftware] = useState([]);
@@ -121,7 +121,6 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     const githubUrlVal = e.currentTarget.value.trim();
     setEnableCreate(false);
     setGitUrl(githubUrlVal);
-    console.log("AJAY: "+githubUrlVal);
     const errorText = githubUrlVal.length
       ? isValidGitUrl(githubUrlVal, isPublic)
         ? ''
@@ -206,7 +205,13 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
 
     setNotificationMsg(false);
 
-  }
+  };
+
+  const convertRam = ()  => {
+    const ramValue = parseInt(maxRam)*1000;
+    return ramValue.toString();
+  };
+
   const verifyRequest = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.verifyGitUser(gitHubUrl)
@@ -245,7 +250,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         maxCpu: maxCpu,
         minCpu: minCpu,
         minRam: minRam,
-        maxRam: maxRam,
+        maxRam: convertRam(),
         oSName: 'Debian-OS-11',
         osname: 'Debian-OS-11',
         plugins: ['string'],
@@ -355,10 +360,9 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <h3>Recipe Management</h3>
+            <h3>Create New Recipe</h3>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
-                <h3>Recipe Details</h3>
                 <div className={classNames(Styles.formWrapper)}>
                   <div className={classNames(Styles.flex)}>
                     <div className={(Styles.col2)}>

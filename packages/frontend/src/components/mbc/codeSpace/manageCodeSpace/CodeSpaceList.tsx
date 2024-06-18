@@ -56,6 +56,11 @@ const codeSpaceList = (props: IRecipeList) => {
     });
   };
 
+  const convertRam = (value: string ) => {
+    const ramValue = parseInt(value)/1000;
+    return ramValue.toString();
+  };
+
   const onNotificationMsgCancel = () => {
     setNotificationMsg(false);
   }
@@ -101,7 +106,7 @@ const codeSpaceList = (props: IRecipeList) => {
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol}>
           <span className={Styles.securityConfig} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
-            {"Diskspace- " + props.diskSpace + " CPU- " + props.maxCpu + " RAM- " + props.maxRam}
+            {"DiskSpace- " + props.diskSpace + "GB" + " CPU- " + props.maxCpu + " RAM- " + convertRam(props.maxRam)+"GB"}
           </span>
         </td>
 
