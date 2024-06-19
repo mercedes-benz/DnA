@@ -65,7 +65,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
         edit && setDivision(workspace?.divisionId !== null ? workspace?.divisionId + '@-@' + workspace?.division : '0');
-        !edit && SelectBox.defaultSetup();
+        SelectBox.defaultSetup();
       })
       .catch((err) => {
         ProgressIndicator.hide();
@@ -491,7 +491,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     chips={tags}
                     tags={fabricTags}
                     setTags={(selectedTags) => {
-                      let tag = selectedTags?.map((item) => item.toUpperCase());
+                      let tag = selectedTags?.map((item) => item.toUpperCase().trim());
                       setTags(tag);
                     }}
                     isMandatory={false}
