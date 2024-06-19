@@ -39,6 +39,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import javax.servlet.http.HttpServletRequest;
 
 @Component
 public class DnaAuthClientImpl implements DnaAuthClient {
@@ -49,9 +50,13 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	private String dnaBaseUri;
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
+	private static final String USER_URL = "/api/users";
 
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Autowired
+	 HttpServletRequest httpRequest;
 
 	@Override
 	public JSONObject verifyLogin(String jwt) {
@@ -78,5 +83,32 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 		}
 		return res;
 	}
+
+	@Override
+	 public JSONObject getUserById(String id) {
+		 JSONObject res = null;
+		 try {
+			 HttpHeaders headers = new HttpHeaders();
+			 String userinfo = httpRequest.getHeader("dna-request-userdetails");
+			 headers.set("Accept", "application/json");
+			 headers.set("Content-Type", "application/json");
+			 headers.set("dna-request-userdetails", userinfo);
+
+			 String dnaUri = dnaBaseUri + USER_URL+ id;
+			 HttpEntity entity = new HttpEntity<>(headers);
+			 ResponseEntity<String> response = restTemplate.exchange(dnaUri, HttpMethod.GET, entity, String.class);
+			 if (response != null && response.hasBody()) {
+				 LOGGER.debug("Success from getting user details");
+				 res = (JSONObject) new JSONObject(response.getBody());
+			 }
+		 } catch (JSONException e) {
+			 LOGGER.error("Error occurred while parsing jsonObject for DnA getting user details:{}", e.getMessage());
+			 throw e;
+		 } catch (Exception e) {
+			 LOGGER.error("Error occurred while calling DnA getting user details:{}", e.getMessage());
+			 throw e;
+		 }
+		 return res;
+	 }
 
 }

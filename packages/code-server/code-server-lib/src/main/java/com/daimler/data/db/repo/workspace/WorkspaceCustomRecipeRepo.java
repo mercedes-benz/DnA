@@ -10,9 +10,11 @@ import com.daimler.data.dto.workspace.recipe.RecipeVO;
 
 public interface WorkspaceCustomRecipeRepo extends CommonDataRepository<CodeServerRecipeNsql, String> {
 
-    List<CodeServerRecipeNsql> findAllRecipe(int offset, int limit);
+    List<CodeServerRecipeNsql> findAllRecipe(int offset, int limit, String id);
 
     CodeServerRecipeNsql findByRecipeName(String recipeName);
+
+    CodeServerRecipeNsql findById(String id);
 
     List<CodeServerRecipeDto> getAllPublicRecipeLov();
     List<CodeServerRecipeDto> getAllPrivateRecipeLov(String id);

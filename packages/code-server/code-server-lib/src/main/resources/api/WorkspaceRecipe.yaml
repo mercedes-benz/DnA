@@ -552,7 +552,10 @@ definitions:
         description: "ID of recipe"
       recipeName:
         type: string
-        description: "name of the recipe"
+        description: "description of the recipe"
+      aliasId:
+        type: string
+        description: "id for the recipes"
       osName:
         type: string
       maxRam:

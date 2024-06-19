@@ -592,7 +592,7 @@ const Graph = ({user, hostHistory}) => {
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
-                {hasTable && (
+                {(hasTable || project?.dataProductDetails?.dataProductId?.length) && (
                   <div className={classNames(Styles.dpWrapper)}>
                     <button
                       className={classNames('btn btn-primary', Styles.btnOutline, Styles.dataProduct,(!isOwner && !project?.dataProductDetails?.dataProductId?.length) && Styles.btnDisabled, Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
@@ -613,8 +613,7 @@ const Graph = ({user, hostHistory}) => {
                         <i className={classNames("icon mbc-icon alert circle", Styles.warningIcon)} />
                       </button>
                     )}
-                  </div>)}
-                    { hasTable &&( 
+                  </div>)}       
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline)}
@@ -625,7 +624,6 @@ const Graph = ({user, hostHistory}) => {
                             <span>How to Connect</span>
                         </button>
                     </div>
-                    )}
                     {/* {hasTable && ( 
                     <div className={Styles.uploadFile}>
                         <input 

@@ -71,8 +71,8 @@ public class BaseRecipeService implements RecipeService{
     
 	@Override
 	@Transactional
-	public List<RecipeVO> getAllRecipes(int offset, int limit) {
-		List<CodeServerRecipeNsql> entities = workspaceCustomRecipeRepo.findAllRecipe(offset, limit);
+	public List<RecipeVO> getAllRecipes(int offset, int limit,String id) {
+		List<CodeServerRecipeNsql> entities = workspaceCustomRecipeRepo.findAllRecipe(offset, limit,id);
 		return entities.stream().map(n -> recipeAssembler.toVo(n)).collect(Collectors.toList());
 	}
 

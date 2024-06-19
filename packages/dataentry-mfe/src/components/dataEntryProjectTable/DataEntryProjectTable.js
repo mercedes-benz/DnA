@@ -7,8 +7,13 @@ import { regionalDateAndTimeConversionSolution, formatDateToISO } from '../../ut
 const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) => {
   const history = useHistory();
 
+  const handleOpenProject = () => {
+    history.push(`/project/${project.id}`);
+    window.location.reload();
+  }
+
   return (
-    <div className={Styles.projectRow} onClick={() => {history.push(`/project/${project.id}`)}}>
+    <div className={Styles.projectRow} onClick={handleOpenProject}>
       <div className={Styles.col1}>
         <span>
           {project?.name}
