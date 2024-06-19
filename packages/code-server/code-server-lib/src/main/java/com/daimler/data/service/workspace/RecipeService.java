@@ -10,7 +10,7 @@ import com.daimler.data.dto.CodeServerRecipeDto;
 
 public interface RecipeService {
     
-    List<RecipeVO> getAllRecipes(int offset, int limit);
+    List<RecipeVO> getAllRecipes(int offset, int limit,String id);
 
 	RecipeVO createRecipe(RecipeVO recipeRequestVO);
 

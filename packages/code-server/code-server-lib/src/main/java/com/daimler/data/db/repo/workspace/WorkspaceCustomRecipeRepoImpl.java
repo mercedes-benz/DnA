@@ -35,13 +35,15 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
         implements WorkspaceCustomRecipeRepo {
 
     @Override
-    public List<CodeServerRecipeNsql> findAllRecipe(int offset, int limit) {
+    public List<CodeServerRecipeNsql> findAllRecipe(int offset, int limit,String id) {
         // TODO Auto-generated method stub
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
         Root<CodeServerRecipeNsql> root = cq.from(entityClass);
         CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+        Predicate con = cb.equal(cb.lower(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("createdBy"), cb.literal("id"))), id.toLowerCase());
+        cq.where(con);
         TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
         if (offset >= 0)
             getAllQuery.setFirstResult(offset);
@@ -70,6 +72,25 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
             return entities.get(0);
         else
             return null;
+    }
+
+    @Override
+    public CodeServerRecipeNsql findById(String id)
+    {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
+        Root<CodeServerRecipeNsql> root = cq.from(entityClass);
+        CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+        Predicate con = cb.equal(root.get("id"),id);
+        Predicate pMain = cb.and(con);
+        cq.where(pMain);
+        TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
+        List<CodeServerRecipeNsql> entities = getAllQuery.getResultList();
+        if (entities != null && entities.size() > 0)
+            return entities.get(0);
+        else
+            return null;
+
     }
 
     @Override
@@ -119,6 +140,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
         List<Object[]> results = new ArrayList<>();
         String getQuery = "SELECT id as RECIPE_ID,"+
                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+                "cast(jsonb_extract_path_text(data, 'recipeId') as text) as ALIAS_NAME,"+
                 "cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
                 "cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
                 "cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_RAM "+
@@ -134,9 +156,10 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
-                    rowDetails.setOsName((String)rowData[2]);
-                    rowDetails.setMaxRam((String)rowData[3]);
-                    rowDetails.setMaxCpu((String)rowData[4]);
+                    rowDetails.setAliasId((String)rowData[2]);
+                    rowDetails.setOsName((String)rowData[3]);
+                    rowDetails.setMaxRam((String)rowData[4]);
+                    rowDetails.setMaxCpu((String)rowData[5]);
 				}
                 lov.add(rowDetails);
 			}
@@ -154,6 +177,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
          List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
         String getQuery = "SELECT id as RECIPE_ID, cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME,"+
+        "cast(jsonb_extract_path_text(data, 'recipeId') as text) as ALIAS_NAME,"+
         " cast(jsonb_extract_path_text(data,'osname') as text) as OS_NAME,"+
         " cast(jsonb_extract_path_text(data,'maxRam') as text) as MIN_RAM,"+
         " cast(jsonb_extract_path_text(data,'maxCpu') as text) as MAX_CPU "+ 
@@ -170,9 +194,10 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
-                    rowDetails.setOsName((String)rowData[2]);
-                    rowDetails.setMaxRam((String)rowData[3]);
-                    rowDetails.setMaxCpu((String)rowData[4]);
+                    rowDetails.setAliasId((String)rowData[2]);
+                    rowDetails.setOsName((String)rowData[3]);
+                    rowDetails.setMaxRam((String)rowData[4]);
+                    rowDetails.setMaxCpu((String)rowData[5]);
 				}
                 lov.add(rowDetails);
 			}

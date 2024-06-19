@@ -125,8 +125,10 @@ public class RecipeController implements CodeServerRecipeApi {
 		if (limit == null) {
 			limit = 0;
 		}
+		CreatedByVO currentUser = this.userStore.getVO();
+		String id = currentUser.getId();
 		// if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
-			List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit);
+			List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit,id);
 			if (Objects.nonNull(allRecipes)) {
 				for (RecipeVO recipe : allRecipes) {
 					recipeCollectionVO.addDataItem(recipe);
