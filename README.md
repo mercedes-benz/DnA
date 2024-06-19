@@ -13,33 +13,54 @@
 </h1>
 </p>
 
-## DnA Platform (Data and Analytics Platform) and its features
+## DnA Platform (Data and Analytics Platform) and its Features
 
-The idea of the DnA Platform originated from the common challenge every big company has - the need for transparency in the data and analytics area. In addition, several features were envisioned and realized, this time with the idea to enable a self-service and cloud-independent platform based holistically on open-source software. The goal is to simplify life and speed up the work of everybody who is working with data. Let's look at the [features DnA Platform offers out of the box](https://github.com/mercedes-benz/DnA/wiki).
+The idea of the DnA Platform originated from the common challenge every big company has - the need for transparency in the data and analytics area. In addition, several features were envisioned and realized, this time with the idea to facilitate a self-service and cloud-independent platform based holistically on open-source software. The goal is to simplify life and speed up the work of everyone working with data.
+
+Please review our Wiki page for a full list of [features that the DnA Platform offers out of the box](https://github.com/mercedes-benz/DnA/wiki).
 
 ## Upcoming Features
 
-[Have a look on topics we are working on currently or are planning in the future...](https://github.com/mercedes-benz/DnA/wiki/Upcoming-features)
+Please have a look at our [upcoming features](https://github.com/mercedes-benz/DnA/wiki/Upcoming-features).
 
 ## Installation
 
-if you want to try the DnA Platform ,please follow the [installation guide](./docs/Install.md). In the installation guide we are providing 2 ways to install this application(Docker-compose and Helm) . Use Docker-compose only for local testing .
+If you would like to try our DnA Platform, please follow the [installation guide](./docs/Install.md) where we provide two ways to install this application:
 
-For a complete production installation, we recommend the installation using helm.Currently in our helm and docker-compose we are providing multiple service like DnA , Dashboard, Naas , Malware Scan,Vault service,storage-service ,Airflow and Jupyter Notebooks.
+1. Docker Compose
+   * Please only use Docker Compose for local testing.
+2. Helm
+   * For a complete production installation, we recommend using the Helm method.
 
-Very soon we are going to provide you the docker-compose and helm-chart for kubeflow-pipeline, Model Registry and Trino . So stay tuned to our repo frequently .
+In our Helm and Docker Compose installations, we currently provide multiple services including the following:
+
+* Airflow
+* Dashboard
+* DnA
+* Jupyter Notebooks
+* Malware Scanning
+* Namespace as a Service (NaaS)
+* Storage Services
+* Vault Services
+
+We will soon offer the Docker Compose and Helm charts for the Kubeflow Pipeline, Model Registry, and Trino, so please check back frequently.
 
 ## Architecture
 
-If you are interested to get a glimpse on how is this all tied up all together have a look at [this short overview](./docs/DnAArchitecture.md).
+If you're interested in getting a glimpse of how this all ties together, then please see [this short overview](./docs/DnAArchitecture.md).
 
 ## Security
 
-If you are interested to find out what we are doing to ensure security on the platform have a look at [this short overview](./docs/DnASecurity.md).
+If you're interested in learning how we're ensuring security on our DnA platform, then please see [this short overview](./docs/DnASecurity.md).
 
 ## Contributing
 
-We welcome any contributions. As we are a freshly created open source community, we may need a few weeks to settle and be able to accept your ideas or contributions efficiently. During January 2022, we will bring other features on the platform, and then this repository will become our primary repo and place to collaborate with you. Until then, we will still work on our private enterprise repo and syncing code manually. If you want to contribute to the project please read the [contributing guide](CONTRIBUTING.md).
+We welcome any contributions.
+
+*Please Note*:
+
+* We may need a few weeks to settle and review your ideas or contributions efficiently.
+* If you would like to contribute to the project, please read the [contributing guide](CONTRIBUTING.md).
 
 ## Code of Conduct
 
@@ -53,6 +74,8 @@ This project is licensed under the [MIT LICENSE](LICENSE).
 
 Please visit (https://www.mercedes-benz-techinnovation.com/en/imprint/) for information on the provider.
 
-Notice: Before you use the program in productive use, please take all necessary precautions,
-e.g. testing and verifying the program with regard to your specific use.
-The program was tested solely for our own use cases, which might differ from yours.
+*Notice*:
+
+Before using the DnA program in production, please take all of the necessary
+precautions such as testing and verifying the program regarding your specific use case.
+The program was tested solely for our own use cases, which may differ from yours.
