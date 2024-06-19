@@ -62,7 +62,7 @@ const ProjectDetails = ({ project }) => {
           <div className={Styles.projectItem}>
             <p className={Styles.label}>Tags</p>
             <p className={Styles.value}>
-              {project?.tags ? project.tags?.map((chip) => {
+              {project?.tags ? project?.tags?.split(',').map((chip) => {
                 return (
                   <>
                     <label className="chips">{chip}</label>&nbsp;&nbsp;

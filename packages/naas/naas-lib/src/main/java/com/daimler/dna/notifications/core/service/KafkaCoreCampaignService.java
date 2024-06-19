@@ -86,6 +86,8 @@ public class KafkaCoreCampaignService {
 	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
 	private static String DATATRANSFER_NOTIFICATION_KEY = "DataTransfer";
 	private static String AIRFLOW_NOTIFICATION_KEY = "Airflow";
+	private static String TRINO_DATALAKE_NOTIFICATION_KEY = "Datalake";
+	private static String DATAENTRY_NOTIFICATION_KEY = "Dataentry";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -146,6 +148,14 @@ public class KafkaCoreCampaignService {
 					if(message.getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getAirflowNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(TRINO_DATALAKE_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getDataLakeNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getDataLakeNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(DATAENTRY_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getDataEntryNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getDataEntryNotificationPref().isEnableEmailNotifications();
 					}
 
 					NotificationVO vo = new NotificationVO();

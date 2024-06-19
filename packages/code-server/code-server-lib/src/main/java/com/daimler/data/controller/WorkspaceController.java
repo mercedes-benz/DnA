@@ -63,9 +63,11 @@ import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -74,6 +76,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailCollectionVO;
@@ -90,6 +93,7 @@ import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.ManageDeployRequestDto;
+import com.daimler.data.dto.workspace.ResourceVO;
 import com.daimler.data.dto.workspace.RoleCollectionVO;
 import com.daimler.data.dto.workspace.SecurityConfigRequestDto;
 import com.daimler.data.dto.workspace.SecurityConfigResponseDto;
@@ -101,6 +105,7 @@ import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.db.json.CodeServerRecipe;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.dto.workspace.WorkspaceServerStatusVO;
 import com.daimler.data.dto.workspace.ServerStatusVO;
@@ -138,6 +143,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Autowired
 	private CodeServerClient client;
+
+	@Autowired
+	private WorkspaceCustomRecipeRepo workspaceCustomRecipeRepo;
 
 	@Autowired
 	HttpServletRequest httpRequest;
@@ -778,26 +786,6 @@ import org.springframework.beans.factory.annotation.Value;
 			 log.info("workspace {} already exists for User {} ", reqVO.getProjectDetails().getProjectName(), userId);
 			 return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		 }
-		 if (reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-				 || reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-						 .startsWith("private")) {
-			 String gitUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
-			 String[] url = gitUrl.split(",");
-			 if (Objects.nonNull(url) && url.length == 1) {
-				 log.info("Inside newUrl split block, adding default parameter to clone the project completely");
-				 gitUrl = gitUrl + "/*";
-				 log.info(gitUrl);
-				 reqVO.getProjectDetails().getRecipeDetails().setRepodetails(gitUrl);
-			 }
-			 if ("".equals(gitUrl) || gitUrl == null) {
-				 List<MessageDescription> errorMessage = new ArrayList<>();
-				 MessageDescription msg = new MessageDescription();
-				 msg.setMessage("No Repodetails found for given public/private recipe");
-				 errorMessage.add(msg);
-				 responseMessage.setErrors(errorMessage);
-				 return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
-			 }
-		 }
 		 currentUserVO.setGitUserName(reqVO.getGitUserName());
 		 reqVO.setWorkspaceOwner(currentUserVO);
 		 reqVO.setId(null);
@@ -805,18 +793,36 @@ import org.springframework.beans.factory.annotation.Value;
 		 reqVO.setWorkspaceUrl("");
 		 reqVO.setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 		 reqVO.setServerStatus("SERVER_STOPPED");
+		 reqVO.getProjectDetails().setRecipeName(reqVO.getProjectDetails().getRecipeName());
 		 reqVO.getProjectDetails().setGitRepoName(reqVO.getProjectDetails().getProjectName());
 		 reqVO.getProjectDetails().setIntDeploymentDetails(new CodeServerDeploymentDetailsVO());
 		 reqVO.getProjectDetails().setProjectOwner(currentUserVO);
 		 reqVO.getProjectDetails().setProdDeploymentDetails(new CodeServerDeploymentDetailsVO());
 		 reqVO.getProjectDetails().setSecurityConfig(new CodespaceSecurityConfigVO());
-		 CodeServerRecipeDetailsVO newRecipeVO = reqVO.getProjectDetails().getRecipeDetails();
+		 String recipeName = reqVO.getProjectDetails().getRecipeName();
+		 CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
+		 CodeServerRecipe recipeData = recipeEntity!=null ? recipeEntity.getData():null;
+		 CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
 		 newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		 newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
-		 newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
-		 newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
+		// newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
+		String recipeValue = recipeData.getRecipeId()!=null?recipeData.getRecipeId():recipeData.getRecipeName();
+		newRecipeVO.setRecipeName(recipeData.getRecipeName());
+		newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
+		newRecipeVO.setId(reqVO.getProjectDetails().getRecipeName());
+		//  newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
+		newRecipeVO.setRepodetails(recipeData.getRepodetails());
+		newRecipeVO.setRecipeType(recipeData.getRecipeType());
+		String resource = recipeData.getDiskSpace()+"Gi,"+recipeData.getMinRam()+"M,"+recipeData.getMinCpu()+",";
+		resource+=recipeData.getMaxRam()+"M,"+recipeData.getMaxCpu();
+		newRecipeVO.setResource(resource);
+		System.err.println(recipeData.getSoftware());
+		newRecipeVO.setSoftware(recipeData.getSoftware());
+		newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		newRecipeVO.setGitPath(recipeData.getGitPath());
+		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
 		 newRecipeVO.setRamSize(RamSizeEnum._1);
 		 reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
 		 responseMessage = service.createWorkspace(reqVO, pat);
@@ -2172,6 +2178,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errorMessage = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
 		MessageDescription msg = new MessageDescription();
 
 		boolean isCurrentUserAdmin = false;
@@ -2225,6 +2232,29 @@ import org.springframework.beans.factory.annotation.Value;
 				}
 			}
 			if(isCollabIdPartOfProject){
+				if(isAdmin){
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					if(!addAdminAccessToGitUser.is2xxSuccessful())
+					{
+						MessageDescription warnMsg = new MessageDescription("Failed while adding " + collabUserId
+						+ " as admin to repository");
+						log.info("Failed while adding {} as collaborator to repository. Please add manually",
+						collabUserId);
+						warnings.add(warnMsg);
+						responseMessage.setWarnings(warnings);
+					}
+				}else{
+					HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					if(!removeAdminAccessToGitUser.is2xxSuccessful())
+					{
+						MessageDescription warnMsg = new MessageDescription("Failed while removing " + collabUserId
+						+ " as admin to repository");
+						log.info("Failed while removing {} as collaborator to repository. Please remove manually",
+						collabUserId);
+						warnings.add(warnMsg);
+						responseMessage.setWarnings(warnings);
+					}
+				}
 				vo.getProjectDetails().setProjectCollaborators(collabList);
 				responseMessage = service.makeAdmin(vo);
 				if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
@@ -2249,6 +2279,52 @@ import org.springframework.beans.factory.annotation.Value;
 
 		}
 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	}
+
+	@Override
+	    @ApiOperation(value = "update resource for give workspace id.", nickname = "updateResourceValue", notes = "updating resource for existing workspace Project ", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> updateResourceValue(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "resources to add codespace" ,required=true )  @Valid @RequestBody ResourceVO updatedResourceValue)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+			if(entity!=null && Objects.nonNull(entity) && Objects.nonNull(updatedResourceValue))
+			{
+				responseMessage = service.updateResourceValue(entity,updatedResourceValue);
+			}
+			else
+			{
+				log.info("no workspace found for given workspace id {}"+id);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
+		}
+		else
+		{
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+				 notAuthorizedMsg.setMessage(
+						 "updating resource value can be done by Codespace admins. Access Denied, user does not have privileges.");
+				 responseMessage.addErrors(notAuthorizedMsg);
+			 log.info(
+					 "updating resource value  for workspace can be accessed  only by workspace owners and Codespace admins, insufficient privileges. Workspace name: {}"
+					,id);
+			 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+
+		}
+		return null;
 	}
 
  }

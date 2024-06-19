@@ -162,6 +162,10 @@ definitions:
     codespaceNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
     airflowNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"
+    dataLakeNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"
+    dataEntryNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"                 
   required:
      - userId

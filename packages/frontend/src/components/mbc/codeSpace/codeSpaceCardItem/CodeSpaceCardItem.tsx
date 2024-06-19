@@ -140,7 +140,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
       <h3>
         {/* Are you sure to delete {codeSpace.projectDetails.projectName} Code Space?
         <br /> */}
-        {isOwner ? (
+        {codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? (
           <>
             {hasCollaborators ? (
               <>
@@ -267,16 +267,16 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)).getTime();
+  const intLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ? intDeploymentDetails?.lastDeployedOn : (intDeploymentDetails?.deploymentAuditLogs && intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)).getTime();
+  const prodLastDeployedTime = new Date(regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ? prodDeploymentDetails?.lastDeployedOn : (prodDeploymentDetails?.deploymentAuditLogs && prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]?.triggeredOn ))).getTime();
 
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const allowDelete = isOwner ? !hasCollaborators : true;
+  const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
   const isAPIRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
@@ -284,12 +284,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs';
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+
 
   const isIAMRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs';
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const securedWithIAMContent: React.ReactNode = (
     <svg
@@ -529,6 +532,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             <div>
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+            </div>
+            <div>
+              <div>Owner</div>
+              <div>{codeSpace?.projectDetails?.projectOwner?.firstName +' '+codeSpace?.projectDetails?.projectOwner?.lastName+' ('+codeSpace?.projectDetails?.projectOwner?.id +')'}</div>
             </div>
             {/* {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <>
@@ -806,9 +813,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployFailLink}
-                                  tooltip-data={
+                                  tooltip-data={intDeploymentDetails?.deploymentAuditLogs ?
                                     'Deployment to Staging failed on ' +
-                                    regionalDateAndTimeConversionSolution(intDeploymentDetails.lastDeployedOn)
+                                    regionalDateAndTimeConversionSolution(intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1].triggeredOn) : 'Deployment to staging failed'
                                   }
                                 >
                                   Failed
@@ -837,9 +844,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployFailLink}
-                                tooltip-data={
+                                tooltip-data={prodDeploymentDetails?.deploymentAuditLogs ? 
                                   'Deployment to Production failed on ' +
-                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1].triggeredOn) : 'Deployment for production failed'
                                 }
                               >
                                 Failed

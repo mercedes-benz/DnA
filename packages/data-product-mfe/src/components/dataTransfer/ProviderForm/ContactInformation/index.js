@@ -509,7 +509,7 @@ const ContactInformation = ({
                   name="leanIX"
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'leanIX App-ID'}
+                      label={'LeanIX App-ID'}
                       placeholder={'Select App-ID (Enter minimum 4 characters)'}
                       defaultValue={selectedPlanningIT.appId}
                       list={planningITList}

@@ -13,7 +13,7 @@ import { getQueryParameterByName } from '../../utilities/utils';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { datalakeApi } from '../../apis/datalake.api';
 
-const Graphs = ({ user }) => {
+const Graphs = ({ user,hostHistory }) => {
   const [createProject, setCreateProject] = useState(false);
   const [graphs, setGraphs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -131,6 +131,7 @@ const Graphs = ({ user }) => {
                         graph={graph}
                         user={user}
                         onRefresh = {handleRefresh}
+                        hostHistory={hostHistory}
                       />
                     );
                   })}

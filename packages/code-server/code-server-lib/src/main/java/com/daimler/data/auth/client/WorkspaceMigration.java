@@ -102,7 +102,6 @@ public class WorkspaceMigration {
 				}
 			} catch (Exception e) {
 				log.error("Failed to call kong get all services API at startup with exception {}", e.getMessage());
-				e.printStackTrace();
 			}
 
 		}

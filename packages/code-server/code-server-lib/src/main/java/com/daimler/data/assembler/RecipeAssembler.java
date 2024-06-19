@@ -65,19 +65,19 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
 				}
-				List<UserInfoVO> users = new ArrayList<>();
-				List<UserInfo> userDetails = recipe.getUsers();
-				if(recipe.getIsPublic()!=null){
-					if(recipe.getIsPublic())
-					{
-						users= new ArrayList<UserInfoVO>();
-					}
-					else
-					{
-						users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
-					}
-				}
-				recipeVo.setUsers(users);
+				// List<UserInfoVO> users = new ArrayList<>();
+				// List<UserInfo> userDetails = recipe.getUsers();
+				// if(recipe.getIsPublic()!=null){
+				// 	if(recipe.getIsPublic())
+				// 	{
+				// 		users= new ArrayList<UserInfoVO>();
+				// 	}
+				// 	else
+				// 	{
+				// 		users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
+				// 	}
+				// }
+				// recipeVo.setUsers(users);
 			}
 		return recipeVo;
 	}
@@ -110,15 +110,15 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 			if (vo.getPlugins() != null) {
 				recipeData.setPlugins(vo.getPlugins());
 			}
-			List<UserInfo> users = new ArrayList<>();
-			List<UserInfoVO> userDetails = vo.getUsers();
-			if (vo.isIsPublic() == true) {
-				users = new ArrayList<>();
-			} else {
+			// List<UserInfo> users = new ArrayList<>();
+			// List<UserInfoVO> userDetails = vo.getUsers();
+			// if (vo.isIsPublic() == true) {
+			// 	users = new ArrayList<>();
+			// } else {
 				
-				users = userDetails.stream().map(n -> this.toUserInfo(n)).collect(Collectors.toList());
-			}
-			recipeData.setUsers(users);
+			// 	users = userDetails.stream().map(n -> this.toUserInfo(n)).collect(Collectors.toList());
+			// }
+			// recipeData.setUsers(users);
 			recipeData.setRecipeType(vo.getRecipeType().toString());
 			recipeData.setOSName(vo.getOSName().toString());
 			entity.setData(recipeData);
@@ -126,21 +126,21 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		return entity;
 	}
 
-	private UserInfoVO toUserInfoVO(UserInfo userInfo) {
-		UserInfoVO vo = new UserInfoVO();
-		if (userInfo != null) {
-			BeanUtils.copyProperties(userInfo, vo);
-		}
-		return vo;
-	}
+	// private UserInfoVO toUserInfoVO(UserInfo userInfo) {
+	// 	UserInfoVO vo = new UserInfoVO();
+	// 	if (userInfo != null) {
+	// 		BeanUtils.copyProperties(userInfo, vo);
+	// 	}
+	// 	return vo;
+	// }
 
-	public UserInfo toUserInfo(UserInfoVO userInfo) {
-		UserInfo entity = new UserInfo();
-		if (userInfo != null) {
-			BeanUtils.copyProperties(userInfo, entity);
-		}
-		return entity;
-	}
+	// public UserInfo toUserInfo(UserInfoVO userInfo) {
+	// 	UserInfo entity = new UserInfo();
+	// 	if (userInfo != null) {
+	// 		BeanUtils.copyProperties(userInfo, entity);
+	// 	}
+	// 	return entity;
+	// }
 
 	
 	public RecipeLovVO toRecipeLovVO(CodeServerRecipeDto entity)
@@ -148,6 +148,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		RecipeLovVO vo = new RecipeLovVO();
 		if(entity!=null || Objects.nonNull(entity))
 		{
+			BeanUtils.copyProperties(entity, vo);
 			vo.setId(entity.getId());
 			vo.setRecipeName(entity.getRecipeName());
 		}

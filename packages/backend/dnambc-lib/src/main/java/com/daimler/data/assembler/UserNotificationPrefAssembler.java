@@ -75,9 +75,18 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO codespaceNotificationPrefVO = this.toNotificationPrefVO(codespaceNotificationPrefJson);
 				vo.setCodespaceNotificationPref(codespaceNotificationPrefVO);
 				
-				NotificationPreference airflowNotificationPrefJson = data.getCodespaceNotificationPref();
+				NotificationPreference airflowNotificationPrefJson = data.getAirflowNotificationPref();
 				NotificationPreferenceVO airflowNotificationPrefVO = this.toNotificationPrefVO(airflowNotificationPrefJson);
 				vo.setAirflowNotificationPref(airflowNotificationPrefVO);
+				
+				
+				NotificationPreference dataLakeNotificationPrefJson = data.getDataLakeNotificationPref();
+				NotificationPreferenceVO dataLakeNotificationPrefVO = this.toNotificationPrefVO(dataLakeNotificationPrefJson);
+				vo.setDataLakeNotificationPref(dataLakeNotificationPrefVO);
+				
+				NotificationPreference dataEntryNotificationPrefJson = data.getDataEntryNotificationPref();
+				NotificationPreferenceVO dataEntryNotificationPrefVO = this.toNotificationPrefVO(dataEntryNotificationPrefJson);
+				vo.setDataEntryNotificationPref(dataEntryNotificationPrefVO);
 				
 				vo.setUserId(data.getUserId());
 			}
@@ -124,6 +133,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setCodespaceNotificationPref(codespaceNotificationPreference);
 			NotificationPreference airflowNotificationPreference = this.toNotificationPrefJson(vo.getAirflowNotificationPref());
 			userNotificationPreferenceJsonb.setAirflowNotificationPref(airflowNotificationPreference);
+			NotificationPreference dataLakeNotificationPreference = this.toNotificationPrefJson(vo.getDataLakeNotificationPref());
+			userNotificationPreferenceJsonb.setDataLakeNotificationPref(dataLakeNotificationPreference);
+			NotificationPreference dataEntryNotificationPreference = this.toNotificationPrefJson(vo.getDataEntryNotificationPref());
+			userNotificationPreferenceJsonb.setDataEntryNotificationPref(dataEntryNotificationPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);

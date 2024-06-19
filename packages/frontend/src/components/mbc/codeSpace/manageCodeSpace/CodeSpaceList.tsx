@@ -1,145 +1,135 @@
 import cn from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceList.scss';
-import { ICodeCollaborator } from 'globals/types';
 import { history } from '../../../../router/History';
+import { ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
-import { Notification, ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
-import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import ViewRecipe from '../codeSpaceRecipe/viewRecipe';
 import Modal from 'components/formElements/modal/Modal';
 
-export interface ICodeSpaceList {
+export interface IRecipeList {
   id: any;
   projectName: string;
-  projectOwner: ICodeCollaborator;
-  projectStatus?: string;
-  requestedDate: string;
+  maxRam?: string;
+  maxCpu?: string;
+  diskSpace?: string;
   onDataChanged: () => void;
+  software?: string[];
   isConfigList: boolean;
+  isPublic: boolean;
 }
 
-const codeSpaceList = (props: ICodeSpaceList) => {
+const codeSpaceList = (props: IRecipeList) => {
   const [viewInfoModel, setviewInfoModel] = useState(false);
+  const [notificationMsg, setNotificationMsg] = useState(false);
   const classNames = cn.bind(Styles);
   const onSecrityConfigClick = () => {
     history.push(`/codespace/adminSecurityconfig/${props.id}?name=${props.projectName}`);
-  };
-  const showErrorNotification = (message: string) => {
-    ProgressIndicator.hide();
-    Notification.show(message, 'alert');
   };
 
   const onNewRecipeClick = () => {
     setviewInfoModel(true);
   };
 
-  const onPublish = (e: React.FormEvent<HTMLSpanElement>) => {
-    e.stopPropagation();
+  const chips =
+    props?.software && props?.software?.length
+      ? props?.software?.map((chip) => {
+        return (
+          <>
+            <label className="chips">{chip}</label>&nbsp;&nbsp;
+          </>
+        );
+      })
+      : 'N/A';
+
+  const onNotificationMsgAccept = () => {
+    setNotificationMsg(false);
     ProgressIndicator.show();
-    if (props.isConfigList) {
-      const id = props.id;
-      CodeSpaceApiClient.publishSecurityConfigRequest(id)
-        .then((res: any) => {
-          Notification.show('Published successfully.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    } else {
-      const name = props.projectName;
-      CodeSpaceApiClient.publishCodeSpaceRecipeRequest(name)
-        .then((res: any) => {
-          Notification.show('Published successfully.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    }
-    ProgressIndicator.hide();
+    CodeSpaceApiClient.deleteCodeSpaceRecipe(props.projectName)
+    .then((res) => {
+      ProgressIndicator.hide();
+      Notification.show("Recipe Deleted Successfully")
+    }).catch((err: Error) => {
+      ProgressIndicator.hide();
+      Notification.show(err.message, 'alert');
+    });
   };
 
-  const onAccept = (e: React.FormEvent<HTMLSpanElement>) => {
-    e.stopPropagation();
-    ProgressIndicator.show();
-    if (props.isConfigList) {
-      const id = props.id;
-      CodeSpaceApiClient.acceptSecurityConfigRequest(id)
-        .then((res: any) => {
-          Notification.show('Request Accepted.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    } else {
-      const name = props.projectName;
-      CodeSpaceApiClient.acceptCodeSpaceRecipeRequest(name)
-        .then((res: any) => {
-          Notification.show('Request Accepted.');
-          ProgressIndicator.hide();
-          props.onDataChanged();
-        })
-        .catch((error: any) => {
-          ProgressIndicator.hide();
-          showErrorNotification(error.message ? error.message : 'Some Error Occured');
-        });
-    }
-    ProgressIndicator.hide();
+  const convertRam = (value: string ) => {
+    const ramValue = parseInt(value)/1000;
+    return ramValue.toString();
   };
 
+  const onNotificationMsgCancel = () => {
+    setNotificationMsg(false);
+  }
 
-  // const formatDate = (date: string) => {
-  //   const [datePart] = date.split('T');
-  //   const [year, month, day] = datePart.split('-');
-  //   const formattedDate = `${day}-${month}-${year}`;
-  //   return formattedDate;
-  // };
+  const deleteModal = () => {
+    setNotificationMsg(true);
+  };
   return (
     <React.Fragment>
+      <div>
+        <Modal
+          title="Public Visibility"
+          show={notificationMsg}
+          showAcceptButton={false}
+          showCancelButton={false}
+          acceptButtonTitle="Confirm"
+          cancelButtonTitle="Cancel"
+          buttonAlignment='right'
+          scrollableContent={false}
+          hideCloseButton={true}
+          content={
+            <div>
+              <header>
+                <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
+              </header>
+              <div>
+                <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
+              </div>
+              <div className="btn-set footerRight">
+                <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
+                <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
+              </div>
+            </div>
+          } />
+      </div>
       <tr
         id={props.id}
         key={props.id}
         className={classNames('data-row', Styles.securityConfigRow)}
-        onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}
       >
         <td className={'wrap-text ' + classNames(Styles.securityConfigName)}>
-          <div className={Styles.securityConfigNameDivide}>{props.projectName}</div>
+          <div className={Styles.securityConfigNameDivide} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{props.projectName} </div>
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span className={Styles.securityConfig}>
-            {props.projectOwner?.firstName + ' ' + props.projectOwner.lastName}
+          <span className={Styles.securityConfig} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+            {"DiskSpace- " + props.diskSpace + "GB" + " CPU- " + props.maxCpu + " RAM- " + convertRam(props.maxRam)+"GB"}
           </span>
         </td>
 
-        <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span>{props.projectStatus}</span>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+          {chips}
         </td>
-
-        <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span>{props.requestedDate !== null ? regionalDateAndTimeConversionSolution(props.requestedDate) : ''}</span>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+          <span>{props.isPublic ? "Yes" : 'No'}</span>
         </td>
-        <td className={'wrap-text' + Styles.securityConfigCol}>
+        <td className={'wrap-text' + Styles.securityConfigCol + Styles.actionColumn}>
           <button
             className={
-              props.projectStatus === 'REQUESTED' ? 'btn btn-primary ' : 'btn btn-tertiary ' + Styles.actionBtn
+              'btn btn-primary ' + Styles.actionBtn
             }
             type="button"
-            onClick={props.projectStatus === 'REQUESTED' ? onAccept : onPublish}
+            onClick={deleteModal}
           >
-            {props.projectStatus === 'REQUESTED' ? 'Accept' : props.projectStatus === 'ACCEPTED' ? 'Publish' : ''}
+            <i className='icon delete'></i>
           </button>
+
         </td>
       </tr>
-      {viewInfoModel&&(<Modal
+      {viewInfoModel && (<Modal
         title={''}
         hiddenTitle={true}
         showAcceptButton={false}
@@ -152,6 +142,7 @@ const codeSpaceList = (props: ICodeSpaceList) => {
           setviewInfoModel(false);
         }}
       />)}
+
     </React.Fragment>
   );
 };

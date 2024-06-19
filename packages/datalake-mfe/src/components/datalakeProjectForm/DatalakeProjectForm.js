@@ -76,7 +76,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
   }, [datalakeSubDivision, edit, project]);
 
   useEffect(() => {
-    const divId = datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '';
+    const divId = datalakeDivision?.includes('/') ? datalakeDivision.split('/')[0] : '';
     if (divId > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
@@ -119,8 +119,8 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
     projectName: values.projectName,
     connectorType: connectorType,
     description: values.description,
-    divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
-    divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+    divisionId: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+    divisionName: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[1] : '',
     subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
     subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
     collabs: table,
@@ -146,15 +146,16 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
       projectName: project?.data?.projectName,
       connectorType: project?.data?.connectorType,
       description: values.description,
-      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
-      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+      divisionId: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+      divisionName: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[1] : '',
       subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
       subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
       collabs: table,
       department: departmentName[0],
       status: '',
       classificationType: values.dataClassification,
-      hasPii: values.pii
+      hasPii: values.pii,
+      tables: project.data.tables,
     }
     ProgressIndicator.show();
     datalakeApi.updateDatalakeProject(project?.data?.id, data).then(() => {

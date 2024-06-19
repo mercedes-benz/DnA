@@ -52,7 +52,7 @@ public class TrinoTableUtility {
 				}
 				if(canCreate) {
 					String format= "ORC".equalsIgnoreCase(tableDetails.getDataFormat()) ? "ORC" : "PARQUET";
-					createTableStatement += " WITH ( format = '" + format + "', location = '" + tableLocation + "')";
+					createTableStatement += " WITH (  location = '" + tableLocation + "')";
 					generateStmtResponse.setGeneratedTable(tableDetails);
 				}
 				generateStmtResponse.setTableStmt(createTableStatement);

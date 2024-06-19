@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import Styles from './data-entry-project-card.scss';
 import { useHistory } from 'react-router-dom';
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+import { formatDateToISO, regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) => {
@@ -12,13 +12,18 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
     Tooltip.defaultSetup();
   }, []);
 
+  const handleOpenProject = () => {
+    history.push(`/project/${project.id}`);
+    window.location.reload();
+  }
+
   return (
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
         <div className={classNames(Styles.cardHeadInfo)}>
           <div
             className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-            onClick={() => {history.push(`/project/${project.id}`)}}
+            onClick={handleOpenProject}
           >
             {project.name}
           </div>
@@ -27,11 +32,11 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
       <hr />
       <div className={Styles.cardBodySection}>
         <div>
-          {user.id === project?.createdBy?.id &&
+          {user.id === project?.createdBy?.id && project?.dataLakeDetails?.link !== 'null' &&
             <div>
               <div>Data Lakehouse Link</div>
               <div>
-                <a href={`https://app.fabric.microsoft.com/groups/${project?.id}`} target='_blank' rel='noopener noreferrer'>
+                <a href={`${project?.dataLakeDetails?.link}`} target='_blank' rel='noopener noreferrer'>
                   Access Lakehouse
                   <i className={classNames('icon mbc-icon new-tab')} />
                 </a>
@@ -40,11 +45,11 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
           }
           <div>
             <div>Created on</div>
-            <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
+            <div>{regionalDateAndTimeConversionSolution(formatDateToISO(new Date(project?.createdOn)))}</div>
           </div>
           <div>
             <div>Classification</div>
-            <div>{project?.classificationType || 'N/A'}</div>
+            <div>{project?.dataClassification || 'N/A'}</div>
           </div>
           <div>
             <div>State</div>

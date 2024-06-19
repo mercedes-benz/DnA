@@ -141,11 +141,19 @@ export class CodeSpaceApiClient {
   public static createCodeSpaceRecipe(data: any) {
     return this.post('recipeDetails', data);
   }
-  
-  public static getCodeSpaceRecipeRequests() {
-    return this.get('recipeDetails')
+
+  public static verifyGitUser(data: any) {
+    return this.post('recipeDetails/validate', data);
   }
 
+  public static getCodeSpaceRecipeRequests() {
+    return this.get('recipeDetails');
+  }
+
+  public static deleteCodeSpaceRecipe(name: string) {
+    return this.delete(`recipeDetails/${name}`);
+  }
+  
   public static getCodeSpaceRecipe(id: string){
     return this.get(`recipeDetails/${id}`);
   }
@@ -162,9 +170,9 @@ export class CodeSpaceApiClient {
     return this.post(`recipeDetails/${name}/publish`);
   };
 
-  // public static getRecipeLov(){
-  //  return this.get('recipeDetails/recipeLov');
-  // }
+   public static getRecipeLov(){
+     return this.get('recipeDetails/recipelov');
+   }
 
   public static getSoftwareLov(){
     return this.get('recipeDetails/softwareLov');
