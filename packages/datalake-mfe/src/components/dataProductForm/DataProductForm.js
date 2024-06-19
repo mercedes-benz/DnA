@@ -17,8 +17,8 @@ const DataProductForm = ({ project, onCreate }) => {
   const [existingDpId, setExistingDpId] = useState('');
   const [existingDp, setExistingDp] = useState([]);
   useEffect(() => {
+    SelectBox.defaultSetup();
     if (dataProductType === 'EXISTING') {
-      SelectBox.defaultSetup();
       ProgressIndicator.show();
       datalakeApi.getExistingDataProduts().then((res) => {
         const data = res.data.records;
