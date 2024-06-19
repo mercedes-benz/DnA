@@ -156,9 +156,10 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
-                    rowDetails.setOsName((String)rowData[2]);
-                    rowDetails.setMaxRam((String)rowData[3]);
-                    rowDetails.setMaxCpu((String)rowData[4]);
+                    rowDetails.setAliasId((String)rowData[2]);
+                    rowDetails.setOsName((String)rowData[3]);
+                    rowDetails.setMaxRam((String)rowData[4]);
+                    rowDetails.setMaxCpu((String)rowData[5]);
 				}
                 lov.add(rowDetails);
 			}
@@ -193,9 +194,10 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
-                    rowDetails.setOsName((String)rowData[2]);
-                    rowDetails.setMaxRam((String)rowData[3]);
-                    rowDetails.setMaxCpu((String)rowData[4]);
+                    rowDetails.setAliasId((String)rowData[2]);
+                    rowDetails.setOsName((String)rowData[3]);
+                    rowDetails.setMaxRam((String)rowData[4]);
+                    rowDetails.setMaxCpu((String)rowData[5]);
 				}
                 lov.add(rowDetails);
 			}

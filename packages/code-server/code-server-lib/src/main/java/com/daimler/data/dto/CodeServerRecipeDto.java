@@ -16,7 +16,7 @@ public class CodeServerRecipeDto implements Serializable{
     
     private String id;
 	private String recipeName;
-    private String recipeId;
+    private String aliasId;
     private String osName;
     private String maxCpu;
     private String maxRam;
