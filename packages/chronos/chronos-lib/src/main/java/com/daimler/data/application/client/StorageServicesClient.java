@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,6 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.auth.client.DnaAuthClientImpl;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.forecast.CollaboratorVO;
 import com.daimler.data.dto.forecast.CreatedByVO;
@@ -49,6 +51,9 @@ public class StorageServicesClient {
 	private static final String BUCKET_CLASSIFICATION = "Internal";
 	private static final Boolean PII_DATE_DEFAULT = true;
 	private static final Boolean TERMS_OF_USE = true;
+
+	@Autowired
+	DnaAuthClientImpl dnaClient;
 	
 	@Autowired
 	HttpServletRequest httpRequest;
@@ -100,6 +105,16 @@ public class StorageServicesClient {
 				
 				CreatedByVO creatorChronosSystemUser = new CreatedByVO();
 				creatorChronosSystemUser.setId(dataBricksUser);
+				try{
+					JSONObject object = dnaClient.getUserById(dataBricksUser);
+					creatorChronosSystemUser.setFirstName(object.get("firstName").toString());
+					creatorChronosSystemUser.setLastName(object.get("lastName").toString());
+					creatorChronosSystemUser.setDepartment(object.get("department").toString());
+					creatorChronosSystemUser.setEmail(object.get("email").toString());
+					creatorChronosSystemUser.setEmail(object.get("mobileNumber").toString());
+				}catch(Exception e){
+					log.error("Failed while converting user details with Exception {}:",e.getMessage());
+				}
 				data.setCreatedBy(creatorChronosSystemUser);
 				
 				requestWrapper.setData(data);
@@ -191,6 +206,16 @@ public class StorageServicesClient {
 
 			CreatedByVO creatorChronosSystemUser = new CreatedByVO();
 			creatorChronosSystemUser.setId(dataBricksUser);
+			try{
+				JSONObject object = dnaClient.getUserById(dataBricksUser);
+				creatorChronosSystemUser.setFirstName(object.get("firstName").toString());
+				creatorChronosSystemUser.setLastName(object.get("lastName").toString());
+				creatorChronosSystemUser.setDepartment(object.get("department").toString());
+				creatorChronosSystemUser.setEmail(object.get("email").toString());
+				creatorChronosSystemUser.setEmail(object.get("mobileNumber").toString());
+			}catch(Exception e){
+				log.error("Failed while converting user details with Exception {}:",e.getMessage());
+			}
 			data.setCreatedBy(creatorChronosSystemUser);
 
 			requestWrapper.setData(data);
