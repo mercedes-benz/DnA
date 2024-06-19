@@ -87,6 +87,11 @@
             .deleteEntry {
               cursor: pointer;
             }
+            .disableDelete {
+              pointer-events: none;
+              opacity: 0.5;
+              cursor: default;
+            }
             .writeAccess {
               cursor: pointer;
             }
@@ -101,6 +106,10 @@
                 margin-left: -10px;
               }
               min-height: unset;
+              .checkBoxlabel {
+                align-self: center;
+                margin-bottom: 0;
+              }
             }
             i {
               margin: -7px 7px 0 0;
