@@ -8,7 +8,7 @@ import { ICodeCollaborator, ITag, IUserInfo } from 'globals/types';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
-import { isValidGITRepoUrl } from '../../../../services/utils';
+import { isValidGitUrl } from '../../../../services/utils';
 import { useHistory } from 'react-router-dom'; const classNames = cn.bind(Styles);
 import Tags from 'components/formElements/tags/Tags';
 import Modal from 'components/formElements/modal/Modal';
@@ -53,9 +53,9 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
   const [diskSpace, setDiskSpace] = useState('');
-  const minCpu = 0;
+  const minCpu = '1';
   const [maxCpu, setMaxCpu] = useState('');
-  const minRam = 0;
+  const minRam = '1000';
   const [maxRam, setMaxRam] = useState('');
   const [hardware, setHardware] = useState('large');
   const [software, setSoftware] = useState([]);
@@ -117,9 +117,12 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     }));
   };
 
-  const validateGitUrl = (githubUrl: string) => {
-    const errorText = githubUrl.length
-      ? isValidGITRepoUrl(githubUrl, isPublic)
+  const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const githubUrlVal = e.currentTarget.value.trim();
+    setEnableCreate(false);
+    setGitUrl(githubUrlVal);
+    const errorText = githubUrlVal.length
+      ? isValidGitUrl(githubUrlVal, isPublic)
         ? ''
         : `provide valid ${isPublic ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
       : requiredError;
@@ -127,14 +130,6 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       ...prevState,
       gitUrl: errorText,
     }));
-  };
-
-
-  const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const githubUrlVal = e.currentTarget.value.trim();
-    setEnableCreate(false);
-    setGitUrl(githubUrlVal);
-    validateGitUrl(githubUrlVal);
   };
 
   const onSoftwareChange = (selectedTags: React.SetStateAction<any[]>) => {
@@ -210,7 +205,13 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
 
     setNotificationMsg(false);
 
-  }
+  };
+
+  const convertRam = ()  => {
+    const ramValue = parseInt(maxRam)*1000;
+    return ramValue.toString();
+  };
+
   const verifyRequest = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.verifyGitUser(gitHubUrl)
@@ -249,7 +250,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         maxCpu: maxCpu,
         minCpu: minCpu,
         minRam: minRam,
-        maxRam: maxRam,
+        maxRam: convertRam(),
         oSName: 'Debian-OS-11',
         osname: 'Debian-OS-11',
         plugins: ['string'],
@@ -359,10 +360,9 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <h3>Recipe Management</h3>
+            <h3>Create New Recipe</h3>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
-                <h3>Recipe Details</h3>
                 <div className={classNames(Styles.formWrapper)}>
                   <div className={classNames(Styles.flex)}>
                     <div className={(Styles.col2)}>
@@ -461,7 +461,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                           </button>
                         )}
                         <p
-                          style={{ color: 'var(--color-green)' }}
+                          style={{ color: 'var(--color-green)'}}
                           className={classNames(enableCreate ? '' : ' hide')}
                         >
                           <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.

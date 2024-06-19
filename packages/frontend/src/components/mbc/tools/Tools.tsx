@@ -78,6 +78,7 @@ const Tools = (props: any) => {
                 svgIcon={card.svgIcon}
                 animation={card.animation}
                 className="tools"
+                upperTag={card.upperTag}
               />
             );
           })}

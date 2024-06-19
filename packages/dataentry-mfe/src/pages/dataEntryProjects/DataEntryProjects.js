@@ -9,6 +9,7 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import Pagination from 'dna-container/Pagination';
 import { getQueryParameterByName } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import DataEntryProjectForm from '../../components/dataEntryProjectForm/DataEntryProjectForm';
 import DataEntryProjectCard from '../../components/dataEntryProjectCard/DataEntryProjectCard';

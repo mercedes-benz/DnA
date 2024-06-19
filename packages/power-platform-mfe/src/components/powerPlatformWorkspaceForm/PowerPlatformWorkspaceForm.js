@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,6 +31,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
       division: edit ? (project?.divisionId ? project?.divisionId + '@-@' + project?.division : '0') : '0',
       subDivision: '0',
       department: edit && project?.department ? [project?.department] : '',
+      tags: edit && project?.tags !== null ? [...project.tags] : [],
       dataClassification: edit && project?.dataClassification ? project?.dataClassification : '0',
       hasPii: edit && project?.hasPii ? project?.hasPii?.toString() : 'false',
       archerId: edit && project?.archerId ? project?.archerId : '',
@@ -51,17 +52,11 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
   const selectedSubDivision = watch('subDivision');
   const selectedTypeOfProject = watch('typeOfProject');
 
-  // lean governance fields
-  const [departmentName, setDepartmentName] = useState(edit && project?.department ? [project?.department] : []);
-  const [departmentError, setDepartmentError] = useState(false);
-  const [tags, setTags] = useState(edit && project?.tags !== null ? [...project.tags] : []);
-
   useEffect(() => {
     return () => {
       dispatch(resetSubDivisions());
     }
   }, [dispatch]);
-  
   
   useEffect(() => {
     const divId = selectedDivision.includes('@-@') ? selectedDivision.split('@-@')[0] : selectedDivision;
@@ -94,7 +89,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
       department: values?.department,
-      tags: tags,
+      tags: values?.tags,
       dataClassification: values?.dataClassification,
       hasPii: values?.hasPii,
       archerId: values?.archerId,
@@ -278,7 +273,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                   name="department"
                   rules={{
                     validate: (value) => {
-                      (value === undefined || value === '') ? setDepartmentError(true) : setDepartmentError(false);
+                      value === undefined || value === '' || '*Missing entry';
                     },
                   }}
                   render={({ field }) => (
@@ -287,15 +282,13 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                       value={getValues('department')}
                       name={field.name}
                       max={1}
-                      chips={departmentName}
+                      chips={[getValues('department')]}
                       tags={departments}
                       setTags={(selectedTags) => {
-                        let dept = selectedTags?.map((item) => item.toUpperCase());
-                        setDepartmentName(dept);
                         field.onChange(selectedTags[0]);
                       }}
                       isMandatory={true}
-                      showMissingEntryError={departmentError}
+                      showMissingEntryError={getValues('department') === undefined || getValues('department') === '' ? true : false}
                     />
                   )}
                 />
@@ -304,16 +297,29 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
             <div className={Styles.col2}>
               {selectedTypeOfProject !== 'Playground' &&
                 <div className={'input-field-group'}>
-                  <Tags
-                    title={'Tags'}
-                    max={100}
-                    chips={tags}
-                    tags={tagsLov}
-                    setTags={(selectedTags) => {
-                      let tag = selectedTags?.map((item) => item.toUpperCase());
-                      setTags(tag.trim());
+                  <Controller
+                    control={control}
+                    name="tags"
+                    rules={{
+                      validate: (value) => {
+                        value === undefined || value === '' || '*Missing entry';
+                      },
                     }}
-                    isMandatory={false}
+                    render={({ field }) => (
+                      <Tags
+                        title={'Tags'}
+                        value={getValues('tags')}
+                        name={field.name}
+                        max={100}
+                        chips={getValues('tags')}
+                        tags={tagsLov}
+                        setTags={(selectedTags) => {
+                          let tagsTemp = selectedTags?.map((item) => item.toUpperCase().trim());
+                          setValue('tags', tagsTemp);
+                        }}
+                        isMandatory={false}
+                      />
+                    )}
                   />
                 </div>
               }

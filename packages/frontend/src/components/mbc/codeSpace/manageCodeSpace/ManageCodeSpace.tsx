@@ -395,7 +395,7 @@ const ManageCodeSpace = () => {
                         <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
                           <thead>
                             <tr className={classNames('header-row', Styles.codeSpaceRow)}>
-                              <th onClick={() => sortByColumn('', sortBy.nextSortType)}>
+                              <th className={Styles.softwareColumn} onClick={() => sortByColumn('', sortBy.nextSortType)}>
                                 <label
                                   className={
                                     'sortable-column-header ' +
@@ -411,18 +411,18 @@ const ManageCodeSpace = () => {
                                   Hardware Configuration
                                 </label>
                               </th>
-                              <th >
+                              <th className={Styles.softwareColumn} >
                                 <label>
                       
                                   Software Configuration
                                 </label>
                               </th>
-                              <th >
+                              <th className={Styles.ciColumn}>
                                 <label>                            
                                   CI/CD Management
                                 </label>
                               </th>
-                              <th className="actionColumn">
+                              <th className={Styles.actionColumn}>
                                 <label>Action</label>
                               </th>
                             </tr>

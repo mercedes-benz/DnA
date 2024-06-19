@@ -54,7 +54,7 @@ const getAllSolutions = () => {
 }
 
 const getAllReports = () => {
-  return reportsServer.get(`/reports?limit=0`, {
+  return reportsServer.get(`/reports?limit=0&published=true`, {
     data: {},
   });
 };

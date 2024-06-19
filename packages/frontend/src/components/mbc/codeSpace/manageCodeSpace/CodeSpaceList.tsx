@@ -2,6 +2,9 @@ import cn from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceList.scss';
 import { history } from '../../../../router/History';
+import { ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import ViewRecipe from '../codeSpaceRecipe/viewRecipe';
 import Modal from 'components/formElements/modal/Modal';
 
@@ -42,7 +45,22 @@ const codeSpaceList = (props: IRecipeList) => {
 
   const onNotificationMsgAccept = () => {
     setNotificationMsg(false);
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deleteCodeSpaceRecipe(props.projectName)
+    .then((res) => {
+      ProgressIndicator.hide();
+      Notification.show("Recipe Deleted Successfully")
+    }).catch((err: Error) => {
+      ProgressIndicator.hide();
+      Notification.show(err.message, 'alert');
+    });
   };
+
+  const convertRam = (value: string ) => {
+    const ramValue = parseInt(value)/1000;
+    return ramValue.toString();
+  };
+
   const onNotificationMsgCancel = () => {
     setNotificationMsg(false);
   }
@@ -87,18 +105,18 @@ const codeSpaceList = (props: IRecipeList) => {
           <div className={Styles.securityConfigNameDivide} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{props.projectName} </div>
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span className={Styles.securityConfig}>
-            {"Diskspace- " + props.diskSpace + " CPU- " + props.maxCpu + " RAM- " + props.maxRam}
+          <span className={Styles.securityConfig} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+            {"DiskSpace- " + props.diskSpace + "GB" + " CPU- " + props.maxCpu + " RAM- " + convertRam(props.maxRam)+"GB"}
           </span>
         </td>
 
-        <td className={'wrap-text' + Styles.securityConfigCol}>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
           {chips}
         </td>
-        <td className={'wrap-text' + Styles.securityConfigCol}>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
           <span>{props.isPublic ? "Yes" : 'No'}</span>
         </td>
-        <td className={'wrap-text' + Styles.securityConfigCol}>
+        <td className={'wrap-text' + Styles.securityConfigCol + Styles.actionColumn}>
           <button
             className={
               'btn btn-primary ' + Styles.actionBtn

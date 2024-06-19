@@ -54,7 +54,12 @@ const viewRecipe = (props: IViewRecipeProps) => {
         Notification.show(error.message, 'alert');
       });
   };
-  
+
+  const convertRam = (value: string ) => {
+    const ramValue = parseInt(value)/1000;
+    return ramValue.toString();
+  };
+
   const chips =
     recipeField?.software && recipeField?.software?.length
         ? recipeField?.software?.map((chip) => {
@@ -119,7 +124,7 @@ const viewRecipe = (props: IViewRecipeProps) => {
               <label className={classNames('input-label', Styles.recipeLable)}>Hardware Configuration:</label>
             </div>
             <div>
-              <pre className={Styles.recipePre}>DiskSpace- {recipeField.diskSpace}GB CPU- {recipeField.maxCpu} Ram-{recipeField.maxRam}GB</pre>
+              <pre className={Styles.recipePre}>DiskSpace- {recipeField.diskSpace}GB CPU- {recipeField.maxCpu} Ram-{convertRam(recipeField.maxRam)}GB</pre>
             </div>
             <div id="gitPath">
               <label className={classNames('input-label', Styles.recipeLable)}> Git Repository:</label>
