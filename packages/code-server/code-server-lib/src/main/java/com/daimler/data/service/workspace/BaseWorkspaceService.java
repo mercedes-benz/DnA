@@ -2106,6 +2106,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> warnings = new ArrayList<>();
 		try
 		{
+			log.info("inside try....");
 			CodeServerWorkspace workspace = entity.getData();
 			String repoName = "";
 			String repoNameWithOrg = "";
@@ -2114,6 +2115,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			if (workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace
 					.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")) {
 				repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
+				log.info("repoName>>>>"+repoName);
 			}
 			String pathCheckout = "";
 			if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
@@ -2122,11 +2124,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 					&& !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 							.startsWith("bat")) {
 				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				log.info("repoNameWithOrg>>>>"+repoNameWithOrg);
 			} else {
 				repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
-				String url[] = repoNameWithOrg.split(",");
-				repoNameWithOrg = url[0];
-				pathCheckout = url[1];
+				if(repoNameWithOrg==null || repoNameWithOrg.isEmpty() || repoNameWithOrg.isBlank()){
+					repoNameWithOrg = workspace.getProjectDetails().getGitRepoName();
+					String url[] = repoNameWithOrg.split(",");
+					repoNameWithOrg = url[0];
+					pathCheckout = url[1];
+					log.info("pathCheckout>>>>"+pathCheckout);	
+				}else{
+					String url[] = repoNameWithOrg.split(",");
+					repoNameWithOrg = url[0];
+					pathCheckout = url[1];
+					log.info("pathcheckout value >>>>"+pathCheckout); 
+				}
+				log.info("pathCheckout>>>>"+pathCheckout);
 			}
 				ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 				WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -2170,11 +2183,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setWarnings(warnings);
 				return responseMessage;
 				}
+				log.info("resource value is updated scucessfully");
 				String resource = updatedResourceValue.getDiskSpace()+"Gi,"+updatedResourceValue.getMinRam()+"M,";
 				resource+= updatedResourceValue.getMinCpu()+","+updatedResourceValue.getMaxRam()+"M,"+updatedResourceValue.getMaxCpu();
 				workspace.getProjectDetails().getRecipeDetails().setResource(resource);
 				entity.setData(workspace);
 				jpaRepo.save(entity);
+				log.info("successfully saved resource value {}",resource);
 				
 			MessageDescription errMsg = new MessageDescription("Sucessfully created workspace");
 			errors.add(errMsg);
