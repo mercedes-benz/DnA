@@ -132,7 +132,7 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
                                   checked={true}
                                 />
                               </span>
-                              <span className="label">Read</span>
+                              <label className={Styles.checkBoxlabel}>Read</label>
                             </label>
                           </div>
                           &nbsp;&nbsp;&nbsp;
@@ -141,7 +141,7 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
                               'input-field-group include-error ' + Styles.inputGrp,
                             )}
                           >
-                            <label className={'checkbox ' + Styles.writeAccess}>
+                            <label className= {classNames('checkbox ' , Styles.writeAccess , item.collaborator.id === user.id ? Styles.checkBoxDisable : '')}>
                               <span className="wrapper">
                                 <input
                                   type="checkbox"
@@ -154,13 +154,13 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
                                   onChange={() => onPermissionChange(item)}
                                 />
                               </span>
-                              <span className="label">Write</span>
+                              <label className={Styles.checkBoxlabel}>Write</label>
                             </label>
                           </div>
                         </div>
                         <div className={Styles.collUserTitleCol}>
                           <div
-                            className={Styles.deleteEntry}
+                            className= {classNames(Styles.deleteEntry , item.collaborator.id === user.id ? Styles.disableDelete : '' )}
                             onClick={() => onCollabaratorDelete(item.collaborator.id)}
                           >
                             <i className="icon mbc-icon trash-outline" />
