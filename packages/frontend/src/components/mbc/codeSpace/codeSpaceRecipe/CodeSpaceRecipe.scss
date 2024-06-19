@@ -4,14 +4,18 @@
 }
   h3 {
     font-size: 24px;
-    color: #dee3e8;
+    color: #dee3e8; 
     margin-top: 12px;
     margin-bottom: 22px;
-    margin-left: 20px
+    margin-left: 20px;
   }
+
   .btnConatiner{
-    margin-left: 90.5%;
+    margin-right: 70px;
+    text-align: right;
+    margin-bottom: 12px;
   }
+
   .actionWrapper {
     text-align: center;
     margin: 30px 0;
@@ -20,10 +24,32 @@
     opacity: 0.6;
     pointer-events: none;
   }
+
+  .softwareBox {
+    margin-top: 26px;
+  }
+
+  .custom-select {
+    margin-top: 4px;
+    height: 45px;
+    margin:2px !important;
+  }
+
+  .request {
+    top:75px;
+    margin: 0px;
+    position: absolute;
+    right: 0px !important;
+  }
+
   .saveSoftwareBtn {
     display: flex;
     justify-content: center;
     width: 90px;
+  }
+
+  .secondPanel{
+    padding-left: 20px
   }
 
   .firstPanel {
@@ -40,15 +66,23 @@
       display: inline-block;
     }
 
-    .flexLayout {
+    .flex {
       display: flex;
       justify-content: space-between;
-
-      >div {
-        width: calc(50% - 7px);
+      flex-wrap: wrap;
+      > .col {
+        width: 100%;
       }
-
+      > .col2 {
+        width: calc(50% - 7px);
+        position: relative;
+      }
+      > .col3 {
+        width: calc(33.33% - 7px);
+      }
+      
     }
+
     .SelectBoxWrapper {
       display: flex;
       justify-content: space-between;
@@ -92,23 +126,31 @@
 
       }
     }
-    button {
-      padding: 0;
-      margin: 0 0 0 30px;
+
+    .requestNewSoftware{
+      right: 0px;
+    }
+
+    .disableVerifyButton{
+      color: #c0c8d0 !important;
+      background-color: #383f49 !important;
+      border-color: #383f49 !important;
+    }
+
+    .verifyButton {
+      padding: 0 !important;
+      margin-top: -9px !important;
       background: none;
       border: none;
       outline: none;
-      color: #c0c8d0;
+      color: #00adef;
       vertical-align: middle;
+      text-align: left;
+      font-size: 12px;
 
-      i {
-        vertical-align: top;
-        margin-right: 10px;
-        color: #00adef;
-      }
-
-      &:hover span {
+      &:hover {
         text-decoration: underline;
+        background: none;
       }
     }
   }
@@ -160,8 +202,28 @@
   }
 }
 
+.inputLabel{
+  font-size: 12px;
+}
+
+.Softwarelabel{
+  margin-top: 30px;
+}
+
 .collabAvatar {
   padding: 0 25px 25px 0;
   overflow-x: hidden;
 }
 
+.mT {
+  margin-top: 20px !important;
+}
+
+.sectionHeader {
+  margin-left: 68px !important;
+  margin-top: 40px !important;
+}
+
+.m5{
+  margin-left: 5px;
+}

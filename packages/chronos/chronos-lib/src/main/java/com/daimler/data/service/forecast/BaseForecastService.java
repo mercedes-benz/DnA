@@ -50,6 +50,7 @@ import com.daimler.data.dto.comparison.CreateComparisonResponseWrapperDto;
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
 import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.BannerResponseVO;
 import com.daimler.data.dto.forecast.CancelRunResponseVO;
 import com.daimler.data.dto.forecast.CollaboratorVO;
 import com.daimler.data.dto.forecast.ComparisonStateVO;
@@ -1846,4 +1847,34 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return runCollectionWrapper;
 	}
 
+	@Override
+	public BannerResponseVO getBannerText(){
+		BannerResponseVO bannerResponseVO = new BannerResponseVO();
+
+		try{
+			BucketObjectsCollectionWrapperDto bucketObjectsCollectionWrapperDto = storageClient.getBucketObjectDetails("chronos-core/objects");
+
+			if(bucketObjectsCollectionWrapperDto!=null){
+				List<BucketObjectDetailsDto> bucketObjects = bucketObjectsCollectionWrapperDto.getData().getBucketObjects();
+				for(BucketObjectDetailsDto object :bucketObjects){
+					if("bannertext.txt".equalsIgnoreCase(object.getObjectName())){
+						bannerResponseVO.setLastchangedtime(object.getLastModified());
+						try{
+						FileDownloadResponseDto fileDownloadResponseDto = storageClient.getFileContents("chronos-core", "bannertext.txt");
+						ByteArrayResource byteArrayResource = fileDownloadResponseDto.getData();
+						String bannerText = new String(byteArrayResource.getByteArray());
+						bannerResponseVO.setBannerText(bannerText);
+						break;
+						}catch(Exception e){
+							log.error("Exception while downloading bannertext: {}",e.getMessage());
+						}
+					}
+				}
+
+			}
+		}catch(Exception e){
+			log.error("Exception while getting bucketobjects: {}",e.getMessage());
+		}
+		return bannerResponseVO;
+	}
 }

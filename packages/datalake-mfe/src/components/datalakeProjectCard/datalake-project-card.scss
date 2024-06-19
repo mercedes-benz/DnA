@@ -91,7 +91,7 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
-  div:first-child {
+  div:second-child {
     margin: 7px 0px;
   }
 }
@@ -147,6 +147,28 @@
   button {
     background-color: #383f49 !important;
   }
+}
+.dataProduct {
+   display: flex;
+   margin-left: 25px ;
+  .btnDp {
+    justify-content: flex-start;
+    background-color: transparent;
+    border: 0;
+    color: #99a5b3;
+    float: right;
+    font-size: 12px;
+    margin-right: 20px;
+    outline: 0;
+    padding: 0;
+    &:hover {
+      color:  #00adef;
+    }
+    i{
+      font-size: 14px;
+    }
+  }
+
 }
 
 .cardCollabSection {

@@ -7,3 +7,27 @@
       margin-right: 12px;
     }
 }
+
+.dvFilterWrapper{
+  width: 250px !important;
+  .dvRange{
+    display: flex;
+    margin-bottom: 0px;
+    .dvStartRange{
+      margin-right: 10px;
+      width: 100px;
+    }
+    .dvEndRange{
+      margin-left: 0px;
+      margin-top: 31px;
+      margin-right: 10px;
+      width:100px
+    }
+    .speratorIcon{
+      margin-right: 16px;
+      margin-top: 40px;
+      font-size: 10px;
+      color: #d9dfe4;;
+    }
+  }
+} 

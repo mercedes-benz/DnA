@@ -14,12 +14,18 @@ const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
 
+const hostServer = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+
 const baseUrlReport = Envs.DASHBOARD_API_BASEURL
   ? Envs.DASHBOARD_API_BASEURL
   : `http://${window.location.hostname}:7173/api`;
 const getUrlReport = (endpoint: string) => {
   return `${baseUrlReport}/${endpoint}`;
 };
+
+const getHostUrl = (endpoint: string) =>{
+  return `${hostServer}/${endpoint}`;
+}
 
 export class DataProductFilterApiClient {
   public static get(endpoint: string) {
@@ -45,6 +51,10 @@ export class DataProductFilterApiClient {
     return ApiClient.fetch(getUrlReport(endpoint), HTTP_METHOD.GET);
   }
 
+  public static getHost(endpoint: string) {
+    return ApiClient.fetch(getHostUrl(endpoint), HTTP_METHOD.GET);
+  }
+
   public static getAllDataProducts(limit: number, offset: number, sortBy: string, sortOrder: string): Promise<any> {
     return this.get(`reports?limit=${limit}&offset=${offset}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
   }
@@ -63,16 +73,39 @@ export class DataProductFilterApiClient {
 
   public static getFilterMasterData() {
     return Promise.all([
+      // this.getDataSteward(),
+      // this.getInformationOwner(),
       this.getArts(),
       this.getPlatforms(),
       this.getFrontendTools(),
       this.getProductOwners(),
-      this.getCarlaFunctions(),
+    //  this.getCarlaFunctions(),
+      this.getDivisions(),
+      this.getDepartments(),
+      this.getDataSteward(),
+      this.getInformationOwner(),
       // this.getTags(),
     ]);
   }
 
   // Lov Get Calls //
+
+  public static getDivisions(): Promise<IDataProductListItem[]>{
+    return this.getHost('/divisions');
+  }
+
+  public static getDepartments(): Promise<IDataProductListItem[]>{
+    return this.getReport('/departments');
+  }
+
+  public static getDataSteward(): Promise<IDataProductListItem[]>{
+    return this.get('dataproducts/dataStwerdLov')
+  }
+
+  public static getInformationOwner(): Promise<IDataProductListItem[]>{
+    return this.get('dataproducts/IOLov')
+  }
+
   public static getArts(): Promise<IDataProductListItem[]> {
     return this.getReport('lov/agilereleasetrains');
   }
@@ -83,7 +116,7 @@ export class DataProductFilterApiClient {
     return this.getReport('lov/frontendtechnologies');
   }
   public static getProductOwners(): Promise<IDataProductListItem[]> {
-    return this.get('dataproducts/owners');
+    return this.get('dataproducts/productOwner');
   }
   public static getCarlaFunctions(): Promise<IDataProductListItem[]> {
     return this.get('carlafunctions');

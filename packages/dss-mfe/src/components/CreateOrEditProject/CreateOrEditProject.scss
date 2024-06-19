@@ -12,6 +12,29 @@
         margin-left: 40px;
     }
 
+    .extolloTou {
+        margin-left: 30px;
+        display: inline-flex;
+        position: relative;
+        .touLabel{
+            margin-top: 11px;
+        }
+
+        .configLink {
+            cursor: pointer;
+            margin-bottom: 10px;
+
+            a {
+                color: #00ADEF !important;
+            }
+        }
+
+        .errorMsg {
+            margin-top: 0px;
+            margin-left: 10px;
+        }
+    }
+
     .bucketColUsersList {
         margin-top: 12px;
         width: 90%;

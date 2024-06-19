@@ -11,6 +11,7 @@ import {
 
 const dataInitialState = {
   data: [],
+  totalNumberOfRecords: 1,
   isLoading: false,
   errors: '',
   pagination: {
@@ -29,6 +30,18 @@ const dataInitialState = {
     totalCount: 0,
     records: [],
   },
+  FilterQueryParams: {
+    arts: '',
+    platforms: '',
+    frontendTools: '',
+    divisions: '',
+    departments: '',
+    productOwners: '',
+    informationOwners: '',
+    dataStewards: '',
+    offset: 0,
+    limit: 15
+  }
 };
 
 export const dataSlice = createSlice({
@@ -39,18 +52,13 @@ export const dataSlice = createSlice({
       state.isLoading = true;
     },
     [GetDataProducts.fulfilled]: (state, action) => {
-      const totalNumberOfPages = Math.ceil(action.payload?.data?.length / action.payload?.pagination.maxItemsPerPage);
-      const modifiedData = action.payload?.data
-        ? action.payload.data?.slice(0, action.payload.pagination.maxItemsPerPage)
-        : [];
-      // let objectArr = [...state.data, ...modifiedData];
-      // state.data = [...new Set(objectArr.map((o) => JSON.stringify(o)))].map((str) => JSON.parse(str));
+      const totalNumberOfPages = Math.ceil(action.payload?.totalNumberOfRecords / action.payload?.pagination.maxItemsPerPage);
+      const modifiedData = action.payload?.data ? action.payload.data: []
       state.data = modifiedData;
       state.isLoading = false;
       state.errors = '';
       state.pagination.dataListResponse = action.payload?.data || [];
       state.pagination.totalNumberOfPages = totalNumberOfPages;
-      state.pagination.currentPageNumber = 1;
     },
     [GetDataProducts.rejected]: (state, action) => {
       state.data = [];
@@ -135,6 +143,15 @@ export const dataSlice = createSlice({
         ...action.payload,
       };
     },
+    setFilterQueryParams : (state, action) => {
+      state.FilterQueryParams = {
+        ...state.FilterQueryParams,
+        ...action.payload,
+      };
+    },
+    setTotalNumberOfRecords: (state, action) =>{
+      state.totalNumberOfRecords = action.payload;
+    },
     resetDataTransferList: (state) => {
       state.allDataTransfer = {
         totalCount: 0,
@@ -148,6 +165,6 @@ export const dataSlice = createSlice({
   },
 });
 
-export const { setPagination, setDataProductList, setSelectedDataProduct, setDivisionList, resetDataTransferList } =
+export const { setPagination, setDataProductList, setSelectedDataProduct, setDivisionList, setFilterQueryParams, resetDataTransferList } =
   dataSlice.actions;
 export default dataSlice.reducer;

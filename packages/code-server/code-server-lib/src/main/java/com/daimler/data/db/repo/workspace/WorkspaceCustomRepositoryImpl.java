@@ -268,7 +268,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setWarnings(new ArrayList<>());
 			log.info("collaborator details updated successfully for project {} ", projectName);
 		} catch (Exception e) {
-			e.printStackTrace();
 			MessageDescription errMsg = new MessageDescription("Failed while updating the collaborator details.");
 			errors.add(errMsg);
 			log.error("projectCollaborators details Failed while updating the collaborator with Exception {} ", e.getMessage());
@@ -304,6 +303,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"firstName\": " + addQuotes(updatedcollaborators.getFirstName()) + ","
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
+						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
 						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
@@ -346,7 +346,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"mobileNumber\": " + addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber()) + "}," +
 				" \"lastDeployedOn\":" + longdate + "," +
 				" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
-				" \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
+				// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
 				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
@@ -507,7 +507,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
-                  "cast(jsonb_extract_path_text(data,'projectDetails','publishedSecurityConfig') as text) as SECURITY_CONFIG " +
+                  "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
                   "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
 				  }
 		if (limit > 0)
@@ -532,7 +532,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						CodespaceSecurityConfig recordDetails = mapper.readValue(rowData[3].toString(), CodespaceSecurityConfig.class);
 						rowDetails.setSecurityConfig(recordDetails);
 					}catch(Exception e){
-						log.error("");
+						log.error("exception occure while mapping data :{} ",e.getMessage());
 						rowDetails.setSecurityConfig(null);
 					}
 					data.add(rowDetails);
@@ -544,7 +544,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				log.info("Found {} workspaces which are in requested and accepted state", data.size());
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
 			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
 		return data;
@@ -570,7 +569,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setWarnings(new ArrayList<>());
 			log.info("security config status updated successfully for project {} ", projectName);
 		} catch (Exception e) {
-			e.printStackTrace();
 			MessageDescription errMsg = new MessageDescription("Failed while updating the security config status.");
 			errors.add(errMsg);
 			log.error("Failed while updating the security config status with Exception {} ", e.getMessage());
@@ -709,6 +707,18 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return updateResponse;
 
 	}
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findAllByUniqueLiteral()
+	{
+		String query = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName')) *"
+		+" FROM workspace_nsql"
+		+" WHERE jsonb_extract_path_text(data, 'status') != 'DELETED'";
+		Query q = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		List<CodeServerWorkspaceNsql> result = q.getResultList();
+        return result != null ? result : new ArrayList<>();
+	}
+
 
 }
 

@@ -55,12 +55,19 @@ export interface IResponse<T> {
 
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
 const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7777/api`;
+const baseUrlSimilaritySearch = Envs.SIMILARITY_SEARCH_API_BASEURL ? Envs.SIMILARITY_SEARCH_API_BASEURL : `http://${window.location.hostname}:8000`;
+
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
 
 const getDataikuUrl = (endpoint: string) => {
   return `${dataikUrl}/${endpoint}`;
+};
+
+
+const getSimilaritySearchUrl = (endpoint: string) => {
+  return `${baseUrlSimilaritySearch}/${endpoint}`;
 };
 
 export class ApiClient {
@@ -436,6 +443,7 @@ export class ApiClient {
       this.get('phases'),
       this.get('datavolumes'),
       this.get('tags'),
+      this.get('dashboard/datavalue/minmaxyear')
     ]);
   }
 
@@ -813,6 +821,7 @@ export class ApiClient {
     status: string,
     useCaseType: string,
     tagSearch: string,
+    dataValueRange?: string,
   ): Promise<IWidgetsResponse[]> {
     let reqQuery = 'published=true&';
     if (locations != '') reqQuery += `location=${locations}&`;
@@ -821,6 +830,7 @@ export class ApiClient {
     if (status != '') reqQuery += `projectstatus=${status}&`;
     if (useCaseType != '') reqQuery += `useCaseType=${useCaseType}&`;
     if (tagSearch != '') reqQuery += `tags=${tagSearch}&`;
+    if (dataValueRange !='' && dataValueRange != undefined) reqQuery +=`enddate=${dataValueRange.split(',')[1]}&startdate=${dataValueRange.split(',')[0]}&`;
 
     return this.get(`dashboard/${calledResource}?` + reqQuery);
   }
@@ -1182,4 +1192,8 @@ export class ApiClient {
   public static getUsersTransparency(): Promise<any> {
     return this.get('users/transparency');
   }
+
+  public static getSimilarSearchResult(endpoint: string):Promise<any> {
+    return this.fetch(getSimilaritySearchUrl(endpoint), HTTP_METHOD.GET);
+  } 
 }

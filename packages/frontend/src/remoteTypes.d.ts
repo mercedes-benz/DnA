@@ -32,3 +32,13 @@ declare module 'fabric-mfe/Fabric' {
   const Fabric: React.ComponentType;
   export default Fabric;
 }
+
+declare module 'data-entry-mfe/DataEntry' {
+  const DataEntry: React.ComponentType;
+  export default DataEntry;
+}
+
+declare module 'power-platform-mfe/PowerPlatform' {
+  const PowerPlatform: React.ComponentType;
+  export default PowerPlatform;
+}

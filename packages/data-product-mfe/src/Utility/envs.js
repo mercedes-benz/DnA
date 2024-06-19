@@ -39,4 +39,5 @@ export const Envs = {
   AFO_TOOL_URL: getDNAInjectedEnv('AFO_TOOL_URL') || process.env.AFO_TOOL_URL,
   POWER_BI_TOOL_URL: getDNAInjectedEnv('POWER_BI_TOOL_URL') || process.env.POWER_BI_TOOL_URL,
   DDX_URL: getDNAInjectedEnv('DDX_URL') || process.env.DDX_URL,
+  LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
 };

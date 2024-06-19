@@ -72,6 +72,12 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'airflowNotificationPref':
             temp.title = 'Configure Notification for Airflow';
             break;
+          case 'dataLakeNotificationPref':
+            temp.title = 'Configure Notification for Data Lakehouse'
+            break;
+          case 'dataEntryNotificationPref':
+            temp.title = 'Configure Notification for Data Entry'
+            break;
         }
         tempArr.push(temp);
       }
@@ -169,6 +175,27 @@ const NotificationsSettings = (props: INotificationSettings) => {
     callToUpdatePreference(messageForNotification);
   };
 
+  const onChangeEmailNotificationForDataLake = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.dataLakeNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  }
+
+  const onChangeEmailNotificationForDataEntry = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.dataEntryNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+
+  }
+
   const callToUpdatePreference = (message: string) => {
     ProgressIndicator.show();
     ApiClient.enableEmailNotifications(notificationPreferences)
@@ -216,6 +243,11 @@ const NotificationsSettings = (props: INotificationSettings) => {
       case 'airflowNotificationPref':
         onChangeEmailNotificationForAirflow(e);
         break;  
+      case 'dataLakeNotificationPref':
+        onChangeEmailNotificationForDataLake(e);
+        break;
+      case 'dataEntryNotificationPref':
+        onChangeEmailNotificationForDataEntry(e);
     }
   };
 

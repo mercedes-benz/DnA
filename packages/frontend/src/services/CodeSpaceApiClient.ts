@@ -1,3 +1,4 @@
+import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
@@ -22,6 +23,10 @@ const baseUrlStorage = Envs.DASHBOARD_API_BASEURL
   : `http://${window.location.hostname}:7175/api`;
 const getUrlStorage = (endpoint: string) => {
   return `${baseUrlStorage}/${endpoint}`;
+};
+
+const getUrlHub = (endpoint: string) => {
+  return `${new URL('../hub/api/', baseUrl).href}${endpoint}`;
 };
 
 export class CodeSpaceApiClient {
@@ -96,21 +101,25 @@ export class CodeSpaceApiClient {
     return this.patch(`workspaces/${id}/projectowner`, data);
   }
 
+  public static assignAdminRole(id: string, userId: string, data: any){
+    return this.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`);
+  }
+  
   // Usage statistics
   public static getWorkSpacesTransparency(): Promise<any> {
     return this.get('workspaces/transparency');
   }
 
-  public static createOrUpdateCodeSpaceConfig(id: string, data: any) {
-    return this.patch(`workspaces/${id}/config`, data);
+  public static createOrUpdateCodeSpaceConfig(id: string, data: any, env: string) {
+    return this.patch(`workspaces/${id}/config?env=${env}`, data);
   }
 
-  public static getCodeSpaceConfig(id: string): Promise<any[]> {
-    return this.get(`/workspaces/${id}/config`)
+  public static getCodeSpaceConfig(id: string, env: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config?env=${env}`)
   };
 
-  public static getPublishedConfig(id: string): Promise<any[]> {
-    return this.get(`/workspaces/${id}/config/publish`)
+  public static getPublishedConfig(id: string, env: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/publish?env=${env}`)
   };
 
   public static getEntitlements(id: string): Promise<any[]> {
@@ -125,18 +134,26 @@ export class CodeSpaceApiClient {
     return this.get(`/workspaces/${id}/config/mappings`)
   };
 
-  public static addCodeSpaceRequest(id: string): Promise<any[]> {
-    return this.post(`/workspaces/${id}/config/request`)
+  public static addCodeSpaceRequest(id: string, env: string): Promise<any[]> {
+    return this.post(`/workspaces/${id}/config/publish?env=${env}`)
   };
 
   public static createCodeSpaceRecipe(data: any) {
     return this.post('recipeDetails', data);
   }
-  
-  public static getCodeSpaceRecipeRequests() {
-    return this.get('recipeDetails')
+
+  public static verifyGitUser(data: any) {
+    return this.post('recipeDetails/validate', data);
   }
 
+  public static getCodeSpaceRecipeRequests() {
+    return this.get('recipeDetails');
+  }
+
+  public static deleteCodeSpaceRecipe(name: string) {
+    return this.delete(`recipeDetails/${name}`);
+  }
+  
   public static getCodeSpaceRecipe(id: string){
     return this.get(`recipeDetails/${id}`);
   }
@@ -153,9 +170,9 @@ export class CodeSpaceApiClient {
     return this.post(`recipeDetails/${name}/publish`);
   };
 
-  // public static getRecipeLov(){
-  //  return this.get('recipeDetails/recipeLov');
-  // }
+   public static getRecipeLov(){
+     return this.get('recipeDetails/recipelov');
+   }
 
   public static getSoftwareLov(){
     return this.get('recipeDetails/softwareLov');
@@ -185,7 +202,32 @@ export class CodeSpaceApiClient {
     return this.getVault(`/secret/${codeSpaceName}/${env}`)
   };
 
-  public static update_secret(path: string, secret_value: any, env: string): Promise<any[]>{
-    return this.putVault(`/secret/${path}/${env}`,secret_value)
-  };
+  public static update_secret(path: string, secret_value: any, env: string): Promise<any[]> {
+    return this.putVault(`/secret/${path}/${env}`, secret_value);
+  }
+
+  public static startStopWorkSpace(id: string, serverStarted: boolean): Promise<any> {
+    if (serverStarted) return this.delete(`/workspaces/server/${id}`);
+    return this.post(`/workspaces/startserver/${id}`);
+  }
+
+  public static workSpaceStatus(): Promise<any> {
+    return this.get(`/workspaces/serverstatus`);
+  }
+
+  public static serverStatusFromHub(userId: string, workspaceId: string, onMessageCB: (e: any) => void, onCloseCB?: (e: any) => void) {
+    const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
+      withCredentials: true,
+      headers: { Authorization: ApiClient.readJwt() },
+    });
+
+    sse.onmessage = onMessageCB;
+
+    sse.onerror = (e: any) => {
+      onCloseCB && onCloseCB(e);
+      console.log(e);
+      console.error('Event stream closed');
+      sse.close();
+    };
+  }
 }

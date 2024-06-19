@@ -242,6 +242,73 @@ paths:
         500:
           description: "Internal error"
 
+    patch:
+      tags:
+        - "code-server"
+      summary: "update resource for give workspace id."
+      description: "updating resource for existing workspace Project "
+      operationId: "updateResourceValue"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "updatedResourceValue"
+          in: "body"
+          description: "resources to add codespace"
+          required: true
+          schema:
+           $ref: "#/definitions/ResourceVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  /workspaces/server/{id}: 
+    delete:
+      tags:
+        - "code-server"
+      summary: "Stop server of workspace for a given Id."
+      description: "Selete the server for workspace for a given identifier."
+      operationId: "StopServer"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID of server to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/{id}/{userid}/validate:
     get:
       tags:
@@ -519,6 +586,14 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/SecurityConfigRequestDto"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
@@ -549,43 +624,19 @@ paths:
           description: "Workspace name to be fetched"
           required: true
           type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
-
-
-  /workspaces/{id}/config/request:        
-    post:
-      tags:
-        - "code-server"
-      summary: "Request for the changes to be added in access management system"
-      description: "request Codespace security configurations to be published"
-      operationId: "requestSecurityConfig"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace ID to be fetched"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
           required: true
-          type: "string"
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/GenericMessage"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -598,6 +649,38 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+
+  # /workspaces/{id}/config/request:        
+  #   post:
+  #     tags:
+  #       - "code-server"
+  #     summary: "Request for the changes to be added in access management system"
+  #     description: "request Codespace security configurations to be published"
+  #     operationId: "requestSecurityConfig"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace ID to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/GenericMessage"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
                       
   # Fetch all valid userinfo or by intent
   #
@@ -636,6 +719,38 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/migrate:
+    patch:
+      tags:
+        - "code-server"
+      summary: "Initialize/Create Workbench for user in code-server."
+      description: "Create workspace for user in code-server with given password"
+      operationId: "updateExistingWorkspace"
+      parameters:
+        - name: "codeServerMigrateVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/CodeServerWorkspaceVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/transparency:
     get:
       tags:
@@ -661,67 +776,67 @@ paths:
         500:
           description: "Internal error"
           
-  /workspaces/{id}/config/entitlements:
-    get:
-      tags:
-        - "code-server"
-      summary: "Get all entitlements for the workspace Id."
-      description: "Get all entitlements for the workspace Id."
-      operationId: "getAllEntitlements"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace name to be fetched"
-          required: true
-          type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/EntitlementCollectionVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /workspaces/{id}/config/entitlements:
+  #   get:
+  #     tags:
+  #       - "code-server"
+  #     summary: "Get all entitlements for the workspace Id."
+  #     description: "Get all entitlements for the workspace Id."
+  #     operationId: "getAllEntitlements"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace name to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/EntitlementCollectionVO"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
  
-  /workspaces/{id}/config/roles:
-    get:
-      tags:
-        - "code-server"
-      summary: "Get all roles for the workspace Id."
-      description: "Get all roles for the workspace Id."
-      operationId: "getAllRoles"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace name to be fetched"
-          required: true
-          type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/RoleCollectionVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /workspaces/{id}/config/roles:
+  #   get:
+  #     tags:
+  #       - "code-server"
+  #     summary: "Get all roles for the workspace Id."
+  #     description: "Get all roles for the workspace Id."
+  #     operationId: "getAllRoles"
+  #     parameters:
+  #       - name: "id"
+  #         in: "path"
+  #         description: "Workspace name to be fetched"
+  #         required: true
+  #         type: "string"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/RoleCollectionVO"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
 
 
   /workspaces/{id}/config/publish:
@@ -737,11 +852,146 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/serverstatus:
+    get:
+      tags:
+        - "code-server"
+      summary: "Getting status of all servers of particular user"
+      description: "Get server status of codeserver workspace"
+      operationId: "getAllWorkspaceServerStatus"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/WorkspaceServerStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/serverstatus/{name}:
+    get:
+      tags:
+        - "code-server"
+      summary: "Getting status of server for workspace"
+      description: "Get server status of codeserver workspace"
+      operationId: "getServerStatus"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ServerStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/startserver/{id}:
+    post:
+      tags:
+        - "code-server"
+      summary: "Starting server for workspace"
+      description: "to start server of codeserver workspace"
+      operationId: "startServer"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/{id}/collaborator/{collabUserId}/admin:
+    post:
+      tags:
+        - "code-server"
+      summary: "make or remove collaborator admin for workspace project ."
+      description: "make or remove collaborator admin for workspace project."
+      operationId: "makeAdmin"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "collabUserId"
+          in: "path"
+          description: "Collaborator user id"
+          required: true
+          type: "string"
+        - name: isAdmin
+          in: query
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -780,6 +1030,22 @@ definitions:
       count:
         type: integer
         description: "Number of workspaces"
+
+  ServerStatusVO:
+    type: object
+    properties:
+      status:
+        type: string
+        description: "status of server"
+
+  WorkspaceServerStatusVO:
+    type: object
+    properties:
+      status:
+        type: array
+        items: 
+          type: string
+
   WorkspaceCollectionVO:
     type: object
     properties:
@@ -790,6 +1056,21 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CodeServerWorkspaceVO"
+
+  ResourceVO:
+    type: object
+    properties:
+      diskSpace:
+        type: string
+      minCpu:
+        type: string
+      maxCpu: 
+        type: string
+      minRam:
+        type: string
+      maxRam:
+        type: string
+
   
   WorkspaceUpdateRequestVO:
     type: object
@@ -847,6 +1128,9 @@ definitions:
         type: string
         description: "Status of workspace - COLLABORATION_REQUESTED,CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
         DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
+      serverStatus:
+        type: string
+        description: "Status of server - SERVER-STARTED,SERVER-STOPPED"
       required:
         -projectDetails
         -workspaceOwner
@@ -858,6 +1142,8 @@ definitions:
         type: string
       projectOwner:
         $ref: "#/definitions/UserInfoVO"
+      recipeName:
+        type: string
       projectCollaborators:
         type: array
         items:
@@ -898,6 +1184,11 @@ definitions:
       valutInjectorEnable:  # Corrected property name
         type: boolean
         default: false  # This should now work as expected
+      clientID:
+        type: string
+      clientSecret:
+        type: string
+
 
            
   CodeServerDeploymentDetailsVO:
@@ -912,8 +1203,8 @@ definitions:
         description: "URL of the project deployed"
       secureWithIAMRequired:
         type: boolean
-      technicalUserDetailsForIAMLogin:
-        type: string    
+      # technicalUserDetailsForIAMLogin:
+      #   type: string    
       lastDeployedBy:
         $ref: "#/definitions/UserInfoVO" 
       lastDeployedBranch:
@@ -933,10 +1224,16 @@ definitions:
   CodeServerRecipeDetailsVO:
     type: object
     properties:
+      Id:
+        type: string
+        description: "id generated for particular recipe"
       recipeId:
         type: string
-        enum: [default,springboot,vue,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
-        description: "RecipeId of the workspace. Ex: Springboot Microservice"    
+        enum: [default,springboot,springbootwithmaven,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-fabric-mfe,public-dna-fabric-backend,public-dna-dataentry-mfe,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
+        description: "RecipeId of the workspace. Ex: Springboot Microservice" 
+      recipeName:
+        type: string
+        description: "description of recipe that created" 
       environment:
         type: string
         enum: [Development, Testing, Production]
@@ -961,15 +1258,28 @@ definitions:
         description: "Operating system required"
       resource:
         type: string
-        description: "Storage details of recipe"  
+        description: "Storage details of recipe" 
+      software:
+        type: array
+        items:
+          type: string 
+      toDeployType:
+        type: string
+      recipeType:
+        type: string
+      gitPath:
+        type: string
+      gitRepoLoc:
+        type: string
       required:
         -recipeId
+        -recipeName
 
   SecurityConfigResponseDto: 
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+        $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
      response:
         $ref: "#/definitions/GenericMessage"
         
@@ -977,21 +1287,27 @@ definitions:
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+      $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+      
+       
   
   CodespaceSecurityEntitlementVO: 
     type: object
     properties:
+      name:
+        type: array
+        description: "name  of Entitlement"
+        items:
+          type: string   
+      apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+      httpMethod:
+        type: string
+        enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
+        description: "Operating system required" 
       id:
         type: string
-        description: "Entitlement Id" 
-      name:
-        type: string
-        description: "name  of Entitlement"   
-      apiList:
-        type:  array
-        items:
-          $ref: "#/definitions/CodespaceSecurityApiListVO"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
@@ -1077,31 +1393,38 @@ definitions:
   CodespaceSecurityConfigVO: 
     type: object
     properties:
-      status:
-        type: string
-        description: "Status of security configurations"   
-      entitlements:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-      roles:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityRoleVO" 
-      userRoleMappings:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
-      openSegments:
-        type: array
-        items:
-          type: string
-      isProtectedByDna:
-        type: boolean
-      requestedDate:
-        type: string
-      projectName:
-        type: string
+      # entitlements:
+      #   type: array
+      #   items:
+      #       $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+      # appId:
+      #   type: string
+      # status:
+      #   type: string
+      #   description: "Status of security configurations"   
+      staging:
+          $ref: "#/definitions/CodespaceSecurityConfigDetailCollectionVO"
+         
+      production:
+          $ref: "#/definitions/CodespaceSecurityConfigDetailCollectionVO"
+      # roles:
+      #   type: array
+      #   items:
+      #     $ref: "#/definitions/CodespaceSecurityRoleVO" 
+      # userRoleMappings:
+      #   type: array
+      #   items:
+      #     $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
+      # openSegments:
+      #   type: array
+      #   items:
+      #     type: string
+      # isProtectedByDna:
+      #   type: boolean
+      # requestedDate:
+      #   type: string
+      # projectName:
+      #   type: string
         
   UserIdVO:
     type: object
@@ -1136,6 +1459,10 @@ definitions:
       gitUserName:
         type: string
         description: git Username
+      isAdmin:
+        type: boolean
+        description: "is the user has Admin rights"
+        default: false
       required:
         -id
         -gitUserName
@@ -1316,3 +1643,28 @@ definitions:
       branch:
         type: string
         description: "branch one which codespace is deployed"
+
+  CodespaceSecurityConfigDetailVO:
+    type: object  
+    properties:
+      entitlements:
+        type: array
+        items:
+            $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+      appID:
+        type: string
+      # openSegments:
+      #   type: array
+      #   items:
+      #     type: string
+      # requestedDate:
+      #   type: string
+      # projectName:
+      #   type: string
+  CodespaceSecurityConfigDetailCollectionVO:
+    type: object  
+    properties:
+      draft:
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+      published:
+            $ref: "#/definitions/CodespaceSecurityConfigDetailVO"

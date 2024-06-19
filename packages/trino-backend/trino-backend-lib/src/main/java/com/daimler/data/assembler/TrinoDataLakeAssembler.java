@@ -11,18 +11,19 @@ import com.daimler.data.dto.UserInfoVO;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableCollabDetails;
 import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableColumnDetails;
+import com.mb.dna.datalakehouse.db.jsonb.DataProductDetails;
 import com.mb.dna.datalakehouse.db.jsonb.DatalakeTable;
 import com.mb.dna.datalakehouse.db.jsonb.TrinoDataLakeProject;
 import com.mb.dna.datalakehouse.db.jsonb.UserInfo;
 import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
 import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
+import com.mb.dna.datalakehouse.dto.DataProductDetailsVO;
 import com.mb.dna.datalakehouse.dto.DatalakeTableVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
 @Component
 public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakeProjectVO, TrinoDataLakeNsql>{
 
-	
 	@Override
 	public TrinoDataLakeProjectVO toVo(TrinoDataLakeNsql entity) {
 		TrinoDataLakeProjectVO datalakeProjectVO = null;
@@ -32,6 +33,12 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = entity.getData();
 			if(projectDetails!=null) {
 				BeanUtils.copyProperties(projectDetails, datalakeProjectVO);
+				UserInfo createdBy = projectDetails.getCreatedBy();
+				UserInfoVO createdByVO = new UserInfoVO();
+				if(createdBy!=null) {
+					BeanUtils.copyProperties(createdBy, createdByVO);
+					datalakeProjectVO.setCreatedBy(createdByVO);
+				}
 				List<DatalakeTableVO> tablesVO = new ArrayList<>();
 				if(projectDetails.getTables()!=null && !projectDetails.getTables().isEmpty()) {
 					for(DatalakeTable table: projectDetails.getTables()) {
@@ -46,24 +53,32 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 							}
 						}
 						tableVO.setColumns(columnsVO);
-						List<DataLakeTableCollabDetailsVO> collabsVO = new ArrayList<>();
-						if(table.getCollabs()!=null && !table.getCollabs().isEmpty()) {
-							for(DataLakeTableCollabDetails collabDetails : table.getCollabs()) {
-								DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
-								BeanUtils.copyProperties(collabDetails, collabVO);
-								UserInfoVO userinfoVO = new UserInfoVO();
-								if(collabDetails.getCollaborator()!=null) {
-										BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
-								}
-								collabVO.setCollaborator(userinfoVO);
-								collabsVO.add(collabVO);
-							}
-						}
-						tableVO.setCollabs(collabsVO);
 						tablesVO.add(tableVO);
 					}
 				}
 				datalakeProjectVO.setTables(tablesVO);
+				List<DataLakeTableCollabDetailsVO> collabsVO = new ArrayList<>();
+				if(projectDetails.getCollabs()!=null && !projectDetails.getCollabs().isEmpty()) {
+					for(DataLakeTableCollabDetails collabDetails : projectDetails.getCollabs()) {
+						DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
+						BeanUtils.copyProperties(collabDetails, collabVO);
+						UserInfoVO userinfoVO = new UserInfoVO();
+						if(collabDetails.getCollaborator()!=null) {
+								BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
+						}
+						collabVO.setCollaborator(userinfoVO);
+						collabsVO.add(collabVO);
+					}
+				}
+				datalakeProjectVO.setCollabs(collabsVO);
+				
+				DataProductDetails dataproductDetails = projectDetails.getDataProductDetails();
+				DataProductDetailsVO dataProductDetailsVO = new DataProductDetailsVO();
+				if(dataproductDetails!=null) {
+					BeanUtils.copyProperties(dataproductDetails, dataProductDetailsVO);
+					dataProductDetailsVO.setInvalidState(dataproductDetails.getInvalidState());
+					datalakeProjectVO.setDataProductDetails(dataProductDetailsVO);
+				}
 			}
 		}
 		return datalakeProjectVO;
@@ -77,6 +92,12 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = new TrinoDataLakeProject();
 			if(vo!=null) {
 				BeanUtils.copyProperties(vo,projectDetails);
+				UserInfoVO createdByVO = vo.getCreatedBy();
+				UserInfo createdBy = new UserInfo();
+				if(createdByVO!=null) {
+					BeanUtils.copyProperties(createdByVO,createdBy);
+					projectDetails.setCreatedBy(createdBy);
+				}
 				List<DatalakeTable> tables = new ArrayList<>();
 				if(vo.getTables()!=null && !vo.getTables().isEmpty()) {
 					for(DatalakeTableVO tableVO: vo.getTables()) {
@@ -91,25 +112,34 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 							}
 						}
 						table.setColumns(columns);
-						List<DataLakeTableCollabDetails> collabs = new ArrayList<>();
-						if(tableVO.getCollabs()!=null && !tableVO.getCollabs().isEmpty()) {
-							for(DataLakeTableCollabDetailsVO collabVO : tableVO.getCollabs()) {
-								DataLakeTableCollabDetails collabDetails = new DataLakeTableCollabDetails();
-								BeanUtils.copyProperties(collabVO, collabDetails);
-								UserInfo userinfo = new UserInfo();
-								if(collabVO.getCollaborator()!=null) {
-										BeanUtils.copyProperties(collabVO.getCollaborator(), userinfo);
-								}
-								collabDetails.setCollaborator(userinfo);
-								collabs.add(collabDetails);
-							}
-						}
-						table.setCollabs(collabs);
 						tables.add(table);
 					}
 				}
 				projectDetails.setTables(tables);
+				List<DataLakeTableCollabDetails> collabs = new ArrayList<>();
+				if(vo.getCollabs()!=null && !vo.getCollabs().isEmpty()) {
+					for(DataLakeTableCollabDetailsVO collabVO : vo.getCollabs()) {
+						DataLakeTableCollabDetails collabDetails = new DataLakeTableCollabDetails();
+						BeanUtils.copyProperties(collabVO, collabDetails);
+						UserInfo userinfo = new UserInfo();
+						if(collabVO.getCollaborator()!=null) {
+								BeanUtils.copyProperties(collabVO.getCollaborator(), userinfo);
+						}
+						collabDetails.setCollaborator(userinfo);
+						collabs.add(collabDetails);
+					}
+				}
+				projectDetails.setCollabs(collabs);
 			}
+			
+			DataProductDetails dataproductDetails = new DataProductDetails(); 
+			DataProductDetailsVO dataProductDetailsVO = vo.getDataProductDetails();
+			if(dataProductDetailsVO!=null) {
+				BeanUtils.copyProperties(dataProductDetailsVO,dataproductDetails);
+				dataproductDetails.setInvalidState(dataProductDetailsVO.getInvalidState());
+				projectDetails.setDataProductDetails(dataproductDetails);
+			}
+			
 			entity.setId(vo.getId());
 			entity.setData(projectDetails);
 		}

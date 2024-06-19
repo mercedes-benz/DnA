@@ -76,12 +76,16 @@ configJs: |
       ENABLE_CHRONOS_FORECASTING_SERVICE: "false",
       ENABLE_DATALAKE_SERVICE: "false",
       ENABLE_FABRIC_SERVICE: "false",
+      ENABLE_DATA_ENTRY_SERVICE: "false",
+      ENABLE_POWER_PLATFORM_SERVICE: "false",
       CHRONOS_MFE_APP_URL:"http://localhost:8085",
       ENABLE_MATOMO_SERVICE:"true",
       MATOMO_MFE_APP_URL:"http://localhost:8089",
       MATOMO_APP_URL:"YOUR_MATOMO_APP_URL",
       DATALAKE_MFE_APP_URL: 'http://localhost:8090',
       FABRIC_MFE_APP_URL: 'http://localhost:8091',
+      DATA_ENTRY_MFE_APP_URL: 'http://localhost:8092',
+      POWER_PLATFORM_MFE_APP_URL: 'http://localhost:8093',
 
       UDEMY_URL= "YOUR_UDEMY_URL",
       LINKEDIN_LEARNING_URL= "YOUR_LINKEDIN_LEARNING_URL",
@@ -168,6 +172,25 @@ configJs: |
         CONTAINER_APP_URL:'http://localhost:9090',
         API_BASEURL: 'http://localhost:7171/api',
         FABRIC_API_BASEURL: 'YOUR_FABRIC_API_BASEURL',
+        STORAGE_API_BASEURL: 'http://localhost:7175/api',
+        REPORTS_API_BASEURL: 'http://localhost:7173/api',
+        TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+    };
+
+    window["DATA_ENTRY_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL:'http://localhost:9090',
+        API_BASEURL: 'http://localhost:7171/api',
+        DATA_ENTRY_API_BASEURL: 'YOUR_DATA_ENTRY_API_BASEURL',
+        DATALAKE_API_BASEURL: 'YOUR_DATALAKE_API_BASEURL',
+        STORAGE_API_BASEURL: 'http://localhost:7175/api',
+        REPORTS_API_BASEURL: 'http://localhost:7173/api',
+        TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+    };
+
+    window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL:'http://localhost:9090',
+        API_BASEURL: 'http://localhost:7171/api',
+        POWER_PLATFORM_API_BASEURL: 'YOUR_POWER_PLATFORM_API_BASEURL',
         STORAGE_API_BASEURL: 'http://localhost:7175/api',
         REPORTS_API_BASEURL: 'http://localhost:7173/api',
         TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 

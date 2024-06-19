@@ -47,6 +47,14 @@ public class DataikuAssembler {
 			entity.setStatus(vo.getStatus());
 			entity.setClassificationType(vo.getClassificationType());
 			entity.setHasPii(vo.getHasPii());
+			Boolean hasTermsOfUse = vo.getHasTermsOfUse();
+			if (hasTermsOfUse != null && hasTermsOfUse.booleanValue()) {
+				entity.setHasTermsOfUse(hasTermsOfUse);
+			}
+			else
+			{
+				entity.setHasTermsOfUse(false);
+			}
 			entity.setDivisionId(vo.getDivisionId());
 			entity.setDivisionName(vo.getDivisionName());
 			entity.setSubdivisionId(vo.getSubdivisionId());
@@ -82,6 +90,14 @@ public class DataikuAssembler {
 			vo.setStatus(entity.getStatus());
 			vo.setClassificationType(entity.getClassificationType());
 			vo.setHasPii(entity.getHasPii());
+			Boolean hasTermsOfUse = entity.getHasTermsOfUse();
+			if (hasTermsOfUse != null && hasTermsOfUse.booleanValue()) {
+				vo.setHasTermsOfUse(hasTermsOfUse);
+			}
+			else
+			{
+				vo.setHasTermsOfUse(false);
+			}
 			vo.setDivisionId(entity.getDivisionId());
 			vo.setDivisionName(entity.getDivisionName());
 			vo.setSubdivisionId(entity.getSubdivisionId());
@@ -177,6 +193,7 @@ public class DataikuAssembler {
 			summaryDto.setStatus(projectDto.getStatus());
 			summaryDto.setClassificationType(projectDto.getClassificationType());
 			summaryDto.setHasPii(projectDto.getHasPii());
+			summaryDto.setHasTermsOfUse(projectDto.getHasTermsOfUse());
 			summaryDto.setDivisionId(projectDto.getDivisionId());
 			summaryDto.setDivisionName(projectDto.getDivisionName());
 			summaryDto.setSubdivisionId(projectDto.getSubdivisionId());

@@ -6,7 +6,7 @@ metadata:
 spec:
   ingress:
     - ports:
-        - port: 8989
+        - port: 9292
   podSelector:
     matchLabels:
       {{- include "fabric-be.selectorLabels" . | nindent 8 }}

@@ -4,6 +4,8 @@ import * as React from 'react';
 import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import { ApiClient } from '../../../../services/ApiClient';
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
@@ -20,6 +22,7 @@ import {
   ILogoDetails,
   IProjectStatus,
   IRelatedProduct,
+  ISimilarSearchListItem,
   ISubDivision,
   ITag,
 } from 'globals/types';
@@ -38,6 +41,7 @@ import TextArea from 'components/mbc/shared/textArea/TextArea';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { history } from '../../../../router/History';
 import { isSolutionFixedTagIncluded, isSolutionFixedTagIncludedInArray } from '../../../../services/utils';
+import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
 
@@ -115,6 +119,15 @@ export interface IDescriptionState {
   additionalResource: string;
   departmentTags: string[];
   showGenAIWarningModal: boolean;
+  selectedSimilarSolutionsType: string;
+  showSimilarSolutionsModal: boolean;
+  lastSearchedDescriptionInput: string;
+  similarSolutionsBasedOnDescription: ISimilarSearchListItem[];
+  lastSearchedBusinessNeedInput: string;
+  similarSolutionsBasedOnBusinessNeed: ISimilarSearchListItem[];
+  lastSearchedProductNameInput: string;
+  similarSolutionsBasedOnProductName: ISimilarSearchListItem[];
+  similarSolutionstoShow: ISimilarSearchListItem[];
 }
 
 export interface IDescriptionRequest {
@@ -219,7 +232,16 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       additionalResourcesMasterList: [],
       additionalResource: 'No',
       departmentTags: [],
-      showGenAIWarningModal: false
+      showGenAIWarningModal: false,
+      selectedSimilarSolutionsType: "Description",
+      showSimilarSolutionsModal: false,
+      lastSearchedDescriptionInput: '',
+      similarSolutionsBasedOnDescription: [],
+      lastSearchedBusinessNeedInput: '', 
+      similarSolutionsBasedOnBusinessNeed: [],
+      lastSearchedProductNameInput: '',
+      similarSolutionsBasedOnProductName: [],
+      similarSolutionstoShow: [],
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -261,6 +283,58 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({
       description: desc,
     });
+  };
+
+  public onFocusOut = (fieldType: string, data: string) => {
+    const inputData = data.trim();
+    if(inputData !== '') {
+      switch(fieldType) {
+        case 'Name':
+          if(inputData === this.state.lastSearchedProductNameInput) return;
+          this.setState({similarSolutionsBasedOnProductName: []});
+          break;   
+        case 'Description':
+          if(inputData === this.state.lastSearchedDescriptionInput) return;
+          this.setState({similarSolutionsBasedOnDescription: []});
+          break;
+        case 'Business Need':
+          if(inputData === this.state.lastSearchedBusinessNeedInput) return;
+          this.setState({similarSolutionsBasedOnBusinessNeed: []});
+          break;     
+      }
+
+      ApiClient.getSimilarSearchResult(`${this.props.isGenAI ? 'search' : 'solutionssearch'}?input=${inputData}`).then((res: any) => {
+        if(res?.result?.length) {
+          const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
+          res?.result.forEach((item: any) => {
+            const solutionItem = item[0];
+            const score = item[1];
+            similarSolutionsBasedOnInputData.push({
+              id: solutionItem.id,
+              productName: solutionItem.productName,
+              description: solutionItem.description,
+              businessNeed: solutionItem.businessNeed,
+              score
+            });
+          });
+
+          switch(fieldType) {
+            case 'Name':
+              this.setState({similarSolutionsBasedOnProductName: similarSolutionsBasedOnInputData, lastSearchedProductNameInput: inputData});
+              break;    
+            case 'Description':
+              this.setState({similarSolutionsBasedOnDescription: similarSolutionsBasedOnInputData, lastSearchedDescriptionInput: inputData});
+              break;
+            case 'Business Need':
+              this.setState({similarSolutionsBasedOnBusinessNeed: similarSolutionsBasedOnInputData, lastSearchedBusinessNeedInput: inputData});
+              break;    
+          }
+
+          Notification.show(`Similar solutions found based on your Solution ${fieldType}.`);
+          Tooltip.defaultSetup();
+        }
+      });
+    }
   };
 
   public onHoldChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -497,6 +571,22 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     });
   };
 
+  public showSimilarSolutions = (type: string) => {
+    let similarSolutionstoShow: ISimilarSearchListItem[] = [];
+    switch (type) {
+      case 'Name': 
+        similarSolutionstoShow = this.state.similarSolutionsBasedOnProductName;
+        break;
+      case 'Description':
+        similarSolutionstoShow = this.state.similarSolutionsBasedOnDescription;
+        break;
+      case 'Business Need':
+        similarSolutionstoShow = this.state.similarSolutionsBasedOnBusinessNeed;
+        break;
+    }
+    this.setState({ selectedSimilarSolutionsType: type, showSimilarSolutionsModal: true, similarSolutionstoShow });
+  };
+
   public render() {
     const productNameError = this.state.productNameError || '';
     const locationError = this.state.locationError || '';
@@ -595,6 +685,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       required={true}
                       maxLength={200}
                       onChange={this.onProductNameOnChange}
+                      onBlur={() => this.onFocusOut("Name", this.state.productName)}
+                      infoContent={
+                        this.state.similarSolutionsBasedOnProductName.length > 0 && (
+                          <span
+                            className={Styles.similarSolInfo}
+                            onClick={() => this.showSimilarSolutions('Name')}
+                            tooltip-data="Click to view"
+                          >
+                            <i className="icon mbc-icon alert circle" />
+                            Similar Solutions Found
+                          </span>
+                        )
+                      }
                     />
                     <div>
                       <div>
@@ -916,6 +1019,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     errorText={descriptionError}
                     required={true}
                     onChange={this.onDescChange}
+                    onBlur={() => this.onFocusOut("Description", this.state.description)}
+                    infoContent={
+                      this.state.similarSolutionsBasedOnDescription.length > 0 && (
+                        <span
+                          className={Styles.similarSolInfo}
+                          onClick={() => this.showSimilarSolutions('Description')}
+                          tooltip-data="Click to view"
+                        >
+                          <i className="icon mbc-icon alert circle" />
+                          Similar Solutions Found
+                        </span>
+                      )
+                    }
                   />
                 </div>
 
@@ -930,6 +1046,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     errorText={businessNeedsError}
                     required={true}
                     onChange={this.onBusinessNeedChange}
+                    onBlur={() => this.onFocusOut("Business Need", this.state.businessNeeds)}
+                    infoContent={
+                      this.state.similarSolutionsBasedOnBusinessNeed.length > 0 && (
+                        <span
+                          className={Styles.similarSolInfo}
+                          onClick={() => this.showSimilarSolutions('Business Need')}
+                          tooltip-data="Click to view"
+                        >
+                          <i className="icon mbc-icon alert circle" />
+                          Similar Solutions Found
+                        </span>
+                      )
+                    }
                   />
                 </div>
 
@@ -949,6 +1078,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               </div>
             </div>
           </div>
+          {this.state.showSimilarSolutionsModal && (
+            <SimilarSearchListModal
+              setShowSimilarSearchListModal={(showSimilarSolutionsModal: boolean) => this.setState({ showSimilarSolutionsModal })}
+              similarSearchList={this.state.similarSolutionstoShow}
+              searchBasedOnInputType={this.state.selectedSimilarSolutionsType}
+            />
+          )}
           {!this.props.isProvision ? (
             <>
               <div id="tagsWrapper" className={classNames(Styles.wrapper)}>

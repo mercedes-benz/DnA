@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import Styles from './fabric-workspaces.scss';
-// import { MatomoList } from './MatomoList';
 import { fabricApi } from '../../apis/fabric.api';
 
 // dna-container
@@ -46,7 +45,6 @@ const FabricWorkspaces = (props) => {
     setMaxItemsPerPage(pageNum);
   };
 
-
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
     const currentPageNumberTemp = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
@@ -66,11 +64,24 @@ const FabricWorkspaces = (props) => {
       fabricApi
         .getFabricWorkspaces(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setWorkspaces(res?.data?.records);
-          const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
-          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
-          setTotalNumberOfPages(totalNumberOfPagesTemp);
-          
+          if(res.status !== 204) {
+            const sortedWorkspaces = res?.data?.records.sort((x, y) => {
+                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+                if (fx < fy) {
+                    return -1;
+                }
+                if (fx > fy) {
+                    return 1;
+                }
+                return 0;
+            });
+            setWorkspaces(sortedWorkspaces);
+            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+            setTotalNumberOfPages(totalNumberOfPagesTemp);
+          } else {
+            setWorkspaces([]);
+          }
           ProgressIndicator.hide();
         })
         .catch((e) => {
@@ -90,6 +101,12 @@ const FabricWorkspaces = (props) => {
         <div className={classNames(Styles.wrapper)}>
           <Caption title="Fabric Workspaces">
             <div className={classNames(Styles.listHeader)}>
+              <div className={Styles.btnContainer}>
+                <button className="btn btn-primary" onClick={getWorkspaces} tooltip-data="Refresh">
+                  <i className="icon mbc-icon refresh"></i>
+                </button>
+              </div>
+              <span className={Styles.dividerLine}> &nbsp; </span>
               <div tooltip-data="Card View">
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
@@ -152,7 +169,16 @@ const FabricWorkspaces = (props) => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <Workspaces isCardView={cardViewMode} user={props.user} workspaces={workspaces} callWorkspaces={getWorkspaces} onCreateWorkspace={(val) => setCreateWorkspace(val)} />
+                  {workspaces?.length ? 
+                    <Workspaces 
+                      isCardView={cardViewMode} 
+                      user={props.user} 
+                      workspaces={workspaces} 
+                      callWorkspaces={getWorkspaces} 
+                      onCreateWorkspace={(val) => setCreateWorkspace(val)} 
+                    /> 
+                    : null
+                  }
                   {workspaces?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
@@ -172,20 +198,15 @@ const FabricWorkspaces = (props) => {
       { createWorkspace &&
         <Modal
           title={'Create Fabric Workspace'}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'60%'}
+          modalWidth={'800px'}
           buttonAlignment="right"
           show={createWorkspace}
           content={<FabricWorkspaceForm edit={false} onSave={() => {setCreateWorkspace(false); getWorkspaces();}} />}
           scrollableContent={true}
           onCancel={() => setCreateWorkspace(false)}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
         />
       }
     </>

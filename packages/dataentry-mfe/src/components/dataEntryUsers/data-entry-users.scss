@@ -1,0 +1,89 @@
+.container {  
+  width: 650px;
+  margin: 0 auto 20px;
+  .header {
+    margin-bottom: 20px;
+    text-align: center;
+    p {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  > .col {
+    width: 100%;
+  }
+  > .col2 {
+    width: calc(50% - 7px);
+  }
+  > .col3 {
+    width: calc(33.33% - 7px);
+  }
+}
+.deUserList {
+  margin: 20px auto;
+  table {
+    width: 100%;
+
+    th {
+      color: #99a5b3;
+      font-size: var(--font-size-smallest);
+      padding: 8px;  
+    }
+    .id {
+      width: 25%;
+    }
+    .name {
+      width: 50%;
+    }
+    .action {
+      width: 25%;
+      text-align: right;
+    }
+    td {
+      padding: 8px;
+      font-size: 12px;
+    }
+    tr {
+      border-bottom: 1px solid #383f49;
+    }
+    tbody {
+      tr:hover {
+        background-color: #20242b;
+      }
+    }
+    .btnAction {
+      background: unset;
+      border: unset;
+      font-size: 12px;
+      width: unset;
+      height: unset;
+      padding: 2px;
+      float: right;
+      color: #00adef;
+
+      i {
+        font-size: 10px;
+      }
+    }
+  }
+  .noUsers {
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid #383f49;
+    margin: 20px 0;
+    P {
+      margin: 0;
+    }
+  }
+}

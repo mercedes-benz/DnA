@@ -533,6 +533,7 @@ export interface IUserDetails {
   id?: string;
   lastName: string;
   mobileNumber?: string;
+  isAdmin?: boolean;
 }
 
 export interface IUserPrivilege {
@@ -553,6 +554,7 @@ export interface ICodeCollaborator {
   status?: string;
   canDeploy?: boolean;
   gitUserName: string;
+  isAdmin: boolean;
 }
 export interface IError {
   message: string;
@@ -888,6 +890,14 @@ export interface IMonth {
   name: string;
 }
 
+export interface ISimilarSearchListItem {
+  id?: string;
+  productName: string;
+  description: string;
+  businessNeed?: string;
+  score: number;
+}
+
 export interface IAllSolutionsListItem {
   id?: string;
   productName: string;
@@ -1109,6 +1119,12 @@ export interface IFilterParams {
   useCaseType: string[];
   dataVolume?: string[];
   tag: string[];
+  dataValueRange?: IDataValueFilterParams;
+}
+
+export interface IDataValueFilterParams{
+  startYear: string;
+  endYear: string;
 }
 export interface IFilterPreferences {
   divisions: IDivision[];
@@ -1118,6 +1134,7 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+  dataValueRange?: string;
 }
 
 export interface IDataProductListItem {
@@ -1126,6 +1143,11 @@ export interface IDataProductListItem {
 }
 
 export interface IDataProductFilterParams {
+  division: string[],
+  subDivision: string[]
+  department: string[],
+  dataSteward: string[],
+  informationOwner: string[],
   art: string[];
   platform: string[];
   frontendTool: string[];
@@ -1144,6 +1166,8 @@ export interface INoticationModules {
   chronosNotificationPref: INotificationEnableDisable;
   codespaceNotificationPref: INotificationEnableDisable;
   airflowNotificationPref: INotificationEnableDisable;
+  dataLakeNotificationPref: INotificationEnableDisable;
+  dataEntryNotificationPref: INotificationEnableDisable;
   termsOfUse: string;
   userId: string;
 }

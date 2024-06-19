@@ -16,7 +16,7 @@ import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 // import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({user,graph,onRefresh}) => {
+const DatalakeProjectCard = ({user,graph,onRefresh, hostHistory}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
   // const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -31,6 +31,16 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
     setShowConnectionModel(false)
   }
 
+   const isOwner = user.id === graph?.createdBy?.id;
+   const [hasWritePermission, setHasWritePermission] = useState(true);
+
+  useEffect(() =>{
+    if(!isOwner && graph?.collabs.length > 0){
+      const hasPermission = graph?.collabs?.some((collab)=> (collab.collaborator?.id === user?.id && collab.hasWritePermission));
+      setHasWritePermission(hasPermission);
+    }
+  },[graph])
+
   // delete project
   // const handleDeleteProject = () => {
   //   setShowDeleteModal(false);
@@ -41,6 +51,10 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
 
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
+  }
+
+  const viewDataProduct = () => {
+    hostHistory.push(`/data/dataproduct/summary/${graph.dataProductDetails.dataProductId}`);
   }
 
   return (
@@ -81,13 +95,18 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
           </div>
         </div>
         <div className={Styles.cardFooter}>
+          <div className={classNames(Styles.dataProduct)}>
+          <button className={classNames("btn btn-primary", graph?.dataProductDetails?.id?.length > 0 ? "" :"hide", Styles.btnDp)} onClick={() => viewDataProduct()}>
+              <i className="icon mbc-icon dataproductoverview" tooltip-data= {"View Linked Data Product"}></i>
+          </button>
+          </div>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide")} onClick={() => setEditProject(true)}>
+            <button className={classNames("btn btn-primary",hasWritePermission ? "" :"hide")} onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
-            <button className={classNames("btn btn-primary", Styles.btnDisabled)}>
+            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide", Styles.btnDisabled)}>
               <i className="icon delete"></i>
               <span tooltip-data={'Coming Soon'}>Delete</span>
             </button>
@@ -106,7 +125,7 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} user={user} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{

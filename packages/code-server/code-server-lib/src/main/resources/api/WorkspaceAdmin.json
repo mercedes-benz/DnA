@@ -11,6 +11,7 @@
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
 		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
 		"CodespaceSecurityConfigVO":"com.daimler.data.dto.workspace.CodespaceSecurityConfigVO",
+		"CodespaceSecurityConfigDetailVO":"com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailVO",
 		"UserInfoVO":"com.daimler.data.dto.workspace.UserInfoVO"
 	}
 }

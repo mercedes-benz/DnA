@@ -28,6 +28,7 @@ import {
   IUserInfo,
   INotebookInfoSolutionId,
   IFilterParams,
+  ISimilarSearchListItem,
 } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
@@ -49,6 +50,7 @@ import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from 'components/mbc/shared/landingSummary/tagSection/TagSection';
+import SimilarSearchListModal from '../shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
 
@@ -104,6 +106,9 @@ export interface IAllSolutionsState {
   openFilters: boolean;
   selectedTags: string[];
   selectedTagsToPass: string[];
+  selectedSolutionNameForSimilarityCheck: string;
+  showSimilarSolutionsModal: boolean;
+  similarSolutionsBasedOnDescription: ISimilarSearchListItem[];
 }
 
 export default class AllSolutions extends React.Component<
@@ -176,6 +181,9 @@ export default class AllSolutions extends React.Component<
       openFilters: false,
       selectedTags: [],
       selectedTagsToPass: [],
+      selectedSolutionNameForSimilarityCheck: '',
+      showSimilarSolutionsModal: false,
+      similarSolutionsBasedOnDescription: [],
     };
   }
 
@@ -332,6 +340,7 @@ export default class AllSolutions extends React.Component<
           updateBookmark={this.updateBookmark}
           showDigitalValue={enablePortfolioSolutionsView}
           noteBookData={this.state.noteBookData}
+          onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.id, solution.productName, solution.description, isGenAI)}
         />
       );
     });
@@ -477,7 +486,9 @@ export default class AllSolutions extends React.Component<
                         <div
                           className={Styles.cardViewContainer}
                           onClick={() =>
-                            isGenAITagOnPath ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                            isGenAITagOnPath
+                              ? history.push('/createnewgenaisolution')
+                              : history.push('/createnewsolution')
                           }
                         >
                           <div className={Styles.addicon}> &nbsp; </div>
@@ -501,6 +512,7 @@ export default class AllSolutions extends React.Component<
                             updateBookmark={this.updateBookmark}
                             showDigitalValue={enablePortfolioSolutionsView}
                             noteBookData={this.state.noteBookData}
+                            onShowSimilarSolutionModal={() => this.onShowSimilarSolutionModal(solution.id, solution.productName, solution.description, isGenAI)}
                           />
                         );
                       })}
@@ -606,10 +618,12 @@ export default class AllSolutions extends React.Component<
                           </tr>
                           <tr>
                             <th
-                              colSpan={enablePortfolioSolutionsView ? 8 : 7}
+                              colSpan={8}
                               className={classNames(Styles.listViewContainer)}
                               onClick={() =>
-                                isGenAITagOnPath ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                                isGenAITagOnPath
+                                  ? history.push('/createnewgenaisolution')
+                                  : history.push('/createnewsolution')
                               }
                             >
                               <div className={Styles.addicon}> &nbsp; </div>
@@ -641,7 +655,9 @@ export default class AllSolutions extends React.Component<
                           target="_blank"
                           className={Styles.linkStyle}
                           onClick={() =>
-                            isGenAITagOnPath ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                            isGenAITagOnPath
+                              ? history.push('/createnewgenaisolution')
+                              : history.push('/createnewsolution')
                           }
                           rel="noreferrer"
                         >
@@ -682,6 +698,16 @@ export default class AllSolutions extends React.Component<
                   // }}
                 /> */}
             </div>
+            {this.state.showSimilarSolutionsModal && (
+              <SimilarSearchListModal
+                setShowSimilarSearchListModal={(showSimilarSolutionsModal: boolean) =>
+                  this.setState({ showSimilarSolutionsModal })
+                }
+                selectedProductName={this.state.selectedSolutionNameForSimilarityCheck}
+                similarSearchList={this.state.similarSolutionsBasedOnDescription}
+                searchBasedOnInputType={"Description"}
+              />
+            )}
           </div>
         </LandingSummary>
       </React.Fragment>
@@ -862,6 +888,39 @@ export default class AllSolutions extends React.Component<
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
       });
   };
+
+  protected onShowSimilarSolutionModal = (selectedSolutionId: string, selectedSolutionName: string, selectedSolutionDescription: string, isGenAI: boolean) => {
+    ProgressIndicator.show();
+    ApiClient.getSimilarSearchResult(`${isGenAI ? 'search' : 'solutionssearch'}?input=${selectedSolutionDescription}`).then((res: any) => {
+      ProgressIndicator.hide();
+      if(res?.result?.length) {
+        const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
+        res?.result.forEach((item: any) => {
+          const solutionItem = item[0];
+          if (selectedSolutionId !== solutionItem.id) {
+            // Show only the solutions except the selected solution after getting similar solution search list
+            const score = item[1];
+            similarSolutionsBasedOnInputData.push({
+              id: solutionItem.id,
+              productName: solutionItem.productName,
+              description: solutionItem.description,
+              businessNeed: solutionItem.businessNeed,
+              score,
+            });
+          }
+        });
+
+        this.setState({showSimilarSolutionsModal: true, similarSolutionsBasedOnDescription: similarSolutionsBasedOnInputData, selectedSolutionNameForSimilarityCheck: selectedSolutionName});
+      } else {
+        Notification.show('No similar solutions found. Pleae try again later.', 'warning');
+      }
+    }).catch((error: Error) => {
+      ProgressIndicator.hide();
+      Notification.show('Error while fetching similar solutions. Please try again later.', 'alert');
+      console.error('Error while fetching similar solutions', error);
+    });
+  };
+
 
   protected getFilteredSolutions = (queryParams: IFilterParams, getPublished?: boolean) => {
     ProgressIndicator.show();

@@ -1,0 +1,54 @@
+.mainPanel {
+  padding: 72px 75px 30px 75px;
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  > .col {
+    width: 100%;
+  }
+  > .col2 {
+    width: calc(50% - 7px);
+  }
+  > .col3 {
+    width: calc(33.33% - 7px);
+  }
+}
+.dueDate {
+  color: #99a5b3;
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  display: inline-block;
+  transform: translateY(-1px);
+}
+.actionsGroup {
+  text-align: right;
+  margin-bottom: 30px;
+  .btnLess {
+    background: none;
+    border: none;
+    color: #c0c8d0;
+    height: auto;
+    margin: 0px 10px;
+    outline: none;
+    padding: 0 2px;
+  }
+}
+.fillingInstructions {
+  margin-top: -15px;
+}
+.footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  button {
+    margin-left: 20px;
+  }
+}
+.btnDisabled {
+  pointer-events: none;
+  opacity: 0.5;
+}

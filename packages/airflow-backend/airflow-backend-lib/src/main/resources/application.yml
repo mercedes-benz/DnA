@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-airflow-backend
-    version: 3.2.3
+    version: 3.2.4
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}

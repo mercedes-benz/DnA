@@ -51,5 +51,6 @@ public class CodeServerWorkspace implements Serializable{
 	private String description;
 	private Date intiatedOn;
 	private String status;
+	private String serverStatus;
 	private String workspaceUrl;
 }

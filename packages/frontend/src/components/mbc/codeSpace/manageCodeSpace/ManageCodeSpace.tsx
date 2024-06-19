@@ -48,18 +48,14 @@ export interface InewRecipeField {
   status: string;
   recipeType: string;
   repodetails: string;
-  software: [
-    {
-      name: string;
-      version: string;
-    },
-  ];
+  software: string[];
+  isPublic: boolean;
 }
 
 const ManageCodeSpace = () => {
   const classNames = cn.bind(Styles);
   const [loading, setLoading] = useState<boolean>(true);
-  const [workSpaceConfigs, setWorkSpaceConfigs] = useState<IWorkSpaceConfigs[]>([]);
+  //const [workSpaceConfigs, setWorkSpaceConfigs] = useState<IWorkSpaceConfigs[]>([]);
   const [newRecipes, setNewRecipes] = useState<InewRecipeField[]>([]);
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -68,8 +64,9 @@ const ManageCodeSpace = () => {
     parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   );
   const [sortBy, setSortBy] = useState({ name: 'requestedDate', currentSortType: 'desc', nextSortType: 'asc' });
-  const [currentTab, setCurrentTab] = useState('securityConfig');
-  const isConfigTab = currentTab === 'securityConfig' ? true : false;
+  // const [currentTab, setCurrentTab] = useState('securityConfig');
+  // const isConfigTab = currentTab === 'securityConfig' ? true : false;
+
 
   const onPaginationPreviousClick = () => {
     const currentPageNum = currentPageNumber - 1;
@@ -101,38 +98,39 @@ const ManageCodeSpace = () => {
     setCurrentPageOffset(currentPageOffsetInit);
   }, []);
   useEffect(() => {
-    if (currentTab === 'securityConfig') {
-      getRequestedSecurityConfig();
-    } else {
-      getRequestedNewCodeSpaces();
-    }
-  }, [currentPageOffset, maxItemsPerPage, currentTab]);
+    // if (currentTab === 'securityConfig') {
+    //   getRequestedSecurityConfig();
+    // } else {
+    //   getRequestedNewCodeSpaces();
+    // }
+    getRequestedNewCodeSpaces();
+  }, [currentPageOffset, maxItemsPerPage]);
 
   const showErrorNotification = (message: string) => {
     setLoading(false);
     Notification.show(message, 'alert');
   };
 
-  const getRequestedSecurityConfig = () => {
-    setLoading(true);
-    CodeSpaceApiClient.getWorkspaceConfigs()
-      .then((res: any) => {
-        setLoading(false);
-        ProgressIndicator.hide();
-        const totalNumberOfPagesInner = Math.ceil(res.totalCount / maxItemsPerPage);
-        setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-        setTotalNumberOfPages(totalNumberOfPagesInner);
-        setWorkSpaceConfigs(Array.isArray(res) ? res : (res.data as IWorkSpaceConfigs[]));
-      })
-      .catch((error: any) => {
-        setLoading(false);
-        showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
-  };
+  // const getRequestedSecurityConfig = () => {
+  //   setLoading(true);
+  //   CodeSpaceApiClient.getWorkspaceConfigs()
+  //     .then((res: any) => {
+  //       setLoading(false);
+  //       ProgressIndicator.hide();
+  //       const totalNumberOfPagesInner = Math.ceil(res.totalCount / maxItemsPerPage);
+  //       setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+  //       setTotalNumberOfPages(totalNumberOfPagesInner);
+  //       setWorkSpaceConfigs(Array.isArray(res) ? res : (res.data as IWorkSpaceConfigs[]));
+  //     })
+  //     .catch((error: any) => {
+  //       setLoading(false);
+  //       showErrorNotification(error.message ? error.message : 'Some Error Occured');
+  //     });
+  // };
 
   const getRequestedNewCodeSpaces = () => {
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipesStatus()
+    CodeSpaceApiClient.getCodeSpaceRecipeRequests()
       .then((res: any) => {
         setLoading(false);
         ProgressIndicator.hide();
@@ -148,11 +146,12 @@ const ManageCodeSpace = () => {
   };
 
   const handleDataChange = () => {
-    if (isConfigTab) {
-      getRequestedSecurityConfig();
-    } else {
-      getRequestedNewCodeSpaces();
-    }
+    // if (isConfigTab) {
+    //   getRequestedSecurityConfig();
+    // } else {
+    //   getRequestedNewCodeSpaces();
+    // }
+    getRequestedNewCodeSpaces();
   };
 
   const sortByColumn = (propName: string, sortOrder: string) => {
@@ -173,49 +172,49 @@ const ManageCodeSpace = () => {
       const timeParts = parts[1].split(':');
       return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
     };
-    if (isConfigTab) {
-      let data = workSpaceConfigs;
-      if (propName === 'projectName') {
-        data = data.sort((a, b) => {
-          if (sortOrder === 'asc') {
-            return a.projectName.toLowerCase().localeCompare(b.projectName.toLowerCase());
-          } else {
-            return b.projectName.toLowerCase().localeCompare(a.projectName.toLowerCase());
-          }
-        });
-      } else if (propName === 'projectOwner') {
-        data = data.sort((a, b) => {
-          if (sortOrder === 'asc') {
-            return a.projectOwner.firstName.toLowerCase().localeCompare(b.projectOwner.firstName.toLowerCase());
-          } else {
-            return b.projectOwner.firstName.toLowerCase().localeCompare(a.projectOwner.firstName.toLowerCase());
-          }
-        });
-      } else if (propName === 'projectStatus') {
-        data = data.sort((a, b) => {
-          if (sortOrder === 'asc') {
-            return a.securityConfig.status.toLowerCase().localeCompare(b.securityConfig.status.toLowerCase());
-          } else {
-            return b.securityConfig.status.toLowerCase().localeCompare(a.securityConfig.status.toLowerCase());
-          }
-        });
-      } else if (propName === 'requestedDate') {
-        data = data.sort((a, b) => {
-          const dateA = convertToDateObj(
-            regionalDateAndTimeConversionSolution(a.securityConfig.requestedDate),
-          ).getTime();
-          const dateB = convertToDateObj(
-            regionalDateAndTimeConversionSolution(b.securityConfig.requestedDate),
-          ).getTime();
-          if (sortOrder === 'asc') {
-            return dateA - dateB;
-          } else {
-            return dateB - dateA;
-          }
-        });
-        setWorkSpaceConfigs(data);
-      }
-    } else {
+    // if (isConfigTab) {
+    //   let data = workSpaceConfigs;
+    //   if (propName === 'projectName') {
+    //     data = data.sort((a, b) => {
+    //       if (sortOrder === 'asc') {
+    //         return a.projectName.toLowerCase().localeCompare(b.projectName.toLowerCase());
+    //       } else {
+    //         return b.projectName.toLowerCase().localeCompare(a.projectName.toLowerCase());
+    //       }
+    //     });
+    //   } else if (propName === 'projectOwner') {
+    //     data = data.sort((a, b) => {
+    //       if (sortOrder === 'asc') {
+    //         return a.projectOwner.firstName.toLowerCase().localeCompare(b.projectOwner.firstName.toLowerCase());
+    //       } else {
+    //         return b.projectOwner.firstName.toLowerCase().localeCompare(a.projectOwner.firstName.toLowerCase());
+    //       }
+    //     });
+    //   } else if (propName === 'projectStatus') {
+    //     data = data.sort((a, b) => {
+    //       if (sortOrder === 'asc') {
+    //         return a.securityConfig.status.toLowerCase().localeCompare(b.securityConfig.status.toLowerCase());
+    //       } else {
+    //         return b.securityConfig.status.toLowerCase().localeCompare(a.securityConfig.status.toLowerCase());
+    //       }
+    //     });
+    //   } else if (propName === 'requestedDate') {
+    //     data = data.sort((a, b) => {
+    //       const dateA = convertToDateObj(
+    //         regionalDateAndTimeConversionSolution(a.securityConfig.requestedDate),
+    //       ).getTime();
+    //       const dateB = convertToDateObj(
+    //         regionalDateAndTimeConversionSolution(b.securityConfig.requestedDate),
+    //       ).getTime();
+    //       if (sortOrder === 'asc') {
+    //         return dateA - dateB;
+    //       } else {
+    //         return dateB - dateA;
+    //       }
+    //     });
+    //     setWorkSpaceConfigs(data);
+    //   }
+    // } else {
       let data = newRecipes;
       if (propName === 'recipeName') {
         data = data.sort((a, b) => {
@@ -254,37 +253,25 @@ const ManageCodeSpace = () => {
         });
       }
       setNewRecipes(data);
-    }
+    // }
 
     setSortBy(newSortField);
   };
 
-  const configData = workSpaceConfigs?.map((config) => {
-    return (
-      <CodeSpaceList
-        key={config.id}
-        id={config.id}
-        projectName={config.projectName}
-        projectOwner={config.projectOwner}
-        projectStatus={config.securityConfig.status}
-        requestedDate={config.securityConfig?.requestedDate}
-        onDataChanged={handleDataChange}
-        isConfigList={isConfigTab}
-      />
-    );
-  });
-
+ 
   const recipeData = newRecipes?.map((recipe) => {
     return (
       <CodeSpaceList
         key={recipe.recipeName}
         id={recipe.recipeName}
         projectName={recipe.recipeName}
-        projectOwner={recipe.createdBy}
-        requestedDate={recipe.createdOn}
-        projectStatus={recipe.status}
+        maxRam={recipe.maxRam}
+        maxCpu={recipe.maxCpu}
+        diskSpace={recipe.diskSpace}
         onDataChanged={handleDataChange}
-        isConfigList={isConfigTab}
+        software={recipe.software}
+        isConfigList={false}
+        isPublic={recipe.isPublic}
       />
     );
   });
@@ -292,9 +279,9 @@ const ManageCodeSpace = () => {
   return (
     <div className={Styles.mainPanel}>
       <div className={Styles.wrapper}>
-        <Caption title="Code Space Administration" />
-        <div id="manage-codeSpace-tabs" className="tabs-panel">
-          <div className="tabs-wrapper">
+        <Caption title="Recipe Management" />
+          {/* <div id="manage-codeSpace-tabs" className="tabs-panel"> */}
+          {/* <div className="tabs-wrapper">
             <nav>
               <React.Fragment>
                 <ul className="tabs">
@@ -311,9 +298,9 @@ const ManageCodeSpace = () => {
                 </ul>
               </React.Fragment>
             </nav>
-          </div>
+          </div> */}
           <div className="tabs-content-wrapper">
-            <div id="tab-content-1" className="tab-content">
+            {/* <div id="tab-content-1" className="tab-content">
               {currentTab === 'securityConfig' ? (
                 <div className={Styles.content}>
                   {loading ? (
@@ -394,9 +381,9 @@ const ManageCodeSpace = () => {
               ) : (
                 ''
               )}
-            </div>
+            </div> */}
             <div id="tab-content-2" className="tab-content">
-              {currentTab === 'newRecipe' ? (
+              {/* {currentTab === 'newRecipe' ? ( */}
                 <div className={Styles.content}>
                   {loading ? (
                     <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
@@ -408,7 +395,7 @@ const ManageCodeSpace = () => {
                         <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
                           <thead>
                             <tr className={classNames('header-row', Styles.codeSpaceRow)}>
-                              <th onClick={() => sortByColumn('recipeName', sortBy.nextSortType)}>
+                              <th className={Styles.softwareColumn} onClick={() => sortByColumn('', sortBy.nextSortType)}>
                                 <label
                                   className={
                                     'sortable-column-header ' +
@@ -419,40 +406,25 @@ const ManageCodeSpace = () => {
                                   Recipe Name
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('createdBy', sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (sortBy.name === 'createdBy' ? sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Created By
+                              <th>
+                                <label>
+                                  Hardware Configuration
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('projectStatus', sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (sortBy.name === 'projectStatus' ? sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Status
+                              <th className={Styles.softwareColumn} >
+                                <label>
+                      
+                                  Software Configuration
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('createdOn', sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (sortBy.name === 'createdOn' ? sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className={'icon sort'} />
-                                  Requested Date
+                              <th className={Styles.ciColumn}>
+                                <label>                            
+                                  CI/CD Management
                                 </label>
                               </th>
-                              <th className="actionColumn">Action</th>
+                              <th className={Styles.actionColumn}>
+                                <label>Action</label>
+                              </th>
                             </tr>
                           </thead>
                           <tbody>{recipeData}</tbody>
@@ -473,12 +445,12 @@ const ManageCodeSpace = () => {
                     </div>
                   )}
                 </div>
-              ) : (
+              {/* ) : (
                 ''
-              )}
+              )} */}
             </div>
           </div>
-        </div>
+        {/* </div> */}
       </div>
     </div>
   );

@@ -39,7 +39,7 @@ const Workspaces = (props) => {
   const deleteWorkspaceAccept = () => {
     ProgressIndicator.show();
     fabricApi
-      .deleteWorkspace(selectedItem.id)
+      .deleteFabricWorkspace(selectedItem.id)
       .then(() => {
         props.callWorkspaces();
         Notification.show(`Fabric Workspace ${selectedItem.name} deleted successfully.`);
@@ -99,7 +99,7 @@ const Workspaces = (props) => {
                     </div> */}
                     <div>
                       <div>Classification</div>
-                      <div>{workspace.classificationType || 'N/A'}</div>
+                      <div>{workspace.dataClassification || 'N/A'}</div>
                     </div>
                   </div>
                 </div>
@@ -205,7 +205,7 @@ const Workspaces = (props) => {
                                   <button
                                     className={classNames('btn btn-primary', Styles.projectLink)}
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEditWorkspace(true); }}
+                                    onClick={(e) => { e.stopPropagation(); setSelectedItem(workspace); setEditWorkspace(true); }}
                                   >
                                     {/* <i className="icon mbc-icon edit"></i> */}
                                     <span>Edit</span>
@@ -248,20 +248,15 @@ const Workspaces = (props) => {
       { editWorkspace &&
         <Modal
           title={'Edit Fabric Workspace'}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'60%'}
+          modalWidth={'800px'}
           buttonAlignment="right"
           show={editWorkspace}
           content={<FabricWorkspaceForm edit={true} workspace={selectedItem} onSave={() => {setEditWorkspace(false); props.callWorkspaces(); }} />}
           scrollableContent={true}
           onCancel={() => setEditWorkspace(false)}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
         />
       }
     </>

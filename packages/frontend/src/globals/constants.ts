@@ -29,6 +29,7 @@ export enum SESSION_STORAGE_KEYS {
   USER_ID = 'user_id',
   REDIRECT_URL = 'redirect_url',
   PORTFOLIO_FILTER_VALUES = 'portfolioFilterValues',
+  DATAPRODUCT_FILTER_VALUE = 'dataproductFilterValues',
   REPORT_FILTER_VALUES = 'reportFilterValues',
   PAGINATION_MAX_ITEMS_PER_PAGE = 'paginationMaxItemsPerPage',
   APPREDIRECT_URL = 'appredirect_url',

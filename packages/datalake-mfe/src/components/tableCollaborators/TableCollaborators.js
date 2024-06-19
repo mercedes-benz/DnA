@@ -6,7 +6,7 @@ import TeamSearch from 'dna-container/TeamSearch';
 import { setTables } from '../../redux/graphSlice';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
-const TableCollaborators = ({ table, onSave, user }) => {
+const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLevelCollab}) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
@@ -15,7 +15,7 @@ const TableCollaborators = ({ table, onSave, user }) => {
   const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
-  const [collabs, setCollabs] = useState(table?.collabs?.length > 0 ? [...table.collabs] : []);
+  const [collabs, setCollabs] = useState(table?.length > 0 ? table : []);
 
   const addMemberFromTeamSearch = (member) => {
     const isMemberExists = collabs.filter(item => item.id === member.shortId);
@@ -40,6 +40,13 @@ const TableCollaborators = ({ table, onSave, user }) => {
     console.log('reset user already exists');
   }
 
+  useEffect(()=>{
+    if(isProjectLevelCollab){
+      onProjCollabAdd(collabs);
+    }
+  },[collabs])
+
+  
   const onPermissionChange = (collab) => {
     const collabItem = collabs.map((item) => {
       if (item.collaborator.id === collab.collaborator.id) {
@@ -52,6 +59,9 @@ const TableCollaborators = ({ table, onSave, user }) => {
     });
 
     setCollabs(collabItem);
+    if(isProjectLevelCollab){
+      onProjCollabAdd(collabItem);
+    }
   };
 
   const onCollabaratorDelete = (id) => {
@@ -122,7 +132,7 @@ const TableCollaborators = ({ table, onSave, user }) => {
                                   checked={true}
                                 />
                               </span>
-                              <span className="label">Read</span>
+                              <label className={Styles.checkBoxlabel}>Read</label>
                             </label>
                           </div>
                           &nbsp;&nbsp;&nbsp;
@@ -131,7 +141,7 @@ const TableCollaborators = ({ table, onSave, user }) => {
                               'input-field-group include-error ' + Styles.inputGrp,
                             )}
                           >
-                            <label className={'checkbox ' + Styles.writeAccess}>
+                            <label className= {classNames('checkbox ' , Styles.writeAccess , item.collaborator.id === user.id ? Styles.checkBoxDisable : '')}>
                               <span className="wrapper">
                                 <input
                                   type="checkbox"
@@ -144,13 +154,13 @@ const TableCollaborators = ({ table, onSave, user }) => {
                                   onChange={() => onPermissionChange(item)}
                                 />
                               </span>
-                              <span className="label">Write</span>
+                              <label className={Styles.checkBoxlabel}>Write</label>
                             </label>
                           </div>
                         </div>
                         <div className={Styles.collUserTitleCol}>
                           <div
-                            className={Styles.deleteEntry}
+                            className= {classNames(Styles.deleteEntry , item.collaborator.id === user.id ? Styles.disableDelete : '' )}
                             onClick={() => onCollabaratorDelete(item.collaborator.id)}
                           >
                             <i className="icon mbc-icon trash-outline" />
@@ -162,7 +172,7 @@ const TableCollaborators = ({ table, onSave, user }) => {
                   },
                 )}
               </div>
-              <div className={Styles.btnRight}>
+              <div className={classNames(Styles.btnRight , isProjectLevelCollab ? 'hidden' : '') }>
                 <button className={'btn btn-tertiary'} onClick={onSave}>Ok</button>
               </div>
             </React.Fragment>

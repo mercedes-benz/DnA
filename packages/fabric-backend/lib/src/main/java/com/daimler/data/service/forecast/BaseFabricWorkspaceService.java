@@ -6,10 +6,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
@@ -19,7 +20,9 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
+import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
@@ -43,31 +46,97 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Autowired
 	private FabricWorkspaceAssembler assembler;
 	
-	@Autowired
-	private RestTemplate restTemplate;
+	@Value("${fabricWorkspaces.capacityId}")
+	private String capacityId;
+	
+	@Value("${fabricWorkspaces.capacityName}")
+	private String capacityName;
+	
+	@Value("${fabricWorkspaces.capacitySku}")
+	private String capacitySku;
+	
+	@Value("${fabricWorkspaces.capacityRegion}")
+	private String capacityRegion;
+	
+	@Value("${fabricWorkspaces.capacityState}")
+	private String capacityState;
 	
 	public BaseFabricWorkspaceService() {
 		super();
 	}
 
 	@Override
-	@Transactional(isolation = Isolation.SERIALIZABLE)
+	@Transactional
 	public List<FabricWorkspaceVO> getAll( int limit,  int offset, String user) {
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
 		List<FabricWorkspaceNsql> entities = customRepo.getAll(user, offset, limit);
-		if (entities != null && !entities.isEmpty())
-			return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
-		else
-			return new ArrayList<>();
+		if (entities != null && !entities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : entities) {
+				try {
+					String id = entity.getId();
+					log.info("Fetched fabric project record from db successfully for id {} ", id);
+					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+					if(dtoFromFabric!=null) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+								jpaRepo.deleteById(id);
+								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+						}else {
+							entity.getData().setName(dtoFromFabric.getDisplayName());
+							entity.getData().setDescription(dtoFromFabric.getDescription());
+							jpaRepo.save(entity);
+							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+							vos.add(updatedVO);
+						}
+					}
+				}catch(Exception e) {
+					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+		return vos;
 	}
 
 	@Override
-	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Long getCount(String user) {
 		return customRepo.getTotalCount(user);
 	}
 	
 	@Override
-	public FabricWorkspaceResponseVO createWorkspace(FabricWorkspaceVO vo) {
+	@Transactional
+	public FabricWorkspaceVO getById(String id) {
+		FabricWorkspaceVO voFromDb =  super.getById(id);
+		log.info("Fetched fabric project record from db successfully for id {} ", id);
+		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+		if(dtoFromFabric!=null) {
+			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+				try{
+					jpaRepo.deleteById(id);
+					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+				}catch(Exception e) {
+					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
+				}
+				return null;
+			}
+			voFromDb.setName(dtoFromFabric.getDisplayName());
+			voFromDb.setDescription(dtoFromFabric.getDescription());
+			try {
+				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
+				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
+				jpaRepo.save(updatedEntity);
+			}catch(Exception e) {
+				log.error("Failed to update latest displayName and description from Fabric to Database for project id {} . Will be updated in next fetch", id);
+			}
+		}
+		return voFromDb;
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<FabricWorkspaceResponseVO> createWorkspace(FabricWorkspaceVO vo) {
 		FabricWorkspaceResponseVO responseData = new FabricWorkspaceResponseVO();
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -80,14 +149,18 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			if(createResponse!=null ) {
 				if(createResponse.getErrorCode() != null ) {
 					MessageDescription message = new MessageDescription();
-					message.setMessage("Failed to create workspace. Error is : " + createResponse.getErrorCode());
+					message.setMessage("Failed to create workspace. Error is : " + createResponse.getMessage());
 					errors.add(message);
 					responseMessage.setErrors(errors);
 					responseMessage.setSuccess("FAILED");
 					responseData.setData(vo);
 					responseData.setResponses(responseMessage);
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
-					return responseData;
+					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
+						return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
+					}else {
+						return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
 				}
 				if(createResponse.getId()!=null) {
 					log.info("created fabric workspace project {} successfully with id {}", vo.getName(), createResponse.getId());
@@ -95,30 +168,41 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(addUserResponse == null || !"SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess())) {
 						log.error("Failed to add user {} to workspace {}", vo.getCreatedBy().getEmail(), createResponse.getId());
 						MessageDescription message = new MessageDescription();
-						message.setMessage("Failed to add user to created workspace " + vo.getName() + " with id" + createResponse.getId() + ". Please retry or contact Admin.");
+						message.setMessage("Failed to add user to created workspace " + vo.getName() + " with id" + createResponse.getId() + ". Please contact Admin.");
 						errors.add(message);
 						responseMessage.setErrors(errors);
 						responseMessage.setSuccess("FAILED");
 						responseData.setData(vo);
 						responseData.setResponses(responseMessage);
-						return responseData;
+						return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 					}else {
 						log.info("Successfully added  user {} to workspace {} ", vo.getCreatedBy().getEmail(), createResponse.getId());
 					}
 					FabricWorkspaceVO data = new FabricWorkspaceVO();
 					BeanUtils.copyProperties(vo, data);
 					data.setId(createResponse.getId());
+					data.setHasPii(vo.isHasPii());
+					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId());
 					CapacityVO capacityVO = new CapacityVO();
-					capacityVO.setId(createResponse.getCapacityId());
+					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+						capacityVO = null;
+						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
+					}else {
+						capacityVO.setId(capacityId);
+						capacityVO.setName(capacityName);
+						capacityVO.setRegion(capacityRegion);
+						capacityVO.setSku(capacitySku);
+						capacityVO.setState(capacityState);
+					}
 					data.setCapacity(capacityVO);
 					FabricWorkspaceVO savedRecord = super.create(data);
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
 					responseData.setData(savedRecord);
 					responseMessage.setSuccess("SUCCESS");
-					responseMessage.setErrors(new ArrayList<>());
-					responseMessage.setWarnings(new ArrayList<>());
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
 					responseData.setResponses(responseMessage);
-					return responseData;
+					return new ResponseEntity<>(responseData, HttpStatus.CREATED);
 				}
 				
 			}
@@ -133,7 +217,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			responseData.setData(vo);
 			responseData.setResponses(failedResponse);
 			log.error("Exception occurred:{} while creating fabric workspace project {} ", e.getMessage(), vo.getName());
-			return responseData;
+			return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		GenericMessage failedResponse = new GenericMessage();
 		List<MessageDescription> messages = new ArrayList<>();
@@ -145,14 +229,57 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		responseData.setData(vo);
 		responseData.setResponses(failedResponse);
 		log.error("Empty response for create workspace from fabric. Failed while creating fabric workspace project {} ", vo.getName());
-		return responseData;
+		return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 		
 	}
 
 	@Override
-	public boolean deleteById(String id) {
-		// TODO Auto-generated method stub
-		return super.deleteById(id);
+	@Transactional
+	public GenericMessage delete(String id) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteWorkspace(id);
+			if(deleteResponse!=null && deleteResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(deleteResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
+					return responseMessage;
+			}
+			super.deleteById(id);
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to delete workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
+			return responseMessage;
+		}
+	}
+
+	@Override
+	@Transactional
+	public FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace) {
+		WorkspaceUpdateDto updateRequest = new WorkspaceUpdateDto();
+		try {
+			updateRequest.setDescription(existingFabricWorkspace.getDescription());
+			updateRequest.setDisplayName(existingFabricWorkspace.getName());
+			WorkspaceDetailDto updateResponse = fabricWorkspaceClient.updateWorkspace(existingFabricWorkspace.getId(), updateRequest);
+		}catch(Exception e) {
+			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
+		}
+		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
+		jpaRepo.save(updatedEntity);
+		return existingFabricWorkspace;
 	}
 
 }

@@ -1,0 +1,10 @@
+.univerContainer {
+  width: 100%;
+  height: 700px;
+  overflow: hidden;
+}
+
+/* Also hide the menubar */
+:global(.univer-menubar) {
+  display: none;
+}

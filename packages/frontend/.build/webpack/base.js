@@ -186,6 +186,7 @@ const base = {
         './MarkdownParser': './src/utils/MarkdownParser.tsx',
         './RefreshToken': './src/utils/RefreshToken.tsx',
         './FullScreenModeIcon': './src/components/icons/fullScreenMode/FullScreenModeIcon.tsx',
+        './FilterWrapper':'./src/components/mbc/filters/FilterWrapper.tsx',
       },
       remotes: {
         // object key is used to import
@@ -196,6 +197,8 @@ const base = {
         'matomo-mfe': `matomo_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.MATOMO_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'datalake-mfe': `datalake_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATALAKE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'fabric-mfe': `fabric_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.FABRIC_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'data-entry-mfe': `data_entry_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_ENTRY_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'power-platform-mfe': `power_platform_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.POWER_PLATFORM_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,

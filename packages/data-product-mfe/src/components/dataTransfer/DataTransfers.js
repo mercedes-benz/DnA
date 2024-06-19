@@ -7,17 +7,26 @@ import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
-import { setDataTransferList, setPagination } from './redux/dataTransferSlice';
+// import { setDataTransferList, setPagination } from './redux/dataTransferSlice';
 import { GetDataTransfers } from './redux/dataTransfer.services';
 import DataProductCardItem from './Layout/CardView/DataTransferCardItem';
 import DataProductListItem from './Layout/ListView/DataTransferListItem';
+import DataTransferFilter from './DataTransferFilter';
 
 const DataProducts = ({ user, history, hostHistory }) => {
   const dispatch = useDispatch();
   const {
-    dataTransfers,
-    pagination: { dataProductListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
+    // dataTransfers,
+    firstDataLoaded,
+    // pagination: { dataProductListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
+    pagination: { dataProductListResponse },
   } = useSelector((state) => state.provideDataTransfers);
+
+  const [totalNumberOfRecords, setTotalNumberOfRecords] = useState(0);
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+  const [paginatedRecords, setPaginatedRecords] = useState([]);
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
@@ -26,45 +35,97 @@ const DataProducts = ({ user, history, hostHistory }) => {
       JSON.parse(SESSION_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
     ) || false
   );
+  const [openCloseFilter, setOpenCloseFilter] = useState(false);
+  const [dataTransferFilterApplied, setdataTransferFilterApplied] = useState(false);
+  const [filteredDataTransfer, setfilteredDataTransfer] = useState([]);
+  const [queryParams, setQueryParams] = useState({
+    division: [],
+    subDivision: [],
+    departments: [],
+    dataStewards: [],
+    informationOwners: [],
+  });
+  // const [departments, setDepartments] = useState([]);
+  // const [divisions, setDivisions] = useState([]);
+  // const [subdivisions, setSubDivisions] = useState([]);
+  // const [dataStewards, setDataStewards] = useState([]);
+  // const [informationOwners, setInformationOwners] = useState([]);
+
+
+  // const getFilterDropdownValues = ({
+
+  //   divisions,
+  //   subDivisions,
+  //   departments,
+  //   informationOwners,
+  //   dataStewards
+  // }) => {
+  //   setDepartments(departments || []);
+  //   setDivisions(divisions || []);
+  //   setSubDivisions(subDivisions || []);
+  //   setDataStewards(dataStewards || []);
+  //   setInformationOwners(informationOwners || []);
+  // };
 
   useEffect(() => {
     dispatch(GetDataTransfers(isProviderCreatorFilter));
   }, [dispatch, isProviderCreatorFilter]);
 
-  useEffect(() => { 
+  useEffect(() => {
     if (sessionStorage.getItem('listViewModeEnable') == null) {
       setCardViewModeFn()
     } else {
       setListViewModeFn()
     }
-  },[]);
+
+  }, []);
+
+  useEffect(() => {
+    const tempList = filteredDataTransfer.length > 0 ? filteredDataTransfer : [];
+    const tillRecord = 0 + maxItemsPerPage;
+    const records = tempList.slice(0, tillRecord);
+    setTotalNumberOfRecords(tempList.length);
+    setTotalNumberOfPages(Math.ceil(tempList.length / maxItemsPerPage));
+    setPaginatedRecords(records);
+    setCurrentPageNumber(1);
+
+  }, [filteredDataTransfer]);
+
+  useEffect(() => {
+    filterDataTransfer();
+  }, [queryParams]);
+
+  useEffect(() => {
+    setfilteredDataTransfer(dataProductListResponse);
+  }, [dataProductListResponse])
+
+  const filterDataTransfer = () => {
+    const filteredData = dataProductListResponse?.filter(inFilter);
+    setfilteredDataTransfer(filteredData);
+  };
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
-    const modifiedData = dataProductListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setDataTransferList(modifiedData));
-    dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
+    const modifiedData = filteredDataTransfer.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
+    setCurrentPageNumber(currentPageNumberTemp);
+    setPaginatedRecords(modifiedData);
   };
   const onPaginationNextClick = () => {
     let currentPageNumberTemp = currentPageNumber;
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
-    currentPageNumberTemp = currentPageNumber + 1;
-    const modifiedData = dataProductListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setDataTransferList(modifiedData));
-    dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
+    currentPageNumberTemp = currentPageNumberTemp + 1;
+    const modifiedData = filteredDataTransfer.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
+    setCurrentPageNumber(currentPageNumberTemp);
+    setPaginatedRecords(modifiedData);
   };
   const onViewByPageNum = (pageNum) => {
-    const totalNumberOfPages = Math.ceil(dataProductListResponse?.length / pageNum);
-    const modifiedData = dataProductListResponse.slice(0, pageNum);
-    dispatch(setDataTransferList(modifiedData));
-    dispatch(
-      setPagination({
-        totalNumberOfPages,
-        maxItemsPerPage: pageNum,
-        currentPageNumber: 1,
-      }),
-    );
+    const totalNumberOfPages = Math.ceil(filteredDataTransfer?.length / pageNum);
+    const modifiedData = filteredDataTransfer.slice(0, pageNum);
+    setPaginatedRecords(modifiedData);
+    setTotalNumberOfPages(totalNumberOfPages);
+    setMaxItemsPerPage(pageNum);
+    setCurrentPageNumber(1);
   };
 
   const setCardViewModeFn = () => {
@@ -76,15 +137,34 @@ const DataProducts = ({ user, history, hostHistory }) => {
   const setListViewModeFn = () => {
     setCardViewMode(false);
     setListViewMode(true);
-    sessionStorage.setItem('listViewModeEnable',true)
+    sessionStorage.setItem('listViewModeEnable', true)
   };
 
-  const onDataFilterChange =() =>{
+  const onDataFilterChange = () => {
     sessionStorage.setItem(
       SESSION_STORAGE_KEYS.MY_DATATRANSFER_FILTER,
       JSON.stringify(!isProviderCreatorFilter)
     );
     setIsProviderCreatorFilter(!isProviderCreatorFilter);
+  }
+
+  const inFilter = (transferData) => {
+    const transferInfo = transferData.providerInformation.contactInformation;
+    let depValue = true;
+    let divValue = true;
+    let subDivValue = true;
+    let stewardValue = true;
+    let infoOwnerValue = true;
+    queryParams?.departments?.length === 0 ? depValue = true : queryParams?.departments.includes(transferInfo?.department) ? depValue = true : depValue = false;
+    queryParams?.division?.length === 0 ? divValue = true : queryParams?.division.includes(transferInfo?.division?.id) ? divValue = true : divValue = false;
+    let list = [];
+    queryParams?.subDivision?.map((item) => { list.push(item.split('@-@')[0]) });
+    queryParams?.subDivision?.length === 0 || queryParams?.division?.length === 0 ? subDivValue = true : transferInfo?.division?.subDivision?.id ? queryParams?.subDivision?.includes(transferInfo?.division?.subDivision?.id + '@-@' + transferInfo?.division?.id) ? subDivValue = true : subDivValue = false : list.includes('EMPTY') ? subDivValue = true : subDivValue = false;
+    queryParams?.dataStewards?.length === 0 ? stewardValue = true : queryParams?.dataStewards?.includes(transferInfo?.name?.shortId) ? stewardValue = true : stewardValue = false;
+    queryParams?.informationOwners?.length === 0 ? infoOwnerValue = true : queryParams?.informationOwners?.includes(transferInfo?.informationOwner?.shortId) ? infoOwnerValue = true : infoOwnerValue = false;
+
+    return depValue && divValue && subDivValue && stewardValue && infoOwnerValue;
+
   }
 
   return (
@@ -122,18 +202,35 @@ const DataProducts = ({ user, history, hostHistory }) => {
                   <i className="icon mbc-icon listview big" />
                 </span>
               </div>
+              <span className={Styles.dividerLine}> &nbsp; </span>
+              <div tooltip-data="Filters">
+                <span
+                  className={openCloseFilter ? Styles.activeFilters : ''}
+                  onClick={() => { setOpenCloseFilter(!openCloseFilter) }}
+                >
+                  {dataTransferFilterApplied && (<i className="active-status" />)}
+                  <i className="icon mbc-icon filter big" />
+                </span>
+              </div>
             </div>
           </div>
+          {firstDataLoaded && (<DataTransferFilter
+            dataTransferDataLoaded={firstDataLoaded}
+            setdataTransferFilterApplied={(value) => setdataTransferFilterApplied(value)}
+            getFilterQueryParams={(queryParams) => setQueryParams(queryParams)}
+            // getDropdownValues={getFilterDropdownValues}
+            openFilters={openCloseFilter}
+          />)}
           <div>
-            <button className={classNames(Styles.tagItem, 
-            isProviderCreatorFilter ? Styles.selectedItem : '')} 
-            onClick={() => {onDataFilterChange()}}>
-            My Data Transfers</button>
+            <button className={classNames(Styles.tagItem,
+              isProviderCreatorFilter ? Styles.selectedItem : '')}
+              onClick={() => { onDataFilterChange() }}>
+              My Data Transfers</button>
           </div>
           <p className={'text-center'}>Click on <i className="icon mbc-icon copy-new"></i> to Create Copy</p>
           <div>
             <div>
-              {dataTransfers?.length === 0 ? (
+              {dataProductListResponse?.length === 0 ? (
                 <div className={classNames(Styles.content)}>
                   <div className={Styles.listContent}>
                     <div className={Styles.emptyProducts}>
@@ -162,7 +259,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                             <div className={Styles.addicon}> &nbsp; </div>
                             <label className={Styles.addlabel}>Provide new data transfer</label>
                           </div>
-                          {dataTransfers?.map((product, index) => {
+                          {paginatedRecords?.map((product, index) => {
                             return <DataProductCardItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter} />;
                           })}
                         </>
@@ -172,7 +269,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                       {listViewMode ? (
                         <>
                           <div
-                            className={classNames('ul-table dataproducts', dataTransfers?.length === 0 ? 'hide' : '')}
+                            className={classNames('ul-table dataproducts', dataProductListResponse?.length === 0 ? 'hide' : '')}
                           >
                             <div
                               className={classNames('data-row', Styles.listViewContainer)}
@@ -181,15 +278,16 @@ const DataProducts = ({ user, history, hostHistory }) => {
                               <span className={Styles.addicon}> &nbsp; </span>
                               <label className={Styles.addlabel}>Provide new data transfer</label>
                             </div>
-                            {dataTransfers?.map((product, index) => {
-                              return <DataProductListItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter}/>;
+
+                            {paginatedRecords?.map((product, index) => {
+                              return <DataProductListItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter} />;
                             })}
                           </div>
                         </>
                       ) : null}
                     </div>
                   </div>
-                  {dataTransfers?.length ? (
+                  {totalNumberOfRecords ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
                       pageNumber={currentPageNumber}

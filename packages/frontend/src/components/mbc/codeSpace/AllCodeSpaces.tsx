@@ -153,6 +153,42 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     setShowDeployCodeSpaceModal(true);
   };
 
+  const onStartStopCodeSpace = (codeSpace: ICodeSpaceData, startSuccessCB: () => void) => {
+    Tooltip.clear();
+    const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
+    setLoading(true);
+    CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
+      .then((res: any) => {
+        setLoading(false);
+        if (res.success === 'SUCCESS') {
+          Notification.show(
+            'Your Codespace for project ' +
+              codeSpace.projectDetails?.projectName +
+              ' is requested to ' +
+              (serverStarted ? 'stop' : 'start') +
+              '.',
+          );
+
+          startSuccessCB();
+
+        } else {
+          Notification.show(
+            'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err: Error) => {
+        setLoading(false);
+        Notification.show(
+          'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
+          'alert',
+        );
+      }).finally(() => {
+        Tooltip.defaultSetup();
+      });
+  };
+
   const switchBackToCodeSpace = () => {
     setOnEditCodeSpace(undefined);
     setOnBoardCodeSpace(undefined);
@@ -166,10 +202,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const navigateSecurityConfig = () => {
     const projectDetails = onDeployCodeSpace?.projectDetails;
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?pub=true&name=${projectDetails.projectName}`, '_blank');
+      window.open(`${window.location.pathname}#/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?name=${projectDetails.projectName}`, '_blank');
       return;
     }
-    window.open(`${window.location.pathname}#/codespace/securityconfig/${onDeployCodeSpace.id}?pub=false&name=${projectDetails.projectName}`, '_blank');
+    window.open(`${window.location.pathname}#/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}`, '_blank');
   }
 
   return (
@@ -217,7 +253,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   onClick={onShowSecurityConfigRequest}
                 >
                   <IconGear size={'14'} />
-                  <span>&nbsp;Manage Code Spaces</span>
+                  <span>&nbsp;Manage Recipes</span>
                 </button>
               </>
             ) : null}
@@ -266,6 +302,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                             onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                             onCodeSpaceEdit={onCodeSpaceEdit}
                             onShowDeployModal={onCodeSpaceDeploy}
+                            onStartStopCodeSpace={onStartStopCodeSpace}
                           />
                         );
                       })}
@@ -319,11 +356,16 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       )}
       {showDeployCodeSpaceModal && (
         <DeployModal
+          userInfo={props.user}
           codeSpaceData={onDeployCodeSpace}
-          enableSecureWithIAM={onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-          onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi'}
-          setShowCodeDeployModal={(isVisible: boolean)=> setShowDeployCodeSpaceModal(isVisible)}
-          setCodeDeploying={(isDeploying: boolean)=> getCodeSpacesData()}
+          enableSecureWithIAM={
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+            onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+          }
+          setShowCodeDeployModal={(isVisible: boolean) => setShowDeployCodeSpaceModal(isVisible)}
+          setCodeDeploying={(isDeploying: boolean) => getCodeSpacesData()}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
           navigateSecurityConfig={navigateSecurityConfig}
         />

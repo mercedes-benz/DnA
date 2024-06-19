@@ -28,6 +28,7 @@
 
 package com.daimler.data.dna.trino.config;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -50,6 +51,7 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.dto.TrinoQueryResponse;
 import com.daimler.data.dto.TrinoResponse;
 import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
+import com.mb.dna.datalakehouse.dto.DatalakeTableVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -160,9 +162,11 @@ public class TrinoClient {
 				while(results.next()) {
 					String tempColumnName = results.getString("Column");
 					String tempColumnType = results.getString("Type");
+					String tempColumnComment = results.getString("Comment");
 					DataLakeTableColumnDetailsVO tempColumn = new DataLakeTableColumnDetailsVO();
 					tempColumn.setColumnName(tempColumnName);
 					tempColumn.setDataType(tempColumnType);
+					tempColumn.setComment(tempColumnComment);
 					columns.add(tempColumn);
 				}
 			}
@@ -257,7 +261,6 @@ public class TrinoClient {
 					schemas.add(tempSchemaName);
 				}
 			}
-			System.out.println(schemas.toString());
 		    connection.close();
 		}catch(Exception e) {
 			log.error("Failed while executing statement {} using trino jdbc with exception {}",sql, e.getMessage());

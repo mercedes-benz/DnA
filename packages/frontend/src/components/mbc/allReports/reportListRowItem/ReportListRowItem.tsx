@@ -19,6 +19,7 @@ export interface IReportListRowItemProps {
   onEdit: (reportId: string) => void;
   onDelete: (reportId: string) => void;
   updateBookmark?: (reportId: string, isRemove: boolean) => void;
+  onShowSimilarReportModal: () => void;
 }
 
 export interface IReportListRowItemState {
@@ -140,10 +141,10 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
         >
           <td className={'wrap-text ' + classNames(Styles.reportName)}>
             {/* <div className={Styles.solIcon}> */}
-              {/* <div className={Styles.solIconimg}>
+            {/* <div className={Styles.solIconimg}>
                 <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.THUMBNAIL} logoDetails={report.logoDetails} />
               </div>{' '} */}
-              {report?.productName}
+            {report?.productName}
             {/* </div> */}
           </td>
           <td className={Styles.draftIndicatorCol}>
@@ -157,7 +158,9 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
           </td> */}
           <td>
             <div className={Styles.locationDataWrapper}>
-              {report?.description.agileReleaseTrain && report?.description?.agileReleaseTrain != '0' ? report?.description.agileReleaseTrain : 'NA'}
+              {report?.description.agileReleaseTrain && report?.description?.agileReleaseTrain != '0'
+                ? report?.description.agileReleaseTrain
+                : 'NA'}
               {/* {report?.description.agileReleaseTrain ? (
                 <div
                   className={classNames(
@@ -249,6 +252,16 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
                       <span onClick={this.onDeleteReport}>Delete Report</span>
                     </li>
                   )}
+                  <li className="contextListItem">
+                    <span
+                      onClick={(e: React.FormEvent<HTMLSpanElement>) => {
+                        e.stopPropagation();
+                        this.props.onShowSimilarReportModal();
+                      }}
+                    >
+                      View Similar Reports
+                    </span>
+                  </li>
                 </ul>
               </div>
             </div>

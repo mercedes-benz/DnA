@@ -37,7 +37,11 @@ fabricWorkspaces:
   scope: ${FABRIC_OAUTH_SCOPE:XXXX}
   accessToken: ${FABRIC_OAUTH_ACCESS_TOKEN:XXXX}
   tokenTypeHint: ${FABRIC_OAUTH_TOKEN_TYPE_HINT:access_token}
-  capacityId: ${FABRIC_CAPACITY_ID:capacityIdX}
+  capacityId: ${FABRIC_CAPACITY_ID:XXXX}
+  capacityName: ${FABRIC_CAPACITY_NAME:XXXX}
+  capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
+  capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
+  capacityState: ${FABRIC_CAPACITY_STATE:Active}
   uri:
     login: ${FABRIC_LOGIN_URL:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
     workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}

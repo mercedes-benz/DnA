@@ -18,7 +18,7 @@ import { setTables } from '../redux/graphSlice';
  */
 const GraphTable = (props) => {
     const dispatch = useDispatch();
-    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, isOwner } = props;
+    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, isOwner , hasWritePermission} = props;
     const { project } = useSelector(state => state.graph);
 
     useEffect(() => {
@@ -48,7 +48,7 @@ const GraphTable = (props) => {
     }
 
     // 12: box-shadow
-    const height = table.columns.length * fieldHeight + titleHeight + commentHeight + 12;
+    const height = table.columns?.length * fieldHeight + titleHeight + commentHeight + 12;
 
     return (
         <>
@@ -78,21 +78,21 @@ const GraphTable = (props) => {
                 >
                     <span className="table-name">{table.tableName}</span>
 
-                    {editable && (
+                    {(editable || hasWritePermission) && (
                         <div className="table-settings">
-                            <button 
+                            {/* <button 
                                 tooltip-data={'View Collaborators'}
                                 onClick={() => props.onCollabClick(table)}
                             >
-                                <i className="icon mbc-icon profile"></i>
-                            </button>
+                                <i className="icon mbc-icon profile "></i>
+                            </button> */}
                             {/* <button 
                                 onClick={() => onEditTable(table)}
                                 tooltip-data={'Edit Table'}
                             >
                                 <i className="icon mbc-icon edit fill"></i>
                             </button> */}
-                            <button tooltip-data={'Delete Table'} className={Styles.btnDelete} onClick={() => onDeleteTable(table.tableName)}>
+                            <button tooltip-data={props.hasDataProduct ? 'unlink data product to delete tables' :'Delete Table'} className={classNames( Styles.btnDelete , props.hasDataProduct ? Styles.btnDisable : '' )} onClick={() => !props.hasDataProduct ?onDeleteTable(table.tableName) : ''}>
                                 <i className="icon delete"></i>
                             </button>
                         </div>

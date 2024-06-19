@@ -1484,6 +1484,9 @@
     &.tem::before{
       content: "\e995";
     }
+    &.dublicate::before{
+      content: "\e947";
+    }
   }
 
   .active-status {

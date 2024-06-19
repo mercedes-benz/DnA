@@ -196,3 +196,20 @@
 .infoPopup {
   width: 500px;
 }
+
+.btnContainer {
+  > button {
+    background: unset;
+    border: 0;
+    padding: 0;
+    line-height: unset;
+    height: auto;
+    margin-top: -2px;
+    color: #d9dfe4;
+
+    &:hover {
+      background-color: unset !important;
+      color: #00adef;
+    }
+  }
+}
