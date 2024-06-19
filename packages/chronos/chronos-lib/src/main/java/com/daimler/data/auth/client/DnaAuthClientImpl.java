@@ -50,7 +50,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	private String dnaBaseUri;
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
-	private static final String USER_URL = "/api/users;
+	private static final String USER_URL = "/api/users";
 
 	@Autowired
 	RestTemplate restTemplate;
