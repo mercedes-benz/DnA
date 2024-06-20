@@ -27,6 +27,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     formState: { errors },
   } = methods;
 
+  const [loading, setLoading] = useState(true);
+
   // lean governance fields
   const [nameOfWorkspace, setNameOfWorkspace] = useState(edit && workspace?.name !== null ? workspace?.name : '');
 
@@ -87,6 +89,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         ProgressIndicator.hide();
         const solutionsTemp = res?.data?.data?.solutions?.records.map((rec) => { return {id: rec.id, name: rec.productName}});
         setSolutions([...solutionsTemp]);
+        setLoading(false);
       })
       .catch((err) => {
         ProgressIndicator.hide();
@@ -370,6 +373,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       tags={solutions.length > 0 ? solutions : []}
                       setTags={onRelatedSolutionsChange}
                       isMandatory={false}
+                      isDisabled={loading}
+                      placeholder={loading ? 'Loading...' : 'Type here'}
                     />
                   </div>
                 </div>
