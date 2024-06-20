@@ -860,16 +860,16 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				
 				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
 
-				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
-				    p2.destroy();
-				}
+				//if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
+				//    p2.destroy();
+				//}
 				
 				Process p = secondBuilder.start();
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-				if(!p.waitFor(Integer.parseInt(storageMCListPoliciesCmdTimeout), TimeUnit.SECONDS)) {
-				    p.destroy();
-				}
+				//if(!p.waitFor(Integer.parseInt(storageMCListPoliciesCmdTimeout), TimeUnit.SECONDS)) {
+				//    p.destroy();
+				//}
 				
 				String line;
 				String prefix = "{\"data\":[";
