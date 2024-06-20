@@ -10,7 +10,7 @@ import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
+import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, trackEvent } from '../../../services/utils';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
@@ -34,12 +34,14 @@ export interface ICodeSpaceProps {
 }
 
 export interface IRecipeDetails {
+  Id?: string;
   recipeId?: string;
   environment?: string;
   cloudServiceProvider?: string;
   ramSize?: string;
   cpuCapacity?: string;
   operatingSystem?: string;
+  recipeName?: string;
 }
 
 export interface IProjectDetails {
@@ -160,7 +162,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   // const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [showLogsView, setShowLogsView] = useState(false);
 
-  const recipes = recipesMaster;
+  // const recipes = recipesMaster;
   
 
   const isAPIRecipe =
@@ -551,7 +553,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2 tooltip-data={recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}>
+                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}>
                   {projectDetails.projectName}
                 </h2>
               </div>
