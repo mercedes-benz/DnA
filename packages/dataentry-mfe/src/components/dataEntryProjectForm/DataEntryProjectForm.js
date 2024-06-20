@@ -1,8 +1,8 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
-import { v4 as uuidv4 } from 'uuid';
+import { useDispatch, useSelector } from 'react-redux';
 // styles
 import Styles from './data-entry-project-form.scss';
 // import from DNA Container
@@ -14,18 +14,24 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 // Utils
 import { Envs } from '../../utilities/envs';
 // Api
-import { hostServer } from '../../server/api';
 import { dataEntryApi } from '../../apis/dataentry.api';
-import { formatDateToISO } from '../../utilities/utils';
+import { getSubDivisions, resetSubDivisions } from '../../redux/lovsSlice';
 
-const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
+const DataEntryProjectForm = ({ project, edit, onSave }) => {
   let history = useHistory();
+
+  const dispatch = useDispatch();
+  const { divisions, subDivisions, departments, classifications, loading, tagsLov } = useSelector(state => state.lovs);
   
   const methods = useForm({ 
     defaultValues: { 
+      typeOfProject: edit && project?.typeOfProject ? project?.typeOfProject : '0',
       name: edit && project?.name !== null ? project?.name : '',
       description: edit && project?.description ? project?.description : '',
-      department: edit && project?.department ? [project?.department] : '',
+      division: edit ? (project?.divisionId ? project?.divisionId + '@-@' + project?.division : '0') : '0',
+      subDivision: '0',
+      department: edit && project?.department ? [project?.department] : [],
+      tags: edit && project?.tags !== null ? [...project.tags] : [],
       dataClassification: edit && project?.dataClassification ? project?.dataClassification : '0',
       hasPii: edit && project?.hasPii ? project?.hasPii?.toString() : 'false',
       archerId: edit && project?.archerId ? project?.archerId : '',
@@ -37,126 +43,64 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
     register,
     handleSubmit,
     getValues,
+    setValue,
+    watch,
     control,
     formState: { errors },
   } = methods;
-
-  // lean governance fields
-  const [divisions, setDivisions] = useState([]);
-  const [subDivisions, setSubDivisions] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-  const [dataEntryTags] = useState([]);
-
-  const [division, setDivision] = useState(edit ? (project?.divisionId ? project?.divisionId + '@-@' + project?.division : '0') : '');
-  const [subDivision, setSubDivision] = useState(edit ? (project?.subDivisionId ? project?.subDivisionId + '@-@' + project?.subDivision : '0') : '');
-  const [departmentName, setDepartmentName] = useState(edit && project?.department ? [project?.department] : []);
-  const [typeOfProject, setTypeOfProject] = useState(edit && project?.typeOfProject ? project?.typeOfProject : '0');
-  const [tags, setTags] = useState(edit && project?.tags !== null ? project.tags.split(',') : []);
-
-  const [departmentError, setDepartmentError] = useState(false);
+  const selectedDivision = watch('division');
+  const selectedSubDivision = watch('subDivision');
+  const selectedTypeOfProject = watch('typeOfProject');
 
   useEffect(() => {
-    ProgressIndicator.show();
-    dataEntryApi.getLovData()
-      .then((response) => {
-        ProgressIndicator.hide();
-        setDataClassificationDropdown(response[0]?.data?.data || []);
-        setDivisions(response[1]?.data || []);
-        setDepartments(response[2]?.data?.data || []);
-        edit && setDivision(project?.divisionId !== null ? project?.divisionId + '@-@' + project?.division : '0');
-        !edit && SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err) => {
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
-          });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
-      });
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+    return () => {
+      dispatch(resetSubDivisions());
+    }
+  }, [dispatch]);
+  
   useEffect(() => {
-    const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
+    const divId = selectedDivision.includes('@-@') ? selectedDivision.split('@-@')[0] : selectedDivision;
     if (divId && divId!=='0' ) {
-      ProgressIndicator.show();
-      hostServer.get('/subdivisions/' + divId)
-        .then((res) => {
-          setSubDivisions(res?.data || []);
-          SelectBox.defaultSetup();
-          ProgressIndicator.hide();
-        }).catch(() => {
-          ProgressIndicator.hide();
-        });
-    } else {
-      setSubDivisions([]);
+      dispatch(getSubDivisions(divId));
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [division]);
+  }, [selectedDivision]);
 
   useEffect(() => {
-    SelectBox.defaultSetup(true);
-  }, [typeOfProject]);
-
-  useEffect(() => {
-    divisions.length > 0 && 
-    edit && setDivision(project?.divisionId !== null ? project?.divisionId + '@-@' + project?.division : '0');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [divisions]);
-
-  useEffect(() => {
-    subDivisions.length > 0 &&
-    edit && setSubDivision(project?.subDivisionId !== null ? project?.subDivisionId + '@-@' + project?.subDivision : '0');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subDivisions]);
+    if(loading) {
+      ProgressIndicator.show()
+    } else {
+      ProgressIndicator.hide();
+      edit && setValue('subDivision', (project?.subDivisionId ? project?.subDivisionId + '@-@' + project?.subDivision : '0'));
+    }
+  }, [loading, edit, project, setValue]);
 
   useEffect(() => {
     SelectBox.defaultSetup();
-  }, [division, subDivision]);
+  }, [loading, selectedDivision, selectedSubDivision]);
 
-  const handleCreateProject = (values) => {
-    ProgressIndicator.show();
-    const data = {
-      id: uuidv4(),
+  const formValues = (values) => {
+    return {
+      typeOfProject: values?.typeOfProject,
       name: values.name.trim(),
-      tags: tags.join(','),
-      hasPii: values?.hasPii,
-      archerId: values?.archerId,
+      description: values?.description.trim(),
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
       subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description.trim(),
       department: values?.department,
+      tags: values?.tags,
+      dataClassification: values?.dataClassification,
+      hasPii: values?.hasPii,
+      archerId: values?.archerId,
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse ? true : false,
-      typeOfProject: values?.typeOfProject,
-      dataClassification: values?.dataClassification,
-      createdBy: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        department: user.department,
-        mobileNumber: user.mobileNumber
-      },
-      createdOn: formatDateToISO(new Date()),
-      dataEntryUsers: [],
-      dataLakeDetails: {
-        id: 'null',
-        link: 'null',
-        name: 'null',
-        type: 'null'
-      },
-      dueDate: 'null',
-      fillingInstructions: 'null',
-      state: 'DRAFT',
-      surveyData: 'null',
-    };
+    }
+  }
+
+  const handleCreateProject = (values) => {
+    ProgressIndicator.show();
+    const data = formValues(values);
     dataEntryApi.createDataEntryProject(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/project/${res?.data?.id}`);
@@ -170,36 +114,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
     });
   };
   const handleEditProject = (values) => {
-    const data = {
-      id: project?.id,
-      name: values.name.trim(),
-      tags: tags.join(','),
-      hasPii: values?.hasPii,
-      archerId: values?.archerId,
-      divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
-      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
-      subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
-      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description.trim(),
-      department: values?.department,
-      procedureId: values?.procedureId,
-      termsOfUse: values?.termsOfUse ? true : false,
-      typeOfProject: values?.typeOfProject,
-      dataClassification: values?.dataClassification,
-      createdBy: project?.createdBy,
-      createdOn: project?.createdOn,
-      dataEntryUsers: project?.dataEntryUsers,
-      dataLakeDetails: {
-        id: project?.dataLakeDetails?.id,
-        link: project?.dataLakeDetails?.link,
-        name: project?.dataLakeDetails?.name,
-        type: project?.dataLakeDetails?.type
-      },
-      dueDate: project?.dueDate,
-      fillingInstructions: project?.fillingInstructions,
-      state: project?.state,
-      surveyData: project?.surveyData,
-    }
+    const data = formValues(values);
     ProgressIndicator.show();
     dataEntryApi.updateDataEntryProject(project.id, data).then(() => {
       ProgressIndicator.hide();
@@ -235,11 +150,9 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                 </label>
                 <div className={classNames('custom-select')}>
                   <select id="reportStatusField"
-                    defaultValue={typeOfProject}
                     {...register('typeOfProject', {
                       required: '*Missing entry',
-                      validate: (value) => value !== '0' || '*Missing entry',
-                      onChange: (e) => { setTypeOfProject(e.target.value) }
+                      validate: (value) => value !== '0' || '*Missing entry'
                     })}
                   >
                     <option id="typeOfProjectOption" value={0}>
@@ -251,7 +164,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                   </select>
                 </div>
                 <p style={{ color: 'var(--color-orange)' }}
-                  className={classNames((typeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not being used.</p>
+                  className={classNames((selectedTypeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not being used.</p>
                 <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
                   {errors?.typeOfProject?.message}
                 </span>
@@ -302,12 +215,9 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                 <div className={classNames('custom-select')}>
                   <select
                     id="divisionField"
-                    defaultValue={division}
-                    value={division}
                     {...register('division', {
                       required: '*Missing entry',
-                      validate: (value) => value !== '0' || '*Missing entry',
-                      onChange: (e) => { setDivision(e.target.value) }
+                      validate: (value) => value !== '0' || '*Missing entry'
                     })}
                   >
                     <option id="divisionOption" value={0}>
@@ -334,12 +244,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                 </label>
                 <div className={classNames('custom-select')}>
                   <select id="subDivisionField"
-                    defaultValue={subDivision}
-                    value={subDivision}
-                    required={false}
-                    {...register('subDivision', {
-                      onChange: (e) => { setSubDivision(e.target.value) }
-                    })}
+                    {...register('subDivision')}
                   >
                     {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
                       <option id="subDivisionDefault" value={0}>
@@ -368,7 +273,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                   name="department"
                   rules={{
                     validate: (value) => {
-                      (value === undefined || value === '') ? setDepartmentError(true) : setDepartmentError(false);
+                      return value === undefined || value.length !== 0 || '*Missing entry';
                     },
                   }}
                   render={({ field }) => (
@@ -377,33 +282,44 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                       value={getValues('department')}
                       name={field.name}
                       max={1}
-                      chips={departmentName}
+                      chips={getValues('department')}
                       tags={departments}
                       setTags={(selectedTags) => {
-                        let dept = selectedTags?.map((item) => item.toUpperCase());
-                        setDepartmentName(dept);
-                        field.onChange(selectedTags[0]);
+                        field.onChange(selectedTags);
                       }}
                       isMandatory={true}
-                      showMissingEntryError={departmentError}
+                      showMissingEntryError={errors.department}
                     />
                   )}
                 />
               </div>
             </div>
             <div className={Styles.col2}>
-              {typeOfProject !== 'Playground' &&
+              {selectedTypeOfProject !== 'Playground' &&
                 <div className={'input-field-group'}>
-                  <Tags
-                    title={'Tags'}
-                    max={100}
-                    chips={tags}
-                    tags={dataEntryTags}
-                    setTags={(selectedTags) => {
-                      let tag = selectedTags?.map((item) => item.toUpperCase());
-                      setTags(tag);
+                  <Controller
+                    control={control}
+                    name="tags"
+                    rules={{
+                      validate: (value) => {
+                        value === undefined || value === '' || '*Missing entry';
+                      },
                     }}
-                    isMandatory={false}
+                    render={({ field }) => (
+                      <Tags
+                        title={'Tags'}
+                        value={getValues('tags')}
+                        name={field.name}
+                        max={100}
+                        chips={getValues('tags')}
+                        tags={tagsLov}
+                        setTags={(selectedTags) => {
+                          let tagsTemp = selectedTags?.map((item) => item.toUpperCase().trim());
+                          setValue('tags', tagsTemp);
+                        }}
+                        isMandatory={false}
+                      />
+                    )}
                   />
                 </div>
               }
@@ -426,7 +342,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                     })}
                   >
                     <option value={'0'}>Choose</option>
-                    {dataClassificationDropdown?.map((item) => (
+                    {classifications?.map((item) => (
                       <option
                         id={item.id}
                         key={item.id}
@@ -481,7 +397,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                 </span>
               </div>
             </div>
-            {typeOfProject !== 'Playground' &&
+            {selectedTypeOfProject !== 'Playground' &&
               <>
                 <div className={Styles.col2}>
                   <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>

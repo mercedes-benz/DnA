@@ -48,6 +48,10 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
             <div>{regionalDateAndTimeConversionSolution(formatDateToISO(new Date(project?.createdOn)))}</div>
           </div>
           <div>
+            <div>Created by</div>
+            <div>{project?.createdBy?.firstName} {project?.createdBy?.lastName}</div>
+          </div>
+          <div>
             <div>Classification</div>
             <div>{project?.dataClassification || 'N/A'}</div>
           </div>

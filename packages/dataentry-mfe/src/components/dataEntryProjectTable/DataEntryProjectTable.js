@@ -27,12 +27,15 @@ const DataEntryProjectTable = ({user, project, onEditProject, onDeleteProject}) 
         </a> : 'N/A'}
       </div>
       <div className={Styles.col3}>
-        {regionalDateAndTimeConversionSolution(formatDateToISO(new Date(project?.createdOn)))}
+        {project?.createdBy?.firstName} {project?.createdBy?.lastName}
       </div>
       <div className={Styles.col4}>
-        {project?.dataClassification}
+        {regionalDateAndTimeConversionSolution(formatDateToISO(new Date(project?.createdOn)))}
       </div>
       <div className={Styles.col5}>
+        {project?.dataClassification}
+      </div>
+      <div className={Styles.col6}>
         <div className={Styles.btnTblGrp}>
           <button
             className={classNames('btn btn-primary', Styles.projectLink)}
