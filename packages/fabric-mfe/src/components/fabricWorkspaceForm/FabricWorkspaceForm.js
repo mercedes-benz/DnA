@@ -365,7 +365,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
             {typeOfProject !== 'Playground' && 
               <>
                 <div className={Styles.col2}>
-                  <div className={classNames('input-field-group')}>
+                  <div className={classNames('input-field-group', loading ? Styles.disabledTags : '')}>
                     <Tags
                       title={'Related Solutions'}
                       max={100}
@@ -373,7 +373,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       tags={solutions.length > 0 ? solutions : []}
                       setTags={onRelatedSolutionsChange}
                       isMandatory={false}
-                      isDisabled={loading}
                       placeholder={loading ? 'Loading...' : 'Type here'}
                     />
                   </div>
