@@ -251,7 +251,7 @@ export const BucketList = (props) => {
                   <>
                     <div></div>
                     <div className={Styles.btnGrp}>
-                      {hasWriteAccess && (
+                      {(hasWriteAccess && !item.bucketName.startsWith('dna-datalake')) && (
                         <>
                           <button
                             className={'btn btn-primary'}
@@ -434,7 +434,7 @@ export const BucketList = (props) => {
 
                             <div className={Styles.projectListAction}>
                               <div className={Styles.actionBtnGrp}>
-                                {hasWriteAccess && (
+                                {(hasWriteAccess && !item.bucketName.startsWith('dna-datalake')) && (
                                   <>
                                     <button
                                       className={'btn btn-primary'}

@@ -298,7 +298,9 @@ const CreateBucket = ({ user }) => {
         );
       } else if (!/^[a-z\d]/g.test(value)) {
         setBucketNameError('Bucket name must start with a lowercase letter or number.');
-      } else if (/-$/.test(value)) {
+      }  else if(value.startsWith('dna-datalake')) {
+        setBucketNameError('Reserved bucket name');
+      }  else if (/-$/.test(value)) {
         setBucketNameError('Bucket name must end with letter or a number.');
       } else if (/\.$/.test(value)) {
         setBucketNameError('Bucket name must end with letter or a number.');
