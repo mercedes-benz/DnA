@@ -371,7 +371,7 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
     const data = {...projectTemp};
     datalakeApi.updateDatalakeProject(project?.id, data).then((res) => {
       ProgressIndicator.hide();
-      dispatch(setTables(res.data.data.tables));
+      dispatch(setTables(res?.data?.data?.tables));
       if (res?.data?.response?.warnings?.length) {
         Notification.show(res?.data?.response?.warnings?.[0]?.message, 'warning')
       } else {
