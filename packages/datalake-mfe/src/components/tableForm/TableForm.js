@@ -361,7 +361,6 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
         ProgressIndicator.hide();
       } else {
         projectTemp.tables = [...projectTemp.tables, tableData];
-        dispatch(setTables(projectTemp.tables));
         setToggle();
         handlePublish(projectTemp)     
       }
@@ -370,9 +369,14 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
 
   const handlePublish = (projectTemp) => {
     const data = {...projectTemp};
-    datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
+    datalakeApi.updateDatalakeProject(project?.id, data).then((res) => {
       ProgressIndicator.hide();
-      Notification.show('Table(s) published successfully');
+      dispatch(setTables(res.data.data.tables));
+      if (res?.data?.response?.warnings?.length) {
+        Notification.show(res?.data?.response?.warnings?.[0]?.message, 'warning')
+      } else {
+        Notification.show('Table published successfully');
+      }
       isSaved(true);
       }).catch(error => {
       ProgressIndicator.hide();
