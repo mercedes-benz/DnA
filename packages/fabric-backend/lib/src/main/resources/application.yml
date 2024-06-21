@@ -42,6 +42,7 @@ fabricWorkspaces:
   capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
+  startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
   uri:
     login: ${FABRIC_LOGIN_URL:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
     workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}
