@@ -330,6 +330,42 @@ public class FabricWorkspaceClient {
 		return errorResponse;
 	}
 	
+	public ErrorResponseDto provisionWorkspace(String workspaceId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("500");
+				errorResponse.setMessage("Failed to login using service principal, please try later.");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/provisionIdentity";
+			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
+					requestEntity, ErrorResponseDto.class);
+			log.info("Workspace {} provisioned successfully", workspaceId);
+			if (response!=null && response.hasBody()) {
+				errorResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			if(e.getMessage()!=null) {
+				if(e.getMessage().contains("WorkspaceIdentityAlreadyExists")) {
+					errorResponse.setErrorCode("WorkspaceIdentityAlreadyExists");
+					errorResponse.setMessage("Workspace identity already provisioned.");
+					log.error("Workspace {} , identity already provisioned.", workspaceId);
+				}
+			}
+			log.error("Workspace {} provisioning failed with exception {}", workspaceId, e.getMessage());
+		}
+		
+		return errorResponse;
+	}
+	
 	public ErrorResponseDto unassignCapacity(String workspaceId) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
 		try {

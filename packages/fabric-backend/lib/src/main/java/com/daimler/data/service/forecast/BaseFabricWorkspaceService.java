@@ -197,6 +197,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setCapacity(capacityVO);
 					FabricWorkspaceVO savedRecord = super.create(data);
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
+					fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					responseData.setData(savedRecord);
 					responseMessage.setSuccess("SUCCESS");
 					responseMessage.setErrors(errors);
