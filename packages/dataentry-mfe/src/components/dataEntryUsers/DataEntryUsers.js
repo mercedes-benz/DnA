@@ -106,26 +106,8 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
       dueDate: formatDateToISO(new Date(values.dueDate)),
       dataEntryUsers: dataEntryUsers,
       surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
-      id: project?.id,
-      name: project?.name,
-      tags: project?.tags,
-      hasPii: project?.hasPii,
-      archerId: project?.archerId,
-      divisionId: project?.divisionId,
-      division: project?.division,
-      subDivisionId: project?.subDivisionId,
-      subDivision: project?.subDivision,
-      description: project?.description,
-      department: project?.department,
-      procedureId: project?.procedureId,
-      termsOfUse: project?.termsOfUse,
-      typeOfProject: project?.typeOfProject,
-      dataClassification: project?.dataClassification,
-      createdBy: project?.createdBy,
-      createdOn: project?.createdOn,
-      state: 'PUBLISHED',
     }
-    dataEntryApi.updateDataEntryProject(id, data).then(() => {
+    dataEntryApi.publishDataEntryProject(id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project successfully published');
       onPublish();

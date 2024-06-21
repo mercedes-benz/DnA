@@ -68,36 +68,9 @@ const DataEntryProject = ({ user }) => {
     ProgressIndicator.show(); 
     const surveyDataTemp = univerRef.current?.getData();
     const data = {
-      dataLakeDetails: {
-        id: 'null',
-        type: 'DnA',
-        name: 'null',
-        link: 'null',
-      },
-      fillingInstructions: 'null',
-      dueDate: 'null',
-      dataEntryUsers: [],
-      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
-      id: project?.id,
-      name: project?.name,
-      tags: project?.tags,
-      hasPii: project?.hasPii,
-      archerId: project?.archerId,
-      divisionId: project?.divisionId,
-      division: project?.division,
-      subDivisionId: project?.subDivisionId,
-      subDivision: project?.subDivision,
-      description: project?.description,
-      department: project?.department,
-      procedureId: project?.procedureId,
-      termsOfUse: project?.termsOfUse,
-      typeOfProject: project?.typeOfProject,
-      dataClassification: project?.dataClassification,
-      createdBy: project?.createdBy,
-      createdOn: project?.createdOn,
-      state: 'DRAFT',
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData
     }
-    dataEntryApi.updateDataEntryProject(projectId, data).then(() => {
+    dataEntryApi.saveSheetAsDraft(projectId, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project draft saved successfully');
     }).catch(error => {
@@ -113,36 +86,9 @@ const DataEntryProject = ({ user }) => {
     ProgressIndicator.show(); 
     const surveyDataTemp = univerRef.current?.getData();
     const data = {
-      dataLakeDetails: {
-        id: project?.dataLakeDetails?.id,
-        type: project?.dataLakeDetails?.type,
-        name: project?.dataLakeDetails?.name,
-        link: project?.dataLakeDetails?.link,
-      },
-      fillingInstructions: project?.fillingInstructions,
-      dueDate: project?.dueDate,
-      dataEntryUsers: project?.dataEntryUsers,
-      surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
-      id: project?.id,
-      name: project?.name,
-      tags: project?.tags,
-      hasPii: project?.hasPii,
-      archerId: project?.archerId,
-      divisionId: project?.divisionId,
-      division: project?.division,
-      subDivisionId: project?.subDivisionId,
-      subDivision: project?.subDivision,
-      description: project?.description,
-      department: project?.department,
-      procedureId: project?.procedureId,
-      termsOfUse: project?.termsOfUse,
-      typeOfProject: project?.typeOfProject,
-      dataClassification: project?.dataClassification,
-      createdBy: project?.createdBy,
-      createdOn: project?.createdOn,
-      state: 'PUBLISHED',
+      surveyData: surveyDataTemp.sheets['sheet-01'].cellData
     }
-    dataEntryApi.publishDataEntryProject(projectId, data).then(() => {
+    dataEntryApi.publishDataEntrySheet(projectId, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project successfully published');
     }).catch(error => {

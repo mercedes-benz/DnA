@@ -20,6 +20,18 @@ const updateDataEntryProject = (id, data) => {
   return server.put(`/dataentries/${id}`, data);
 };
 
+const saveSheetAsDraft = (id, data) => {
+  return server.patch(`/dataentries/${id}/survey`, data);
+};
+
+const publishDataEntryProject = (id, data) => {
+  return server.patch(`/dataentries/${id}/publish`, data);
+};
+
+const publishDataEntrySheet = (id, data) => {
+  return server.patch(`/dataentries/${id}/survey/publish`, data);
+};
+
 const deleteDataEntryProject = (id) => {
   return server.delete(`/dataentries/${id}`, {
     data: {},
@@ -49,6 +61,9 @@ export const dataEntryApi = {
   getDataEntryProject,
   createDataEntryProject,
   updateDataEntryProject,
+  saveSheetAsDraft,
+  publishDataEntryProject,
+  publishDataEntrySheet,
   deleteDataEntryProject,
   getDatalakeProjects,
   getLovData,
