@@ -86,8 +86,8 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
       setDataEntryUsers([...dataEntryUsers]);
     }
   };
-  const removeDeUser = (index) => {
-    const temp = dataEntryUsers.splice(index, 1);
+  const removeDeUser = (id) => {
+    const temp = dataEntryUsers.filter((user) => user.id !== id);
     setDataEntryUsers(temp);
   };
 
@@ -225,12 +225,12 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {dataEntryUsers.map((dataEntryUser, index) => 
+                    {dataEntryUsers.map((dataEntryUser) => 
                       <tr key={dataEntryUser?.id}>
                         <td>{dataEntryUser?.id}</td>
                         <td>{dataEntryUser?.firstName} {dataEntryUser?.lastName}</td>
                         <td>
-                          <button className={classNames('btn', Styles.btnAction)} onClick={() => removeDeUser(index)}>
+                          <button className={classNames('btn', Styles.btnAction)} onClick={() => removeDeUser(dataEntryUser?.id)}>
                             <i className="icon mbc-icon close thin"></i> Remove
                           </button>
                         </td>
