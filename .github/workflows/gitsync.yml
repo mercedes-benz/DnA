@@ -6,9 +6,14 @@ on:
         description: 'Public Branch name'
         required: true  
       privateBranch:
-        description: 'Public Branch name'
-        default: 'dev'
-        required: true          
+        description: 'Private Branch name'
+        default: dev
+        required: true         
+        type: choice
+        options: 
+          - dev
+          - staging
+          - main         
   workflow_call:
     inputs:
       isSync:
