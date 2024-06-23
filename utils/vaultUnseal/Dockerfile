@@ -12,5 +12,4 @@ RUN go build -o /vault-unseal
 
 # EXPOSE 8080
 USER 1000
-
 CMD [ "/vault-unseal" ]
