@@ -66,7 +66,6 @@ jobs:
           source_repo: "https://github.com/mercedes-benz/DnA.git"
           source_branch: "${{ github.event.inputs.publicBranch }}"
           destination_branch: "${{ github.event.inputs.publicBranch }}"
-          destination_repo: "https://git.i.mercedes-benz.com/DNA/DnA-Private.git"
           github_token: ${{ secrets.PID_PAT }} 
               
 
