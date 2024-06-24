@@ -59,11 +59,13 @@ jobs:
 
       - name: repo-sync
         uses: repo-sync/github-sync@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.PID_PAT }}
         with:
           source_repo: "https://github.com/mercedes-benz/DnA.git"
           source_branch: "${{ github.event.inputs.publicBranch }}"
           destination_branch: "${{ github.event.inputs.publicBranch }}"
-          github_token: ${{ secrets.PID_PAT }}
+          github_token: ${{ secrets.PID_PAT }} 
               
 
   success:
