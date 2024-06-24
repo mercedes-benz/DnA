@@ -58,7 +58,10 @@ codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
     
 authenticator:
-   uri: ${AUTHENTICATOR_URI:XXXX}  
+   uri: ${AUTHENTICATOR_URI:XXXX} 
+
+dashboard:
+    uri: ${DASHBOARD_URI:XXXX} 
   
 kafka:
   centralTopic:
