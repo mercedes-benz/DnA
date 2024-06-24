@@ -26,7 +26,7 @@ on:
 env:
   PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
   DEST_REPO: https://git.i.mercedes-benz.com/DNA/DnA-Private.git
-  DEST_STAGING_BRANCH: staging-gitsync
+  # DEST_STAGING_BRANCH: staging-gitsync
 
 jobs:
   gitsync:
@@ -46,22 +46,32 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - name: Clone changes from public repo branch to private branch
-        working-directory: ./utils/gitsync/
-        run: |
-          chmod +x ./gitsync
-          ./gitsync
-        env:
-          GITHUB_TOKEN: ${{ secrets.PID_PAT }}
-          PUBLIC_SRC_BRANCH:  ${{ github.event.inputs.publicBranch }}
-          DEST_BRANCH: ${{ github.event.inputs.privateBranch }}
+      # - name: Clone changes from public repo branch to private branch
+      #   working-directory: ./utils/gitsync/
+      #   run: |
+      #     chmod +x ./gitsync
+      #     ./gitsync
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.PID_PAT }}
+      #     PUBLIC_SRC_BRANCH:  ${{ github.event.inputs.publicBranch }}
+      #     DEST_BRANCH: ${{ github.event.inputs.privateBranch }}
+      #     DEST_STAGING_BRANCH: ${{ github.event.inputs.privateBranch }}
+
+      - name: repo-sync
+        uses: repo-sync/github-sync@v2
+        with:
+          source_repo: "https://github.com/mercedes-benz/DnA.git"
+          source_branch: "${{ github.event.inputs.publicBranch }}"
+          destination_branch: "${{ github.event.inputs.privateBranch }}"
+          github_token: ${{ secrets.PID_PAT }}
+              
 
   success:
   #To avoid skipping other dependent job, just running cmd to make job success.
     name: "Make job success"
     needs: gitsync
     if: always() && needs.gitsync.result == 'skipped'
-    runs-on: [ dnaPlatformRunner ]
+    runs-on: [ road-runner, self-hosted ]
     steps:
 
       - name: Success
