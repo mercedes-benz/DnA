@@ -120,7 +120,7 @@ public class StorageServicesClient {
 					creatorTrinoSystemUser.setLastName(object.get("lastName").toString());
 					creatorTrinoSystemUser.setDepartment(object.get("department").toString());
 					creatorTrinoSystemUser.setEmail(object.get("email").toString());
-					creatorTrinoSystemUser.setEmail(object.get("mobileNumber").toString());
+					creatorTrinoSystemUser.setMobileNumber(creatorAsCollab.getMobileNumber());
 				}catch(Exception e){
 					log.error("Failed while converting user details with Exception {}:",e.getMessage());
 				}
