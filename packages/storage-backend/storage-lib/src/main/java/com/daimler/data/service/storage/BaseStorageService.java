@@ -992,6 +992,14 @@ public class BaseStorageService implements StorageService {
 				//To update Bucket record in database
 				bucketVo.setLastModifiedDate(new Date());
 				bucketVo.setUpdatedBy(userStore.getVO());
+				try {
+					StorageNsql existingEntity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
+					BucketVo existingBucketVo = storageAssembler.toBucketVo(existingEntity);
+					bucketVo.setCreatedBy(existingBucketVo.getCreatedBy());
+					bucketVo.setCreatedDate(existingBucketVo.getCreatedDate());
+				}catch(Exception e) {
+					LOGGER.error("Failed to fetch bucket {} details from database",bucketVo.getBucketName());
+				}
 				StorageNsql updatedData = storageAssembler.toEntity(bucketVo);
 				jpaRepo.save(updatedData);
 				responseVO.setData(bucketVo);
