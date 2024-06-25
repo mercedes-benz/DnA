@@ -924,7 +924,7 @@ const Graph = ({user, hostHistory}) => {
           }}
           onAccept={() => {
             setShowSaveModel(false);
-            handlePublish;
+            handlePublish();
             setToggleModal(!toggleModal);
           }}
         />

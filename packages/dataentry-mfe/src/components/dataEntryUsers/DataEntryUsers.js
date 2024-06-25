@@ -86,8 +86,8 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
       setDataEntryUsers([...dataEntryUsers]);
     }
   };
-  const removeDeUser = (index) => {
-    const temp = dataEntryUsers.splice(index, 1);
+  const removeDeUser = (id) => {
+    const temp = dataEntryUsers.filter((user) => user.id !== id);
     setDataEntryUsers(temp);
   };
 
@@ -106,26 +106,8 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
       dueDate: formatDateToISO(new Date(values.dueDate)),
       dataEntryUsers: dataEntryUsers,
       surveyData: surveyDataTemp.sheets['sheet-01'].cellData,
-      id: project?.id,
-      name: project?.name,
-      tags: project?.tags,
-      hasPii: project?.hasPii,
-      archerId: project?.archerId,
-      divisionId: project?.divisionId,
-      division: project?.division,
-      subDivisionId: project?.subDivisionId,
-      subDivision: project?.subDivision,
-      description: project?.description,
-      department: project?.department,
-      procedureId: project?.procedureId,
-      termsOfUse: project?.termsOfUse,
-      typeOfProject: project?.typeOfProject,
-      dataClassification: project?.dataClassification,
-      createdBy: project?.createdBy,
-      createdOn: project?.createdOn,
-      state: 'PUBLISHED',
     }
-    dataEntryApi.updateDataEntryProject(id, data).then(() => {
+    dataEntryApi.publishDataEntryProject(id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Entry Project successfully published');
       onPublish();
@@ -225,12 +207,12 @@ const DataEntryUsers = ({ user, surveyData, project, onPublish }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {dataEntryUsers.map((dataEntryUser, index) => 
+                    {dataEntryUsers.map((dataEntryUser) => 
                       <tr key={dataEntryUser?.id}>
                         <td>{dataEntryUser?.id}</td>
                         <td>{dataEntryUser?.firstName} {dataEntryUser?.lastName}</td>
                         <td>
-                          <button className={classNames('btn', Styles.btnAction)} onClick={() => removeDeUser(index)}>
+                          <button className={classNames('btn', Styles.btnAction)} onClick={() => removeDeUser(dataEntryUser?.id)}>
                             <i className="icon mbc-icon close thin"></i> Remove
                           </button>
                         </td>
