@@ -88,7 +88,41 @@ const Graph = ({user, hostHistory}) => {
         const hasPermission = project?.collabs?.some(collab => collab.collaborator.id === user.id && collab.hasWritePermission);
         setHasWritePermission(hasPermission);
       }
-    },[project])
+    },[project]);
+    
+    const wheelHandler = e => {
+      let { deltaY, deltaX } = e;
+      const cursor = getSVGCursor(e);
+      let state = JSON.parse(JSON.stringify(box));
+      if (!e.ctrlKey) {
+        if(!(state.w > 4000 && deltaY > 0) && !(state.w < 600 && deltaY < 0)){
+          state.x= state.x + deltaX;
+          state.y= state.y + deltaY;
+        }
+        
+      } else {
+            if(!(state.w > 4000 && deltaY > 0) && !(state.w < 600 && deltaY < 0)){   
+              deltaY = deltaY * 2;
+              deltaX = deltaY * (state.w / state.h);
+              const deltaLimit = 600; 
+              if (deltaY > deltaLimit) {
+                deltaY = deltaY > deltaLimit ? deltaLimit : deltaY;
+                deltaX = deltaY * (state.w / state.h);
+            } else if (deltaY < -deltaLimit) {
+                deltaY = deltaY < -deltaLimit ? -deltaLimit : deltaY;
+                deltaX = deltaY * (state.w / state.h);
+            }
+              state.x= state.x - ((cursor.x - state.x) / state.w) * deltaX;
+              state.y= state.y - ((cursor.y - state.y) / state.h) * deltaY;
+              state.w= state.w + deltaX;
+              state.h = state.h + deltaY;
+
+            }
+      }
+      dispatch(setBox(state));
+
+      e.preventDefault();
+  };
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -693,7 +727,7 @@ const Graph = ({user, hostHistory}) => {
               onMouseDown={mouseDownHandler}
               onMouseUp={mouseUpHandler}
               onMouseMove={mouseMoveHandler}
-              // onWheel={wheelHandler}
+              onWheel={wheelHandler}
               ref={svg}
             >
               {project?.tables?.length > 0 && project.tables.map((table, index) => {
