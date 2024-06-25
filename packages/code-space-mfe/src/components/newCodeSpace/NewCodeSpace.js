@@ -19,7 +19,7 @@ import { hostServer } from '../../server/api';
 // import { ApiClient } from '../../../../services/ApiClient';
 import AddUser from 'dna-container/AddUser';
 import { Envs } from '../../Utility/envs';
-import { recipesMaster } from '../../Utility/utils';
+// import { recipesMaster } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import { Link } from 'react-router-dom';
@@ -58,8 +58,9 @@ const NewCodeSpace = (props) => {
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
-  const [recipeValue, setRecipeValue] = useState(onBoadingMode ? projectDetails.recipeDetails?.recipeId : '0');
-  const recipes = recipesMaster;
+  const [recipeValue, setRecipeValue] = useState(projectDetails?.recipeDetails?.Id ? projectDetails?.recipeDetails?.Id : '0');
+  // const recipes = recipesMaster;
+  const [recipesMaster, setRecipeMaster] = useState([]);
 
   const [recipeError, setRecipeError] = useState('');
 
@@ -117,30 +118,40 @@ const NewCodeSpace = (props) => {
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
-  if (!onBoadingMode) {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getLovData()
-      .then((response) => {
-        ProgressIndicator.hide();
-        setDataClassificationDropdown(response[0]?.data.data || []);
-        setDivisions(response[1]?.data || []);
-        setDepartments(response[2]?.data.data || []);
-        onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
-        onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        SelectBox.defaultSetup();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err) => {
+    if (!onBoadingMode) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getLovData()
+        .then((response) => {
+          ProgressIndicator.hide();
+          setDataClassificationDropdown(response[0]?.data.data || []);
+          setDivisions(response[1]?.data || []);
+          setDepartments(response[2]?.data.data || []);
+          onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+          onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
+          SelectBox.defaultSetup();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          SelectBox.defaultSetup();
+          if (err?.response?.data?.errors?.length > 0) {
+            err?.response?.data?.errors.forEach((err) => {
             Notification.show(err?.message || 'Something went wrong.', 'alert');
           });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
-      });
-    }  
+          } else {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          }
+        });
+    }
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getRecipeLov()
+      .then((res) => {
+        setRecipeMaster(res.data.data);
+        SelectBox.defaultSetup();
+        ProgressIndicator.hide();
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+      });  
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -288,8 +299,9 @@ const NewCodeSpace = (props) => {
 
   const onRecipeChange = (e) => {
     const selectedOption = e.currentTarget.value;
+    const recipe = recipesMaster.find((item) => item.id === recipeValue);
     setRecipeValue(selectedOption);
-    const isUserDefinedRecipe = selectedOption === 'public-user-defined' || selectedOption === 'private-user-defined';
+    const isUserDefinedRecipe = recipe?.aliasId === 'public-user-defined' || recipe?.aliasId === 'private-user-defined';
     setIsUserDefinedGithubRecipe(isUserDefinedRecipe);
     if (!isUserDefinedRecipe) {
       setUserDefinedGithubUrl('');
@@ -548,7 +560,7 @@ const NewCodeSpace = (props) => {
     } else {
       if (isValidGITRepoUrl(userDefinedGithubUrl, isPublicRecipeChoosen)) setUserDefinedGithubUrlError('');
     }
-    if (githubToken === '' && recipeValue !== 'default') {
+    if (githubToken === '' && recipe?.aliasId !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
@@ -559,6 +571,7 @@ const NewCodeSpace = (props) => {
   };
 
   const validateOnBoardCodeSpaceForm = () => {
+    const recipe = recipesMaster.find((item) => item.id === recipeValue);
     let formValid = true;
     // if (isPublicRecipeChoosen && githubUserName === '') {
     //   setGithubUserNameError(requiredError);
@@ -566,7 +579,7 @@ const NewCodeSpace = (props) => {
     // } else {
     //   setGithubUserNameError('');
     // }
-    if (githubToken === '' && recipeValue !== 'default') {
+    if (githubToken === '' && recipe?.aliasId !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
@@ -689,8 +702,8 @@ const NewCodeSpace = (props) => {
   };
 
   const createCodeSpace = () => {
-    const isPublicRecipeChoosen = recipeValue.startsWith('public');
     const recipe = recipesMaster.find((item) => item.id === recipeValue);
+    const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
 
     if (validateNewCodeSpaceForm(isPublicRecipeChoosen)) {
       const createCodeSpaceRequest = {
@@ -699,15 +712,8 @@ const NewCodeSpace = (props) => {
           projectDetails: {
             projectCollaborators: codeSpaceCollaborators,
             projectName: projectName,
-            recipeDetails: {
-              cloudServiceProvider: environment,
-              cpuCapacity: '1',
-              environment: 'Development', // Need to handled in backend
-              operatingSystem: 'Debian-OS-11',
-              ramSize: '1',
-              recipeId: recipeValue,
-              resource: recipe.resource,
-            },
+            recipeName: recipeValue,
+            // gitRepoName: null,
             dataGovernance: {
               typeOfProject: typeOfProject,
               description: description,
@@ -726,10 +732,10 @@ const NewCodeSpace = (props) => {
         pat: githubToken
       };
 
-      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe || recipe.repodetails) {
+      if (isUserDefinedGithubRecipe ) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
-        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedGithubRecipe ? (userDefinedGithubUrl.split('://')[1] + ',') : recipe.repodetails;
+        createCodeSpaceRequest.data.projectDetails['gitRepoName'] = userDefinedGithubUrl.split('://')[1] + ',';
       }
 
       ProgressIndicator.show();
@@ -791,8 +797,10 @@ const NewCodeSpace = (props) => {
 
   const onBoardToCodeSpace = () => {
     // const isPublicRecipeChoosen = recipeValue.startsWith('public');
+    const recipe = recipesMaster.find((item) => item.id === recipeValue);
+    const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
 
-    if (validateOnBoardCodeSpaceForm()) {
+    if (validateOnBoardCodeSpaceForm(isPublicRecipeChoosen)) {
 
       const onBoardCodeSpaceRequest = {
         pat: githubToken
@@ -839,7 +847,8 @@ const NewCodeSpace = (props) => {
   //   const newCollaborators = codeSpaceCollaborators.filter((collab: ICodeCollaborator) => !existingColloborators.some((existCollab: ICodeCollaborator) => existCollab.id === collab.id));
   // };
 
-  const isPublicRecipeChoosen = recipeValue.startsWith('public');
+  const recipe = recipesMaster.find((item) => item.id === recipeValue);
+  const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
   const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   return (
     <React.Fragment>
@@ -909,14 +918,14 @@ const NewCodeSpace = (props) => {
               <label>Recipe</label>
               </div>
               <div style={{ width: '75%' }}>
-                {recipes.find((item) => item.id === projectDetails.recipeDetails.recipeId).name}  
+              {projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}  
               </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
                 <label>Environment</label>
               </div>
-              <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
+              <div>{projectDetails.recipeDetails.cloudServiceProvider|| environment}</div>
               <div></div>
               <div></div>
             </div>
@@ -974,7 +983,7 @@ const NewCodeSpace = (props) => {
               </div>
             </div>
           )} */}
-          {recipeValue !== 'default' && <>
+          {recipe?.aliasId !== 'default' && <>
             <p>Enter the information to start creating!</p>
             <div>
               <div>
@@ -1309,9 +1318,9 @@ const NewCodeSpace = (props) => {
                     <option id="defaultStatus" value={0}>
                       Select Code Recipe
                     </option>
-                    {recipes.map((obj) => (
-                      <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
-                        {obj.name}
+                    {recipesMaster.map((obj) => (
+                      <option key={obj?.id} id={obj?.recipeName + obj?.id} value={obj?.id}>
+                        {obj?.recipeName + ' (  ' + obj?.osName + ' , ' + obj?.maxCpu + 'CPU , ' + (obj?.maxRam/1000) + 'GB RAM )'}
                       </option>
                     ))}
                   </select>
@@ -1462,7 +1471,7 @@ const NewCodeSpace = (props) => {
                   </div>
                 </div>
               )}
-              {recipeValue !== 'default' && (
+              {recipe?.aliasId !== 'default' && (
                 <div>
                   <div>
                     <TextBox
@@ -1499,8 +1508,7 @@ const NewCodeSpace = (props) => {
                   <div>
                     <label>Recipe</label>
                   </div>
-                  <div>{recipes.find((item) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
-                </div>
+                  <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>                </div>
                 <div className={Styles.flexLayout}>
                   <div>
                     <label>Environment</label>
@@ -1816,7 +1824,7 @@ const NewCodeSpace = (props) => {
               />
             </>
           )}
-          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && !DEPLOYMENT_DISABLED_RECIPE_IDS.includes(recipeValue) && (
+          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && !DEPLOYMENT_DISABLED_RECIPE_IDS.includes(recipe?.aliasId) && (
             <div className={classNames('input-field-group include-error')}>
               <label htmlFor="userId" className="input-label">
                 Find and add the collaborators you want to work with your code (Optional)

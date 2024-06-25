@@ -30,7 +30,7 @@ export const protectedRoutes = [
     {
         component: ManageCodeSpaces,
         exact: false,
-        path: '/codespace/manageCodespace',
+        path: '/manageCodespace',
     },
     {
         component: CodeSpaceSecurityConfig,

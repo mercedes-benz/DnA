@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
-  recipesMaster,
+  // recipesMaster,
   regionalDateAndTimeConversionSolution,
   buildLogViewURL,
   buildGitJobLogViewURL,
@@ -51,7 +51,7 @@ const CodeSpaceCardItem = (props) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
-  const recipes = recipesMaster;
+  // const recipes = recipesMaster;
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
@@ -538,7 +538,7 @@ const CodeSpaceCardItem = (props) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{recipes.find((item) => item.id === projectDetails.recipeDetails.recipeId)?.name}</div>
+              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>
             </div>
             <div>
               <div>Environment</div>

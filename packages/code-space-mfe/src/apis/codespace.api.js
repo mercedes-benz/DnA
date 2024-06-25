@@ -129,9 +129,9 @@ const addCodeSpaceRequest = (id, env) => { //tested
 };
 
 const createCodeSpaceRecipe = (data) => {
-    return server.post(`recipeDetails`, {
+    return server.post(`recipeDetails`, 
         data,
-    });
+    );
 };
   
 const getCodeSpaceRecipeRequests = () => {
@@ -146,29 +146,41 @@ const getCodeSpaceRecipe = (id) => {
     });
 };
 
-const getCodeSpaceRecipesStatus = () => {
+const getCodeSpaceRecipesStatus = () => { //not used right now
     return server.get(`recipeDetails/recipesByStatus`, {
         data: {},
     });
 };
 
-const acceptCodeSpaceRecipeRequest = (name) => {
+const acceptCodeSpaceRecipeRequest = (name) => { //not used right now
     return server.post(`recipeDetails/${name}/accept`, {
         data: {},
     });
 };
 
-const publishCodeSpaceRecipeRequest = (name) => {
+const publishCodeSpaceRecipeRequest = (name) => { //not used right now
     return server.post(`recipeDetails/${name}/publish`, {
         data: {},
     });
 };
 
-// const getRecipeLov = () => {
-//     return server.get('recipeDetails/recipeLov', {
-//         data: {},
-//     });
-// };
+const getRecipeLov = () => {
+    return server.get('recipeDetails/recipeLov', {
+        data: {},
+    });
+};
+
+const  deleteCodeSpaceRecipe = (name) => {
+    return server.delete(`recipeDetails/${name}`, { 
+        data: {},
+    });
+}
+
+const verifyGitUser = (data)  => {
+    return server.post('recipeDetails/validate', 
+        data,
+    );
+};
 
 const getSoftwareLov = () => {
     return server.get(`recipeDetails/softwareLov`, {
@@ -229,11 +241,11 @@ const workSpaceStatus = () => {
     });
 };
 
-const getUrlHub = (endpoint) => {
+const getUrlHub = (endpoint) => { //tested
     return `${new URL('../hub/api/', baseURL).href}${endpoint}`;
 };
 
-const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => {
+const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => { //tested
     const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
       withCredentials: true,
       headers: { Authorization: readJwt() },
@@ -274,6 +286,9 @@ export const CodeSpaceApiClient = {
     createCodeSpaceRecipe,
     getCodeSpaceRecipeRequests,
     getCodeSpaceRecipe,
+    getRecipeLov,
+    deleteCodeSpaceRecipe,
+    verifyGitUser,
     getCodeSpaceRecipesStatus,
     acceptCodeSpaceRecipeRequest,
     publishCodeSpaceRecipeRequest,

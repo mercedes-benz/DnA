@@ -10,7 +10,7 @@ import Tabs from '../common/modules/uilab/js/src/tabs';
 import { Envs } from '../Utility/envs';
 // import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../store';
-import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, recipesMaster, trackEvent } from '../Utility/utils';
+import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, trackEvent } from '../Utility/utils';
 import Modal from 'dna-container/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
@@ -160,7 +160,7 @@ const CodeSpace = (props) => {
   // const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [showLogsView, setShowLogsView] = useState(false);
 
-  const recipes = recipesMaster;
+  // const recipes = recipesMaster;
   
 
   const isAPIRecipe =
@@ -537,7 +537,7 @@ const CodeSpace = (props) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2 tooltip-data={recipes.find((item) => item.id === projectDetails.recipeDetails.recipeId).name}>
+                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}>
                   {projectDetails.projectName}
                 </h2>
               </div>

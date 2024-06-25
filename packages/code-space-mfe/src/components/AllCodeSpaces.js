@@ -18,6 +18,7 @@ import { USER_ROLE } from '../Utility/constants';
 // @ts-ignore
 import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
+import { history } from '../store';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -40,9 +41,9 @@ const AllCodeSpaces = (props) => {
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState();
     const isCodeSpaceAdmin = props?.user?.roles?.some((role) => role?.id === USER_ROLE.CODESPACEADMIN);
-    const history = useHistory();
+    const History = useHistory();
     const goback = () => {
-        history.goBack();
+        History.goBack();
     };
 
     const getCodeSpacesData = () => {
@@ -106,7 +107,7 @@ const AllCodeSpaces = (props) => {
     };
 
     const onShowSecurityConfigRequest = () => {
-        history.push('/codespace/manageCodespace');
+       history.push(`manageCodespace`);
     };
 
     const isCodeSpaceCreationSuccess = (status, codeSpaceData) => {
@@ -254,7 +255,7 @@ const AllCodeSpaces = (props) => {
                                     onClick={onShowSecurityConfigRequest}
                                 >
                                     <IconGear size={'14'} />
-                                    <span>&nbsp;Manage Code Spaces</span>
+                                    <span>&nbsp;Manage Recipes</span>
                                 </button>
                             </>
                         ) : null}
