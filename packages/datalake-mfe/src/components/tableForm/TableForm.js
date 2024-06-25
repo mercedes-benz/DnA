@@ -81,7 +81,7 @@ const TableFormItem = (props) => {
                 })}
                 placeholder="Type here"
                 autoComplete="off"
-                maxLength={55}
+                maxLength={54}
                 autoFocus={true}
                 value={field.columnName}
               />
