@@ -75,11 +75,14 @@ jobs:
 
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
+        id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
-          title: "An automatically created PR!"
+          reviewers: "palansa"
+          labels: "automatic,feature"
+          title: "${{ github.event.commits[0].message }}"
 
       # - name: pull-request
       #   id: cpr
@@ -100,16 +103,16 @@ jobs:
       #     debug: true             
 
       - name: Pull Request URL
-        if: ${{ steps.cpr.outputs.pr_number }}
+        if: ${{ steps.cpr.outputs.number }}
         run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.pr_url }}"
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
             
       - uses: peter-evans/enable-pull-request-automerge@v3
-        if: ${{ steps.cpr.outputs.pr_number }}
+        if: ${{ steps.cpr.outputs.number }}
         with:
           token: ${{ secrets.PID_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.pr_number }}
+          pull-request-number: ${{ steps.cpr.outputs.number }}
               
 
   success:
