@@ -94,7 +94,10 @@ jobs:
           label: automatic,feature
           get_diff: true
           old_string: "**Write you description here**"
-          new_string: ${{ github.event.commits[0].message }}          
+          new_string: ${{ github.event.commits[0].message }}  
+        env:
+          GH_ENTERPRISE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_HOST: git.i.mercedes-benz.com                 
 
       - name: Pull Request URL
         if: ${{ steps.cpr.outputs.pr_number }}
