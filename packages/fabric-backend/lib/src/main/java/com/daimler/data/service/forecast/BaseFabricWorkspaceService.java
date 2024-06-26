@@ -178,6 +178,19 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}else {
 						log.info("Successfully added  user {} to workspace {} ", vo.getCreatedBy().getEmail(), createResponse.getId());
 					}
+					
+					
+					GenericMessage addGroupResponse = fabricWorkspaceClient.addGroup(createResponse.getId());
+					if(addGroupResponse == null || !"SUCCESS".equalsIgnoreCase(addGroupResponse.getSuccess())) {
+						log.error("Failed to add default group to workspace {}", createResponse.getId());
+						MessageDescription message = new MessageDescription();
+						message.setMessage("Failed to add default group to created workspace " + vo.getName() + ". Please add Default Group to your workspace manually or contact Admin.");
+						warnings.add(message);
+					}else {
+						log.info("Successfully added  default Group to workspace {} ", createResponse.getId());
+					}
+					
+					
 					FabricWorkspaceVO data = new FabricWorkspaceVO();
 					BeanUtils.copyProperties(vo, data);
 					data.setId(createResponse.getId());

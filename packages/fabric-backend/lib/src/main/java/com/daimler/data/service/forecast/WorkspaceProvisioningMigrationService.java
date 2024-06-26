@@ -25,13 +25,13 @@ public class WorkspaceProvisioningMigrationService {
 		
 		 WorkspacesCollectionDto collection = fabricWorkspaceClient.getAllWorkspacesDetails();
 		log.info("Fetched all fabric workspaces from API successfully");
-		if(collection!=null && collection.getValues()!=null && !collection.getValues().isEmpty()) {
+		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
 			log.info("Workspaces available, proceeding with provisioning for each");
-			for(WorkspaceDetailDto workspace: collection.getValues()) {
+			for(WorkspaceDetailDto workspace: collection.getValue()) {
 					fabricWorkspaceClient.provisionWorkspace(workspace.getId());
+					fabricWorkspaceClient.addGroup(workspace.getId());
 			}
 		}
-		
 	}
 	
 	
