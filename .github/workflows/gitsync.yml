@@ -71,7 +71,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: '${{ github.event.inputs.publicBranch }}'          
+          ref: '${{ github.event.inputs.publicBranch }}'  
+
+      - name: Debug
+        run: |
+          echo "${{toJSON(github.event)}}"
+          echo "head_commit -${{ github.event.head_commit.message }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"              
 
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
