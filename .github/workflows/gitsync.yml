@@ -73,49 +73,31 @@ jobs:
           fetch-depth: 0
           ref: '${{ github.event.inputs.publicBranch }}'          
 
-      # - name: Create Pull Request
-      #   id: cpr
-      #   uses: peter-evans/create-pull-request@v6.1.0
-      #   with:
-      #     token: ${{ secrets.PID_PAT }}
-      #     base: ${{ github.event.inputs.privateBranch }}
-      #     branch: ${{ github.event.inputs.publicBranch }}
-
-      - name: pull-request
-        id: cpr
-        uses: diillson/auto-pull-request@v1.0.1
-        env:
-          GITHUB_SERVER_URL: "https://git.i.mercedes-benz.com"
+      - name: Create pull request
+        uses: thomaseizinger/create-pull-request@master
         with:
-          source_branch: "${{ github.event.inputs.publicBranch }}"  
-          destination_repository: "https://git.i.mercedes-benz.com/DNA/DnA-Private"                             # If blank, default: triggered branch
-          destination_branch: "${{ github.event.inputs.privateBranch }}"                      # If blank, default: master
-          pr_title: "${{ github.event.commits[0].message }}" # Title of pull request
-          pr_reviewer: "palansa"                         # Comma-separated list (no spaces)
-          pr_assignee: "palansa"                         # Comma-separated list (no spaces)
-          pr_label: "automatic,feature"                               # Comma-separated list (no spaces)
-          pr_draft: false                                    # Creates pull request as draft
-          pr_allow_empty: false                              # Creates pull request even if there are no changes
-          github_token: ${{ secrets.PID_PAT }}      # If blank, default: secrets.GITHUB_TOKEN
-          debug: true
+          github_token: ${{ github.event.inputs.publicBranch }}
+          head: ${{ github.ref }}
+          base: ${{ github.event.inputs.privateBranch }}
+          title: "An automatically created PR!"
 
-      # - name: Run the Action
+      # - name: pull-request
       #   id: cpr
-      #   uses: devops-infra/action-pull-request@v0.5.5
-      #   with:
-      #     github_token: ${{ secrets.PID_PAT }}
-      #     source_branch: ${{ github.event.inputs.publicBranch }}
-      #     target_branch: ${{ github.event.inputs.privateBranch }}
-      #     title: ${{ github.event.commits[0].message }}
-      #     reviewer: palansa
-      #     assignee: palansa
-      #     label: automatic,feature
-      #     get_diff: true
-      #     old_string: "**Write you description here**"
-      #     new_string: ${{ github.event.commits[0].message }}  
+      #   uses: diillson/auto-pull-request@v1.0.1
       #   env:
-      #     GH_ENTERPRISE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     GH_HOST: git.i.mercedes-benz.com                 
+      #     GITHUB_SERVER_URL: "https://git.i.mercedes-benz.com"
+      #   with:
+      #     source_branch: "${{ github.event.inputs.publicBranch }}"  
+      #     destination_repository: "https://git.i.mercedes-benz.com/DNA/DnA-Private"                             # If blank, default: triggered branch
+      #     destination_branch: "${{ github.event.inputs.privateBranch }}"                      # If blank, default: master
+      #     pr_title: "${{ github.event.commits[0].message }}" # Title of pull request
+      #     pr_reviewer: "palansa"                         # Comma-separated list (no spaces)
+      #     pr_assignee: "palansa"                         # Comma-separated list (no spaces)
+      #     pr_label: "automatic,feature"                               # Comma-separated list (no spaces)
+      #     pr_draft: false                                    # Creates pull request as draft
+      #     pr_allow_empty: false                              # Creates pull request even if there are no changes
+      #     github_token: ${{ secrets.PID_PAT }}      # If blank, default: secrets.GITHUB_TOKEN
+      #     debug: true             
 
       - name: Pull Request URL
         if: ${{ steps.cpr.outputs.pr_number }}
