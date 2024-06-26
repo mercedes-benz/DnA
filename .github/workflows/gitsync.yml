@@ -82,8 +82,9 @@ jobs:
       - name: Get Head Commit Message
         id: get_head_commit_message
         run: |
-          echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
+          echo "HEAD_COMMIT_MESSAGE=$(git log origin/${{ github.event.inputs.publicBranch }} -1 --pretty=%s)" >> "$GITHUB_OUTPUT"
           echo "$GITHUB_OUTPUT"
+          echo "Tt $HEAD_COMMIT_MESSAGE"
 
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
