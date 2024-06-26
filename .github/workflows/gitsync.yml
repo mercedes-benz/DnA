@@ -73,31 +73,31 @@ jobs:
           fetch-depth: 0
           ref: '${{ github.event.inputs.publicBranch }}'          
 
-      # - name: Create Pull Request
-      #   id: cpr
-      #   uses: peter-evans/create-pull-request@v6.1.0
-      #   with:
-      #     token: ${{ secrets.PID_PAT }}
-      #     base: ${{ github.event.inputs.privateBranch }}
-      #     branch: ${{ github.event.inputs.publicBranch }}
-
-      - name: Run the Action
+      - name: Create Pull Request
         id: cpr
-        uses: devops-infra/action-pull-request@v0.5.5
+        uses: peter-evans/create-pull-request@v6.1.0
         with:
-          github_token: ${{ secrets.PID_PAT }}
-          source_branch: ${{ github.event.inputs.publicBranch }}
-          target_branch: ${{ github.event.inputs.privateBranch }}
-          title: ${{ github.event.commits[0].message }}
-          reviewer: palansa
-          assignee: palansa
-          label: automatic,feature
-          get_diff: true
-          old_string: "**Write you description here**"
-          new_string: ${{ github.event.commits[0].message }}  
-        env:
-          GH_ENTERPRISE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_HOST: git.i.mercedes-benz.com                 
+          token: ${{ secrets.PID_PAT }}
+          base: ${{ github.event.inputs.privateBranch }}
+          branch: ${{ github.event.inputs.publicBranch }}
+
+      # - name: Run the Action
+      #   id: cpr
+      #   uses: devops-infra/action-pull-request@v0.5.5
+      #   with:
+      #     github_token: ${{ secrets.PID_PAT }}
+      #     source_branch: ${{ github.event.inputs.publicBranch }}
+      #     target_branch: ${{ github.event.inputs.privateBranch }}
+      #     title: ${{ github.event.commits[0].message }}
+      #     reviewer: palansa
+      #     assignee: palansa
+      #     label: automatic,feature
+      #     get_diff: true
+      #     old_string: "**Write you description here**"
+      #     new_string: ${{ github.event.commits[0].message }}  
+      #   env:
+      #     GH_ENTERPRISE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     GH_HOST: git.i.mercedes-benz.com                 
 
       - name: Pull Request URL
         if: ${{ steps.cpr.outputs.pr_number }}
