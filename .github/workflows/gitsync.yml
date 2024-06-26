@@ -87,7 +87,8 @@ jobs:
         env:
           GITHUB_SERVER_URL: "https://git.i.mercedes-benz.com"
         with:
-          source_branch: "${{ github.event.inputs.publicBranch }}"                                 # If blank, default: triggered branch
+          source_branch: "${{ github.event.inputs.publicBranch }}"  
+          destination_repository: "https://git.i.mercedes-benz.com/DNA/DnA-Private"                             # If blank, default: triggered branch
           destination_branch: "${{ github.event.inputs.privateBranch }}"                      # If blank, default: master
           pr_title: "${{ github.event.commits[0].message }}" # Title of pull request
           pr_reviewer: "palansa"                         # Comma-separated list (no spaces)
@@ -96,6 +97,7 @@ jobs:
           pr_draft: false                                    # Creates pull request as draft
           pr_allow_empty: false                              # Creates pull request even if there are no changes
           github_token: ${{ secrets.PID_PAT }}      # If blank, default: secrets.GITHUB_TOKEN
+          debug: true
 
       # - name: Run the Action
       #   id: cpr
