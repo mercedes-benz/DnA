@@ -45,7 +45,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
 
       # - name: Clone changes from public repo branch to private branch
       #   working-directory: ./utils/gitsync/
@@ -57,6 +57,7 @@ jobs:
       #     PUBLIC_SRC_BRANCH:  ${{ github.event.inputs.publicBranch }}
       #     DEST_BRANCH: ${{ github.event.inputs.privateBranch }}
       #     DEST_STAGING_BRANCH: ${{ github.event.inputs.privateBranch }}
+      
 
       - name: Sync code with Public repo
         uses: wei/git-sync@v3
@@ -66,24 +67,46 @@ jobs:
           destination_repo: "https://${{ secrets.PID_PAT }}@$DEST_REPO"
           destination_branch: "${{ github.event.inputs.publicBranch }}"
 
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v6.1.0
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PID_PAT }}
-          base: ${{ github.event.inputs.privateBranch }}
-          branch: ${{ github.event.inputs.publicBranch }}
+          fetch-depth: 0
+          ref: '${{ github.event.inputs.publicBranch }}'          
+
+      # - name: Create Pull Request
+      #   id: cpr
+      #   uses: peter-evans/create-pull-request@v6.1.0
+      #   with:
+      #     token: ${{ secrets.PID_PAT }}
+      #     base: ${{ github.event.inputs.privateBranch }}
+      #     branch: ${{ github.event.inputs.publicBranch }}
+
+      - name: Run the Action
+        id: cpr
+        uses: devops-infra/action-pull-request@v0.5.5
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          source_branch: ${{ github.event.inputs.publicBranch }}
+          target_branch: ${{ github.event.inputs.privateBranch }}
+          title: ${{ github.event.commits[0].message }}
+          reviewer: palansa
+          assignee: palansa
+          label: automatic,feature
+          get_diff: true
+          old_string: "**Write you description here**"
+          new_string: ${{ github.event.commits[0].message }}          
 
       - name: Pull Request URL
-        if: ${{ steps.cpr.outputs.pull-request-number }}
+        if: ${{ steps.cpr.outputs.pr_number }}
         run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.url }}"
             
       - uses: peter-evans/enable-pull-request-automerge@v3
+        if: ${{ steps.cpr.outputs.pr_number }}
         with:
           token: ${{ secrets.PID_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          pull-request-number: ${{ steps.cpr.outputs.url }}
               
 
   success:
