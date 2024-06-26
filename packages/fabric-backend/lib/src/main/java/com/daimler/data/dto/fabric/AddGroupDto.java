@@ -1,7 +1,6 @@
 package com.daimler.data.dto.fabric;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -13,9 +12,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WorkspacesCollectionDto  extends ErrorResponseDto implements Serializable {
+public class AddGroupDto  implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	private List<WorkspaceDetailDto> value;
+	private String groupUserAccessRight;
+	private String identifier;
+	private String principalType;
+	private String displayName;
+	
 }
