@@ -76,7 +76,13 @@ jobs:
         run: |
           echo "${{toJSON(github.event)}}"
           echo "head_commit -${{ github.event.head_commit.message }}"
-          echo "Pull Request URL - ${{ github.event.commits[0].message }}"              
+          echo "Pull Request URL - ${{ github.event.commits[0].message }}"    
+
+      - name: Get Head Commit Message
+        id: get_head_commit_message
+        run: |
+          echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
+          echo "$GITHUB_OUTPUT"
 
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
