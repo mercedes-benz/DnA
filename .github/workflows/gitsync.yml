@@ -73,13 +73,27 @@ jobs:
           fetch-depth: 0
           ref: '${{ github.event.inputs.publicBranch }}'          
 
-      - name: Create Pull Request
+      # - name: Create Pull Request
+      #   id: cpr
+      #   uses: peter-evans/create-pull-request@v6.1.0
+      #   with:
+      #     token: ${{ secrets.PID_PAT }}
+      #     base: ${{ github.event.inputs.privateBranch }}
+      #     branch: ${{ github.event.inputs.publicBranch }}
+
+      - name: pull-request
         id: cpr
-        uses: peter-evans/create-pull-request@v6.1.0
+        uses: diillson/auto-pull-request@v1.0.1
         with:
-          token: ${{ secrets.PID_PAT }}
-          base: ${{ github.event.inputs.privateBranch }}
-          branch: ${{ github.event.inputs.publicBranch }}
+          source_branch: "${{ github.event.inputs.publicBranch }}"                                 # If blank, default: triggered branch
+          destination_branch: "${{ github.event.inputs.privateBranch }}"                      # If blank, default: master
+          pr_title: "${{ github.event.commits[0].message }}" # Title of pull request
+          pr_reviewer: "palansa"                         # Comma-separated list (no spaces)
+          pr_assignee: "palansa"                         # Comma-separated list (no spaces)
+          pr_label: "automatic,feature"                               # Comma-separated list (no spaces)
+          pr_draft: false                                    # Creates pull request as draft
+          pr_allow_empty: false                              # Creates pull request even if there are no changes
+          github_token: ${{ secrets.PID_PAT }}      # If blank, default: secrets.GITHUB_TOKEN
 
       # - name: Run the Action
       #   id: cpr
@@ -103,13 +117,13 @@ jobs:
         if: ${{ steps.cpr.outputs.pr_number }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.url }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pr_url }}"
             
       - uses: peter-evans/enable-pull-request-automerge@v3
         if: ${{ steps.cpr.outputs.pr_number }}
         with:
           token: ${{ secrets.PID_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.url }}
+          pull-request-number: ${{ steps.cpr.outputs.pr_number }}
               
 
   success:
