@@ -85,7 +85,7 @@ jobs:
         id: cpr
         uses: diillson/auto-pull-request@v1.0.1
         env:
-          GITHUB_SERVER_URL: "git.i.mercedes-benz.com"
+          GITHUB_SERVER_URL: "https://git.i.mercedes-benz.com"
         with:
           source_branch: "${{ github.event.inputs.publicBranch }}"                                 # If blank, default: triggered branch
           destination_branch: "${{ github.event.inputs.privateBranch }}"                      # If blank, default: master
