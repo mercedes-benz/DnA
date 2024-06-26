@@ -82,7 +82,7 @@ jobs:
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: "palansa"
           labels: "automatic,feature"
-          title: "${{ github.event.commits[0].message }}"
+          title: "${{ github.event.head_commit.message }}"
 
       # - name: pull-request
       #   id: cpr
