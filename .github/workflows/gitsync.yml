@@ -76,7 +76,7 @@ jobs:
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
         with:
-          github_token: ${{ github.event.inputs.publicBranch }}
+          github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.ref }}
           base: ${{ github.event.inputs.privateBranch }}
           title: "An automatically created PR!"
