@@ -71,6 +71,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: '${{ github.event.inputs.publicBranch }}'  
+          fetch-depth: 0
 
       - name: Debug
         run: |
