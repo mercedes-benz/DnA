@@ -76,7 +76,7 @@ jobs:
         run: |
           echo "${{toJSON(github.event)}}"
           echo "head_commit -${{ github.event.head_commit.message }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"              
+          echo "Pull Request URL - ${{ github.event.commits[0].message }}"              
 
       - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
@@ -87,7 +87,7 @@ jobs:
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: "palansa"
           labels: "automatic,feature"
-          title: "${{ github.event.head_commit.message }}"
+          title: "${{ github.event.commits[0].message }}"
 
       # - name: pull-request
       #   id: cpr
