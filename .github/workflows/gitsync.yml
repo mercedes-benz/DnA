@@ -37,7 +37,7 @@ jobs:
 
       - name: Check Source Branch
         run: |
-          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* ] || [ "${{ github.event.inputs.publicBranch }}" == *"bugfix"* ] || [ "${{ github.event.inputs.publicBranch }}" == *"hotfix"* ]]; then
+          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* || "${{ github.event.inputs.publicBranch }}" == *"bugfix"* || "${{ github.event.inputs.publicBranch }}" == *"hotfix"* ]]; then
             echo "Public Branch name: ${{ github.event.inputs.publicBranch }}"
           else
             echo "Public Branch name does not valid"
