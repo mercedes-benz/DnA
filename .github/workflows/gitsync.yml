@@ -15,7 +15,7 @@ on:
           - staging
           - main   
       reviewers:
-        description: 'Reviewers'  
+        description: 'Reviewers for staging and main branch'  
         default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
         required: true   
 
