@@ -45,20 +45,6 @@ jobs:
             exit 1
           fi
 
-      # - uses: actions/checkout@v3
-
-      # - name: Clone changes from public repo branch to private branch
-      #   working-directory: ./utils/gitsync/
-      #   run: |
-      #     chmod +x ./gitsync
-      #     ./gitsync
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.PID_PAT }}
-      #     PUBLIC_SRC_BRANCH:  ${{ github.event.inputs.publicBranch }}
-      #     DEST_BRANCH: ${{ github.event.inputs.privateBranch }}
-      #     DEST_STAGING_BRANCH: ${{ github.event.inputs.privateBranch }}
-      
-
       - name: Sync code with Public repo
         uses: wei/git-sync@v3
         with:
@@ -71,18 +57,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: '${{ github.event.inputs.publicBranch }}'  
-          fetch-depth: 0
-
-      - name: Debug
-        run: |
-          echo "${{toJSON(github.event)}}"
-          echo "head_commit -${{ github.event.head_commit.message }}"
-          echo "Pull Request URL - ${{ github.event.commits[0].message }}"    
+          fetch-depth: 0  
 
       - name: Get Head Commit Message
         id: get_head_commit_message
         run: |
-          echo "HEAD_COMMIT_MESSAGE=$(git log origin/${{ github.event.inputs.publicBranch }} -1 --pretty=%s)" >> "$GITHUB_OUTPUT"
+          echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
           echo "$GITHUB_OUTPUT"
           echo "Tt $HEAD_COMMIT_MESSAGE"
 
@@ -95,25 +75,7 @@ jobs:
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: "palansa"
           labels: "automatic,feature"
-          title: "${{ github.event.commits[0].message }}"
-
-      # - name: pull-request
-      #   id: cpr
-      #   uses: diillson/auto-pull-request@v1.0.1
-      #   env:
-      #     GITHUB_SERVER_URL: "https://git.i.mercedes-benz.com"
-      #   with:
-      #     source_branch: "${{ github.event.inputs.publicBranch }}"  
-      #     destination_repository: "https://git.i.mercedes-benz.com/DNA/DnA-Private"                             # If blank, default: triggered branch
-      #     destination_branch: "${{ github.event.inputs.privateBranch }}"                      # If blank, default: master
-      #     pr_title: "${{ github.event.commits[0].message }}" # Title of pull request
-      #     pr_reviewer: "palansa"                         # Comma-separated list (no spaces)
-      #     pr_assignee: "palansa"                         # Comma-separated list (no spaces)
-      #     pr_label: "automatic,feature"                               # Comma-separated list (no spaces)
-      #     pr_draft: false                                    # Creates pull request as draft
-      #     pr_allow_empty: false                              # Creates pull request even if there are no changes
-      #     github_token: ${{ secrets.PID_PAT }}      # If blank, default: secrets.GITHUB_TOKEN
-      #     debug: true             
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Pull Request URL
         if: ${{ steps.cpr.outputs.number }}
