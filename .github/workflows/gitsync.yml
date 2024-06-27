@@ -37,7 +37,7 @@ jobs:
 
       - name: Check Source Branch
         run: |
-          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* ]]; then
+          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* ] || [ "${{ github.event.inputs.publicBranch }}" == *"bugfix"* ] || [ "${{ github.event.inputs.publicBranch }}" == *"hotfix"* ]]; then
             echo "Public Branch name: ${{ github.event.inputs.publicBranch }}"
           else
             echo "Public Branch name does not valid"
@@ -66,8 +66,21 @@ jobs:
           echo "$GITHUB_OUTPUT"
           echo "Tt $HEAD_COMMIT_MESSAGE"
 
-      - name: Create pull request
+      - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
+        if: ${{ github.ref_name == 'dev' }} 
+        id: cpr
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.publicBranch }}
+          base: ${{ github.event.inputs.privateBranch }}
+          # reviewers: "palansa"
+          labels: "automatic,feature,automerge"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create staging pull request
+        uses: thomaseizinger/create-pull-request@master
+        if: ${{ github.ref_name == 'staging' }} 
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
@@ -77,13 +90,26 @@ jobs:
           labels: "automatic,feature,automerge"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
-      - name: Pull Request URL
+      - name: Create main pull request
+        uses: thomaseizinger/create-pull-request@master
+        if: ${{ github.ref_name == 'main' }} 
+        id: cpr
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.publicBranch }}
+          base: ${{ github.event.inputs.privateBranch }}
+          reviewers: "palansa"
+          labels: "automatic,feature,automerge"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Print pull request details
         if: ${{ steps.cpr.outputs.number }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
 
-      - name: pull-request merge
+      - name: Dev pull request merge
+        if: ${{ github.ref_name == 'dev' }} 
         uses: sudo-bot/action-pull-request-merge@v1.2.0
         with:
           github-token: ${{ secrets.PID_PAT }}
