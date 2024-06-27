@@ -74,7 +74,7 @@ jobs:
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: "palansa"
-          labels: "automatic,feature"
+          labels: "automatic,feature,automerge"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Pull Request URL
@@ -82,12 +82,14 @@ jobs:
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
-            
-      - uses: peter-evans/enable-pull-request-automerge@v3
-        if: ${{ steps.cpr.outputs.number }}
+
+      - name: pull-request merge
+        uses: sudo-bot/action-pull-request-merge@v1.2.0
         with:
-          token: ${{ secrets.PID_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.number }}
+          github-token: ${{ secrets.PID_PAT }}
+          number: ${{ steps.cpr.outputs.number }}
+          filter-label: automerge        
+            
               
 
   success:
