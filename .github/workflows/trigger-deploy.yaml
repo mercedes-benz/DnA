@@ -78,6 +78,10 @@ jobs:
     runs-on: [road-runner, medium]
     permissions:
       pull-requests: read    
+      contents: read
+      packages: write   
+      actions: write   
+      checks: write            
     steps:
 
       # For pull requests it's not necessary to checkout the code
