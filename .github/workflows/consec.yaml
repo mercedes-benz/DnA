@@ -1,0 +1,33 @@
+
+
+
+name: Container security scan
+
+on:
+  workflow_call:
+    inputs:
+      FULL_IMAGE_NAME:
+        required: true
+        type: string                      
+    secrets:
+      CSS_USER:
+        required: true
+      CSS_PASSWORD:
+        required: true      
+
+jobs: 
+  css:
+    name: 'CSS Image Scan'
+    runs-on: [road-runner, medium]
+    steps:
+    - name: CSS Image Scan
+      id: scan
+      uses: consec/scan@v3
+      with:
+        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
+        pcc_user: ${{ secrets.CSS_USER }}
+        pcc_pass: ${{ secrets.CSS_PASSWORD }}
+        image_name: ${{ inputs.FULL_IMAGE_NAME }}
+      env:
+        no_proxy: "consec-img-scan.app.corpintra.net"
+        JOB_NAME: "${{ secrets.CSS_USER }}" 

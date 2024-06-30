@@ -8,22 +8,8 @@ on:
         description: "Target build environment"
         type: environment
         required: true
-        default: 'Development'
-      # service:
-      #   description: 'Service to deploy'
-      #   default: code-server
-      #   required: true         
-      #   type: choice
-      #   options: 
-      #     - code-server
-      #     - dna-frontend
-      #     - dna-backend         
+        default: 'Development'      
 
-  # push:
-  #   branches:
-  #     - dev
-  #   paths:
-  #     - 'packages/**'
   pull_request:
     types:
       - closed
@@ -34,48 +20,14 @@ on:
     paths:
       - 'packages/**'      
 
-env:
-  REGISTRY: registry-emea.app.corpintra.net
-  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
-  NO_PROXY: ''
-  RUNNER_ALLOW_RUNASROOT: 1
-  IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/code-server-be
-  IMAGE_TAG_PATH: image.tag
-  DOCKER_FILE_PATH: dockerfiles/cs-backend.Dockerfile
-  BLACKDUCK_URL: https://bdscan.i.mercedes-benz.com/
-  DETECT_PROJECT_NAME: CodeServerBE
-  # DETECT_SOURCE_PATH: <<<<fill-it>>>>>  # comment the line if path is root
-  SECHUB_USERID: pid6c39
-  SECHUB_SERVER: https://sechub.app.corpintra.net
-
 jobs: 
-
-    # changes:
-    #   name: 'Detect Changes'
-    #   runs-on: [road-runner, medium]
-    #   # Required permissions
-    #   permissions:
-    #     pull-requests: read
-    #   outputs:
-    #     # Expose matched filters as job 'packages' output variable
-    #     packages: ${{ steps.filter.outputs.changes }}
-    #   steps:
-      
-    #   # For pull requests it's not necessary to checkout the code
-    #   - name: checkout 
-    #     if: ${{ github.event_name == 'workflow_dispatch' }}
-    #     uses: actions/checkout@v4
-
-    #   - uses: dorny/paths-filter@v3.0.2
-    #     id: filter
-    #     with:
-    #       filters: |
-    #         package1: src/package1
-    #         package2: src/package2
           
   select-service:
     name: 'Select Service to Deploy'
     runs-on: [road-runner, medium]
+    outputs:
+      code-server: ${{ steps.filter.outputs.code-server }}    
+      chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}    
     permissions:
       pull-requests: read    
       contents: read
@@ -93,17 +45,43 @@ jobs:
         id: filter
         with:
           filters: |
-            code-server: packages/code-server
-            chronos-mfe: packages/chronos-mfe
+            code-server: 
+              - 'packages/code-server/**'
+            chronos-mfe: 
+              - 'packages/chronos-mfe/**'
 
-      - name: Debug
-        run: |
-          echo  "${{ steps.filter.outputs }}"
-          echo  "${{ steps.filter.outputs.code-server }}"
-          echo  "${{ steps.filter.outputs.chronos-mfe }}"
+  code-server:
+        name: Code Server Backend
+        needs: select-service
+        if: needs.select-service.outputs.code-server == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/code-server-be'
+          DOCKER_FILE_PATH: 'codeServer/cs-backend.Dockerfile'
+          DETECT_PROJECT_NAME: 'CodeServerBE'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/code-server'
+          APP_VERSION_FILE_PATH: 'packages/code-server/code-server-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/code-server-backend'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
 
-      - name: Code Server
-        if: steps.filter.outputs.code-server == 'true'
-        run: |
-          echo  "Code-server Folder"
-
+  chronos-mfe:
+        name: Chronos MFE
+        needs: select-service
+        if: needs.select-service.outputs.chronos-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/chronos-mfe'
+          DOCKER_FILE_PATH: 'chronosService/chronos-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'ChronosMFE'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/chronos-mfe'
+          APP_VERSION_FILE_PATH: 'packages/chronos-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/chronos-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
