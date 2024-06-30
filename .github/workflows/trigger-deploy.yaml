@@ -52,7 +52,9 @@ jobs:
 
       - run: |
           echo "${{ github.event.pull_request.base.ref }}"
+          echo "${{ github.head_ref }}"
           echo "$GITHUB_BASE_REF"
+          echo "$GITHUB_HEAD_REF"
 
   code-server:
         name: Code Server Backend
