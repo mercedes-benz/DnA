@@ -19,15 +19,6 @@ on:
         default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
         required: true   
 
-  workflow_call:
-    inputs:
-      isSync:
-        required: true
-        type: string
-        default: 'yes'
-    secrets:
-      PID_PAT:
-        required: true  
 env:
   PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
   DEST_REPO: git.i.mercedes-benz.com/DNA/DnA-Private.git
@@ -116,16 +107,4 @@ jobs:
           github-token: ${{ secrets.PID_PAT }}
           number: ${{ steps.cpr.outputs.number }}
           filter-label: automerge        
-                          
-
-  success:
-  #To avoid skipping other dependent job, just running cmd to make job success.
-    name: "Make job success"
-    needs: gitsync
-    if: always() && needs.gitsync.result == 'skipped'
-    runs-on: [ road-runner, self-hosted ]
-    steps:
-
-      - name: Success
-        run: |
-          echo "Success"  
+                           

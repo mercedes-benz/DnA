@@ -171,13 +171,7 @@ jobs:
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
-        token: ${{ secrets.PID_PAT }}    
-
-    - name: Delete HEAD branche
-      uses: dawidd6/action-delete-branch@v3.1.0
-      with:
-        github_token: ${{ secrets.PID_PAT }}
-        branches: ${{ github.head_ref }}   
+        token: ${{ secrets.PID_PAT }}     
         
   staging:
     name: 'Deploy to staging'
@@ -241,11 +235,11 @@ jobs:
         commit: "main"
         token: ${{ secrets.PID_PAT }} 
 
-    # - name: Delete HEAD branche
-    #   uses: dawidd6/action-delete-branch@v3.1.0
-    #   with:
-    #     github_token: ${{ secrets.PID_PAT }}
-    #     branches: ${{ github.head_ref }}     
+    - name: Delete HEAD branche
+      uses: dawidd6/action-delete-branch@v3.1.0
+      with:
+        github_token: ${{ secrets.PID_PAT }}
+        branches: ${{ github.head_ref }}     
             
 
   css-scan:
