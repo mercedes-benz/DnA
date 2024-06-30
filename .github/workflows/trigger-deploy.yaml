@@ -50,6 +50,10 @@ jobs:
             chronos-mfe: 
               - 'packages/chronos-mfe/**'
 
+      - run: |
+          echo "${{ github.event.pull_request.base.ref }}"
+          echo "$GITHUB_BASE_REF"
+
   code-server:
         name: Code Server Backend
         needs: select-service

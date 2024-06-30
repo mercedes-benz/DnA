@@ -52,95 +52,6 @@ env:
 
 jobs: 
 
-  development:
-    name: 'Deploy to Development'
-    needs: build
-    if: ${{ github.ref_name == 'dev' || inputs.ENVIRONMENT == 'Development' }}
-    runs-on: [road-runner, large]
-    environment:
-      name: Development
-    steps:
-
-    - name: Check out repository code
-      uses: actions/checkout@v3
-      with:
-        ref: 'dev'       
-
-    - name: Update Image Version values.yaml
-      uses: fjogeleit/yaml-update-action@v0.13.1
-      with:
-        valueFile: ${{ inputs.HELM_FOLDER }}/values-dev.yaml
-        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ github.run_number }}
-        branch: dev
-        createPR: false
-        commitChange: true
-        message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
-        token: ${{ secrets.PID_PAT }}    
-
-  staging:
-    name: 'Deploy to staging'
-    needs: build
-    if: ${{ github.ref_name == 'staging' ||  inputs.ENVIRONMENT == 'Staging' }}
-    runs-on: [road-runner, medium]
-    environment:
-      name: Staging
-    steps:
-
-    - name: Check out repository code
-      uses: actions/checkout@v4
-      with:
-        ref: 'staging'        
-
-    - name: Update Image Version values.yaml
-      uses: fjogeleit/yaml-update-action@v0.13.1
-      with:
-        valueFile: ${{ inputs.HELM_FOLDER }}/values-test.yaml
-        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ github.run_number }}
-        branch: staging
-        createPR: false
-        commitChange: true
-        message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
-        token: ${{ secrets.PID_PAT }} 
-
-  production:
-    name: 'Deploy to Production'
-    needs: build
-    if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
-    runs-on: [road-runner, medium]
-    environment:
-      name: Production
-    steps:
-
-    - name: Check out repository code
-      uses: actions/checkout@v4
-      with:
-        ref: 'main'       
-
-    - name: Update Image Version values.yaml
-      uses: fjogeleit/yaml-update-action@v0.13.1
-      with:
-        valueFile: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
-        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ needs.build.outputs.version }}
-        branch: main
-        createPR: false
-        commitChange: true
-        message: 'Update Image Version to ${{ needs.build.outputs.version }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
-        token: ${{ secrets.PID_PAT }}
-        
-    - name: Create Release
-      uses: ncipollo/release-action@v1.12.0
-      with:
-        name: "Release ${{ inputs.DETECT_PROJECT_NAME }} : ${{ needs.build.outputs.version }}"
-        tag: "${{ inputs.DETECT_PROJECT_NAME }}_${{ needs.build.outputs.version }}"
-        commit: "main"
-        token: ${{ secrets.PID_PAT }} 
-
   build:
     name: 'Build App'
     runs-on: [road-runner, large]
@@ -235,6 +146,102 @@ jobs:
       run: |
         docker logout $REGISTRY 
 
+  development:
+    name: 'Deploy to Development'
+    needs: build
+    if: ${{ github.ref_name == 'dev' || inputs.ENVIRONMENT == 'Development' }}
+    runs-on: [road-runner, large]
+    environment:
+      name: Development
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: 'dev'       
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: ${{ inputs.HELM_FOLDER }}/values-dev.yaml
+        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
+        value: ${{ github.run_number }}
+        branch: dev
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}    
+
+  staging:
+    name: 'Deploy to staging'
+    needs: build
+    if: ${{ github.ref_name == 'staging' ||  inputs.ENVIRONMENT == 'Staging' }}
+    runs-on: [road-runner, medium]
+    environment:
+      name: Staging
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: 'staging'        
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: ${{ inputs.HELM_FOLDER }}/values-test.yaml
+        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
+        value: ${{ github.run_number }}
+        branch: staging
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }} 
+
+  production:
+    name: 'Deploy to Production'
+    needs: build
+    if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
+    runs-on: [road-runner, medium]
+    environment:
+      name: Production
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: 'main'       
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
+        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
+        value: ${{ needs.build.outputs.version }}
+        branch: main
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ needs.build.outputs.version }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+        
+    - name: Create Release
+      uses: ncipollo/release-action@v1.12.0
+      with:
+        name: "Release ${{ inputs.DETECT_PROJECT_NAME }} : ${{ needs.build.outputs.version }}"
+        tag: "${{ inputs.DETECT_PROJECT_NAME }}_${{ needs.build.outputs.version }}"
+        commit: "main"
+        token: ${{ secrets.PID_PAT }} 
+
+    # - name: Delete HEAD branche
+    #   uses: dawidd6/action-delete-branch@v3.1.0
+    #   with:
+    #     github_token: ${{ secrets.PID_PAT }}
+    #     branches: ${{ github.event.pull_request.base.ref }}      
+            
+
   css-scan:
         name: Container security scan
         needs: build
@@ -254,7 +261,7 @@ jobs:
   #   steps:
 
   #   - name: Check out repository code
-  #     uses: actions/checkout@v3
+  #     uses: actions/checkout@v4
 
   #   - uses: actions/setup-java@v3
   #     with:
@@ -312,7 +319,7 @@ jobs:
   #   steps:    
 
   #   - name: Check out other repo
-  #     uses: actions/checkout@v3
+  #     uses: actions/checkout@v4
   #     with:
   #       repository: ""
   #       token: ""
