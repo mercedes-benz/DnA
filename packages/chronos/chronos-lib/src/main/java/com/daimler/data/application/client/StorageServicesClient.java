@@ -111,7 +111,7 @@ public class StorageServicesClient {
 					creatorChronosSystemUser.setLastName(object.get("lastName").toString());
 					creatorChronosSystemUser.setDepartment(object.get("department").toString());
 					creatorChronosSystemUser.setEmail(object.get("email").toString());
-					creatorChronosSystemUser.setEmail(object.get("mobileNumber").toString());
+					creatorChronosSystemUser.setMobileNumber(object.get("mobileNumber").toString());
 				}catch(Exception e){
 					log.error("Failed while converting user details with Exception {}:",e.getMessage());
 				}
@@ -212,7 +212,7 @@ public class StorageServicesClient {
 				creatorChronosSystemUser.setLastName(object.get("lastName").toString());
 				creatorChronosSystemUser.setDepartment(object.get("department").toString());
 				creatorChronosSystemUser.setEmail(object.get("email").toString());
-				creatorChronosSystemUser.setEmail(object.get("mobileNumber").toString());
+				creatorChronosSystemUser.setMobileNumber(object.get("mobileNumber").toString());
 			}catch(Exception e){
 				log.error("Failed while converting user details with Exception {}:",e.getMessage());
 			}

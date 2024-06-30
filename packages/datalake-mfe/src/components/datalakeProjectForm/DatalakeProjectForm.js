@@ -505,7 +505,7 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
               <label className="input-label">Find and add the collaborators you want to your project (Optional)</label>
               <div className={Styles.collabratorSection}>
                 <div className={Styles.collabratorSelectionModel}>
-                  <TableCollaborators edit={edit} table={table}  user={user} isProjectLevelCollab ={true} onProjCollabAdd = {onProjCollabAdd}/>
+                  <TableCollaborators edit={edit} table={table}  user={user} isProjectLevelCollab ={true} onProjCollabAdd = {onProjCollabAdd} createdBy ={project?.data?.createdBy}/>
                 </div>
               </div>
               

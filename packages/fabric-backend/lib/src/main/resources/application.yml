@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.0.1
+    version: 1.0.2
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -43,6 +43,9 @@ fabricWorkspaces:
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
+  group:
+    identifier:  ${FABRIC_ONBOARD_GROUP_IDENTIFIER:xxxxx}
+    displayName:  ${FABRIC_ONBOARD_GROUP_DISPLAYNAME:xxxxx}
   uri:
     login: ${FABRIC_LOGIN_URL:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
     workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}

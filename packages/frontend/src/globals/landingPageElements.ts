@@ -36,6 +36,7 @@ const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
+const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 
 export const DataLayerElements = [
   {
@@ -274,6 +275,24 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'powerbi',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'formbricksSurvey',
+    name: 'Formbricks Survey',
+    description:
+      'Formbricks is an Experience Management Suite built on the largest open-source survey stack worldwide. Gracefully gather feedback at every step of the customer journey to know what your customers need.',
+    tags: ['Frontend Reporting', 'No / Low Code', 'Onprem'],
+    url: formbricksSurveyUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !formbricksSurveyUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
     isDnAInternalTool: false,
   },
   {

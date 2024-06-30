@@ -177,7 +177,7 @@ export const BucketList = (props) => {
           {bucketList?.map((item, index) => {
             const hasWriteAccess = item?.permission?.write;
             const isOwner = props.user?.id === item.createdBy?.id;
-            const collaborators = item.collaborators?.filter((item) => item.accesskey !== props.user?.id);
+            const collaborators = item.collaborators?.filter((val) => val.accesskey !== item?.createdBy.id && val.accesskey !== props?.user?.id );
             return (
               <div key={'card-' + index} className={classNames(Styles.storageCard)}>
                 <div className={Styles.cardHead}>

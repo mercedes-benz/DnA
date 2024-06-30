@@ -48,7 +48,7 @@ public class Application extends SpringBootServletInitializer implements WebAppl
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
 	public static void main(String[] args) {
-		LOG.info("Starting up the dna chronos application");
+		LOG.info("Starting up the dna fabric application");
 		SpringApplication.run(Application.class, args);
 	}
 
