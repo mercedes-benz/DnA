@@ -18,7 +18,8 @@ on:
       - 'staging'
       - 'main'
     paths:
-      - 'packages/**'      
+      - 'packages/**'   
+      - 'deployment/dockerfiles/**'   
 
 jobs: 
           
