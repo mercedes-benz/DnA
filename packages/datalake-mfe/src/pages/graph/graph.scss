@@ -310,7 +310,10 @@
         background-image: radial-gradient(#373a3f 1px, rgba(0, 0, 0, 0) 1px);
         background-size: 12px 12px;
         width: 100%;
-        height: 600px;
+        height: 650px;
+        &:active{
+          cursor: grab;
+        }
     }
 
     .table {

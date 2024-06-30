@@ -6,7 +6,7 @@ import TeamSearch from 'dna-container/TeamSearch';
 import { setTables } from '../../redux/graphSlice';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
-const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLevelCollab}) => {
+const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLevelCollab,createdBy}) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
@@ -19,7 +19,7 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
 
   const addMemberFromTeamSearch = (member) => {
     const isMemberExists = collabs.filter(item => item.id === member.shortId);
-    if(user.id === member.shortId) {
+    if(user.id === member.shortId || createdBy.id === member.shortId) {
       Notification.show(`Owner can't be added as a collaborator`, 'alert');
     } else if (isMemberExists.length > 0) {
       setShowUserAlreadyExistsError(true);
