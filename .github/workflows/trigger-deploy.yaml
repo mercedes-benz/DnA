@@ -23,7 +23,7 @@ on:
 jobs: 
           
   select-service:
-    name: 'Select Service to Deploy'
+    name: 'Detect changes in the service files'
     runs-on: [road-runner, medium]
     outputs:
       code-server: ${{ steps.filter.outputs.code-server }}    
@@ -47,8 +47,10 @@ jobs:
           filters: |
             code-server: 
               - 'packages/code-server/**'
+              - 'deployment/dockerfiles/codeServer/cs-backend.Dockerfile'
             chronos-mfe: 
               - 'packages/chronos-mfe/**'
+              - 'deployment/dockerfiles/chronosService/chronos-mfe.Dockerfile'
 
   code-server:
         name: Code Server Backend
