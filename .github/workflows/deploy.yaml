@@ -173,6 +173,12 @@ jobs:
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
+    - name: Delete HEAD branche
+      uses: dawidd6/action-delete-branch@v3.1.0
+      with:
+        github_token: ${{ secrets.PID_PAT }}
+        branches: ${{ github.head_ref }}   
+        
   staging:
     name: 'Deploy to staging'
     needs: build
@@ -239,7 +245,7 @@ jobs:
     #   uses: dawidd6/action-delete-branch@v3.1.0
     #   with:
     #     github_token: ${{ secrets.PID_PAT }}
-    #     branches: ${{ github.event.pull_request.base.ref }}      
+    #     branches: ${{ github.head_ref }}     
             
 
   css-scan:
