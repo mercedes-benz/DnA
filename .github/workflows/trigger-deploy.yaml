@@ -28,7 +28,8 @@ jobs:
     runs-on: [road-runner, medium]
     outputs:
       code-server: ${{ steps.filter.outputs.code-server }}    
-      chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}    
+      chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}
+      code-space-mfe: ${{ steps.filter.outputs.code-space-mfe }}    
     permissions:
       pull-requests: read    
       contents: read
@@ -52,6 +53,9 @@ jobs:
             chronos-mfe: 
               - 'packages/chronos-mfe/**'
               - 'deployment/dockerfiles/chronosService/chronos-mfe.Dockerfile'
+            code-space-mfe: 
+              - 'packages/code-server/**'
+              - 'deployment/dockerfiles/codeServer/code-space-mfe.Dockerfile'
 
   code-server:
         name: Code Server Backend
@@ -88,3 +92,20 @@ jobs:
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/chronos-mfe'
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
+  code-space-mfe:
+        name: code-space-mfe
+        needs: select-service
+        if: needs.select-service.outputs.code-space-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe'
+          DOCKER_FILE_PATH: 'codeServer/code-space-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'codespace-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/chronos-mfe'
+          APP_VERSION_FILE_PATH: 'packages/code-space-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/code-space-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit      
