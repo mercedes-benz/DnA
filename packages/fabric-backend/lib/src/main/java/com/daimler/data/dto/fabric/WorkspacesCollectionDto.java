@@ -17,5 +17,5 @@ public class WorkspacesCollectionDto  extends ErrorResponseDto implements Serial
 
 	private static final long serialVersionUID = 1L;
 
-	private List<WorkspaceDetailDto> values;
+	private List<WorkspaceDetailDto> value;
 }

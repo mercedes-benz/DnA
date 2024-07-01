@@ -42,7 +42,9 @@ spec:
         {{- end }}
         checksum/health: {{ include (print $.Template.BasePath "/health-configmap.yaml") . | sha256sum }}
         checksum/scripts: {{ include (print $.Template.BasePath "/scripts-configmap.yaml") . | sha256sum }}
+        {{- if and .Values.auth.enabled (not .Values.auth.existingSecret) (not .Values.auth.usePasswordFiles) -}}
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end -}}
         {{- if .Values.replica.podAnnotations }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.replica.podAnnotations "context" $ ) | nindent 8 }}
         {{- end }}
@@ -239,10 +241,10 @@ spec:
               mountPath: /opt/bitnami/scripts/start-scripts
             - name: health
               mountPath: /health
-            {{- if .Values.auth.usePasswordFiles }}
-            - name: redis-password
-              mountPath: /vault/secrets/
-            {{- end }}
+            # {{- if .Values.auth.usePasswordFiles }}
+            # - name: redis-password
+            #   mountPath: /vault/secrets/
+            # {{- end }}
             - name: redis-data
               mountPath: /data
               subPath: {{ .Values.replica.persistence.subPath }}
@@ -392,7 +394,7 @@ spec:
           configMap:
             name: {{ printf "%s-health" (include "common.names.fullname" .) }}
             defaultMode: 0755
-        {{- if .Values.auth.usePasswordFiles }}
+        {{- if (not .Values.auth.usePasswordFiles) }}
         - name: redis-password
           secret:
             secretName: {{ template "redis.secretName" . }}

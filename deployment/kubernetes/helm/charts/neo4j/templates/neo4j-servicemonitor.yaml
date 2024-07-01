@@ -1,0 +1,23 @@
+{{- if and .Values.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "neo4j.fullname" . }}-servicemonitor
+  namespace: "{{ .Release.Namespace }}"
+  {{- if .Values.serviceMonitor.labels }}
+  labels: {{ toYaml $.Values.serviceMonitor.labels | nindent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - port: {{ .Values.serviceMonitor.port | quote }}
+      interval: {{ .Values.serviceMonitor.interval }}
+      path: {{ .Values.serviceMonitor.path }}
+{{- if .Values.serviceMonitor.jobLabel }}
+  jobLabel: {{ .Values.serviceMonitor.jobLabel | quote }}
+{{- end }}
+  namespaceSelector: {{ toYaml .Values.serviceMonitor.namespaceSelector | nindent 4 }}
+{{- if .Values.serviceMonitor.targetLabels }}
+  targetLabels: {{ toYaml $.Values.serviceMonitor.targetLabels | nindent 4 }}
+{{- end }}
+  selector: {{ toYaml $.Values.serviceMonitor.selector | nindent 4 }}
+{{- end }}
