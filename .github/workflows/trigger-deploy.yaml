@@ -54,7 +54,7 @@ jobs:
               - 'packages/chronos-mfe/**'
               - 'deployment/dockerfiles/chronosService/chronos-mfe.Dockerfile'
             code-space-mfe: 
-              - 'packages/code-server/**'
+              - 'packages/code-space-mfe/**'
               - 'deployment/dockerfiles/codeServer/code-space-mfe.Dockerfile'
 
   code-server:
@@ -104,7 +104,7 @@ jobs:
           IS_OVERRIDE_REQUIRED: false
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           IS_REACT_APP: true
-          CODE_FOLDER: 'packages/chronos-mfe'
+          CODE_FOLDER: 'packages/code-space-mfe'
           APP_VERSION_FILE_PATH: 'packages/code-space-mfe/package.json'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/code-space-mfe'
           YML_IMAGE_TAG_PATH: 'image.tag' 

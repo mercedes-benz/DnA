@@ -14,8 +14,8 @@ spec:
     namespace: code-server
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-codespace-mfe.git
+    path: deployment/kubernetes/helm/charts/code-space-mfe
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: codespace-mfe
