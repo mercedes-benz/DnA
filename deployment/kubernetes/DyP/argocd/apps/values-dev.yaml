@@ -71,8 +71,6 @@ repositories:
   - name: dataentry-backend
     url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-backend.git
   - name: dataentry-mfe
-    url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-mfe.git  
-  - name: codespace-mfe
-    url: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
+    url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-mfe.git 
   - name: powerplatform-mfe
     url: https://git.i.mercedes-benz.com/DNA/dna-powerplatform-mfe.git   
