@@ -27,7 +27,7 @@ jobs:
   gitsync:
     name: "Git Sync"
     if: ${{ inputs.isSync == 'yes' || ( github.event_name == 'workflow_dispatch' && inputs.isSync == '' ) }}
-    runs-on: [ road-runner, self-hosted ]
+    runs-on: [ road-runner, medium ]
     steps:
 
       - name: Check Source Branch
