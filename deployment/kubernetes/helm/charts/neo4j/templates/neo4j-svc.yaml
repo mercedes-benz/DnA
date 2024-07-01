@@ -1,0 +1,209 @@
+{{- $isEnterprise := required "neo4j.edition must be specified" .Values.neo4j.edition | regexMatch "(?i)enterprise" -}}
+{{- $clusterEnabled := false }}
+{{- $backupEnabled := false }}
+{{- if $isEnterprise }}
+{{- $clusterEnabled = eq (include "neo4j.isClusterEnabled" .) "true" }}
+{{- $backupEnabled = index $.Values.config "server.backup.enabled" | default "true" | regexMatch "(?i)yes|true" }}
+{{- end }}
+{{- $httpEnabled := index $.Values.config "server.http.enabled" | default "true" | regexMatch "(?i)yes|true" }}
+{{- $httpsEnabled := index $.Values.config "server.https.enabled" | default "false" | regexMatch "(?i)yes|true" }}
+{{- $jmxEnabled := index $.Values.config "server.metrics.jmx.enabled" | default "" | regexMatch "(?i)yes|true" }}
+{{- $graphiteEnabled := index $.Values.config "server.metrics.graphite.enabled" | default "" | regexMatch "(?i)yes|true" }}
+{{- $prometheusEnabled := index $.Values.config "server.metrics.prometheus.enabled" | default "" | regexMatch "(?i)yes|true" }}
+
+# ClusterIP service for bolt / http connections
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ include "neo4j.fullname" . }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    helm.neo4j.com/neo4j.name: "{{ template "neo4j.name" $ }}"
+    app: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/instance: "{{ include "neo4j.fullname" . }}"
+    helm.neo4j.com/service: "default"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+  {{- with .Values.services.default.annotations }}
+  annotations: {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  publishNotReadyAddresses: false
+  type: ClusterIP
+  {{- with .spec }}{{- include "neo4j.services.extraSpec" . | nindent 2 }}{{- end }}
+  selector:
+    app: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/instance: "{{ include "neo4j.fullname" . }}"
+  ports:
+    - protocol: TCP
+      port: 7687
+      targetPort: 7687
+      name: tcp-bolt
+    {{- if $httpEnabled }}
+    - protocol: TCP
+      port: 7474
+      targetPort: 7474
+      name: tcp-http
+    {{- end }}
+    {{- if $httpsEnabled }}
+    - protocol: TCP
+      port: 7473
+      targetPort: 7473
+      name: tcp-https
+    {{- end }}
+---
+{{- with .Values.services.admin }}
+{{- if .enabled }}
+# ClusterIP service for admin connections to Neo4j inside Kubernetes.
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ include "neo4j.fullname" $ }}-admin"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    helm.neo4j.com/neo4j.name: "{{ template "neo4j.name" $ }}"
+    app: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/instance: "{{ include "neo4j.fullname" $ }}"
+    helm.neo4j.com/service: "admin"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+  {{- with .annotations }}
+  annotations: {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  publishNotReadyAddresses: true
+  type: "{{ .spec.type | required "The 'type' field is required in service.admin.spec" }}"
+  {{- with omit .spec "type" }}{{- include "neo4j.services.extraSpec" . | nindent 2 }}{{- end }}
+  selector:
+    app: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/instance: "{{ include "neo4j.fullname" $ }}"
+  ports:
+    {{- if $backupEnabled }}
+    - protocol: TCP
+      port: 6362
+      targetPort: 6362
+      name: tcp-backup
+    {{- end }}
+    - protocol: TCP
+      port: 7687
+      targetPort: 7687
+      name: tcp-bolt
+    {{- if $httpEnabled }}
+    - protocol: TCP
+      port: 7474
+      targetPort: 7474
+      name: tcp-http
+    {{- end }}
+    {{- if $httpsEnabled }}
+    - protocol: TCP
+      port: 7473
+      targetPort: 7473
+      name: tcp-https
+    {{- end }}
+    {{- if $prometheusEnabled }}
+    - protocol: TCP
+      port: 2004
+      targetPort: 2004
+      name: tcp-prometheus
+    {{- end }}
+    {{- if $graphiteEnabled }}
+    - protocol: TCP
+      port: 2003
+      targetPort: 2003
+      name: tcp-graphite
+    {{- end }}
+    {{- if $jmxEnabled }}
+    - protocol: TCP
+      port: 3637
+      targetPort: 3637
+      name: tcp-jmx
+    {{- end }}
+{{- end }}
+{{- end }}
+
+{{- with .Values.services.internals }}
+{{- if $clusterEnabled | or .enabled }}
+---
+# Headless service for internal connections to an instance e.g. for neo4j clustering or monitoring.
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ include "neo4j.fullname" $ }}-internals"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    helm.neo4j.com/neo4j.name: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/instance: "{{ include "neo4j.fullname" $ }}"
+    app: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/clustering: "{{ $clusterEnabled }}"
+    helm.neo4j.com/service: "internals"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+  {{- with .annotations }}
+  annotations: {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  publishNotReadyAddresses: true
+  clusterIP: None
+  {{- with .spec }}{{ include "neo4j.services.extraSpec" . | nindent 2 }}{{ end }}
+  selector:
+    app: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/instance: "{{ include "neo4j.fullname" $ }}"
+  ports:
+    {{- if $backupEnabled }}
+    - protocol: TCP
+      port: 6362
+      targetPort: 6362
+      name: tcp-backup
+    {{- end }}
+    - protocol: TCP
+      port: 7687
+      targetPort: 7687
+      name: tcp-bolt
+    {{- if $httpEnabled }}
+    - protocol: TCP
+      port: 7474
+      targetPort: 7474
+      name: tcp-http
+    {{- end }}
+    {{- if $httpsEnabled }}
+    - protocol: TCP
+      port: 7473
+      targetPort: 7473
+      name: tcp-https
+    {{- end }}
+    {{- if or $clusterEnabled $.Values.analytics.enabled }}
+    #enable the ports for non Read Replicas
+    - protocol: TCP
+      port: 7688
+      targetPort: 7688
+      name: tcp-boltrouting
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      name: tcp-discovery
+    - protocol: TCP
+      port: 7000
+      targetPort: 7000
+      name: tcp-raft
+    - protocol: TCP
+      port: 6000
+      targetPort: 6000
+      name: tcp-tx
+    {{- end }}
+    {{- if $prometheusEnabled }}
+    - protocol: TCP
+      port: 2004
+      targetPort: 2004
+      name: tcp-prometheus
+    {{- end }}
+    {{- if $graphiteEnabled }}
+    - protocol: TCP
+      port: 2003
+      targetPort: 2003
+      name: tcp-graphite
+    {{- end }}
+    {{- if $jmxEnabled }}
+    - protocol: TCP
+      port: 3637
+      targetPort: 3637
+      name: tcp-jmx
+    {{- end }}
+{{- end }}
+{{- end }}

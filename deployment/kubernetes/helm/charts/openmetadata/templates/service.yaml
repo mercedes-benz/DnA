@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "OpenMetadata.fullname" . }}
+  labels:
+    {{- include "OpenMetadata.labels" . | indent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.service.adminPort }}
+      targetPort: http-admin
+      protocol: TCP
+      name: http-admin
+  selector:
+    {{- include "OpenMetadata.selectorLabels" . | nindent 4 }}
