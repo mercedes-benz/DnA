@@ -1,0 +1,181 @@
+# Default values for deps.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# MySQL configurations for helm dependency
+# you can find more details about this here https://artifacthub.io/packages/helm/bitnami/mysql
+mysql:
+  enabled: true
+  fullnameOverride: "mysql"
+  architecture: standalone
+  image:
+    pullPolicy: "Always"
+  auth:
+    rootPassword:   # to be provided by CI/CD
+  primary:
+    extraFlags: "--sort_buffer_size=10M"
+    persistence:
+      size: 50Gi
+    service:
+      nodePort: 3306
+  initdbScripts:
+    init_openmetadata_db_scripts.sql: |
+      CREATE DATABASE openmetadata_db;
+      CREATE USER 'openmetadata_user'@'%' IDENTIFIED BY 'openmetadata_password';
+      GRANT ALL PRIVILEGES ON openmetadata_db.* TO 'openmetadata_user'@'%' WITH GRANT OPTION;
+      commit;
+    init_airflow_db_scripts.sql: |
+      CREATE DATABASE airflow_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      CREATE USER 'airflow_user'@'%' IDENTIFIED BY 'airflow_pass';
+      GRANT ALL PRIVILEGES ON airflow_db.* TO 'airflow_user'@'%' WITH GRANT OPTION;
+      commit;
+
+# OpenSearch Helm Dependency
+# you can find more details about this here https://artifacthub.io/packages/helm/opensearch-project-helm-charts/opensearch/2.12.2
+opensearch:
+  enabled: false
+  clusterName: opensearch
+  fullnameOverride: opensearch
+  nodeGroup: ""
+  imagePullPolicy: Always
+  opensearchJavaOpts: "-Xmx1g -Xms1g"
+  persistence:
+    size: 30Gi
+  protocol: http
+  config:
+    opensearch.yml: |
+      plugins.security.disabled: true
+  singleNode: true
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256M"
+    limits:
+      cpu: "2000m"
+      memory: "2048M"
+
+# Airflow configurations for helm dependency
+# you can find more details about this here https://github.com/airflow-helm/charts
+airflow:
+  enabled: true
+  airflow:
+    extraVolumeMounts:
+      - mountPath: /airflow-logs
+        name: nfs-airflow-logs
+      - mountPath: /airflow-dags/dags
+        name: nfs-airflow-dags
+    extraVolumes:
+      - name: nfs-airflow-logs
+        persistentVolumeClaim:
+          claimName: openmetadata-dependencies-logs
+      - name: nfs-airflow-dags
+        persistentVolumeClaim:
+          claimName: openmetadata-dependencies-dags
+    image:
+      repository: openmetadata/ingestion
+      tag: 1.2.2
+      pullPolicy: "IfNotPresent"
+    executor: "KubernetesExecutor"
+    config:
+      # This is required for OpenMetadata UI to fetch status of DAGs
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+      # OpenMetadata Airflow Secrets Manager Configuration
+      AIRFLOW__OPENMETADATA_SECRETS_MANAGER__AWS_REGION: ""
+      AIRFLOW__OPENMETADATA_SECRETS_MANAGER__AWS_ACCESS_KEY_ID: ""
+      AIRFLOW__OPENMETADATA_SECRETS_MANAGER__AWS_ACCESS_KEY: ""
+      AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS: "/airflow-dags/dags"  
+    users:
+    - username: admin
+      password:
+      role: Admin
+      email: ironman@superhero.org
+      firstName: tony
+      lastName: stark
+  web:
+    extraVolumes:
+    - name: pod-template
+      configMap:
+        name: openmetadata-pod-template
+        defaultMode: 420
+    extraVolumeMounts:
+      - name: pod-template
+        readOnly: true
+        subPath: pod_template.yaml
+        mountPath: /opt/airflow/pod_templates/pod_template.yaml
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 10
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 10
+  postgresql:
+    enabled: false
+  workers:
+    enabled: false
+  flower:
+    enabled: false
+  redis:
+    enabled: false
+  externalDatabase:
+    type: mysql
+    host: mysql
+    port: 3306
+    database: airflow_db
+    user: airflow_user
+    passwordSecret: airflow-mysql-secrets
+    passwordSecretKey: airflow-mysql-password
+  serviceAccount:
+    create: true
+    name: "airflow"
+  scheduler:
+    logCleanup:
+      enabled: false
+  dags:
+    path: /airflow-dags/dags
+    persistence:
+      enabled: false
+  logs:
+    path: /airflow-logs
+    persistence:
+      enabled: false
+  extraManifests:
+    - |
+        # dags_pvc.yml
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          namespace: openmetadata
+          name: openmetadata-dependencies-dags
+          labels:
+            storage.k8s.io/name: nfs
+            app: airflow
+        spec:
+          accessModes:
+            - ReadWriteMany
+          storageClassName: nfs-sc
+          resources:
+            requests:
+              storage: 1Gi
+    - |
+        # logs_pvc.yml
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          namespace: openmetadata
+          name: openmetadata-dependencies-logs
+          labels:
+            storage.k8s.io/name: nfs
+            app: airflow
+        spec:
+          accessModes:
+            - ReadWriteMany
+          storageClassName: nfs-sc
+          resources:
+            requests:
+              storage: 10Gi

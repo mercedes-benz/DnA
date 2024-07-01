@@ -1,0 +1,25 @@
+{{- $authDisabled := index .Values.config "dbms.security.auth_enabled" | default "" | regexMatch "(?i)no|false" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-env"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+  # It should not be necessary for neo4j users/administrators to modify this configMap
+  # Neo4j configuration is set in the {{ include "neo4j.fullname" . }}-user-config ConfigMap
+  {{- if eq .Values.neo4j.acceptLicenseAgreement "yes" }}
+  NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+  {{- end }}
+  {{- if not $authDisabled }}
+  NEO4J_AUTH_PATH: "/config/neo4j-auth/NEO4J_AUTH"
+  {{- end }}
+  NEO4J_EDITION: "{{ .Values.neo4j.edition | upper }}_K8S"
+  NEO4J_CONF: "/config/"
+  K8S_NEO4J_NAME: "{{ template "neo4j.name" . }}"
+  EXTENDED_CONF: "yes"
+  {{- if .Values.env }}
+  {{- .Values.env | toYaml | nindent 2 }}
+  {{- end }}

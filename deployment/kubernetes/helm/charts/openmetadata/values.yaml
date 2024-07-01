@@ -1,0 +1,403 @@
+# Default values for OpenMetadata.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+
+# Overrides the openmetadata config file with the help of Environment Variables
+# Below are defaults as per openmetadata-dependencies Helm Chart Values
+openmetadata:
+  config:
+    upgradeMigrationConfigs:
+      force: false
+      migrationLimitParam: 1200
+    # Values can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL
+    logLevel: INFO
+    clusterName: openmetadata
+    maskPasswordsApi: false
+    openmetadata:
+      host: openmetadata
+      # URI to use with OpenMetadata Alerts Integrations
+      uri: "http://openmetadata:8585"
+      port: 8585
+      adminPort: 8586
+    elasticsearch:
+      host: i3-logging-opensearch-master.i3-logging.svc.cluster.local
+      searchType: opensearch
+      port: 9200
+      scheme: http
+      connectionTimeoutSecs: 5
+      socketTimeoutSecs: 60
+      batchSize: 10
+      searchIndexMappingLanguage: "EN"
+      keepAliveTimeoutSecs: 600
+      trustStore:
+        enabled: false
+        path: ""
+        password:
+          secretRef: "elasticsearch-truststore-secrets"
+          secretKey: "openmetadata-elasticsearch-truststore-password"
+      auth:
+        enabled: true
+        username: "kibanaserver"
+        password:
+          secretRef: elasticsearch-secrets
+          secretKey: openmetadata-elasticsearch-password
+    database:
+      host: mysql
+      port: 3306
+      driverClass: com.mysql.cj.jdbc.Driver
+      dbScheme: mysql
+      databaseName: openmetadata_db
+      auth:
+        username: openmetadata_user
+        password:
+          secretRef: mysql-secrets
+          secretKey: openmetadata-mysql-password
+      dbParams: "allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    pipelineServiceClientConfig:
+      enabled: true
+      className: "org.openmetadata.service.clients.pipeline.airflow.AirflowRESTClient"
+      # endpoint url for airflow
+      apiEndpoint: http://openmetadata-dependencies-web:8080
+      # this will be the api endpoint url of OpenMetadata Server
+      metadataApiEndpoint: http://openmetadata:8585/api
+      # possible values are "no-ssl", "ignore", "validate"
+      verifySsl: "no-ssl"
+      hostIp: ""
+      ingestionIpInfoEnabled: false
+      # healthCheckInterval in seconds
+      healthCheckInterval: 300
+      # local path in Airflow Pod
+      sslCertificatePath: "/no/path"
+      auth:
+        enabled: true
+        username: admin
+        password:
+          secretRef: airflow-secrets
+          secretKey: openmetadata-airflow-password
+    authorizer:
+      className: "org.openmetadata.service.security.DefaultAuthorizer"
+      containerRequestFilter: "org.openmetadata.service.security.JwtFilter"
+      initialAdmins:
+      - "admin"
+      allowedEmailRegistrationDomains:
+      - "all"
+      principalDomain: "open-metadata.org"
+      enforcePrincipalDomain: false
+      enableSecureSocketConnection: false
+    authentication:
+      provider: "custom-oidc"
+      publicKeys:
+      - "http://openmetadata:8585/api/v1/system/config/jwks"
+      authority: ""
+      clientId: ""
+      callbackUrl: ""
+      jwtPrincipalClaims:
+      - "email"
+      - "preferred_username"
+      - "sub"
+      enableSelfSignup: true
+      ldapConfiguration:
+        host: localhost
+        port: 10636
+        dnAdminPrincipal: "cn=admin,dc=example,dc=com"
+        dnAdminPassword:
+          secretRef: ldap-admin-secret
+          secretKey: openmetadata-ldap-secret
+        userBaseDN: "ou=people,dc=example,dc=com"
+        mailAttributeName: email
+        maxPoolSize: 3
+        sslEnabled: false
+        # Possible values are CustomTrustStore, HostName, JVMDefault, TrustAll
+        truststoreConfigType: TrustAll
+        trustStoreConfig:
+          customTrustManagerConfig:
+            trustStoreFilePath: ""
+            trustStoreFilePassword:
+              secretRef: ""
+              secretKey: ""
+            trustStoreFileFormat: ""
+            verifyHostname: true
+            examineValidityDates: true
+          hostNameConfig:
+            allowWildCards: false
+            acceptableHostNames: []
+          jvmDefaultConfig:
+            verifyHostname: true
+          trustAllConfig:
+            examineValidityDates: true
+      saml:
+        debugMode: false
+        idp:
+          entityId: ""
+          ssoLoginUrl: ""
+          idpX509Certificate:
+            secretRef: ""
+            secretKey: ""
+          authorityUrl: "http://openmetadata:8585/api/v1/saml/login"
+          nameId: "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"
+        sp:
+          entityId: "http://openmetadata:8585/api/v1/saml/metadata"
+          acs: "http://openmetadata:8585/api/v1/saml/acs"
+          spX509Certificate:
+            secretRef: ""
+            secretKey: ""
+          callback: "http://openmetadata:8585/saml/callback"
+        security:
+          strictMode: false
+          tokenValidity: 3600
+          sendEncryptedNameId: false
+          sendSignedAuthRequest: false
+          signSpMetadata: false
+          wantMessagesSigned: false
+          wantAssertionsSigned: false
+          wantAssertionEncrypted: false
+          wantNameIdEncrypted: false
+          keyStoreFilePath: ""
+          keyStoreAlias:
+            secretRef: ""
+            secretKey: ""
+          keyStorePassword:
+            secretRef: ""
+            secretKey: ""
+
+    jwtTokenConfiguration:
+      enabled: true
+      # File Path on Airflow Container
+      rsapublicKeyFilePath: "./conf/public_key.der"
+      # File Path on Airflow Container
+      rsaprivateKeyFilePath: "./conf/private_key.der"
+      jwtissuer: "open-metadata.org"
+      keyId: "Gb389a-9f76-gdjs-a92j-0242bk94356"
+    fernetkey:
+      value: "jJ/9sz0g0OHxsfxOoSfdFdmk3ysNmPRnH3TUAbz3IHA="
+      secretRef: ""
+      secretKey: ""
+    eventMonitor:
+      # Possible values are prometheus and cloudwatch
+      type: prometheus
+      batchSize: 10
+      pathPattern:
+      - "/api/v1/tables/*"
+      - "/api/v1/health-check"
+      # For value p99=0.99, p90=0.90, p50=0.50 etc.
+      latency: []
+      # - "p99=0.99"
+      # - "p90=0.90"
+      # - "p50=0.50"
+    smtpConfig:
+      enableSmtpServer: false
+      emailingEntity: "OpenMetadata"
+      supportUrl: "https://slack.open-metadata.org"
+      transportationStrategy: "SMTP_TLS"
+      openMetadataUrl: ""
+      serverEndpoint: ""
+      serverPort: ""
+      senderMail: ""
+      username: ""
+      password:
+        secretRef: ""
+        secretKey: ""
+    secretsManager:
+      # Possible values are noop, aws, aws-ssm, managed-aws, managed-aws-ssm, in-memory
+      provider: noop
+      additionalParameters:
+        enabled: false
+        region: ""
+        accessKeyId:
+          secretRef: aws-access-key-secret
+          secretKey: aws-key-secret
+        secretAccessKey:
+          secretRef: aws-secret-access-key-secret
+          secretKey: aws-key-secret
+      # You can create Kubernetes secrets from AWS Credentials with the below command
+      # kubectl create secret generic aws-key-secret \
+      # --from-literal=aws-access-key-secret=<access_key_id_value> \
+      # --from-literal=aws-secret-access-key-secret=<access_key_secret_value>
+    web:
+      uriPath: "/api"
+      hsts:
+        enabled: false
+        maxAge: "365 days"
+        includeSubDomains: "true"
+        preload: "true"
+      frameOptions:
+        enabled: false
+        option: "SAMEORIGIN"
+        origin: ""
+      contentTypeOptions:
+        enabled: false
+      xssProtection:
+        enabled: false
+        onXss: true
+        block: true
+      csp:
+        enabled: false
+        policy: "default-src 'self'"
+        reportOnlyPolicy: ""
+      referrerPolicy:
+        enabled: false
+        option: "SAME_ORIGIN"
+      permissionPolicy:
+        enabled: false
+        option: ""
+
+networkPolicy:
+  # If networkPolicy is true, following values can be set
+  # for ingress on port 8585 and 8586
+  enabled: true
+
+  # Example Google SSO Auth Config
+  # authorizer:
+  #   className: "org.openmetadata.service.security.DefaultAuthorizer"
+  #   containerRequestFilter: "org.openmetadata.service.security.JwtFilter"
+  #   initialAdmins:
+  #   - "suresh"
+  #   principalDomain: "open-metadata.org"
+  # authentication:
+  #   provider: "google"
+  #   publicKeys:
+  #   - "https://www.googleapis.com/oauth2/v3/certs"
+  #   authority: "https://accounts.google.com"
+  #   clientId: "<client_id>"
+  #   callbackUrl: "<callback_url>"
+
+image:
+  repository: openmetadata/server
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  pullPolicy: "Always"
+
+sidecars: []
+# - name: "busybox"
+#   image: "busybox:1.34.1"
+#   imagePullPolicy: "Always"
+#   command: ["ls"]
+#   args: ["-latr", "/usr/share"]
+#   env:
+#   - name: DEMO
+#     value: "DEMO"
+#   volumeMounts:
+#   - name: extras
+#     mountPath: /usr/share/extras
+#     readOnly: true
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "openmetadata"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+podSecurityContext: 
+  fsGroup: 2000
+securityContext: 
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 100
+
+service:
+  type: ClusterIP
+  port: 8585
+  adminPort: 8586
+  annotations: {}
+
+# Service monitor for Prometheus metrics
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: 
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  hosts:
+    - host: 
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: 
+    - secretName: 
+      hosts:
+        - 
+
+extraEnvs: []
+# - name: MY_ENVIRONMENT_VAR
+#   value: the_value_goes_here
+
+envFrom: []
+# - secretRef:
+#     name: secret_containing_config
+
+extraVolumes: []
+# - name: extras
+#   emptyDir: {}
+
+extraVolumeMounts: []
+# - name: extras
+#   mountPath: /usr/share/extras
+#   readOnly: true
+
+extraInitContainers: []
+
+resources: {}
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 5
+  httpGet:
+    path: /healthcheck
+    port: http-admin
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 5
+  httpGet:
+    path: /
+    port: http
+startupProbe:
+  periodSeconds: 60
+  failureThreshold: 5
+  successThreshold: 1
+  httpGet:
+    path: /healthcheck
+    port: http-admin
+
+podDisruptionBudget:
+  enabled: false
+  config:
+    maxUnavailable: "1"
+    minAvailable: "1"
+
+commonLabels: {}
+podAnnotations: {}
