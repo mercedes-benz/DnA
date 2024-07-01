@@ -1,0 +1,224 @@
+{{- $isEnterprise := required "neo4j.edition must be specified" .Values.neo4j.edition | regexMatch "(?i)enterprise" -}}
+{{- $clusterEnabled := eq (include "neo4j.isClusterEnabled" .) "true" }}
+{{- $authDisabled := index .Values.config "dbms.security.auth_enabled" | default "" | regexMatch "(?i)no|false" -}}
+{{- $offlineMaintenanceEnabled :=  .Values.neo4j.offlineMaintenanceModeEnabled }}
+{{- $neo4jImage := include "neo4j.image" . }}
+{{- $backupEnabled := false }}
+{{- $httpEnabled := index $.Values.config "server.http.enabled" | default "true" | regexMatch "(?i)yes|true" }}
+{{- $httpsEnabled := index $.Values.config "server.https.enabled" | default "false" | regexMatch "(?i)yes|true" }}
+{{- if $isEnterprise }}
+{{- $backupEnabled = index $.Values.config "server.backup.enabled" | default "true" | regexMatch "(?i)yes|true" }}
+{{- end }}
+{{- template "neo4j.volumes.validation" . -}}
+{{- template "neo4j.checkNodeSelectorLabels" . -}}
+{{- template "neo4j.checkLicenseAgreement" . -}}
+{{- template "podSpec.checkLoadBalancerParam" . -}}
+{{- template "neo4j.checkResources" . -}}
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    helm.neo4j.com/neo4j.name: "{{ template "neo4j.name" $ }}"
+    helm.neo4j.com/clustering: "{{ $clusterEnabled }}"
+    app: "{{ template "neo4j.name" . }}"
+    helm.neo4j.com/instance: {{ include "neo4j.fullname" . }}
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+  name: {{ include "neo4j.fullname" . }}
+  namespace: "{{ .Release.Namespace }}"
+  {{- if not (empty $.Values.statefulset.metadata.annotations) }}
+  annotations:
+    {{- include "neo4j.annotations" $.Values.statefulset.metadata.annotations | indent 4 }}
+  {{- end }}
+spec:
+  serviceName: "{{ include "neo4j.fullname" . }}"
+  podManagementPolicy: "Parallel" # This setting means that the StatefulSet controller doesn't block applying changes until the existing Pod is READY.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ template "neo4j.name" . }}"
+      helm.neo4j.com/instance: "{{ include "neo4j.fullname" . }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ template "neo4j.name" $ }}"
+        helm.neo4j.com/neo4j.name: "{{ template "neo4j.name" $ }}"
+        helm.neo4j.com/clustering: "{{ $clusterEnabled }}"
+        helm.neo4j.com/pod_category: "neo4j-instance" # used for anti affinity rules
+        helm.neo4j.com/neo4j.loadbalancer: "{{ $.Values.podSpec.loadbalancer }}"
+        helm.neo4j.com/instance: "{{ include "neo4j.fullname" . }}"
+        {{- include "neo4j.labels" $.Values.neo4j | indent 8 }}
+      annotations:
+        "checksum/{{ include "neo4j.fullname" . }}-config": {{ include (print $.Template.BasePath "/neo4j-config.yaml") . | sha256sum }}
+        "checksum/{{ include "neo4j.fullname" . }}-env": {{ include (print $.Template.BasePath "/neo4j-env.yaml") . | sha256sum }}
+        {{- include "neo4j.annotations" $.Values.podSpec.annotations | indent 8 }}
+    spec:
+      {{- include "neo4j.affinity" . | indent 6 }}
+      {{- if or $.Values.analytics.enabled $.Values.podSpec.serviceAccountName $clusterEnabled }}
+      serviceAccountName: "{{ if kindIs "string" $.Values.podSpec.serviceAccountName | and $.Values.podSpec.serviceAccountName }}{{ $.Values.podSpec.serviceAccountName }}{{ else }}{{ include "neo4j.fullname" . }}{{ end }}"
+      {{- end }}
+      securityContext: {{ toYaml .Values.securityContext | nindent 8 }}
+      {{- include "neo4j.tolerations" .Values.podSpec.tolerations | nindent 6 }}
+      {{- include "neo4j.priorityClassName" . | nindent 6 }}
+      terminationGracePeriodSeconds: {{ if $offlineMaintenanceEnabled  }}0{{ else }}{{ .Values.podSpec.terminationGracePeriodSeconds }}{{ end }}
+      {{- $initContainers := .Values.podSpec.initContainers }}
+      {{- $initChmodContainer := include "neo4j.initChmodContainer" . }}
+      {{- if $initChmodContainer }}{{ $initContainers = fromYaml $initChmodContainer | prepend $initContainers }}{{ end }}
+      {{- with $initContainers }}
+      initContainers:
+        {{- range $i, $initContainer := . }}
+        {{- if not $offlineMaintenanceEnabled | or $initContainer.enabledInOfflineMaintenanceMode }}
+        - {{ omit $initContainer "enabledInOfflineMaintenanceMode" | toYaml | indent 10 | trimAll " " }}
+          {{- if not ( hasKey $initContainer "image") }}
+          image: "{{ $neo4jImage }}"
+          {{- end }}
+          {{- if not ( hasKey $initContainer "volumeMounts") }}
+          volumeMounts: {{ include "neo4j.volumeMounts" ( omit $.Values.volumes "logs" "metrics" ) | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- include "neo4j.imagePullSecrets" .Values.image.imagePullSecrets | indent 6 }}
+      {{- include "neo4j.nodeSelector" .Values.nodeSelector | indent 6 }}
+      containers:
+        - name: "neo4j"
+          image: "{{ $neo4jImage }}"
+          imagePullPolicy: "{{ .Values.image.imagePullPolicy }}"
+          {{- if $offlineMaintenanceEnabled }}
+          command:
+            - "bash"
+            - "-c"
+            - "while true; do echo 'Neo4j is not running. Pod is in offline maintenance mode. Remove neo4j.offlineMaintenanceModeEnabled setting and run `helm upgrade ...` to resume normal operation.'; sleep 60; done"
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: "{{ include "neo4j.fullname" . }}-env"
+          env:
+            - name: HELM_NEO4J_VERSION
+              value: "{{ .Values.neo4j.version | default .Chart.AppVersion }}"
+            - name: HELM_CHART_VERSION
+              value: "{{ .Chart.Version }}"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: SERVICE_NEO4J_ADMIN
+              value: "{{ include "neo4j.fullname" . }}-admin.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}"
+            - name: SERVICE_NEO4J_INTERNALS
+              value: "{{ include "neo4j.fullname" . }}-internals.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}"
+            - name: SERVICE_NEO4J
+              value: "{{ include "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}"
+          ports:
+            {{- if $httpEnabled }}
+            - containerPort: 7474
+              name: http
+            {{- end }}
+            - containerPort: 7687
+              name: bolt
+            {{- if $httpsEnabled }}
+            - containerPort: 7473
+              name: https
+            {{- end }}
+            {{- if $backupEnabled }}
+            - containerPort: 6362
+              name: backup
+            {{- end }}
+          {{- with .Values.neo4j.resources }}
+          resources:
+            {{- if hasKey . "requests" | or (hasKey . "limits") }}
+            {{- omit . "cpu" "memory" | toYaml | nindent 12 }}
+            {{- else }}
+            requests: {{ . | toYaml | nindent 14 }}
+            limits: {{ . | toYaml | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          securityContext: {{ .Values.containerSecurityContext | toYaml  | nindent 14 }}
+          volumeMounts:
+            - mountPath: "/config/neo4j.conf"
+              name: neo4j-conf
+            - mountPath: "/config/server-logs.xml"
+              name: neo4j-server-logs
+            - mountPath: "/config/user-logs.xml"
+              name: neo4j-user-logs
+            {{- if not $authDisabled }}
+            - mountPath: "/config/neo4j-auth"
+              name: neo4j-auth
+            {{- end }}
+            {{- include "neo4j.additionalVolumeMounts" .Values.additionalVolumeMounts | nindent 12 }}
+            {{- include "neo4j.apoc.volumeMount" . | indent 12 }}
+            {{- include "neo4j.apocCredentials.volumeMount" . | indent 12 }}
+            {{- include "neo4j.ldapVolumeMount" . | indent 12 }}
+            {{- include "neo4j.volumeMounts" .Values.volumes | indent 12 }}
+            {{- include "neo4j.ssl.volumeMountsFromSecrets" .Values.ssl | indent 12 }}
+            {{- if $offlineMaintenanceEnabled  }}
+            {{- include "neo4j.maintenanceVolumeMounts" .Values.volumes | indent 12 }}
+            {{- end }}
+          readinessProbe:
+            tcpSocket:
+              port: 7687
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- if $offlineMaintenanceEnabled }}
+          # liveness and startup probes are disabled in offlineMaintenanceMode
+          {{- else }}
+          livenessProbe:
+            tcpSocket:
+              port: 7687
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          startupProbe:
+            tcpSocket:
+              port: 7687
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+          {{- end }}
+        {{- with .Values.podSpec.containers }}
+        # Extra "sidecar" containers
+        {{- range $i, $extraContainer := . }}
+        {{- if not $offlineMaintenanceEnabled | or $extraContainer.enabledInOfflineMaintenanceMode }}
+        - {{ omit $extraContainer "enabledInOfflineMaintenanceMode" | toYaml | indent 10 | trimAll " " }}
+          {{- if not ( hasKey $extraContainer "image") }}
+          image: "{{ $neo4jImage }}"
+          {{- end }}
+          {{- if not ( hasKey $extraContainer "volumeMounts") }}
+          volumeMounts: {{ include "neo4j.volumeMounts" ( omit $.Values.volumes "logs" "metrics" ) | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      volumes:
+        {{- /* neo4j.conf settings. Using a projected volume allows keys defined later in the list of configMaps to override keys defined earlier in the list of configmaps. */}}
+        - name: neo4j-conf
+          projected:
+            defaultMode: 0440
+            sources:
+              - configMap:
+                  name: "{{ include "neo4j.fullname" . }}-default-config"
+              - configMap:
+                  name: "{{ include "neo4j.fullname" . }}-user-config"
+              - configMap:
+                  name: "{{ include "neo4j.fullname" . }}-k8s-config"
+        - name: neo4j-server-logs
+          configMap:
+            name: "{{ include "neo4j.fullname" . }}-server-logs-config"
+        - name: neo4j-user-logs
+          configMap:
+            name: "{{ include "neo4j.fullname" . }}-user-logs-config"
+        {{- if not $authDisabled }}
+        - name: "neo4j-auth"
+          secret:
+            secretName: "{{ template "neo4j.secretName" . }}"
+        {{- end }}
+        {{- include "neo4j.additionalVolumes" .Values.additionalVolumes | indent 8 }}
+        {{- include "neo4j.apoc.volume" . | indent 8 }}
+        {{- include "neo4j.apocCredentials.volume" . | indent 8 }}
+        {{- include "neo4j.ldapVolume" . | indent 8 }}
+        {{- with include "neo4j.ssl.volumesFromSecrets" .Values.ssl }}{{ nindent 8 .}}{{ end -}}
+        {{- with include "neo4j.volumes" . }}{{ nindent 8 . }}{{ end -}}
+  {{- $volumeClaimTemplates := include "neo4j.volumeClaimTemplates" . -}}
+  {{- if $volumeClaimTemplates }}
+  volumeClaimTemplates: {{ $volumeClaimTemplates | nindent 4 }}
+  {{- end }}
+

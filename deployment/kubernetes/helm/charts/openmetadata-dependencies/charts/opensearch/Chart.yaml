@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: 2.7.0
+description: A Helm chart for OpenSearch
+maintainers:
+- name: DandyDeveloper
+- name: bbarani
+- name: gaiksaya
+- name: peterzhuamazon
+- name: prudhvigodithi
+- name: TheAlgo
+name: opensearch
+type: application
+version: 2.12.1
