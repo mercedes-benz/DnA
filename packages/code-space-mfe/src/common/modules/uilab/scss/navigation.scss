@@ -1,0 +1,211 @@
+.navigation {
+  font-family: "Roboto-Regular";
+  background-image: linear-gradient(#000, #252a33);
+  font-size: 15px;
+  letter-spacing: 1px;
+  width: 244px;
+
+  .brand {
+    display: block;
+    height: 78px;
+    margin-bottom: 102px;
+    padding: 26px 0 0 26px;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+
+    img {
+      width: 175px;
+      height: 52px;
+    }
+  }
+
+  .nav-list {
+    list-style-type: none;
+    padding: 0;
+    height: calc(100vh - 180px);
+    overflow: auto;
+
+    .nav-item {
+      height: 54px;
+      overflow: hidden;
+      width: 100%;
+      transition: height 0.25s;
+      border-left: 6px solid transparent;
+      border-top: 1px solid rgba(56, 63, 73, 0.5);
+      position: relative;
+
+      .nav-link {
+        display: block;
+        line-height: 52px;
+        color: #c0c8d0;
+        height: 100%;
+        padding-left: 24px;
+        cursor: pointer;
+        transition: color .15s linear;
+
+        &:hover,
+        &:focus {
+          color: #f1f1f1;
+          text-decoration: none;
+          transition: color .15s linear;
+        }
+
+        /*&::after {
+          font-family: "icomoon";
+          content: "\e902";
+          float: right;
+          font-size: 14px;
+          margin-right: 20px;
+          color: #697582;
+        }*/
+
+        &::before, &::after {
+          content: "";
+          height: 2px;
+          width: 9px;
+          background-color: #697582;
+          position: absolute;
+          right: 26px;
+          top: 28px;
+          border-radius: 2px;
+          transition: background-color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+        }
+
+        &::before {
+          transform: rotate(45deg);
+          top: 23px;
+        }
+
+        &::after {
+          transform: rotate(-45deg)
+        }
+      }
+
+      &:last-child {
+        border-bottom: 1px solid rgba(56, 63, 73, 0.5);
+      }
+
+      &.active {
+        border-left: 6px solid #00adef;
+        border-top: none;
+        transition: border-left .15s linear;
+
+        /*.nav-link::after {
+            color: #00adef; 
+        }*/
+
+        .nav-link {
+          border-top: 1px solid rgba(56, 63, 73, 0.5);
+          &::before, &::after {
+            background-color: #00adef;
+          }
+
+          &::before {
+            top: 24px;
+          }
+  
+          &::after {
+            top: 29px;
+          }
+        }
+      }
+
+      &.has-sub-nav {
+        border-left: none;
+        
+        > .nav-link {
+          padding-left: 30px;
+          
+          &::before, &::after {
+            transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+          }
+        }
+
+        &.opened {
+          height: auto;
+          border-bottom: none;
+
+          .sub-nav-list {
+            display: block;
+            list-style-type: none;
+          }
+
+          > .nav-link {
+            height: 52px;
+            transition: all 0.5s;
+
+            /*&::after {
+              transform: rotate(-90deg);
+              transition: 0.5s;
+            }*/
+
+            &::before {
+              transform: rotate(-45deg);
+            }
+    
+            &::after {
+              transform: rotate(45deg);
+            }
+          }
+        }
+
+        > .nav-link {
+          /*&::after {
+            transform: rotate(90deg);
+            transition: 0.25s;
+          }*/
+
+          &::before {
+            right: 30px;
+            top: 26px;
+          }
+  
+          &::after {
+            top: 26px;
+            right: 25px;
+          }
+        }
+      }
+
+      .sub-nav-list {
+        display: none;
+        padding: 0;
+        background-color: #242932;
+
+        .nav-item:last-child {
+          border-bottom: none;
+        }
+        
+        .nav-item .nav-link {
+          padding-left: 44px;
+        }
+      }
+    }
+  }
+}
+
+.nav-header {
+  padding: 26px;
+  height: 102px;
+  background-color: #000;
+
+  .app-info {
+    text-align: right;
+
+    .app-name {
+      font-family: "Roboto-Medium";
+      font-size: 14px;
+      letter-spacing: 2.69px;
+      color: #1c2026;
+      display: inline-block;
+    }
+
+    .app-logo {
+      margin-right: 30px;
+      margin-left: 10px;
+    }
+  }
+}
