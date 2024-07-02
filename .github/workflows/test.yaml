@@ -29,17 +29,29 @@ jobs:
     runs-on: [ road-runner, medium ]
     steps:
 
+    # - name: Create public repo pull request
+    #   uses: thomaseizinger/create-pull-request@master
+    #   id: cpr
+    #   with:
+    #     github_token: ${{ secrets.PUBLIC_PAT }}
+    #     head: feature/test-pr
+    #     base: dev
+    #     reviewers: "boonbaluri,agnelpraveen"
+    #     labels: "automatic-pr,must-merge,code-released"
+    #     repository: "https://github.com/mercedes-benz/DnA.git"
+    #     title: "Release "
+
     - name: Create public repo pull request
       uses: thomaseizinger/create-pull-request@master
       id: cpr
       with:
         github_token: ${{ secrets.PUBLIC_PAT }}
-        head: feature/test-pr
-        base: dev
-        reviewers: "boonbaluri,agnelpraveen"
-        labels: "automatic-pr,must-merge,code-released"
-        repository: "https://github.com/mercedes-benz/DnA.git"
-        title: "Release "
+        source_branch: feature/test-pr
+        destination_branch: dev
+        pr_reviewer: "boonbaluri,agnelpraveen"
+        pr_label: "automatic-pr,must-merge,code-released"
+        destination_repository: "mercedes-benz/DnA"
+        pr_title: "Release "
 
     - name: Print pull request details
       if: ${{ steps.cpr.outputs.number }}
