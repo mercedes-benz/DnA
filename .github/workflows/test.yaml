@@ -45,6 +45,8 @@ jobs:
     - name: Create public repo pull request
       uses: diillson/auto-pull-request@latest
       id: cpr
+      env:
+        GITHUB_REPOSITORY: "mercedes-benz/DnA"
       with:
         github_token: ${{ secrets.PUBLIC_PAT }}
         source_branch: feature/test-pr
@@ -55,7 +57,7 @@ jobs:
         pr_title: "Release "
 
     - name: Print pull request details
-      if: ${{ steps.cpr.outputs.number }}
+      if: ${{ steps.cpr.outputs.pr_number }}
       run: |
-        echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
-        echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"            
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pr_url }}"            
