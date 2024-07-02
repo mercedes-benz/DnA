@@ -56,6 +56,8 @@ import com.daimler.data.application.client.GitClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.auth.client.DnaAuthClient;
+import com.daimler.data.auth.dashboard.DashboardClient;
+import com.daimler.data.auth.dashboard.DashboardClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -88,6 +90,7 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.db.json.DeploymentAudit;
 import lombok.extern.slf4j.Slf4j;
+import com.daimler.data.auth.dashboard.DashboardClient;
 
 @Service
 @Slf4j
@@ -114,16 +117,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
+
 	@Autowired
 	private WorkspaceCustomRepository workspaceCustomRepository;
+
+
 	@Autowired
 	private WorkspaceRepository jpaRepo;
+
 
 	@Autowired
 	private CodeServerClient client;
 
 	@Autowired
 	private GitClient gitClient;
+
+	@Autowired
+	private DashboardClient dashboardClient;
 
 	@Autowired
 	private AuthenticatorClient authenticatorClient;
@@ -705,17 +715,40 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 			}
-			HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
-			if(!addAdminAccessToGitUser.is2xxSuccessful())
-			{
-				MessageDescription warnMsg = new MessageDescription("Failed while adding " + owner.getGitUserName()
-				+ " as admin to repository");
-				log.info("Failed while adding {} as collaborator to repository. Please add manually",
-				owner.getGitUserName());
-				warnings.add(warnMsg);
-				responseVO.setWarnings(warnings);
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
+					.startsWith("private") &&
+					!vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
+							.equalsIgnoreCase("default")
+					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
+							.startsWith("bat")
+					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
+							.startsWith("public")) {
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
+				if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " + owner.getGitUserName()
+							+ " as admin to repository");
+					log.info("Failed while adding {} as collaborator to repository. Please add manually",
+							owner.getGitUserName());
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
 			}
 			vo.getProjectDetails().setGitRepoName(repoName);
+			String departmentName = vo.getProjectDetails().getDataGovernance().getDepartment();
+			if (departmentName != null) {
+				GenericMessage departmentStatus = dashboardClient.getDepartment(departmentName);
+				if (!"SUCCESS".equals(departmentStatus.getSuccess())) {
+					// If department is not found, create the department
+					GenericMessage createDepartmentResponse = dashboardClient.createDepartment(departmentName);
+					if ("SUCCESS".equals(createDepartmentResponse.getSuccess())) {
+						log.info("Successfully created department: {}", departmentName);
+					} else {
+						log.warn("Failed to create department: {}", departmentName);
+					}
+				} else {
+					log.info("department already exists");
+				}
+			}
 			// add records to db
 			CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
 			List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
@@ -1993,6 +2026,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 				BeanUtils.copyProperties(dataGovernanceInfo.getData(), newGovFeilds);
 				if (dataGovernanceInfo.getData().isPiiData() != null) {
 					newGovFeilds.setPiiData(dataGovernanceInfo.getData().isPiiData());
+				}
+				String departmentName = entity.getData().getProjectDetails().getDataGovernance().getDepartment();
+				GenericMessage departmentStatus = dashboardClient.getDepartment(departmentName);
+				if (departmentStatus != null) {
+					if (!"SUCCESS".equals(departmentStatus.getSuccess())) {
+						// If department is not found, create the department
+						GenericMessage createDepartmentResponse = dashboardClient.createDepartment(departmentName);
+						if ("SUCCESS".equals(createDepartmentResponse.getSuccess())) {
+							log.info("Successfully created department: {}", departmentName);
+						} else {
+							log.warn("Failed to create department: {}", departmentName);
+						}
+					} else {
+						log.info("department already exists");
+					}
 				}
 				GenericMessage updateLeanGovernanceFeilds = workspaceCustomRepository
 						.updateGovernanceDetails(projectName, newGovFeilds);
