@@ -41,8 +41,9 @@ jobs:
     #     repository: "https://github.com/mercedes-benz/DnA.git"
     #     title: "Release "
 
+            
     - name: Create public repo pull request
-      uses: thomaseizinger/create-pull-request@master
+      uses: diillson/auto-pull-request@latest
       id: cpr
       with:
         github_token: ${{ secrets.PUBLIC_PAT }}
