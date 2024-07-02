@@ -39,7 +39,7 @@ jobs:
         reviewers: "boonbaluri,agnelpraveen"
         labels: "automatic-pr,must-merge,code-released"
         repository: "mercedes-benz/DnA"
-        # title: "Release ${{ inputs.DETECT_PROJECT_NAME }}_${{ needs.build.outputs.version }}"
+        title: "Release "
 
     - name: Print pull request details
       if: ${{ steps.cpr.outputs.number }}
