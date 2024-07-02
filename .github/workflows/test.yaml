@@ -38,7 +38,7 @@ jobs:
         base: dev
         reviewers: "boonbaluri,agnelpraveen"
         labels: "automatic-pr,must-merge,code-released"
-        repository: "mercedes-benz/DnA"
+        repository: "https://github.com/mercedes-benz/DnA.git"
         title: "Release "
 
     - name: Print pull request details
