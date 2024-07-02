@@ -1,0 +1,48 @@
+name: Git Sync
+on:
+  workflow_dispatch:
+    inputs:
+      publicBranch:
+        description: 'Public Branch name'
+        required: true  
+      privateBranch:
+        description: 'Private Branch name'
+        default: dev
+        required: true         
+        type: choice
+        options: 
+          - dev
+          - staging
+          - main   
+      reviewers:
+        description: 'Reviewers for staging and main branch'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        required: true   
+
+env:
+  PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
+  DEST_REPO: git.i.mercedes-benz.com/DNA/DnA-Private.git
+
+jobs:
+  gitsync:
+    name: "Git Sync"
+    runs-on: [ road-runner, medium ]
+    steps:
+
+    - name: Create public repo pull request
+      uses: thomaseizinger/create-pull-request@master
+      id: cpr
+      with:
+        github_token: ${{ secrets.PUBLIC_PAT }}
+        head: feature/test-pr
+        base: dev
+        reviewers: "boonbaluri,agnelpraveen"
+        labels: "automatic-pr,must-merge,code-released"
+        repository: "mercedes-benz/DnA"
+        # title: "Release ${{ inputs.DETECT_PROJECT_NAME }}_${{ needs.build.outputs.version }}"
+
+    - name: Print pull request details
+      if: ${{ steps.cpr.outputs.number }}
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"            
