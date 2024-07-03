@@ -86,13 +86,13 @@ jobs:
                - 'packages/storage-mfe/**'
               - 'deployment/dockerfiles/storageService/storage-mfe.Dockerfile' 
             storage-be:
-              - 'packages/storage-be/**'
+              - 'packages/storage-backend/**'
               - 'deployment/dockerfiles/storageService/storage-be.Dockerfile' 
             dss-mfe:
                - 'packages/dss-mfe/**'
               - 'deployment/dockerfiles/dss/dss-mfe.Dockerfile'
             dss-be:
-              - 'packages/dss-be/**'
+              - 'packages/dataiku-backend/**'
               - 'deployment/dockerfiles/dss/dss-be.Dockerfile'  
             data-product-backend:
               - 'packages/data-product-backend/**'
@@ -249,23 +249,23 @@ jobs:
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/storage-be'
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
-  # dss-be:
-  #       name: dss Backend
-  #       needs: select-service
-  #       if: needs.select-service.outputs.dss-be == 'true'
-  #       uses: ./.github/workflows/deploy.yaml
-  #       with:
-  #         IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dss-backend'
-  #         DOCKER_FILE_PATH: 'dss/dss-be.Dockerfile'
-  #         DETECT_PROJECT_NAME: 'dss-be'
-  #         IS_OVERRIDE_REQUIRED: true
-  #         ENVIRONMENT: ${{ github.event.inputs.environment }}
-  #         IS_REACT_APP: false
-  #         CODE_FOLDER: 'packages/dataiku-backend'
-  #         APP_VERSION_FILE_PATH: 'packages/dataiku-backend/dataiku-backend-lib/src/main/resources/application.yml'
-  #         HELM_FOLDER: 'deployment/kubernetes/helm/charts/dss-be'
-  #         YML_IMAGE_TAG_PATH: 'image.tag' 
-  #       secrets: inherit
+  dss-be:    ## Code changes are not detected
+        name: dss Backend
+        needs: select-service
+        if: needs.select-service.outputs.dss-be == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dss-backend'
+          DOCKER_FILE_PATH: 'dss/dss-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'dss-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/dataiku-backend'
+          APP_VERSION_FILE_PATH: 'packages/dataiku-backend/dataiku-backend-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/dss-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
   dss-mfe:
         name: dss-mfe
         needs: select-service
@@ -283,23 +283,23 @@ jobs:
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/dss-mfe'
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
-  # data-product-mfe:
-  #       name: DataProduct MFE
-  #       needs: select-service
-  #       if: needs.select-service.outputs.data-product-mfe == 'true'
-  #       uses: ./.github/workflows/deploy.yaml
-  #       with:
-  #         IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/data-product-mfe'
-  #         DOCKER_FILE_PATH: 'dataProduct/dataProduct-mfe.Dockerfile'
-  #         DETECT_PROJECT_NAME: 'data-product-mfe'
-  #         IS_OVERRIDE_REQUIRED: false
-  #         ENVIRONMENT: ${{ github.event.inputs.environment }}
-  #         IS_REACT_APP: true
-  #         CODE_FOLDER: 'packages/data-product-mfe'
-  #         APP_VERSION_FILE_PATH: 'packages/data-product-mfe/package.json'
-  #         HELM_FOLDER: 'deployment/kubernetes/helm/charts/data-product-mfe'
-  #         YML_IMAGE_TAG_PATH: 'image.tag' 
-  #       secrets: inherit       
+  data-product-mfe:  ## Code changes are not detected
+        name: DataProduct MFE
+        needs: select-service
+        if: needs.select-service.outputs.data-product-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/data-product-mfe'
+          DOCKER_FILE_PATH: 'dataProduct/dataProduct-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'data-product-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/data-product-mfe'
+          APP_VERSION_FILE_PATH: 'packages/data-product-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/data-product-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit       
   data-product-backend:
         name: DataProduct Backend
         needs: select-service
@@ -385,23 +385,23 @@ jobs:
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/backend'
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
-  # dna-frontend:
-  #       name: dna-frontend
-  #       needs: select-service
-  #       if: needs.select-service.outputs.dna-frontend == 'true'
-  #       uses: ./.github/workflows/deploy.yaml
-  #       with:
-  #         IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-frontend'
-  #         DOCKER_FILE_PATH: 'app/result-frontend.Dockerfile'
-  #         DETECT_PROJECT_NAME: 'dna-frontend'
-  #         IS_OVERRIDE_REQUIRED: false
-  #         ENVIRONMENT: ${{ github.event.inputs.environment }}
-  #         IS_REACT_APP: true
-  #         CODE_FOLDER: 'packages/frontend'
-  #         APP_VERSION_FILE_PATH: 'packages/frontend/package.json'
-  #         HELM_FOLDER: 'deployment/kubernetes/helm/charts/frontend'
-  #         YML_IMAGE_TAG_PATH: 'image.tag' 
-  #       secrets: inherit      
+  dna-frontend:   ## Code changes are not detected
+        name: dna-frontend
+        needs: select-service
+        if: needs.select-service.outputs.dna-frontend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-frontend'
+          DOCKER_FILE_PATH: 'app/result-frontend.Dockerfile'
+          DETECT_PROJECT_NAME: 'dna-frontend'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/frontend'
+          APP_VERSION_FILE_PATH: 'packages/frontend/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/frontend'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit      
   dataentry-mfe:
         name: Dataentry MFE
         needs: select-service
@@ -485,23 +485,23 @@ jobs:
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/datalake-mfe'
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit  
-  # matomo-mfe:
-  #       name: matomo-mfe
-  #       needs: select-service
-  #       if: needs.select-service.outputs.matomo-mfe == 'true'
-  #       uses: ./.github/workflows/deploy.yaml
-  #       with:
-  #         IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/matomo-mfe'
-  #         DOCKER_FILE_PATH: 'matomo/matomo-mfe.Dockerfile'
-  #         DETECT_PROJECT_NAME: 'matomo-mfe'
-  #         IS_OVERRIDE_REQUIRED: false
-  #         ENVIRONMENT: ${{ github.event.inputs.environment }}
-  #         IS_REACT_APP: true
-  #         CODE_FOLDER: 'packages/matomo-mfe'
-  #         APP_VERSION_FILE_PATH: 'packages/matomo-mfe/package.json'
-  #         HELM_FOLDER: 'deployment/kubernetes/helm/charts/matomo-mfe'
-  #         YML_IMAGE_TAG_PATH: 'image.tag' 
-  #       secrets: inherit                                                                                                                 
+  matomo-mfe:   ## Code changes are not detected
+        name: matomo-mfe
+        needs: select-service
+        if: needs.select-service.outputs.matomo-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/matomo-mfe'
+          DOCKER_FILE_PATH: 'matomo/matomo-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'matomo-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/matomo-mfe'
+          APP_VERSION_FILE_PATH: 'packages/matomo-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/matomo-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit                                                                                                                 
   matomo-backend:
         name: matomo-backend
         needs: select-service
