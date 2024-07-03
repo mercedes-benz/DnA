@@ -14,8 +14,8 @@ spec:
     namespace: kong 
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-authenticator-service.git
+    path: deployment/kubernetes/helm/charts/authenticator-service
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-authenticator

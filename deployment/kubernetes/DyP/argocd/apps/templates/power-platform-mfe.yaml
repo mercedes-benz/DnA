@@ -14,8 +14,8 @@ spec:
     namespace: power-platform
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-powerplatform-mfe.git
+    path: deployment/kubernetes/helm/charts/power-platform-mfe
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: power-platform-mfe
