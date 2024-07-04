@@ -7,7 +7,7 @@ configJs: |
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dss-mfe
   pullPolicy: IfNotPresent
-  tag: 1.0.4
+  tag: 1.0.5
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-mfe
@@ -31,7 +31,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: daimler-acme
-    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: dss.dna.app.corpintra.net
       paths:
@@ -71,7 +71,6 @@ vaultInjector:
               };
       {{- end }}   
   saName: default
-
 podDisruptionBudget:
   enabled: true
-  minAvailable: "50%"
+  minAvailable: 50%

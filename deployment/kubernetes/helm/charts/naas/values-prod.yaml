@@ -3,7 +3,7 @@ namespace: naas
 app:
   backend:
     replicaCount: 2
-    image: registry-emea.app.corpintra.net/dnaplatform/naas-backend:3.1.4
+    image: registry-emea.app.corpintra.net/dnaplatform/naas-backend:3.1.8
     secrets:
       name: naas-app-secrets
       jwtKey: null
@@ -55,7 +55,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: daimler-acme
-    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 imagePullSecret:
   name: imagepullsecret
 vaultInjector:
@@ -92,7 +92,6 @@ vaultInjector:
       {{- end }}      
   saName: default
   jarName: naas-lib*.jar
-
 podDisruptionBudget:
   enabled: true
-  minAvailable: "50%"
+  minAvailable: 50%

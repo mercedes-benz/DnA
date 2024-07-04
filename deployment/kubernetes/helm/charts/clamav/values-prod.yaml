@@ -4,9 +4,9 @@ securityContext:
   runasUser: 100
 app:
   backend:
-    name: clamav-rest    
+    name: clamav-rest
     replicaCount: 2
-    image: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend:3.1.4
+    image: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend:3.1.5
     secrets:
       name: oneapi-secrets
       onapiBasicAuthToken: null
@@ -54,7 +54,7 @@ app:
       port: api
 image:
   replicaCount: 4
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2023-09-03
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-07-03
   pullPolicy: Always
 ingress:
   enabled: false
@@ -118,7 +118,6 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
-
 autoscaling:
   enabled: true
   minReplicas: 2
