@@ -14,8 +14,8 @@ spec:
     namespace: trino
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm/trinoBackend
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-trino.git
+    path: deployment/kubernetes/helm/charts/trinoBackend
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-trino-be

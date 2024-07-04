@@ -14,8 +14,8 @@ spec:
     namespace: dashboard
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-dashboard-backend.git
+    path: deployment/kubernetes/helm/charts/dashboard
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-dashboard
