@@ -182,7 +182,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   chronos-mfe:
-        name: Chronos MFE
+        name: chronos-mfe
         needs: select-service
         if: needs.select-service.outputs.chronos-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -233,7 +233,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   storage-be:
-        name: storage Backend
+        name: Storage Backend
         needs: select-service
         if: needs.select-service.outputs.storage-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -250,7 +250,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dss-be:    ## Code changes are not detected
-        name: dss Backend
+        name: Dss Backend
         needs: select-service
         if: needs.select-service.outputs.dss-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -284,7 +284,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   data-product-mfe:  ## Code changes are not detected
-        name: DataProduct MFE
+        name: data-product-mfe
         needs: select-service
         if: needs.select-service.outputs.data-product-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -301,7 +301,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit       
   data-product-backend:
-        name: DataProduct Backend
+        name: data-product-backend
         needs: select-service
         if: needs.select-service.outputs.data-product-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -403,7 +403,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit      
   dataentry-mfe:
-        name: Dataentry MFE
+        name: dataentry-mfe
         needs: select-service
         if: needs.select-service.outputs.dataentry-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -471,7 +471,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag'
         secrets: inherit   
   datalake-mfe:
-        name: datalake MFE
+        name: datalake-mfe
         needs: select-service
         if: needs.select-service.outputs.datalake-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
