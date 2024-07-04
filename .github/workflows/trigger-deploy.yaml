@@ -83,13 +83,13 @@ jobs:
               - 'packages/code-space-mfe/**'
               - 'deployment/dockerfiles/codeServer/code-space-mfe.Dockerfile'
             storage-mfe:
-               - 'packages/storage-mfe/**'
+              - 'packages/storage-mfe/**'
               - 'deployment/dockerfiles/storageService/storage-mfe.Dockerfile' 
             storage-be:
               - 'packages/storage-backend/**'
               - 'deployment/dockerfiles/storageService/storage-be.Dockerfile' 
             dss-mfe:
-               - 'packages/dss-mfe/**'
+              - 'packages/dss-mfe/**'
               - 'deployment/dockerfiles/dss/dss-mfe.Dockerfile'
             dss-be:
               - 'packages/dataiku-backend/**'
