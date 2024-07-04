@@ -24,9 +24,7 @@ Hardware Prerequisites :
 
 #### **JSON Web Token (JWT)**
 
-The JWT is used for the internal communication between microservices. You can generate this token by clicking on the link below. Next, copy the generated JWT and update the value in the `jwtKey` and `jwtSecretKey` parameters found in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml) file.
-
-* [JWT GENERATOR](https://www.javainuse.com/jwtgenerator)
+The JWT is used for the internal communication between microservices. You can generate this token by using a JWT generator, for which there are many providers who can be found through a simple internet search. Next, copy the generated JWT and update the value in the `jwtKey` and `jwtSecretKey` parameters found in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml) file.
 
 #### **Git Cloning** 
 
@@ -40,7 +38,7 @@ Once cloning has finished, you will then have a copy of the entire repository on
 
 *Note*: You must replace <`<Cloned Folder>`> with the actual location path of your computer.
 ```
-cd <<Clonned Folder Path>>/deployment/
+cd <<Cloned Folder Path>>/deployment/
 ```
 #### **Docker Compose**
 Execute the following Docker Compose command to create the DnA application.
@@ -64,7 +62,7 @@ Helm helps you deploy and manage Kubernetes applications in an easier way.
 
 *Note 1: Except for the JWT, which is generated rather than installed, if you do not already have the following software prerequisites installed on your computer, please click their associated links for instructions on how to install them on your specific machine.*
 
-*Note 2: If you do not currently have Kubernetes installed on your computer, it is best to first consult the [Kubernetes setup page](https://kubernetes.io/docs/setup/) before installing any Kubernetes tools such as Kubectl because you must first choose what type of Kubernetes installation you want, and then you can choose to install tools such as Kubectl.*
+*Note 2: If you do not currently have Kubernetes installed on your computer, it is best to first consult the [Kubernetes setup page](https://kubernetes.io/docs/setup/) before installing any Kubernetes tools such as Kubectl because you must first choose the type of Kubernetes installation that you want, and then you can choose to install tools such as Kubectl.*
 
 Software Prerequisites:
 
@@ -78,9 +76,7 @@ Software Prerequisites:
 
 #### **JSON Web Token (JWT)**
 
-The JWT is used for the internal communication between microservices. You can generate this token by clicking on the link below. Next, copy the generated JWT and update the value within the `jwtKey` and `jwtSecretKey` parameters found in the [values.yaml](../kubernetes/helm/values.yaml) file.
-
-* [JWT GENERATOR](https://www.javainuse.com/jwtgenerator)
+The JWT is used for the internal communication between microservices. You can generate this token by using a JWT generator, for which there are many providers who can be found through a simple internet search. Next, copy the generated JWT and update the value within the `jwtKey` and `jwtSecretKey` parameters found in the [values.yaml](../kubernetes/helm/values.yaml) file.
 
 #### **Minio Username And Password**
 
@@ -106,7 +102,7 @@ Once cloning has finished, you will then have a copy of the entire repository on
 
 *Note*: You must replace <`<Cloned Folder>`> with the actual location path of your computer.
 ```
-cd <<Clonned Folder Path>>/deployment/
+cd <<Cloned Folder Path>>/deployment/
 ```
 #### **Building and Pushing Images**
 
@@ -127,7 +123,7 @@ The following images will be created when executing the command below them:
 * ZooKeeper
 
 ```
-cd <<Clonned Folder Path>>/deployment/
+cd <<Cloned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
 *For details on this basic deployment, please refer to this file:* [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
@@ -175,7 +171,7 @@ After installing kafka, you must then update the `naasBroker` parameter value in
 
 Execute the following commands to deploy the application on a Kubernetes cluster using Helm.
 ```
-cd <<Clonned Folder Path>>\deployment\kubernetes\helm
+cd <<Cloned Folder Path>>\deployment\kubernetes\helm
 helm install dna . -f ./charts/values.yaml
 ```
 Execute the following command to list out the Helm releases.
@@ -184,7 +180,7 @@ helm list
 ```
 **Vault Service**
 
-We are providing vault service to store the API keys that were generated in the malware scan service.
+We are providing the vault service to store the API keys that were generated in the malware scan service.
 
 After installing the application with Helm, vault service will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`.
 
