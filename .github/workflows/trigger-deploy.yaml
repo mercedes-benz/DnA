@@ -452,6 +452,7 @@ jobs:
           APP_VERSION_FILE_PATH: 'packages/malware-scanner/malwarescan-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/clamav'
           YML_IMAGE_TAG_PATH: 'image.tag'
+        secrets: inherit  
   naas:
         name: naas
         needs: select-service
@@ -467,7 +468,8 @@ jobs:
           CODE_FOLDER: 'packages/naas'
           APP_VERSION_FILE_PATH: 'packages/naas/naas-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/naas'
-          YML_IMAGE_TAG_PATH: 'image.tag' 
+          YML_IMAGE_TAG_PATH: 'image.tag'
+        secrets: inherit   
   datalake-mfe:
         name: datalake MFE
         needs: select-service
