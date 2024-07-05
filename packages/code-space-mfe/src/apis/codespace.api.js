@@ -165,7 +165,7 @@ const publishCodeSpaceRecipeRequest = (name) => { //not used right now
 };
 
 const getRecipeLov = () => {
-    return server.get('recipeDetails/recipeLov', {
+    return server.get('recipeDetails/recipelov', {
         data: {},
     });
 };
