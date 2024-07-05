@@ -1,0 +1,110 @@
+name: Git Sync
+on:
+  workflow_dispatch:
+    inputs:
+      publicBranch:
+        description: 'Public Branch name'
+        required: true  
+      privateBranch:
+        description: 'Private Branch name'
+        default: dev
+        required: true         
+        type: choice
+        options: 
+          - dev
+          - staging
+          - main   
+      reviewers:
+        description: 'Reviewers for staging and main branch'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        required: true   
+
+env:
+  PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
+  DEST_REPO: git.i.mercedes-benz.com/DNA/DnA-Private.git
+
+jobs:
+  gitsync:
+    name: "Git Sync"
+    if: ${{ inputs.isSync == 'yes' || ( github.event_name == 'workflow_dispatch' && inputs.isSync == '' ) }}
+    runs-on: [ road-runner, medium ]
+    steps:
+
+      - name: Check Source Branch
+        run: |
+          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* || "${{ github.event.inputs.publicBranch }}" == *"bugfix"* || "${{ github.event.inputs.publicBranch }}" == *"hotfix"* ]]; then
+            echo "Public Branch name: ${{ github.event.inputs.publicBranch }}"
+          else
+            echo "Public Branch name does not valid"
+            echo "Given Branch name: ${{ github.event.inputs.publicBranch }}"
+            exit 1
+          fi
+
+      - name: Sync code with Public repo
+        uses: wei/git-sync@v3
+        with:
+          source_repo: "$PUBLIC_SRC_REPO"
+          source_branch: "${{ github.event.inputs.publicBranch }}"
+          destination_repo: "https://${{ secrets.PID_PAT }}@$DEST_REPO"
+          destination_branch: "${{ github.event.inputs.publicBranch }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: '${{ github.event.inputs.publicBranch }}'  
+          fetch-depth: 0  
+
+      - name: Get Head Commit Message
+        id: get_head_commit_message
+        run: |
+          echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
+          echo "$GITHUB_OUTPUT"
+          echo "Tt $HEAD_COMMIT_MESSAGE"
+
+      - name: Create dev pull request
+        uses: thomaseizinger/create-pull-request@master
+        if: ${{ github.ref_name == 'dev' }} 
+        id: cpr
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.publicBranch }}
+          base: ${{ github.event.inputs.privateBranch }}
+          labels: "automatic-pr,automerge"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create staging pull request
+        uses: thomaseizinger/create-pull-request@master
+        if: ${{ github.ref_name == 'staging' }} 
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.publicBranch }}
+          base: ${{ github.event.inputs.privateBranch }}
+          reviewers: ${{ github.event.inputs.reviewers }}
+          labels: "automatic-pr"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create main pull request
+        uses: thomaseizinger/create-pull-request@master
+        if: ${{ github.ref_name == 'main' }} 
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.publicBranch }}
+          base: ${{ github.event.inputs.privateBranch }}
+          reviewers: ${{ github.event.inputs.reviewers }}
+          labels: "automatic-pr"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Print pull request details
+        if: ${{ steps.cpr.outputs.number && github.ref_name == 'dev' }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
+
+      - name: Dev pull request merge
+        if: ${{ github.ref_name == 'dev' }} 
+        uses: sudo-bot/action-pull-request-merge@v1.2.0
+        with:
+          github-token: ${{ secrets.PID_PAT }}
+          number: ${{ steps.cpr.outputs.number }}
+          filter-label: automerge        
+                           
