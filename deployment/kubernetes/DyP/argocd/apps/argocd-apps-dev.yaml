@@ -10,7 +10,7 @@ spec:
     namespace: argocd
     server: https://kubernetes.default.svc
   source:
-    path: deployment/kubernetes/argocd/apps
+    path: deployment/kubernetes/DyP/argocd
     repoURL: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
     targetRevision: dev
     plugin:
@@ -18,7 +18,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-dev.yaml
-  project: dna
+  project: default
   syncPolicy:
     automated:
       prune: true
