@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "OpenMetadata.fullname" . }}
+  labels:
+    {{- include "OpenMetadata.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "OpenMetadata.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "OpenMetadata.labels" . | indent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets  }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "OpenMetadata.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: run-db-migrations
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{ include "OpenMetadata.buildUpgradeCommand" .  | nindent 8 }}
+        volumeMounts:
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.envFrom }}
+        envFrom:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        env:
+        - name: MIGRATION_LIMIT_PARAM
+          value: "{{ .Values.openmetadata.config.upgradeMigrationConfigs.migrationLimitParam }}"
+        {{- include "OpenMetadata.configs" . | nindent 8 }}
+        {{- with .Values.extraEnvs }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.extraInitContainers }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+      volumes:
+      {{- include "tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.openmetadata.config.openmetadata.port }}
+              protocol: TCP
+            - name: http-admin
+              containerPort: {{ .Values.openmetadata.config.openmetadata.adminPort }}
+              protocol: TCP
+          livenessProbe:
+            {{ .Values.livenessProbe | toYaml | indent 12 | trim }}
+          readinessProbe:
+            {{ .Values.readinessProbe | toYaml | indent 12 | trim }}
+          startupProbe:
+            {{ .Values.startupProbe | toYaml | indent 12 | trim }}
+          env:
+          {{- include "OpenMetadata.configs" . | nindent 10 }}
+          {{- with .Values.extraEnvs }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.sidecars }}
+          {{- include "tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

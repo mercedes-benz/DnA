@@ -1,0 +1,34 @@
+apiVersion: v2
+appVersion: 1.2.2
+description: A Helm chart for OpenMetadata on Kubernetes
+home: https://open-metadata.org/
+icon: https://open-metadata.org/images/favicon.png
+keywords:
+- metadata
+- data-science
+- data
+- machine-learning
+- automation
+- big-data
+- bigdata
+- artificial-intelligence
+- datascience
+- data-engineering
+- data-catalog
+- metadata-api
+- governance
+- data-profiling
+- metadata-management
+- dataengineering
+- dataquality
+- bigdataanalytics
+- datadiscovery
+maintainers:
+- email: support@open-metadata.org
+  name: OpenMetadata
+name: openmetadata
+sources:
+- https://github.com/open-metadata/OpenMetadata
+- https://github.com/open-metadata/openmetadata-helm-charts
+type: application
+version: 1.2.4

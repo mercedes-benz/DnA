@@ -1,0 +1,110 @@
+.tabs-panel {
+
+  &.scrollable {
+    width: 100%;
+    margin: 30px auto;
+  }
+
+  .tabs-content-wrapper {
+    margin: 25px 0;
+    padding: 25px 47px;
+    background-color: #fff;
+    .tab-content {
+      display: none;
+
+      &.active {
+        display: block;
+      }
+    }
+  }
+
+  .scrollable.tabs-wrapper {
+    overflow: hidden;
+    display: flex;
+    border-bottom: 1px solid #C0C8D0;
+    height: 42px;
+    overflow: visible;
+
+    button {
+      background: none;
+      border: none;
+      outline: none;
+      color: #383f49;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin: 0 5px;
+
+      i {
+        color: #697582;
+      }
+
+      &.hide {
+        pointer-events: none;
+        opacity: 0;
+        transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+      }
+    }
+
+    nav {
+      flex: 1 1 auto;
+      overflow-x: hidden;
+      height: 42px;
+    }
+
+    .tabs {
+      display: flex;
+      overflow-x: hidden;
+      .tab {
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .tabs {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+
+    .active-indicator {
+      display: block;
+      position: absolute;
+      bottom: 0;
+      height: 3px;
+      background: #00adef;
+      transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    }
+  }
+
+  .tab {
+    flex: 1 1 auto;
+    min-width: 150px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #383f49;
+    border-bottom: 1px solid #C0C8D0;
+
+    > a {
+      display: block;
+      padding: 10px 12px;
+      text-decoration: none;
+      color: #383F49;
+      transition: color .15s;
+    }
+    &.active > a, &:hover > a {
+      color: #383F49;
+    }
+    
+    &.disabled {
+      pointer-events: none;
+      a {
+        color: #99A5B3;
+      }
+    }
+  }
+}

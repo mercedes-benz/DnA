@@ -17,7 +17,7 @@ import { Envs } from '../../utilities/envs';
 import { dataEntryApi } from '../../apis/dataentry.api';
 import { getSubDivisions, resetSubDivisions } from '../../redux/lovsSlice';
 
-const DataEntryProjectForm = ({ project, edit, onSave }) => {
+const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
   let history = useHistory();
 
   const dispatch = useDispatch();
@@ -81,6 +81,7 @@ const DataEntryProjectForm = ({ project, edit, onSave }) => {
 
   const formValues = (values) => {
     return {
+      user,
       typeOfProject: values?.typeOfProject,
       name: values.name.trim(),
       description: values?.description.trim(),

@@ -1,0 +1,661 @@
+# Default values for Neo4j.
+# This is a YAML-formatted file.
+
+## @param nameOverride String to partially override common.names.fullname
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+fullnameOverride: ""
+# disableLookups will disable all the lookups done in the helm charts
+# This should be set to true when using ArgoCD since ArgoCD uses helm template and the helm lookups will fail
+# You can enable this when executing helm commands with --dry-run command
+disableLookups: false
+
+neo4j:
+  # Name of your cluster
+  name: ""
+  # If password is not set or empty a random password will be generated during installation.
+  # Ignored if `neo4j.passwordFromSecret` is provided
+  password: ""
+
+  # Existing secret to use for initial database password
+  passwordFromSecret: ""
+
+  # Neo4j Edition to use (community|enterprise)
+  edition: "community"
+
+  # Minimum number of machines initially required to form a clustered database. The StatefulSet will not reach the ready state
+  # until at least this many members have discovered each other. The default is 1 (standalone)
+#  minimumClusterSize: 1
+
+  # set edition: "enterprise" to use Neo4j Enterprise Edition
+  #
+  # To use Neo4j Enterprise Edition you must have a Neo4j license agreement.
+  #
+  # More information is also available at: https://neo4j.com/licensing/
+  # Email inquiries can be directed to: licensing@neo4j.com
+  #
+  # Set acceptLicenseAgreement: "yes" to confirm that you have a Neo4j license agreement.
+  acceptLicenseAgreement: "no"
+  #
+  # set offlineMaintenanceModeEnabled: true to restart the StatefulSet without the Neo4j process running
+  # this can be used to perform tasks that cannot be performed when Neo4j is running such as `neo4j-admin dump`
+  offlineMaintenanceModeEnabled: false
+  #
+  # set resources for the Neo4j Container. The values set will be used for both "requests" and "limit".
+  resources:
+    cpu: "1000m"
+    memory: "2Gi"
+
+  #add labels if required
+  labels:
+
+# Volumes for Neo4j
+volumes:
+  data:
+
+    #labels for data pvc on creation (Valid only when mode set to selector | defaultStorageClass | dynamic | volumeClaimTemplate)
+    labels: {}
+
+    # Set it to true when you do not want to use the subPathExpr
+    disableSubPathExpr: false
+
+    # REQUIRED: specify a volume mode to use for data
+    # Valid values are share|selector|defaultStorageClass|volume|volumeClaimTemplate|dynamic
+    # To get up-and-running quickly, for development or testing, use "defaultStorageClass" for a dynamically provisioned volume of the default storage class.
+    mode: ""
+
+    # Only used if mode is set to "selector"
+    # Will attach to existing volumes that match the selector
+    selector:
+      storageClassName: "manual"
+      accessModes:
+        - ReadWriteOnce
+      requests:
+        storage: 100Gi
+      # A helm template to generate a label selector to match existing volumes n.b. both storageClassName and label selector must match existing volumes
+      selectorTemplate:
+        matchLabels:
+          app: "{{ .Values.neo4j.name }}"
+          helm.neo4j.com/volume-role: "data"
+
+    # Only used if mode is set to "defaultStorageClass"
+    # Dynamic provisioning using the default storageClass
+    defaultStorageClass:
+      accessModes:
+        - ReadWriteOnce
+      requests:
+        storage: 10Gi
+
+    # Only used if mode is set to "dynamic"
+    # Dynamic provisioning using the provided storageClass
+    dynamic:
+      storageClassName: "neo4j"
+      accessModes:
+        - ReadWriteOnce
+      requests:
+        storage: 100Gi
+
+    # Only used if mode is set to "volume"
+    # Provide an explicit volume to use
+    volume:
+      # If set an init container (running as root) will be added that runs:
+      #   `chown -R <securityContext.fsUser>:<securityContext.fsGroup>` AND `chmod -R g+rwx`
+      # on the volume. This is useful for some filesystems (e.g. NFS) where Kubernetes fsUser or fsGroup settings are not respected
+      setOwnerAndGroupWritableFilePermissions: false
+
+      # Example (using a specific Persistent Volume Claim)
+      # persistentVolumeClaim:
+      #   claimName: my-neo4j-pvc
+
+    # Only used if mode is set to "volumeClaimTemplate"
+    # Provide an explicit volumeClaimTemplate to use
+    volumeClaimTemplate: {}
+
+  # provide a volume to use for backups
+  # n.b. backups will be written to /backups on the volume
+  # any of the volume modes shown above for data can be used for backups
+  backups:
+    #labels for backups pvc on creation (Valid only when mode set to selector | defaultStorageClass | dynamic | volumeClaimTemplate)
+    labels: {}
+    disableSubPathExpr: false
+    mode: "share" # share an existing volume (e.g. the data volume)
+    share:
+      name: "data"
+
+  # provide a volume to use for logs
+  # n.b. logs will be written to /logs/$(POD_NAME) on the volume
+  # any of the volume modes shown above for data can be used for logs
+  logs:
+    #labels for logs pvc on creation (Valid only when mode set to selector | defaultStorageClass | dynamic | volumeClaimTemplate)
+    labels: {}
+    disableSubPathExpr: false
+    mode: "share" # share an existing volume (e.g. the data volume)
+    share:
+      name: "data"
+
+  # provide a volume to use for csv metrics (csv metrics are only available in Neo4j Enterprise Edition)
+  # n.b. metrics will be written to /metrics/$(POD_NAME) on the volume
+  # any of the volume modes shown above for data can be used for metrics
+  metrics:
+    #labels for metrics pvc on creation (Valid only when mode set to selector | defaultStorageClass | dynamic | volumeClaimTemplate)
+    labels: {}
+    disableSubPathExpr: false
+    mode: "share" # share an existing volume (e.g. the data volume)
+    share:
+      name: "data"
+
+  # provide a volume to use for import storage
+  # n.b. import will be mounted to /import on the underlying volume
+  # any of the volume modes shown above for data can be used for import
+  import:
+    #labels for import pvc on creation (Valid only when mode set to selector | defaultStorageClass | dynamic | volumeClaimTemplate)
+    labels: {}
+    disableSubPathExpr: false
+    mode: "share" # share an existing volume (e.g. the data volume)
+    share:
+      name: "data"
+
+  # provide a volume to use for licenses
+  # n.b. licenses will be mounted to /licenses on the underlying volume
+  # any of the volume modes shown above for data can be used for licenses
+  licenses:
+    #labels for licenses pvc on creation (Valid only when mode set to selector | defaultStorageClass | dynamic | volumeClaimTemplate)
+    labels: {}
+    disableSubPathExpr: false
+    mode: "share" # share an existing volume (e.g. the data volume)
+    share:
+      name: "data"
+
+# add additional volumes and their respective mounts
+additionalVolumes: []
+#  - name: neo4j1-conf
+#    emptyDir: {}
+additionalVolumeMounts: []
+#  - mountPath: "/config/neo4j1.conf"
+#    name: neo4j1-conf
+
+# ldapPasswordFromSecret defines the secret which holds the password for ldap system account
+# Secret key name must be LDAP_PASS
+# This secret is accessible by Neo4j at the path defined in ldapPasswordMountPath
+ldapPasswordFromSecret: ""
+
+# The above secret gets mounted to the path mentioned here
+ldapPasswordMountPath: ""
+
+# nodeSelector labels
+# please ensure the respective labels are present on one of the cluster nodes or else helm charts will throw an error
+nodeSelector: {}
+#  label1: "value1"
+#  label2: "value2"
+
+# Services for Neo4j
+services:
+  # A ClusterIP service with the same name as the Helm Release name should be used for Neo4j Driver connections originating inside the
+  # Kubernetes cluster.
+  default:
+    # Annotations for the K8s Service object
+    annotations: { }
+
+  # A LoadBalancer Service for external Neo4j driver applications and Neo4j Browser
+  neo4j:
+    enabled: true
+
+    # Annotations for the K8s Service object
+    annotations: {}
+
+    spec:
+      # Type of service.
+      type: LoadBalancer
+
+      # in most cloud environments LoadBalancer type will receive an ephemeral public IP address automatically. If you need to specify a static ip here use:
+      # loadBalancerIP: ...
+
+    # ports to include in neo4j service
+    ports:
+      http:
+        enabled: true # Set this to false to remove HTTP from this service (this does not affect whether http is enabled for the neo4j process)
+        # uncomment to publish http on port 80 (neo4j default is 7474)
+        # port: 80
+        # targetPort: 7474
+        # name: http
+      https:
+        enabled: true # Set this to false to remove HTTPS from this service (this does not affect whether https is enabled for the neo4j process)
+        # uncomment to publish http on port 443 (neo4j default is 7473)
+        # port: 443
+        # targetPort: 7473
+        # name: https
+      bolt:
+        enabled: true # Set this to false to remove BOLT from this service (this does not affect whether https is enabled for the neo4j process)
+        # Uncomment to explicitly specify the port to publish Neo4j Bolt (7687 is the default)
+        # port: 7687
+        # targetPort: 7687
+        # name: tcp-bolt
+      backup:
+        enabled: false # Set this to true to expose backup port externally (n.b. this could have security implications. Backup is not authenticated by default)
+        # Uncomment to explicitly specify the port to publish Neo4j Backup (6362 is the default)
+        # port: 6362
+        # targetPort: 6362
+        # name: tcp-backup
+
+    selector:
+      "helm.neo4j.com/neo4j.loadbalancer": "include"
+      # By default the load balancer will match all Neo4j instance types.
+      # When Neo4j drivers connect from outside K8s using the load balancer they will not fetch a routing table.
+      # In this case drivers can only use instances included in the load balancer.
+      # To only include Neo4j Core instances uncomment the setting below.
+      # To only route to Neo4j Read Replicas uncomment the setting and change the value to "READ_REPLICA"
+      # "helm.neo4j.com/clustering": "false"
+
+    # This flag allows you to open internal neo4j ports necessary in multi zone /region neo4j cluster scenario
+    multiCluster: false
+
+    # The neo4j LoadBalancer service is shared between all servers in the cluster. Because of this, the `helm.sh/resource-policy: keep`
+    # annotation is used to avoid helm ownership conflicts when another release attempts to update the service.
+    # To prevent the service being orphaned when uninstalling a release, a pre-delete helm hook is provided by the template `delete-loadbalancer-hook.yaml`
+    # This is enabled by default, and will create a Job, Service Account, Role and Role Binding that will run a kubectl image and delete the service
+    # If enabled: is set to false, the LoadBalancer will be orphaned and will have to manually deleted post uninstall and the hook job will not be created
+    cleanup:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: bitnami/kubectl
+        # Will default to use the Kubernetes server version where the chart is deployed, eg 1.22
+        tag: ""
+        digest: ""
+        imagePullPolicy: IfNotPresent
+
+  # A service for admin/ops tasks including taking backups
+  # This service is available even if the deployment is not "ready"
+  admin:
+    enabled: true
+    # Annotations for the admin service
+    annotations: { }
+    spec:
+      type: ClusterIP
+    # n.b. there is no ports object for this service. Ports are autogenerated based on the neo4j configuration
+
+  # A "headless" service for admin/ops and Neo4j cluster-internal communications
+  # This service is available even if the deployment is not "ready"
+  internals:
+    enabled: false
+
+    # Annotations for the internals service
+    annotations: { }
+    # n.b. there is no ports object for this service. Ports are autogenerated based on the neo4j configuration
+
+
+# Neo4j Configuration (yaml format)
+config:
+  server.config.strict_validation.enabled: "false"
+  #dbms.cluster.minimum_initial_system_primaries_count: "3"
+  # The amount of memory to use for mapping the store files.
+  # The default page cache memory assumes the machine is dedicated to running
+  # Neo4j, and is heuristically set to 50% of RAM minus the Java heap size.
+  # server.memory.pagecache.size: "74m"
+
+  #The number of Cypher query execution plans that are cached.
+  # server.db.query_cache_size: "10"
+
+  # Java Heap Size: by default the Java heap size is dynamically calculated based
+  # on available system resources. Uncomment these lines to set specific initial
+  # and maximum heap size.
+  # server.memory.heap.initial_size: "317m"
+  # server.memory.heap.max_size: "317m"
+
+apoc_config: {}
+#  apoc.trigger.enabled: "true"
+#  apoc.import.file.enabled: "true"
+
+#apoc_credentials allow you to set configs like apoc.jdbc.<aliasname>.url and apoc.es.<aliasname>.url via a kubernetes secret mounted on the provided path
+#ensure the secret exists beforehand or else an error will be thrown by the helm chart
+#aliasName , secretName and secretMountPath are compulsory fields. Empty fields will result in error
+#please ensure you are using the compatible apoc-extended plugin jar while using apoc_credentials
+#please ensure the secret is created with the key named as "URL"
+  #Ex: kubectl create secret generic jdbcsecret --from-literal=URL="jdbc:mysql://30.0.0.0:3306/Northwind?user=root&password=password"
+apoc_credentials: {}
+#   jdbc:
+#    aliasName: "jdbc"
+#    secretName: "jdbcsecret"
+#    secretMountPath: "/secret/jdbcCred"
+#
+#   elasticsearch:
+#     aliasName: "es"
+#     secretName: "essecret"
+#     secretMountPath: "/secret/esCred"
+
+
+
+# securityContext defines privilege and access control settings for a Pod. Making sure that we dont run Neo4j as root user.
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 7474
+  runAsGroup: 7474
+  fsGroup: 7474
+  fsGroupChangePolicy: "Always"
+
+# securityContext defines privilege and access control settings for a Container. Making sure that we dont run Neo4j as root user.
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 7474
+  runAsGroup: 7474
+
+# Readiness probes are set to know when a container is ready to be used.
+# Because Neo4j uses Java these values are large to distinguish between long Garbage Collection pauses (which don't require a restart) and an actual failure.
+# These values should mark Neo4j as not ready after at most 5 minutes of problems (20 attempts * max 15 seconds between probes)
+readinessProbe:
+  failureThreshold: 20
+  timeoutSeconds: 10
+  periodSeconds: 5
+
+# Liveness probes are set to know when to restart a container.
+# Because Neo4j uses Java these values are large to distinguish between long Garbage Collection pauses (which don't require a restart) and an actual failure.
+# These values should trigger a restart after at most 10 minutes of problems (40 attempts * max 15 seconds between probes)
+livenessProbe:
+  failureThreshold: 40
+  timeoutSeconds: 10
+  periodSeconds: 5
+
+# Startup probes are used to know when a container application has started.
+# If such a probe is configured, it disables liveness and readiness checks until it succeeds
+# When restoring Neo4j from a backup it's important that startup probe gives time for Neo4j to recover and/or upgrade store files
+# When using Neo4j clusters it's important that startup probe give the Neo4j cluster time to form
+startupProbe:
+  failureThreshold: 1000
+  periodSeconds: 5
+
+# top level setting called ssl to match the "ssl" from "dbms.ssl.policy"
+ssl:
+  # setting per "connector" matching neo4j config
+  bolt:
+    privateKey:
+      secretName:  # we set up the template to grab `private.key` from this secret
+      subPath:  # we specify the privateKey value name to get from the secret
+    publicCertificate:
+      secretName:  # we set up the template to grab `public.crt` from this secret
+      subPath:  # we specify the publicCertificate value name to get from the secret
+    trustedCerts:
+      sources: [ ] # a sources array for a projected volume - this allows someone to (relatively) easily mount multiple public certs from multiple secrets for example.
+    revokedCerts:
+      sources: [ ]  # a sources array for a projected volume
+  https:
+    privateKey:
+      secretName:
+      subPath:
+    publicCertificate:
+      secretName:
+      subPath:
+    trustedCerts:
+      sources: [ ]
+    revokedCerts:
+      sources: [ ]
+  cluster:
+    privateKey:
+      secretName:
+      subPath:
+    publicCertificate:
+      secretName:
+      subPath:
+    trustedCerts:
+      sources: [ ]
+    revokedCerts:
+      sources: [ ]
+
+# Kubernetes cluster domain suffix
+clusterDomain: "cluster.local"
+
+# Override image settings in Neo4j pod
+image:
+  imagePullPolicy: IfNotPresent
+  # set a customImage if you want to use your own docker image
+#  customImage: eu.gcr.io/neo4j-helm/neo4j:v5
+
+  #imagePullSecrets list
+#  imagePullSecrets:
+#    - "demo"
+
+  #imageCredentials list for which secret of type docker-registry will be created automatically using the details provided
+  # password, name are compulsory fields for an imageCredential , without these fields helm chart will throw an error
+  # registry ,username and email are optional fields
+  # imageCredential name should be part of the imagePullSecrets list or else the respective imageCredential will be ignored and no secret creation will be done
+  # In case of a secret already pre-existing you don't need to mention the imageCredential , just add the pre-existing secretName to the imagePullSecret list
+  # and that will be used as an imagePullSecret
+#  imageCredentials:
+#    - registry: ""
+#      username: ""
+#      password: ""
+#      email: ""
+#      name: ""
+
+statefulset:
+  metadata:
+    #Annotations for Neo4j StatefulSet
+    annotations:
+#      imageregistry: "https://hub.docker.com/"
+#      demo: alpha
+
+# additional environment variables for the Neo4j Container
+env: {}
+
+# Other K8s configuration to apply to the Neo4j pod
+podSpec:
+
+  #Annotations for Neo4j pod
+  annotations: {}
+#   imageregistry: "https://hub.docker.com/"
+#   demo: alpha
+
+  nodeAffinity: {}
+#    requiredDuringSchedulingIgnoredDuringExecution:
+#      nodeSelectorTerms:
+#        - matchExpressions:
+#            - key: topology.kubernetes.io/zone
+#              operator: In
+#              values:
+#                - antarctica-east1
+#                - antarctica-west1
+#    preferredDuringSchedulingIgnoredDuringExecution:
+#      - weight: 1
+#        preference:
+#          matchExpressions:
+#            - key: another-node-label-key
+#              operator: In
+#              values:
+#                - another-node-label-value
+
+  # Anti Affinity
+  # If set to true then an anti-affinity rule is applied to prevent database pods with the same `neo4j.name` running on a single Kubernetes node.
+  # If set to false then no anti-affinity rules are applied
+  # If set to an object then that object is used for the Neo4j podAntiAffinity
+  podAntiAffinity: true
+#    requiredDuringSchedulingIgnoredDuringExecution:
+#      - labelSelector:
+#          matchLabels:
+#            app: "demo"
+#            helm.neo4j.com/pod_category: "neo4j-instance"
+#        topologyKey: kubernetes.io/hostname
+
+  #Add tolerations to the Neo4j pod
+  tolerations: []
+#    - key: "key1"
+#      operator: "Equal"
+#      value: "value1"
+#      effect: "NoSchedule"
+#    - key: "key2"
+#      operator: "Equal"
+#      value: "value2"
+#      effect: "NoSchedule"
+
+  #Priority indicates the importance of a Pod relative to other Pods.
+  # More Information : https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
+
+  #This indicates that the neo4j instance be included to the loadbalancer. Can be set to exclude to not add the stateful set to loadbalancer
+  loadbalancer: "include"
+
+  # Name of service account to use for the Neo4j Pod (optional)
+  # this is useful if you want to use Workload Identity to grant permissions to access cloud resources e.g. cloud object storage (AWS S3 etc.)
+  # For clusters, please ensure that it has the appropriate roles and role-bindings to be able to query kubernetes services
+  serviceAccountName: ""
+
+  # How long the Neo4j pod is permitted to keep running after it has been signalled by Kubernetes to stop. Once this timeout elapses the Neo4j process is forcibly terminated.
+  # A large value is used because Neo4j takes time to flush in-memory data to disk on shutdown.
+  terminationGracePeriodSeconds: 3600
+
+  # initContainers for the Neo4j pod
+  initContainers: [ ]
+
+  # additional runtime containers for the Neo4j pod
+  containers: [ ]
+
+# print the neo4j user password set during install to the `helm install` log
+logInitialPassword: true
+
+# Jvm configuration for Neo4j
+jvm:
+  # If true any additional arguments are added after the Neo4j default jvm arguments.
+  # If false Neo4j default jvm arguments are not used.
+  useNeo4jDefaultJvmArguments: true
+  # additionalJvmArguments is a list of strings. Each jvm argument should be a separate element:
+  additionalJvmArguments: []
+#   - "-XX:+HeapDumpOnOutOfMemoryError"
+#   - "-XX:HeapDumpPath=/logs/neo4j.hprof"
+#   - "-XX:MaxMetaspaceSize=180m"
+#   - "-XX:ReservedCodeCacheSize=40m"
+
+logging:
+  serverLogsXml: |-
+#    <?xml version="1.0" encoding="UTF-8"?>
+#    <!-- Example JSON logging configuration -->
+#    <Configuration status="ERROR" monitorInterval="30" packages="org.neo4j.logging.log4j">
+#        <Appenders>
+#            <!-- Default debug.log, please keep -->
+#            <RollingRandomAccessFile name="DebugLog" fileName="${config:server.directories.logs}/debug.log"
+#                                     filePattern="$${config:server.directories.logs}/debug.log.%02i">
+#                <JsonTemplateLayout eventTemplateUri="classpath:org/neo4j/logging/StructuredLayoutWithMessage.json"/>
+#                <Policies>
+#                    <SizeBasedTriggeringPolicy size="20 MB"/>
+#                </Policies>
+#                <DefaultRolloverStrategy fileIndex="min" max="7"/>
+#            </RollingRandomAccessFile>
+#
+#            <RollingRandomAccessFile name="HttpLog" fileName="${config:server.directories.logs}/http.log"
+#                                     filePattern="$${config:server.directories.logs}/http.log.%02i">
+#                <JsonTemplateLayout eventTemplateUri="classpath:org/neo4j/logging/StructuredLayoutWithMessage.json"/>
+#                <Policies>
+#                    <SizeBasedTriggeringPolicy size="20 MB"/>
+#                </Policies>
+#                <DefaultRolloverStrategy fileIndex="min" max="5"/>
+#            </RollingRandomAccessFile>
+#
+#            <RollingRandomAccessFile name="QueryLog" fileName="${config:server.directories.logs}/query.log"
+#                                     filePattern="$${config:server.directories.logs}/query.log.%02i">
+#                <JsonTemplateLayout eventTemplateUri="classpath:org/neo4j/logging/QueryLogJsonLayout.json"/>
+#                <Policies>
+#                    <SizeBasedTriggeringPolicy size="20 MB"/>
+#                </Policies>
+#                <DefaultRolloverStrategy fileIndex="min" max="7"/>
+#            </RollingRandomAccessFile>
+#
+#            <RollingRandomAccessFile name="SecurityLog" fileName="${config:server.directories.logs}/security.log"
+#                                     filePattern="$${config:server.directories.logs}/security.log.%02i">
+#                <JsonTemplateLayout eventTemplateUri="classpath:org/neo4j/logging/StructuredLayoutWithMessage.json"/>
+#                <Policies>
+#                    <SizeBasedTriggeringPolicy size="20 MB"/>
+#                </Policies>
+#                <DefaultRolloverStrategy fileIndex="min" max="7"/>
+#            </RollingRandomAccessFile>
+#        </Appenders>
+#
+#        <Loggers>
+#            <!-- Log levels. One of DEBUG, INFO, WARN, ERROR or OFF -->
+#
+#            <!-- The debug log is used as the root logger to catch everything -->
+#            <Root level="INFO">
+#                <AppenderRef ref="DebugLog"/> <!-- Keep this -->
+#            </Root>
+#            <!-- The query log, must be named "QueryLogger" -->
+#            <Logger name="QueryLogger" level="INFO" additivity="false">
+#                <AppenderRef ref="QueryLog"/>
+#            </Logger>
+#            <!-- The http request log, must be named "HttpLogger" -->
+#            <Logger name="HttpLogger" level="INFO" additivity="false">
+#                <AppenderRef ref="HttpLog"/>
+#            </Logger>
+#            <!-- The security log, must be named "SecurityLogger" -->
+#            <Logger name="SecurityLogger" level="INFO" additivity="false">
+#                <AppenderRef ref="SecurityLog"/>
+#            </Logger>
+#        </Loggers>
+#    </Configuration>
+  userLogsXml: |-
+#    <?xml version="1.0" encoding="UTF-8"?>
+#    <!-- Example JSON logging configuration -->
+#    <Configuration status="ERROR" monitorInterval="30" packages="org.neo4j.logging.log4j">
+#    <Appenders>
+#        <RollingRandomAccessFile name="Neo4jLog" fileName="${config:server.directories.logs}/neo4j.log"
+#                                 filePattern="$${config:server.directories.logs}/neo4j.log.%02i">
+#            <JsonTemplateLayout eventTemplateUri="classpath:org/neo4j/logging/StructuredLayoutWithMessage.json"/>
+#            <Policies>
+#                <SizeBasedTriggeringPolicy size="20 MB"/>
+#            </Policies>
+#            <DefaultRolloverStrategy fileIndex="min" max="7"/>
+#        </RollingRandomAccessFile>
+#        <!-- Only used by "neo4j console", will be ignored otherwise -->
+#        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+#            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSSZ}{GMT+0} %-5p %m%n"/>
+#        </Console>
+#    </Appenders>
+#    <Loggers>
+#        <!-- Log level for the neo4j log. One of DEBUG, INFO, WARN, ERROR or OFF -->
+#        <Root level="INFO">
+#            <AppenderRef ref="Neo4jLog"/>
+#            <AppenderRef ref="ConsoleAppender"/>
+#        </Root>
+#    </Loggers>
+#    </Configuration>
+
+# define your podDisruptionBudget details here
+podDisruptionBudget:
+  enabled: false
+  matchLabels: {}
+#    "demo": "neo4j"
+  matchExpressions: []
+#    - key: "demo"
+#      operator: "Equals"
+#      value: "neo4j"
+  labels: {}
+#    "name": "neo4j"
+  minAvailable: ""
+  maxUnavailable: ""
+
+# Service Monitor for prometheus
+# Please ensure prometheus operator or the service monitor CRD is present in your cluster before using service monitor config
+serviceMonitor:
+  enabled: false
+  labels: {}
+#    "demo": "value"
+  jobLabel: ""
+  interval: ""
+  port: ""
+  path: ""
+  namespaceSelector: {}
+#    any: false
+#    matchNames:
+#      - default
+  targetLabels: []
+#    - "demo"
+#    - "value"
+  selector: {}
+#    matchLabels:
+#      helm.neo4j.com/service: "admin"
+
+
+# this section is to be used only when setting up (1 primary + n secondary neo4j instances scenario)
+# Disabled by default.
+analytics:
+  # This flag will enable the internal ports and certain configs necessary to allow 1 primary + n secondary neo4j instances scenario
+  enabled: false
+  type:
+    # values can be primary or secondary
+    # this field denotes the neo4j instance type either primary or secondary
+    name: primary

@@ -1,0 +1,68 @@
+{{- $isEnterprise := required "neo4j.edition must be specified" .Values.neo4j.edition | regexMatch "(?i)enterprise" -}}
+{{- $isLoadBalancerEnabled := index .Values.services.neo4j.enabled }}
+{{- $clusterEnabled := eq (include "neo4j.isClusterEnabled" .) "true" }}
+{{- if and ($isEnterprise) ($clusterEnabled) ($isLoadBalancerEnabled) (.Values.services.neo4j.cleanup.enabled) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-cleanup"
+  labels:
+    app: "{{ include "neo4j.fullname" . }}-cleanup"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+  annotations:
+    "helm.sh/hook": "pre-delete"
+    "helm.sh/hook-weight": "3"
+spec:
+  template:
+    metadata:
+      labels:
+        app: "{{ include "neo4j.fullname" . }}-cleanup"
+    spec:
+      serviceAccountName: "{{ include "neo4j.fullname" . }}-cleanup"
+      containers:
+        - name: kubectl
+          image: "{{ include "cleanup.image" . }}"
+          imagePullPolicy: {{ .Values.services.neo4j.cleanup.image.imagePullPolicy }}
+          command: [ "/bin/sh" ]
+          args:
+            - -c
+            - >-
+              kubectl delete service -n {{ .Release.Namespace }} {{ include "neo4j.name" $ }}-lb-neo4j --ignore-not-found=true &&
+              kubectl wait --for=delete service -n {{ .Release.Namespace }} {{ include "neo4j.name" $ }}-lb-neo4j
+      restartPolicy: Never
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-cleanup"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-cleanup"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-cleanup"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: "{{ include "neo4j.fullname" . }}-cleanup"
+roleRef:
+  kind: Role # this must be Role or ClusterRole
+  name: "{{ include "neo4j.fullname" . }}-cleanup" # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+{{- end -}}

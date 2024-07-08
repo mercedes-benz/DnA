@@ -1,0 +1,20 @@
+{{- if .Values.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "OpenMetadata.fullname" . }}
+  labels:
+    {{- include "OpenMetadata.labels" . | indent 4 }}
+  {{- with .Values.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "OpenMetadata.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http-admin
+      path: /prometheus
+      interval: {{ .Values.serviceMonitor.interval }}
+{{- end }}

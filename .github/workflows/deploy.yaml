@@ -150,7 +150,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ github.ref_name == 'dev' || inputs.ENVIRONMENT == 'Development' }}
-    runs-on: [road-runner, large]
+    runs-on: [road-runner, medium]
     environment:
       name: Development
     steps:

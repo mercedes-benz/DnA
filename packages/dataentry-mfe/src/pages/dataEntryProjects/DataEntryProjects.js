@@ -284,7 +284,7 @@ const DataEntryProjects = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={createProject}
-          content={<DataEntryProjectForm edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
+          content={<DataEntryProjectForm user={user} edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
           scrollableContent={true}
           onCancel={() => setCreateProject(false)}
         />
