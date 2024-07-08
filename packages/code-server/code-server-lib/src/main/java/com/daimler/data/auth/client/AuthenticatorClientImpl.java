@@ -559,37 +559,41 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
-										//request for attaching APIAUTHORISER plugin to service
-										AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
-										AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
-										AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
-										if("int".equalsIgnoreCase(env)){
-											apiAuthoriserPluginConfigVO.setEnv("staging");
-											apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
-											if(securityConfig.getStaging().getPublished().getAppID()!=null)
-												apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
-										}
-										if("prod".equalsIgnoreCase(env)){
-											apiAuthoriserPluginConfigVO.setEnv("production");
-											String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int","");
-											apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
-											if(securityConfig.getProduction().getPublished().getAppID()!=null)
-												apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
-										}
-										// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
-										apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
-										apiAuthoriserPluginConfigVO.setLogType(logType);
-										apiAuthoriserPluginConfigVO.setPoolID(poolID);
-										apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
-
-										apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
-										apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
-										apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
-
 										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
 										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
-										attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+
+										//request for attaching APIAUTHORISER plugin to service
+										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
+											
+											AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
+											AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
+											AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
+											if("int".equalsIgnoreCase(env)){
+												apiAuthoriserPluginConfigVO.setEnv("staging");
+												apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
+												if(securityConfig.getStaging().getPublished().getAppID()!=null)
+													apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
+											}
+											if("prod".equalsIgnoreCase(env)){
+												apiAuthoriserPluginConfigVO.setEnv("production");
+												String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int","");
+												apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
+												if(securityConfig.getProduction().getPublished().getAppID()!=null)
+													apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
+											}
+											// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+											apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
+											apiAuthoriserPluginConfigVO.setLogType(logType);
+											apiAuthoriserPluginConfigVO.setPoolID(poolID);
+											apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+	
+											apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
+											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
+											apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
+	
+											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
+											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+										}
 									}
 								}
 							
