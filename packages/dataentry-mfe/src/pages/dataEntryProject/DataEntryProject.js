@@ -42,7 +42,7 @@ const DataEntryProject = ({ user }) => {
           if(res?.data?.dueDate) {
             let dateToCheck = new Date(res?.data?.dueDate);
             let currentDate = new Date();
-            dateToCheck > currentDate ? setIsDue(true) : setIsDue(false);
+            dateToCheck > currentDate ? setIsDue(false) : setIsDue(true);
           }
           if(res?.data?.surveyData !== 'null') {
             const workbook = {...DEFAULT_WORKBOOK_DATA};

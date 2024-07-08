@@ -1,14 +1,17 @@
 # Default values for formbricks.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
-# see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbrickssecret:
   clientId: "<path:kv/data/dna/kubernetesSecret/formbricks#clientId>"
   clientSecret: "<path:kv/data/dna/kubernetesSecret/formbricks#clientSecret>"
   database_url: "<path:kv/data/dna/kubernetesSecret/formbricks#database_url>"
   encryption_key: "<path:kv/data/dna/kubernetesSecret/formbricks#encryption_key>"
   nextauth_secret: "<path:kv/data/dna/kubernetesSecret/formbricks#nextauth_secret>"
+  accesskey: "<path:kv/data/dna/kubernetesSecret/formbricks#accesskey>"
+  secretKey: "<path:kv/data/dna/kubernetesSecret/formbricks#secretkey>"
+  endpointUrl: "<path:kv/data/dna/kubernetesSecret/formbricks#s3.host>"
+  
+# see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbricks: 
   webappUrl: https://survey.dev.dna.app.corpintra.net                               # REQUIRED: Base URL of the site.
   nextauthUrl: "https://survey.dev.dna.app.corpintra.net"                            # REQUIRED: Location of the auth server.
@@ -39,7 +42,7 @@ formbricks:
 
   # OPTIONAL email settings
   mail:
-    mailFrom: "dna@mercedes-benz.com"
+    mailFrom: "formbricksdna@daimler.com"
     smtpHost: "53.151.100.102"
     smtpPort: 25
     smtpSecureEnabled: 0
@@ -55,11 +58,12 @@ formbricks:
   #     key: ""
   signupDisabled: 0
   passwordResetDisabled: 0
-  emailVerificationDisabled: 1
+  emailVerificationDisabled: 0
   inviteDisabled: 0
   onboardingDisabled: 0
   emailAuthDisabled: 0
   rateLimitingDisabled: 0
+  nodeTlsRejectUnauthorized: 0
   # environmentId: 0
   # onboardingSurveyId: 0
   # defaultTeam:
@@ -100,14 +104,15 @@ formbricks:
   #     name: ""
   #     accessKey: ""
   #     secretKey: ""
-  #   s3:
-  #     bucketName: ""
-  #     endpointUrl: ""
-  #     region: ""
-  #     existingSecret:
-  #       name: ""
-  #       accessKey: ""
-  #       secretKey: ""
+    s3:
+      bucketName: formbricksdev
+      
+      # region: ""
+      existingSecret:
+        name: formbricks-secrets
+        accessKey: accesskey
+        secretKey: secretkey
+        endpointUrl: s3.host
   # cron:
   #   existingSecret:
   #     name: ""
@@ -148,10 +153,10 @@ formbricks:
 replicaCount: 1  # WARNING: multiple replics will only work if "uploads" is a shared filesystem
 
 image:
-  repository: registry-emea.app.corpintra.net/dnaplatform/formbrick
+  repository: registry-emea.app.corpintra.net/dockerhub/formbricks/formbricks
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0"
+  tag: "latest"
 
 imagePullSecrets: 
  - name: imagepullsecret
@@ -172,7 +177,12 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext: 
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
   # capabilities:
   #   drop:
   #   - ALL

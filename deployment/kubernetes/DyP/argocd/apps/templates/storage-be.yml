@@ -14,8 +14,8 @@ spec:
     namespace: storage
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-storage-backend.git
+    path: deployment/kubernetes/helm/charts/storage-be
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-storage-be

@@ -14,8 +14,8 @@ spec:
     namespace: dss
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-dss-mfe.git
+    path: deployment/kubernetes/helm/charts/dss-mfe
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dss-mfe

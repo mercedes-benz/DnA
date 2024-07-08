@@ -31,8 +31,8 @@ const DataProducts = ({ user, history, hostHistory }) => {
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
   const [isProviderCreatorFilter, setIsProviderCreatorFilter] = useState(
-    sessionStorage.getItem(
-      JSON.parse(SESSION_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
+    JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
     ) || false
   );
   const [openCloseFilter, setOpenCloseFilter] = useState(false);
@@ -81,7 +81,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
   }, []);
 
   useEffect(() => {
-    const tempList = filteredDataTransfer.length > 0 ? filteredDataTransfer : [];
+    const tempList = filteredDataTransfer?.length > 0 ? filteredDataTransfer : [];
     const tillRecord = 0 + maxItemsPerPage;
     const records = tempList.slice(0, tillRecord);
     setTotalNumberOfRecords(tempList.length);

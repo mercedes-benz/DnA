@@ -14,8 +14,8 @@ spec:
     namespace: dna
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-backend.git
+    path: deployment/kubernetes/helm/charts/backend
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-app-backend
