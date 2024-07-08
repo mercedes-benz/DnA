@@ -1,0 +1,81 @@
+{{- define "neo4j.namespaceParameter" -}}
+{{ if ne "default" .Release.Namespace }} --namespace "{{.Release.Namespace}}"{{ end }}
+{{- end -}}
+
+{{- define "neo4j.logPassword" -}}
+{{ if .Values.logInitialPassword }}{{ template "neo4j.password" . }}{{ else }}**********{{ end }}
+{{- end -}}
+
+{{- $clusterEnabled := eq (include "neo4j.isClusterEnabled" .) "true" }}
+{{- $authDisabled := index .Values.config "dbms.security.auth_enabled" | default "" | regexMatch "(?i)no|false" -}}
+{{- $offlineMaintenanceModeEnabled := .Values.neo4j.offlineMaintenanceModeEnabled }}
+
+{{- if $offlineMaintenanceModeEnabled -}}
+Your "{{ .Release.Name }}" has been placed in offline maintenance mode.
+
+The Neo4j pod is running with a 'dummy' process (it is not running Neo4j).
+In this state the Neo4j pod will never become "READY" in Kubernetes but you can use kubectl exec to execute commands in the Neo4j pod. To get a shell try:
+ $ kubectl exec "{{ .Release.Name }}-0" -it -- bash
+
+To run a long-running command use nohup to ensure that the job keeps running if kubectl exec is disconnected. E.g.
+ $ nohup neo4j-admin check-consistency --database=neo4j &> job.out < /dev/null &
+ $ tail -f job.out
+{{- else -}}
+{{- if .Release.IsInstall -}}
+Thank you for installing {{ .Chart.Name }}.
+
+Your release "{{ .Release.Name }}" has been installed {{ if ne "default" .Release.Namespace }} in namespace "{{ .Release.Namespace }}"{{ end }}.
+
+{{- if $authDisabled -}}
+Neo4j user authentication has been disabled, you do not need a username or password to connect to Neo4j in this configuration.
+{{- else }}
+
+The neo4j user's password has been set to "{{ template "neo4j.logPassword" . }}".
+{{- end }}
+{{- if not $clusterEnabled -}}
+To view the progress of the rollout try:
+
+  $ kubectl{{ template "neo4j.namespaceParameter" . }} rollout status --watch --timeout=600s statefulset/{{ .Release.Name }}
+
+Once rollout is complete you can log in to Neo4j at "neo4j://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:7687". Try:
+
+  $ kubectl run --rm -it{{ template "neo4j.namespaceParameter" . }} --image "{{ template "neo4j.image" . }}" cypher-shell \
+     -- cypher-shell -a "neo4j://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:7687"{{ if not $authDisabled | and .Values.logInitialPassword}} -u neo4j -p "{{ template "neo4j.logPassword" . }}"{{ end }}
+
+{{- else  }}
+
+This release creates a single member of a Neo4j cluster. It will not become ready until it is able to form a working Neo4j cluster by joining other Neo4j servers. To create a working cluster at least 3 servers are required.
+
+Once you have a working Neo4j cluster, you can access the Neo4j browser using the IP address of the {{ template "neo4j.name" . }}-lb-neo4j service
+eg. http://[SERVICE_IP]:7474
+
+{{- end }}
+
+Graphs are everywhere!
+
+{{- else if .Release.IsUpgrade -}}
+Thank you for using {{ .Chart.Name }}.
+
+{{ if $authDisabled }}
+Neo4j user authentication has been disabled, you do not need a username or password to connect to Neo4j in this configuration.
+{{- end }}
+
+{{- if not $clusterEnabled }}
+To view the status of changes to your release "{{ .Release.Name }}" {{ if ne "default" .Release.Namespace }} in namespace "{{ .Release.Namespace }}"{{ end }}, try:
+
+  $ kubectl{{ template "neo4j.namespaceParameter" . }} rollout status --watch --timeout=600s statefulset/{{ .Release.Name }}
+
+Once rollout is complete you can log in to Neo4j at "neo4j://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}". Try:
+
+  $ kubectl run --rm -it{{ template "neo4j.namespaceParameter" . }} --image "{{ template "neo4j.image" . }}" cypher-shell \
+     -- cypher-shell -a "neo4j://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:7687"
+{{- end }}
+
+Graphs are everywhere!
+{{ else }}
+Thank you for using {{ .Chart.Name }}.
+
+{{- end }}
+{{- end }}
+{{ "" }}
+{{ template "neo4j.passwordWarning" . }}

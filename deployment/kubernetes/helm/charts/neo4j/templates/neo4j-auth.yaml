@@ -1,0 +1,59 @@
+{{- $authDisabled := index .Values.config "dbms.security.auth_enabled" | default "true" | regexMatch "(?i)no|false" -}}
+
+  {{- if $authDisabled -}}
+    {{- if (or (.Values.neo4j.passwordFromSecret) (.Values.neo4j.password)  ) -}}
+      {{ fail "unsupported State: Cannot set neo4j.password or neo4j.passwordFromSecret when Neo4j authis disabled (dbms.security.auth_enabled=false). Either remove neo4j.password setting or enable Neo4j auth" }}
+    {{- end -}}
+
+  {{- else -}}
+  {{- if not (.Values.neo4j.passwordFromSecret ) -}}
+{{- $secretName := include "neo4j.name" . | printf "%s-auth" }}
+{{- $secretExists := false }}
+{{- $secret := list -}}
+{{- if not .Values.disableLookups -}}
+    {{- $secret = (lookup "v1" "Secret" .Release.Namespace $secretName) }}
+    {{- $secretExists = $secret | all }}
+{{- end -}}
+
+{{- $secretBelongsToSomeoneElse := false }}
+{{- if $secretExists }}
+  {{- $secretBelongsToSomeoneElse = index $secret.metadata.annotations "meta.helm.sh/release-name" | eq .Release.Name | not }}
+{{- end }}
+
+{{- if $secretBelongsToSomeoneElse -}}
+
+  {{- if eq (len .Values.neo4j.password) 0 -}}
+
+    {{- $password := index $secret.data "NEO4J_AUTH" | b64dec | trimPrefix "neo4j/" -}}
+    {{- $ignored := set .Values.neo4j "password" $password -}}
+
+  {{- else -}}
+
+    {{- $expectedPassword := .Values.neo4j.password | printf "neo4j/%v" | b64enc -}}
+    {{- $existingPassword := index $secret.data "NEO4J_AUTH" -}}
+
+    {{- if ne $existingPassword $expectedPassword -}}
+      {{ fail "The desired password does not match the password stored in the Kubernetes Secret. For details on how to change the neo4j password via helm check the Neo4j Operations Manual." }}
+    {{- else -}}
+      # Using the existing Kubernetes Secret {{ $secretName }} for the neo4j password.
+    {{- end -}}
+  {{- end -}}
+
+{{- else -}}
+
+{{- $password := include "neo4j.password" . | printf "neo4j/%v" | b64enc -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{{ $secretName }}"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" . }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+type: Opaque
+data:
+  NEO4J_AUTH: "{{ $password }}"
+{{- end -}}
+{{- end -}}
+{{- end -}}
+

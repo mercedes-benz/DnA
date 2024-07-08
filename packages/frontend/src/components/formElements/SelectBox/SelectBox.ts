@@ -13,14 +13,14 @@ class SelectBox {
 
   public static refresh(selectBoxId?: string): void {
     if (selectBoxId) {
-      const selectElement: HTMLSelectElement = document.querySelector(`#${selectBoxId}`);
+      const selectElement: HTMLSelectElement = document?.querySelector(`#${selectBoxId}`);
       if(selectElement) {
         const selectOptions = selectElement?.options;
         const selectElementDIV = selectElement?.nextSibling;
         
         if(selectElementDIV) {
           const selectElementItemsDIV = selectElementDIV?.nextSibling as HTMLDivElement;
-          const selectOptionsDiv = selectElementItemsDIV?.querySelectorAll('div');
+          const selectOptionsDiv = selectElementItemsDIV.querySelectorAll('div');
           if (selectOptions?.length !== selectOptionsDiv?.length) {
             selectElementDIV?.nextSibling && selectElementDIV?.nextSibling.remove();
             selectElementDIV && selectElementDIV.remove();
@@ -68,7 +68,7 @@ class SelectBox {
       selectBox.addEventListener('mouseup', this.mousedownSelectBox);
       const selectItemElements: NodeListOf<Element> = selectBox.querySelectorAll('.select-items');
       Array.from(selectItemElements).forEach((item) => {
-        const selectElement: HTMLSelectElement = item.parentNode.querySelector('select');
+        const selectElement: HTMLSelectElement = item?.parentNode?.querySelector('select');
         item.addEventListener('click', () => {
           this.dispatchReactOnChangeEvent(selectElement);
         });
@@ -77,13 +77,13 @@ class SelectBox {
           this.dispatchReactOnChangeEvent(selectElement);
         }
 
-        if (selectElement.multiple) {
+        if (selectElement?.multiple) {
           const allWrapperDiv = item.previousSibling;
-          const allCheckBoxWrapperDiv = allWrapperDiv.parentElement.querySelector('.select-selected');
+          const allCheckBoxWrapperDiv = allWrapperDiv?.parentElement?.querySelector('.select-selected');
 
           const selectedOptions = selectElement.selectedOptions;
           const options = selectElement.options;
-          const allCheckBox: HTMLInputElement = allCheckBoxWrapperDiv.querySelector('input[type="checkbox"]');
+          const allCheckBox: HTMLInputElement = allCheckBoxWrapperDiv?.querySelector('input[type="checkbox"]');
 
           if (selectedOptions.length && selectedOptions.length === options.length) {
             allCheckBox.checked = true;
@@ -100,9 +100,9 @@ class SelectBox {
           const labelValues: string[] = [];
 
           Array.from(options).forEach((option, index) => {
-            const optionDivWrapper = item.querySelector(`div:nth-child(${index + 1})`);
+            const optionDivWrapper = item?.querySelector(`div:nth-child(${index + 1})`);
             if (optionDivWrapper) {
-              const optionCheckBox: HTMLInputElement = optionDivWrapper.querySelector('input[type="checkbox"]');
+              const optionCheckBox: HTMLInputElement = optionDivWrapper?.querySelector('input[type="checkbox"]');
               if (option.selected) {
                 optionCheckBox.checked = true;
                 optionCheckBox.parentElement.parentElement.classList.add('checked');
@@ -120,8 +120,8 @@ class SelectBox {
           });
 
           if (labelValues.length) {
-            const valuesSpan: HTMLElement = allCheckBoxWrapperDiv.querySelector('.values');
-            const allSpan: HTMLElement = allCheckBoxWrapperDiv.querySelector('.checkbox>.label');
+            const valuesSpan: HTMLElement = allCheckBoxWrapperDiv?.querySelector('.values');
+            const allSpan: HTMLElement = allCheckBoxWrapperDiv?.querySelector('.checkbox>.label');
             allSpan.style.display = 'none';
             valuesSpan.innerHTML = labelValues.join(', ');
           }
@@ -160,7 +160,7 @@ class SelectBox {
           inputElem.addEventListener('keyup', (e: Event) => {
             const searchElem: HTMLInputElement = e.currentTarget as HTMLInputElement;
             const searchVal = searchElem.value.toLowerCase();
-            const cbWrapperElems = item.querySelectorAll('.checkbox');
+            const cbWrapperElems = item?.querySelectorAll('.checkbox');
             Array.from(cbWrapperElems).forEach((cbWrapperElem) => {
               const labelText = cbWrapperElem.textContent.toLowerCase();
               const hasSearchVal = labelText.includes(searchVal.toLowerCase());
@@ -170,14 +170,14 @@ class SelectBox {
           });
           item.prepend(inputElem);
         } else {
-          let selectedOption = item.querySelector(`div.same-as-selected`);
+          let selectedOption = item?.querySelector(`div.same-as-selected`);
           if (selectedOption) {
             selectedOption.classList.remove('same-as-selected');
           }
-          selectedOption = item.querySelector(`div:nth-child(${selectElement.selectedIndex + 1}`);
+          selectedOption = item?.querySelector(`div:nth-child(${selectElement?.selectedIndex + 1}`);
           if (selectedOption) {
-            const selectedLabel = item.parentNode.querySelector('div.select-selected span').textContent;
-            Array.from(item.parentNode.querySelector(`div.select-items`)?.childNodes)?.forEach((item:Element) => {
+            const selectedLabel = item?.parentNode?.querySelector('div.select-selected span').textContent;
+            Array.from(item?.parentNode?.querySelector(`div.select-items`)?.childNodes)?.forEach((item:Element) => {
               if (item.textContent === selectedLabel) {
                 item.classList.add('same-as-selected')
               }
@@ -191,7 +191,7 @@ class SelectBox {
   }
 
   protected static dispatchReactOnChangeEvent(selectElement: HTMLSelectElement) {
-    if (!selectElement.multiple) {
+    if (!selectElement?.multiple) {
       const nativeSelectValueSetter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
       nativeSelectValueSetter.call(selectElement, selectElement.value);
     }
@@ -208,13 +208,13 @@ class SelectBox {
   protected static blurSelectBox(e: any) {
     const fieldGroupDiv = e.target.closest('.input-field-group');
     fieldGroupDiv.classList.remove('focused');
-    const selectElem = fieldGroupDiv.querySelector('select');
-    let errorMsgElem = fieldGroupDiv.querySelector('.error-message');
+    const selectElem = fieldGroupDiv?.querySelector('select');
+    let errorMsgElem = fieldGroupDiv?.querySelector('.error-message');
 
-    let showError = selectElem.selectedIndex === 0;
-    if (selectElem.multiple) {
+    let showError = selectElem?.selectedIndex === 0;
+    if (selectElem?.multiple) {
       if (e.currentTarget.tagName === 'INPUT' || e.currentTarget.classList.contains('custom-select')) {
-        showError = selectElem.selectedIndex === -1;
+        showError = selectElem?.selectedIndex === -1;
       } else if (fieldGroupDiv.classList.contains('error')) {
         showError = true;
       } else if (showError) {
@@ -247,10 +247,10 @@ class SelectBox {
   protected static mousedownSelectBox(e: any) {
     setTimeout(() => {
       const fieldGroupDiv = e.target.closest('.input-field-group');
-      const selectElem = fieldGroupDiv.querySelector('select');
-      const canClearError = selectElem.multiple ? selectElem.selectedIndex >= 0 :  selectElem.selectedIndex > 0;
+      const selectElem = fieldGroupDiv?.querySelector('select');
+      const canClearError = selectElem?.multiple ? selectElem?.selectedIndex >= 0 :  selectElem?.selectedIndex > 0;
       if (canClearError) {
-        const errorMsgElem = fieldGroupDiv.querySelector('.error-message');
+        const errorMsgElem = fieldGroupDiv?.querySelector('.error-message');
         fieldGroupDiv.classList.remove('error');
         if (errorMsgElem) {
           fieldGroupDiv.removeChild(errorMsgElem);
@@ -261,9 +261,9 @@ class SelectBox {
 
   protected static setClearDDLSearchTimeout(wrapperElem: any) {
     setTimeout(() => {
-      if (wrapperElem.querySelector('.select-hide')) {
+      if (wrapperElem?.querySelector('.select-hide')) {
         // Resetting search items on blur
-        const inputElem = wrapperElem.querySelector('.ddl-search');
+        const inputElem = wrapperElem?.querySelector('.ddl-search');
         if (inputElem && inputElem.value) {
           inputElem.value = '';
           const cbWrapperElems = inputElem.parentElement.querySelectorAll('.checkbox') as HTMLDivElement[];

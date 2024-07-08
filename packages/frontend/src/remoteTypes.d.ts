@@ -38,6 +38,10 @@ declare module 'data-entry-mfe/DataEntry' {
   export default DataEntry;
 }
 
+declare module 'code-space-mfe/CodeSpace' {
+  const CodeSpace: React.ComponentType;
+  export default CodeSpace;
+}
 declare module 'power-platform-mfe/PowerPlatform' {
   const PowerPlatform: React.ComponentType;
   export default PowerPlatform;
