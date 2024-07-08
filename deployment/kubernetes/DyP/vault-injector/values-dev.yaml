@@ -22,7 +22,7 @@ global:
 
   # External vault server address for the injector and CSI provider to use.
   # Setting this will disable deployment of a vault server.
-  externalVaultAddr: "https://hcvault.app.corpintra.net/"
+  externalVaultAddr: "https://vault-int.app.corpintra.net/"
 
   # If deploying to OpenShift
   openshift: false
