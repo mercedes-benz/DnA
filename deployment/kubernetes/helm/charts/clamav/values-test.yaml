@@ -71,7 +71,7 @@ ingress:
 imagePullSecret:
   name: imagepullsecret
 Storage:
-  storageClass: cinder
+  storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
 resources:

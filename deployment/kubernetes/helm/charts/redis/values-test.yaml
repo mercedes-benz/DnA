@@ -16,7 +16,7 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  storageClass: cinder
+  storageClass: dhc-gp3
   redis:
     password: ""
 
@@ -431,7 +431,7 @@ master:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: cinder
+    storageClass: dhc-gp3
     ## @param master.persistence.accessModes Persistent Volume access modes
     ##
     accessModes:
@@ -820,7 +820,7 @@ replica:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: cinder
+    storageClass: dhc-gp3
     ## @param replica.persistence.accessModes Persistent Volume access modes
     ##
     accessModes:
@@ -1086,7 +1086,7 @@ sentinel:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: cinder
+    storageClass: dhc-gp3
     ## @param sentinel.persistence.accessModes Persistent Volume access modes
     ##
     accessModes:

@@ -5732,20 +5732,20 @@ spec:
                       required:
                       - monitors
                       type: object
-                    cinder:
-                      description: 'Cinder represents a cinder volume attached and
-                        mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
+                    dhc-gp3:
+                      description: 'dhc-gp3 represents a dhc-gp3 volume attached and
+                        mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md'
                       properties:
                         fsType:
                           description: 'Filesystem type to mount. Must be a filesystem
                             type supported by the host operating system. Examples:
                             "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4"
-                            if unspecified. More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
+                            if unspecified. More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md'
                           type: string
                         readOnly:
                           description: 'Optional: Defaults to false (read/write).
                             ReadOnly here will force the ReadOnly setting in VolumeMounts.
-                            More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
+                            More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md'
                           type: boolean
                         secretRef:
                           description: 'Optional: points to a secret object containing
@@ -5757,8 +5757,8 @@ spec:
                               type: string
                           type: object
                         volumeID:
-                          description: 'volume id used to identify the volume in cinder.
-                            More info: https://examples.k8s.io/mysql-cinder-pd/README.md'
+                          description: 'volume id used to identify the volume in dhc-gp3.
+                            More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md'
                           type: string
                       required:
                       - volumeID

@@ -43,7 +43,7 @@ prometheus:
       runAsNonRoot: true
       fsGroup: 65534
     #persistentVolume:
-    #  storageClass: cinder
+    #  storageClass: dhc-gp3
     #  size: 8Gi
     #podLabels for adding label for network policy
     podLabels:

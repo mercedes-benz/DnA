@@ -43,7 +43,7 @@ prometheus:
       runAsNonRoot: true
       fsGroup: 65534
     persistentVolume:
-     storageClass: cinder
+     storageClass: dhc-gp3
      size: 20Gi
     #podLabels for adding label for network policy
     retention: "30d"
@@ -901,7 +901,7 @@ grafana:
   persistence:
     type: pvc
     enabled: true
-    storageClassName: cinder
+    storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
     size: 2Gi      
@@ -1007,7 +1007,7 @@ tempo-distributed:
       enabled: true
       inMemory: false
       size: 10Gi
-      storageClass: cinder    
+      storageClass: dhc-gp3    
     complete_block_timeout: 720h
   compactor:    
     config:

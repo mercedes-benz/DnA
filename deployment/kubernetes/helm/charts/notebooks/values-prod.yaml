@@ -57,7 +57,7 @@ ingress:
     cert-manager.io/cluster-issuer: daimler-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
 Storage:
-  storageClass: cinder
+  storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
 resources:

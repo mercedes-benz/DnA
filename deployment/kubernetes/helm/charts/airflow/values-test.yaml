@@ -176,13 +176,13 @@ volumes:
     resourcePolicy: keep
     accessMode: ReadWriteOnce
     storage:
-      className: cinder-retain
+      className: dhc-gp3-retain
       size: 54Gi
 oidc:
   logout:
     uri: https://sso.mercedes-benz.com/idp/startSLO.ping?redirect_uri=
 Storage:
-  storageClass: cinder-retain
+  storageClass: dhc-gp3-retain
   accessModes: ReadWriteOnce
   nfsaccessModes: ReadWriteMany
   nfsstorageClass: nfs-sc
