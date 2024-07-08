@@ -161,7 +161,7 @@ prometheus:
           - targets:	
             - jaeger-query.i3-logging.svc.cluster.local:16687	
           tls_config:	
-            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt              
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt     
         - job_name: jupyterhub	
           metrics_path: /hub/metrics
           params:	
@@ -173,7 +173,8 @@ prometheus:
           - targets:	
             - cs-hub-hub.code-server.svc.cluster.local:8081	
           tls_config:	
-            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
+
         # A scrape configuration for running Prometheus on a Kubernetes cluster.
         # This uses separate scrape configs for cluster components (i.e. API server, node)
         # and services to allow each to use different authentication configs.
@@ -1005,8 +1006,9 @@ tempo-distributed:
     persistence:
       enabled: true
       inMemory: false
-      size: 1Gi
-      storageClass: cinder
+      size: 10Gi
+      storageClass: cinder    
+    complete_block_timeout: 720h
   compactor:    
     config:
       compaction:
@@ -1022,9 +1024,9 @@ tempo-distributed:
     jaeger:
       thriftHttp:
         enabled: true
-    thriftCompact:
-      # -- Enable Tempo to ingest Jaeger Thrift Compact traces
-      enabled: true        
+      thriftCompact:
+        # -- Enable Tempo to ingest Jaeger Thrift Compact traces
+        enabled: true        
     opencensus:
       enabled: false
   extraObjects: 
@@ -1053,7 +1055,7 @@ tempo-distributed:
                   port: 9095       
                 - protocol: TCP
                   port: 11211        
-                - protocol: TCP
+                - protocol: UDP
                   port: 6831                                                                                  
           policyTypes:
-            - Ingress            
+            - Ingress      

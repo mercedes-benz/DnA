@@ -900,7 +900,7 @@ jaeger:
         value: "true"
 
   agent:
-    enabled: false
+    enabled: true
     podLabels:
       i3-logging-opensearch-master-transport-client: "true"    
     image:

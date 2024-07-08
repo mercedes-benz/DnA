@@ -123,7 +123,13 @@ networkPolicy:
                 cluster-name: fc-cockpit-db-postgresql-helm-cluster
             namespaceSelector:
               matchLabels:
-                kubernetes.io/metadata.name: codespaces-apps              
+                kubernetes.io/metadata.name: codespaces-apps        
+          - podSelector:
+              matchLabels:
+                cluster-name: wbv-postgresql-helm-cluster
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: tools                         
           - ipBlock:
               cidr: 53.136.76.23/0       
           - ipBlock:
@@ -342,7 +348,7 @@ extraDeploy:
         
         MASTER_PASSWORD_REQUIRED = False
         AUTHENTICATION_SOURCES = ['oauth2', 'internal']
-        OAUTH2_AUTO_CREATE_USER = False
+        OAUTH2_AUTO_CREATE_USER = True
         OAUTH2_CONFIG = [
           {
             'OAUTH2_NAME': 'custom',
