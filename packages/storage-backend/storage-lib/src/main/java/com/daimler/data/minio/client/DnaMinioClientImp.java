@@ -592,8 +592,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				ObjectMapper mapper = new ObjectMapper();
 				ProcessBuilder secondBuilder = new ProcessBuilder();
 				String url = storageHttpMethod + storageConnectHost;
-				String env = "storagebeminioclient ";
+				String env = "storagebeminioclient";
 				String flag = "--insecure";
+				if(prefix==null || "null".equalsIgnoreCase(prefix) || "".equalsIgnoreCase(prefix)) {
+					prefix="";
+				}
 				String secondCommand = "mc ls " + env + "/" + bucketName + "/" + prefix
 						+ " --json " 
 						+ flag;
