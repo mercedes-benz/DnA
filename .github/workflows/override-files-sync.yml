@@ -1,0 +1,82 @@
+name: Override Files Sync
+on:
+  workflow_dispatch:
+    inputs:
+      sourceBranch:
+        description: 'Override branch name(override/featurename)'
+        required: true    
+      reviewers:
+        description: 'Reviewers for staging and main branch'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        required: true   
+
+jobs:
+  override-files-sync:
+    name: "Override Files Sync"
+    runs-on: [ road-runner, medium ]
+    steps:
+
+      - name: Check Source Branch
+        run: |
+          if [[ "${{ github.event.inputs.sourceBranch }}" == *"override"* ]]; then
+            echo "Override Branch name: ${{ github.event.inputs.sourceBranch }}"
+          else
+            echo "Override Branch name does not valid"
+            echo "Given Branch name: ${{ github.event.inputs.sourceBranch }}"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: '${{ github.event.inputs.sourceBranch }}'  
+          fetch-depth: 0  
+
+      - name: Get Head Commit Message
+        id: get_head_commit_message
+        run: |
+          echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create dev pull request
+        uses: thomaseizinger/create-pull-request@master
+        id: cpr
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.sourceBranch }}
+          base: dev
+          labels: "automatic-pr,automerge,${{ github.event.inputs.sourceBranch }}"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create staging pull request
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.sourceBranch }}
+          base: staging
+          reviewers: ${{ github.event.inputs.reviewers }}
+          labels: "automatic-pr,${{ github.event.inputs.sourceBranch }}"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create main pull request
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.sourceBranch }}
+          base: main
+          reviewers: ${{ github.event.inputs.reviewers }}
+          labels: "automatic-pr,${{ github.event.inputs.sourceBranch }}"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Print pull request details
+        if: ${{ steps.cpr.outputs.number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
+
+      - name: Dev pull request merge
+        uses: sudo-bot/action-pull-request-merge@v1.2.0
+        with:
+          github-token: ${{ secrets.PID_PAT }}
+          number: ${{ steps.cpr.outputs.number }}
+          filter-label: automerge        
+                           

@@ -57,8 +57,6 @@ jobs:
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
-          echo "$GITHUB_OUTPUT"
-          echo "Tt $HEAD_COMMIT_MESSAGE"
 
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
