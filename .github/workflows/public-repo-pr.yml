@@ -1,0 +1,36 @@
+name: Create and Merge Public PR
+on:
+  workflow_dispatch:
+    inputs:
+      sourceBranch:
+        description: 'Override branch name(override/featurename)'
+        required: true    
+      reviewers:
+        description: 'Reviewers for staging and main branch'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        required: true   
+
+jobs:
+  override-files-sync:
+    name: "Override Files Sync"
+    runs-on: [ road-runner, medium ]
+    steps:
+
+      - name: Create PR on Public Repo
+        id: cpr
+        run: |
+          echo "number=$(gh pr create --base feature/test-pr --head dev --title "Release: feature/test-pr" --label automerge --repo mercedes-benz/DnA | grep -o '[0-9]\+')" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_PAT }}
+          GH_HOST: github.com
+
+      - name: Merge pull request
+        if: ${{ steps.cpr.outputs.number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - https://github.com/mercedes-benz/DnA/pull/${{ steps.cpr.outputs.number }}"
+          gh pr merge https://github.com/mercedes-benz/DnA/pull/${{ steps.cpr.outputs.number }} -r --admin -d
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_PAT }}
+          GH_HOST: github.com             
+                           
