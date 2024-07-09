@@ -729,7 +729,7 @@ service:
   type: LoadBalancer
   # -- Additional annotations applied to both TCP and UDP services (e.g. for cloud provider specific config)
   annotations: 
-    caas.mercedes-benz.com/load-balancer-scheme=intranet
+    caas.mercedes-benz.com/load-balancer-scheme: intranet
   # -- Additional annotations for TCP service only
   annotationsTCP: {}
   # -- Additional annotations for UDP service only
