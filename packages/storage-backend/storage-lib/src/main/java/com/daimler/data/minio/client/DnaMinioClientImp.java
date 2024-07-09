@@ -68,6 +68,8 @@ import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.McListBucketCollectionDto;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.MinioObjectMetadata;
+import com.daimler.data.dto.MinioObjectMetadataCollection;
 import com.daimler.data.dto.storage.BucketObjectVO;
 import com.daimler.data.dto.storage.ObjectMetadataVO;
 import com.daimler.data.dto.storage.PermissionVO;
@@ -558,6 +560,110 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		return minioGenericResponse;
 	}
 
+	private BucketObjectVO getBucketObjectVOFromMinioObject(MinioObjectMetadata minioObject) {
+		BucketObjectVO vo = new BucketObjectVO();
+		vo.setIsLatest(false);
+		vo.setOwner(null);
+		vo.setStorageClass(null);
+		vo.setUserMetadata(null);
+		if(minioObject!=null && "SUCCESS".equalsIgnoreCase(minioObject.getStatus())) {
+			vo.setEtag(minioObject.getEtag());
+			vo.setIsDir("folder".equalsIgnoreCase(minioObject.getType()) ? true: false);
+			String lastModifiedString = minioObject.getLastModified();
+			vo.setLastModified(lastModifiedString);
+			vo.setObjectName(minioObject.getKey());
+			vo.setSize(minioObject.getSize());
+			vo.setVersionId(minioPolicyVersion);
+		}
+		return vo;
+	}
+	
+	@Override
+	public MinioGenericResponse getBucketObjectsUsingMC(String userId, String bucketName, String prefix) {
+		MinioGenericResponse minioObjectResponse = new MinioGenericResponse();
+		List<BucketObjectVO> objects = new ArrayList<>();
+		try {
+			String userSecretKey ="";
+			userId = minioAdminAccessKey;
+			userSecretKey = minioAdminSecretKey;
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.info("Fetch secret from vault successfull for user:{}", userId);
+				boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+				ObjectMapper mapper = new ObjectMapper();
+				ProcessBuilder secondBuilder = new ProcessBuilder();
+				String url = storageHttpMethod + storageConnectHost;
+				String env = "storagebeminioclient ";
+				String flag = "--insecure";
+				String secondCommand = "mc ls " + env + "/" + bucketName + "/" + prefix
+						+ " --json " 
+						+ flag;
+	
+				if (isWindows) {
+					secondBuilder = new ProcessBuilder("cmd.exe", "/c", secondCommand);
+				} else {
+					secondBuilder = new ProcessBuilder(storageMCcommandKey, "-c", secondCommand);
+				}
+				Process p = secondBuilder.start();
+				LOGGER.info("Started mc command to list bucket objects recursively");
+				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				LOGGER.info("mc command to list objects was executed, started reading response");
+				String line;
+				String jsonprefix = "{\"data\":[";
+				String suffix = "]}";
+				String data = "";
+				while (true) {
+					line = r.readLine();
+					if (line == null) {
+						break;
+					} else {
+						data = data.concat(line).concat(",");
+					}
+				}
+				LOGGER.info("finished reading response from mc list bucket objects");
+				data = jsonprefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+				MinioObjectMetadataCollection listBucketObjectsCollectionDto = mapper.readValue(data, MinioObjectMetadataCollection.class);
+				LOGGER.info("Success from minio list bucket {} objects for user:{}", bucketName, userId);
+				r.close();
+				p.destroy();
+				
+				List<MinioObjectMetadata> minioObjects =  listBucketObjectsCollectionDto.getData();
+				if(minioObjects!= null && !minioObjects.isEmpty()) {
+					for(MinioObjectMetadata minioObject : minioObjects) {
+						String key = prefix + minioObject.getKey();
+						if("SUCCESS".equalsIgnoreCase(minioObject.getStatus())) {
+							minioObject.setKey(key);
+							BucketObjectVO bucketObj = this.getBucketObjectVOFromMinioObject(minioObject);
+							objects.add(bucketObj);
+						}
+					}
+				}
+				minioObjectResponse.setHttpStatus(HttpStatus.OK);
+				minioObjectResponse.setStatus("SUCCESS");
+				minioObjectResponse.setObjects(objects);
+				LOGGER.info("Success from minio list bucket {} objects setting to dto", bucketName);
+			} else {
+					LOGGER.info("User:{} not available in vault.", userId);
+				}
+			}
+			catch (Exception e) {
+				LOGGER.error("Error occured while listing bucket {} objects from minio using mc: {}",bucketName, e.getMessage());
+				if (e.toString() != null && e.toString().contains("code=403")) {
+					LOGGER.error("Access denied since no bucket available for user:{}", userId);
+					minioObjectResponse.setStatus(ConstantsUtility.SUCCESS);
+					minioObjectResponse.setHttpStatus(HttpStatus.NO_CONTENT);
+					minioObjectResponse.setObjects(objects);
+					LOGGER.info("No bucket available");
+				} else {
+					minioObjectResponse
+							.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing bucket objects from minio. Please retry after sometime.")));
+					minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
+					minioObjectResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					minioObjectResponse.setObjects(objects);
+				}
+			}
+		return minioObjectResponse;
+	}
+	
 	@Override
 	public MinioGenericResponse getBucketObjects(String userId, String bucketName, String prefix) {
 		MinioGenericResponse minioObjectResponse = new MinioGenericResponse();
