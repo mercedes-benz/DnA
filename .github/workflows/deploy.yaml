@@ -240,12 +240,20 @@ jobs:
       with:
         github_token: ${{ secrets.PID_PAT }}
         branches: ${{ github.head_ref }}     
-            
+
+  create-public-pr:
+        name: Create and Merge Public PR
+        needs: production
+        if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
+        uses: ./.github/workflows/public-repo-pr.yml
+        with:
+          head: '${{ github.head_ref }}'
+        secrets: inherit            
 
   css-scan:
         name: Container security scan
         needs: build
-        if: ${{ inputs.ENVIRONMENT == 'Production' }}
+        if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
         uses: ./.github/workflows/consec.yaml
         with:
           FULL_IMAGE_NAME: '${{ inputs.IMAGE_NAME }}:${{ needs.build.outputs.version }}'
