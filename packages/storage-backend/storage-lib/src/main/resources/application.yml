@@ -97,6 +97,7 @@ storage:
   termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
   connect.host: ${STORAGE_CONNECT_HOST:http://xxxxxxx}
   httpMethod: ${HTTP_METHOD:XXXXXX}
+  startup.createdDateService: ${CREATED_DATE_STARTUP_SERVICE_FLAG:true}
   mc.commandkeyword: ${MC_CMD_KEY:sh}
   mc.timeout.alias: ${MC_ALIAS_TIMEOUT:10}
   mc.timeout.listpolicies: ${MC_LISTPOLICIES_TIMEOUT:10}
