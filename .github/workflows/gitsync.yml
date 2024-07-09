@@ -26,7 +26,6 @@ env:
 jobs:
   gitsync:
     name: "Git Sync"
-    if: ${{ inputs.isSync == 'yes' || ( github.event_name == 'workflow_dispatch' && inputs.isSync == '' ) }}
     runs-on: [ road-runner, medium ]
     steps:
 
@@ -69,7 +68,7 @@ jobs:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
-          labels: "automatic-pr,automerge"
+          labels: "automatic-pr,automerge,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Create staging pull request
@@ -80,7 +79,7 @@ jobs:
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr"
+          labels: "automatic-pr,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Create main pull request
@@ -91,7 +90,7 @@ jobs:
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr"
+          labels: "automatic-pr,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Print pull request details
