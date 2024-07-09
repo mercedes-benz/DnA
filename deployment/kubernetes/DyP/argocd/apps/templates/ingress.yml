@@ -5,23 +5,23 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: cert-manager
+  name: ingress
   namespace: {{ .Values.namespace }}
   labels:
     name: dyp
 spec:
   destination:
-    namespace: cert-manager
+    namespace: ingress
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/cert-manager
+    path: deployment/kubernetes/DyP/ingress
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    plugin:
-      name: argocd-vault-plugin-helm
-      env:
-        - name: HELM_ARGS
-          value: -f values-dhc.yaml -n cert-manager  
+    helm:
+      releaseName: ingress
+      skipCrds: false
+      valueFiles:
+        - values.yaml    
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:

@@ -735,3 +735,6 @@ startupapicheck:
   # injected into pod's environment variables, matching the syntax of Docker
   # links.
   enableServiceLinks: false
+
+extraObjects:
+  cert: ""
