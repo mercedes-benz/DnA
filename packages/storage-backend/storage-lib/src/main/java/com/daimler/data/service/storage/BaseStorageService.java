@@ -29,6 +29,9 @@ package com.daimler.data.service.storage;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -556,7 +559,7 @@ public class BaseStorageService implements StorageService {
 		BucketObjectResponseWrapperVO objectResponseWrapperVO = new BucketObjectResponseWrapperVO();
 
 		LOGGER.debug("list bucket objects through minio client");
-		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjects(currentUser, bucketName, prefix);
+		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjectsUsingMC(currentUser, bucketName, prefix);
 		if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.debug("Success from list objects minio client");
 			BucketObjectResponseVO bucketObjectResponseVO = new BucketObjectResponseVO();
