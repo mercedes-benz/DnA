@@ -349,7 +349,8 @@ type TeamMemberVO{
     email: String,
     mobileNumber: String,
     company: String,
-    teamMemberPosition: String
+    teamMemberPosition: String,
+    isUseCaseOwner: Boolean
 }
 type SolutionCurrentPhase{
     id: ID!,
