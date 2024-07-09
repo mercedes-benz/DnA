@@ -1,0 +1,23 @@
+name: tree-test
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - dev # or the name of your main branch
+
+jobs:
+
+  create:
+    name: 'Create Code Server Workspace'
+    runs-on: [ medium ]
+    
+    steps:
+    
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+  sechub-scan:
+    name: SecHub Scan
+    uses: DNA/DnAPlatform/.github/workflows/sechub.yml@dev
+    with:
+      status: 'test'

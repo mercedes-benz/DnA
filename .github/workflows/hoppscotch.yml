@@ -1,0 +1,45 @@
+name: hoppscotch
+
+on:
+  workflow_dispatch:
+    inputs:
+      pullImage:
+        description: 'Image to pull'
+        required: true
+        default: "ngnix:latest"
+      pushImage:
+        description: "Harbor pushing image tag"
+        required: true
+        default: "registry-emea.app.corpintra.net/dnaplatform/ngnix:latest"
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot
+  RUNNER_ALLOW_RUNASROOT: 1
+
+
+jobs:
+
+  docker:
+    name: 'Pull and push docker image'
+    runs-on: [road-runner, medium]
+
+    
+    steps:
+    
+
+
+    - name: Check out repository code
+      uses: actions/checkout@v3      
+    - name: docker login 
+      run:
+        echo ${{ secrets.DOCKERHUB_DNA_REPO_SECRET }} | docker login -u satdevops --password-stdin
+
+    - name: Pull Docker image
+      working-directory: ./deployment/dockerfiles
+      run: | 
+        docker build  -t registry-emea.app.corpintra.net/dnaplatform/hoppscotch/hoppscotch:2023.8.0 -f Dockerfile .
+
+    - name: Publish hoppscotchto harbor
+      run: |
+        echo ${{ secrets.NEW_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        docker push registry-emea.app.corpintra.net/dnaplatform/hoppscotch/hoppscotch:2023.8.0

@@ -1,0 +1,43 @@
+name: cssscan
+
+on:
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  NO_PROXY: ''
+  RUNNER_ALLOW_RUNASROOT: 1
+  IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/dss-mfe
+  IMAGE_TAG_PATH: image.tag
+  DOCKER_FILE_PATH: dss-mfe.Dockerfile
+  BLACKDUCK_URL: https://bdscan.i.mercedes-benz.com/
+  DETECT_PROJECT_NAME: dss-mfe
+  # DETECT_SOURCE_PATH: <<<<fill-it>>>>>  # comment the line if path is root
+
+jobs: 
+
+  pull:
+    name: 'pulling the images from dockerhub'
+    runs-on: [ medium ] 
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
+
+    - name: pulling the docker images 
+      run: |
+        docker pull registry-emea.app.corpintra.net/dnaplatform/dataiku114/dataiku-container-exec-base:dataiku-11.1.4-py3.7
+
+    - name: CSS Image Scan
+      id: scan
+      uses: consec/scan@v3
+      with:
+        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
+        pcc_user: ${{ secrets.CSS_USER }}
+        pcc_pass: ${{ secrets.CSS_PASSWORD }}
+        image_name: registry-emea.app.corpintra.net/dnaplatform/dataiku114/dataiku-container-exec-base:dataiku-11.1.4-py3.7
+      env:
+        no_proxy: "consec-img-scan.app.corpintra.net"
+        JOB_NAME: "${{ secrets.CSS_USER }}"       

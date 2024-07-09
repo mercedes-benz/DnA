@@ -1,0 +1,195 @@
+# Author: PALASAT
+# This is the Data Product Service build & deploy workflow
+
+name: CS Workspace Create/Delete
+
+# Build is triggered either if run manually or when push happens to development branch
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      environment:
+        description: 'Target environment'
+        type: environment
+        default: 'Development'
+        required: true
+      shortid:
+        description: "Short ID"
+        required: true
+      type:
+        description: "Workspace type" 
+        default: 'default'
+      wsid:
+        description: "Workspace ID"   
+        default: 'default'   
+      resource:
+        description: "Resource size (PVC Size, Request Memory, Request CPU, Limit Memory, Limit CPU)"   
+        default: '1Gi,2000Mi,500m,2000Mi,500m'                       
+      repo:
+        description: "Github repo(url/org/repo name),folder to clone"
+        default: ',*'  
+      pat:
+        description: "Github Token"
+        default: "xxx"
+      isCollaborator:
+        description: "collaboration workspace"  
+        type: boolean
+        default: false        
+      action:
+        description: "Action"
+        type: choice
+        default: deploy
+        required: true  
+        options: 
+          - 'create'
+          - 'delete'     
+env:
+### Imp: Version must be same like in code-server-build.yml
+  IMAGE_CODE_SERVER: 4.21.1 ## This is the version of the code-server image
+
+jobs:
+       
+  create:
+    name: 'Create Code Server Workspace'
+    if: ${{ github.event.inputs.action == 'create'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [road-runner, medium]
+
+    steps:
+    
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Check user repo
+        uses: actions/checkout@v3
+        with:
+          repository: DNA/recipes
+          token: ${{ secrets.PID_PAT }}
+          ref: main
+          path: workspace-repo
+          github-server-url: "https://git.i.mercedes-benz.com/"             
+
+      - name: Logs
+        run: |
+          echo "Type: ${{ github.event.inputs.type }}"
+          echo "Repo: ${{ github.event.inputs.repo }}"
+          echo "environment: ${{ github.event.inputs.environment }}"
+          echo "action: ${{ github.event.inputs.action }}"
+          echo "resource: ${{ github.event.inputs.resource }}"  
+
+      - name: split resource input
+        uses: rishabhgupta/split-by@v1.0.1
+        id: res_split
+        with:
+          string: '${{ github.event.inputs.resource }}'
+          split-by: ','
+
+      - name: split repo input
+        uses: rishabhgupta/split-by@v1.0.1
+        id: repo_split
+        with:
+          string: '${{ github.event.inputs.repo }}'
+          split-by: ','   
+          
+      - name: Copy the File contents from workspace-repo to helm folder and set pvc retain policy
+        id: pvc
+        run: |
+
+          if [ ${{ github.event.inputs.environment }} == 'Production' }} ]; then
+            echo 'annotations="helm.sh/resource-policy": keep' >> $GITHUB_OUTPUT
+          else
+            echo 'annotations={}' >> $GITHUB_OUTPUT
+          fi
+
+          # Copy files from workspace-repo to helm folder
+          cp -vr ./workspace-repo/${{ github.event.inputs.type }}/entrypoint.d/* ./deployment/helm/code-server/files/
+          cp -vr ./workspace-repo/${{ github.event.inputs.type }}/values-${{ github.event.inputs.type }}.yaml ./deployment/helm/code-server/
+
+      - name: Create Code Server Workspace
+        uses: vimeda/helm@v1.7.0
+        with:
+          release: '${{ github.event.inputs.wsid }}'
+          namespace: 'code-server'
+          chart: 'deployment/helm/code-server'
+          timeout: 600s
+          values: |
+            fullnameOverride: ${{ github.event.inputs.wsid }}
+            image:
+              repository: registry-emea.app.corpintra.net/dnaplatform/cs-${{ github.event.inputs.type }}
+              tag: ${{ env.IMAGE_CODE_SERVER }}
+            ingressRoute:
+              enabled: false
+            resources:
+              limits:
+                cpu: ${{ steps.res_split.outputs._4 }}
+                memory: ${{ steps.res_split.outputs._3 }}
+              requests:
+                cpu: ${{ steps.res_split.outputs._2 }}
+                memory: ${{ steps.res_split.outputs._1 }}
+            persistence:
+              size: ${{ steps.res_split.outputs._0 }} 
+              annotations: ${{ steps.pvc.outputs.annotations }} 
+            githubToken: ${{ github.event.inputs.pat }}
+            githuburl: ${{ steps.repo_split.outputs._0 }} 
+            minioEndpoint: ${{ secrets.MINIO_ENDPOINT }}
+            minioKey: ${{ secrets.MINIO_KEY }} 
+            minioSecret: ${{ secrets.MINIO_SECRET }}    
+            shortid: ${{ github.event.inputs.shortid }}
+            isCollaborator: "${{ github.event.inputs.isCollaborator }}"        
+            pathCheckout: "${{ steps.repo_split.outputs._1 }}"        
+            extraConfigmapMounts: 
+              - name: ${{ github.event.inputs.wsid }}
+                mountPath: /home/coder/entrypoint.d
+                configMap: ${{ github.event.inputs.wsid }}
+                defaultMode: 0777
+          value-files: 'deployment/helm/code-server/values-${{ github.event.inputs.type }}.yaml'
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+
+  statusUpdateCreate:
+    name: Update Status create
+    needs: create
+    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'create' }}
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.create.result }}'
+      wsid: '${{ github.event.inputs.wsid }}'
+      shortid: '${{ github.event.inputs.shortid }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+
+  delete:
+    name: 'Delete Code Server Workspace'
+    if: ${{ github.event.inputs.action == 'delete'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [road-runner, medium]
+
+    steps: 
+      - name: 'Delete Code Server'
+        uses: 'vimeda/helm@v1.7.0'
+        with:
+          task: 'remove'
+          chart: 'code-server'
+          release: '${{ github.event.inputs.wsid }}'
+          namespace: 'code-server'
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'      
+
+  statusUpdateDelete:
+    needs: delete
+    name: Update Status Delete
+    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'delete' }}
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.delete.result }}'
+      wsid: '${{ github.event.inputs.wsid }}'
+      shortid: '${{ github.event.inputs.shortid }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
