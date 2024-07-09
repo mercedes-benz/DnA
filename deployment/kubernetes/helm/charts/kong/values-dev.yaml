@@ -106,7 +106,7 @@ admin:
     tls: kfp-serving-secret
     hostname: serving.kfp.dev.dna.app.corpintra.net
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
@@ -167,7 +167,7 @@ proxy:
     tls: kfp-serving-secret
     hostname: serving.kfp.dev.dna.app.corpintra.net
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
@@ -379,7 +379,7 @@ manager:
     tls: kfp-serving-secret-manager
     hostname: manager.serving.kfp.dev.dna.app.corpintra.net
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
@@ -622,7 +622,7 @@ konga:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     hosts:
       - host: konga.dev.dna.app.corpintra.net

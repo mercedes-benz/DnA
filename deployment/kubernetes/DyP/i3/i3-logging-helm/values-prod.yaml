@@ -433,7 +433,7 @@ opensearch-dashboards:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
       - host: <path:kv/data/dna/kubernetesSecret/logger#host>
@@ -481,7 +481,7 @@ opensearch:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
       - <path:kv/data/dna/kubernetesSecret/logger#opensearch-host>

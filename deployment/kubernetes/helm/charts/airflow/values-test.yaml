@@ -45,7 +45,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 airflow:
   ingress:
@@ -56,7 +56,7 @@ airflow:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 pullSecretData: <path:kv/data/dna/kubernetesSecret/airflow#pullSecretData>
 secret:
