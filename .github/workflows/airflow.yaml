@@ -18,15 +18,10 @@ env:
   NO_PROXY: ''
   RUNNER_ALLOW_RUNASROOT: 1
   AIRFLOW_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/airflow
-  AIRFLOW_BACKEND_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
   GITSYNC_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/git-sync
   AIRFLOW_IMAGE_TAG_PATH: docker.image.tag
-  AIRFLOW_BACKEND_IMAGE_TAG_PATH: backend.image
   GITSYNC_IMAGE_TAG_PATH: gitSync.image
-  DOCKER_FILE_PATH: airflow-backend.Dockerfile
   BLACKDUCK_URL: https://bdscan.i.mercedes-benz.com/
-  DETECT_PROJECT_NAME: AirflowBE
-  # DETECT_SOURCE_PATH: <<<<fill-it>>>>>  # comment the line if path is root
 
 
 jobs: 
@@ -47,26 +42,26 @@ jobs:
     - name: Update Airflow Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-dev.yaml
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-dev.yaml
         propertyPath: '${{ env.AIRFLOW_IMAGE_TAG_PATH }}'
         value: '${{ env.AIRFLOW_VERSION }}'
         branch: dev
         createPR: false
         commitChange: false
-        message: 'Update Image Version to ${{ github.sha }}' 
+        message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update gitSync Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-dev.yaml
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-dev.yaml
         propertyPath: '${{ env.GITSYNC_IMAGE_TAG_PATH }}'
-        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ github.sha }}'
+        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ github.run_number }}'
         branch: dev
         createPR: false
         commitChange: true
-        message: 'Update Image Version to ${{ github.sha }}' 
+        message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
@@ -86,26 +81,26 @@ jobs:
     - name: Update Airflow Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-test.yaml
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-test.yaml
         propertyPath: '${{ env.AIRFLOW_IMAGE_TAG_PATH }}'
         value: '${{ env.AIRFLOW_VERSION }}'
         branch: staging
         createPR: false
         commitChange: false
-        message: 'Update Image Version to ${{ github.sha }}' 
+        message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update gitSync Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-test.yaml
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-test.yaml
         propertyPath: '${{ env.GITSYNC_IMAGE_TAG_PATH }}'
-        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ github.sha }}'
+        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ github.run_number }}'
         branch: staging
         createPR: false
         commitChange: true
-        message: 'Update Image Version to ${{ github.sha }}' 
+        message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
@@ -125,26 +120,26 @@ jobs:
     - name: Update Airflow Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-prod.yaml
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-prod.yaml
         propertyPath: '${{ env.AIRFLOW_IMAGE_TAG_PATH }}'
         value: '${{ env.AIRFLOW_VERSION }}'
         branch: main
         createPR: false
         commitChange: false
-        message: 'Update Image Version to ${{ github.sha }}' 
+        message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update gitSync Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-prod.yaml
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-prod.yaml
         propertyPath: '${{ env.GITSYNC_IMAGE_TAG_PATH }}'
         value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}'
         branch: main
         createPR: false
         commitChange: true
-        message: 'Update Image Version to ${{ github.sha }}' 
+        message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
@@ -172,14 +167,14 @@ jobs:
     - name: Build Airflow & gitSync Application Containers
       working-directory: ./deployment/dockerfiles/airflow
       run: | 
-        docker build -t $AIRFLOW_IMAGE_NAME:${{ github.sha }} -f ./airflow.Dockerfile .
-        docker build -t $GITSYNC_IMAGE_NAME:${{ github.sha }} -f ./git-sync.Dockerfile .
+        docker build -t $AIRFLOW_IMAGE_NAME:${{ github.run_number }} -f ./airflow.Dockerfile .
+        docker build -t $GITSYNC_IMAGE_NAME:${{ github.run_number }} -f ./git-sync.Dockerfile .
         if [ ${{github.ref_name}} == main ]
         then
-          docker tag $AIRFLOW_IMAGE_NAME:${{ github.sha }} $AIRFLOW_IMAGE_NAME:$AIRFLOW_VERSION
-          docker tag $AIRFLOW_IMAGE_NAME:${{ github.sha }} $AIRFLOW_IMAGE_NAME:latest
-          docker tag $GITSYNC_IMAGE_NAME:${{ github.sha }} $GITSYNC_IMAGE_NAME:$GITSYNC_TAG_VERSION
-          docker tag $GITSYNC_IMAGE_NAME:${{ github.sha }} $GITSYNC_IMAGE_NAME:latest
+          docker tag $AIRFLOW_IMAGE_NAME:${{ github.run_number }} $AIRFLOW_IMAGE_NAME:$AIRFLOW_VERSION
+          docker tag $AIRFLOW_IMAGE_NAME:${{ github.run_number }} $AIRFLOW_IMAGE_NAME:latest
+          docker tag $GITSYNC_IMAGE_NAME:${{ github.run_number }} $GITSYNC_IMAGE_NAME:$GITSYNC_TAG_VERSION
+          docker tag $GITSYNC_IMAGE_NAME:${{ github.run_number }} $GITSYNC_IMAGE_NAME:latest
         fi             
 
     - name: CSS Image Scan
@@ -210,8 +205,8 @@ jobs:
 
     - name: Publish application containers to registry
       run: |
-        docker push $AIRFLOW_IMAGE_NAME:${{ github.sha }}
-        docker push $GITSYNC_IMAGE_NAME:${{ github.sha }}
+        docker push $AIRFLOW_IMAGE_NAME:${{ github.run_number }}
+        docker push $GITSYNC_IMAGE_NAME:${{ github.run_number }}
         if [ ${{github.ref_name}} == main ]
         then
           docker push $AIRFLOW_IMAGE_NAME:$AIRFLOW_VERSION
@@ -219,3 +214,21 @@ jobs:
           docker push $GITSYNC_IMAGE_NAME:$GITSYNC_TAG_VERSION
           docker push $GITSYNC_IMAGE_NAME:latest
         fi          
+
+
+  css-scan-airflow:
+        name: Container security scan Airflow
+        needs: production
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.AIRFLOW_IMAGE_NAME }}:${{ env.AIRFLOW_VERSION }}'
+        secrets: inherit
+
+
+  css-scan-gitsync:
+        name: Container security scan Gitsync
+        needs: production
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}'
+        secrets: inherit

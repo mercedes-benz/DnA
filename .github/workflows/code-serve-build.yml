@@ -57,26 +57,19 @@ jobs:
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         
     - name: Build Code Server
-      working-directory: ./dna-codeserver-backend/deployment/dockerfiles/code-sever/template
+      working-directory: ./deployment/dockerfiles/codeServer/template
       run: | 
        docker build -t registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:$IMAGE_CODE_SERVER -f workspace.Dockerfile .
-
-    - name: CSS Image Scan
-      id: scan
-      uses: consec/scan@v3
-      with:
-        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
-        pcc_user: ${{ secrets.CSS_USER }}
-        pcc_pass: ${{ secrets.CSS_PASSWORD }}
-        image_name: registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:${{ env.IMAGE_CODE_SERVER }}
-      env:
-        no_proxy: "consec-img-scan.app.corpintra.net"
-        JOB_NAME: "${{ secrets.CSS_USER }}" 
-        ENV_LOWER_CASE: ${{ steps.toLowerCase.outputs.lowerCaseValue }}
 
 
     - name: Publish application containers to registry
       run: |
         docker push registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:${{ env.IMAGE_CODE_SERVER }}
           
- 
+  css-scan:
+        name: Container security scan
+        needs: build
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
+        secrets: inherit 

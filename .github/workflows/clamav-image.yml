@@ -17,7 +17,9 @@ jobs:
   build:
     name: "Build Clamav Docker Image"
     runs-on: [ road-runner ]
-    
+    outputs:
+      date: ${{ steps.date.outputs.date }}
+
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
@@ -34,20 +36,8 @@ jobs:
         echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
     - name: Build image
-      working-directory: ./deployment/dockerfiles/1.0.1
-      run: docker  build . --file clamav.Dockerfile --tag $IMAGE_NAME:$CLAMAV_VERSION --tag $IMAGE_NAME:${{ steps.date.outputs.date }}
-    
-    - name: CSS Image Scan
-      id: scan
-      uses: consec/scan@v3
-      with:
-        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
-        pcc_user: ${{ secrets.CSS_USER }}
-        pcc_pass: ${{ secrets.CSS_PASSWORD }}
-        image_name: ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} 
-      env:
-        no_proxy: "consec-img-scan.app.corpintra.net"
-        JOB_NAME: "${{ secrets.CSS_USER }}" 
+      working-directory: ./deployment/dockerfiles/clamav/1.0.1
+      run: docker  build . --file clamav.Dockerfile --tag $IMAGE_NAME:$CLAMAV_VERSION --tag $IMAGE_NAME:${{ steps.date.outputs.date }}    
 
     - name: Log into DNA Registry
       run: echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker  login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
@@ -70,6 +60,14 @@ jobs:
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }} 
 
+  css-scan:
+        name: Container security scan
+        needs: build
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
+        secrets: inherit
+
   staging:
     name: "Update tag staging"
     needs: build
@@ -81,22 +79,16 @@ jobs:
       with:
         ref: 'staging' 
 
-    - name: Get current date
-      id: date
-      run:  |
-        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
         valueFile: deployment/helm/values-test.yaml
         propertyPath: 'image.repo'
-        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ steps.date.outputs.date }}"
+        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
         branch: staging
         createPR: false
         commitChange: true
-        message: 'Update Image Version to ${{ steps.date.outputs.date }}' 
+        message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
@@ -111,21 +103,16 @@ jobs:
       with:
         ref: 'main' 
 
-    - name: Get current date
-      id: date
-      run:  |
-        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
         valueFile: deployment/helm/values-prod.yaml
         propertyPath: 'image.repo'
-        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ steps.date.outputs.date }}"
+        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
         branch: main
         createPR: false
         commitChange: true
-        message: 'Update Image Version to ${{ steps.date.outputs.date }}' 
+        message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
