@@ -20,6 +20,15 @@ jobs:
     name: 'CSS Image Scan'
     runs-on: [road-runner, medium]
     steps:
+
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        
+    - name: Docker pull
+      run: |
+        docker pull ${{ inputs.FULL_IMAGE_NAME }}
+
     - name: CSS Image Scan
       id: scan
       uses: consec/scan@v3
