@@ -12,17 +12,16 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
   const [collabs, setCollabs] = useState(table?.length > 0 ? table : []);
 
   const addMemberFromTeamSearch = (member) => {
-    const isMemberExists = collabs.filter(item => item.id === member.shortId);
-    if(user.id === member.shortId || createdBy.id === member.shortId) {
+    const isMemberExists = collabs.filter(item =>( item.collaborator.shortId || item.collaborator.id )=== member.shortId);
+    if (isMemberExists.length > 0) {
+      Notification.show(`Collaborator Already Exist.`, 'warning');
+    } else if(user.id === member.shortId || createdBy?.id === member.shortId) {
       Notification.show(`Owner can't be added as a collaborator`, 'alert');
-    } else if (isMemberExists.length > 0) {
-      setShowUserAlreadyExistsError(true);
     } else {
       const memberObj = {
         collaborator: {
@@ -33,7 +32,6 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
       }
       setCollabs([...collabs, memberObj]);
     }
-    setShowUserAlreadyExistsError(false);
   }
 
   const resetUserAlreadyExists = () => {
@@ -87,7 +85,6 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
             editMode={editMode}
             teamMemberObj={teamMember}
             onAddTeamMember={addMemberFromTeamSearch}
-            userAlreadyExists={showUserAlreadyExistsError}
             resetUserAlreadyExists={resetUserAlreadyExists}
             btnText="Add User"
             searchTerm={searchTerm}
