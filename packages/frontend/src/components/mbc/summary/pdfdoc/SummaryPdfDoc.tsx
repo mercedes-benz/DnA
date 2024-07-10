@@ -364,7 +364,7 @@ const teamMembersList = (members: ITeams[]) => {
                 </Link>
               </Text>
               <Text>{member.department}</Text>
-              <Text>{member?.isUseCaseOwner === true ? 'Use Case Owner' : ''}</Text>
+              <Text>{member?.isUseCaseOwner ? 'Use Case Owner' : ''}</Text>
             </View>
           ) : (
             <View>

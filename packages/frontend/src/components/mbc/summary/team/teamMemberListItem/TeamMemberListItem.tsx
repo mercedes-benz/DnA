@@ -40,7 +40,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   <br />
                   {teamMember?.department}
                   <br/>
-                  {teamMember?.isUseCaseOwner === true ? 'Use Case Owner' : ''}
+                  {teamMember?.isUseCaseOwner ? 'Use Case Owner' : ''}
                 </div>
               </div>
             </div>

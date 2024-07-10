@@ -311,7 +311,7 @@ export const getDataForCSV = (
               solution.team && solution.team.length > 0
                 ? solution.team
                     .map((member) => {
-                      if (member?.isUseCaseOwner === true) {
+                      if (member?.isUseCaseOwner) {
                         return member?.shortId + '(Use Case Owner)';
                       } else {
                         return member?.shortId;
