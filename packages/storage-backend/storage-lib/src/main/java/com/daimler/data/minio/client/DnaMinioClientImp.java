@@ -623,9 +623,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					}
 				}
 				LOGGER.info("finished reading response from mc list bucket objects");
+				MinioObjectMetadataCollection listBucketObjectsCollectionDto = new MinioObjectMetadataCollection();
+				if(data!=null && !"".equalsIgnoreCase(data)) { 
 				data = jsonprefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
-				MinioObjectMetadataCollection listBucketObjectsCollectionDto = mapper.readValue(data, MinioObjectMetadataCollection.class);
+				listBucketObjectsCollectionDto = mapper.readValue(data, MinioObjectMetadataCollection.class);
 				LOGGER.info("Success from minio list bucket {} objects for user:{}", bucketName, userId);
+				}else {
+					LOGGER.info("Success from minio list bucket {} objects for user:{}. No data found, no objects present", bucketName, userId);
+				}
 				r.close();
 				p.destroy();
 				
@@ -649,6 +654,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 			}
 			catch (Exception e) {
+				
 				LOGGER.error("Error occured while listing bucket {} objects from minio using mc: {}",bucketName, e.getMessage());
 				if (e.toString() != null && e.toString().contains("code=403")) {
 					LOGGER.error("Access denied since no bucket available for user:{}", userId);
