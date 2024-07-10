@@ -324,7 +324,14 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
   const proceedToSubmit = (data, latestData) => {
     const { tableName, tableFormat, tableComment } = data;
     const [x, y] = calcXY([...latestData.tables], box);
-    const updatedColumns = columns.map(({ errorMessage, ...rest }) => rest);
+    const updatedColumns = columns.map(column => 
+      Object.keys(column).reduce((acc, key) => {
+        if (key !== 'errorMessage') {
+          acc[key] = column[key];
+        }
+        return acc;
+      }, {})
+    );
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
