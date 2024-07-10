@@ -216,7 +216,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             ) : (
               ''
             )}
-            { this.props.captureOwnerInfo===true && <div
+            { this.props.captureOwnerInfo && <div
                 className={classNames(
                   'input-field-group ',
                 )}
