@@ -217,7 +217,6 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
             modalTitleText={'team member'}
             showOnlyInteral={true}
             editMode={this.state.editTeamMember}
-            captureOwnerInfo={false}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
             hideTeamPosition={this.state.hideTeamPosition}

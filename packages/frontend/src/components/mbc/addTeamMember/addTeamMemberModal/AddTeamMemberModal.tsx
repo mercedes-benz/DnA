@@ -18,7 +18,7 @@ const classNames = cn.bind(Styles);
 export interface IAddTeamMemberModalProps {
   modalTitleText?: string;
   editMode: boolean;
-  captureOwnerInfo: boolean;
+  captureOwnerInfo?: boolean;
   showAddTeamMemberModal: boolean;
   teamMember: ITeams;
   showOnlyInteral?: boolean;
