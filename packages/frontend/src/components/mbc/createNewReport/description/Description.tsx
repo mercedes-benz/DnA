@@ -37,6 +37,7 @@ const classNames = cn.bind(Styles);
 const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 export interface IDescriptionProps {
+  reportId?: string;
   divisions: IDivision[];
   subDivisions: ISubDivision[];
   productPhases: IProductPhase[];
@@ -449,24 +450,27 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
       ApiClient.getSimilarSearchResult(`reportssearch?input=${inputData}`).then((res: any) => {
         if(res?.result?.length) {
-          const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
+          const similarReportsBasedOnInputData:ISimilarSearchListItem[] = [];
           res?.result.forEach((item: any) => {
             const reportItem = item[0];
-            const score = item[1];
-            similarSolutionsBasedOnInputData.push({
-              id: reportItem.id,
-              productName: reportItem.productName,
-              description: reportItem.description,
-              score
-            });
+            const selectedReportId = this.props.reportId;
+            if (selectedReportId !== reportItem.id) {
+              const score = item[1];
+              similarReportsBasedOnInputData.push({
+                id: reportItem.id,
+                productName: reportItem.productName,
+                description: reportItem.description,
+                score
+              });
+            }
           });
 
           switch(fieldType) {
             case 'Name':
-              this.setState({similarReportsBasedOnProductName: similarSolutionsBasedOnInputData, lastSearchedProductNameInput: inputData});
+              this.setState({similarReportsBasedOnProductName: similarReportsBasedOnInputData, lastSearchedProductNameInput: inputData});
               break;    
             case 'Description':
-              this.setState({similarReportsBasedOnDescription: similarSolutionsBasedOnInputData, lastSearchedDescriptionInput: inputData}); 
+              this.setState({similarReportsBasedOnDescription: similarReportsBasedOnInputData, lastSearchedDescriptionInput: inputData}); 
           }
 
           Notification.show(`Similar reports found based on your Report ${fieldType}.`);
