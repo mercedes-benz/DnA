@@ -39,6 +39,8 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   </a>{' '}
                   <br />
                   {teamMember?.department}
+                  <br/>
+                  {teamMember?.isUseCaseOwner === true ? 'Use Case Owner' : ''}
                 </div>
               </div>
             </div>

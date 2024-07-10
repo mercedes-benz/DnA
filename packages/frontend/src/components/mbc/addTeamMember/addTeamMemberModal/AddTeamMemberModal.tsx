@@ -32,6 +32,7 @@ export interface IAddTeamMemberModalProps {
 export interface IAddTeamMemberModalState {
   belongingInternal: boolean;
   teamPositionInternal: string;
+  isUseCaseOwner: boolean;
   teamPositionInternalError: string;
   userIdInternal: string;
   userIdInternalError: string;
@@ -70,6 +71,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     this.state = {
       belongingInternal: true,
       teamPositionInternal: '',
+      isUseCaseOwner: false,
       teamPositionInternalError: null,
       userIdInternal: '',
       userIdInternalError: null,
@@ -125,6 +127,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       belongingInternal,
       // userIdInternal,
       teamPositionInternal,
+      isUseCaseOwner,
       teamPositionExternal,
       companyExternal,
       // teamMemberObj,
@@ -212,6 +215,24 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             ) : (
               ''
             )}
+            <div
+                className={classNames(
+                  'input-field-group ',
+                )}
+            >
+              <label className={'checkbox'}>
+                <span className={classNames("wrapper")}>
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    value="admin"
+                    checked={isUseCaseOwner || false}
+                    onChange={(e) => {this.setState({isUseCaseOwner : e.target.checked})}}
+                  />
+                </span>
+                <label className={classNames('input-label ',Styles.permissionContent)}>Is Use Case Owner</label>
+              </label>
+            </div>
             <TeamSearch
               label={
                 <>
@@ -534,6 +555,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         this.setState({
           belongingInternal: true,
           teamPositionInternal: teamMemberObj.teamMemberPosition,
+          isUseCaseOwner: teamMemberObj.isUseCaseOwner,
           userIdInternal: teamMemberObj.shortId,
           teamMemberObj,
           firstName: teamMemberObj.firstName,
@@ -577,6 +599,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
   protected onSearchClick = () => {
     const internalMemberPosition = this.state.teamPositionInternal;
+    // const isUseCaseOwner = this.state.isUseCaseOwner;
     const seachUserId = this.state.userIdInternal;
 
     ProgressIndicator.show();
@@ -591,6 +614,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
           lastName: data.lastName,
           userType: TeamMemberType.INTERNAL,
           teamMemberPosition: internalMemberPosition,
+          // isUseCaseOwner: isUseCaseOwner,
         };
 
         if (data.mobileNumber !== '') {
@@ -640,6 +664,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     let proceedSave = false;
     if (belongingInternal && this.validateInternalTeamMemberForm()) {
       teamMember.teamMemberPosition = this.state.teamPositionInternal;
+      teamMember.isUseCaseOwner = this.state.isUseCaseOwner;
       proceedSave = true;
     } else if (this.validateExternalTeamMemberForm()) {
       teamMember = {
@@ -660,6 +685,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     const belongingInternal = teamMember.userType === TeamMemberType.INTERNAL;
     if (belongingInternal && this.validateInternalTeamMemberFormTeamSearch(teamMemberObj)) {
       teamMember.teamMemberPosition = this.state.teamPositionInternal;
+      teamMember.isUseCaseOwner = this.state.isUseCaseOwner;
       this.props.onUpdateTeamMemberList(teamMember);
     }
   };
@@ -680,7 +706,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
     if (typeof this.props.validateMemebersList === 'function') {
       const isDuplicate = this.props.validateMemebersList(teamMemberObj);
-      if (isDuplicate) {
+      if (isDuplicate && !this.props.editMode) {
         this.setState({ showUserAlreadyExistsError: true });
         setTimeout(this.resetUserAlreadyExists, 3500);
         formValid = false;
@@ -717,6 +743,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   protected clearModalFields() {
     this.setState({
       belongingInternal: true,
+      // isUseCaseOwner: false,
       teamPositionInternal: '',
       teamPositionInternalError: null,
       userIdInternal: '',
@@ -734,6 +761,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         userType: '',
         mobileNumber: '',
         teamMemberPosition: '',
+        // isUseCaseOwner: false,
       },
       firstName: '',
       lastName: '',
