@@ -947,6 +947,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
             modalTitleText={this.state.addTeamMemberInController ? 'controller' : 'team member'}
             showOnlyInteral={true}
             editMode={this.state.editTeamMember}
+            captureOwnerInfo={false}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}

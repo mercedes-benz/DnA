@@ -18,6 +18,7 @@ const classNames = cn.bind(Styles);
 export interface IAddTeamMemberModalProps {
   modalTitleText?: string;
   editMode: boolean;
+  captureOwnerInfo: boolean;
   showAddTeamMemberModal: boolean;
   teamMember: ITeams;
   showOnlyInteral?: boolean;
@@ -215,7 +216,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             ) : (
               ''
             )}
-            <div
+            { this.props.captureOwnerInfo===true && <div
                 className={classNames(
                   'input-field-group ',
                 )}
@@ -232,7 +233,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                 </span>
                 <span className='label'>Is Use Case Owner</span>
               </label>
-            </div>
+            </div>}
             <TeamSearch
               label={
                 <>
@@ -743,7 +744,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   protected clearModalFields() {
     this.setState({
       belongingInternal: true,
-      // isUseCaseOwner: false,
+      isUseCaseOwner: false,
       teamPositionInternal: '',
       teamPositionInternalError: null,
       userIdInternal: '',
@@ -761,7 +762,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         userType: '',
         mobileNumber: '',
         teamMemberPosition: '',
-        // isUseCaseOwner: false,
+        isUseCaseOwner: false,
       },
       firstName: '',
       lastName: '',

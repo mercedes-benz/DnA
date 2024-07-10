@@ -440,6 +440,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             modalTitleText={'Contact'}
             showOnlyInteral={true}
             editMode={this.state.editTeamMember}
+            captureOwnerInfo={false}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}
