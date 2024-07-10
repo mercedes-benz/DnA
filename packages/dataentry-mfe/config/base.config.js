@@ -7,6 +7,7 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const copyWebpackPlugin = require('copy-webpack-plugin');
+const { UniverPlugin } = require('@univerjs/webpack-plugin');
 
 module.exports = {
   module: {
@@ -146,6 +147,7 @@ module.exports = {
         },
       },
     }),
+    new UniverPlugin(),
     new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
   ],
 };
