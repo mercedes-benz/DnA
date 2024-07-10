@@ -21,7 +21,6 @@ const TableFormItem = (props) => {
     register,
     unregister,
     control,
-    formState: { errors },
   } = useForm();
   const { remove } = useFieldArray({
     control,
@@ -56,11 +55,7 @@ const TableFormItem = (props) => {
         <div className={Styles.flexLayout}>
           <div
             className={classNames(
-              "input-field-group include-error",
-              errors[`${index}`] !== undefined &&
-                errors[`${index}`].columnName.message
-                ? "error"
-                : ""
+              "input-field-group include-error", field?.errorMessage?.length ? "error" : ""
             )}
           >
             <label className={classNames(Styles.inputLabel, "input-label")}>
@@ -86,11 +81,7 @@ const TableFormItem = (props) => {
                 value={field.columnName}
               />
               <span className={classNames("error-message")}>
-                {errors[`${index}`] !== undefined &&
-                  errors[`${index}`].columnName.message}
-                {errors[`${index}`] !== undefined &&
-                  errors[`${index}`].columnName?.type === "pattern" &&
-                  "column names can only consist of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers."}
+                  {field?.errorMessage}
               </span>
             </div>
           </div>
@@ -333,13 +324,14 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
   const proceedToSubmit = (data, latestData) => {
     const { tableName, tableFormat, tableComment } = data;
     const [x, y] = calcXY([...latestData.tables], box);
+    const updatedColumns = columns.map(({ errorMessage, ...rest }) => rest);
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
       description: tableComment,
       xcoOrdinate: x,
       ycoOrdinate: y,
-      columns: [...columns],
+      columns: updatedColumns,
     };
     const projectTemp = { ...latestData };
     if (
@@ -366,6 +358,21 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
       }
     }
   };
+
+  const validateColumnName = (value) => {
+    const pattern = /^[a-z][a-z0-9_]*$/;
+    const isValid = pattern.test(value);
+    const isKeyWord = dataTypes.filter(keyWord => keyWord === value.toUpperCase());
+    if (value === '') {
+      return "*Missing entry"
+    } else if (isKeyWord.length > 0) {
+      return "column name cannot be a reserved key word";
+    } else if (!isValid) {
+      return "column names can only consist of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers.";
+    } else {
+      return '';
+    }
+  }
 
   const handlePublish = (projectTemp) => {
     const data = {...projectTemp};
@@ -394,6 +401,7 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
       comment: "",
       dataType: "BOOLEAN",
       notNullConstraintEnabled: true,
+      errorMessage:"",
     });
     setFields(newState);
   };
@@ -408,12 +416,29 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
     }
   };
 
+  const isFormValid = () => {
+    const isValid = columns.map( val => val.errorMessage).some( val => val.length > 0);
+    return !isValid;
+
+  }
+
   const onColumnValueChange = (index, value, field) => {
     const cols = [...columns];
-    cols[index] = {
-      ...cols[index],
-      [field]: value,
-    };
+    if(field === 'columnName'){
+      const errorMessage = validateColumnName(value);
+      cols[index] = {
+        ...cols[index],
+        [field]: value,
+        errorMessage: errorMessage
+      };
+    }else{
+      cols[index] = {
+        ...cols[index],
+        [field]: value,
+      };
+
+    }
+    
     setFields(cols);
   };
 
@@ -436,12 +461,13 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
               />
             ))}
         </div>
+        <span className={classNames("error-message")}>{isFormValid() ? '': '*Please ensure that the data is valid before you publish'}</span>
         <div className="drawer-footer">
           <button className="btn btn-primary" onClick={setToggle}>
             Cancel
           </button>
           <button
-            className="btn btn-tertiary"
+            className={classNames("btn btn-tertiary", isFormValid() ? '' : Styles.btndisable)}
             onClick={handleSubmit((values) => onSubmit(values))}
           >
             Publish
