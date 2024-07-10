@@ -165,7 +165,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   chronos-be:
-        name: chronos Backend
+        name: chronos-be
         needs: select-service
         if: needs.select-service.outputs.chronos-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -233,7 +233,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   storage-be:
-        name: Storage Backend
+        name: storage-be
         needs: select-service
         if: needs.select-service.outputs.storage-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -250,7 +250,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dss-be:    ## Code changes are not detected
-        name: Dss Backend
+        name: dss-be
         needs: select-service
         if: needs.select-service.outputs.dss-be == 'true'
         uses: ./.github/workflows/deploy.yaml
