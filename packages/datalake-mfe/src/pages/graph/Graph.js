@@ -456,6 +456,7 @@ const Graph = ({user, hostHistory}) => {
   const [connectors,setConnectors] = useState([]);
   const [formats, setFormats] = useState([]);
   const [dataTypes, setDataTypes] = useState([]);
+  const [keyWords, setKeyWords] = useState([]);
 
   useEffect(() => {
     if(project.connectorType === 'Iceberg') {
@@ -475,6 +476,7 @@ const Graph = ({user, hostHistory}) => {
     datalakeApi.getConnectors()
       .then((res) => {
         setConnectors(res.data.connectors);
+        setKeyWords(res.data.reserveWords);
         ProgressIndicator.hide();
         SelectBox.defaultSetup();
       })
@@ -762,7 +764,7 @@ const Graph = ({user, hostHistory}) => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} isSaved ={(val)=>{setIsSaved(val)}} />}
+            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} keyWords={keyWords}isSaved ={(val)=>{setIsSaved(val)}} />}
         />
     }
 
