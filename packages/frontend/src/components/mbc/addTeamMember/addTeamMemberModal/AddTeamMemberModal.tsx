@@ -230,7 +230,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                     onChange={(e) => {this.setState({isUseCaseOwner : e.target.checked})}}
                   />
                 </span>
-                <label className={classNames('input-label ',Styles.permissionContent)}>Is Use Case Owner</label>
+                <span className='label'>Is Use Case Owner</span>
               </label>
             </div>
             <TeamSearch
