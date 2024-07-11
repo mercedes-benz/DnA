@@ -204,7 +204,7 @@ public class GitClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches";
+			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches?per_page=100";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
 			if (response != null && response.getStatusCode()!=null) {
