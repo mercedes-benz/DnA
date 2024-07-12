@@ -250,7 +250,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dss-be:    ## Code changes are not detected
-        name: dss-be
+        name: dataiku-be
         needs: select-service
         if: needs.select-service.outputs.dss-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -267,7 +267,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dss-mfe:
-        name: dss-mfe
+        name: dataiku-mfe
         needs: select-service
         if: needs.select-service.outputs.dss-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
