@@ -88,6 +88,9 @@ codeServer:
   workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
   workspace.apikey: ${CODE_SERVER_API_KEY:XXX}
   git.pid: ${CODE_SERVER_PID_USER:XXXXX}
+  recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
+  recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
+
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
