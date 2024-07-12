@@ -165,7 +165,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   chronos-be:
-        name: chronos-be
+        name: Chronos Backend
         needs: select-service
         if: needs.select-service.outputs.chronos-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -182,7 +182,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   chronos-mfe:
-        name: chronos-mfe
+        name: Chronos MFE
         needs: select-service
         if: needs.select-service.outputs.chronos-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -199,7 +199,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   code-space-mfe:
-        name: code-space-mfe
+        name: Codespace MFE
         needs: select-service
         if: needs.select-service.outputs.code-space-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -216,7 +216,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit 
   storage-mfe:
-        name: storage-mfe
+        name: Storage MFE
         needs: select-service
         if: needs.select-service.outputs.storage-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -233,7 +233,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   storage-be:
-        name: storage-be
+        name: Storage Backend
         needs: select-service
         if: needs.select-service.outputs.storage-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -250,7 +250,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dss-be:    ## Code changes are not detected
-        name: dataiku-be
+        name: DSS Backend
         needs: select-service
         if: needs.select-service.outputs.dss-be == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -267,7 +267,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dss-mfe:
-        name: dataiku-mfe
+        name: DSS MFE
         needs: select-service
         if: needs.select-service.outputs.dss-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -284,7 +284,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   data-product-mfe:  ## Code changes are not detected
-        name: data-product-mfe
+        name: Dataproduct MFE
         needs: select-service
         if: needs.select-service.outputs.data-product-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -301,7 +301,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit       
   data-product-backend:
-        name: data-product-backend
+        name: Dataproduct Backend
         needs: select-service
         if: needs.select-service.outputs.data-product-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -318,7 +318,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit 
   authenticator-service:
-        name: Authenticator-Service
+        name: Authenticator Service
         needs: select-service
         if: needs.select-service.outputs.authenticator-service == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -335,7 +335,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   airflow-backend:
-        name: airflow-backend
+        name: Airflow Backend
         needs: select-service
         if: needs.select-service.outputs.airflow-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -352,7 +352,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   trino-backend:
-        name: trino-backend
+        name: Trino Backend
         needs: select-service
         if: needs.select-service.outputs.trino-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -369,7 +369,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dna-backend:
-        name: dna-backend
+        name: DNA Backend
         needs: select-service
         if: needs.select-service.outputs.dna-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -386,7 +386,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dna-frontend:   ## Code changes are not detected
-        name: dna-frontend
+        name: DNA Frontend
         needs: select-service
         if: needs.select-service.outputs.dna-frontend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -403,7 +403,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit      
   dataentry-mfe:
-        name: dataentry-mfe
+        name: Dataentry MFE
         needs: select-service
         if: needs.select-service.outputs.dataentry-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -420,7 +420,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   dashboard-backend:
-        name: dashboard-backend
+        name: Dashboard Backend
         needs: select-service
         if: needs.select-service.outputs.dashboard-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -437,7 +437,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit 
   malware-scanner:
-        name: Malware-Scanner
+        name: Malware Scanner
         needs: select-service
         if: needs.select-service.outputs.malware-scanner == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -454,7 +454,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag'
         secrets: inherit  
   naas:
-        name: naas
+        name: NAAS
         needs: select-service
         if: needs.select-service.outputs.naas == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -471,7 +471,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag'
         secrets: inherit   
   datalake-mfe:
-        name: datalake-mfe
+        name: Datalake MFE
         needs: select-service
         if: needs.select-service.outputs.datalake-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -488,7 +488,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit  
   matomo-mfe:   ## Code changes are not detected
-        name: matomo-mfe
+        name: Matomo MFE
         needs: select-service
         if: needs.select-service.outputs.matomo-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -505,7 +505,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit                                                                                                                 
   matomo-backend:
-        name: matomo-backend
+        name: Matomo Backend
         needs: select-service
         if: needs.select-service.outputs.matomo-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -522,7 +522,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit 
   fabric-backend:
-        name: fabric-backend
+        name: Fabric Backend
         needs: select-service
         if: needs.select-service.outputs.fabric-backend == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -539,7 +539,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit 
   fabric-mfe:
-        name: fabric-mfe
+        name: Fabric MFE
         needs: select-service
         if: needs.select-service.outputs.fabric-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml
@@ -556,7 +556,7 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit
   power-platform-mfe:
-        name: power-platform-mfe
+        name: PowerPlatform MFE
         needs: select-service
         if: needs.select-service.outputs.power-platform-mfe == 'true'
         uses: ./.github/workflows/deploy.yaml

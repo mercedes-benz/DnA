@@ -1,4 +1,4 @@
-name: metastore-build
+name: Metastore Build
 
 on:
   workflow_dispatch:
