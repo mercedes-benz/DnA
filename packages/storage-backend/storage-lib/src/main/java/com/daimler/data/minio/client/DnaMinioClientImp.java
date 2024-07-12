@@ -570,7 +570,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			vo.setEtag(minioObject.getEtag());
 			vo.setIsDir("folder".equalsIgnoreCase(minioObject.getType()) ? true: false);
 			String lastModifiedString = minioObject.getLastModified();
-			vo.setLastModified(lastModifiedString);
+			vo.setLastModified("folder".equalsIgnoreCase(minioObject.getType()) ? null : lastModifiedString);
 			vo.setObjectName(minioObject.getKey());
 			vo.setSize(minioObject.getSize());
 			vo.setVersionId(minioPolicyVersion);
