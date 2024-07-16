@@ -153,6 +153,7 @@ const base = {
         './ProgressWithMessage': './src/components/progressWithMessage/ProgressWithMessage',
         './RouterUtils': './src/router/RouterUtils.ts',
         './IconGear': './src/components/icons/IconGear.tsx',
+        './IconToU': './src/components/icons/IconToU.tsx',
         './History': './src/router/History.ts',
         './AddUser': './src/components/mbc/addUser/AddUser.tsx',
         './Query': './src/services/Query.ts',

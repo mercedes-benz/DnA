@@ -591,6 +591,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 <div id="tab-content-1" className="tab-content">
                   {currentTab === 'description' && (
                     <Description
+                      reportId={this.state.report.reportId}
                       divisions={this.state.divisions}
                       subDivisions={this.state.subDivisions}
                       productPhases={this.state.productPhases}

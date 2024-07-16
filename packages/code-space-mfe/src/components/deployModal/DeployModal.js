@@ -320,7 +320,7 @@ const DeployModal = (props) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                          // disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
@@ -336,6 +336,14 @@ const DeployModal = (props) => {
                         </span>)}
                       </span>
                     </label>
+                    <span>
+                      <p
+                        style={{ color: 'var(--color-orange)' }}
+                        className={classNames(disableIntIAM && secureWithIAMSelected ? '' : 'hide')}
+                      >
+                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization Configuration and therefore no authorization checks would happen.
+                      </p>
+                    </span>
                   </div>
                   {secureWithIAMSelected && (
                     <div>
@@ -425,7 +433,7 @@ const DeployModal = (props) => {
                           checked={secureWithIAMSelected}
                           onChange={onChangeSecureWithIAM}
                           // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                          // disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                         />
                       </span>
                       <span className="label">
@@ -441,6 +449,14 @@ const DeployModal = (props) => {
                         </span>)}
                       </span>
                     </label>
+                    <span>
+                      <p
+                        style={{ color: 'var(--color-orange)' }}
+                        className={classNames(disableProdIAM && secureWithIAMSelected ? '' : 'hide')}
+                      >
+                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization Configuration and therefore no authorization checks would happen.
+                      </p>
+                    </span>
                   </div>
                   {secureWithIAMSelected && (
                     <div>

@@ -296,6 +296,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
             editMode={this.state.editTeamMember}
+            captureOwnerInfo ={true}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}

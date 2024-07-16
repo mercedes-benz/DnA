@@ -1,6 +1,6 @@
 {
   "name": "dna-web",
-  "version": "3.7.6",
+  "version": "3.8.0",
   "description": "Web Frontend for DnA@MBC based on Digital Design System(UILab)",
   "license": "MIT",
   "author": {
@@ -180,7 +180,7 @@
     "url-loader": "^4.1.1",
     "uuid": "^8.3.2",
     "webcrypto-shim": "0.1.7",
-    "webpack": "^5.39.0",
+    "webpack": "5.92.1",
     "webpack-cli": "^4.7.2",
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.8.0",
