@@ -25,41 +25,41 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.common;
+ package com.daimler.data.assembler;
 
-import java.util.List;
-
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
-import com.daimler.data.dto.userinfo.*;
-
-public interface CommonService<V, T, ID> {
-
-	List<V> getAll();
-
-	List<V> getAll(int limit, int offset);
-
-	V getById(ID id);
-
-	V getByUniqueliteral(String uniqueLiteral, String value);
-
-	List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteralDesc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteral(int limit, int offset, String uniqueLiteral,
-			CommonDataRepositoryImpl.SORT_TYPE sortOrder);
-
-	V create(V vo);
-
-	void insertAll(List<V> voList);
-
-	void deleteAll();
-
-	boolean deleteById(ID id);
-
-	Long getCount(int limit, int offset);
-
-	public String currentUserName(CreatedByVO currentUser);
-
-}
+ import com.daimler.data.db.entities.TagNsql;
+ import com.daimler.data.db.json.Tag;
+ import com.daimler.data.dto.tag.TagVO;
+ import org.springframework.stereotype.Component;
+ 
+ import java.util.Objects;
+ 
+ @Component
+ public class TagAssembler implements GenericAssembler<TagVO, TagNsql> {
+ 
+     @Override
+     public TagVO toVo(TagNsql entity) {
+         TagVO tagVO = null;
+         if (Objects.nonNull(entity)) {
+             tagVO = new TagVO();
+             tagVO.setId(entity.getId());
+             tagVO.setName(entity.getData().getName());
+         }
+         return tagVO;
+     }
+ 
+     @Override
+     public TagNsql toEntity(TagVO vo) {
+         TagNsql tagNsql = null;
+         if (Objects.nonNull(vo)) {
+             tagNsql = new TagNsql();
+             Tag tag = new Tag();
+             tag.setName(vo.getName());
+             tagNsql.setData(tag);
+             if (vo.getId() != null)
+                 tagNsql.setId(vo.getId());
+         }
+         return tagNsql;
+     }
+ }
+ 

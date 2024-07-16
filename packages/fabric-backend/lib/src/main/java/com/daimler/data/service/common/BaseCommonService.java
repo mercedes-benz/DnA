@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.assembler.GenericAssembler;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 
 public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
@@ -161,5 +162,20 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 	public Long getCount(int limit, int offset) {
 		return customRepo.getCount(limit, offset);
 	}
-
+	@Override
+	public String currentUserName(CreatedByVO currentUser) {
+		String userName = "";
+		if (Objects.nonNull(currentUser)) {
+			if (StringUtils.hasText(currentUser.getFirstName())) {
+				userName = currentUser.getFirstName();
+			}
+			if (StringUtils.hasText(currentUser.getLastName())) {
+				userName += " " + currentUser.getLastName();
+			}
+		}
+		if (!StringUtils.hasText(userName)) {
+			userName = currentUser != null ? currentUser.getId() : "dna_system";
+		}
+		return userName;
+	}
 }

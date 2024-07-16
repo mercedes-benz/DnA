@@ -26,7 +26,9 @@ import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.tag.TagService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +47,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private FabricWorkspaceAssembler assembler;
+
+	@Autowired
+	private TagService tagService;
 	
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
@@ -207,6 +212,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						capacityVO.setSku(capacitySku);
 						capacityVO.setState(capacityState);
 					}
+					updateTags(data);
 					data.setCapacity(capacityVO);
 					FabricWorkspaceVO savedRecord = super.create(data);
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
@@ -292,8 +298,27 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
 		}
 		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
+		updateTags(existingFabricWorkspace);
 		jpaRepo.save(updatedEntity);
 		return existingFabricWorkspace;
+	}
+
+	private void updateTags(FabricWorkspaceVO vo) {
+		List<String> tags = vo.getTags();
+		if (tags != null && !tags.isEmpty()) {
+			tags.forEach(tag -> {
+				TagVO existingTagVO = tagService.getByUniqueliteral("name", tag);
+				if (existingTagVO != null && existingTagVO.getName() != null
+						&& existingTagVO.getName().equalsIgnoreCase(tag))
+					return;
+				else {
+					TagVO newTagVO = new TagVO();
+					newTagVO.setId(null);
+					newTagVO.setName(tag);
+					tagService.create(newTagVO);
+				}
+			});
+		}
 	}
 
 }

@@ -298,6 +298,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 				existingFabricWorkspace.setDepartment(workspaceUpdateRequestVO.getDepartment());
 			if(workspaceUpdateRequestVO.getTags()!=null)
 				existingFabricWorkspace.setTags(workspaceUpdateRequestVO.getTags());
+				
 			if(workspaceUpdateRequestVO.isTermsOfUse()!=null)
 				existingFabricWorkspace.setTermsOfUse(workspaceUpdateRequestVO.isTermsOfUse());
 			if(workspaceUpdateRequestVO.isHasPii()!=null)

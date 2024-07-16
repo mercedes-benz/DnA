@@ -25,41 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.common;
+ package com.daimler.data.db.repo.tag;
 
-import java.util.List;
-
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
-import com.daimler.data.dto.userinfo.*;
-
-public interface CommonService<V, T, ID> {
-
-	List<V> getAll();
-
-	List<V> getAll(int limit, int offset);
-
-	V getById(ID id);
-
-	V getByUniqueliteral(String uniqueLiteral, String value);
-
-	List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteralDesc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteral(int limit, int offset, String uniqueLiteral,
-			CommonDataRepositoryImpl.SORT_TYPE sortOrder);
-
-	V create(V vo);
-
-	void insertAll(List<V> voList);
-
-	void deleteAll();
-
-	boolean deleteById(ID id);
-
-	Long getCount(int limit, int offset);
-
-	public String currentUserName(CreatedByVO currentUser);
-
-}
+ import com.daimler.data.db.entities.TagNsql;
+ import com.daimler.data.db.repo.common.CommonDataRepository;
+ 
+ public interface TagCustomRepository extends CommonDataRepository<TagNsql, String> {
+ 
+ }
+ 

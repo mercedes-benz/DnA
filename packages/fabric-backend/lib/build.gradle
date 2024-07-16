@@ -46,7 +46,7 @@ repositories {
 		maven {
 		  url "https://plugins.gradle.org/m2/"
 		}
-}
+    }
 
 group 'com.mb.dna'
 version = releaseVersion;
@@ -74,12 +74,30 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+
+    tag {
+        def tagyaml = "${rootDir}/lib/src/main/resources/api/Tag.yaml"
+        def tagJson = "${rootDir}/lib/src/main/resources/api/Tag.json"
+        inputFile = file(tagyaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(tagJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+        }
+    }
 }
 
 compileJava {
     dependsOn processResources
     dependsOn swaggerSources.fabricWorkspace.code
     source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java"  
+    dependsOn swaggerSources.tag.code
+    source "${swaggerSources.tag.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -91,6 +109,7 @@ sourceSets {
     main {
         java { srcDirs = srcDirs }
 		java { srcDirs += "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java"}
     }
 }
 
