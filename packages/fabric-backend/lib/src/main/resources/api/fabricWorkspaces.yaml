@@ -347,6 +347,8 @@ definitions:
         type: string
       internalOrder:
         type: string
+      status:
+        $ref: "#/definitions/FabricWorkspaceStatusVO"
       relatedSolutions:
         type: array
         items:
@@ -364,17 +366,59 @@ definitions:
         format: date
       role:
         type: string
-#    required:
-#      - name
-#      - typeOfProject
-#      - description
-#      - divisionId
-#      - subDivisionId
-#      - dataClassification
-#      - hasPii
-#      - termsOfUse
-#      - costCenter
   
+  FabricWorkspaceStatusVO:
+    type: object
+    properties:
+      state:
+         type: string
+      entitlements:
+         type: array
+         items:
+          $ref: "#/definitions/EntitlementDetailsVO" 
+      roles:
+         type: array
+         items:
+          $ref: "#/definitions/RoleDetailsVO"
+      microsoftGroups:
+         type: array
+         items:
+          $ref: "#/definitions/GroupDetailsVO"
+  
+  EntitlementDetailsVO:
+    type: object
+    properties:
+      entitlementId:
+        type: string
+      displayName:
+        type: string
+      state:
+        type: string
+
+  RoleDetailsVO:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      state:
+        type: string
+      link:
+        type: string
+      entitlements:
+        type: array
+        items:
+         $ref: "#/definitions/EntitlementDetailsVO"
+          
+  GroupDetailsVO:
+    groupName:
+      type: string
+    groupId:
+      type: string
+    state:
+      type: string
+                    
   ProjectReferenceDetailsVO:
     type: object
     properties:
