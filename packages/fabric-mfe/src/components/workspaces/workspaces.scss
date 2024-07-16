@@ -193,9 +193,7 @@ hr {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
-  div:first-child {
-    margin: 7px 0px;
-  }
+  align-items: center;
 }
 .btnGrp {
   display: flex;
@@ -220,6 +218,134 @@ hr {
 .workspaceLink {
   i {
     position: unset!important;
+  }
+}
+
+.statusContainer {
+  margin-left: 20px;
+  margin-top: -5px;
+  .statusItem {
+    button {
+      background: unset;
+      border: unset;
+      color: #99a5b3;
+      outline: 0;
+
+      > div + span {
+        padding-left: 26px;
+      }
+
+      i {
+        font-size: 16px;
+        color: #0AE6AB;
+        transform: translateY(1px);
+      }
+
+      span {
+        display: inline-block;
+      }
+
+      i + span {
+        color: #0AE6AB;
+      }
+    }
+  }
+}
+
+.modal {  
+  width: 650px;
+  margin: 0 auto 20px;
+  .header {
+    margin-bottom: 20px;
+    text-align: center;
+    p {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .content {
+    .tableContainer  {
+      margin-bottom: 15px;
+      h4 {
+        border-bottom: 1px solid #383f49;
+        font-size: 16px;
+        margin-bottom: 5px;
+        padding-bottom: 10px;
+        font-family: 'Roboto-Medium';
+      }
+    }
+    .table {
+      display: flex;
+      flex-direction: column;
+    }
+    .tableRow {
+      display: flex;
+      flex-direction: row;
+      border-bottom: 1px solid #383f49;
+
+      &:hover {
+        background-color: #20242b;
+      }
+    }
+    .tableRow.tableHeader {
+      border-bottom: 1px solid #383f49;
+      color: #99a5b3;
+      font-size: var(--font-size-smallest);
+      text-align: left;
+      font-family: 'Roboto-Medium';
+
+      &:hover {
+        background-color: unset;
+      }
+    }
+    .tableCell {
+      padding: 10px 20px;
+      flex: 2;
+
+      p {
+        margin-bottom: 5px;
+      }
+    }
+    .tableCell:nth-child(2) {
+      padding: 10px 20px;
+      flex: 1;
+    }
+    .statusContainer {
+      margin: 0;
+    }
+    .closeCircle, .closeCircle + span {
+      color: #e94d47;
+    }
+    .assigned, .assigned + span {
+      color: #00adef;
+    }
+    .tableCell.column1 {
+      flex: 1;
+      min-width: 30%;
+      max-width: 30%;
+    }
+    .tableCell.column2 {
+      flex: 1;
+      min-width: 25%;
+      max-width: 25%;
+    }
+    .tableCell.column3 {
+      flex: 1;
+      min-width: 20%;
+      max-width: 20%;
+    }
+    .tableCell.column4 {
+      flex: 1;
+      min-width: 25%;
+      max-width: 25%;
+    }
+  }
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
   }
 }
 
