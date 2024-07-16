@@ -14,8 +14,8 @@ spec:
     namespace: chronos
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-chronos-frontend.git
+    path: deployment/kubernetes/helm/charts/chronos-mfe
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: chronos-mfe

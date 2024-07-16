@@ -15,8 +15,8 @@ spec:
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/clamav
-    repoURL: 'https://git.i.mercedes-benz.com/DNA/dna-malware-scanner.git'
-    targetRevision: {{ .Values.repoURL | squote }}
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-clamav
       valueFiles:
