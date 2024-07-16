@@ -1,0 +1,52 @@
+.touContainer {
+    .touTitle {
+      display: flex;
+  
+      .touIcon i {
+        font-size: 50px;
+      }
+  
+      h2 {
+        font-size: var(--font-size-headline-big);
+        margin-left: 22px;
+        margin-bottom: 0;
+        span {
+          display: block;
+          font-size: var(--font-size-small);
+          padding-top: 20px;
+          color: #c0c8d0;
+        }
+      }
+    }
+    .touContent {
+      margin-top: 35px;
+      margin-bottom: 35px;
+      height: 50vh;
+  
+      &::-webkit-scrollbar-thumb {
+        background: #00adef;
+        border-radius: 10px;
+      }
+      &::-webkit-scrollbar-track {
+        background: #293f55;
+      }
+      &::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+    }
+    .touFooter {
+      text-align: center;
+      padding-top: 35px;
+    }
+  }
+  .checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-left: -10px;
+  }
+  .btnAgree {
+    background-color: #00adef;
+    border-color: #00adef;
+  }
