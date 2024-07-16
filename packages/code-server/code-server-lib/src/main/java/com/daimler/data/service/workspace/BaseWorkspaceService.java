@@ -1009,7 +1009,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
+			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret, String action) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1019,7 +1019,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			if (entity != null ) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
-				deployJobInputDto.setAction("deploy");
+
+				deployJobInputDto.setAction(action);
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto
 						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());

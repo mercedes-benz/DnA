@@ -943,6 +943,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 try {
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
+			 String action = "deploy";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
@@ -1045,8 +1046,15 @@ import org.springframework.beans.factory.annotation.Value;
 			 {
 				deployRequestDto.setValutInjectorEnable(false);
 			 }
+
+
+			 log.info(deployRequestDto.getAction()+" is requested");
+			 if(deployRequestDto.getAction()!=null){
+				action = deployRequestDto.getAction();
+			 }
+
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(), action);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());

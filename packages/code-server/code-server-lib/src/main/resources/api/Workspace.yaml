@@ -1188,6 +1188,9 @@ definitions:
         type: string
       clientSecret:
         type: string
+      action:
+        type: string 
+        description: cicd action needed to be perfomed.
 
 
            
