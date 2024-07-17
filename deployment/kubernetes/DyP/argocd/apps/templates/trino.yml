@@ -23,6 +23,16 @@ spec:
         - name: HELM_ARGS
           value: -f values-{{ .Values.env }}.yaml
   project: dna
+  
+  ignoreDifferences:
+  - group: ""
+    kind: "ConfigMap"
+    jsonPointers:
+    - /spec/data/password.db
+
+  syncPolicy:
+    syncOptions:
+    - RespectIgnoreDifferences=true
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
