@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
+import com.daimler.data.dto.fabric.EntiltlemetGroupDto;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabric.EntitlementsDto;
 
@@ -50,6 +51,9 @@ public class AuthoriserClient {
 
 	@Value("${authoriser.token}")
 	private String token;
+
+	@Value("${authoriser.identityRoleUrl}")
+	private String entitlementGroupUri;
 	
 
 	@Autowired
@@ -151,7 +155,24 @@ public class AuthoriserClient {
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
     }
-	
+	public EntiltlemetGroupDto getEntitlementGroup(){
+		EntiltlemetGroupDto entitlementGroup = new EntiltlemetGroupDto();
+		try{
+		HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<EntiltlemetGroupDto> response = proxyRestTemplate.exchange(entitlementGroupUri, HttpMethod.POST,
+					requestEntity, EntiltlemetGroupDto.class);
+			if (response!=null && response.hasBody()) {
+                entitlementGroup = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get Entitlement Group  with error {} ", e.getMessage());
+		}
+		return entitlementGroup;
+	}
 
 }
 
