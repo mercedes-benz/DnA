@@ -16,7 +16,7 @@ on:
           - main   
       reviewers:
         description: 'Reviewers for staging and main branch'  
-        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS,VKURAPA'
         required: true   
 
 env:
