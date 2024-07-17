@@ -14,8 +14,8 @@ spec:
     namespace: kong
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: 'https://git.i.mercedes-benz.com/DNA/dna-kong.git'
+    path: deployment/kubernetes/helm/charts/kong
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm

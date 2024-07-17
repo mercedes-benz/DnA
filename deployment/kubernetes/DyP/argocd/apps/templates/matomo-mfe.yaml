@@ -14,8 +14,8 @@ spec:
     namespace: matomo
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-matomo-frontend.git
+    path: deployment/kubernetes/helm/charts/matomo-mfe
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: matomo-mfe

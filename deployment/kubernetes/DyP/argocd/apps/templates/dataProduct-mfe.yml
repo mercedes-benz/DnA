@@ -14,8 +14,8 @@ spec:
     namespace: data-product
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-dataproduct-frontend.git
+    path: deployment/kubernetes/helm/charts/data-product-mfe
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: data-product-mfe

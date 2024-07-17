@@ -669,4 +669,4 @@ konga:
             "kong_admin_url": "http://dna-kong-gw-kong-admin:8001",
             "health_checks": false,
         }
-    ]      
+    ]
