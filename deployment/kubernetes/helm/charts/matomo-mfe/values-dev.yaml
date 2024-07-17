@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-mfe
   pullPolicy: IfNotPresent
-  tag: 9e71e59f06fc27d30cb6724bbab79bb6897dd110
+  tag: '41'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -52,8 +52,8 @@ vaultInjector:
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/namespace: fmas/dev
-    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
-    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
     vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/matomoMFE
