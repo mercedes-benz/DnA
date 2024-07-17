@@ -4,7 +4,7 @@ env: dev
 branch: dev
 namespace: argocd
 repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
-enableSync: true
+enableSync: false
 gitRepo:
   username: <path:kv/data/dna/kubernetesSecret/argocd#username | base64encode>
   password: <path:kv/data/dna/kubernetesSecret/argocd#password | base64encode>
