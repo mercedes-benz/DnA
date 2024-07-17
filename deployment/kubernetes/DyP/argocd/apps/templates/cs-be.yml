@@ -14,8 +14,8 @@ spec:
     namespace: code-server
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm/code-server-backend
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-codeserver-backend.git
+    path: deployment/kubernetes/helm/charts/code-server-backend
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: code-server-be
