@@ -406,18 +406,22 @@ definitions:
         type: string
       link:
         type: string
+      assignEntitlementsState:
+        type: string
       entitlements:
         type: array
         items:
          $ref: "#/definitions/EntitlementDetailsVO"
           
   GroupDetailsVO:
-    groupName:
-      type: string
-    groupId:
-      type: string
-    state:
-      type: string
+    type: object
+    properties:
+      groupName:
+       type: string
+      groupId:
+       type: string
+      state:
+       type: string
                     
   ProjectReferenceDetailsVO:
     type: object
