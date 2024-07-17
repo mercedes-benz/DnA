@@ -16,7 +16,7 @@ jobs:
   
   build:
     name: "Build Clamav Docker Image"
-    runs-on: [ road-runner ]
+    runs-on: [road-runner, medium]
     outputs:
       date: ${{ steps.date.outputs.date }}
 
@@ -71,7 +71,7 @@ jobs:
   staging:
     name: "Update tag staging"
     needs: build
-    runs-on: [ road-runner ]
+    runs-on: [road-runner]
     
     steps:
     - name: Check out repository code
@@ -95,7 +95,7 @@ jobs:
   main:
     name: "Update tag main"
     needs: build
-    runs-on: [ road-runner ]
+    runs-on: [road-runner]
     
     steps:
     - name: Check out repository code
