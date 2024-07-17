@@ -1,28 +1,29 @@
-name: Override Files Sync
+name: Override Or Additional Files Sync
 on:
   workflow_dispatch:
     inputs:
       sourceBranch:
-        description: 'Override branch name(override/featurename)'
+        description: 'Private branch name(override/featurename)'
         required: true    
       reviewers:
         description: 'Reviewers for staging and main branch'  
-        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS,VKURAPA'
         required: true   
 
 jobs:
   override-files-sync:
-    name: "Override Files Sync"
+    name: "Override Or Additional Files Sync"
     runs-on: [ road-runner, medium ]
     steps:
 
       - name: Check Source Branch
         run: |
-          if [[ "${{ github.event.inputs.sourceBranch }}" == *"override"* ]]; then
+          if [[ "${{ github.event.inputs.sourceBranch }}" == *"override"* || "${{ github.event.inputs.publicBranch }}" == *"infra"*  ]]; then
             echo "Override Branch name: ${{ github.event.inputs.sourceBranch }}"
           else
-            echo "Override Branch name does not valid"
+            echo "Branch name does not valid"
             echo "Given Branch name: ${{ github.event.inputs.sourceBranch }}"
+            echo "Branch name should be start with infra/ or override/"
             exit 1
           fi
 
