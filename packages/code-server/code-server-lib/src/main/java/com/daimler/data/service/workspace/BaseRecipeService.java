@@ -2,13 +2,15 @@ package com.daimler.data.service.workspace;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-import com.daimler.data.dto.workspace.CreatedByVO;
+
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,7 +36,6 @@ import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
-import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import org.springframework.http.HttpStatus;
 import com.daimler.data.application.client.GitClient;
@@ -66,8 +67,8 @@ public class BaseRecipeService implements RecipeService{
 	@Autowired
 	 private UserStore userStore;
 
-	 @Autowired
-	 private GitClient gitClient;
+	@Autowired
+	private GitClient gitClient;
     
 	@Override
 	@Transactional
@@ -94,16 +95,83 @@ public class BaseRecipeService implements RecipeService{
 	}
 
 	@Override
+	public GenericMessage createOrValidateSoftwareTemplate(String gitHubUrl, List<String> softwares) {
+		GenericMessage responseMessage = new GenericMessage();
+		HttpStatus status = null;
+		try {
+			String repoName = null;
+			String softwareFileName = null;
+			String gitUrl = null;
+			String repoOwner = null;
+			String SHA = null;
+			String encodedFileContent = null;
+			StringBuffer fileContent =  new StringBuffer();
+			String[] codespaceSplitValues = gitHubUrl.split("/");
+			int length = codespaceSplitValues.length;
+			repoName = codespaceSplitValues[length-1];
+			repoOwner = codespaceSplitValues[length-2];
+			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
+			gitUrl = gitUrl.replace("/"+repoName, "");
+			JSONObject jsonResponse = gitClient.getSoftwareFileFromGit(repoName, repoOwner, gitUrl);
+			if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+				softwareFileName  = jsonResponse.getString("name");
+				SHA =  jsonResponse.has("sha")? jsonResponse.getString("sha") : null;
+				log.info("Retrieving a software's SHA was successfull from Git.");
+			}
+			for(String software: softwares) {
+				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
+				fileContent.append(additionalProperties);
+			}
+			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
+			if( encodedFileContent != null) {
+				status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent);
+				if(status.is2xxSuccessful()) {
+					log.info("Software creation was successfull in Git.");
+					responseMessage.setSuccess("SUCCESS");
+					return responseMessage;
+				}
+			}
+			else {
+				responseMessage = 	getMessageDescrption("An error occurred while encoding the software file into the Git repository.","FAILED");
+				return responseMessage;
+			}
+			log.info("Software creation failed in Git.");
+			responseMessage.setSuccess("FAILED");
+			return responseMessage;
+		} catch(Exception e) {
+			log.error(e.getMessage());
+			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+		}
+		return responseMessage;
+	}
+
+	private GenericMessage getMessageDescrption(String message, String statusMsg ) {
+		GenericMessage responseMessage = new GenericMessage();
+		MessageDescription msg = new MessageDescription();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		msg.setMessage(message);
+		errorMessage.add(msg);
+		responseMessage.addErrors(msg);
+		responseMessage.setSuccess(statusMsg);
+		return responseMessage;
+	}
+	
+
+	@Override
 	public GenericMessage validateGitHubUrl(String gitHubUrl){
 		GenericMessage responseMessage = new GenericMessage();
 		responseMessage.setSuccess("SUCCESS");
 		try
 			{
 				String repoName = null;
+				String gitUrl = null;
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
-            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(repoName);
+				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-1], "");
+				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-2], "");
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName);
+
 				if(!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription msg = new MessageDescription();
 					List<MessageDescription> errorMessage = new ArrayList<>();

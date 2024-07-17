@@ -523,6 +523,7 @@ export interface ITeams {
   lastName?: string;
   mobileNumber?: string;
   teamMemberPosition?: string;
+  isUseCaseOwner?: boolean;
   userType: string;
 }
 export interface IUserDetails {

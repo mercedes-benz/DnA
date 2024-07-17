@@ -1,5 +1,6 @@
 package com.daimler.data.db.json;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -13,8 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FabricWorkspace {
+public class FabricWorkspace implements Serializable{
 
+	private static final long serialVersionUID = 1L;
 	private String name;
 	private String typeOfProject;
 	private String description;
@@ -36,6 +38,7 @@ public class FabricWorkspace {
 	private UserDetails createdBy;
 	private Date createdOn;
 	private String role;
+	private FabricWorkspaceStatus status;
 	private List<ProjectDetails> relatedSolutions;
 	private List<ProjectDetails> relatedReports;
 	

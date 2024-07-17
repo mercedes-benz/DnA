@@ -1,0 +1,14 @@
+
+  .columnName {
+    font-size: 13px;
+    text-overflow: ellipsis;
+    max-width: 80%;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .tableNav{
+    width: 170px;
+  }
+  .tableNav:hover{
+    border: none !important;
+  }

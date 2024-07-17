@@ -251,7 +251,7 @@ public class CodeServerClient {
 					envInstructions += ", \"" + parts[0].trim() + "\": \"" + parts[1].trim() + "\"";
 				}
 			}
-			String requestJsonString = "{\"profile\": \"template\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
+			String requestJsonString = "{\"profile\": \"default\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 			+ "\", \"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase() + "\", \"isCollaborator\" : \"false\", "
 			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" + envInstructions + "}, "
 			+ "\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()

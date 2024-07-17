@@ -43,6 +43,7 @@ fabricWorkspaces:
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
+  dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
   group:
     identifier:  ${FABRIC_ONBOARD_GROUP_IDENTIFIER:xxxxx}
     displayName:  ${FABRIC_ONBOARD_GROUP_DISPLAYNAME:xxxxx}
@@ -52,6 +53,16 @@ fabricWorkspaces:
     capacitiesBase: ${FABRIC_CAPACITY_URL:https://api.fabric.microsoft.com/v1/capacities}
     addUserUrl: ${FABRIC_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/groups/{groupId}/users}
 
+authoriser:
+  uri: ${IDENTITY_AUTH_URI:XXXX}
+  applicationId: ${IDENTITY_AUTH_APPID:XXXX}
+  token: ${IDENTITY_AUTH_TOKEN:XXXX}
+  community: ${IDENTITY_AUTH_COMMUNITY:XXXX1,XXXX2}
+  workflowDefinitionId: ${IDENTITY_AUTH_WORKFLOW_DEF_ID:xxxx}
+  dnaFabricEntitlementName: ${IDENTITY_AUTH_DNA_ENTITLEMENT_NAME:xxxx}
+  dnaFabricEntitlementId: ${IDENTITY_AUTH_DNA_ENTITLEMENT_ID:xxxx}
+  identityRoleUrl: ${IDENTITY_AUTH_LOGIN:xxxx}
+  
 server:
   port: 9292
 

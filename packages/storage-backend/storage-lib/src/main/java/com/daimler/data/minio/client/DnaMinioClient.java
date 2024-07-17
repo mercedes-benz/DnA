@@ -213,5 +213,6 @@ public interface DnaMinioClient {
 	public void deleteUser(String userId);
 
 	McListBucketCollectionDto getAllBucketsUsingMC(String userId, boolean isAdmin);
+	MinioGenericResponse getBucketObjectsUsingMC(String userId, String bucketName, String prefix);
 	
 }

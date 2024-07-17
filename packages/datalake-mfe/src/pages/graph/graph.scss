@@ -32,6 +32,18 @@
   .content {
       background-color: #252a33;
       padding: 20px;
+      .tableNav{
+        flex: 1;
+      }
+      .graphBox{
+        display: flex;
+        .tableNav{
+          flex: 0 0 auto;    
+        }
+        .graphSvg{
+          flex: 1;
+        }
+      }
   }
 }
 

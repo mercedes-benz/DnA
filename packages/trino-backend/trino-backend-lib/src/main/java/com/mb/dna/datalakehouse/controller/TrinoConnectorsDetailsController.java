@@ -1,5 +1,6 @@
 package com.mb.dna.datalakehouse.controller;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,14 @@ public class TrinoConnectorsDetailsController {
 	@Autowired
 	private TrinoConnectorService trinoConnectorsService;
 	
+	private static String[] TRINO_RESERVE_WORDS = {"ALTER","AND","AS","BETWEEN","BY","CASE","CAST","CONSTRAINT","CREATE","CROSS","CUBE","CURRENT_CATALOG",
+	                                               "CURRENT_DATE","CURRENT_PATH","CURRENT_ROLE","CURRENT_SCHEMA","CURRENT_TIME","CURRENT_TIMESTAMP","CURRENT_USER",
+	                                               "DEALLOCATE","DELETE","DESCRIBE","DISTINCT","DROP","ELSE","END","ESCAPE","EXCEPT","EXECUTE","EXISTS","EXTRACT",
+	                                               "FALSE","FOR","FROM","FULL","GROUP","GROUPING","HAVING","IN","INNER","INSERT","INTERSECT","INTO","IS","JOIN",
+	                                               "JSON_ARRAY","JSON_EXISTS","JSON_OBJECT","JSON_QUERY","JSON_TABLE","JSON_VALUE","LEFT","LIKE","LISTAGG",
+	                                               "LOCALTIME","LOCALTIMESTAMP","NATURAL","NORMALIZE","NOT","NULL","ON","OR","ORDER","OUTER","PREPARE","RECURSIVE",
+	                                               "RIGHT","ROLLUP","SELECT","SKIP","TABLE","THEN","TRIM","TRUE","UESCAPE","UNION","UNNEST","USING","VALUES","WHEN","WHERE","WITH"};
+	
 	@ApiOperation(value = "Get all available trino connectors details.", nickname = "getAll", notes = "Get all trino connectors details. This endpoints will be used to Get all valid available trino connectors and their details like formats supported and dataTypes.", response = TrinoConnectorsCollectionVO.class, tags = {
 			"trino", })
 	@ApiResponses(value = {
@@ -38,7 +47,8 @@ public class TrinoConnectorsDetailsController {
 	public ResponseEntity<TrinoConnectorsCollectionVO> getAll() {
 		final List<TrinoConnectorVO> connectors = trinoConnectorsService.getAll();		
 		TrinoConnectorsCollectionVO connectorsCollection = new TrinoConnectorsCollectionVO();
-		log.debug("Sending all trino connectors and their details");
+		connectorsCollection.setReserveWords(Arrays.asList(TRINO_RESERVE_WORDS));
+		log.info("Sending all trino connectors and their details");
 		if (connectors != null && connectors.size() > 0) {
 			connectorsCollection.setConnectors(connectors);
 			return new ResponseEntity<>(connectorsCollection, HttpStatus.OK);

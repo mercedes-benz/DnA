@@ -27,35 +27,32 @@
 
 package com.daimler.data.application.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+ import java.io.IOException;
+ import java.net.URI;
+ import java.nio.file.Files;
+ import java.util.HashMap;
+ import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.vault.authentication.TokenAuthentication;
-import org.springframework.vault.client.VaultEndpoint;
-import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
-import org.springframework.vault.core.VaultTemplate;
-import org.springframework.vault.support.VaultResponse;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.context.annotation.Configuration;
+import org.springframework.vault.authentication.KubernetesAuthentication;
+ import org.springframework.vault.authentication.KubernetesAuthenticationOptions;
+ import org.springframework.vault.client.RestTemplateBuilder;
+ import org.springframework.vault.client.VaultEndpoint;
+ import org.springframework.vault.client.VaultHttpHeaders;
+ import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
+ import org.springframework.vault.core.VaultTemplate;
+ import org.springframework.vault.support.VaultResponse;
+ import org.springframework.web.client.RestOperations;
+ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class VaultConfig {
 
 	Logger LOGGER = LoggerFactory.getLogger(VaultConfig.class);
-
-	@Value("${spring.cloud.vault.token}")
-	private String vaultToken;
-
-	@Value("${spring.cloud.vault.scheme}")
-	private String vaultScheme;
-
-	@Value("${spring.cloud.vault.host}")
-	private String vaultHost;
-
-	@Value("${spring.cloud.vault.port}")
-	private String vaultPort;
 
 	@Value("${spring.cloud.vault.vaultpath}")
 	private String vaultPath;
@@ -63,13 +60,32 @@ public class VaultConfig {
 	@Value("${spring.cloud.vault.mountpath}")
 	private String mountPath;
 
+	@Value("${spring.cloud.vault.uri}")
+	 private String vaultUri;
+	
+	 @Value("${spring.cloud.vault.authentication}")
+	 private String authType;
+ 
+	 @Value("${spring.cloud.vault.kubernetes.kubernetes-path}")
+	 private String kubernetesMountPath;
+ 
+	 @Value("${spring.cloud.vault.kubernetes.role}")
+	 private String kubernetesLoginRole;
+ 
+	 @Value("${spring.cloud.vault.kubernetes.service-account-token-file}")
+	 private String kubernetesSATokenPath;
+ 
+	 @Value("${spring.cloud.vault.namespace}")
+	 private String namespace;
+
 	/*
 	 * To add user in vault
 	 * 
 	 */
 	public String addUserVault(String userId, String userSecretKey) {
 		// Adding user in vault
-		VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));
+		VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), 
+				 new KubernetesAuthentication(this.getK8sOptions(), this.getrestOperations(this.getVaultEndpoint())));
 		Map<String, String> secMap = new HashMap<String, String>();
 		secMap.put(userId, userSecretKey);
 		vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).put(vaultPathUtility(userId), secMap);
@@ -81,7 +97,8 @@ public class VaultConfig {
 		String userSecretKey = "";
 
 		LOGGER.debug("Validating user:{} in Vault.", userId);
-		VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));
+		VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), 
+				 new KubernetesAuthentication(this.getK8sOptions(), this.getrestOperations(this.getVaultEndpoint())));
 
 		LOGGER.debug("Fetching details for user:{} from vault.",userId);
 		VaultResponse vaultResponse = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2)
@@ -102,18 +119,42 @@ public class VaultConfig {
 		return vaultPath + "/" + userId;
 	}
 
-	/*
-	 * push host,port,scheme in VaultEndpoint
-	 * 
-	 * @return VaultEndpoint
-	 */
-	private VaultEndpoint getVaultEndpoint() {
-		LOGGER.debug("Processing getVaultEndpoint");
-		VaultEndpoint vaultEndpoint = new VaultEndpoint();
-		vaultEndpoint.setScheme(vaultScheme);
-		vaultEndpoint.setHost(vaultHost);
-		vaultEndpoint.setPort(Integer.parseInt(vaultPort));
-		return vaultEndpoint;
-	}
+	 /*
+	  * push host,port,scheme in VaultEndpoint
+	  * 
+	  * @return VaultEndpoint
+	  */
+	 private VaultEndpoint getVaultEndpoint() {
+		 LOGGER.debug("Processing getVaultEndpoint");
+		 VaultEndpoint vaultEndpoint = VaultEndpoint.from(URI.create(vaultUri));
+		 return vaultEndpoint;
+	 }
+	 private KubernetesAuthenticationOptions getK8sOptions() {
+		 String serviceTokenCandidate;
+		 try {
+			 serviceTokenCandidate = new String(Files.readAllBytes(new File(kubernetesSATokenPath).toPath()));
+			 KubernetesAuthenticationOptions options = KubernetesAuthenticationOptions.builder()
+						 .jwtSupplier(() -> serviceTokenCandidate)
+						 .role(kubernetesLoginRole)
+						 .path(kubernetesMountPath)
+						 .build();
+						 return options;
+		 } catch (IOException e) {
+			 throw new RuntimeException("Failed to read the Kubernetes service account token", e);
+		 }
+	 }
+	 
+ /**
+	  * Return RestOperations
+	  * 
+	  * @return RestOperations
+	  */
+	 private RestOperations getrestOperations(VaultEndpoint vaultEndpoint){
+		 RestTemplate a = RestTemplateBuilder.builder().endpoint(vaultEndpoint)
+		 .defaultHeader(VaultHttpHeaders.VAULT_NAMESPACE,namespace)
+		 .build();
+		 return a;
+		 
+	 }
 
 }

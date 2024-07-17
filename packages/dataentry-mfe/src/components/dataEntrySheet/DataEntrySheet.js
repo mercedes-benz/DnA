@@ -1,10 +1,8 @@
+import React from 'react';
 import '@univerjs/design/lib/index.css';
-import '@univerjs/ui/lib/index.css';
-import '@univerjs/sheets-ui/lib/index.css';
-import '@univerjs/sheets-formula/lib/index.css';;
 import Styles from './data-entry-sheet.scss';
 
-import { Univer } from '@univerjs/core';
+import { Univer, LocaleType, UniverInstanceType, Tools } from '@univerjs/core';
 import { defaultTheme } from '@univerjs/design';
 import { UniverDocsPlugin } from '@univerjs/docs';
 import { UniverDocsUIPlugin } from '@univerjs/docs-ui';
@@ -14,13 +12,13 @@ import { UniverSheetsPlugin } from '@univerjs/sheets';
 import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula';
 import { UniverSheetsUIPlugin } from '@univerjs/sheets-ui';
 import { UniverUIPlugin } from '@univerjs/ui';
-import { LocaleType } from '@univerjs/core';
-import { enUS as UniverDesignEnUS } from '@univerjs/design';
-import { enUS as UniverDocsUIEnUS } from '@univerjs/docs-ui';
-import { enUS as UniverSheetsEnUS } from '@univerjs/sheets';
-import { enUS as UniverSheetsUIEnUS } from '@univerjs/sheets-ui';
-import { enUS as UniverUIEnUS } from '@univerjs/ui';
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import DesignEnUS from '@univerjs/design/locale/en-US';
+import UIEnUS from '@univerjs/ui/locale/en-US';
+import DocsUIEnUS from '@univerjs/docs-ui/locale/en-US';
+import SheetsEnUS from '@univerjs/sheets/locale/en-US';
+import SheetsUIEnUS from '@univerjs/sheets-ui/locale/en-US';
+
 
 // eslint-disable-next-line react/display-name
 const DataEntrySheet = forwardRef(({ data }, ref) => {
@@ -44,13 +42,13 @@ const DataEntrySheet = forwardRef(({ data }, ref) => {
       theme: defaultTheme,
       locale: LocaleType.EN_US,
       locales: {
-        [LocaleType.EN_US]: {
-          ...UniverSheetsEnUS,
-          ...UniverDocsUIEnUS,
-          ...UniverSheetsUIEnUS,
-          ...UniverUIEnUS,
-          ...UniverDesignEnUS,
-        },
+        [LocaleType.EN_US]: Tools.deepMerge(
+          SheetsEnUS,
+          DocsUIEnUS,
+          SheetsUIEnUS,
+          UIEnUS,
+          DesignEnUS,
+        ),
       },
     });
     univerRef.current = univer;
@@ -60,9 +58,6 @@ const DataEntrySheet = forwardRef(({ data }, ref) => {
     univer.registerPlugin(UniverFormulaEnginePlugin);
     univer.registerPlugin(UniverUIPlugin, {
       container: containerRef.current,
-      header: true,
-      toolbar: true,
-      footer: true,
     });
 
     // doc plugins
@@ -77,7 +72,7 @@ const DataEntrySheet = forwardRef(({ data }, ref) => {
     univer.registerPlugin(UniverSheetsFormulaPlugin);
 
     // create workbook instance
-    workbookRef.current = univer.createUniverSheet(data);
+    workbookRef.current = univer.createUnit(UniverInstanceType.UNIVER_SHEET, data);
   };
 
   /**
@@ -104,6 +99,7 @@ const DataEntrySheet = forwardRef(({ data }, ref) => {
     return () => {
       destroyUniver();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   return <div ref={containerRef} className={Styles.univerContainer} />;
