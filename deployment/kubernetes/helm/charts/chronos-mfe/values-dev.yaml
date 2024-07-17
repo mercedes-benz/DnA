@@ -10,7 +10,7 @@ chronosbackend: http://chronos-be.chronos.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-mfe
   pullPolicy: IfNotPresent
-  tag: '41'
+  tag: '7a6ab63ecf5e600a3d0e5ba7ecb07e6f85117b31'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
