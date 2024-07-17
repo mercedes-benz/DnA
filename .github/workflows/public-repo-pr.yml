@@ -18,7 +18,7 @@ jobs:
       - name: Create PR on Public Repo
         id: cpr
         run: |
-          echo "number=$(gh pr create --base dev --head ${{ inputs.head }} --title "Release: ${{ inputs.head }}" --body "Release: ${{ inputs.head }}" --repo mercedes-benz/DnA | grep -o '[0-9]\+')" >> "$GITHUB_OUTPUT"
+          echo "number=$(gh pr create --base dev --head ${{ inputs.head }} --title "Release: ${{ inputs.head }}" --body "Release: ${{ inputs.head }}" --repo mercedes-benz/DnA --reviewer venkat-99,agnelpraveen,boonbaluri | grep -o '[0-9]\+')" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.PUBLIC_PAT }}
           GH_HOST: github.com
