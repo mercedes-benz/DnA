@@ -14,8 +14,8 @@ spec:
     namespace: airflow
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm-offical-airflow253
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-airflow.git
+    path: deployment/helm/helm-official-airflow253
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
