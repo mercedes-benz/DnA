@@ -56,6 +56,7 @@ image:
   repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-07-01
   replicaCount: 1
   pullPolicy: Always
+  tag: '41'
 ingress:
   enabled: false
   host: scan.dev.dna.app.corpintra.net
