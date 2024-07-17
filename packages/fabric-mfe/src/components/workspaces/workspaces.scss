@@ -253,7 +253,7 @@ hr {
 }
 
 .modal {  
-  width: 650px;
+  width: 850px;
   margin: 0 auto 20px;
   .header {
     margin-bottom: 20px;
@@ -323,8 +323,8 @@ hr {
     }
     .tableCell.column1 {
       flex: 1;
-      min-width: 30%;
-      max-width: 30%;
+      min-width: 20%;
+      max-width: 20%;
     }
     .tableCell.column2 {
       flex: 1;
@@ -333,13 +333,23 @@ hr {
     }
     .tableCell.column3 {
       flex: 1;
-      min-width: 20%;
-      max-width: 20%;
+      min-width: 15%;
+      max-width: 15%;
     }
     .tableCell.column4 {
       flex: 1;
-      min-width: 25%;
-      max-width: 25%;
+      min-width: 20%;
+      max-width: 20%;
+    }
+    .tableCell.column5 {
+      flex: 1;
+      min-width: 20%;
+      max-width: 20%;
+    }
+    .retry {
+      font-size: 13px;
+      padding-left: 10px;
+      color: #acb8c4;
     }
   }
   .footer {
