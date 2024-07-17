@@ -230,7 +230,7 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v1.12.0
       with:
-        name: "Release ${{ inputs.DETECT_PROJECT_NAME }} : ${{ needs.build.outputs.version }}"
+        name: "${{ inputs.DETECT_PROJECT_NAME }} V${{ needs.build.outputs.version }}"
         tag: "${{ inputs.DETECT_PROJECT_NAME }}_${{ needs.build.outputs.version }}"
         commit: "main"
         token: ${{ secrets.PID_PAT }} 
