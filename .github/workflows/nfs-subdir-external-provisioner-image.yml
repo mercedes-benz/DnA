@@ -1,6 +1,6 @@
 # Author: ADEVALL
 
-name: nfs-subdir-external-provisioner-image
+name: NFS Subdir External Provisioner
 
 on:
   workflow_dispatch:
