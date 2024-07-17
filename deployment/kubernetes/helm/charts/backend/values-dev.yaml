@@ -117,3 +117,5 @@ vaultInjector:
       {{- end }}      
   saName: default
   jarName: dnambc*.jar
+image:
+  tag: '41'
