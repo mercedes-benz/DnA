@@ -105,7 +105,7 @@ jobs:
               - 'deployment/dockerfiles/airflow/airflow-backend.Dockerfile'
             trino-backend:
               - 'packages/trino-backend/**'
-              - 'deployment/dockerfiles/airflow/trinoBackend.Dockerfile'
+              - 'deployment/dockerfiles/trinoBackend/trinoBackend.Dockerfile'
             dna-backend:
               - 'packages/backend/**'
               - 'deployment/dockerfiles/app/result-backend.Dockerfile'
