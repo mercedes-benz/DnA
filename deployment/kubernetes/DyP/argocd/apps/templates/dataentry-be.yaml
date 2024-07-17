@@ -14,8 +14,8 @@ spec:
     namespace: dataentry
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-dataentry-backend.git
+    path: deployment/kubernetes/helm/charts/dataentry-be
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dataentry-backend
