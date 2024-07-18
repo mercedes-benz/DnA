@@ -125,10 +125,9 @@ const Graph = ({user, hostHistory}) => {
       e.preventDefault();
   };  
   const handlerTableSelected = table => {
-    const svgInfo = svg.current.getBBox();
     let state = JSON.parse(JSON.stringify(box));
-    state.x = table.xcoOrdinate + svgInfo.x - (table.xcoOrdinate > -16 ? 264 : -table.xcoOrdinate / 2);
-    state.y = svgInfo.y + table.ycoOrdinate + (svgInfo.y < 0 ? 88 : -72);
+    state.x = table.xcoOrdinate +  268 - (table.xcoOrdinate > -16 ? 264 : -table.xcoOrdinate / 2);
+    state.y = table.ycoOrdinate;
     dispatch(setBox(state));
     setTableSelectId(table.tableName);
 };
@@ -966,8 +965,17 @@ const Graph = ({user, hostHistory}) => {
             setShowRefreshModel(false);
           }}
           onAccept={() => {
+            dispatch(setBox({ 
+              x: 0, 
+              y: 0,
+              w: box.w,
+              h: box.h,
+              clientH: box.clientH,
+              clientW: box.clientW 
+            }));
             dispatch(getProjectDetails(id));
             setShowRefreshModel(false);
+            setIsSaved(true);   
           }}
         />
      }
@@ -984,7 +992,6 @@ const Graph = ({user, hostHistory}) => {
             </div>
           }
           onCancel={() => {
-            setShowSaveModel(false);
             setToggleModal(!toggleModal);
           }}
           onAccept={() => {
