@@ -42,13 +42,7 @@ const RoleCreationStatus = ({workspace, onClose}) => {
                       <button>
                         {entitlement?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
                         {entitlement?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {entitlement?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
+                        {entitlement?.state === 'FAILED' && <><i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /><span>Failed</span></>}
                       </button>
                     </div>
                   </div>
@@ -84,13 +78,7 @@ const RoleCreationStatus = ({workspace, onClose}) => {
                         {role?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
                         {role?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
                         {role?.state === 'ASSIGNED' && <><i className={classNames('icon mbc-icon check circle', Styles.assigned)} /> <span>Assigned</span></>}
-                        {role?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
+                        {role?.state === 'FAILED' && <><i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /><span>Failed</span></>}
                       </button>
                     </div>
                   </div>
@@ -101,13 +89,7 @@ const RoleCreationStatus = ({workspace, onClose}) => {
                       <button>
                         {role?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
                         {role?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {role?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
+                        {role?.state === 'FAILED' && <><i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /><span>Failed</span></>}
                       </button>
                     </div>
                   </div>
@@ -133,13 +115,7 @@ const RoleCreationStatus = ({workspace, onClose}) => {
                       <button>
                         {group?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
                         {group?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {group?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
+                        {group?.state === 'FAILED' && <><i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /><span>Failed</span></>}
                         {group?.state === 'ASSIGNED' && <><i className={classNames('icon mbc-icon check circle', Styles.assigned)} /> <span>Assigned</span></>}
                       </button>
                     </div>
