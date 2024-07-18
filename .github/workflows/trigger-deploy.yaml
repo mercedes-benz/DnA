@@ -573,11 +573,3 @@ jobs:
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit                  
 
-  create-public-pr:
-        name: Create and Merge Public PR
-        needs: select-service
-        if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
-        uses: ./.github/workflows/public-repo-pr.yml
-        with:
-          head: '${{ github.head_ref }}'
-        secrets: inherit  
