@@ -31,7 +31,7 @@ spec:
       - CreateNamespace=true
   ignoreDifferences:     
   - group: admissionregistration.k8s.io                                                              
-    kind: ValidatingWebhookConfiguration
+    kind: MutatingWebhookConfiguration
     jsonPointers:                                                                                    
     - /webhooks/0/clientConfig/caBundle
     - /webhooks/0/failurePolicy      
