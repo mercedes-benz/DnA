@@ -301,6 +301,21 @@ const Graph = ({user, hostHistory}) => {
         );
       });
     }
+  const onAddTableClick = () => {
+    dispatch(setBox({ 
+      x: 0, 
+      y: 0,
+      w: box.w,
+      h: box.h,
+      clientH: box.clientH,
+      clientW: box.clientW 
+    }));
+    if (isSaved) {
+      setToggleModal(!toggleModal)
+    } else {
+      setShowSaveModel(true)
+    }
+  }
 
     const technicalUserContent = <>
     <FormProvider {...methods}>
@@ -713,7 +728,7 @@ const Graph = ({user, hostHistory}) => {
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, (!hasWritePermission) && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { isSaved ? setToggleModal(!toggleModal) : setShowSaveModel(true)}}
+                            onClick={onAddTableClick}
                         >
                             <i className="icon mbc-icon plus" />
                             <span>Add Table</span>
