@@ -1,0 +1,10 @@
+## Added by sathish##
+# To redirect to dna codespace when spwan is happening
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-dna-cs
+spec:
+  redirectRegex:
+    regex: ^https://{{ .Values.ingress.hosts | first  }}/hub/(spawn|user|home)(.*)
+    replacement: {{ .Values.hub.config.JupyterHub.default_url }}
