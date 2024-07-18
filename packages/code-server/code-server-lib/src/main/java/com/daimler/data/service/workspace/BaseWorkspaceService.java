@@ -1077,8 +1077,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					auditLog.setBranch(branch);					
+					auditLog.setBranch(branch);	
+									
 					auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
+					if("build".equalsIgnoreCase(action)){
+						auditLog.setDeploymentStatus(ConstantsUtility.BUILD_REQUESTED);
+					}
 					auditLogs.add(auditLog);
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
