@@ -1,14 +1,33 @@
+.columnName {
+  font-size: 12px;
+  text-overflow: ellipsis;
+  max-width: 80%;
+  overflow: hidden;
+  cursor: pointer;
+}
 
-  .columnName {
-    font-size: 13px;
-    text-overflow: ellipsis;
-    max-width: 80%;
-    overflow: hidden;
-    cursor: pointer;
+.columnName:hover {
+  color: #00adef;
+}
+
+.tableNav {
+  width: 170px;
+}
+
+.tableNav:hover {
+  border: none !important;
+}
+
+.tableTitle {
+  font-size: 12px !important;
+}
+
+.titleBox {
+  justify-content: flex-start;
+
+  i {
+    margin-right: 4px;
+    font-size: 10px;
+    margin-bottom: 4px;
   }
-  .tableNav{
-    width: 170px;
-  }
-  .tableNav:hover{
-    border: none !important;
-  }
+}
