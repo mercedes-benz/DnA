@@ -14,8 +14,10 @@ spec:
     namespace: naas
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/naas
-    repoURL: {{ .Values.repoURL | squote }}
+    # path: deployment/kubernetes/helm/charts/naas
+    # repoURL: {{ .Values.repoURL | squote }}
+    path: deployment/helm
+    repoURL: https://git.i.mercedes-benz.com/DNA/dna-notification.git
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-naas
