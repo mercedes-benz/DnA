@@ -245,4 +245,4 @@ vaultInjector:
       {{- end }}     
   saName: default
 image:
-  tag: '41'
+  tag: '49'
