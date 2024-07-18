@@ -244,3 +244,5 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+image:
+  tag: 3.8.0
