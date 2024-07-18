@@ -107,7 +107,7 @@ jobs:
                            
   create-public-pr:
         name: Create and Merge Public PR
-        needs: select-service
+        needs: gitsync
         if: ${{ github.event.inputs.privateBranch == 'main' }} 
         uses: ./.github/workflows/public-repo-pr.yml
         with:
