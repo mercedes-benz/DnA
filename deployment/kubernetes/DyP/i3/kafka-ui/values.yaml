@@ -82,7 +82,7 @@ securityContext:
   capabilities:
     drop:
     - ALL
-  readOnlyRootFilesystem: true
+  readOnlyRootFilesystem: false
   runAsNonRoot: true
   runAsUser: 1000
 
@@ -152,7 +152,10 @@ affinity: {}
 env: 
   - name: DYNAMIC_CONFIG_ENABLED
     value: "true"
-
+  - name: DYNAMIC_CONFIG_PATH
+    value: '/tmp/kafkaui/dynamic_config.yaml'   
+  - name: CONFIG_RELATED_UPLOADS_DIR
+    value: '/tmp/kafkaui/uploads'   
 initContainers: {}
 
 volumeMounts: 

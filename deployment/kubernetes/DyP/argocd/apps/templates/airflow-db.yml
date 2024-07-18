@@ -14,7 +14,7 @@ spec:
     namespace: airflow
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/postgresql-helm
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:

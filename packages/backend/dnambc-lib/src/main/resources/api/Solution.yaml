@@ -754,6 +754,9 @@ definitions:
       teamMemberPosition:
         type: string
         description: "Position of team member in project"
+      isUseCaseOwner:
+        type: boolean
+        description: "Indicidates whether the team member is use case owner or not. Boolean value true/false"
 #    required:
 #      - teamMemberPosition
 

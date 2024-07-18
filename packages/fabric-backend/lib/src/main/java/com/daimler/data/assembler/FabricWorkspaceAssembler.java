@@ -2,23 +2,33 @@ package com.daimler.data.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.Capacity;
+import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
+import com.daimler.data.db.json.FabricWorkspaceStatus;
+import com.daimler.data.db.json.GroupDetails;
 import com.daimler.data.db.json.ProjectDetails;
+import com.daimler.data.db.json.RoleDetails;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ProjectReferenceDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
 
+	
 	@Override
 	public FabricWorkspaceVO toVo(FabricWorkspaceNsql entity) {
 		FabricWorkspaceVO vo = null;
@@ -47,11 +57,102 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				List<ProjectReferenceDetailsVO> relatedSolutionsVO = toProjectDetailVOs(data.getRelatedSolutions());
 				vo.setRelatedSolutions(relatedSolutionsVO);
 				
+				FabricWorkspaceStatus workspaceStatus = data.getStatus();
+				FabricWorkspaceStatusVO workspaceStatusVO = new FabricWorkspaceStatusVO();
+				if(workspaceStatus!=null) {
+					workspaceStatusVO.setState(workspaceStatus.getState());
+					List<EntitlementDetails> entitlements = workspaceStatus.getEntitlements();
+					List<EntitlementDetailsVO> entitlementsVO = new ArrayList<>();
+					if(entitlements!=null && !entitlements.isEmpty()) {
+						entitlementsVO = entitlements.stream().map(n -> toEntitlementDetailsVO(n)).collect(Collectors.toList());
+					}
+					workspaceStatusVO.setEntitlements(entitlementsVO);
+					
+					List<RoleDetails> roles = workspaceStatus.getRoles();
+					List<RoleDetailsVO> rolesVO = new ArrayList<>();
+					if(roles!=null && !roles.isEmpty()) {
+						rolesVO = roles.stream().map(n -> toRoleDetailsVO(n)).collect(Collectors.toList());
+					}
+					workspaceStatusVO.setRoles(rolesVO);
+					
+					List<GroupDetails> groups = workspaceStatus.getMicrosoftGroups();
+					List<GroupDetailsVO> groupDetailsVO = new ArrayList<>();
+					if(groups!=null && !groups.isEmpty()) {
+						groupDetailsVO = groups.stream().map(n -> toGroupDetailsVO(n)).collect(Collectors.toList());
+					}
+					workspaceStatusVO.setMicrosoftGroups(groupDetailsVO);
+					
+				}else {
+					workspaceStatusVO.setState(null);
+				}
+				vo.setStatus(workspaceStatusVO);
 				vo.setCreatedBy(createdByVO);
 				vo.setHasPii(data.getHasPii());
 			}
 		}
 		return vo;
+	}
+	
+	private EntitlementDetailsVO toEntitlementDetailsVO(EntitlementDetails entitlement) {
+		EntitlementDetailsVO vo = new EntitlementDetailsVO();
+		if(entitlement!=null) {
+			BeanUtils.copyProperties(entitlement, vo);
+		}
+		return vo;
+	}
+	
+	private RoleDetails fromRoleDetailsVO(RoleDetailsVO vo) {
+		RoleDetails role = new RoleDetails();
+		if(vo!=null) {
+			BeanUtils.copyProperties(vo, role);
+			List<EntitlementDetailsVO> entitlementsVO = vo.getEntitlements();
+			List<EntitlementDetails> entitlements = new ArrayList<>();
+			if(entitlementsVO!=null && !entitlementsVO.isEmpty()) {
+				entitlements = entitlementsVO.stream().map(n -> fromEntitlementDetailsVO(n)).collect(Collectors.toList());
+			}
+			role.setEntitlements(entitlements);
+		}
+		return role;
+	}
+	
+	private RoleDetailsVO toRoleDetailsVO(RoleDetails role) {
+		RoleDetailsVO vo = new RoleDetailsVO();
+		if(role!=null) {
+			BeanUtils.copyProperties(role, vo);
+			List<EntitlementDetails> entitlements = role.getEntitlements();
+			List<EntitlementDetailsVO> entitlementsVO = new ArrayList<>();
+			if(entitlements!=null && !entitlements.isEmpty()) {
+				entitlementsVO = entitlements.stream().map(n -> toEntitlementDetailsVO(n)).collect(Collectors.toList());
+			}
+			vo.setEntitlements(entitlementsVO);
+		}
+		return vo;
+	}
+	
+	private EntitlementDetails fromEntitlementDetailsVO(EntitlementDetailsVO entitlementVO) {
+		EntitlementDetails entitlement = new EntitlementDetails();
+		if(entitlementVO!=null) {
+			BeanUtils.copyProperties(entitlementVO, entitlement);
+		}
+		return entitlement;
+	}
+	
+	
+	
+	private GroupDetailsVO toGroupDetailsVO(GroupDetails groupDetails) {
+		GroupDetailsVO vo = new GroupDetailsVO();
+		if(groupDetails!=null) {
+			BeanUtils.copyProperties(groupDetails, vo);
+		}
+		return vo;
+	}
+	
+	private GroupDetails fromGroupDetailsVO(GroupDetailsVO vo) {
+		GroupDetails groupDetails = new GroupDetails();
+		if(vo!=null) {
+			BeanUtils.copyProperties(vo, groupDetails);
+		}
+		return groupDetails;
 	}
 	
 	private List<ProjectReferenceDetailsVO> toProjectDetailVOs(List<ProjectDetails> projectsDetails){
@@ -105,6 +206,36 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			
 			List<ProjectDetails> relatedSolutions = toProjectDetails(vo.getRelatedSolutions());
 			data.setRelatedSolutions(relatedSolutions);
+			
+			FabricWorkspaceStatus workspaceStatus = new FabricWorkspaceStatus();
+			FabricWorkspaceStatusVO workspaceStatusVO = vo.getStatus(); 
+			if(workspaceStatusVO!=null) {
+				workspaceStatus.setState(workspaceStatusVO.getState());
+				List<EntitlementDetailsVO> entitlementsVO = workspaceStatusVO.getEntitlements();
+				List<EntitlementDetails> entitlements = new ArrayList<>();
+				if(entitlementsVO!=null && !entitlementsVO.isEmpty()) {
+					entitlements = entitlementsVO.stream().map(n -> fromEntitlementDetailsVO(n)).collect(Collectors.toList());
+				}
+				workspaceStatus.setEntitlements(entitlements);
+				
+				List<RoleDetails> roles = new ArrayList<>();
+				List<RoleDetailsVO> rolesVO = workspaceStatusVO.getRoles();
+				if(rolesVO!=null && !rolesVO.isEmpty()) {
+					roles = rolesVO.stream().map(n -> fromRoleDetailsVO(n)).collect(Collectors.toList());
+				}
+				workspaceStatus.setRoles(roles);
+				
+				List<GroupDetails> groups = new ArrayList<>();
+				List<GroupDetailsVO> groupDetailsVO = workspaceStatusVO.getMicrosoftGroups();
+				if(groupDetailsVO!=null && !groupDetailsVO.isEmpty()) {
+					groups = groupDetailsVO.stream().map(n -> fromGroupDetailsVO(n)).collect(Collectors.toList());
+				}
+				workspaceStatus.setMicrosoftGroups(groups);
+				
+			}else {
+				workspaceStatus.setState(null);
+			}
+			data.setStatus(workspaceStatus);
 			
 			entity.setData(data);
 		}

@@ -16,7 +16,7 @@ jobs:
   
   build:
     name: "Build Clamav Docker Image"
-    runs-on: [ road-runner ]
+    runs-on: [road-runner, medium]
     outputs:
       date: ${{ steps.date.outputs.date }}
 
@@ -50,7 +50,7 @@ jobs:
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-dev.yaml
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-dev.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ steps.date.outputs.date }}"
         branch: dev
@@ -65,13 +65,13 @@ jobs:
         needs: build
         uses: ./.github/workflows/consec.yaml
         with:
-          FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
+          FULL_IMAGE_NAME: '$IMAGE_NAME:${{ needs.build.outputs.date }}'
         secrets: inherit
 
   staging:
     name: "Update tag staging"
     needs: build
-    runs-on: [ road-runner ]
+    runs-on: [road-runner]
     
     steps:
     - name: Check out repository code
@@ -82,7 +82,7 @@ jobs:
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-test.yaml
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-test.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
         branch: staging
@@ -95,7 +95,7 @@ jobs:
   main:
     name: "Update tag main"
     needs: build
-    runs-on: [ road-runner ]
+    runs-on: [road-runner]
     
     steps:
     - name: Check out repository code
@@ -106,7 +106,7 @@ jobs:
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/helm/values-prod.yaml
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-prod.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
         branch: main

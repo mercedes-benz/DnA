@@ -288,7 +288,10 @@ export const getDataForCSV = (
                   : solution.locations.map((location) => location.name).join('|')
                 : 'NA',
             department: solution.department ? solution.department : 'NA',
-            expectedBenefits: solution.expectedBenefits && solution.expectedBenefits.length > 0 ? sanitize(solution.expectedBenefits) : 'NA',
+            expectedBenefits:
+              solution.expectedBenefits && solution.expectedBenefits.length > 0
+                ? sanitize(solution.expectedBenefits)
+                : 'NA',
             businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
             additionalResource: solution.additionalResource ? solution.additionalResource : 'NA',
             neededRoles:
@@ -306,7 +309,15 @@ export const getDataForCSV = (
                 : 'NA',
             team:
               solution.team && solution.team.length > 0
-                ? solution.team.map((member) => member.shortId).join('|')
+                ? solution.team
+                    .map((member) => {
+                      if (member?.isUseCaseOwner) {
+                        return member?.shortId + '(Use Case Owner)';
+                      } else {
+                        return member?.shortId;
+                      }
+                    })
+                    .join('|')
                 : 'NA',
             kickoff:
               solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0
@@ -337,7 +348,11 @@ export const getDataForCSV = (
                 ? setDataSources(solution.dataSources.dataSources, dataSourcesList)
                 : 'NA',
             totalDataVolume:
-              solution.dataSources && solution.dataSources.dataVolume && solution.dataSources.dataVolume.name.toLocaleLowerCase() !== 'choose' ? solution.dataSources.dataVolume.name : 'NA',
+              solution.dataSources &&
+              solution.dataSources.dataVolume &&
+              solution.dataSources.dataVolume.name.toLocaleLowerCase() !== 'choose'
+                ? solution.dataSources.dataVolume.name
+                : 'NA',
             solutionOnCloud: solution.portfolio ? (solution.portfolio.solutionOnCloud ? 'Yes' : 'No') : 'NA',
             usageOfInternal: solution.portfolio
               ? solution.portfolio.usesExistingInternalPlatforms

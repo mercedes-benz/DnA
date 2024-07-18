@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-mfe
   pullPolicy: IfNotPresent
-  tag: 535caf137f0613a05d5352ee4787840e8537f598
+  tag: '2ce38aa88401d0e8ca7c14718d462e35af267e5c'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''

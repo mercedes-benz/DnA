@@ -4,7 +4,7 @@ server: "https://kubernetes.default.svc"
 env: prod
 branch: main
 namespace: argocd
-enableSync: true
+enableSync: false
 annotations: 
   notifications.argoproj.io/subscribe.on-created.teams: channelName
   notifications.argoproj.io/subscribe.on-deleted.teams: channelName
@@ -37,5 +37,5 @@ repositories:
     url: https://git.i.mercedes-benz.com/DNA/dna-kong.git  
   # - name: matomo-mfe
   #   url: https://git.i.mercedes-benz.com/DNA/dna-matomo-frontend.git  
-  - name: dataentry-backend
-    url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-backend.git
+  # - name: dataentry-backend
+  #   url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-backend.git

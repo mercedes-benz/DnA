@@ -15,6 +15,10 @@ on:
       CSS_PASSWORD:
         required: true      
 
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  
 jobs: 
   css:
     name: 'CSS Image Scan'

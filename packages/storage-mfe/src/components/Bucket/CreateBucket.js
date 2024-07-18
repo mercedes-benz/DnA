@@ -276,7 +276,7 @@ const CreateBucket = ({ user }) => {
       formValid = false;
       setDataClassificationError(errorMissingEntry);
     }
-    if (!termsOfUse) {
+    if ( id && !termsOfUse) {
       setTermsOfUseError('Please agree to terms of use');
       formValid = false;
     }
@@ -967,7 +967,7 @@ const CreateBucket = ({ user }) => {
                 </div>
               </div>
             </div>
-            <div className={classNames(Styles.termsOfUseContainer, termsOfUseErrorField?.length ? 'error' : '')}>
+            {id && <div className={classNames(Styles.termsOfUseContainer, termsOfUseErrorField?.length ? 'error' : '')}>
               <div className={Styles.termsOfUseContent}>
                 <div>
                   <label className={classNames('checkbox', termsOfUseErrorField?.length ? 'error' : '')}>
@@ -1003,7 +1003,7 @@ const CreateBucket = ({ user }) => {
               >
                 {termsOfUseError}
               </span>
-            </div>
+            </div>}
             <div className={Styles.createBtn}>
               <button className={'btn btn-tertiary'} type="button" onClick={id ? onUpdateBucket : onAddNewBucket}>
                 <span>{id ? 'Update' : 'Submit'}</span>

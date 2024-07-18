@@ -14,8 +14,8 @@ spec:
     namespace: code-server
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm/jupyterhub-codeserver
-    repoURL: 'https://git.i.mercedes-benz.com/DNA/dna-codeserver-backend.git'
+    path: deployment/kubernetes/helm/charts/jupyterhub-codeserver
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
