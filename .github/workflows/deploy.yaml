@@ -239,16 +239,7 @@ jobs:
       uses: dawidd6/action-delete-branch@v3.1.0
       with:
         github_token: ${{ secrets.PID_PAT }}
-        branches: ${{ github.head_ref }}     
-
-  create-public-pr:
-        name: Create and Merge Public PR
-        needs: production
-        if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
-        uses: ./.github/workflows/public-repo-pr.yml
-        with:
-          head: '${{ github.head_ref }}'
-        secrets: inherit            
+        branches: ${{ github.head_ref }}               
 
   css-scan:
         name: Container security scan
