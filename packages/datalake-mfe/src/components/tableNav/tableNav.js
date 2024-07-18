@@ -14,12 +14,13 @@ const TableNav = ({ tables, onTableSelected }) => {
                 style={{  height: height}}
             >
                 <div
-                    className={classNames("table-title", Styles.tableTitle)}
+                    className={classNames("table-title", Styles.titleBox)}
                     style={{
                         height: titleHeight,
                     }}
-                >
-                    <span className="table-name" >{`Tables (${tables?.length})`}</span>
+                > 
+                    <i className="icon mbc-icon data" />
+                    <span className={classNames("table-name",Styles.tableTitle)} >{`Tables (${tables?.length})`}</span>
 
                 </div>
                 {tables &&
@@ -35,7 +36,7 @@ const TableNav = ({ tables, onTableSelected }) => {
                                 onClick={() => { onTableSelected(field) }}
                             >
                                 <div className="field-content">
-                                    <div className={Styles.columnName} tooltip-data={field.tableName}>
+                                    <div className={classNames(Styles.columnName)} tooltip-data={field.tableName}>
                                         {field.tableName}
                                     </div>
 
