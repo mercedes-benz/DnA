@@ -17,9 +17,9 @@ on:
       - 'dev'
       - 'staging'
       - 'main'
-    paths:
-      - 'packages/**'   
-      - 'deployment/dockerfiles/**'   
+    # paths:
+    #   - 'packages/**'   
+    #   - 'deployment/dockerfiles/**'   
 
 jobs: 
           
