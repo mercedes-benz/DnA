@@ -105,3 +105,11 @@ jobs:
           number: ${{ steps.cpr.outputs.number }}
           filter-label: automerge        
                            
+  create-public-pr:
+        name: Create and Merge Public PR
+        needs: select-service
+        if: ${{ github.event.inputs.privateBranch == 'main' }} 
+        uses: ./.github/workflows/public-repo-pr.yml
+        with:
+          head: '${{ github.event.inputs.publicBranch }}'
+        secrets: inherit  
