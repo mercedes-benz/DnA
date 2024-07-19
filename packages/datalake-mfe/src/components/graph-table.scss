@@ -72,6 +72,9 @@
   .table:hover .table-format {
     display: none;
   }
+  .table-selected{
+    border-color: #00adef;
+  }
   .table-disabled {
     opacity: 0.6;
     pointer-events: none;

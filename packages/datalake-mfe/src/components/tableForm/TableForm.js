@@ -283,7 +283,7 @@ const TableFormBase = ({ formats }) => {
   );
 };
 
-const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
+const TableForm = ({ setToggle, formats, dataTypes, isSaved, focusTable}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
 
@@ -316,7 +316,7 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
     })
     .catch(() => {
       ProgressIndicator.hide();
-      Notification.show("Error in fetching latest details");
+      Notification.show("Error in fetching latest details",'alert');
     });
 
   }
@@ -350,7 +350,13 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
         "alert"
       );
       ProgressIndicator.hide();
-    } else {
+    } else if(dataTypes.filter(keyWord => keyWord === tableName.toUpperCase()).length > 0){
+      Notification.show(
+        `Table name cannot be a reserved key word.`,
+        "alert"
+      );
+      ProgressIndicator.hide();
+    }else {
       const columnNames = columns.map((column) => column.columnName);
       if (new Set(columnNames).size !== columnNames.length) {
         Notification.show(
@@ -361,7 +367,7 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
       } else {
         projectTemp.tables = [...projectTemp.tables, tableData];
         setToggle();
-        handlePublish(projectTemp)     
+        handlePublish(projectTemp);
       }
     }
   };
@@ -384,11 +390,14 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
   const handlePublish = (projectTemp) => {
     const data = {...projectTemp};
     datalakeApi.updateDatalakeProject(project?.id, data).then((res) => {
-      ProgressIndicator.hide();
       dispatch(setTables(res?.data?.data?.tables));
+      setTimeout(() => {
+        ProgressIndicator.hide();
+      }, 500);
       if (res?.data?.response?.warnings?.length) {
         Notification.show(res?.data?.response?.warnings?.[0]?.message, 'warning')
       } else {
+        focusTable(res?.data?.data.tables[res?.data?.data?.tables?.length - 1]); 
         Notification.show('Table published successfully');
       }
       isSaved(true);

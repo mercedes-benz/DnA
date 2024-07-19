@@ -818,7 +818,6 @@ import org.springframework.beans.factory.annotation.Value;
 		String resource = recipeData.getDiskSpace()+"Gi,"+recipeData.getMinRam()+"M,"+recipeData.getMinCpu()+",";
 		resource+=recipeData.getMaxRam()+"M,"+recipeData.getMaxCpu();
 		newRecipeVO.setResource(resource);
-		System.err.println(recipeData.getSoftware());
 		newRecipeVO.setSoftware(recipeData.getSoftware());
 		newRecipeVO.setToDeployType(recipeData.getToDeployType());
 		newRecipeVO.setGitPath(recipeData.getGitPath());
