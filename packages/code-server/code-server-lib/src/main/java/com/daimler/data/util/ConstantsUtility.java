@@ -54,4 +54,10 @@ public class ConstantsUtility {
 	public static final String DELETEACTION = "delete";
 	public static final String BAT_FRONTEND = "bat-frontend";
 	public static final String BAT_BACKEND = "bat-backend";
+
+
+	//BUILD status 
+	public static final String BUILD_REQUESTED = "BUILD_REQUESTED";
+	public static final String BUILD_FAILED = "BUILD_FAILED";
+	public static final String BUILD_SUCCESS = "BUILD_SUCCESS";
 }

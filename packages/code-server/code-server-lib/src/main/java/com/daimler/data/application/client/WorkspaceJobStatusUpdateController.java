@@ -182,26 +182,62 @@ public class WorkspaceJobStatusUpdateController  {
 				environment = "Production";
 			}
 			if(existingStatus.equals("CREATED")) {
-				if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
-					eventType = "Codespace-Deploy";
-					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
-				}													
-				if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")) {
-					eventType = "Codespace-Deploy Failed";
-					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
+
+				switch (latestStatus) {
+					case "DEPLOYED":
+						eventType = "Codespace-Deploy";
+						log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+						message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+						break;
+				    case "DEPLOYMENT_FAILED":
+						eventType = "Codespace-Deploy Failed";
+						log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+						message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
+						break;
+					case "UNDEPLOYED":
+						eventType = "Codespace-UnDeploy";
+						log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+						message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+						break;
+					case "UNDEPLOY_FAILED":
+						eventType = "Codespace-UnDeploy Failed";
+						log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+						message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+						break;
+					case "BUILD_FAILED":
+						eventType = "Codespace-Build Failed";
+						log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+						message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+						break;
+					case "BUILD_SUCCESS":
+						eventType = "Codespace-Build Success";
+						log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+						message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+						break;
+					default:
+					    log.info("Invalid build status");
+						break;
 				}
-				if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
-					eventType = "Codespace-UnDeploy";
-					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
-				}													
-				if(latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")) {
-					eventType = "Codespace-UnDeploy Failed";
-					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
-				}
+				// if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
+				// 	eventType = "Codespace-Deploy";
+				// 	log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+				// 	message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+				// }													
+				// if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")) {
+				// 	eventType = "Codespace-Deploy Failed";
+				// 	log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+				// 	message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
+				// }
+				// if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
+				// 	eventType = "Codespace-UnDeploy";
+				// 	log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+				// 	message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+				// }													
+				// if(latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")) {
+				// 	eventType = "Codespace-UnDeploy Failed";
+				// 	log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+				// 	message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+				// }
 			}
 			String gitJobRunId = updateRequestVO.getGitjobRunID();
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId);
