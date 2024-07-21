@@ -12,13 +12,18 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
     Tooltip.defaultSetup();
   }, []);
 
+  const handleOpenProject = () => {
+    history.push(`/project/${project.id}`);
+    window.location.reload();
+  }
+
   return (
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
         <div className={classNames(Styles.cardHeadInfo)}>
           <div
             className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-            onClick={() => {history.push(`/project/${project.id}`)}}
+            onClick={handleOpenProject}
           >
             {project.name}
           </div>
@@ -41,6 +46,10 @@ const DataEntryProjectCard = ({user, project, onEditProject, onDeleteProject}) =
           <div>
             <div>Created on</div>
             <div>{regionalDateAndTimeConversionSolution(formatDateToISO(new Date(project?.createdOn)))}</div>
+          </div>
+          <div>
+            <div>Created by</div>
+            <div>{project?.createdBy?.firstName} {project?.createdBy?.lastName}</div>
           </div>
           <div>
             <div>Classification</div>

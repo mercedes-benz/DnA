@@ -37,4 +37,5 @@ export const Envs = {
   ENABLE_TRINO_PUBLISH: getInjectedEnv('ENABLE_TRINO_PUBLISH') || parseBool(process.env.ENABLE_TRINO_PUBLISH, false),
   ENABLE_DATAIKU:
     getDNAInjectedEnv('ENABLE_DATAIKU_WORKSPACE') || parseBool(process.env.ENABLE_DATAIKU_WORKSPACE, false),
+  STORAGE_TERMS_OF_USE_CONTENT: getInjectedEnv('STORAGE_TERMS_OF_USE_CONTENT') || process.env.STORAGE_TERMS_OF_USE_CONTENT,
 };

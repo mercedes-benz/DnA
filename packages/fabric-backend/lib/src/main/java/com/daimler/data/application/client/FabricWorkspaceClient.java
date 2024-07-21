@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.AddUserDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
@@ -70,6 +71,12 @@ public class FabricWorkspaceClient {
 	
 	@Value("${fabricWorkspaces.uri.addUserUrl}")
 	private String addUserUrl;
+	
+	@Value("${fabricWorkspaces.group.identifier}")
+	private String onboardGroupIdenitifier;
+	
+	@Value("${fabricWorkspaces.group.displayName}")
+	private String onboardGroupDisplayName;
 	
 	@Autowired
 	HttpServletRequest httpRequest;
@@ -273,6 +280,53 @@ public class FabricWorkspaceClient {
 		return null;
 	}
 	
+	public GenericMessage addGroup(String workspaceGroupId) {
+		GenericMessage response = new GenericMessage();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errorMessage = new MessageDescription("Failed to login using service principal, please try later.");
+				errors.add(errorMessage);
+				response.setErrors(errors);
+				response.setWarnings(new ArrayList<>());
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+			AddGroupDto addGroupDto = new AddGroupDto();
+			addGroupDto.setDisplayName(onboardGroupDisplayName);
+			addGroupDto.setIdentifier(onboardGroupIdenitifier);
+			addGroupDto.setPrincipalType("Group");
+			addGroupDto.setGroupUserAccessRight("Admin");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<AddGroupDto> requestEntity = new HttpEntity<>(addGroupDto,headers);
+			String addUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users";
+			ResponseEntity<String> addUserResponse = proxyRestTemplate.exchange(addUserToGroupUrl, HttpMethod.POST,
+					requestEntity, String.class);
+			if (addUserResponse!=null && addUserResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("Added default group {} to workspace {} successfully ", onboardGroupDisplayName, workspaceGroupId);
+				response.setSuccess("SUCCESS");
+				response.setErrors(new ArrayList<>());
+				response.setWarnings(new ArrayList<>());
+				return response;
+			}
+		}catch(Exception e) {
+			response.setSuccess("FAILED");
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription errorMessage = new MessageDescription("Failed to add default group to workspace with exception, please try again or contact Admin.");
+			errors.add(errorMessage);
+			response.setErrors(errors);
+			response.setWarnings(new ArrayList<>());
+			log.error("Failed to add group {} to workspace {} with exception ", onboardGroupDisplayName, workspaceGroupId, e.getMessage());
+			return response;
+		}
+		return null;
+	}
+	
 	public WorkspaceDetailDto updateWorkspace(String workspaceId, WorkspaceUpdateDto updateRequest) {
 		WorkspaceDetailDto workspaceDetailDto = new WorkspaceDetailDto();
 		try {
@@ -327,6 +381,42 @@ public class FabricWorkspaceClient {
 			errorResponse.setMessage("Failed to assign capacity to workspace, with error " + e.getMessage());
 			log.error("Failed to assign capacity {} to workspace with displayName {} with error {} ", capacityId, workspaceId , e.getMessage());
 		}
+		return errorResponse;
+	}
+	
+	public ErrorResponseDto provisionWorkspace(String workspaceId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("500");
+				errorResponse.setMessage("Failed to login using service principal, please try later.");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/provisionIdentity";
+			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
+					requestEntity, ErrorResponseDto.class);
+			log.info("Workspace {} provisioned successfully", workspaceId);
+			if (response!=null && response.hasBody()) {
+				errorResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			if(e.getMessage()!=null) {
+				if(e.getMessage().contains("WorkspaceIdentityAlreadyExists")) {
+					errorResponse.setErrorCode("WorkspaceIdentityAlreadyExists");
+					errorResponse.setMessage("Workspace identity already provisioned.");
+					log.error("Workspace {} , identity already provisioned.", workspaceId);
+				}
+			}
+			log.error("Workspace {} provisioning failed with exception {}", workspaceId, e.getMessage());
+		}
+		
 		return errorResponse;
 	}
 	

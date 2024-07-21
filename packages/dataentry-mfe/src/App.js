@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-
 import { Provider } from 'react-redux';
 import store, { history } from './store';
-
 import Routes, { protectedRoutes } from './routes/DataEntryRoutes';
 
 const App = ({ user, ...rest }) => {
@@ -19,7 +17,7 @@ const App = ({ user, ...rest }) => {
   }, []);
   return (
     <Provider store={store}>
-      <Routes user={user} hostHistory={rest.hostHistory}/>
+      <Routes user={user} hostHistory={rest.hostHistory} />
     </Provider>
   );
 };

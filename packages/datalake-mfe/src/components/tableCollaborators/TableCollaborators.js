@@ -6,23 +6,22 @@ import TeamSearch from 'dna-container/TeamSearch';
 import { setTables } from '../../redux/graphSlice';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
-const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLevelCollab}) => {
+const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLevelCollab,createdBy}) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
   const [collabs, setCollabs] = useState(table?.length > 0 ? table : []);
 
   const addMemberFromTeamSearch = (member) => {
-    const isMemberExists = collabs.filter(item => item.id === member.shortId);
-    if(user.id === member.shortId) {
+    const isMemberExists = collabs.filter(item =>( item.collaborator.shortId || item.collaborator.id )=== member.shortId);
+    if (isMemberExists.length > 0) {
+      Notification.show(`Collaborator Already Exist.`, 'warning');
+    } else if(user.id === member.shortId || createdBy?.id === member.shortId) {
       Notification.show(`Owner can't be added as a collaborator`, 'alert');
-    } else if (isMemberExists.length > 0) {
-      setShowUserAlreadyExistsError(true);
     } else {
       const memberObj = {
         collaborator: {
@@ -33,7 +32,6 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
       }
       setCollabs([...collabs, memberObj]);
     }
-    setShowUserAlreadyExistsError(false);
   }
 
   const resetUserAlreadyExists = () => {
@@ -87,7 +85,6 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
             editMode={editMode}
             teamMemberObj={teamMember}
             onAddTeamMember={addMemberFromTeamSearch}
-            userAlreadyExists={showUserAlreadyExistsError}
             resetUserAlreadyExists={resetUserAlreadyExists}
             btnText="Add User"
             searchTerm={searchTerm}
@@ -132,7 +129,7 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
                                   checked={true}
                                 />
                               </span>
-                              <span className="label">Read</span>
+                              <label className={Styles.checkBoxlabel}>Read</label>
                             </label>
                           </div>
                           &nbsp;&nbsp;&nbsp;
@@ -141,7 +138,7 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
                               'input-field-group include-error ' + Styles.inputGrp,
                             )}
                           >
-                            <label className={'checkbox ' + Styles.writeAccess}>
+                            <label className= {classNames('checkbox ' , Styles.writeAccess , item.collaborator.id === user.id ? Styles.checkBoxDisable : '')}>
                               <span className="wrapper">
                                 <input
                                   type="checkbox"
@@ -154,13 +151,13 @@ const TableCollaborators = ({ table, onSave, user ,onProjCollabAdd ,isProjectLev
                                   onChange={() => onPermissionChange(item)}
                                 />
                               </span>
-                              <span className="label">Write</span>
+                              <label className={Styles.checkBoxlabel}>Write</label>
                             </label>
                           </div>
                         </div>
                         <div className={Styles.collUserTitleCol}>
                           <div
-                            className={Styles.deleteEntry}
+                            className= {classNames(Styles.deleteEntry , item.collaborator.id === user.id ? Styles.disableDelete : '' )}
                             onClick={() => onCollabaratorDelete(item.collaborator.id)}
                           >
                             <i className="icon mbc-icon trash-outline" />

@@ -9,12 +9,22 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import Pagination from 'dna-container/Pagination';
 import { getQueryParameterByName } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import DataEntryProjectForm from '../../components/dataEntryProjectForm/DataEntryProjectForm';
 import DataEntryProjectCard from '../../components/dataEntryProjectCard/DataEntryProjectCard';
 import DataEntryProjectTable from '../../components/dataEntryProjectTable/DataEntryProjectTable';
+import { useDispatch } from 'react-redux';
+import { getLovs } from '../../redux/lovsSlice';
 
 const DataEntryProjects = ({user}) => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getLovs());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
@@ -98,10 +108,24 @@ const DataEntryProjects = ({user}) => {
       dataEntryApi
         .getDataEntryProjects(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setProjects(res?.data?.data);
-          const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
-          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
-          setTotalNumberOfPages(totalNumberOfPagesTemp);
+          if(res.status !== 204) {
+            const sortedProjects = res?.data?.records.sort((x, y) => {
+                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+                if (fx < fy) {
+                    return -1;
+                }
+                if (fx > fy) {
+                    return 1;
+                }
+                return 0;
+            });
+            setProjects(sortedProjects);
+            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+            setTotalNumberOfPages(totalNumberOfPagesTemp);
+          } else {
+            setProjects([]);
+          }
           ProgressIndicator.hide();
         })
         .catch((e) => {
@@ -209,12 +233,15 @@ const DataEntryProjects = ({user}) => {
                     <span>Data Lakehouse Link</span>
                   </div>
                   <div className={Styles.col3}>
-                    <span>Created On</span>
+                    <span>Created by</span>
                   </div>
                   <div className={Styles.col4}>
-                    <span>Data Classification</span>
+                    <span>Created on</span>
                   </div>
                   <div className={Styles.col5}>
+                    <span>Data Classification</span>
+                  </div>
+                  <div className={Styles.col6}>
                     <span>Action</span>
                   </div>
                 </div>
@@ -282,7 +309,7 @@ const DataEntryProjects = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editProject}
-          content={<DataEntryProjectForm user={user} edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
+          content={<DataEntryProjectForm edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
           scrollableContent={true}
           onCancel={() => setEditProject(false)}
         />

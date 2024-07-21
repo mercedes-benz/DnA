@@ -70,7 +70,6 @@ public class RecipeController implements CodeServerRecipeApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<InitializeRecipeVo> createRecipe(
 			@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user", required = true) @Valid @RequestBody RecipeVO recipeRequestVO) {
-			
 		CreatedByVO currentUser = this.userStore.getVO();
 		UserInfoVO currentUserVO = new UserInfoVO();
 		BeanUtils.copyProperties(currentUser, currentUserVO);
@@ -81,17 +80,24 @@ public class RecipeController implements CodeServerRecipeApi {
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
 			// recipeRequestVO.setStatus("REQUESTED");
-			RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
-			if (Objects.nonNull(recipeVO)) {
-				responseMessage.setData(recipeVO);
-				responseMessage.setSuccess("SUCCESS");
-				log.info("Recipe is created sucessfully with name : "+recipeName);
-				return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
+			if(softwareMessage.getSuccess().equals("SUCCESS")) {
+				RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
+				if (Objects.nonNull(recipeVO)) {
+					responseMessage.setData(recipeVO);
+					responseMessage.setSuccess("SUCCESS");
+					log.info("The recipe has been created successfully with the name: "+recipeName);
+					return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+				}
+				responseMessage.setData(null);
+				responseMessage.setSuccess("FAILED");
+				log.info("The creation of a recipe failed due to an unspecified recipe name. "+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 			} else {
 				responseMessage.setData(null);
 				responseMessage.setSuccess("FAILED");
-				log.info("Failed while creating recipe with recipeName : "+recipeName);
-				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+				log.info("The software creation process failed in the Git repository for the recipe."+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 			}
 		} else {
 			responseMessage.setData(null);
@@ -125,8 +131,10 @@ public class RecipeController implements CodeServerRecipeApi {
 		if (limit == null) {
 			limit = 0;
 		}
+		CreatedByVO currentUser = this.userStore.getVO();
+		String id = currentUser.getId();
 		// if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
-			List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit);
+			List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit,id);
 			if (Objects.nonNull(allRecipes)) {
 				for (RecipeVO recipe : allRecipes) {
 					recipeCollectionVO.addDataItem(recipe);

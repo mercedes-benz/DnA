@@ -15,7 +15,9 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CodeServerRecipeDetails implements Serializable {
 
+	private String id;
 	private String recipeId;
+	private String recipeName;
 	private String ramSize;
 	private String cpuCapacity;
 	private String operatingSystem;
@@ -23,5 +25,10 @@ public class CodeServerRecipeDetails implements Serializable {
 	private String cloudServiceProvider;
 	private String resource;
 	private String repodetails;
+	private List<String> software;
+	private String toDeployType;
+	private String recipeType;
+	private String gitPath;
+	private String gitRepoLoc;
 	
 }

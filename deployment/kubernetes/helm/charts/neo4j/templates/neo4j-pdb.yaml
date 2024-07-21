@@ -1,0 +1,28 @@
+{{- if .Values.podDisruptionBudget.enabled  }}
+---
+apiVersion: "policy/v1"
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "neo4j.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.podDisruptionBudget.labels }}
+  labels: {{ toYaml $.Values.podDisruptionBudget.labels | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+  {{- if .Values.podDisruptionBudget.matchExpressions }}
+    matchExpressions: {{ toYaml .Values.podDisruptionBudget.matchExpressions | nindent 6 }}
+  {{- end }}
+    matchLabels:
+      app: "{{ template "neo4j.name" . }}"
+      helm.neo4j.com/instance: "{{ include "neo4j.fullname" . }}"
+      {{- if .Values.podDisruptionBudget.matchLabels }}
+      {{ toYaml .Values.podDisruptionBudget.matchLabels }}
+      {{- end }}
+{{- end }}

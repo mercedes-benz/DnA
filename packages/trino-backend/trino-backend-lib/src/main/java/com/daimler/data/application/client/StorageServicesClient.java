@@ -3,6 +3,7 @@ package com.daimler.data.application.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,6 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.auth.client.DnaAuthClientImpl;
 import com.daimler.data.application.auth.CreatedByVO;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.UserInfoVO;
@@ -70,6 +72,9 @@ public class StorageServicesClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	DnaAuthClientImpl dnaClient;
 	
 	public CreateBucketResponseWrapperDto createBucket(String bucketName, List<DataLakeTableCollabDetailsVO> collaborators) {
 		CreateBucketResponseWrapperDto createBucketResponse = new CreateBucketResponseWrapperDto();
@@ -109,6 +114,16 @@ public class StorageServicesClient {
 				
 				CreatedByVO creatorTrinoSystemUser = new CreatedByVO();
 				creatorTrinoSystemUser.setId(trinoUser);
+				try{
+					JSONObject object = dnaClient.getUserById(trinoUser);
+					creatorTrinoSystemUser.setFirstName(object.get("firstName").toString());
+					creatorTrinoSystemUser.setLastName(object.get("lastName").toString());
+					creatorTrinoSystemUser.setDepartment(object.get("department").toString());
+					creatorTrinoSystemUser.setEmail(object.get("email").toString());
+					creatorTrinoSystemUser.setMobileNumber(object.get("mobileNumber").toString());
+				}catch(Exception e){
+					log.error("Failed while converting user details with Exception {}:",e.getMessage());
+				}
 				data.setCreatedBy(creatorTrinoSystemUser);
 				
 				requestWrapper.setData(data);
@@ -200,6 +215,16 @@ public class StorageServicesClient {
 
 			CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
 			creatorAsCollab.setAccesskey(trinoUser);
+			try{
+				JSONObject object = dnaClient.getUserById(trinoUser);
+				creatorAsCollab.setFirstName(object.get("firstName").toString());
+				creatorAsCollab.setLastName(object.get("lastName").toString());
+				creatorAsCollab.setDepartment(object.get("department").toString());
+				creatorAsCollab.setEmail(object.get("email").toString());
+				creatorAsCollab.setEmail(object.get("mobileNumber").toString());
+			}catch(Exception e){
+				log.error("Failed while converting user details with Exception {}:",e.getMessage());
+			}
 			PermissionsDto permissions = new PermissionsDto();
 			permissions.setRead(true);
 			permissions.setWrite(true);
@@ -208,6 +233,16 @@ public class StorageServicesClient {
 
 			CreatedByVO creatorTrinoSystemUser = new CreatedByVO();
 			creatorTrinoSystemUser.setId(trinoUser);
+			// try{
+			// 		JSONObject object = dnaClient.getUserById(trinoUser);
+					creatorTrinoSystemUser.setFirstName(creatorAsCollab.getFirstName());
+					creatorTrinoSystemUser.setLastName(creatorAsCollab.getLastName());
+					creatorTrinoSystemUser.setDepartment(creatorAsCollab.getDepartment());
+					creatorTrinoSystemUser.setEmail(creatorAsCollab.getEmail());
+					creatorTrinoSystemUser.setMobileNumber(creatorAsCollab.getMobileNumber());
+				// }catch(Exception e){
+				// 	log.error("Failed while converting user details with Exception {}:",e.getMessage());
+				// }
 			data.setCreatedBy(creatorTrinoSystemUser);
 
 			requestWrapper.setData(data);

@@ -150,6 +150,13 @@ const base = {
       name: 'dna_container',
       filename: 'remoteEntry.js',
       exposes: {
+        './ProgressWithMessage': './src/components/progressWithMessage/ProgressWithMessage',
+        './RouterUtils': './src/router/RouterUtils.ts',
+        './IconGear': './src/components/icons/IconGear.tsx',
+        './IconToU': './src/components/icons/IconToU.tsx',
+        './History': './src/router/History.ts',
+        './AddUser': './src/components/mbc/addUser/AddUser.tsx',
+        './Query': './src/services/Query.ts',
         './Progress': './src/components/progress/Progress.tsx',
         './InfoModal': './src/components/formElements/modal/infoModal/InfoModal.tsx',
         './Modal': './src/components/formElements/modal/Modal.tsx',
@@ -198,6 +205,7 @@ const base = {
         'datalake-mfe': `datalake_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATALAKE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'fabric-mfe': `fabric_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.FABRIC_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'data-entry-mfe': `data_entry_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_ENTRY_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'code-space-mfe': `code_space_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CODE_SPACE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'power-platform-mfe': `power_platform_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.POWER_PLATFORM_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {

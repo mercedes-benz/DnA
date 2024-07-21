@@ -1,0 +1,24 @@
+{{- if .Values.networkPolicy.enabled }}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "OpenMetadata.fullname" . }}-networkpolicy
+  labels:
+    {{- include "OpenMetadata.labels" . | indent 4 }}
+  {{- with .Values.podAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "OpenMetadata.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+    # Allow inbound connections
+  ingress:
+    - ports:
+      - port: {{ .Values.service.port }}
+        protocol: TCP
+      - port: {{ .Values.service.adminPort }}
+        protocol: TCP
+{{- end }}

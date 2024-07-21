@@ -977,7 +977,8 @@ export class ApiClient {
           email,
           mobileNumber,
           company,
-          teamMemberPosition
+          teamMemberPosition,
+          isUseCaseOwner
         },
         dataSources {
           dataSources {

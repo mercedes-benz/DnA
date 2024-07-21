@@ -276,7 +276,7 @@ const CreateBucket = ({ user }) => {
       formValid = false;
       setDataClassificationError(errorMissingEntry);
     }
-    if (!termsOfUse) {
+    if ( id && !termsOfUse) {
       setTermsOfUseError('Please agree to terms of use');
       formValid = false;
     }
@@ -298,7 +298,9 @@ const CreateBucket = ({ user }) => {
         );
       } else if (!/^[a-z\d]/g.test(value)) {
         setBucketNameError('Bucket name must start with a lowercase letter or number.');
-      } else if (/-$/.test(value)) {
+      }  else if(value.startsWith('dna-datalake')) {
+        setBucketNameError('Reserved bucket name');
+      }  else if (/-$/.test(value)) {
         setBucketNameError('Bucket name must end with letter or a number.');
       } else if (/\.$/.test(value)) {
         setBucketNameError('Bucket name must end with letter or a number.');
@@ -965,7 +967,7 @@ const CreateBucket = ({ user }) => {
                 </div>
               </div>
             </div>
-            <div className={classNames(Styles.termsOfUseContainer, termsOfUseErrorField?.length ? 'error' : '')}>
+            {id && <div className={classNames(Styles.termsOfUseContainer, termsOfUseErrorField?.length ? 'error' : '')}>
               <div className={Styles.termsOfUseContent}>
                 <div>
                   <label className={classNames('checkbox', termsOfUseErrorField?.length ? 'error' : '')}>
@@ -1001,7 +1003,7 @@ const CreateBucket = ({ user }) => {
               >
                 {termsOfUseError}
               </span>
-            </div>
+            </div>}
             <div className={Styles.createBtn}>
               <button className={'btn btn-tertiary'} type="button" onClick={id ? onUpdateBucket : onAddNewBucket}>
                 <span>{id ? 'Update' : 'Submit'}</span>
