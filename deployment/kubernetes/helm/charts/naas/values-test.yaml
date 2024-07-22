@@ -46,7 +46,7 @@ app:
       port: api
 image:
   pullPolicy: Always
-  tag: '63'
+  tag: '67'
 ingress:
   enabled: false
   host: naas.test.dna.app.corpintra.net
