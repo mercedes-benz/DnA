@@ -991,8 +991,10 @@ public class BaseStorageService implements StorageService {
 			httpStatus = HttpStatus.BAD_REQUEST;
 		} else {
 			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
-			if (entity != null && entity.getData() != null && entity.getData().getDataikuProjects() != null) {
-				bucketVo.setDataikuProjects(entity.getData().getDataikuProjects());
+			if (entity != null && entity.getData() != null ) {
+				if( entity.getData().getDataikuProjects() != null) {
+					bucketVo.setDataikuProjects(entity.getData().getDataikuProjects());
+				}
 				BucketVo existingBucketVo = storageAssembler.toBucketVo(entity);
 				bucketVo.setCreatedBy(existingBucketVo.getCreatedBy());
 				bucketVo.setCreatedDate(existingBucketVo.getCreatedDate());
