@@ -503,23 +503,25 @@ public class BaseStorageService implements StorageService {
 								tempBucket.setPermission(currentUserRecord.get().getPermission());
 							}
 						}
-//						if(minioBuckets!=null && !minioBuckets.isEmpty()) {
-//							Optional<McListBucketDto> matchingBucket = minioBuckets.stream().filter(n-> tempBucket.getBucketName().equalsIgnoreCase(n.getKey().substring(0, n.getKey().length() - 1))).findFirst();
-//							if(matchingBucket.isPresent() && !matchingBucket.isEmpty()) {
-//								String lastModifiedString = matchingBucket.get().getLastModified();
-//								if(lastModifiedString!=null) {
-//									try {
-//										ZonedDateTime dateTime = ZonedDateTime.parse(lastModifiedString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-//										Instant instant = dateTime.toInstant();
-//										Date utilDate = Date.from(instant);
-//										tempBucket.setLastModifiedDate(utilDate);
-//									}catch (Exception e){
-//										LOGGER.error("Failed to set lastmodified date to bucket {}", tempBucket.getBucketName());
-//									}
-//								}
-//								
-//							}
-//						}
+						if(tempBucket.getLastModifiedDate()==null) {
+							if(minioBuckets!=null && !minioBuckets.isEmpty()) {
+								Optional<McListBucketDto> matchingBucket = minioBuckets.stream().filter(n-> tempBucket.getBucketName().equalsIgnoreCase(n.getKey().substring(0, n.getKey().length() - 1))).findFirst();
+								if(matchingBucket.isPresent() && !matchingBucket.isEmpty()) {
+									String lastModifiedString = matchingBucket.get().getLastModified();
+									if(lastModifiedString!=null) {
+										try {
+											ZonedDateTime dateTime = ZonedDateTime.parse(lastModifiedString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+											Instant instant = dateTime.toInstant();
+											Date utilDate = Date.from(instant);
+											tempBucket.setLastModifiedDate(utilDate);
+										}catch (Exception e){
+											LOGGER.error("Failed to set lastmodified date to bucket {}", tempBucket.getBucketName());
+										}
+									}
+									
+								}
+							}
+						}
 				}
 				bucketCollectionVO.setData(bucketsVO);
 				int totalBuckets = 0;
@@ -991,6 +993,9 @@ public class BaseStorageService implements StorageService {
 			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
 			if (entity != null && entity.getData() != null && entity.getData().getDataikuProjects() != null) {
 				bucketVo.setDataikuProjects(entity.getData().getDataikuProjects());
+				BucketVo existingBucketVo = storageAssembler.toBucketVo(entity);
+				bucketVo.setCreatedBy(existingBucketVo.getCreatedBy());
+				bucketVo.setCreatedDate(existingBucketVo.getCreatedDate());
 			}
 			LOGGER.debug("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
