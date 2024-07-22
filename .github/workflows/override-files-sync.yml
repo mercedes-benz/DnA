@@ -18,7 +18,7 @@ jobs:
 
       - name: Check Source Branch
         run: |
-          if [[ "${{ github.event.inputs.sourceBranch }}" == *"override"* || "${{ github.event.inputs.publicBranch }}" == *"infra"*  ]]; then
+          if [[ "${{ github.event.inputs.sourceBranch }}" == *"override"* || "${{ github.event.inputs.sourceBranch }}" == *"infra"*  ]]; then
             echo "Override Branch name: ${{ github.event.inputs.sourceBranch }}"
           else
             echo "Branch name does not valid"
