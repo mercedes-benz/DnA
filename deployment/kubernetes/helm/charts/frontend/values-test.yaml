@@ -221,4 +221,26 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/codeSpaceMFE" -}}
+          window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/powerPlatformMFE" -}}
+          window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}     
   saName: default
