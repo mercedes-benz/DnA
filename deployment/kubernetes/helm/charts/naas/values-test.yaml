@@ -3,7 +3,7 @@ namespace: naas
 app:
   backend:
     replicaCount: 1
-    image: registry-emea.app.corpintra.net/dnaplatform/naas-backend:42315f2d30098ed0f466607e5f2d758317933578
+    image: registry-emea.app.corpintra.net/dnaplatform/naas-backend:b785186ddd6169023867e57010fde96e9995b3f9
     secrets:
       name: naas-app-secrets
       jwtKey: null
