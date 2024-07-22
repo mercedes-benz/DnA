@@ -7,7 +7,7 @@ configJs: |
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dss-mfe
   pullPolicy: IfNotPresent
-  tag: be783a9af564858a92c54c089ad1cb08f368124e
+  tag: 80f0e41e563c6561e7e77ae642ae7d142a1293e4
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-mfe
