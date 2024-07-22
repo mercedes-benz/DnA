@@ -188,6 +188,12 @@ const getSoftwareLov = () => {
     });
 };
 
+const getAdditionalServicesLov = () => {
+    return server.get(`recipeDetails/additionalServiceLov`, {
+        data: {},
+    });
+};
+
 const getLovData = () => { //tested
     return Promise.all([
       storageServer.get(`/classifications`, {
@@ -293,6 +299,7 @@ export const CodeSpaceApiClient = {
     acceptCodeSpaceRecipeRequest,
     publishCodeSpaceRecipeRequest,
     getSoftwareLov,
+    getAdditionalServicesLov,
     getLovData,
     getWorkspaceConfigs,
     acceptSecurityConfigRequest,
