@@ -40,5 +40,5 @@ repositories:
   #   url: https://git.i.mercedes-benz.com/DNA/dna-matomo-frontend.git
   - name: dataentry-backend
     url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-backend.git 
-  - name: dna-notification
-    url: https://git.i.mercedes-benz.com/DNA/dna-notification.git       
+  # - name: dna-notification
+  #   url: https://git.i.mercedes-benz.com/DNA/dna-notification.git       
