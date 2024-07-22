@@ -15,6 +15,7 @@ import { isValidGitUrl } from '../../Utility/utils';
 import { useHistory } from 'react-router-dom';
 import Tags from 'dna-container/Tags';
 import Modal from 'dna-container/Modal';
+import ServiceCard from '../serviceCard/ServiceCard';
 const classNames = cn.bind(Styles);
 // export interface ICreateRecipe {
 //   createdBy: IUserInfo;
@@ -84,8 +85,15 @@ const CodeSpaceRecipe = (props) => {
   const gitHubUrl = {
     gitHubUrl: gitUrl
   };
-  useEffect(() => {
 
+  const [additionalServices, setAdditionalServices] = useState([]);
+  const [selectedAdditionalServices, setSelectedAdditionalServices] = useState([]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+  
+  useEffect(() => {
     CodeSpaceApiClient.getSoftwareLov()
       .then((response) => {
         ProgressIndicator.hide();
@@ -110,6 +118,30 @@ const CodeSpaceRecipe = (props) => {
         }
       });
   }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getAdditionalServicesLov()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setAdditionalServices(response.data.data);
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+  }, []);
+
+  console.log('additionalServices');
+  console.log(additionalServices);
 
 
   const onRecipeNameChange = (e) => {
@@ -143,6 +175,20 @@ const CodeSpaceRecipe = (props) => {
       ...prevState,
       software: '',
     }));
+  };
+
+  const onAdditionalServicesChange = (e) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        let temp = '';
+        temp = option.textContent;
+        selectedValues.push(temp);
+      });
+    }
+    const selectedAdditionalServices = additionalServices.filter(service => selectedValues.includes(service.serviceName));
+    setSelectedAdditionalServices(selectedAdditionalServices);
   };
 
   const onGitPathChange = (e) => {
@@ -265,6 +311,7 @@ const CodeSpaceRecipe = (props) => {
         gitPath: gitPath,
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
+        additionalServices: selectedAdditionalServices.map(service => service?.serviceName),
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
@@ -417,33 +464,6 @@ const CodeSpaceRecipe = (props) => {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <Modal
-                        title="Public Visibility"
-                        show={notificationMsg}
-                        showAcceptButton={false}
-                        showCancelButton={false}
-                        acceptButtonTitle="Confirm"
-                        cancelButtonTitle="Cancel"
-                        buttonAlignment='right'
-                        scrollableContent={false}
-                        hideCloseButton={true}
-                        content={
-                          <div>
-                            <header>
-                              <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
-                            </header>
-                            <div>
-                              <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
-                            </div>
-                            <div className="btn-set footerRight">
-                              <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
-                              <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
-                            </div>
-                          </div>
-                        }
-                      />
-                    </div>
                     <div className={classNames(Styles.col2)}>
                       <div className={classNames(Styles.inputLabel, 'input-label')}>
                         <TextBox
@@ -517,7 +537,6 @@ const CodeSpaceRecipe = (props) => {
                         </a>
                       </div>
                     </div>
-
                   </div>
                 </div>
 
@@ -584,8 +603,47 @@ const CodeSpaceRecipe = (props) => {
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <h4 className={classNames(Styles.sectionHeader)}>Additional Services</h4>
+                  <div className={classNames(Styles.formWrapper, Styles.mT)}>
+                    <div className={classNames(Styles.flex)}>
+                      <div className={classNames(Styles.col2)}>
+                        <div className={classNames('input-field-group')}>
+                          <label className="input-label" htmlFor="additionalServicesSelect">
+                            Select Additional Services
+                          </label>
+                          <div id="additionalServices" className="custom-select">
+                            <select
+                              id="additionalServicesSelect"
+                              multiple={true}
+                              required={false}
+                              onChange={onAdditionalServicesChange}
+                              value={selectedAdditionalServices.map(service => service?.serviceName)}
+                            >
+                              {additionalServices?.map(service => 
+                                <option key={service?.serviceName} value={service?.serviceName}>{service?.serviceName}</option>
+                              )}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={classNames(Styles.formWrapper, Styles.mT)}>
+                  <div className={classNames(Styles.flex)}>
+                    {selectedAdditionalServices.map(service => 
+                      <div key={service?.serviceName} className={classNames(Styles.col3)}>
+                        <ServiceCard service={service} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={onRequest}>
+                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" onClick={onRequest}>
                     Create Recipe
                   </button>
                 </div>
@@ -593,6 +651,33 @@ const CodeSpaceRecipe = (props) => {
             </div>
           </div>
         </div>
+        {notificationMsg && 
+          <Modal
+            title="Public Visibility"
+            show={notificationMsg}
+            showAcceptButton={false}
+            showCancelButton={false}
+            acceptButtonTitle="Confirm"
+            cancelButtonTitle="Cancel"
+            buttonAlignment='right'
+            scrollableContent={false}
+            hideCloseButton={true}
+            content={
+              <div>
+                <header>
+                  <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
+                </header>
+                <div>
+                  <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
+                </div>
+                <div className="btn-set footerRight">
+                  <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
+                  <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
+                </div>
+              </div>
+            }
+          />
+        }
       </div>
     </div>
   );
