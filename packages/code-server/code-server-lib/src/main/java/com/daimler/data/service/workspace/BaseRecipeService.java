@@ -12,15 +12,21 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomSoftwareRepo;
+import com.daimler.data.assembler.AdditionalServiceAssembler;
 import com.daimler.data.assembler.RecipeAssembler;
+import com.daimler.data.db.entities.CodeServerAdditionalServiceNsql;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepoImpl;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceRecipeRepository;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
+import com.daimler.data.db.json.CodeServerAdditionalService;
 import com.daimler.data.db.json.CodeServerSoftware;
 import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.assembler.SoftwareAssembler;
@@ -30,6 +36,9 @@ import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 import java.util.UUID;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.CodeServerRecipeDto;
+import com.daimler.data.dto.workspace.recipe.AdditionalPropertiesVO;
+import com.daimler.data.dto.workspace.recipe.AdditionalServiceLovVo;
+import com.daimler.data.dto.workspace.recipe.InitializeAdditionalServiceLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
@@ -62,7 +71,13 @@ public class BaseRecipeService implements RecipeService{
 	private SoftwareAssembler softwareAssembler;
 
 	@Autowired
+	private AdditionalServiceAssembler additionalServiceAssembler;
+
+	@Autowired
 	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+	private WorkspaceCustomAdditionalServiceRepo additionalServiceRepo;
 
 	@Autowired
 	 private UserStore userStore;
@@ -217,8 +232,31 @@ public class BaseRecipeService implements RecipeService{
 			log.info("there are no records of software ");
 		}
 		return null;
-		
+	}
 
+	@Override
+	@Transactional
+	public List<AdditionalServiceLovVo> getAllAdditionalServiceLov() {
+		List<AdditionalServiceLovVo> additionalServiceLovVo = new ArrayList<>();
+		try{
+			List<CodeServerAdditionalServiceNsql> allServices = additionalServiceRepo.findAllServices(10, 0);
+			if(!allServices.isEmpty() || allServices.size() >0)
+			{
+				additionalServiceLovVo = allServices.stream().map(n-> additionalServiceAssembler.toVo(n)).collect(Collectors.toList());
+				log.info("Additional Services fetched successfully");
+			}
+			else
+			{
+				log.info("Additional Services not available");
+				return null;
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			log.info("failed while fetching additional properties",e.getMessage());
+		}
+		return additionalServiceLovVo ;
 	}
 
 	@Override
