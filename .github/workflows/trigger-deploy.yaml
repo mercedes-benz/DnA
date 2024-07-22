@@ -572,3 +572,4 @@ jobs:
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/power-platform-mfe'
           YML_IMAGE_TAG_PATH: 'image.tag' 
         secrets: inherit                  
+

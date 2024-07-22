@@ -21,7 +21,7 @@ on:
 
 env:
   PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
-  DEST_REPO: git.i.mercedes-benz.com/DNA/DnA-Private.git
+  DEST_REPO: git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
 
 jobs:
   gitsync:
@@ -60,48 +60,56 @@ jobs:
 
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.ref_name == 'dev' }} 
+        if: ${{ github.event.inputs.privateBranch == 'dev' }} 
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
-          labels: "automatic-pr,automerge,${{ github.event.inputs.publicBranch }}"
+          labels: "automatic-pr,dev  ,automerge,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Create staging pull request
         uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.ref_name == 'staging' }} 
+        if: ${{ github.event.inputs.privateBranch == 'staging' }} 
         with:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr,${{ github.event.inputs.publicBranch }}"
+          labels: "automatic-pr,staging,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Create main pull request
         uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.ref_name == 'main' }} 
+        if: ${{ github.event.inputs.privateBranch == 'main' }} 
         with:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
           reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr,${{ github.event.inputs.publicBranch }}"
+          labels: "automatic-pr,main,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Print pull request details
-        if: ${{ steps.cpr.outputs.number && github.ref_name == 'dev' }}
+        if: ${{ steps.cpr.outputs.number && github.event.inputs.privateBranch == 'dev' }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
 
       - name: Dev pull request merge
-        if: ${{ github.ref_name == 'dev' }} 
+        if: ${{ github.event.inputs.privateBranch == 'dev' }} 
         uses: sudo-bot/action-pull-request-merge@v1.2.0
         with:
           github-token: ${{ secrets.PID_PAT }}
           number: ${{ steps.cpr.outputs.number }}
           filter-label: automerge        
                            
+  create-public-pr:
+        name: Create and Merge Public PR
+        needs: gitsync
+        if: ${{ github.event.inputs.privateBranch == 'main' }} 
+        uses: ./.github/workflows/public-repo-pr.yml
+        with:
+          head: '${{ github.event.inputs.publicBranch }}'
+        secrets: inherit  
