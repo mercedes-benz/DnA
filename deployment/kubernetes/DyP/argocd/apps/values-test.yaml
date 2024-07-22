@@ -4,7 +4,7 @@ server: "https://kubernetes.default.svc"
 env: test
 branch: staging
 namespace: argocd
-enableSync: false
+enableSync: true
 annotations: 
   notifications.argoproj.io/subscribe.on-created.teams: channelName
   notifications.argoproj.io/subscribe.on-deleted.teams: channelName
