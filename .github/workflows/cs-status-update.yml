@@ -88,7 +88,7 @@ jobs:
         with:
           url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.shortid }}/${{ inputs.wsid }}'
           method: 'PUT'
-          headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
+          headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PID_PAT }}"}'
           data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}"}'
           fail_fast: false
           verbose: true
