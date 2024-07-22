@@ -244,5 +244,3 @@ vaultInjector:
               };
       {{- end }}     
   saName: default
-image:
-  tag: '49'
