@@ -149,7 +149,7 @@ jobs:
         with:
           github_token: "${{ secrets.PID_PAT }}"
           github_org: "DNA"
-          github_repository: "dna-codeserver-backend"
+          github_repository: "NeuDnAPlatform"
           github_run_id: "${{ github.run_id }}"
           github_host_api: "https://git.i.mercedes-benz.com/api/v3"
           opensearch_username: "${{ secrets.OPENSEARCH_USERNAME }}"
