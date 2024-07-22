@@ -14,7 +14,7 @@ spec:
     namespace: airflow
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm/helm-official-airflow253
+    path: deployment/kubernetes/helm/charts/helm-offical-airflow253
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
