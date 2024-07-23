@@ -400,7 +400,7 @@ jobs:
           CODE_FOLDER: 'packages/frontend'
           APP_VERSION_FILE_PATH: 'packages/frontend/package.json'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/frontend'
-          YML_IMAGE_TAG_PATH: 'app.appFrontend.image.tag' 
+          YML_IMAGE_TAG_PATH: 'appFrontend.image.tag' 
         secrets: inherit      
   dataentry-mfe:
         name: Dataentry MFE
