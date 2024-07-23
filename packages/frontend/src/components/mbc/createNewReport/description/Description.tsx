@@ -197,7 +197,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const procedureId = e.currentTarget.value;
     const description = this.props.description;
     description.procedureId = procedureId;
-    if(!(procedureId.startsWith(procedureIdEnvs[0]) || procedureId.startsWith(procedureIdEnvs[1]))) {
+    if(!(procedureId?.startsWith(procedureIdEnvs[0]) || procedureId?.startsWith(procedureIdEnvs[1]))) {
       this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1]+'xxx)' });
     }else{
       this.setState({ procedureIdError: '' });
@@ -1001,7 +1001,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     if (this.state.procedureId === procedureIdEnvs[0] || this.state.procedureId === procedureIdEnvs[1]) {
       this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1] + 'xxx)' });
       formValid = false;
-    } else if (!(this.state.procedureId.startsWith(procedureIdEnvs[0]) || this.state.procedureId.startsWith(procedureIdEnvs[1]))) {
+    } else if (!(this.state.procedureId?.startsWith(procedureIdEnvs[0]) || this.state.procedureId?.startsWith(procedureIdEnvs[1]))) {
       this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1] + 'xxx)' });
       formValid = false;
     } else {
