@@ -249,4 +249,4 @@ vaultInjector:
 app:
   appFrontend:
     image:
-      tag: '70'
+      tag: '72'
