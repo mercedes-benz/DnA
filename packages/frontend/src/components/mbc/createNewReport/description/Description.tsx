@@ -34,7 +34,7 @@ import { Envs } from 'globals/Envs';
 import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
-const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX.split(',');
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX?.split(',');
 
 export interface IDescriptionProps {
   reportId?: string;
