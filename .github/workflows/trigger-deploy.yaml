@@ -358,7 +358,7 @@ jobs:
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/trino-backend'
-          DOCKER_FILE_PATH: 'airflow/trinoBackend.Dockerfile'
+          DOCKER_FILE_PATH: 'trinoBackend/trinoBackend.Dockerfile'
           DETECT_PROJECT_NAME: 'trino-backend'
           IS_OVERRIDE_REQUIRED: true
           ENVIRONMENT: ${{ github.event.inputs.environment }}
