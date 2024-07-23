@@ -1,5 +1,7 @@
 namespace: trino
-image: registry-emea.app.corpintra.net/dnaplatform/trino-backend:1.2.4
+image: 
+  repository: registry-emea.app.corpintra.net/dnaplatform/trino-backend
+  tag: 1.2.4
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret

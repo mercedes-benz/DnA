@@ -6,7 +6,9 @@ app:
   backend:
     name: clamav-rest
     replicaCount: 2
-    image: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend:3.1.5
+    image: 
+      repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
+      tag: 3.1.5
     secrets:
       name: oneapi-secrets
       onapiBasicAuthToken: null
