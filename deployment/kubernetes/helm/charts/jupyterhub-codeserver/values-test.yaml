@@ -228,17 +228,7 @@ hub:
     minAvailable: 1
   networkPolicy:
     enabled: true
-    ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: prometheus
-          namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: i3-monitoring  
-      ports:
-        - protocol: TCP
-          port: 8081
+    ingress: []
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -251,7 +241,7 @@ hub:
     allowedIngressPorts: []
   allowNamedServers: true
   namedServerLimitPerUser:
-  authenticatePrometheus: false
+  authenticatePrometheus:
   redirectToServer:
   shutdownOnLogout:
   templatePaths: []
@@ -537,14 +527,14 @@ singleuser:
 
   initContainers:
     - name: copy-pkg-install-sh 
-      image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+      image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
       command:
         - sh
         - '-c'
         - |
             git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
             cd /tmp/recipes
-            git checkout dev
+            git checkout $GIT_BRANCH
             mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
             cp -vr ./template/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
             cp -vr ./template/.bashrc /home/coder/          
@@ -555,7 +545,12 @@ singleuser:
           valueFrom:
             secretKeyRef:
               name: gh-pat
-              key: GH_PAT_TOKEN      
+              key: GH_PAT_TOKEN
+        - name: GIT_BRANCH
+          valueFrom:
+            secretKeyRef:
+              name: gh-pat
+              key: GIT_BRANCH
       volumeMounts:
         - name: "{servername}"
           mountPath: /home/coder
@@ -583,11 +578,11 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-generic
-    tag: "4.89.1"
+    tag: "4.23.1"
     pullPolicy:
     pullSecrets: 
       - name: imagepullsecret
-  startTimeout: 180
+  startTimeout: 360
   cpu:
     limit:
     guarantee:
@@ -606,26 +601,26 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
     - display_name: "React"
       slug: "react"
       description: "Development environment for React  web Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./react/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./react/.bashrc /home/coder/          
@@ -636,7 +631,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN     
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -646,19 +646,19 @@ singleuser:
       slug: "springboot"
       description: "Development environment for Spring Boot Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./springboot/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./springboot/.bashrc /home/coder/          
@@ -669,7 +669,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN        
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH        
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -679,19 +684,19 @@ singleuser:
       slug: "angular"
       description: "Development environment for Angular Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./angular/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./angular/.bashrc /home/coder/          
@@ -702,7 +707,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN       
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH        
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -712,19 +722,19 @@ singleuser:
       slug: "generic"
       description: "Generic development envirnoment with git cloning option"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./generic/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./generic/.bashrc /home/coder/          
@@ -735,7 +745,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN      
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH       
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -745,19 +760,19 @@ singleuser:
       slug: "py-fastapi"
       description: "Development environment for Python fastapi Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./py-fastapi/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./py-fastapi/.bashrc /home/coder/          
@@ -768,7 +783,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN        
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH         
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -778,19 +798,19 @@ singleuser:
       slug: "micronaut"
       description: "Development environment for Micronaut Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./micronaut/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./micronaut/.bashrc /home/coder/          
@@ -801,7 +821,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -811,19 +836,19 @@ singleuser:
       slug: "quarkus"
       description: "Development environment for Quarkus Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./quarkus/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./quarkus/.bashrc /home/coder/          
@@ -834,7 +859,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -844,19 +874,19 @@ singleuser:
       slug: "dash"
       description: "Development environment for Dash Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./dash/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./dash/.bashrc /home/coder/          
@@ -867,7 +897,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -877,19 +912,19 @@ singleuser:
       slug: "streamlit"
       description: "Development environment for Streamlit Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./streamlit/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./streamlit/.bashrc /home/coder/          
@@ -900,7 +935,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -910,19 +950,19 @@ singleuser:
       slug: "vuejs"
       description: "Development environment for Vuejs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./vuejs/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./vuejs/.bashrc /home/coder/          
@@ -933,7 +973,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -943,19 +988,19 @@ singleuser:
       slug: "expressjs"
       description: "Development environment for Expressjs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./expressjs/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./expressjs/.bashrc /home/coder/          
@@ -966,7 +1011,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -976,19 +1026,19 @@ singleuser:
       slug: "nestjs"
       description: "Development environment for Nestjs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./nestjs/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./nestjs/.bashrc /home/coder/          
@@ -999,7 +1049,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1009,30 +1064,39 @@ singleuser:
       slug: "bat-frontend"
       description: "Development environment for BAT frontend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
-                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-                  cd /tmp/recipes
-                  git checkout dev
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-                  cp -vr ./bat-frontend/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/     
-                  cp -vr ./bat-frontend/.bashrc /home/coder/          
-                  cp -vr ./tools/extension/. /home/coder/extension          
-                  chmod +x /home/coder/entrypoint.d/pkg-install.sh       
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./bat-frontend/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/     
+                    cp -vr ./bat-frontend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi       
             env:
               - name: GH_PAT_TOKEN 
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1042,33 +1106,53 @@ singleuser:
       slug: "bat-backend"
       description: "Development environment for BAT backend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
-                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-                  cd /tmp/recipes
-                  git checkout dev
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-                  cp -vr ./bat-backend/entrypoint.d/* /home/coder/entrypoint.d/     
-                  cp -vr ./bat-backend/.bashrc /home/coder/          
-                  cp -vr ./tools/extension/. /home/coder/extension          
-                  chmod +x /home/coder/entrypoint.d/pkg-install.sh       
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./bat-backend/entrypoint.d/* /home/coder/entrypoint.d/     
+                    cp -vr ./bat-backend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension
+                    echo "Copying keycloak realms.."
+                    mkdir -p /opt/keycloak/data/import && mv /home/coder/entrypoint.d/keycloak-bat-realm.json /opt/keycloak/data/import  
+                    mv /home/coder/entrypoint.d/keycloak-qilin-realm.json /opt/keycloak/data/import
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                    echo "Copying init db script"
+                    mkdir -p /docker-entrypoint-initdb.d && mv /home/coder/entrypoint.d/init-db.sql /docker-entrypoint-initdb.d
+                    echo "Copy done"
+                    echo "Exiting init container.."
+                  fi                
             env:
               - name: GH_PAT_TOKEN 
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
+              - name: "{servername}"
+                mountPath: /opt/keycloak/data/import
+              - name: "{servername}"
+                mountPath: docker-entrypoint-initdb.d
             securityContext:
               runAsUser: 1000
         extra_containers:
@@ -1110,7 +1194,7 @@ singleuser:
                 protocol: TCP    
             volumeMounts:
               - name: "{servername}"
-                mountPath: /opt/keycloak/data/import            
+                mountPath: /opt/keycloak/data/import/            
             imagePullPolicy: IfNotPresent
             securityContext:
               runAsUser: 1000
@@ -1133,13 +1217,13 @@ singleuser:
             volumeMounts:
               - name: "{servername}"
                 mountPath: /postgresql/data
-              # - name: "{servername}"
-              #   mountPath: /docker-entrypoint-initdb.d
+              - name: "{servername}"
+                mountPath: /docker-entrypoint-initdb.d
             imagePullPolicy: IfNotPresent
             securityContext:
               runAsUser: 1000
 
-          # Port : 15672
+          # Port : 5672
           - name: rabbitmq
             image: registry-emea.app.corpintra.net/dockerhub/rabbitmq:3.7-management
             env:
@@ -1148,7 +1232,7 @@ singleuser:
               - name: RABBITMQ_DEFAULT_PASS
                 value: admin
             ports:
-              - containerPort: 15672
+              - containerPort: 5672
                 protocol: TCP  
             volumeMounts:
               - name: "{servername}"
@@ -1191,30 +1275,39 @@ singleuser:
       slug: "qilin-frontend"
       description: "Development environment for Qilin frontend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
-                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-                  cd /tmp/recipes
-                  git checkout dev
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-                  cp -vr ./qilin-frontend/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/     
-                  cp -vr ./qilin-frontend/.bashrc /home/coder/          
-                  cp -vr ./tools/extension/. /home/coder/extension          
-                  chmod +x /home/coder/entrypoint.d/pkg-install.sh       
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./qilin-frontend/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/     
+                    cp -vr ./qilin-frontend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi       
             env:
               - name: GH_PAT_TOKEN 
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1224,30 +1317,39 @@ singleuser:
       slug: "qilin-backend"
       description: "Development environment for Qilin backend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
         start_timeout: 180
         http_timeout: 180
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
-                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-                  cd /tmp/recipes
-                  git checkout dev
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-                  cp -vr ./qilin-backend/entrypoint.d/* /home/coder/entrypoint.d/     
-                  cp -vr ./qilin-backend/.bashrc /home/coder/          
-                  cp -vr ./tools/extension/. /home/coder/extension          
-                  chmod +x /home/coder/entrypoint.d/pkg-install.sh       
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./qilin-backend/entrypoint.d/* /home/coder/entrypoint.d/     
+                    cp -vr ./qilin-backend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi       
             env:
               - name: GH_PAT_TOKEN 
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1257,19 +1359,19 @@ singleuser:
       slug: "template"
       description: "Development environment using default template"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./template/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./template/.bashrc /home/coder/          
@@ -1280,7 +1382,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN     
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH      
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1290,19 +1397,19 @@ singleuser:
       slug: "springbootwithmaven"
       description: "Development environment for Spring Boot with Maven Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.89.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
             command:
               - sh
               - '-c'
               - |
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
-                  git checkout dev
+                  git checkout $GIT_BRANCH
                   mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./springbootwithmaven/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./springbootwithmaven/.bashrc /home/coder/          
@@ -1313,7 +1420,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN     
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH      
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1340,6 +1452,140 @@ singleuser:
                 mountPath: /postgresql/data
               # - name: "{servername}"
               #   mountPath: /docker-entrypoint-initdb.d
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+    - display_name: "c4s-vbom"
+      slug: "c4s-vbom"
+      description: "Development environment for c4s-vbom"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./c4s-vbom/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                    cp -vr ./c4s-vbom/.bashrc /home/coder/
+                    cp -vr ./tools/extension/. /home/coder/extension
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi           
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH      
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+        extra_containers:
+          # Port : 5432
+          - name: db
+            image: registry-emea.app.corpintra.net/dockerhub/postgres:15
+            env:
+              - name: POSTGRES_USER
+                value: postgres
+              - name: POSTGRES_PASSWORD
+                value: postgres
+              - name: POSTGRES_DB
+                value: postgres
+              - name: PGDATA
+                value: '/postgresql/data/pgdata'
+            ports:
+              - containerPort: 5432
+                protocol: TCP  
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /postgresql/data
+              # - name: "{servername}"
+              #   mountPath: /docker-entrypoint-initdb.d
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+          # Port : 29092
+          - name: kafka
+            image: registry-emea.app.corpintra.net/dockerhub/bitnami/kafka:3.3
+            env:
+             - name: KAFKA_CFG_BROKER_ID
+               value: "1"
+             - name: KAFKA_CFG_LISTENERS
+               value: "PLAINTEXT://:9092"
+             - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+               value: "localhost:2181"
+             - name: KAFKA_CFG_LOG_DIRS
+               value: "/opt/bitnami/kafka/data"
+             - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+               value: "true"
+             - name: KAFKA_CFG_DELETE_TOPIC_ENABLE
+               value: "true"
+             - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+               value: 'PLAINTEXT:PLAINTEXT'
+             - name: KAFKA_CFG_ADVERTISED_LISTENERS
+               value: 'PLAINTEXT://localhost:9092'
+             - name: KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR
+               value: '1'
+             - name: KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR
+               value: '1'
+             - name: KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+               value: '1'
+            ports:
+              - containerPort: 29092
+                protocol: TCP 
+            # volumeMounts:
+            #   - name: "{servername}"
+            #     mountPath: /opt/bitnami/kafka/data
+            imagePullPolicy: IfNotPresent
+          # Port : 2181               
+          - name: zookeper
+            image: registry-emea.app.corpintra.net/dockerhub/bitnami/zookeeper:3.9
+            env:
+             - name: ZOO_PORT_NUMBER
+               value: '2181'
+             - name: ZOO_TICK_TIME
+               value: '2000'
+             - name: ZOO_SYNC_LIMIT
+               value: "5"
+             - name: ALLOW_ANONYMOUS_LOGIN
+               value: 'yes'
+             - name: ZOO_ENABLE_AUTH 
+               value: 'no'
+            ports:
+              - containerPort: 2181
+                protocol: TCP              
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /bitnami/zookeeper
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+          # Port 6379
+          - name: redis
+            image: registry-emea.app.corpintra.net/dockerhub/redis:7.0.15-alpine
+            ports:
+              - containerPort: 6379
+                protocol: TCP              
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /data
             imagePullPolicy: IfNotPresent
             securityContext:
               runAsUser: 1000
@@ -1609,4 +1855,3 @@ debug:
   enabled: true
 global:
   safeToShowValues: false
-  

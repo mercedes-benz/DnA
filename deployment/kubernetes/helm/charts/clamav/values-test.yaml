@@ -5,7 +5,7 @@ securityContext:
 app:
   backend:
     name: clamav-rest
-    image: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend:5c1da5150100d6e866535ba7367e35ddf13b6f1b
+    image: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend:ec3f8770cc8df03ea2c040592a4a19c85e30ce04
     replicaCount: 1
     secrets:
       name: oneapi-secrets
@@ -53,7 +53,7 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-03-27
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-07-21
   replicaCount: 1
   pullPolicy: Always
 ingress:
@@ -88,8 +88,8 @@ vaultInjector:
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/namespace: fmas/staging
-    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
-    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
