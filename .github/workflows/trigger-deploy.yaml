@@ -349,7 +349,7 @@ jobs:
           CODE_FOLDER: 'packages/airflow-backend'
           APP_VERSION_FILE_PATH: 'packages/airflow-backend/airflow-backend-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/airflow'
-          YML_IMAGE_TAG_PATH: 'image.tag' 
+          YML_IMAGE_TAG_PATH: 'backend.image.tag' 
         secrets: inherit
   trino-backend:
         name: Trino Backend
@@ -358,7 +358,7 @@ jobs:
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/trino-backend'
-          DOCKER_FILE_PATH: 'airflow/trinoBackend.Dockerfile'
+          DOCKER_FILE_PATH: 'trinoBackend/trinoBackend.Dockerfile'
           DETECT_PROJECT_NAME: 'trino-backend'
           IS_OVERRIDE_REQUIRED: true
           ENVIRONMENT: ${{ github.event.inputs.environment }}
@@ -383,7 +383,7 @@ jobs:
           CODE_FOLDER: 'packages/backend'
           APP_VERSION_FILE_PATH: 'packages/backend/dnambc-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/backend'
-          YML_IMAGE_TAG_PATH: 'image.tag' 
+          YML_IMAGE_TAG_PATH: 'app.backend.image.tag' 
         secrets: inherit
   dna-frontend:   ## Code changes are not detected
         name: DNA Frontend
@@ -400,7 +400,7 @@ jobs:
           CODE_FOLDER: 'packages/frontend'
           APP_VERSION_FILE_PATH: 'packages/frontend/package.json'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/frontend'
-          YML_IMAGE_TAG_PATH: 'image.tag' 
+          YML_IMAGE_TAG_PATH: 'app.appFrontend.image.tag' 
         secrets: inherit      
   dataentry-mfe:
         name: Dataentry MFE
@@ -451,7 +451,7 @@ jobs:
           CODE_FOLDER: 'packages/malware-scanner'
           APP_VERSION_FILE_PATH: 'packages/malware-scanner/malwarescan-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/clamav'
-          YML_IMAGE_TAG_PATH: 'image.tag'
+          YML_IMAGE_TAG_PATH: 'app.backend.image.tag'
         secrets: inherit  
   naas:
         name: NAAS
@@ -468,7 +468,7 @@ jobs:
           CODE_FOLDER: 'packages/naas'
           APP_VERSION_FILE_PATH: 'packages/naas/naas-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/naas'
-          YML_IMAGE_TAG_PATH: 'image.tag'
+          YML_IMAGE_TAG_PATH: 'app.backend.image.tag'
         secrets: inherit   
   datalake-mfe:
         name: Datalake MFE

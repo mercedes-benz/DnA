@@ -1,5 +1,7 @@
 namespace: dashboard
-image: registry-emea.app.corpintra.net/dnaplatform/dashboard-backend:6ddf309530553561326e8e16696de665a6349009
+image: 
+  repository: registry-emea.app.corpintra.net/dnaplatform/dashboard-backend
+  tag: 6ddf309530553561326e8e16696de665a6349009
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
