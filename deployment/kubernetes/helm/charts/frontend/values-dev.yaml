@@ -102,7 +102,7 @@ probes:
     port: 3000
 appFrontend:
   replicaCount: 1
-  image: 
+  image:
     repository: registry-emea.app.corpintra.net/dnaplatform/dna-frontend
     tag: 411baaa831a6fd102a0260d93014863647090e82
   ngnix:
@@ -246,3 +246,7 @@ vaultInjector:
               };
       {{- end }}     
   saName: default
+app:
+  appFrontend:
+    image:
+      tag: '70'
