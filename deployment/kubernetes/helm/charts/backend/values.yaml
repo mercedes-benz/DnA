@@ -22,7 +22,9 @@ ingress:
 app:
   backend:
     replicaCount: 1
-    image: backend:latest
+    image:
+      repository: ""
+      tag: ""      
     secrets: 
       name: app-secrets
       notebookSecretToken: ""

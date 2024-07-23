@@ -29,7 +29,7 @@ spec:
       {{- end }}        
       initContainers:
         - name: git-clone-init
-          image: {{ .Values.backend.image }}
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: Always
           env:
             - name: AIRFLOW_GIT_URI
