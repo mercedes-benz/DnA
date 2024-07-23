@@ -27,9 +27,10 @@ on:
       action:
         description: "Action"
         type: choice
-        default: deploy
+        default: build
         required: true  
         options: 
+          - build
           - deploy
           - undeploy
       type:
@@ -56,9 +57,9 @@ env:
 
 jobs:
 
-  deploy:
+  build:
     name: 'Build workspace application'
-    if: ${{ github.event.inputs.action == 'deploy'}}
+    if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'deploy' }}
     environment: ${{ github.event.inputs.environment }}
     runs-on: [road-runner, large]
     steps:
@@ -113,11 +114,14 @@ jobs:
         no_proxy: "artifacts.i.mercedes-benz.com"     
     
     - name: Publish application containers to registry
+      if: ${{ github.event.inputs.action == 'deploy' }}
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
-        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}        
+        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}       
+
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
+      if: ${{ github.event.inputs.action == 'deploy' }}
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
         namespace: 'codespaces-apps'
@@ -138,14 +142,14 @@ jobs:
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
       env:
-        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'       
+        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
   upload-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
     runs-on: [road-runner, medium]
     environment: ${{ github.event.inputs.environment }}
-    needs: deploy
-    if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') }}
+    needs: build
+    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') }}
     steps:    
       - name: Upload GitHub Action workflows logs to opensearch
         uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
@@ -162,11 +166,11 @@ jobs:
 
   statusUpdateDeploy:
     name: Update Status Deploy
-    needs: deploy
-    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'deploy' }}
+    needs: build
+    if: ${{ !cancelled() && (success() || failure())  && ( github.event.inputs.action == 'build' || github.event.inputs.action == 'deploy' ) }}
     uses: ./.github/workflows/cs-status-update.yml
     with:
-      status: '${{ needs.deploy.result }}'
+      status: '${{ needs.build.result }}'
       wsid: '${{ github.event.inputs.wsid }}'
       shortid: '${{ github.event.inputs.shortid }}'
       action: ${{ github.event.inputs.action }}

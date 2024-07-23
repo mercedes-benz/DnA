@@ -42,23 +42,15 @@ jobs:
           echo  "${{ inputs.action }} ${{ inputs.status }}"
 
           case "${{ inputs.action }}_${{ inputs.status }}" in
-
-            create_success)
-              echo "code=CREATED" >> $GITHUB_OUTPUT
-              ;;
-
-            create_failure | create_skipped)
-              echo "code=CREATE_FAILED" >> $GITHUB_OUTPUT
-              ;;
-
-            delete_success)
-              echo "code=DELETED" >> $GITHUB_OUTPUT
-              ;;
-
-            delete_failure | delete_skipped)
-              echo "code=DELETE_FAILED" >> $GITHUB_OUTPUT
-              ;;
             
+            build_success)
+              echo "code=BUILD_SUCCESS" >> $GITHUB_OUTPUT
+              ;;
+
+            build_failure | build_skipped)
+              echo "code=BUILD_FAILED" >> $GITHUB_OUTPUT
+              ;;
+
             deploy_success)
               echo "code=DEPLOYED" >> $GITHUB_OUTPUT
               ;;
