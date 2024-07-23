@@ -105,10 +105,12 @@ jobs:
       run: | 
        docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} \
         --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
+        --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
+        --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
         --build-arg INDEX_URL=https://${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}@artifacts.i.mercedes-benz.com/artifactory/api/pypi/pypi-opensource-virtual/simple \
         -f build.Dockerfile --no-cache ../
       env:
-        no_proxy: "artifacts.i.mercedes-benz.com"        
+        no_proxy: "artifacts.i.mercedes-benz.com"     
     
     - name: Publish application containers to registry
       run: |
@@ -132,10 +134,11 @@ jobs:
             enable: ${{ github.event.inputs.valutInjectorEnable }}
             path: kv/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}
             root_path: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api    
+            root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
       env:
-        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'       
 
   upload-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
@@ -149,7 +152,7 @@ jobs:
         with:
           github_token: "${{ secrets.PID_PAT }}"
           github_org: "DNA"
-          github_repository: "dna-codeserver-backend"
+          github_repository: "NeuDnAPlatform"
           github_run_id: "${{ github.run_id }}"
           github_host_api: "https://git.i.mercedes-benz.com/api/v3"
           opensearch_username: "${{ secrets.OPENSEARCH_USERNAME }}"
@@ -207,3 +210,70 @@ jobs:
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+  sonar-qube-gradle:
+    name: Sonar Qube Scan Gradle
+    needs: deploy
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' }}
+    runs-on: [ medium ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Check user repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.inputs.repo }}
+          token: ${{ secrets.PID_PAT }}
+          ref: ${{ github.event.inputs.branch }}
+          path: workspace-repo
+          github-server-url: "https://git.i.mercedes-benz.com/"           
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 7.4.1      
+          cache-overwrite-existing: true   
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Build and analyze
+        working-directory: ./workspace-repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        # run: ls && chmod +x gradlew && ./gradlew build sonarqube --info
+        run: gradle build sonarqube --info
+
+  sonar-qube-js:
+    name: Sonar Qube Scan Javascript
+    needs: deploy
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' }}
+    runs-on: [ medium ]
+    steps:
+      - name: Check user repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.inputs.repo }}
+          token: ${{ secrets.PID_PAT }}
+          ref: ${{ github.event.inputs.branch }}
+          github-server-url: "https://git.i.mercedes-benz.com/"    
+          fetch-depth: 0       
+
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

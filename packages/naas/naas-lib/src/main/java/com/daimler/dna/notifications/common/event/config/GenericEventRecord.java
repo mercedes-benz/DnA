@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.daimler.data.dto.solution.ChangeLogVO;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,6 +41,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GenericEventRecord implements Serializable {
 
 	private static final long serialVersionUID = -646154079735583154L;
