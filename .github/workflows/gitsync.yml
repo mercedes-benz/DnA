@@ -81,7 +81,7 @@ jobs:
         with:
           github-token: ${{ secrets.PID_PAT }}
           number: ${{ steps.cpr.outputs.number }}
-          filter-label: automerge        
+          filter-label: dev        
                            
   create-public-pr:
         name: Create and Merge Public PR
