@@ -394,7 +394,7 @@ jobs:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-frontend'
           DOCKER_FILE_PATH: 'app/result-frontend.Dockerfile'
           DETECT_PROJECT_NAME: 'dna-frontend'
-          IS_OVERRIDE_REQUIRED: false
+          IS_OVERRIDE_REQUIRED: true
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           IS_REACT_APP: true
           CODE_FOLDER: 'packages/frontend'
