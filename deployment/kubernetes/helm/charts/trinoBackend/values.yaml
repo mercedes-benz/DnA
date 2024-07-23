@@ -3,7 +3,9 @@
 # Declare variables to be passed into your templates.
 
 namespace: trino
-image: ""
+image:
+  repository: trinodb/trino
+  tag: latest
 imagePullPolicy: Always
 imagePullSecret: 
   name: harbor-pull-secrets

@@ -4,6 +4,8 @@ import java.util.Objects;
 import com.daimler.data.dto.solution.TeamMemberVO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
@@ -17,7 +19,7 @@ import javax.validation.constraints.*;
 @ApiModel(description = "Describes a single change log record done on the solution")
 @Validated
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChangeLogVO   {
   @JsonProperty("changeDate")
   private Date changeDate = null;
