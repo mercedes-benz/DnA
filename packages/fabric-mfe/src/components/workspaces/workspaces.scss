@@ -314,6 +314,9 @@ hr {
     }
     .statusContainer {
       margin: 0;
+      button {
+        cursor: unset;
+      }
     }
     .closeCircle, .closeCircle + span {
       color: #e94d47;
@@ -345,11 +348,6 @@ hr {
       flex: 1;
       min-width: 20%;
       max-width: 20%;
-    }
-    .retry {
-      font-size: 13px;
-      padding-left: 10px;
-      color: #acb8c4;
     }
   }
   .footer {
