@@ -66,6 +66,9 @@ const Graph = ({user, hostHistory}) => {
     const [showRefreshModel, setShowRefreshModel] = useState(false);
     const [isSaved, setIsSaved] = useState(true);
     const [showSaveModel, setShowSaveModel] = useState(false)
+    const [showDelWarningModel, setShowDelWarningModel] = useState(false);
+    const [delWarningMsg , setDelWarningMsg] = useState('');
+    const [delTableName, setDelTableName] = useState('')
     useEffect(() => {
       ProgressIndicator.show();
         datalakeApi.getConnectionInfo(id)
@@ -459,6 +462,17 @@ const Graph = ({user, hostHistory}) => {
   }
 
   const handleDeleteTable = (tableName) => {
+    if (project.catalogName === 'iceberg') {
+      setDelWarningMsg('This action will also delete the data inside the table . Are you sure you want to delete ?');
+    } else {
+      setDelWarningMsg(' Are you sure you want to delete ?')
+    }
+    setDelTableName(tableName);
+    setShowDelWarningModel(true)
+
+  }
+
+  const proccedToDelTable = (tableName) => {
     ProgressIndicator.show();
     const projectTemp = {...project};
     const tempTables = projectTemp.tables.filter(item => item.tableName !== tableName);
@@ -975,7 +989,27 @@ const Graph = ({user, hostHistory}) => {
             }));
             dispatch(getProjectDetails(id));
             setShowRefreshModel(false);
-            setIsSaved(true);   
+          }}
+        />
+     }
+     {showDelWarningModel && 
+          <ConfirmModal
+          acceptButtonTitle="Yes"
+          cancelButtonTitle="No"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showDelWarningModel}
+          content={
+            <div id="contentparentdiv">
+             {delWarningMsg}
+            </div>
+          }
+          onCancel={() => {
+            setShowDelWarningModel(false);
+          }}
+          onAccept={() => {
+            proccedToDelTable(delTableName);
+            setShowDelWarningModel(false);
           }}
         />
      }
