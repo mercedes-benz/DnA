@@ -21,7 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-dhc.yaml -n tools
+          value: -f values-{{ .Values.env }}.yaml -n tools
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
