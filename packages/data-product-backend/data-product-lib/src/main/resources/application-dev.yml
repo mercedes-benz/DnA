@@ -1,16 +1,15 @@
 spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
-    name: trinio-registry-service
-    version: 1.3.0
-  profile:
-    active: production
+    name: data-product-service
+    version: 1.1.8
   flyway:
-    enabled: ${FLYWAY_ENABLED:false}
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
-    schemas: ${FLYWAY_SCHEMA:public}   
-        
+    schemas: ${FLYWAY_SCHEMA:public}
+    encoding: ISO-8859-1
+    
   jpa:
     database: POSTGRESQL
     show-sql: false
@@ -26,11 +25,18 @@ spring:
     hikari:
       connection-timeout: 4000
     platform: postgres
-    url: ${API_DB_URL:jdbc:postgresql://XXXXXX:XXXX/XXXX}
-    username: ${API_DB_USER:usernameXXXX}
-    password: ${API_DB_PASS:userpasswordXXXX}
-
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/data_product}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      
+  graphql:
+      path: /api/minified
 
   kafka:
     producer:
@@ -45,60 +51,56 @@ spring:
           password: ${KEYSTORE_PASSWORD:XXXX}
           type: PKCS12
       security:
-          protocol: SSL 
+          protocol: SSL  
   cloud:
     stream:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:XXXX:XXXX}
+          brokers: ${NAAS_BROKER:localhost:9092}
+          
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic              
     
 dna:
   uri: ${DNA_URI:XXXXXX}
   
-kafka:
-  centralTopic:
-    name: dnaCentralEventTopic
-    
+dataproduct:
+  base:
+    url: ${DATAPRODUCT_BASE_URL:XXXXXX}
+  refreshdb: ${DATAPRODUCT_REFRESH_DB:false}
+
+datatransfer:
+  base:
+    url: ${DATATRANSFER_BASE_URL:XXXXXX}
+  refreshdb: ${DATATRANSFER_REFRESH_DB:false}
+
+xapikeydetails:
+  key: ${XPATH_VALUE:XXXX}
+  header: ${XPATH_HEADER:XXXX}
+
+dashboard:
+  uri: ${REPORTS_BASE_URL:XXXXXXX}
+
+planningIT.headers.authorization.token: ${PLANNINGIT_HEADER_AUTH:XXXXXX}
+
 server:
-  port: 7575
+  port: 7184
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+ 
+
       
-minio:
-  baseUri: ${MINIO_BASEURI:http://xxxxx}
-  accessKey: ${MINIO_ACCESSKEY:XXXXX}
-  secretKey: ${MINIO_SECRETKEY:XXXXX}
-
-storage.uri : ${STORAGE_API_BASE_URL:XXXXX}
-
-trino:
-  userauth: ${TRINO_USERAUTH:XXXXX}
-  userid: ${TRINO_USERID:XXXXX}
-  uri: ${TRINO_BASEURI:XXXXX}
-  host: ${TRINO_HOST:XXXXX}
-  port: ${TRINO_PORT:XXXX}
-  user: ${TRINO_USER:XXXXX}
-  password: ${TRINO_PASSWORD:XXXXX}
-  ssl: ${TRINO_SSL:true}
-  sslverification: ${TRINO_SSLVERIFICATION:NONE}
-  catalog:
-    default: ${TRINO_CATALOG:XXXX}
-    iceberg: ${TRINO_ICEBERG_CATALOG:XXXX}
-    delta: ${TRINO_DELTA_CATALOG:XXXX}
-  hadoop.remoteUser: ${TRINO_UNIX_HADOOP_REMOTEUSER:spring}
-  kubernetes:
-    namespace: ${TRINO_KUBE_NAMESPACE:XXXX}
-    configmap: ${TRINO_KUBE_CONFIGMAP:XXXX}
-   
-dataproduct.baseUri: ${DATAPRODUCT_BASEURI:XXXXXX}
-datalake.table2projectCollab.migration: ${TABLE2PROJECT_COLLAB_MIGRATION:false} 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
 management.endpoint.health.probes.enabled: true
 management.endpoint.health.show-details: always
+
+planningit.defaultlimit: 50
 
 logging:
   service:
@@ -114,3 +116,5 @@ logging:
         web:
           client:
             RestTemplate: INFO
+      graphql:
+        servlet: ERROR

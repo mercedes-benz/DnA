@@ -3,8 +3,6 @@ spring:
   application:
     name: dna-fabric-workspace-service
     version: 1.0.2
-  profile:
-    active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}

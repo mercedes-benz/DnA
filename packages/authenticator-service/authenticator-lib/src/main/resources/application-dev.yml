@@ -2,8 +2,7 @@ spring:
   application:
     name: dna-authenticator-service
     version: 1.0.8
-  profile:
-    active: production
+    
   jpa:
     database: POSTGRESQL
     show-sql: false
