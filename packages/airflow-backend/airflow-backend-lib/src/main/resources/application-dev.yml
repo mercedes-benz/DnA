@@ -1,25 +1,21 @@
 spring:
   application:
-    name: dna-dashboard-service
-    version: 3.1.8
-  profile:
-    active: production
+    name: dna-airflow-backend
+    version: 3.2.4
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
-    schemas: ${FLYWAY_SCHEMA:public}
-    
+    schemas: ${FLYWAY_SCHEMA:public}    
   jpa:
     database: POSTGRESQL
-    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         temp:
           use_jdbc_metadata_defaults: false
     hibernate:
-      ddl-auto: none
+     ddl-auto: none
   kafka:
     producer:
     properties:
@@ -33,70 +29,70 @@ spring:
           password: ${KEYSTORE_PASSWORD:XXXX}
           type: PKCS12
       security:
-          protocol: SSL
+          protocol: SSL   
   cloud:
     stream:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}
-          
+          brokers: ${NAAS_BROKER:XXXX:XXXX}        
+
   datasource:
     platform: postgres
-    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dashboard}
-    username: ${API_DB_USER:XXXX_user}
-    password: ${API_DB_PASS:XXXX_pass}
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/airflow_db}
+    username: ${API_DB_USER:airflow_user}
+    password: ${API_DB_PASS:airflow_pass}
     driverClassName: org.postgresql.Driver
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 
 kafka:
   centralTopic:
-    name: dnaCentralEventTopic
-          
-dna:
-  uri: ${DNA_URI:xxxx}
-  dataSource:
-     bulkCreate:
-        api:
-           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
-             
-graphql:
-  servlet:
-    mapping: /api/minified
-    enabled: true
-    corsEnabled: true
-
+    name: dnaCentralEventTopic 
+           
 server:
-  port: 7173
-
+  port: 7171
+  servlet:
+    context-path: /airflow
+    
 #Cors Filter origin Domains  
-allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}    
 
-swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+dna:
+  uri: ${DNA_URI:XXXX} 
+  
+jwt:
+  secret:
+    byPassUrl: ${JWT_BYPASS_URIS:/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
+
+git:
+  uri: ${AIRFLOW_GIT_URI:XXXX}
+  mountPath: ${AIRFLOW_GIT_MOUNTPATH:C:\GITTest\airflow-user-dags}
+  token: ${AIRFLOW_GIT_TOKEN:XXXX}
+  branch: ${AIRFLOW_GIT_BRANCH:master}
+  dagPath: ${DAG_PATH:dags}
+  dagFileExtension: ${DAG_FILE_EXTENSION:py}
+
+dag:
+  menuCreate:
+     waitTime: ${AIRFLOW_DAG_MENU_CREATE_WAIT_TIME:4}
+     reTry: ${AIRFLOW_DAGMENU_CREATE_RETRY:1}
+
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
 management.endpoint.health.probes.enabled: true
 management.endpoint.health.show-details: always
 
+
+abrole.dnauser.rolename: ${ABROLE_DNAUSER_ROLENAME:DnA_User}
+
 logging:
   service:
     environment: ${LOGGING_ENVIRONMENT:DEV}
-    path: ${LOGGING_PATH:/var/log}
+    path: ${LOGGING_PATH:/logs}
   level:
     com:
       daimler:
-        data:
-          application: INFO
+          dna:
+            airflow: ${LOGGING_LEVEL:DEBUG}
     org.springframework.boot.autoconfigure.logging: INFO
-    org:
-      springframework:
-        web:
-          client:
-            RestTemplate: INFO
-      hibernate:
-        type:
-          descriptor:
-            sql: ERROR
-      graphql:
-        servlet: ERROR
-report:
-  update: ${UPDATE_REPORTDATA:XXXX}

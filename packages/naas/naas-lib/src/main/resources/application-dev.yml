@@ -3,8 +3,6 @@ spring:
   application:
     name: notification-service
     version: 3.1.10
-  profile: 
-    active: production
   cache:
     type: redis
   redis:

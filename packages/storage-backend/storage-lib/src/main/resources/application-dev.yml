@@ -2,8 +2,6 @@ spring:
   application:
     name: dna-storage-service
     version: 3.2.14
-  profile:
-    active: production
   cache:
     type: redis
   redis:

@@ -3,8 +3,6 @@ spring:
   application:
     name: dna-codeserver-service
     version: 1.1.27
-  profile:
-    active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
