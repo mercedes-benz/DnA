@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-be
   pullPolicy: IfNotPresent
-  tag: fa860032669a07c71a4fa79854167efe4ddf560d
+  tag: '77'
 namespace: data-product
 imagePullSecrets: []
 nameOverride: ''
