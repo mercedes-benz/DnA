@@ -880,6 +880,12 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			teamMemberVO.setShortId(teamMember.getId());
 			if (teamMember.getUserType() != null)
 				teamMemberVO.setUserType(UserTypeEnum.valueOf(teamMember.getUserType().toUpperCase()));
+			if(teamMember.getIsUseCaseOwner() == null || teamMember.getIsUseCaseOwner() == false){
+				teamMemberVO.setIsUseCaseOwner(false);
+			}
+			else{
+				teamMemberVO.setIsUseCaseOwner(teamMember.getIsUseCaseOwner());
+			}
 		}
 		return teamMemberVO;
 	}
@@ -999,6 +1005,12 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			teamMember.setId(teamMemberVO.getShortId());
 			if (teamMemberVO.getUserType() != null)
 				teamMember.setUserType(teamMemberVO.getUserType().name());
+			if(teamMemberVO.isIsUseCaseOwner() == null || teamMemberVO.isIsUseCaseOwner() == false){
+				teamMember.setIsUseCaseOwner(false);
+			}
+			else{
+				teamMember.setIsUseCaseOwner(teamMemberVO.isIsUseCaseOwner());
+			}
 		}
 		return teamMember;
 	}

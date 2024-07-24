@@ -3,6 +3,7 @@ package com.daimler.data.dto.solution;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -15,7 +16,7 @@ import javax.validation.constraints.*;
  */
 @Validated
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TeamMemberVO   {
   @JsonProperty("shortId")
   private String shortId = null;

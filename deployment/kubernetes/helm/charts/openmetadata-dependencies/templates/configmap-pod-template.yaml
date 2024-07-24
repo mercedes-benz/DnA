@@ -1,0 +1,20 @@
+{{- if .Values.airflow.enabled -}}
+{{- if or (eq .Values.airflow.airflow.executor "KubernetesExecutor") (eq .Values.airflow.airflow.executor "CeleryKubernetesExecutor") -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openmetadata-pod-template
+  labels:
+    app: {{ include "airflow.labels.app" . }}
+    chart: {{ include "airflow.labels.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  pod_template.yaml: |-
+    {{- if .Values.airflow.airflow.kubernetesPodTemplate.stringOverride }}
+    {{- .Values.airflow.airflow.kubernetesPodTemplate.stringOverride | nindent 4 }}
+    {{- else }}
+    {{- tpl (.Files.Get "files/pod_template.kubernetes-helm-yaml") . | nindent 4 }}
+    {{- end }}
+{{- end -}}
+{{- end -}}

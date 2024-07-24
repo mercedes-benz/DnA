@@ -20,6 +20,8 @@ public interface RecipeService {
 
 	List<RecipeLovVO> getAllRecipeLov(String Id);
 
+	GenericMessage createOrValidateSoftwareTemplate(String gitUrl, List<String> softwares);
+
 	// List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit);
 
 	// GenericMessage saveRecipeInfo(String name);

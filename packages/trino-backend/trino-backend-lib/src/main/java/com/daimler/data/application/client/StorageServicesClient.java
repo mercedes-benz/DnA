@@ -120,7 +120,7 @@ public class StorageServicesClient {
 					creatorTrinoSystemUser.setLastName(object.get("lastName").toString());
 					creatorTrinoSystemUser.setDepartment(object.get("department").toString());
 					creatorTrinoSystemUser.setEmail(object.get("email").toString());
-					creatorTrinoSystemUser.setEmail(object.get("mobileNumber").toString());
+					creatorTrinoSystemUser.setMobileNumber(object.get("mobileNumber").toString());
 				}catch(Exception e){
 					log.error("Failed while converting user details with Exception {}:",e.getMessage());
 				}
@@ -215,6 +215,16 @@ public class StorageServicesClient {
 
 			CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
 			creatorAsCollab.setAccesskey(trinoUser);
+			try{
+				JSONObject object = dnaClient.getUserById(trinoUser);
+				creatorAsCollab.setFirstName(object.get("firstName").toString());
+				creatorAsCollab.setLastName(object.get("lastName").toString());
+				creatorAsCollab.setDepartment(object.get("department").toString());
+				creatorAsCollab.setEmail(object.get("email").toString());
+				creatorAsCollab.setEmail(object.get("mobileNumber").toString());
+			}catch(Exception e){
+				log.error("Failed while converting user details with Exception {}:",e.getMessage());
+			}
 			PermissionsDto permissions = new PermissionsDto();
 			permissions.setRead(true);
 			permissions.setWrite(true);
@@ -223,16 +233,16 @@ public class StorageServicesClient {
 
 			CreatedByVO creatorTrinoSystemUser = new CreatedByVO();
 			creatorTrinoSystemUser.setId(trinoUser);
-			try{
-					JSONObject object = dnaClient.getUserById(trinoUser);
-					creatorTrinoSystemUser.setFirstName(object.get("firstName").toString());
-					creatorTrinoSystemUser.setLastName(object.get("lastName").toString());
-					creatorTrinoSystemUser.setDepartment(object.get("department").toString());
-					creatorTrinoSystemUser.setEmail(object.get("email").toString());
-					creatorTrinoSystemUser.setEmail(object.get("mobileNumber").toString());
-				}catch(Exception e){
-					log.error("Failed while converting user details with Exception {}:",e.getMessage());
-				}
+			// try{
+			// 		JSONObject object = dnaClient.getUserById(trinoUser);
+					creatorTrinoSystemUser.setFirstName(creatorAsCollab.getFirstName());
+					creatorTrinoSystemUser.setLastName(creatorAsCollab.getLastName());
+					creatorTrinoSystemUser.setDepartment(creatorAsCollab.getDepartment());
+					creatorTrinoSystemUser.setEmail(creatorAsCollab.getEmail());
+					creatorTrinoSystemUser.setMobileNumber(creatorAsCollab.getMobileNumber());
+				// }catch(Exception e){
+				// 	log.error("Failed while converting user details with Exception {}:",e.getMessage());
+				// }
 			data.setCreatedBy(creatorTrinoSystemUser);
 
 			requestWrapper.setData(data);

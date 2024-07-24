@@ -33,7 +33,7 @@ export const provideDataTransferSlice = createSlice({
       state.isLoading = false;
       state.firstDataLoaded = true;
       state.errors = '';
-      state.pagination.dataProductListResponse = action.payload.data;
+      state.pagination.dataProductListResponse = action.payload.data ? action.payload.data : [] ;
       state.pagination.totalNumberOfPages = totalNumberOfPages;
       state.pagination.currentPageNumber = 1;
     },

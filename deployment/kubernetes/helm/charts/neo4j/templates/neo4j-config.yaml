@@ -1,0 +1,251 @@
+{{- $isEnterprise := required "neo4j.edition must be specified" .Values.neo4j.edition | regexMatch "(?i)enterprise" -}}
+{{- $backupEnabled := false }}
+{{- if $isEnterprise }}
+{{- $backupEnabled = index $.Values.config "server.backup.enabled" | default "true" | regexMatch "(?i)yes|true" }}
+{{- end }}
+{{- $primaryAnalyticsType := and ($.Values.analytics.enabled) (eq $.Values.analytics.type.name "primary") }}
+{{- $secondaryAnalyticsType := and ($.Values.analytics.enabled) (eq $.Values.analytics.type.name "secondary") }}
+{{- $clusterEnabled := eq (include "neo4j.isClusterEnabled" .) "true" }}
+{{- template "neo4j.checkLicenseAgreement" . -}}
+{{- template "neo4j.apocCredentials.validation" . }}
+# Neo4j config values that are required for neo4j to work correctly in Kubernetes, these are not overridden by user-provided values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-k8s-config"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+  server.default_listen_address: "0.0.0.0"
+---
+{{- $confFileName := "neo4j-community.conf" -}}
+{{- if $isEnterprise }}
+  {{- $confFileName = "neo4j-enterprise.conf" -}}
+{{- end }}
+{{- $confFile := .Files.Get $confFileName -}}
+{{- $configImport := .Values.configImport -}}
+# User-provided Neo4j config values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-user-config"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+  {{- /* imported config first */}}
+  {{- with $configImport }}
+  {{- if regexMatch "server\\.jvm\\.additional" . }}
+    {{- fail "server.jvm.additional properties cannot be set in values.configImport. Set additional JVM arguments in values.jvm.additionalJvmArguments." }}
+  {{- end }}
+  {{- include "neo4j.configYaml" . | nindent 2 }}
+  {{- end }}
+
+
+
+  {{- $exists := include "neo4j.ldapPasswordFromSecretExistsOrNot" . }}
+  {{- if eq $exists "true" }}
+  dbms.security.ldap.authorization.system_password: "$(bash -c 'cat {{ .Values.ldapPasswordMountPath }}/LDAP_PASS')"
+  {{- end }}
+
+  {{- /* then explicit config - throw an error if it contains jvm additional */}}
+
+  {{- with .Values.config }}
+  {{- if hasKey . "server.jvm.additional" }}
+    {{- fail "server.jvm.additional properties cannot be set in values.config. Set additional JVM arguments in values.jvm.additionalJvmArguments" }}
+  {{- end }}
+  {{- range $key, $value := . }}
+  {{- if not (kindIs "string" $value) }}
+    {{- cat "config values must be strings." $key "value:" $value "type:" (kindOf $value) " (put values in double quotes so they are treated as strings in yaml)" | fail }}
+  {{- end }}
+  {{- end }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+
+  {{- /* then default jvm config */}}
+  {{- if .Values.jvm.useNeo4jDefaultJvmArguments | or .Values.jvm.additionalJvmArguments }}
+  server.jvm.additional: |-
+  {{- if .Values.jvm.useNeo4jDefaultJvmArguments }}{{ include "neo4j.configJvmAdditionalYaml" $confFile | indent 2 }}{{ end }}
+  {{- range $ignored, $argument := .Values.jvm.additionalJvmArguments }}
+  {{- trim $argument | replace "server.jvm.additional=" "" | trim | nindent 4 }}
+  {{- end }}
+  {{- end }}
+
+---
+# Default Neo4j config values, these are overridden by user-provided values in {{ include "neo4j.fullname" . }}-user-config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-default-config"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+
+  # Neo4j defaults
+  {{- /* TODO: figure out how to use lookup to detect if there is an existing default configMap and require user to explicitly force overwrite */}}
+  {{- include "neo4j.configYaml" $confFile | nindent 2 }}
+
+  # Helm defaults
+  {{- if $clusterEnabled }}
+    {{- $primariesCount := index $.Values.neo4j "minimumClusterSize" }}
+  initial.dbms.default_primaries_count: "{{ $primariesCount }}"
+  dbms.cluster.minimum_initial_system_primaries_count: "{{ $primariesCount }}"
+  {{- end }}
+
+  {{- if $primaryAnalyticsType }}
+  # Config for Primary type analytics instance
+  initial.dbms.default_primaries_count: "1"
+  {{- end }}
+
+  # Bolt keep alive
+  # this helps to ensure that LoadBalancers do not close bolt connections that are in use but appear idle
+  server.bolt.connection_keep_alive: "30s"
+  server.bolt.connection_keep_alive_for_requests: "ALL"
+  server.bolt.connection_keep_alive_streaming_scheduling_interval: "30s"
+
+  # If we set default advertised address it over-rides the bolt address used to populate the browser in a really annoying way
+  # dbms.default_advertised_address: "$(bash -c 'echo ${SERVICE_DOMAIN}')"
+
+  {{- if and $isEnterprise $backupEnabled }}
+  server.backup.listen_address: "0.0.0.0:6362"
+  {{- end }}
+
+
+  # Other
+  internal.dbms.ssl.system.ignore_dot_files: "true"
+
+  {{- if or $clusterEnabled $secondaryAnalyticsType }}
+  # Clustering
+  dbms.cluster.discovery.resolver_type: K8S
+  dbms.kubernetes.service_port_name: "tcp-discovery"
+  dbms.routing.default_router: "SERVER"
+  dbms.routing.client_side.enforce_for_domains: "*.{{ .Values.clusterDomain }}"
+  dbms.routing.enabled: "true"
+  {{- end }}
+
+  {{- if $clusterEnabled }}
+  dbms.kubernetes.label_selector: "app={{ template "neo4j.name" . }},helm.neo4j.com/service=internals,helm.neo4j.com/clustering=true"
+  {{- else if $secondaryAnalyticsType }}
+  # Config for Secondary type analytics instance
+  dbms.kubernetes.label_selector: "app={{ template "neo4j.name" . }},helm.neo4j.com/service=internals"
+  dbms.security.procedures.unrestricted: "gds.*"
+  dbms.security.http_auth_allowlist: "gds.*"
+  dbms.security.procedures.allowlist: "gds.*"
+  server.cluster.system_database_mode: "SECONDARY"
+  initial.server.mode_constraint: "SECONDARY"
+  dbms.cluster.minimum_initial_system_primaries_count: "2"
+  internal.db.cluster.raft.minimum_voting_members: "2"
+  {{- end }}
+
+  # set the below configs in case of cluster or analytics
+  {{- if or $clusterEnabled $.Values.analytics.enabled }}
+  # Because "if we set default advertised address it over-rides the bolt address used to populate the browser in a really annoying way" we have to set the
+  # advertised address for each cluster service individually instead
+  server.bolt.advertised_address: "$(bash -c 'echo ${SERVICE_NEO4J}')"
+  server.discovery.advertised_address: "$(bash -c 'echo ${SERVICE_NEO4J_INTERNALS}')"
+  server.cluster.raft.advertised_address: "$(bash -c 'echo ${SERVICE_NEO4J_INTERNALS}')"
+  server.cluster.advertised_address: "$(bash -c 'echo ${SERVICE_NEO4J_INTERNALS}')"
+  server.routing.advertised_address: "$(bash -c 'echo ${SERVICE_NEO4J_INTERNALS}')"
+  {{- end }}
+
+  {{- if .Values.volumes.logs }}
+  # Logging
+  server.directories.logs: "/logs"
+  {{- end }}
+
+  {{- if $isEnterprise | and .Values.volumes.metrics }}
+  # Metrics
+  server.directories.metrics: "/metrics"
+  {{- end }}
+
+  {{- if .Values.volumes.import }}
+  # Import
+  server.directories.import: "/import"
+  {{- end }}
+
+  # Use more reliable defaults SSL / TLS settings for K8s
+  dbms.ssl.policy.bolt.client_auth: "NONE"
+  dbms.ssl.policy.https.client_auth: "NONE"
+
+  {{- /* https and bolt+ssl specific settings */}}
+  {{- if .Values.ssl.bolt.privateKey.secretName }}
+  server.bolt.tls_level: "REQUIRED"
+  {{- end }}
+
+  {{- if .Values.ssl.https.privateKey.secretName }}
+  server.https.enabled: "true"
+  {{- end }}
+
+  {{- range $name, $sslSpec := .Values.ssl }}
+  {{- if $sslSpec.privateKey.secretName }}
+  # Automatically enable SSL policy for {{ $name }} because privateKey secret is present
+  dbms.ssl.policy.{{ $name }}.enabled: "true"
+  {{- end }}
+  {{- end }}
+
+
+
+---
+{{- if (or $.Values.apoc_config $.Values.apoc_credentials) -}}
+# User-provided Neo4j Apoc config values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-apoc-config"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+  apoc.conf: |-
+    {{- if hasKey . "server.jvm.additional" }}
+      {{- fail "server.jvm.additional properties cannot be set in values.apoc_config. Set additional JVM arguments in values.jvm.additionalJvmArguments" }}
+    {{- end }}
+    {{- range $key, $value := .Values.apoc_config }}
+      {{- if not (kindIs "string" $value) }}
+        {{- cat "config values must be strings." $key "value:" $value "type:" (kindOf $value) " (put values in double quotes so they are treated as strings in yaml)" | fail }}
+      {{- end }}
+     {{- printf "%s=%s" $key $value | nindent 6 }}
+    {{- end }}
+    {{- include "neo4j.apocCredentials.generateConfig" . | nindent 6 }}
+---
+{{- end }}
+# server-logs.xml as configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-server-logs-config"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+  server-logs.xml: |-
+    {{- if not (empty $.Values.logging.serverLogsXml) -}}
+        {{ $.Values.logging.serverLogsXml | nindent 4 }}
+    {{- else -}}
+        {{ .Files.Get "server-logs.xml" | nindent 4 }}
+    {{- end }}
+---
+# user-logs.xml as configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "neo4j.fullname" . }}-user-logs-config"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ template "neo4j.name" $ }}"
+    {{- include "neo4j.labels" $.Values.neo4j | indent 4 }}
+data:
+  user-logs.xml: |-
+    {{- if not (empty $.Values.logging.userLogsXml) -}}
+        {{ $.Values.logging.userLogsXml | nindent 4 }}
+    {{- else -}}
+        {{ .Files.Get "user-logs.xml" | nindent 4 }}
+    {{- end }}
+---

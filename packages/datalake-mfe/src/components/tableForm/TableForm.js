@@ -21,7 +21,6 @@ const TableFormItem = (props) => {
     register,
     unregister,
     control,
-    formState: { errors },
   } = useForm();
   const { remove } = useFieldArray({
     control,
@@ -56,11 +55,7 @@ const TableFormItem = (props) => {
         <div className={Styles.flexLayout}>
           <div
             className={classNames(
-              "input-field-group include-error",
-              errors[`${index}`] !== undefined &&
-                errors[`${index}`].columnName.message
-                ? "error"
-                : ""
+              "input-field-group include-error", field?.errorMessage?.length ? "error" : ""
             )}
           >
             <label className={classNames(Styles.inputLabel, "input-label")}>
@@ -81,16 +76,12 @@ const TableFormItem = (props) => {
                 })}
                 placeholder="Type here"
                 autoComplete="off"
-                maxLength={55}
+                maxLength={54}
                 autoFocus={true}
                 value={field.columnName}
               />
               <span className={classNames("error-message")}>
-                {errors[`${index}`] !== undefined &&
-                  errors[`${index}`].columnName.message}
-                {errors[`${index}`] !== undefined &&
-                  errors[`${index}`].columnName?.type === "pattern" &&
-                  "column names can only consist of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers."}
+                  {field?.errorMessage}
               </span>
             </div>
           </div>
@@ -292,7 +283,7 @@ const TableFormBase = ({ formats }) => {
   );
 };
 
-const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
+const TableForm = ({ setToggle, formats, dataTypes, isSaved, focusTable}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
 
@@ -325,7 +316,7 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
     })
     .catch(() => {
       ProgressIndicator.hide();
-      Notification.show("Error in fetching latest details");
+      Notification.show("Error in fetching latest details",'alert');
     });
 
   }
@@ -333,13 +324,21 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
   const proceedToSubmit = (data, latestData) => {
     const { tableName, tableFormat, tableComment } = data;
     const [x, y] = calcXY([...latestData.tables], box);
+    const updatedColumns = columns.map(column => 
+      Object.keys(column).reduce((acc, key) => {
+        if (key !== 'errorMessage') {
+          acc[key] = column[key];
+        }
+        return acc;
+      }, {})
+    );
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
       description: tableComment,
       xcoOrdinate: x,
       ycoOrdinate: y,
-      columns: [...columns],
+      columns: updatedColumns,
     };
     const projectTemp = { ...latestData };
     if (
@@ -351,7 +350,13 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
         "alert"
       );
       ProgressIndicator.hide();
-    } else {
+    } else if(dataTypes.filter(keyWord => keyWord === tableName.toUpperCase()).length > 0){
+      Notification.show(
+        `Table name cannot be a reserved key word.`,
+        "alert"
+      );
+      ProgressIndicator.hide();
+    }else {
       const columnNames = columns.map((column) => column.columnName);
       if (new Set(columnNames).size !== columnNames.length) {
         Notification.show(
@@ -362,19 +367,37 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
       } else {
         projectTemp.tables = [...projectTemp.tables, tableData];
         setToggle();
-        handlePublish(projectTemp)     
+        handlePublish(projectTemp);
       }
     }
   };
 
+  const validateColumnName = (value) => {
+    const pattern = /^[a-z][a-z0-9_]*$/;
+    const isValid = pattern.test(value);
+    const isKeyWord = dataTypes.filter(keyWord => keyWord === value.toUpperCase());
+    if (value === '') {
+      return "*Missing entry"
+    } else if (isKeyWord.length > 0) {
+      return "column name cannot be a reserved key word";
+    } else if (!isValid) {
+      return "column names can only consist of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers.";
+    } else {
+      return '';
+    }
+  }
+
   const handlePublish = (projectTemp) => {
     const data = {...projectTemp};
     datalakeApi.updateDatalakeProject(project?.id, data).then((res) => {
-      ProgressIndicator.hide();
       dispatch(setTables(res?.data?.data?.tables));
+      setTimeout(() => {
+        ProgressIndicator.hide();
+      }, 500);
       if (res?.data?.response?.warnings?.length) {
         Notification.show(res?.data?.response?.warnings?.[0]?.message, 'warning')
       } else {
+        focusTable(res?.data?.data.tables[res?.data?.data?.tables?.length - 1]); 
         Notification.show('Table published successfully');
       }
       isSaved(true);
@@ -394,6 +417,7 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
       comment: "",
       dataType: "BOOLEAN",
       notNullConstraintEnabled: true,
+      errorMessage:"",
     });
     setFields(newState);
   };
@@ -408,12 +432,29 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
     }
   };
 
+  const isFormValid = () => {
+    const isValid = columns.map( val => val.errorMessage).some( val => val.length > 0);
+    return !isValid;
+
+  }
+
   const onColumnValueChange = (index, value, field) => {
     const cols = [...columns];
-    cols[index] = {
-      ...cols[index],
-      [field]: value,
-    };
+    if(field === 'columnName'){
+      const errorMessage = validateColumnName(value);
+      cols[index] = {
+        ...cols[index],
+        [field]: value,
+        errorMessage: errorMessage
+      };
+    }else{
+      cols[index] = {
+        ...cols[index],
+        [field]: value,
+      };
+
+    }
+    
     setFields(cols);
   };
 
@@ -436,12 +477,13 @@ const TableForm = ({ setToggle, formats, dataTypes, isSaved}) => {
               />
             ))}
         </div>
+        <span className={classNames("error-message")}>{isFormValid() ? '': '*Please ensure that the data is valid before you publish'}</span>
         <div className="drawer-footer">
           <button className="btn btn-primary" onClick={setToggle}>
             Cancel
           </button>
           <button
-            className="btn btn-tertiary"
+            className={classNames("btn btn-tertiary", isFormValid() ? '' : Styles.btndisable)}
             onClick={handleSubmit((values) => onSubmit(values))}
           >
             Publish

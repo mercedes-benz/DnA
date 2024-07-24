@@ -26,6 +26,7 @@ import EditTableForm from '../../components/editTableForm/EditTableForm';
 import DataProductForm from '../../components/dataProductForm/DataProductForm';
 import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
 import { Envs } from '../../utilities/envs';
+import  TableNav from '../../components/tableNav/tableNav';
 
 const Graph = ({user, hostHistory}) => {
     const { id } = useParams();
@@ -88,7 +89,49 @@ const Graph = ({user, hostHistory}) => {
         const hasPermission = project?.collabs?.some(collab => collab.collaborator.id === user.id && collab.hasWritePermission);
         setHasWritePermission(hasPermission);
       }
-    },[project])
+    },[project]);
+    
+    const wheelHandler = e => {
+      let { deltaY, deltaX } = e;
+      const cursor = getSVGCursor(e);
+      let state = JSON.parse(JSON.stringify(box));
+      if (!e.ctrlKey) {
+        if(!(state.w > 4000 && deltaY > 0) && !(state.w < 600 && deltaY < 0)){
+          state.x= state.x + deltaX;
+          state.y= state.y + deltaY;
+        }
+        
+      } else {
+            if(!(state.w > 4000 && deltaY > 0) && !(state.w < 600 && deltaY < 0)){   
+              deltaY = deltaY * 2;
+              deltaX = deltaY * (state.w / state.h);
+              const deltaLimit = 600; 
+              if (deltaY > deltaLimit) {
+                deltaY = deltaY > deltaLimit ? deltaLimit : deltaY;
+                deltaX = deltaY * (state.w / state.h);
+            } else if (deltaY < -deltaLimit) {
+                deltaY = deltaY < -deltaLimit ? -deltaLimit : deltaY;
+                deltaX = deltaY * (state.w / state.h);
+            }
+              state.x= state.x - ((cursor.x - state.x) / state.w) * deltaX;
+              state.y= state.y - ((cursor.y - state.y) / state.h) * deltaY;
+              state.w= state.w + deltaX;
+              state.h = state.h + deltaY;
+
+            }
+      }
+      dispatch(setBox(state));
+
+      e.preventDefault();
+  };  
+  const handlerTableSelected = table => {
+    const svgInfo = svg.current.getBBox();
+    let state = JSON.parse(JSON.stringify(box));
+    state.x = table.xcoOrdinate + svgInfo.x - (table.xcoOrdinate > -16 ? 264 : -table.xcoOrdinate / 2);
+    state.y = svgInfo.y + table.ycoOrdinate + (svgInfo.y < 0 ? 88 : -72);
+    dispatch(setBox(state));
+    setTableSelectId(table.tableName);
+};
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -258,6 +301,21 @@ const Graph = ({user, hostHistory}) => {
         );
       });
     }
+  const onAddTableClick = () => {
+    dispatch(setBox({ 
+      x: 0, 
+      y: 0,
+      w: box.w,
+      h: box.h,
+      clientH: box.clientH,
+      clientW: box.clientW 
+    }));
+    if (isSaved) {
+      setToggleModal(!toggleModal)
+    } else {
+      setShowSaveModel(true)
+    }
+  }
 
     const technicalUserContent = <>
     <FormProvider {...methods}>
@@ -422,6 +480,7 @@ const Graph = ({user, hostHistory}) => {
   const [connectors,setConnectors] = useState([]);
   const [formats, setFormats] = useState([]);
   const [dataTypes, setDataTypes] = useState([]);
+  const [keyWords, setKeyWords] = useState([]);
 
   useEffect(() => {
     if(project.connectorType === 'Iceberg') {
@@ -441,6 +500,7 @@ const Graph = ({user, hostHistory}) => {
     datalakeApi.getConnectors()
       .then((res) => {
         setConnectors(res.data.connectors);
+        setKeyWords(res.data.reserveWords);
         ProgressIndicator.hide();
         SelectBox.defaultSetup();
       })
@@ -668,7 +728,7 @@ const Graph = ({user, hostHistory}) => {
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, (!hasWritePermission) && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { isSaved ? setToggleModal(!toggleModal) : setShowSaveModel(true)}}
+                            onClick={onAddTableClick}
                         >
                             <i className="icon mbc-icon plus" />
                             <span>Add Table</span>
@@ -685,17 +745,22 @@ const Graph = ({user, hostHistory}) => {
                 </div>
             </div>
         </div>
-        <div className={classNames(Styles.content)}>
-          <div className={classNames('graph', fullScreenMode ? Styles.fullscreen : '')}>
-            <svg
-              className="main"
-              viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
-              onMouseDown={mouseDownHandler}
-              onMouseUp={mouseUpHandler}
-              onMouseMove={mouseMoveHandler}
-              // onWheel={wheelHandler}
-              ref={svg}
-            >
+          <div className={classNames(Styles.content)}>
+            <div className={classNames('graph', Styles.graphBox, fullScreenMode ? Styles.fullscreen : '')}>
+              {project?.tables?.length > 0 && <div className={classNames(Styles.tableNav)} >
+                <TableNav tables={project?.tables} onTableSelected={handlerTableSelected} />
+
+              </div>}
+
+              <svg
+                className={classNames('main', Styles.graphSvg)}
+                viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
+                onMouseDown={mouseDownHandler}
+                onMouseUp={mouseUpHandler}
+                onMouseMove={mouseMoveHandler}
+                onWheel={wheelHandler}
+                ref={svg}
+              >
               {project?.tables?.length > 0 && project.tables.map((table, index) => {
                 return (
                     <>
@@ -728,7 +793,7 @@ const Graph = ({user, hostHistory}) => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} isSaved ={(val)=>{setIsSaved(val)}} />}
+            content={<TableForm focusTable={handlerTableSelected} setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} keyWords={keyWords}isSaved ={(val)=>{setIsSaved(val)}} />}
         />
     }
 
