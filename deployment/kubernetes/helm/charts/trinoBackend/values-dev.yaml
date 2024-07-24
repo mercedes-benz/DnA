@@ -1,7 +1,7 @@
 namespace: trino
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-backend
-  tag: '73'
+  tag: '74'
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
