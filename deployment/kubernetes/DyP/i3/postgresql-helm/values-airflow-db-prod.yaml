@@ -332,7 +332,7 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 15Gi
+    size: 45Gi
     # storageClass: cinder
   file:
     name: airflow-backup
