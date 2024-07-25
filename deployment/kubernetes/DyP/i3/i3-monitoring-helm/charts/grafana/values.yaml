@@ -933,7 +933,7 @@ sidecar:
       # disableDelete to activate a import-only behaviour
       disableDelete: false
       # allow updating provisioned dashboards from the UI
-      allowUiUpdates: false
+      allowUiUpdates: true
       # allow Grafana to replicate dashboard structure from filesystem
       foldersFromFilesStructure: false
     # Additional dashboard sidecar volume mounts
