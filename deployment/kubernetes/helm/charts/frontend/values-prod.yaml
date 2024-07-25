@@ -220,6 +220,7 @@ vaultInjector:
           {{- end }}
           {{- end }}
               };
+      {{- end }}        
       {{- with secret "kv/dna/kubernetesSecret/codeSpaceMFE" -}}
           window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
