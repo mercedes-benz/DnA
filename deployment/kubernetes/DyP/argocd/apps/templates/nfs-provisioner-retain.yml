@@ -21,7 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS         
-          value: -f values-retain.yaml -n nfs-sc      
+          value: -f values-retain-{{ .Values.env }}.yaml -n nfs-sc      
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
