@@ -2,15 +2,22 @@ import classNames from 'classnames';
 import React, { useState } from 'react';
 import Modal from 'dna-container/Modal';
 import Styles from './ServiceCard.scss';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const ServiceCard = ({service}) => {
   const [showMoreInfo, setShowMoreInfo] = useState(false);  
+
+  const handleCopyJson = (json) => {
+    navigator.clipboard.writeText(JSON.stringify(json, null, 2)).then(() => {
+      Notification.show('Copied to Clipboard');
+    });
+  }
 
   const moreInfoContent = (
     <div className={Styles.modal}>
       <div className={Styles.header}>
         <h3>{service?.serviceName} <span>v{service?.version}</span></h3>
-        <div className={Styles.copyJSON}><i className="icon mbc-icon copy"></i> Copy JSON</div>
+        <div className={Styles.copyJSON} onClick={() => handleCopyJson(service?.additionalProperties)}><i className="icon mbc-icon copy"></i> Copy JSON</div>
       </div>
       <div className={Styles.content}>
         {service?.additionalProperties?.env &&
@@ -65,11 +72,26 @@ const ServiceCard = ({service}) => {
         <div className={classNames(Styles.cardHeadInfo)}>
           <div className={classNames(Styles.cardHeadTitle)}>
             <i className="icon mbc-icon tools-mini"></i> {service?.serviceName} {service?.version}
-            <span><i className="icon mbc-icon copy"></i> Copy JSON</span>
+            <span onClick={() => handleCopyJson(service?.additionalProperties)}><i className="icon mbc-icon copy"></i> Copy JSON</span>
           </div>
         </div>
       </div>
       <div className={Styles.cardBodySection}>
+        {service?.additionalProperties?.env &&
+          <div className={classNames(Styles.itemContainer)}>
+            {service?.additionalProperties?.name && 
+              <div className={classNames(Styles.item)}>
+                <p className={classNames(Styles.name)}>
+                  Name
+                </p>
+                <p className={classNames(Styles.value)}>
+                  {service?.additionalProperties?.name}
+                </p>
+              </div>
+            }
+          </div>
+        }
+
         {service?.additionalProperties?.env &&
           <div className={classNames(Styles.itemContainer)}>
             <p className={classNames(Styles.itemTitle)}>Env(s)</p>
