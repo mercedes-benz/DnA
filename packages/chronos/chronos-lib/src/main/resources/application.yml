@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.4.5
+    version: 1.4.6
   kafka:
     bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:
