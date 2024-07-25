@@ -253,6 +253,33 @@ paths:
         500:
           description: "Internal error"
 
+  /recipeDetails/additionalServiceLov:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get all additional service Lov of recipes "
+      description: "Get all additional service Lov in codespace"
+      operationId: "GetAllAdditionalServiceLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InitializeAdditionalServiceLovVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /recipeDetails/recipelov:
     get:
       tags:
@@ -430,6 +457,10 @@ definitions:
         type: array
         items:
           type: string
+      additionalServices:
+        type: array
+        items:
+          type: string
       createdOn:
         type: string
         format: date
@@ -542,7 +573,104 @@ definitions:
       warnings:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription" 
+          $ref: "#/definitions/MessageDescription"
+  
+  InitializeAdditionalServiceLovVo:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/AdditionalServiceLovVo"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  AdditionalServiceLovVo:
+    type: object
+    properties:
+      serviceName:
+        type: string
+        description: "name of additional service"
+      version:
+        type: string
+        description: "version of additional service"
+      additionalProperties:
+        type: object
+        items:
+          $ref: "#/definitions/AdditionalPropertiesVO"
+
+  PortVO:
+    type: object
+    properties: 
+      protocol:
+        type: string
+        description: "name of protocol"
+      containerPort:
+        type: integer
+        description: "port number of container"
+
+  SecurityContextVO:
+    type: object
+    properties: 
+      runAsUser:
+        type: integer
+        description: "value of user"
+
+  VolumeMountsVO:
+    type: object
+    properties: 
+      name:
+        type: string
+        description: "name of server"
+      mountPath:
+        type: string
+        description: "path of the mount"
+
+  EnvVO:
+    type: object
+    properties: 
+      name:
+        type: string
+        description: "name of environment variables"
+      value:
+        type: string
+        description: "values of environment variables"
+
+  AdditionalPropertiesVO:
+    type: object
+    properties: 
+      image:
+        type: string
+        description: "image"
+      args:
+        type: array
+        items:
+          $ref: "#/definitions/String"
+      env:
+        type: array
+        items:
+          $ref: "#/definitions/EnvVO"
+      ports:
+        type: array
+        items:
+          $ref: "#/definitions/PortVO"
+      volumeMounts:
+        type: array
+        items:
+          $ref: "#/definitions/VolumeMountsVO"
+      imagePullPolicy:
+        type: string
+      securityContext:
+        $ref: "#/definitions/SecurityContextVO"
+           
 
   RecipeLovVO:
     type: object
@@ -563,6 +691,19 @@ definitions:
       maxCpu:
         type: string
 
+  AdditionalServiceCollectionVo:
+    type: object
+    properties: 
+      serviceName:
+        type: string
+        description: "name of the service"
+      version:
+        type: string
+        description: "name of the service"
+      additionalProperties:
+        type: array
+        items:
+          $ref: "#/definitions/AdditionalPropertiesVO"
 
   SoftwareCollection:
     type: object
