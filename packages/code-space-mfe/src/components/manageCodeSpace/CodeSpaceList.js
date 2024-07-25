@@ -4,7 +4,8 @@ import Styles from './CodeSpaceList.scss';
 // import { ICodeCollaborator } from 'globals/types';
 import { history } from '../../store';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import { Notification, ProgressIndicator } from '../../common/modules/uilab/bundle/js/uilab.bundle';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 // import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import Modal from 'dna-container/Modal';
@@ -37,9 +38,16 @@ const CodeSpaceList = (props) => {
     props?.software && props?.software?.length
       ? props?.software?.map((chip) => {
         return (
-          <>
-            <label className="chips">{chip}</label>&nbsp;&nbsp;
-          </>
+          <label key={chip} className={classNames('chips', Styles.chips)}>{chip}</label>
+        );
+      })
+      : 'N/A';
+
+  const chipsAdditionalServices =
+    props?.additionalServices && props?.additionalServices?.length
+      ? props?.additionalServices?.map((chip) => {
+        return (
+          <label key={chip.serviceName} className={classNames('chips', Styles.chips)}>{chip?.serviceName} {chip?.version}</label>
         );
       })
       : 'N/A';
@@ -103,7 +111,7 @@ const CodeSpaceList = (props) => {
         className={classNames('data-row', Styles.securityConfigRow)}
       >
         <td className={'wrap-text ' + classNames(Styles.securityConfigName)}>
-          <div className={Styles.securityConfigNameDivide} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{props.projectName} </div>
+          <div className={Styles.securityConfigNameDivide} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{props.projectName}</div>
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol}>
           <span className={Styles.securityConfig} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
@@ -114,6 +122,11 @@ const CodeSpaceList = (props) => {
         <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
           {chips}
         </td>
+
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+          {chipsAdditionalServices}
+        </td>
+
         <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
           <span>{props.isPublic ? "Yes" : 'No'}</span>
         </td>
@@ -130,20 +143,21 @@ const CodeSpaceList = (props) => {
 
         </td>
       </tr>
-      {viewInfoModel && (<Modal
-        title={''}
-        hiddenTitle={true}
-        showAcceptButton={false}
-        showCancelButton={false}
-        modalWidth="60vw"
-        buttonAlignment="right"
-        show={viewInfoModel}
-        content={<ViewRecipe recipeName={props.projectName} />}
-        onCancel={() => {
-          setviewInfoModel(false);
-        }}
-      />)}
-
+      {viewInfoModel && (
+        <Modal
+          title={''}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth="60vw"
+          buttonAlignment="right"
+          show={viewInfoModel}
+          content={<ViewRecipe recipeName={props.projectName} />}
+          onCancel={() => {
+            setviewInfoModel(false);
+          }}
+        />
+      )}
     </React.Fragment>
   );
 };
