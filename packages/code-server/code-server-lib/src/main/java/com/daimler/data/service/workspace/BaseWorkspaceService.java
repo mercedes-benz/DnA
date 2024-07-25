@@ -64,9 +64,11 @@ import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.UserInfo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+import com.daimler.data.dto.AdditionalPropertiesDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
@@ -134,6 +136,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Autowired
 	 private UserStore userStore;
 	
+	@Autowired
+	private WorkspaceCustomAdditionalServiceRepo additionalServiceRepo;
+
 	@Autowired
 	private WorkspaceCustomRecipeRepo workspaceCustomRecipeRepo;
 
@@ -733,7 +738,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
 			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
 			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
-			
 			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
@@ -764,6 +768,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setWsid(ownerwsid);
 			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
+			List<String> extraContainers = new ArrayList<>();
+			List<String> additionalServices =  vo.getProjectDetails().getRecipeDetails().getAdditionalServices();
+			if (additionalServices != null) {
+				for (String additionalService : additionalServices) {
+					String additionalServiceEnv = additionalServiceRepo.findByServiceName(additionalService);
+					if(!additionalServiceEnv.isEmpty()) {
+						StringBuffer addStringBuffer =  new StringBuffer();
+						addStringBuffer.append(additionalServiceEnv);
+						addStringBuffer.deleteCharAt(0);
+						addStringBuffer.deleteCharAt(addStringBuffer.length()-1);
+						extraContainers.add(addStringBuffer.toString());
+					}
+				}
+			}
+		  	ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			String codespaceName = vo.getProjectDetails().getProjectName();
 			List<String> softwares = vo.getProjectDetails().getRecipeDetails().getSoftware();
@@ -771,7 +790,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			if (softwares != null) {
 				uniqueSoftwares.addAll(softwares);
 			}
-
 			String instructionSet = "";
 			for (String addInfo : uniqueSoftwares) {
 				String additionalInfo = workspaceCustomRecipeRepo.findBySoftwareName(addInfo);
