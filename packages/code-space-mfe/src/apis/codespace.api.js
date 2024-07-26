@@ -133,8 +133,14 @@ const createCodeSpaceRecipe = (data) => {
         data,
     );
 };
+
+const editCodeSpaceRecipe = (id, data) => {
+    return server.put(`recipeDetails/${id}`, 
+        data,
+    );
+};
   
-const getCodeSpaceRecipeRequests = () => {
+const getCodeSpaceRecipes = () => {
     return server.get(`recipeDetails`, {
         data: {},
     });
@@ -290,7 +296,8 @@ export const CodeSpaceApiClient = {
     getRolesMappings,
     addCodeSpaceRequest,
     createCodeSpaceRecipe,
-    getCodeSpaceRecipeRequests,
+    editCodeSpaceRecipe,
+    getCodeSpaceRecipes,
     getCodeSpaceRecipe,
     getRecipeLov,
     deleteCodeSpaceRecipe,
