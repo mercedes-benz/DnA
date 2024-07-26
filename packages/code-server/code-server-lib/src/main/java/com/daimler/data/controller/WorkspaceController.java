@@ -821,6 +821,7 @@ import org.springframework.beans.factory.annotation.Value;
 		newRecipeVO.setSoftware(recipeData.getSoftware());
 		newRecipeVO.setToDeployType(recipeData.getToDeployType());
 		newRecipeVO.setGitPath(recipeData.getGitPath());
+		newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
 		 newRecipeVO.setRamSize(RamSizeEnum._1);
 		 reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);

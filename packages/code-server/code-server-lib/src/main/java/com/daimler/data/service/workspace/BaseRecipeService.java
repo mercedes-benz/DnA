@@ -180,12 +180,14 @@ public class BaseRecipeService implements RecipeService{
 			{
 				String repoName = null;
 				String gitUrl = null;
+				String applicationName = null;
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
+				applicationName = codespaceSplitValues[length-2];
 				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-1], "");
-				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-2], "");
-            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName);
+				gitUrl = gitUrl.replace("/"+codespaceSplitValues[length-2], "");
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName,applicationName);
 
 				if(!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription msg = new MessageDescription();

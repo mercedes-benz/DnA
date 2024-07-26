@@ -20,5 +20,6 @@ public class AdditionalPropertiesDto implements Serializable {
     private List<VolumeMount> volumeMounts;
     private String imagePullPolicy;
     private String image;
+    private String name;
     private SecurityContext securityContext;
 }
