@@ -4,7 +4,7 @@ secret: []
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-backend
   pullPolicy: IfNotPresent
-  tag: 11d6e9ae0ec87592eeb069db362a33a58565bf82
+  tag: '77'
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: matomo-be

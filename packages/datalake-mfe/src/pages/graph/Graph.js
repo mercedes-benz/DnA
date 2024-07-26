@@ -989,7 +989,27 @@ const Graph = ({user, hostHistory}) => {
             }));
             dispatch(getProjectDetails(id));
             setShowRefreshModel(false);
-            setIsSaved(true);   
+          }}
+        />
+     }
+     {showDelWarningModel && 
+          <ConfirmModal
+          acceptButtonTitle="Yes"
+          cancelButtonTitle="No"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showDelWarningModel}
+          content={
+            <div id="contentparentdiv">
+             {delWarningMsg}
+            </div>
+          }
+          onCancel={() => {
+            setShowDelWarningModel(false);
+          }}
+          onAccept={() => {
+            proccedToDelTable(delTableName);
+            setShowDelWarningModel(false);
           }}
         />
      }
