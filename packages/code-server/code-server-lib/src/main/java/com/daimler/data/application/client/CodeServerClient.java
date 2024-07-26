@@ -258,7 +258,8 @@ public class CodeServerClient {
 			+ "\", \"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
 			+ "\", \"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\", \"cpu_limit\": "
 			+ manageDto.getInputs().getCpu_limit() + ", \"cpu_guarantee\": "
-			+ manageDto.getInputs().getCpu_guarantee() + "}";
+			+ manageDto.getInputs().getCpu_guarantee() + ",\"extra_containers\": "
+			+ manageDto.getInputs().getExtraContainers() + "}";
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
