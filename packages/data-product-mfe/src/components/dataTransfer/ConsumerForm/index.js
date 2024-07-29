@@ -222,7 +222,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
       const consumerFormValues = {
       consumerInformation: {
         contactInformation: {
-          appId: values.leanIX.appId,
+          appId: values.LeanIXappId,
           leanIXDetails: values.leanIX.leanIXDetails,
           department: values.department?.toString(),
           division,

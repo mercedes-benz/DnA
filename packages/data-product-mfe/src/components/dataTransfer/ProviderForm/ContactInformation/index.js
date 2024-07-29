@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
 // import dayjs from 'dayjs';
-import { debounce } from 'lodash';
+//import { debounce } from 'lodash';
 
 const ContactInformation = ({ 
   // onSave, 
@@ -47,7 +47,7 @@ const ContactInformation = ({
     department,
     complianceOfficer: selectedcomplianceOfficer,
     name,
-    leanIX,
+    //leanIX,
     informationOwner,
     // productOwner,
   } = watch();
@@ -60,8 +60,8 @@ const ContactInformation = ({
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
 
-  const [planningITList, setPlanningITList] = useState([]);
-  const [selectedPlanningIT, setSelectedPlanningIT] = useState([]);
+ // const [planningITList, setPlanningITList] = useState([]);
+ // const [selectedPlanningIT, setSelectedPlanningIT] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
@@ -70,6 +70,7 @@ const ContactInformation = ({
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
   // const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
   // const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
+  const [appIDError, setAppIdError] = useState('');
 
   // const minDate = dayjs().format();
 
@@ -143,11 +144,11 @@ const ContactInformation = ({
     }
   }, [selectedcomplianceOfficer]);
 
-  useEffect(() => {
-    if (leanIX?.appId?.length) {
-      setSelectedPlanningIT(leanIX);
-    }
-  }, [leanIX]);
+  // useEffect(() => {
+  //   if (leanIX?.appId?.length) {
+  //     setSelectedPlanningIT(leanIX);
+  //   }
+  // }, [leanIX]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -221,24 +222,25 @@ const ContactInformation = ({
   //   setProductOwnerFieldValue(name);
   // }
 
-  const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
-    if (searchTerm.length > 3) {
-      showSpinner(true);
-      dataTransferApi
-        .getPlanningIT(searchTerm)
-        .then((res) => {
-          setPlanningITList(res.data.data || []);
-          showSpinner(false);
-        })
-        .catch((e) => {
-          showSpinner(false);
-          Notification.show(
-            e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
-            'alert',
-          );
-        });
-    }
-  }, 500);
+  // const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
+  //   if (searchTerm.length > 3) {
+  //     showSpinner(true);
+  //     dataTransferApi
+  //       .getPlanningIT(searchTerm)
+  //       .then((res) => {
+  //         setPlanningITList(res.data.data || []);
+  //         showSpinner(false);
+  //       })
+  //       .catch((e) => {
+  //         showSpinner(false);
+  //         Notification.show(
+  //           e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+  //           'alert',
+  //         );
+  //       });
+  //   }
+  // }, 500);
+  console.log(errors);
 
   return (
     <>
@@ -503,7 +505,7 @@ const ContactInformation = ({
                   )}
                 />
               </div>
-              <div className={classNames('input-field-group')}>
+              {/* <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
                   name="leanIX"
@@ -547,7 +549,32 @@ const ContactInformation = ({
                     />
                   )}
                 />
-              </div>
+              </div> */}
+              <div className={classNames('input-field-group include-error', appIDError ? 'error' : '')}>
+                  <label id="leanIX" htmlFor="leanIXInput" className="input-label">
+                  LeanIX App-ID
+                  </label>
+                  <input
+                     {...register('LeanIXappId', {
+                      onChange: (e)=>{
+                        const value = e.target.value;
+                        if(!value || !value.startsWith('APP-') || value.length <= 4){
+                          setAppIdError("Enter a valid App-ID starting with 'APP-'");
+                        }else{
+                          setAppIdError("");
+                        }
+                      },
+                    })}
+                    type="text"
+                    className="input-field"
+                    id="LeanIXappId"
+                    placeholder="Enter App-ID"
+                    autoComplete="off"
+                  />
+                  <span className={classNames('error-message', appIDError ? '' : 'hide')}>
+                    {appIDError}
+                  </span>
+                </div>
             </div>
           </div>
         </div>
