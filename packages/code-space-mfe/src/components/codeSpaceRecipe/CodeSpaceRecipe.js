@@ -299,6 +299,7 @@ const CodeSpaceRecipe = (props) => {
         osname: 'Debian-OS-11',
         plugins: ['string'],
         recipeName: recipeName,
+        recipeId: recipeName?.replace(/\s+/g, ''),
         recipeType: recipeType,
         repodetails: gitUrl,
         software: software,
