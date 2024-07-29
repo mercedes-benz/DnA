@@ -433,8 +433,16 @@ public class DataProductController implements DataproductsApi{
 			orderedDataProducts.addAll(unPublishedDataProducts);
 			log.info("DataProducts fetched successfully");
 			if (!ObjectUtils.isEmpty(orderedDataProducts)) {
-				dataProductCollection.setTotalCount(count.intValue());
-				List<DataProductVO> paginatedDataproducts = orderedDataProducts.subList(offset, offset+limit);
+				int countIntVal = count.intValue();
+                dataProductCollection.setTotalCount(countIntVal);
+                if(offset>countIntVal) {
+                    offset = 0;
+                }
+                limit = offset + limit;
+                if(limit >countIntVal) {
+                    limit = countIntVal;
+                }
+                List<DataProductVO> paginatedDataproducts = orderedDataProducts.subList(offset, limit);
 				dataProductCollection.setRecords(paginatedDataproducts);
 				return new ResponseEntity<>(dataProductCollection, HttpStatus.OK);
 			} else {
