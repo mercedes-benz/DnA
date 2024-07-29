@@ -1121,7 +1121,7 @@ definitions:
       status:
         type: string
         enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED"]
-        description: "Status of workspace job action create/delete/deploy request"
+        description: "Status of workspace job action create/delete/deploy/restart request"
       targetEnvironment:
         type: string
       branch:
