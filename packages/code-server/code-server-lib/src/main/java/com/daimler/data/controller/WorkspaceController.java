@@ -2390,7 +2390,10 @@ import org.springframework.beans.factory.annotation.Value;
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
 			GenericMessage responseMsg = service.restartWorkspace(userId, id, env);
-				log.info("User {} restarted  workspace {} project {}", userId, vo.getWorkspaceId(),
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+			}
+			log.info("User {} restarted  workspace {} project {}", userId, vo.getWorkspaceId(),
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
