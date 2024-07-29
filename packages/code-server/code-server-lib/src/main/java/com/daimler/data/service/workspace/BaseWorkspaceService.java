@@ -1703,7 +1703,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					// }
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
-					deploymentDetails.setDeploymentUrl(null);
+					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
+						deploymentDetails.setDeploymentUrl(null);
+					}
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs != null && !auditLogs.isEmpty()) {
