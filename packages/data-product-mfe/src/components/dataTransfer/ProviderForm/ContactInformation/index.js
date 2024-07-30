@@ -70,7 +70,6 @@ const ContactInformation = ({
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
   // const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
   // const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
-  const [appIDError, setAppIdError] = useState('');
 
   // const minDate = dayjs().format();
 
@@ -83,8 +82,8 @@ const ContactInformation = ({
         if (!dirtyFields.division && !dirtyFields.subDivision) {
           let selected = isDataProduct
             ? provideDataTransfers?.selectedDataProduct
-            : provideDataTransfers.selectedDataTransfer;
-          setValue('subDivision', selected.subDivision);
+            : provideDataTransfers?.selectedDataTransfer;
+          setValue('subDivision', selected?.subDivision);
         } else {
           setValue('subDivision', '0');
         }
@@ -550,19 +549,15 @@ const ContactInformation = ({
                   )}
                 />
               </div> */}
-              <div className={classNames('input-field-group include-error', appIDError ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.LeanIXappId ? 'error' : '')}>
                   <label id="leanIX" htmlFor="leanIXInput" className="input-label">
                   LeanIX App-ID
                   </label>
                   <input
                      {...register('LeanIXappId', {
-                      onChange: (e)=>{
-                        const value = e.target.value;
-                        if(!value || !value.startsWith('APP-') || value.length <= 4){
-                          setAppIdError("Enter a valid App-ID starting with 'APP-'");
-                        }else{
-                          setAppIdError("");
-                        }
+                      pattern: {
+                        value: /^APP-[\w]+$/,
+                        message: "Enter a valid App-ID starting with 'APP-'"
                       },
                     })}
                     type="text"
@@ -571,8 +566,8 @@ const ContactInformation = ({
                     placeholder="Enter App-ID"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message', appIDError ? '' : 'hide')}>
-                    {appIDError}
+                  <span className={classNames('error-message',  errors?.LeanIXappId  ? '' : 'hide')}>
+                    { errors?.LeanIXappId?.message }
                   </span>
                 </div>
             </div>
