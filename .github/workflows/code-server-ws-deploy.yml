@@ -222,7 +222,7 @@ jobs:
         
       - uses: actions-hub/kubectl@v1.30.3
         env:
-          KUBE_CONFIG: ${{ steps.KUBECONFIG_BASE64 }}
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG_BASE64 }}
         with:
           args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=codespaces-apps
 
