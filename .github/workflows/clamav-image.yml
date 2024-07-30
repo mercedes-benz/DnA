@@ -65,7 +65,7 @@ jobs:
         needs: build
         uses: ./.github/workflows/consec.yaml
         with:
-          FULL_IMAGE_NAME: ${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}
+          FULL_IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}'
         secrets: inherit
 
   staging:
