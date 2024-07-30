@@ -408,6 +408,12 @@ definitions:
         type: string
       assignEntitlementsState:
         type: string
+      roleOwner:
+        type: string
+      globalRoleAssigner:
+        type: string
+      roleApprover:
+        type: string
       entitlements:
         type: array
         items:
