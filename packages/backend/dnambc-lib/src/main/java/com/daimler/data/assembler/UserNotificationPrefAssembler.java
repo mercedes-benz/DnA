@@ -87,6 +87,18 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreference dataEntryNotificationPrefJson = data.getDataEntryNotificationPref();
 				NotificationPreferenceVO dataEntryNotificationPrefVO = this.toNotificationPrefVO(dataEntryNotificationPrefJson);
 				vo.setDataEntryNotificationPref(dataEntryNotificationPrefVO);
+
+				NotificationPreference useCaseOwnerNotificationPrefJson = data.getUseCaseOwnerNotificationPref();
+				NotificationPreferenceVO useCaseOwnerNotificationPrefVO = this.toNotificationPrefVO(useCaseOwnerNotificationPrefJson);
+				if(useCaseOwnerNotificationPrefJson != null) {
+					useCaseOwnerNotificationPrefVO.setEnableAppNotifications(useCaseOwnerNotificationPrefJson.isEnableAppNotifications());
+					useCaseOwnerNotificationPrefVO.setEnableEmailNotifications(useCaseOwnerNotificationPrefJson.isEnableEmailNotifications());
+				}
+				else {
+					useCaseOwnerNotificationPrefVO.setEnableAppNotifications(false);
+					useCaseOwnerNotificationPrefVO.setEnableEmailNotifications(true);
+				}
+				vo.setUseCaseOwnerNotificationPref(useCaseOwnerNotificationPrefVO);
 				
 				vo.setUserId(data.getUserId());
 			}
@@ -137,6 +149,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setDataLakeNotificationPref(dataLakeNotificationPreference);
 			NotificationPreference dataEntryNotificationPreference = this.toNotificationPrefJson(vo.getDataEntryNotificationPref());
 			userNotificationPreferenceJsonb.setDataEntryNotificationPref(dataEntryNotificationPreference);
+			NotificationPreference useCaseOwnerPreference = this.toNotificationPrefJson(vo.getUseCaseOwnerNotificationPref());
+			userNotificationPreferenceJsonb.setUseCaseOwnerNotificationPref(useCaseOwnerPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);

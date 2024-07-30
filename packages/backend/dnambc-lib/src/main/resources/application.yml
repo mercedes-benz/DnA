@@ -96,6 +96,7 @@ notification:
       airflowNotificationPref: ${DEFAULT_EMAIL_AIRFLOW_NOTIFICATION_PREF:false}
       dataLakeNotificationPref: ${DEFAULT_EMAIL_DATALAKE_NOTIFICATION_PREF:false}
       dataEntryNotificationPref: ${DEFAULT_EMAIL_DATAENTRY_NOTIFICATION_PREF:false}
+      useCaseOwnerNotificationPref: ${DEFAULT_EMAIL_USE_CASE_OWNER_NOTIFICATION_PREF:true}
   app:
       solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:true}
       notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:true}
@@ -108,6 +109,7 @@ notification:
       airflowNotificationPref: ${DEFAULT_APP_AIRFLOW_NOTIFICATION_PREF:true}
       dataLakeNotificationPref: ${DEFAULT_APP_DATALAKE_NOTIFICATION_PREF:true}
       dataEntryNotificationPref: ${DEFAULT_APP_DATAENTRY_NOTIFICATION_PREF:true}
+      useCaseOwnerNotificationPref: ${DEFAULT_APP_USE_CASE_OWNER_NOTIFICATION_PREF:false}
 graphql:
   servlet:
     mapping: /api/minified

@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.solution.DataValueCalculator;
@@ -61,9 +62,12 @@ import com.daimler.data.dto.solution.DataValueCalculatorVO;
 import com.daimler.data.dto.solution.DataVolumeVO;
 import com.daimler.data.dto.solution.SolutionLocationVO;
 import com.daimler.data.dto.solution.SolutionPhaseVO;
+import com.daimler.data.dto.NotifyTeamMemberVO;
 import com.daimler.data.dto.solution.ValueFactorSummaryVO;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.daimler.data.dto.SolutionNotifyTeamMemberVO;
 
 @Repository
 public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<SolutionNsql, String>
@@ -328,6 +332,19 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				+ getSolutionTypePredicateString(solutionType, userId, bookmarkedSolutions) + "\n";
 	}
 
+	public String buildPredicateStringForEmail(Boolean published, List<String> phases, List<String> dataVolumes,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook) {
+
+		return getPublishPredicateString(published, userId, isAdmin, divisionsAdmin) + "\n"
+				+ getDivisionsPredicateString(divisions) + "\n" + getPhasesPredicateString(phases) + "\n"
+				+ getDataVolumesPredicateString(dataVolumes) + "\n" + getProjectStatusesPredicateString(statuses) + "\n"
+				+ getLocationsPredicateString(locations) + "\n" + getSearchTermsPredicateString(searchTerms) + "\n"
+				+ getTagsPredicateString(tags) + "\n" + getRelatedProductsPredicateString(relatedProducts) + "\n"
+				+ hasNotebook(hasNotebook) + "\n" + getSolutionTypePredicateString(solutionType, userId, bookmarkedSolutions) + "\n";
+	}
+
 	/*
 	 * To build predicate if solution has notebook linked
 	 */
@@ -529,6 +546,63 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		String consolidatedPredicates = buildPredicateString(published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts,
 				divisionsAdmin, hasDigitalValue, hasNotebook);
+		String query = prefix + basicpredicate + consolidatedPredicates;
+		String sortQueryString = "";
+		if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
+			switch (sortBy) {
+			case "productName":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'productName')) ";
+				break;
+			case "currentPhase":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'currentPhase','name')) ";
+				break;
+			case "division":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'division','name')) ";
+				break;
+			case "projectStatus":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'projectStatus','name')) ";
+				break;
+			case "digitalValue":
+				sortQueryString = " order by (jsonb_extract_path(data,'digitalValueDetails','digitalValue')) ";
+				break;
+			default:
+				sortQueryString = "";
+				break;
+			}
+			if (StringUtils.hasText(sortQueryString)) {
+				if ("desc".equalsIgnoreCase(sortOrder))
+					sortQueryString = sortQueryString + " desc ";
+				else
+					sortQueryString = sortQueryString + " asc ";
+			}
+			query = query + sortQueryString;
+		}
+		if (additionalPredicatesString != null && !"".equalsIgnoreCase(additionalPredicatesString))
+			query = query + " " + additionalPredicatesString + " \n";
+		if (groupByString != null && !"".equalsIgnoreCase(groupByString))
+			query = query + " " + groupByString + " \n";
+		if (limit > 0 && !"locations".equalsIgnoreCase(sortBy))
+			query = query + " limit " + limit;
+		if (offset >= 0 && !"locations".equalsIgnoreCase(sortBy))
+			query = query + " offset " + offset;		
+		Query q = em.createNativeQuery(query);
+		return q;
+	}
+
+	public Query getNativeQueryWithFiltersForEmail(String selectFieldsString, Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+			Boolean hasNotebook, int offset, int limit, String sortBy, String sortOrder,
+			String additionalPredicatesString, String groupByString) {
+
+		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+				: "select cast(id as text), cast(data as text) ";
+		prefix = prefix + "from solution_nsql";
+		String basicpredicate = " where (id is not null) ";
+		String consolidatedPredicates = buildPredicateStringForEmail(published, phases, dataVolumes, divisions, locations,
+				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts,
+				divisionsAdmin, hasNotebook);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
@@ -1203,6 +1277,38 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return convertedResults;
 
 	}
-	
 
+	@Override
+	@Transactional
+	public List<SolutionNotifyTeamMemberVO> getTeamMembersWithFiltersUsingNativeQuery(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook) {
+		Query q = getNativeQueryWithFiltersForEmail(
+				"select cast (id as text) , cast (jsonb_extract_path_text(data,'teamMembers') as text)", published,
+				phases, dataVolumes, divisions, locations, statuses,
+				solutionType, userId, isAdmin, bookmarkedSolutions, new ArrayList<>(), tags, relatedProducts,
+				divisionsAdmin, hasNotebook, 0, 0, "id", "asc", "", "");
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+		LOGGER.info("results {}",results);
+		List<SolutionNotifyTeamMemberVO> convertedResults = results.stream().map(temp -> {
+			SolutionNotifyTeamMemberVO entity = new SolutionNotifyTeamMemberVO();
+			try {
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				List<NotifyTeamMemberVO> tempSol = mapper.readValue(jsonData,
+						new TypeReference<List<NotifyTeamMemberVO>>() {
+						});
+				entity.setTeammembers(tempSol);
+			} catch (Exception e) {
+				LOGGER.error("Failed while fetching all solutions using native {} ", e.getMessage());
+			}
+			String id = temp[0] != null ? temp[0].toString() : "";
+			entity.setId(id);
+			return entity;
+		}).collect(Collectors.toList());
+		return convertedResults;
+
+	}
+	
 }
