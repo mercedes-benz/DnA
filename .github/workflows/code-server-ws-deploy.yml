@@ -219,16 +219,10 @@ jobs:
     runs-on: [road-runner, medium]
 
     steps:
-
-      - name: Convert to Base64
-        id: kubeconfig
-        run: |
-            echo "data=$(cat ${{ secrets.KUBECONFIG }} | base64)" >> $GITHUB_OUTPUT
-            echo $GITHUB_OUTPUT
         
       - uses: actions-hub/kubectl@v1.30.3
         env:
-          KUBE_CONFIG: ${{ steps.kubeconfig.outputs.data }}
+          KUBE_CONFIG: ${{ steps.KUBECONFIG_BASE64 }}
         with:
           args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=codespaces-apps
 
