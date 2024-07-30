@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: dna-airflow-backend
+    version: 3.2.4
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}    
+  jpa:
+    database: POSTGRESQL
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+     ddl-auto: none
+  kafka:
+    producer:
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL   
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:XXXX:XXXX}        
+
+  datasource:
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/airflow_db}
+    username: ${API_DB_USER:airflow_user}
+    password: ${API_DB_PASS:airflow_pass}
+    driverClassName: org.postgresql.Driver
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic 
+           
+server:
+  port: 7171
+  servlet:
+    context-path: /airflow
+    
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}    
+
+dna:
+  uri: ${DNA_URI:XXXX} 
+  
+jwt:
+  secret:
+    byPassUrl: ${JWT_BYPASS_URIS:/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
+
+git:
+  uri: ${AIRFLOW_GIT_URI:XXXX}
+  mountPath: ${AIRFLOW_GIT_MOUNTPATH:C:\GITTest\airflow-user-dags}
+  token: ${AIRFLOW_GIT_TOKEN:XXXX}
+  branch: ${AIRFLOW_GIT_BRANCH:master}
+  dagPath: ${DAG_PATH:dags}
+  dagFileExtension: ${DAG_FILE_EXTENSION:py}
+
+dag:
+  menuCreate:
+     waitTime: ${AIRFLOW_DAG_MENU_CREATE_WAIT_TIME:4}
+     reTry: ${AIRFLOW_DAGMENU_CREATE_RETRY:1}
+
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+
+abrole.dnauser.rolename: ${ABROLE_DNAUSER_ROLENAME:DnA_User}
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/logs}
+  level:
+    com:
+      daimler:
+          dna:
+            airflow: ${LOGGING_LEVEL:DEBUG}
+    org.springframework.boot.autoconfigure.logging: INFO
