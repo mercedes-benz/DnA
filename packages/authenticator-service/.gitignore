@@ -6,4 +6,7 @@ build
 # Ignore compiled classes bin directory
 bin
 
+#Ignore Application-Dev.yml
+/authenticator-lib/src/main/resources/application-dev.yml
+
 gradle-wrapper.jar
