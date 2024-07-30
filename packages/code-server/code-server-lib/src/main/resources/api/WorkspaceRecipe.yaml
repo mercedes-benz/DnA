@@ -415,6 +415,9 @@ definitions:
   RecipeVO:
     type: object
     properties:
+      recipeId:
+        type: string
+        description: "recipeId  for recipe managment"
       recipeName:
         type: string
         description: "recipeName  for recipe managment"

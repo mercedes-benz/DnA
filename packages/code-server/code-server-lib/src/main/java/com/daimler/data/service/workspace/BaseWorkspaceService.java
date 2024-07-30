@@ -105,6 +105,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Value("${codeServer.git.orgname}")
 	private String gitOrgName;
 
+	@Value("${codeServer.env.value}")
+	private String codeServerEnvValue;
+
 	@Value("${codeServer.git.orguri}")
 	private String gitOrgUri;
 
@@ -181,7 +184,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto
-						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+						.setEnvironment(codeServerEnvValue);
 				deployJobInputDto
 						.setRepo(gitOrgUri + gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -223,7 +226,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto
-						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+						.setEnvironment(codeServerEnvValue);
 				deployJobInputDto
 						.setRepo(gitOrgUri + gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -291,7 +294,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		// trigger just for user individual workspace
 		String projectName = entity.getData().getProjectDetails().getProjectName();
 		String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType();
-		String environment = entity.getData().getProjectDetails().getRecipeDetails().getEnvironment();
+		String environment = codeServerEnvValue;
 		// List<Object[]> records = new ArrayList<>();
 		// if(isProjectOwner) {
 		// records =
@@ -496,7 +499,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
 			ownerWorkbenchCreateInputsDto
-					.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+					.setEnvironment(codeServerEnvValue);
 			ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
@@ -720,6 +723,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 				warnings.add(warnMsg);
 				responseVO.setWarnings(warnings);
 			}
+			if(repoName == null){
+				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+
+			}
 			vo.getProjectDetails().setGitRepoName(repoName);
 			// add records to db
 			CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
@@ -742,7 +749,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
 			ownerWorkbenchCreateInputsDto
-					.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+					.setEnvironment(codeServerEnvValue);
 			ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			ownerWorkbenchCreateInputsDto.setPat(pat);
 			String repoNameWithOrg = "";
@@ -756,6 +763,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 			} else {
 				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
+				if(pathCheckout==null) {
+					pathCheckout = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				}
 				// repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				// String url[] = repoNameWithOrg.split(",");
 				// repoNameWithOrg = url[0];
@@ -848,7 +858,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			//  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-				String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
 			ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
@@ -1040,7 +1050,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("deploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto
-						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+						.setEnvironment(codeServerEnvValue);
 				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -1414,7 +1424,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto
-						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+						.setEnvironment(codeServerEnvValue);
 				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
@@ -2196,7 +2206,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				ownerWorkbenchCreateInputsDto.setCpu_limit(Double.parseDouble(updatedResourceValue.getMaxCpu()));
 				ownerWorkbenchCreateInputsDto.setCpu_guarantee(Double.parseDouble(updatedResourceValue.getMinCpu()));
 				ownerWorkbenchCreateInputsDto.setProfile(workspace.getProjectDetails().getRecipeDetails().getToDeployType());
-				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
+				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 				ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
@@ -2305,7 +2315,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				ownerWorkbenchCreateInputsDto.setCpu_limit(2);
 				ownerWorkbenchCreateInputsDto.setCpu_guarantee(0.3);
 				ownerWorkbenchCreateInputsDto.setProfile(workspace.getProjectDetails().getRecipeDetails().getToDeployType());
-				ownerWorkbenchCreateInputsDto.setEnvironment(workspace.getProjectDetails().getRecipeDetails().getEnvironment());
+				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 				ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 				ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 				ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
