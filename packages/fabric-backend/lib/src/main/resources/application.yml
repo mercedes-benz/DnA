@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.0.2
+    version: 1.1.0
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -54,6 +54,7 @@ fabricWorkspaces:
     addUserUrl: ${FABRIC_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/groups/{groupId}/users}
 
 authoriser:
+  ssoUri: ${IDENTITY_SSO_URI:XXXX}
   uri: ${IDENTITY_AUTH_URI:XXXX}
   applicationId: ${IDENTITY_AUTH_APPID:XXXX}
   token: ${IDENTITY_AUTH_TOKEN:XXXX}
@@ -62,6 +63,8 @@ authoriser:
   dnaFabricEntitlementName: ${IDENTITY_AUTH_DNA_ENTITLEMENT_NAME:xxxx}
   dnaFabricEntitlementId: ${IDENTITY_AUTH_DNA_ENTITLEMENT_ID:xxxx}
   identityRoleUrl: ${IDENTITY_AUTH_LOGIN:xxxx}
+  clientId: ${IDENTITY_CLIENT_ID:XXXX}
+  clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   
 server:
   port: 9292
