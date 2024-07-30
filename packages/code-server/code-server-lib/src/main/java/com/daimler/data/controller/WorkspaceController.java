@@ -2341,7 +2341,7 @@ import org.springframework.beans.factory.annotation.Value;
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<GenericMessage> restartWorkspaceProject(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "environment variable to select the target environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env){
-		ManageDeployRequestDto deployRequestDto = new ManageDeployRequestDto();
+
 		try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
@@ -2389,14 +2389,12 @@ import org.springframework.beans.factory.annotation.Value;
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
-			String branch = "main";
-			if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
-				branch = deployRequestDto.getBranch();
-			}
 			GenericMessage responseMsg = service.restartWorkspace(userId, id, env);
-				log.info("User {} restarted  workspace {} project {}", userId, vo.getWorkspaceId(),
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+			}
+			log.info("User {} restarted  workspace {} project {}", userId, vo.getWorkspaceId(),
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-//			 }
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());

@@ -1703,8 +1703,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					// }
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
-					deploymentDetails.setDeploymentUrl(null);
-					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
+						deploymentDetails.setDeploymentUrl(null);
+						deploymentDetails.setLastDeploymentStatus(latestStatus);
+					}
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs != null && !auditLogs.isEmpty()) {
 						int lastIndex = auditLogs.size() - 1;
@@ -2404,6 +2406,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
+	@Transactional
 	public GenericMessage restartWorkspace(String userId, String id, String env){
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
@@ -2432,11 +2435,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 					error.setMessage(
 							"Failed while restarting  codeserver workspace project, couldnt fetch project owner details");
 					errors.add(error);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				if(("int".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
+				.getIntDeploymentDetails().getLastDeploymentStatus())) || "prod".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
+				.getProdDeploymentDetails().getLastDeploymentStatus())){
+					MessageDescription error = new MessageDescription();
+					error.setMessage(
+							"Failed while restarting  codeserver workspace project, couldnt restart project Which is not in deployed state");
+					errors.add(error);
+					responseMessage.setSuccess("FAILED");
 					responseMessage.setErrors(errors);
 					return responseMessage;
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(projectName);
+				deployJobInputDto.setWsid(projectOwnerWsId);
 				deployJobInputDto.setProjectName(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
@@ -2458,14 +2473,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
-					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					auditLog.setBranch("main");					
+					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
 					auditLog.setDeploymentStatus("RESTART_REQUESTED");
 					auditLogs.add(auditLog);
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					status = "SUCCESS";
+					
 				} else {
 					status = "FAILED";
 					errors.addAll(jobResponse.getErrors());
