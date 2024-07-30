@@ -2425,7 +2425,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(env);
-				deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
+				deployJobInputDto.setType("RESTART");
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						projectName);
