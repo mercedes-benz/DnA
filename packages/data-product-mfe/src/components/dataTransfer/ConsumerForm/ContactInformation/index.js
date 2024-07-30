@@ -63,7 +63,6 @@ const ContactInformation = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
-  const [appIDError, setAppIdError] = useState('');
 
   const provideDataTransfers = useSelector((state) =>
     !isDataProduct ? state.provideDataTransfers : state.dataProduct,
@@ -84,7 +83,7 @@ const ContactInformation = ({
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          setValue('subDivision', provideDataTransfers.selectedDataTransfer.consumer.subDivision);
+          setValue('subDivision', provideDataTransfers.selectedDataTransfer?.consumer?.subDivision);
         } else {
           setValue('subDivision', '0');
         }
@@ -527,29 +526,26 @@ const ContactInformation = ({
                   )}
                 />
               </div> */}
-                  <div className={classNames('input-field-group include-error', appIDError ? 'error' : '')}>
-                  <label id="leanIX" htmlFor="leanIXInput" className="input-label">
+                  <div className={classNames('input-field-group include-error',  errors?.LeanIXappId  ? 'error' : '')}>
+                  <label id="leanIX" htmlFor="LeanIXappId" className="input-label">
                   LeanIX App-ID
                   </label>
                   <input
-                    {...register('LeanIXappId', {
-                      onChange: (e)=>{
-                        const value = e.target.value;
-                        if(!value || !value.startsWith('APP-') || value.length <= 4){
-                          setAppIdError("Enter a valid App-ID starting with 'APP-'");
-                        }else{
-                          setAppIdError("");
-                        }
+                     {...register('LeanIXappId', {
+                      pattern: {
+                        value: /^APP-[\w]+$/,
+                        message: "Enter a valid App-ID starting with 'APP-'"
                       },
                     })}
+                    name = "LeanIXappId"
                     type="text"
                     className="input-field"
                     id="LeanIXappId"
                     placeholder="Enter App-ID"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message', appIDError ? '' : 'hide')}>
-                    {appIDError}
+                   <span className={classNames('error-message',  errors?.LeanIXappId  ? '' : 'hide')}>
+                    { errors?.LeanIXappId?.message }
                   </span>
                 </div>
             </div>
