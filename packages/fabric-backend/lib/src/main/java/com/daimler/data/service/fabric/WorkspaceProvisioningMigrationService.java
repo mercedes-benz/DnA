@@ -1,4 +1,4 @@
-package com.daimler.data.service.forecast;
+package com.daimler.data.service.fabric;
 
 import javax.annotation.PostConstruct;
 
