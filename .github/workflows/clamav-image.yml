@@ -5,7 +5,7 @@ name: Build & Publish Clamav Docker image
 on:
   workflow_dispatch:  
   schedule:
-    - cron:  '0 1 */2 * *' # every day at midnight
+    - cron:  '0 1 */1 * *' # every day at midnight
 
 env:
   REGISTRY: registry-emea.app.corpintra.net
@@ -65,7 +65,7 @@ jobs:
         needs: build
         uses: ./.github/workflows/consec.yaml
         with:
-          FULL_IMAGE_NAME: '$IMAGE_NAME:${{ needs.build.outputs.date }}'
+          FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
         secrets: inherit
 
   staging:
