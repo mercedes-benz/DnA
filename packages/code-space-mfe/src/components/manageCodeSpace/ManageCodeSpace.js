@@ -289,7 +289,7 @@ const ManageCodeSpace = () => {
         diskSpace={recipe.diskSpace}
         onDataChanged={handleDataChange}
         software={recipe.software}
-        additionalServices={additionalServices?.filter(service => recipe.additionalServices.includes(service.serviceName))}
+        additionalServices={additionalServices?.filter(service => recipe?.additionalServices?.includes(service.serviceName))}
         isConfigList={false}
         isPublic={recipe.isPublic}
       />
