@@ -88,6 +88,7 @@ public class KafkaCoreCampaignService {
 	private static String AIRFLOW_NOTIFICATION_KEY = "Airflow";
 	private static String TRINO_DATALAKE_NOTIFICATION_KEY = "Datalake";
 	private static String DATAENTRY_NOTIFICATION_KEY = "Dataentry";
+	private static String USE_CASE_OWNER_NOTIFICATION_KEY = "UseCaseOwners";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -157,6 +158,10 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getDataEntryNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDataEntryNotificationPref().isEnableEmailNotifications();
 					}
+					if(message.getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getUseCaseOwnerNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getUseCaseOwnerNotificationPref().isEnableEmailNotifications();
+					}
 
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -200,7 +205,26 @@ public class KafkaCoreCampaignService {
 								}
 							
 						}
-					}					
+					}
+					// if(message.getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {		
+
+					// 	//use case owner email notification
+					// 	// String forecastURL = dnaBaseUri + CHRONOS_URI_PATH + message.getResourceId();
+					// 	// if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
+					// 	// 	for (ChangeLogVO changeLog : message.getChangeLogs()) {
+					// 	// 		emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
+					// 	// 	}
+					// 	// }
+					// 	// if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
+					// 		LOGGER.info("message got {}",message.getMessageDetails());
+								
+					// 			// if(!user.equalsIgnoreCase(publishingUser)) {
+					// 				emailBody +=  message.getMessage() + "<br/><br/>";
+					// 				emailBody += "<p> You are recieving this email because you are an use case owner of one or more of the DnA solutions.<p/> <br/>";
+					// 			// }
+									
+					// 	// }
+					// }					
 
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);

@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -101,7 +103,8 @@ import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.visualization.VisualizationService;
 import com.daimler.data.service.analyticsSolution.AnalyticsSolutionService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-
+import com.daimler.data.dto.SolutionNotifyTeamMemberVO;
+import com.daimler.data.dto.NotifyTeamMemberVO;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -1168,6 +1171,47 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		return customRepo.getCountBasedPublishSolution(published);
 	}
 
+	@Override
+	public ResponseEntity<GenericMessage> notifyUsecaseOwners(Boolean published, List<String> phases,
+	List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+	String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+	List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook, String message) {
 
+		List <SolutionNotifyTeamMemberVO> teamMembers = customRepo.getTeamMembersWithFiltersUsingNativeQuery(published, phases,
+				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, tags,
+				relatedProducts,
+				divisionsAdmin, hasNotebook);
+				
+         List<NotifyTeamMemberVO> useCaseOwners = new ArrayList<>();
+
+         // Iterate through each SolutionNotifyTeamMemberVO
+         for (SolutionNotifyTeamMemberVO solution : teamMembers) {
+             // Iterate through each TeamMemberVO in the current SolutionNotifyTeamMemberVO
+             List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
+             for (NotifyTeamMemberVO teamMember : teamMembersList) {
+                 if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
+                     useCaseOwners.add(teamMember); // Add to useCaseOwners list
+                 }
+             }
+         }
+
+		Map<String, String> uniqueShortIdToEmailMap = useCaseOwners.stream()
+            .collect(Collectors.toMap(
+                NotifyTeamMemberVO::getShortId, // Key: shortId
+                useCaseOwner -> useCaseOwner.getEmail() != null ? useCaseOwner.getEmail() : "", // Value: email or empty string if null
+                (existing, replacement) -> existing, // In case of duplicates, keep the existing email
+                LinkedHashMap::new // Maintain insertion order
+            ));
+
+        // Extract unique shortIds and emails into separate lists
+        List<String> shortIds = new ArrayList<>(uniqueShortIdToEmailMap.keySet());
+        List<String> emailIds = new ArrayList<>(uniqueShortIdToEmailMap.values());
+
+		kafkaProducer.send("Notify UseCaseOwners", "", "", userId, message, true, shortIds, emailIds, null);
+		
+		return null;
+
+	}
+	
 
 }
