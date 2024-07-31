@@ -72,15 +72,15 @@ jobs:
         echo "appCleanupVersion: ${{ github.event.inputs.appCleanupVersion }}"
         echo "valutInjectorEnable: ${{ github.event.inputs.valutInjectorEnable }}"
   
-  build:
+  build_deploy:
     name: 'Build workspace application'
-    if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' }}
+    if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' || github.event.inputs.action == 'deploy' }}
     environment: ${{ github.event.inputs.environment }}
     runs-on: [road-runner, large]
     steps:
 
-    - name: Check out repository code
-      uses: actions/checkout@v3
+    # - name: Check out repository code
+    #   uses: actions/checkout@v3
         
     - name: Check user repo
       uses: actions/checkout@v3
@@ -92,12 +92,14 @@ jobs:
         github-server-url: "https://git.i.mercedes-benz.com/"             
 
     - name: Use .npmrc
+      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}      
       uses: bduff9/use-npmrc@v2.0.0
       with:
         dot-npmrc: ${{ secrets.DOT_NPMRC }}
         working-directory: ./workspace-repo
         
     - name: Build application
+      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}      
       working-directory: ./workspace-repo/deploy
       run: | 
        docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appNewVersion }} \
@@ -110,64 +112,19 @@ jobs:
         no_proxy: "artifacts.i.mercedes-benz.com"     
     
     - name: Publish application containers to registry
+      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}    
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appNewVersion }}     
 
     - name: Cleanup old version in registry
+      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}
       run: |
         # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appNewVersion }}     
 
-  upload-build-logs-to-opensearch:
-    name: "Upload Logs to Opensearch" 
-    runs-on: [road-runner, medium]
-    environment: ${{ github.event.inputs.environment }}
-    needs: build
-    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && github.event.inputs.action == 'build' }}
-    steps:    
-      - name: Upload GitHub Action workflows logs to opensearch
-        uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
-        with:
-          github_token: "${{ secrets.PID_PAT }}"
-          github_org: "DNA"
-          github_repository: "NeuDnAPlatform"
-          github_run_id: "${{ github.run_id }}"
-          github_host_api: "https://git.i.mercedes-benz.com/api/v3"
-          opensearch_username: "${{ secrets.OPENSEARCH_USERNAME }}"
-          opensearch_password: "${{ secrets.OPENSEARCH_PASSWORD }}"
-          opensearch_host: "${{ vars.OPENSEARCH_HOST }}"
-          opensearch_index: "ci-cd"  
-
-  statusUpdateBuild:
-    name: Update Status Build
-    needs: build
-    if: ${{ !cancelled() && (success() || failure())  && ( github.event.inputs.action == 'build' ) }}
-    uses: ./.github/workflows/cs-status-update.yml
-    with:
-      status: '${{ needs.build.result }}'
-      action: ${{ github.event.inputs.action }}
-      environment: ${{ github.event.inputs.environment }}
-      projectName: ${{ github.event.inputs.projectName }}
-      target_env: ${{ github.event.inputs.target_env }}
-      branch: ${{ github.event.inputs.branch }}
-    secrets:
-      PAT: ${{ secrets.PID_PAT }}
-      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
-
-  deploy:
-    name: 'Deploy workspace application'
-    if: ${{ !cancelled() && (( github.event.inputs.action == 'build_deploy'  && success()) || ( github.event.inputs.action == 'deploy' && needs.build.result == 'skipped' )) }}
-    needs: build
-    environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, medium]
-    steps:
-
-    - name: Check out repository code
-      uses: actions/checkout@v3
-
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
-      if: ${{ github.event.inputs.action == 'deploy' }}
+      if: ${{ github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build_deploy'  }}
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
         namespace: 'codespaces-apps'
@@ -190,13 +147,12 @@ jobs:
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
-
-  upload-deploy-logs-to-opensearch:
+  upload-build_deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
     runs-on: [road-runner, medium]
     environment: ${{ github.event.inputs.environment }}
-    needs: deploy
-    if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') &&  ( github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build_deploy')}}
+    needs: build_deploy
+    if: ${{ !cancelled() && (success() || failure() || needs.build_deploy.result == 'skipped')}}
     steps:    
       - name: Upload GitHub Action workflows logs to opensearch
         uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
@@ -211,13 +167,13 @@ jobs:
           opensearch_host: "${{ vars.OPENSEARCH_HOST }}"
           opensearch_index: "ci-cd"  
 
-  statusUpdateDeploy:
-    name: Update Status deploy
-    needs: deploy
-    if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') &&  ( github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build_deploy')}}
+  statusUpdateBuildDeploy:
+    name: Update Status build_deploy
+    needs: build_deploy
+    if: ${{ !cancelled() && (success() || failure())}}
     uses: ./.github/workflows/cs-status-update.yml
     with:
-      status: '${{ needs.deploy.result }}'
+      status: '${{ needs.build_deploy.result }}'
       action: ${{ github.event.inputs.action }}
       environment: ${{ github.event.inputs.environment }}
       projectName: ${{ github.event.inputs.projectName }}
@@ -226,6 +182,7 @@ jobs:
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
 
   undeploy:
     name: 'Delete Code Server Workspace'
