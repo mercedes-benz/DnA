@@ -1182,32 +1182,51 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				relatedProducts,
 				divisionsAdmin, hasNotebook);
 				
-         List<NotifyTeamMemberVO> useCaseOwners = new ArrayList<>();
+        //  List<NotifyTeamMemberVO> useCaseOwners = new ArrayList<>();
 
-         // Iterate through each SolutionNotifyTeamMemberVO
-         for (SolutionNotifyTeamMemberVO solution : teamMembers) {
-             // Iterate through each TeamMemberVO in the current SolutionNotifyTeamMemberVO
-             List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
+        //  // Iterate through each SolutionNotifyTeamMemberVO
+        //  for (SolutionNotifyTeamMemberVO solution : teamMembers) {
+        //      // Iterate through each TeamMemberVO in the current SolutionNotifyTeamMemberVO
+        //      List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
+        //      for (NotifyTeamMemberVO teamMember : teamMembersList) {
+        //          if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
+        //              useCaseOwners.add(teamMember); // Add to useCaseOwners list
+        //          }
+        //      }
+        //  }
+
+		// Map<String, String> uniqueShortIdToEmailMap = useCaseOwners.stream()
+        //     .collect(Collectors.toMap(
+        //         NotifyTeamMemberVO::getShortId, // Key: shortId
+        //         useCaseOwner -> useCaseOwner.getEmail() != null ? useCaseOwner.getEmail() : "", // Value: email or empty string if null
+        //         (existing, replacement) -> existing, // In case of duplicates, keep the existing email
+        //         LinkedHashMap::new // Maintain insertion order
+        //     ));
+
+        // // Extract unique shortIds and emails into separate lists
+        // List<String> shortIds = new ArrayList<>(uniqueShortIdToEmailMap.keySet());
+        // List<String> emailIds = new ArrayList<>(uniqueShortIdToEmailMap.values());
+
+		
+        for (SolutionNotifyTeamMemberVO solution : teamMembers) {
+            String solId = solution.getId();
+			List<String> shortIds =  new ArrayList<>();
+			List<String> emailIds =  new ArrayList<>();
+			List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
              for (NotifyTeamMemberVO teamMember : teamMembersList) {
                  if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
-                     useCaseOwners.add(teamMember); // Add to useCaseOwners list
+                     shortIds.add(teamMember.getShortId());
+					 emailIds.add(teamMember.getEmail() != null ? teamMember.getEmail() : "");
                  }
              }
-         }
+			 if(shortIds.size() !=0) {
+				LOGGER.info("shortIds {}",shortIds);
+				LOGGER.info("emailIds {}",emailIds);
+			 	kafkaProducer.send("Notify UseCaseOwners", solId, "", userId, message, true, shortIds, emailIds, null);
+			 }
+			  
+        }
 
-		Map<String, String> uniqueShortIdToEmailMap = useCaseOwners.stream()
-            .collect(Collectors.toMap(
-                NotifyTeamMemberVO::getShortId, // Key: shortId
-                useCaseOwner -> useCaseOwner.getEmail() != null ? useCaseOwner.getEmail() : "", // Value: email or empty string if null
-                (existing, replacement) -> existing, // In case of duplicates, keep the existing email
-                LinkedHashMap::new // Maintain insertion order
-            ));
-
-        // Extract unique shortIds and emails into separate lists
-        List<String> shortIds = new ArrayList<>(uniqueShortIdToEmailMap.keySet());
-        List<String> emailIds = new ArrayList<>(uniqueShortIdToEmailMap.values());
-
-		kafkaProducer.send("Notify UseCaseOwners", "", "", userId, message, true, shortIds, emailIds, null);
 		
 		return null;
 
