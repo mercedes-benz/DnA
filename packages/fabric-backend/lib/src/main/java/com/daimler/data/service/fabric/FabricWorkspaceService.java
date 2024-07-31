@@ -11,6 +11,7 @@ import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.service.common.CommonService;
 
@@ -33,6 +34,8 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	CreateRoleRequestDto prepareRoleCreateRequestDto(String workspaceName, String permissionName);
 
 	RoleDetailsVO callRoleCreate(String workspaceName, String permissionName);
+
+	GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName);
 
 	
 }
