@@ -415,6 +415,9 @@ definitions:
   RecipeVO:
     type: object
     properties:
+      recipeId:
+        type: string
+        description: "recipeId  for recipe managment"
       recipeName:
         type: string
         description: "recipeName  for recipe managment"
@@ -647,9 +650,12 @@ definitions:
   AdditionalPropertiesVO:
     type: object
     properties: 
+      name:
+        type: string
+        description: "name of services"
       image:
         type: string
-        description: "image"
+        description: "image of container"
       args:
         type: array
         items:
