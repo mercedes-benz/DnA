@@ -780,6 +780,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CodeServerWorkspaceVO reqVO = codeServerRequestVO.getData();
 		 String pat = codeServerRequestVO.getPat();
 		 CodeServerWorkspaceVO existingVO = service.getByProjectName(reqVO.getProjectDetails().getProjectName());
+		// checking if project name is existing in database
 		 if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			 responseMessage.setData(existingVO);
 			 responseMessage.setSuccess("EXISTING");
@@ -810,7 +811,12 @@ import org.springframework.beans.factory.annotation.Value;
 		// newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
 		String recipeValue = recipeData.getRecipeId()!=null?recipeData.getRecipeId():recipeData.getRecipeName();
 		newRecipeVO.setRecipeName(recipeData.getRecipeName());
-		newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
+		if(RecipeIdEnum.fromValue(recipeValue)!=null) {
+			newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
+
+		} else {
+			newRecipeVO.setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
+		}
 		newRecipeVO.setId(reqVO.getProjectDetails().getRecipeName());
 		//  newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
 		newRecipeVO.setRepodetails(recipeData.getRepodetails());

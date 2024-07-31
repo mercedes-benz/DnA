@@ -121,6 +121,9 @@ public class BaseRecipeService implements RecipeService{
 			String SHA = null;
 			String encodedFileContent = null;
 			StringBuffer fileContent =  new StringBuffer();
+			if(gitHubUrl.contains(".git")) {
+				gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+			}
 			String[] codespaceSplitValues = gitHubUrl.split("/");
 			int length = codespaceSplitValues.length;
 			repoName = codespaceSplitValues[length-1];
@@ -181,6 +184,10 @@ public class BaseRecipeService implements RecipeService{
 				String repoName = null;
 				String gitUrl = null;
 				String applicationName = null;
+				if(gitHubUrl.contains(".git")) {
+					gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+				}
+				
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
@@ -188,7 +195,6 @@ public class BaseRecipeService implements RecipeService{
 				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-1], "");
 				gitUrl = gitUrl.replace("/"+codespaceSplitValues[length-2], "");
             	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName,applicationName);
-
 				if(!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription msg = new MessageDescription();
 					List<MessageDescription> errorMessage = new ArrayList<>();
