@@ -39,7 +39,7 @@ on:
       projectName:    
         description: 'Name of the project'
         required: true
-      appNewVersion:    
+      appVersion:    
         description: 'App New Version'
         default: false  
       appCleanupVersion:    
@@ -69,7 +69,7 @@ jobs:
         echo "action: ${{ github.event.inputs.action }}"
         echo "target_env: ${{ github.event.inputs.target_env }}"
         echo "projectName: ${{ github.event.inputs.projectName }}"
-        echo "appNewVersion: ${{ github.event.inputs.appNewVersion }}"
+        echo "appVersion: ${{ github.event.inputs.appVersion }}"
         echo "appCleanupVersion: ${{ github.event.inputs.appCleanupVersion }}"
         echo "valutInjectorEnable: ${{ github.event.inputs.valutInjectorEnable }}"
   
@@ -100,7 +100,7 @@ jobs:
       if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}      
       working-directory: ./workspace-repo/deploy
       run: | 
-       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appNewVersion }} \
+       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }} \
         --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
         --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
         --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
@@ -113,12 +113,12 @@ jobs:
       if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}    
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
-        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appNewVersion }}     
+        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }}     
 
     - name: Cleanup old version in registry
       if: ${{ (github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' ) && github.event.inputs.action == ''  }}
       run: |
-        # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appNewVersion }}     
+        # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }}     
 
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
@@ -132,7 +132,7 @@ jobs:
           namespace: codespaces-apps
           image:
             repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
-            tag: ${{ github.event.inputs.appNewVersion }}
+            tag: ${{ github.event.inputs.appVersion }}
           imagePullSecrets: 
             - name: imagepullsecret
           vaultInjector:
