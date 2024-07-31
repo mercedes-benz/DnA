@@ -2,9 +2,9 @@ appName: naas
 namespace: naas
 app:
   backend:
-    image: 
+    image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: 110
+      tag: '111'
     replicaCount: 1
     secrets:
       name: naas-app-secrets
