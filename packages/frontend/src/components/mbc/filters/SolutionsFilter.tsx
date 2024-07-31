@@ -896,7 +896,7 @@ const SolutionsFilter = ({
         className={classNames('input-field-group include-error area', emailBodyError.length ? 'error' : '')}
       >
         <label id="description" className="input-label" htmlFor="description">
-          Enter mail body <i className="icon mbc-icon alert circle" tooltip-data="Mail will be recieved by all the use case owners of the filtered codespaces. Please ensure you have selected the right filters." />
+          Enter mail body <i className="icon mbc-icon alert circle" tooltip-data="Mail will be recieved by all the use case owners of the filtered Solutions. Please ensure you have selected the right filters." />
         </label>
         <textarea
           id="description"
