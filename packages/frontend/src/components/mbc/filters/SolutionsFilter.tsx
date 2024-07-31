@@ -869,6 +869,7 @@ const SolutionsFilter = ({
   const notifyUseCaseOwners = () =>{ 
     genAIPage && queryParams.tag.push('#GenAI');
     const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
+    const emailText = '<p>'+emailBody.replace(/\n/g,"<br/>")+'</p>'
     const notifyData = {
       data: {
         location: queryParams.location,
@@ -877,7 +878,7 @@ const SolutionsFilter = ({
         status: queryParams.status,
         useCaseType: queryParams.useCaseType.join(','),
         tags: queryParams.tag,
-        emailText: emailBody,
+        emailText: emailText,
       },
     };
     ApiClient.notifyUseCaseOwners(notifyData); 
