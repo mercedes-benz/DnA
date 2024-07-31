@@ -55,6 +55,23 @@ env:
 
 jobs:
 
+  debug:
+    name: 'Print input'
+    runs-on: [road-runner, medium]
+    steps:
+
+    - name: Inputs
+      run: |
+        echo "environment: ${{ github.event.inputs.environment }}"
+        echo "repo: ${{ github.event.inputs.repo }}"
+        echo "branch: ${{ github.event.inputs.branch }}"
+        echo "action: ${{ github.event.inputs.action }}"
+        echo "target_env: ${{ github.event.inputs.target_env }}"
+        echo "projectName: ${{ github.event.inputs.projectName }}"
+        echo "appNewVersion: ${{ github.event.inputs.appNewVersion }}"
+        echo "appCleanupVersion: ${{ github.event.inputs.appCleanupVersion }}"
+        echo "valutInjectorEnable: ${{ github.event.inputs.valutInjectorEnable }}"
+  
   build:
     name: 'Build workspace application'
     if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' }}
