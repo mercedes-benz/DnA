@@ -723,7 +723,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				warnings.add(warnMsg);
 				responseVO.setWarnings(warnings);
 			}
-			if(repoName == null){
+			if(repoName.isEmpty()){
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 
 			}
@@ -759,12 +759,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 							.startsWith("private")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("bat")) {
-				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+								
+								repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			} else {
 				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
-				if(pathCheckout==null) {
-					pathCheckout = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
+					pathCheckout = vo.getProjectDetails().getRecipeDetails().getRepodetails().replace("https://", "");
+					repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
 				}
 				// repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				// String url[] = repoNameWithOrg.split(",");
