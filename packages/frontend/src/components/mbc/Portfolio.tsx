@@ -678,6 +678,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             </div>
           </div>
           <SolutionsFilter
+            user={this.props.user}
             userId={this.props.user.id}
             getSolutions={(
               locations: string,
