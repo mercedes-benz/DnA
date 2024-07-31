@@ -150,7 +150,7 @@ jobs:
     runs-on: [road-runner, medium]
     environment: ${{ github.event.inputs.environment }}
     needs: build_deploy
-    if: ${{ !cancelled() && (success() || failure() || needs.build_deploy.result == 'skipped')}}
+    if: ${{ !cancelled() && (success() || failure())}}
     steps:    
       - name: Upload GitHub Action workflows logs to opensearch
         uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
