@@ -12,13 +12,7 @@ on:
         description: 'Target environment'
         type: environment
         default: 'Development'
-        required: true
-      shortid:
-        description: "Short ID"
-        required: true
-      wsid:
-        description: "Workspace ID"   
-        default: 'default'   
+        required: true  
       repo:
         description: "Github repo(org/repo name)"         
       branch:
@@ -32,10 +26,8 @@ on:
         options: 
           - build
           - deploy
+          - build_deploy
           - undeploy
-      type:
-        description: "Workspace type" 
-        required: true  
       target_env:
         description: "Target Environment to deploy WS App" 
         type: choice
@@ -46,6 +38,12 @@ on:
       projectName:    
         description: 'Name of the project'
         required: true
+      appNewVersion:    
+        description: 'App New Version'
+        default: false  
+      appCleanupVersion:    
+        description: 'App Cleanup Version'
+        default: false  
       valutInjectorEnable:
         description: "valutInjectorEnable"  
         type: boolean
@@ -59,7 +57,7 @@ jobs:
 
   build:
     name: 'Build workspace application'
-    if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'deploy' }}
+    if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' }}
     environment: ${{ github.event.inputs.environment }}
     runs-on: [road-runner, large]
     steps:
@@ -74,26 +72,7 @@ jobs:
         token: ${{ secrets.PID_PAT }}
         ref: ${{ github.event.inputs.branch }}
         path: workspace-repo
-        github-server-url: "https://git.i.mercedes-benz.com/"      
-
-    - name: Copy Deployment files from minio & login into registry
-      run: |
-        if [ -d "workspace-repo/deploy" ]; then
-          echo "Deploy folder is already present"
-        else
-          if [ -d "$HOME/minio-binaries/mc" ]; then
-          echo "Minio already present"
-          else
-            curl https://dl.min.io/client/mc/release/linux-amd64/mc \
-              --create-dirs \
-              -o $HOME/minio-binaries/mc
-            chmod +x $HOME/minio-binaries/mc
-            export PATH=$PATH:$HOME/minio-binaries/
-          fi
-          mc --insecure alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_KEY }} ${{ secrets.MINIO_SECRET }}
-          mc --insecure cp --recursive myminio/code-server/${{ github.event.inputs.type }}/deploy ./workspace-repo/
-          mc alias remove myminio
-        fi        
+        github-server-url: "https://git.i.mercedes-benz.com/"             
 
     - name: Use .npmrc
       uses: bduff9/use-npmrc@v2.0.0
@@ -104,7 +83,7 @@ jobs:
     - name: Build application
       working-directory: ./workspace-repo/deploy
       run: | 
-       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} \
+       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }} \
         --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
         --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
         --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
@@ -114,10 +93,60 @@ jobs:
         no_proxy: "artifacts.i.mercedes-benz.com"     
     
     - name: Publish application containers to registry
-      if: ${{ github.event.inputs.action == 'deploy' }}
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
-        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}       
+        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }}     
+
+    - name: Cleanup old version in registry
+      run: |
+        # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }}     
+
+  upload-build-logs-to-opensearch:
+    name: "Upload Logs to Opensearch" 
+    runs-on: [road-runner, medium]
+    environment: ${{ github.event.inputs.environment }}
+    needs: build
+    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && github.event.inputs.action == 'build' }}
+    steps:    
+      - name: Upload GitHub Action workflows logs to opensearch
+        uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
+        with:
+          github_token: "${{ secrets.PID_PAT }}"
+          github_org: "DNA"
+          github_repository: "NeuDnAPlatform"
+          github_run_id: "${{ github.run_id }}"
+          github_host_api: "https://git.i.mercedes-benz.com/api/v3"
+          opensearch_username: "${{ secrets.OPENSEARCH_USERNAME }}"
+          opensearch_password: "${{ secrets.OPENSEARCH_PASSWORD }}"
+          opensearch_host: "${{ vars.OPENSEARCH_HOST }}"
+          opensearch_index: "ci-cd"  
+
+  statusUpdateBuild:
+    name: Update Status Build
+    needs: build
+    if: ${{ !cancelled() && (success() || failure())  && ( github.event.inputs.action == 'build' ) }}
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.build.result }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+      projectName: ${{ github.event.inputs.projectName }}
+      target_env: ${{ github.event.inputs.target_env }}
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+  deploy:
+    name: 'Deploy workspace application'
+    if: ${{ !cancelled() && (( github.event.inputs.action == 'build_deploy'  && success()) || ( github.event.inputs.action == 'deploy' && needs.build.result == 'skipped' )) }}
+    needs: build
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [road-runner, medium]
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
 
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
@@ -130,8 +159,8 @@ jobs:
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
           namespace: codespaces-apps
           image:
-            repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps
-            tag: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
+            repository: registry-emea.app.corpintra.net/dnaplatform/code-server/-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
+            tag: ${{ github.event.inputs.appVersion }}
           imagePullSecrets: 
             - name: imagepullsecret
           vaultInjector:
@@ -144,12 +173,13 @@ jobs:
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
-  upload-logs-to-opensearch:
+
+  upload-deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
     runs-on: [road-runner, medium]
     environment: ${{ github.event.inputs.environment }}
-    needs: build
-    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') }}
+    needs: deploy
+    if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') &&  ( github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build_deploy')}}
     steps:    
       - name: Upload GitHub Action workflows logs to opensearch
         uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
@@ -165,16 +195,15 @@ jobs:
           opensearch_index: "ci-cd"  
 
   statusUpdateDeploy:
-    name: Update Status Deploy
-    needs: build
-    if: ${{ !cancelled() && (success() || failure())  && ( github.event.inputs.action == 'build' || github.event.inputs.action == 'deploy' ) }}
+    name: Update Status deploy
+    needs: deploy
+    if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') &&  ( github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build_deploy')}}
     uses: ./.github/workflows/cs-status-update.yml
     with:
-      status: '${{ needs.build.result }}'
-      wsid: '${{ github.event.inputs.wsid }}'
-      shortid: '${{ github.event.inputs.shortid }}'
+      status: '${{ needs.deploy.result }}'
       action: ${{ github.event.inputs.action }}
       environment: ${{ github.event.inputs.environment }}
+      projectName: ${{ github.event.inputs.projectName }}
       target_env: ${{ github.event.inputs.target_env }}
       branch: ${{ github.event.inputs.branch }}
     secrets:
@@ -205,11 +234,10 @@ jobs:
     uses: ./.github/workflows/cs-status-update.yml
     with:
       status: '${{ needs.undeploy.result }}'
-      wsid: '${{ github.event.inputs.wsid }}'
-      shortid: '${{ github.event.inputs.shortid }}'
       action: ${{ github.event.inputs.action }}
       environment: ${{ github.event.inputs.environment }}
       target_env: ${{ github.event.inputs.target_env }}
+      projectName: ${{ github.event.inputs.projectName }}
       branch: ${{ github.event.inputs.branch }}
     secrets:
       PAT: ${{ secrets.PID_PAT }}

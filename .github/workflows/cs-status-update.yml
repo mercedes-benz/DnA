@@ -7,10 +7,7 @@ on:
       status:
         required: true
         type: string
-      shortid:
-        required: true
-        type: string
-      wsid:
+      projectName:
         required: true
         type: string
       action:
@@ -51,11 +48,11 @@ jobs:
               echo "code=BUILD_FAILED" >> $GITHUB_OUTPUT
               ;;
 
-            deploy_success)
+            deploy_success | build_deploy_success)
               echo "code=DEPLOYED" >> $GITHUB_OUTPUT
               ;;
 
-            deploy_failure | deploy_skipped)
+            deploy_failure | deploy_skipped | build_deploy_failure | build_deploy_skipped)
               echo "code=DEPLOYMENT_FAILED" >> $GITHUB_OUTPUT
               ;;
 
@@ -63,7 +60,7 @@ jobs:
               echo "code=UNDEPLOYED" >> $GITHUB_OUTPUT
               ;;
 
-            undeploy_failure | deploy_skipped)
+            undeploy_failure | undeploy_skipped)
               echo "code=UNDEPLOY_FAILED" >> $GITHUB_OUTPUT
               ;;
 
@@ -78,7 +75,7 @@ jobs:
         id: myRequest
         uses: CamiloGarciaLaRotta/watermelon-http-client@v1.7
         with:
-          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.shortid }}/${{ inputs.wsid }}'
+          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.projectName }}'
           method: 'PUT'
           headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
           data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}"}'
