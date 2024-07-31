@@ -64,6 +64,14 @@ jobs:
               echo "code=UNDEPLOY_FAILED" >> $GITHUB_OUTPUT
               ;;
 
+            restart_success)
+              echo "code=RESTARTED" >> $GITHUB_OUTPUT
+              ;;
+              
+            restart_failure | restart_skipped)
+              echo "code=RESTART_FAILED" >> $GITHUB_OUTPUT
+              ;;              
+
             *)
               echo -n "Status not matched"
               exit 1

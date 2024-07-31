@@ -28,6 +28,7 @@ on:
           - deploy
           - build_deploy
           - undeploy
+          - restart
       target_env:
         description: "Target Environment to deploy WS App" 
         type: choice
@@ -78,9 +79,6 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
     runs-on: [road-runner, large]
     steps:
-
-    # - name: Check out repository code
-    #   uses: actions/checkout@v3
         
     - name: Check user repo
       uses: actions/checkout@v3
@@ -183,6 +181,35 @@ jobs:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
 
+  restart:
+    name: 'Restart Code Server Workspace'
+    if: ${{ github.event.inputs.action == 'restart'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [road-runner, medium]
+
+    steps:
+        
+      - uses: actions-hub/kubectl@v1.30.3
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG_BASE64 }}
+        with:
+          args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=codespaces-apps
+
+  statusUpdateRestart:
+    name: Update Status restart
+    needs: restart
+    if: ${{ !cancelled() && (success() || failure()) }}    
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.restart.result }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+      projectName: ${{ github.event.inputs.projectName }}
+      target_env: ${{ github.event.inputs.target_env }}
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
 
   undeploy:
     name: 'Delete Code Server Workspace'
