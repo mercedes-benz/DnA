@@ -1,7 +1,7 @@
 # Author: PALANSA
 # This is the Data Product Service build & deploy workflow
 
-name: CS Apps Deploy/Undeploy
+name: CS Apps Manage
 
 # Build is triggered either if run manually or when push happens to development branch
 on:
