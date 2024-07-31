@@ -219,7 +219,7 @@ jobs:
 
   sonar-qube-gradle:
     name: Sonar Qube Scan Gradle
-    needs: deploy
+    needs: build_deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' }}
     runs-on: [ medium ]
     steps:
@@ -266,7 +266,7 @@ jobs:
 
   sonar-qube-js:
     name: Sonar Qube Scan Javascript
-    needs: deploy
+    needs: build_deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' }}
     runs-on: [ medium ]
     steps:
