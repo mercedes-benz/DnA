@@ -203,6 +203,7 @@ export const ToolsLandingPageElements = [
     upperTag: 'FC Private Preview',
     isSmallCard: false,
     isMediumCard: true,
+    isDetailedPage: true,
     svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
