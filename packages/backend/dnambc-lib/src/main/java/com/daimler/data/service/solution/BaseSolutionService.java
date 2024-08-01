@@ -78,7 +78,7 @@ import com.daimler.data.db.repo.solution.SolutionRepository;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.dto.divisions.DivisionVO;
-import com.daimler.data.dto.divisions.SubdivisionVO; 
+import com.daimler.data.dto.divisions.SubdivisionVO;
 import com.daimler.data.dto.language.LanguageVO;
 import com.daimler.data.dto.analyticsSolution.AnalyticsSolutionVO;
 import com.daimler.data.dto.marketingRole.MarketingRoleVO;
@@ -167,10 +167,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	@Autowired
 	private AVScannerClient aVScannerClient;
-	
+
 	@Autowired
 	private DashboardClient dashboardClient;
-	
+
 	@Autowired
 	private MarketingRoleService marketingRoleService;
 
@@ -235,8 +235,8 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				if (currNotebookId != null && currNotebookId.equalsIgnoreCase(prevNotebookId)) {
 					notebookEvent = "";
 				}
-//    			else 
-//    				notebookEvent = "unlink old + provisioned to new sol";
+				// else
+				// notebookEvent = "unlink old + provisioned to new sol";
 			}
 			boolean found = false;
 			String prevFileName, curFileName;
@@ -255,52 +255,60 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			List<FileDetailsVO> curDigitalValueFileList = curDataCompliance.getAttachments();
 			// curFileList.addAll(curDataCompliance.getAttachments());
 			// curFileList.addAll(curDigitalValue.getAttachments());
-			FileDetailsVO tempFile= null;
+			FileDetailsVO tempFile = null;
 			try {
-				//deleteing unused attachments
+				// deleteing unused attachments
 				if (prevFileList != null && !prevFileList.isEmpty()) {
 					for (FileDetailsVO prevFile : prevFileList) {
 						if (curFileList != null && !curFileList.isEmpty() && prevFile.getId() != null) {
-							tempFile = curFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+							tempFile = curFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId()))
+									.findAny().orElse(null);
 						}
 						if (tempFile == null) {
 							try {
 								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
 								log.info("Deleting unused attachment found after solution update");
-							}catch (Exception e){
-								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							} catch (Exception e) {
+								log.error("Failed to delete attachment from solution with an exception {}",
+										e.getMessage());
 							}
 						}
 					}
 				}
-				//deleteing unused  digitalvalue attachments
+				// deleteing unused digitalvalue attachments
 				if (prevDigitalValueFileList != null && !prevDigitalValueFileList.isEmpty()) {
 					for (FileDetailsVO prevFile : prevDigitalValueFileList) {
-						if (curDigitalValueFileList != null && !curDigitalValueFileList.isEmpty() && prevFile.getId() != null) {
-							tempFile = curDigitalValueFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+						if (curDigitalValueFileList != null && !curDigitalValueFileList.isEmpty()
+								&& prevFile.getId() != null) {
+							tempFile = curDigitalValueFileList.stream()
+									.filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
 						}
 						if (tempFile == null) {
 							try {
 								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
 								log.info("Deleting unused attachment found after solution update");
-							}catch (Exception e){
-								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							} catch (Exception e) {
+								log.error("Failed to delete attachment from solution with an exception {}",
+										e.getMessage());
 							}
 						}
 					}
 				}
-				//deleteing unused datacompliance attachments
+				// deleteing unused datacompliance attachments
 				if (prevDataComplianceFileList != null && !prevDataComplianceFileList.isEmpty()) {
 					for (FileDetailsVO prevFile : prevDataComplianceFileList) {
-						if (curDataComplianceFileList != null && !curDataComplianceFileList.isEmpty() && prevFile.getId() != null) {
-							tempFile = curDataComplianceFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+						if (curDataComplianceFileList != null && !curDataComplianceFileList.isEmpty()
+								&& prevFile.getId() != null) {
+							tempFile = curDataComplianceFileList.stream()
+									.filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
 						}
 						if (tempFile == null) {
 							try {
 								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
 								log.info("Deleting unused attachment found after solution update");
-							}catch (Exception e){
-								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							} catch (Exception e) {
+								log.error("Failed to delete attachment from solution with an exception {}",
+										e.getMessage());
 							}
 						}
 					}
@@ -312,19 +320,18 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		updateTags(vo);
 		updateDataSources(vo);
 		updateRelatedProducts(vo);
-					
-		if(StringUtils.hasText(vo.getDepartment())) {
+
+		if (StringUtils.hasText(vo.getDepartment())) {
 			LOGGER.info("Calling dashboardService to update departments {}", vo.getDepartment());
 			dashboardClient.updateDepartments(vo);
 		}
-		
-		
+
 		LOGGER.debug("Updating Skills if not available.");
 		updateSkills(vo);
-		
+
 		LOGGER.debug("Updating Roles if not available.");
 		updateRoles(vo);
-		
+
 		SolutionAnalyticsVO analyticsVO = vo.getAnalytics();
 		if (analyticsVO != null) {
 			SolutionAnalyticsVO analyticsWithIdsInfo = new SolutionAnalyticsVO();
@@ -358,13 +365,14 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						responseSolutionVO.getId());
 			}
 		}
-//		if (dataikuAllowed) {
-//			if (responseSolutionVO != null && responseSolutionVO.getId() != null && vo.getPortfolio() != null) {
-//				LOGGER.info("Updating Solution Id in DnA Dataiku...");
-//				dataikuService.updateSolutionIdOfDataIkuProjectId(vo.getPortfolio().getDnaDataikuProjectId(),
-//						responseSolutionVO.getId());
-//			}
-//		}
+		// if (dataikuAllowed) {
+		// if (responseSolutionVO != null && responseSolutionVO.getId() != null &&
+		// vo.getPortfolio() != null) {
+		// LOGGER.info("Updating Solution Id in DnA Dataiku...");
+		// dataikuService.updateSolutionIdOfDataIkuProjectId(vo.getPortfolio().getDnaDataikuProjectId(),
+		// responseSolutionVO.getId());
+		// }
+		// }
 
 		if (responseSolutionVO != null && responseSolutionVO.getId() != null) {
 			String currDnaSubscriptionAppId = "";
@@ -393,18 +401,17 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			teamMembersEmails.add(user.getEmail());
 		}
 		if (isUpdate) {
-			if(!vo.getCreatedBy().getId().equalsIgnoreCase(prevVo.getCreatedBy().getId())) {
+			if (!vo.getCreatedBy().getId().equalsIgnoreCase(prevVo.getCreatedBy().getId())) {
 				isOwnershipChanged = true;
 			}
-			if(isOwnershipChanged){
+			if (isOwnershipChanged) {
 				eventType = "Solution_reassignOwner";
 				changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
 				teamMembers.add(vo.getCreatedBy().getId());
 				teamMembersEmails.add(vo.getCreatedBy().getEmail());
 				isPublishedOrCreated = true;
 
-			}
-			else{
+			} else {
 				eventType = "Solution_update";
 				changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
 				if (vo.isPublish())
@@ -415,11 +422,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			isPublishedOrCreated = true;
 		}
 
-
 		if (isPublishedOrCreated) {
 			LOGGER.debug("Publishing message on solution event for solution {} ", solutionName);
 			if (StringUtils.hasText(eventType)) {
-				this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers, teamMembersEmails);
+				this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers,
+						teamMembersEmails);
 			}
 		} else {
 			LOGGER.debug(
@@ -428,9 +435,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		}
 		return responseSolutionVO;
 	}
-
-	
-	
 
 	@Transactional
 	@Override
@@ -660,7 +664,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					if (StringUtils.hasText(department) && department.equals(tagName)) {
 						solutionNsql.getData().setDepartment(null);
 						customRepo.update(solutionNsql);
-					}					
+					}
 				}
 				changeLogs.add(changeLog);
 				LOGGER.debug(
@@ -677,11 +681,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Transactional
 	public void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject) {
 		List<SolutionNsql> solutionNsqlList = null;
-		String eventType = "Solution_update";		
+		String eventType = "Solution_update";
 		CreatedByVO currentUser = this.userStore.getVO();
 		TeamMemberVO ModifyingteamMemberVO = new TeamMemberVO();
 		BeanUtils.copyProperties(currentUser, ModifyingteamMemberVO);
-		ModifyingteamMemberVO.setShortId(currentUser.getId());		
+		ModifyingteamMemberVO.setShortId(currentUser.getId());
 		String userId = currentUser != null ? currentUser.getId() : "dna_system";
 		String userName = this.currentUserName(currentUser);
 		ChangeLogVO changeLog = new ChangeLogVO();
@@ -694,17 +698,17 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					Arrays.asList(oldValue), null, null, 0, 999999999, null, null);
 		}
 		if (!ObjectUtils.isEmpty(solutionNsqlList)) {
-			solutionNsqlList.forEach(solutionNsql -> {				
+			solutionNsqlList.forEach(solutionNsql -> {
 				List<String> teamMembers = new ArrayList<>();
 				List<String> teamMembersEmails = new ArrayList<>();
 				Solution solutionJson = solutionNsql.getData();
-				List<ChangeLogVO> changeLogs = new ArrayList<>();						
+				List<ChangeLogVO> changeLogs = new ArrayList<>();
 				List<SolutionTeamMember> solutionTeamMembers = solutionJson.getTeamMembers();
 				for (SolutionTeamMember user : solutionTeamMembers) {
 					teamMembers.add(user.getShortId());
 					teamMembersEmails.add(user.getEmail());
 				}
-				if (category.equals(TAG_CATEGORY.DIVISION)) {					
+				if (category.equals(TAG_CATEGORY.DIVISION)) {
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
 					DivisionVO divisionVO = (DivisionVO) updateObject;
 					changeLog.setChangeDescription("Divisions: Division '" + divisionVO.getName() + "' updated.");
@@ -739,8 +743,8 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				}
-				log.info("Solution Updated after Admin action");	
-				this.publishEventMessages(eventType, solutionNsql.getId(), changeLogs, 
+				log.info("Solution Updated after Admin action");
+				this.publishEventMessages(eventType, solutionNsql.getId(), changeLogs,
 						solutionNsql.getData().getProductName(), teamMembers, teamMembersEmails);
 			});
 		}
@@ -820,14 +824,16 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			});
 		}
 	}
-	
+
 	/*
 	 * To create a new Roles if not exist
 	 * 
 	 */
-	private void updateRoles(SolutionVO vo) {		
-		List<String> roles = vo.getMarketing().getMarketingRoles() != null ? vo.getMarketing().getMarketingRoles().stream().filter(Objects :: nonNull)
-				.map(n->n.getRole()).collect(Collectors.toList()) : null;
+	private void updateRoles(SolutionVO vo) {
+		List<String> roles = vo.getMarketing().getMarketingRoles() != null
+				? vo.getMarketing().getMarketingRoles().stream().filter(Objects::nonNull)
+						.map(n -> n.getRole()).collect(Collectors.toList())
+				: null;
 		if (!ObjectUtils.isEmpty(roles)) {
 			roles.forEach(role -> {
 				LOGGER.info("Checking if Role:{} already exists", role);
@@ -839,7 +845,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					LOGGER.info("Adding new Role:{} in db", role);
 					MarketingRoleVO newRoleVO = new MarketingRoleVO();
 					newRoleVO.setId(null);
-					newRoleVO.setName(role);					
+					newRoleVO.setName(role);
 					marketingRoleService.create(newRoleVO);
 				}
 			});
@@ -907,7 +913,8 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			analyticsSolutionsWithIds = analyticsSolutions.stream().map(analyticsSolution -> {
 				if (analyticsSolutionsExistsFinal) {
 					AnalyticsSolutionVO existingAnalyticsSolutionWithId = existingAnalyticsSolutions.stream()
-							.filter(n -> analyticsSolution.getName().equalsIgnoreCase(n.getName())).findAny().orElse(null);
+							.filter(n -> analyticsSolution.getName().equalsIgnoreCase(n.getName())).findAny()
+							.orElse(null);
 					if (existingAnalyticsSolutionWithId != null)
 						return existingAnalyticsSolutionWithId;
 				}
@@ -1044,13 +1051,15 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					null);
 		}
 
-//		if (dataikuAllowed) {
-//			LOGGER.info("Updating Dataiku linkage.");
-//			DataikuNsql dataikuEntity = dataikuCustomRepo.findbyUniqueLiteral("solutionId", id);
-//			if (dataikuEntity != null && dataikuEntity.getData() != null) {
-//				dataikuService.updateSolutionIdOfDataIkuProjectId(dataikuEntity.getData().getProjectKey(), null);
-//			}
-//		}
+		// if (dataikuAllowed) {
+		// LOGGER.info("Updating Dataiku linkage.");
+		// DataikuNsql dataikuEntity =
+		// dataikuCustomRepo.findbyUniqueLiteral("solutionId", id);
+		// if (dataikuEntity != null && dataikuEntity.getData() != null) {
+		// dataikuService.updateSolutionIdOfDataIkuProjectId(dataikuEntity.getData().getProjectKey(),
+		// null);
+		// }
+		// }
 
 		if (solutionVO != null && solutionVO.getId() != null) {
 			String eventType = "Solution_delete";
@@ -1076,7 +1085,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "dna_system";
 			String userName = super.currentUserName(currentUser);
-			String newOwnerFullName= "";
+			String newOwnerFullName = "";
 
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
@@ -1101,15 +1110,17 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				LOGGER.info("Publishing message on solution create for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_reassignOwner".equalsIgnoreCase(eventType)) {
-				if(changeLogs!=null && changeLogs.size()>0 ){
-					String newOwnerFirstName= changeLogs.get(0).getNewValue();
-					String newOwnerLastName= changeLogs.get(1).getNewValue();
+				if (changeLogs != null && changeLogs.size() > 0) {
+					String newOwnerFirstName = changeLogs.get(0).getNewValue();
+					String newOwnerLastName = changeLogs.get(1).getNewValue();
 					newOwnerFullName = newOwnerFirstName + " " + newOwnerLastName;
 
 				}
 				eventType = "Solution Reassign Owner ";
-				message = "Solution Update. Owner for solution  " + solutionName  + " changed from " + userName +" to " + newOwnerFullName;
-				LOGGER.info("Publishing message on solution transfer ownership for solution {} by userId {}", solutionName, userId);
+				message = "Solution Update. Owner for solution  " + solutionName + " changed from " + userName + " to "
+						+ newOwnerFullName;
+				LOGGER.info("Publishing message on solution transfer ownership for solution {} by userId {}",
+						solutionName, userId);
 			}
 
 			if (eventType != null && eventType != "") {
@@ -1173,64 +1184,64 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	@Override
 	public ResponseEntity<GenericMessage> notifyUsecaseOwners(Boolean published, List<String> phases,
-	List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
-	String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-	List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook, String message) {
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook,
+			String message) {
 
-		List <SolutionNotifyTeamMemberVO> teamMembers = customRepo.getTeamMembersWithFiltersUsingNativeQuery(published, phases,
+		List<SolutionNotifyTeamMemberVO> teamMembers = customRepo.getTeamMembersWithFiltersUsingNativeQuery(published,
+				phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, tags,
 				relatedProducts,
 				divisionsAdmin, hasNotebook);
-				
-        //  List<NotifyTeamMemberVO> useCaseOwners = new ArrayList<>();
 
-        //  // Iterate through each SolutionNotifyTeamMemberVO
-        //  for (SolutionNotifyTeamMemberVO solution : teamMembers) {
-        //      // Iterate through each TeamMemberVO in the current SolutionNotifyTeamMemberVO
-        //      List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
-        //      for (NotifyTeamMemberVO teamMember : teamMembersList) {
-        //          if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
-        //              useCaseOwners.add(teamMember); // Add to useCaseOwners list
-        //          }
-        //      }
-        //  }
+		// List<NotifyTeamMemberVO> useCaseOwners = new ArrayList<>();
+
+		// // Iterate through each SolutionNotifyTeamMemberVO
+		// for (SolutionNotifyTeamMemberVO solution : teamMembers) {
+		// // Iterate through each TeamMemberVO in the current
+		// SolutionNotifyTeamMemberVO
+		// List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
+		// for (NotifyTeamMemberVO teamMember : teamMembersList) {
+		// if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
+		// useCaseOwners.add(teamMember); // Add to useCaseOwners list
+		// }
+		// }
+		// }
 
 		// Map<String, String> uniqueShortIdToEmailMap = useCaseOwners.stream()
-        //     .collect(Collectors.toMap(
-        //         NotifyTeamMemberVO::getShortId, // Key: shortId
-        //         useCaseOwner -> useCaseOwner.getEmail() != null ? useCaseOwner.getEmail() : "", // Value: email or empty string if null
-        //         (existing, replacement) -> existing, // In case of duplicates, keep the existing email
-        //         LinkedHashMap::new // Maintain insertion order
-        //     ));
+		// .collect(Collectors.toMap(
+		// NotifyTeamMemberVO::getShortId, // Key: shortId
+		// useCaseOwner -> useCaseOwner.getEmail() != null ? useCaseOwner.getEmail() :
+		// "", // Value: email or empty string if null
+		// (existing, replacement) -> existing, // In case of duplicates, keep the
+		// existing email
+		// LinkedHashMap::new // Maintain insertion order
+		// ));
 
-        // // Extract unique shortIds and emails into separate lists
-        // List<String> shortIds = new ArrayList<>(uniqueShortIdToEmailMap.keySet());
-        // List<String> emailIds = new ArrayList<>(uniqueShortIdToEmailMap.values());
+		// // Extract unique shortIds and emails into separate lists
+		// List<String> shortIds = new ArrayList<>(uniqueShortIdToEmailMap.keySet());
+		// List<String> emailIds = new ArrayList<>(uniqueShortIdToEmailMap.values());
 
-		
-        for (SolutionNotifyTeamMemberVO solution : teamMembers) {
-            String solId = solution.getId();
-			List<String> shortIds =  new ArrayList<>();
-			List<String> emailIds =  new ArrayList<>();
+		for (SolutionNotifyTeamMemberVO solution : teamMembers) {
+			String solId = solution.getId() + "@-@" + solution.getName();
+			List<String> shortIds = new ArrayList<>();
+			List<String> emailIds = new ArrayList<>();
 			List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
-             for (NotifyTeamMemberVO teamMember : teamMembersList) {
-                 if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
-                     shortIds.add(teamMember.getShortId());
-					 emailIds.add(teamMember.getEmail() != null ? teamMember.getEmail() : "");
-                 }
-             }
-			 if(shortIds.size() !=0) {
-				LOGGER.info("shortIds {}",shortIds);
-				LOGGER.info("emailIds {}",emailIds);
-			 	kafkaProducer.send("Notify UseCaseOwners", solId, "", userId, message, true, shortIds, emailIds, null);
-			 }
-			  
-        }
+			for (NotifyTeamMemberVO teamMember : teamMembersList) {
+				if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
+					shortIds.add(teamMember.getShortId());
+					emailIds.add(teamMember.getEmail() != null ? teamMember.getEmail() : "");
+				}
+			}
+			if (shortIds.size() != 0) {
+				kafkaProducer.send("Notify UseCaseOwners", solId, "", userId, message, true, shortIds, emailIds, null);
+			}
 
-		
+		}
+
 		return null;
 
 	}
-	
 
 }

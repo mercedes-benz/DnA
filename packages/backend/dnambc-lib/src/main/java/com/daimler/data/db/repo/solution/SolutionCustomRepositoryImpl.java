@@ -1285,7 +1285,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook) {
 		Query q = getNativeQueryWithFiltersForEmail(
-				"select cast (id as text) , cast (jsonb_extract_path_text(data,'teamMembers') as text)", published,
+				"select cast (id as text) , cast (data->'productName'  as varchar) , cast (jsonb_extract_path_text(data,'teamMembers') as text)", published,
 				phases, dataVolumes, divisions, locations, statuses,
 				solutionType, userId, isAdmin, bookmarkedSolutions, new ArrayList<>(), tags, relatedProducts,
 				divisionsAdmin, hasNotebook, 0, 0, "id", "asc", "", "");
@@ -1295,7 +1295,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		List<SolutionNotifyTeamMemberVO> convertedResults = results.stream().map(temp -> {
 			SolutionNotifyTeamMemberVO entity = new SolutionNotifyTeamMemberVO();
 			try {
-				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				String jsonData = temp[2] != null ? temp[2].toString() : "";
 				List<NotifyTeamMemberVO> tempSol = mapper.readValue(jsonData,
 						new TypeReference<List<NotifyTeamMemberVO>>() {
 						});
@@ -1304,7 +1304,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				LOGGER.error("Failed while fetching all solutions using native {} ", e.getMessage());
 			}
 			String id = temp[0] != null ? temp[0].toString() : "";
+			String name = temp[1] != null ? temp[1].toString().replaceAll("^\"|\"$", "") : "";
 			entity.setId(id);
+			entity.setName(name);
 			return entity;
 		}).collect(Collectors.toList());
 		return convertedResults;

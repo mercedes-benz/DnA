@@ -38,5 +38,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SolutionNotifyTeamMemberVO {
     private String id;
+    private String name;
     private List<NotifyTeamMemberVO> teammembers;
 }
