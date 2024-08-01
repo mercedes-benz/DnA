@@ -153,9 +153,7 @@ const CodeSpaceRecipe = (props) => {
     const githubUrlVal = e.currentTarget.value.trim();
     setGitUrl(githubUrlVal);
     const errorText = githubUrlVal.length
-      ? isValidGitUrl(githubUrlVal, isPublic)
-        ? ''
-        : `provide valid ${isPublic ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
+      ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
       : requiredError;
     setErrorObj((prevState) => ({
       ...prevState,
@@ -318,7 +316,7 @@ const CodeSpaceRecipe = (props) => {
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show(err.message, 'alert');
+          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
           if (err.message === 'Value or Item already exist!') {
             setErrorObj((prevState) => ({
               ...prevState,
