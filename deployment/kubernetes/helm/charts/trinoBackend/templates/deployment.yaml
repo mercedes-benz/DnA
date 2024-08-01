@@ -34,7 +34,7 @@ spec:
               name: {{ .Chart.Name }}
       containers:
         - name: {{ .Chart.Name }}-service
-          image: {{ .Values.image }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
