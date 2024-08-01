@@ -25,6 +25,7 @@ on:
         required: true  
         options: 
           - build
+          - build_push
           - deploy
           - build_deploy
           - undeploy
@@ -100,7 +101,7 @@ jobs:
       if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}      
       working-directory: ./workspace-repo/deploy
       run: | 
-       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }} \
+       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }} \
         --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
         --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
         --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
@@ -110,15 +111,15 @@ jobs:
         no_proxy: "artifacts.i.mercedes-benz.com"     
     
     - name: Publish application containers to registry
-      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}    
+      if: ${{ github.event.inputs.action == 'build_push' || github.event.inputs.action == 'build_deploy'  }}    
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
-        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }}     
+        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
 
     - name: Cleanup old version in registry
       if: ${{ (github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' ) && github.event.inputs.action == ''  }}
       run: |
-        # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}:${{ github.event.inputs.appVersion }}     
+        # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
 
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
@@ -131,7 +132,7 @@ jobs:
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
           namespace: codespaces-apps
           image:
-            repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
+            repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}
             tag: ${{ github.event.inputs.appVersion }}
           imagePullSecrets: 
             - name: imagepullsecret
