@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +25,14 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
+import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
@@ -39,10 +42,12 @@ import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -98,6 +103,19 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${authoriser.identityRoleUrl}")
 	private String identityRoleUrl;
 	
+	
+	@Value("${fabricWorkspaces.group.identifier}")
+	private String onboardGroupIdenitifier;
+	
+	@Value("${fabricWorkspaces.group.displayName}")
+	private String onboardGroupDisplayName;
+	
+	@Value("${fabricWorkspaces.subgroupPrefix}")
+	private String subgroupPrefix;
+	
+	@Value("${authoriser.applicationId}")
+	private String applicationId;
+	
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
 	
 	public BaseFabricWorkspaceService() {
@@ -106,11 +124,27 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	@Transactional
-	public List<FabricWorkspaceVO> getAll( int limit,  int offset, String user) {
+	public FabricWorkspacesCollectionVO getAll( int limit,  int offset, String user, List<String> allEntitlementsList) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
-		List<FabricWorkspaceNsql> entities = customRepo.getAll(user, offset, limit);
-		if (entities != null && !entities.isEmpty()) {
-			for(FabricWorkspaceNsql entity : entities) {
+		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
+		List<FabricWorkspaceNsql> filteredEntities = new ArrayList<>();
+		if(allEntities!=null && !allEntities.isEmpty()) {
+			for(FabricWorkspaceNsql existingEntity : allEntities) {
+				if(existingEntity!=null) {
+					List<String> filteredEntitlements = new ArrayList<>();
+					if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
+						filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + existingEntity.getId() + "_")).collect(Collectors.toList());
+					}
+					String creatorId = existingEntity.getData().getCreatedBy().getId();
+					if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
+						filteredEntities.add(existingEntity);
+					}
+				}
+			}
+		}
+		if (filteredEntities != null && !filteredEntities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : filteredEntities) {
 				try {
 					String id = entity.getId();
 					log.info("Fetched fabric project record from db successfully for id {} ", id);
@@ -135,7 +169,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 			}
 		}
-		return vos;
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		if(vos!=null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int newOffset = offset>vos.size() ? 0 : offset;
+			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
+			paginatedVOs = vos.subList(newOffset, newLimit);
+		}
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		return collectionVO;
 	}
 
 	@Override
@@ -218,8 +262,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						log.info("Successfully added  user {} to workspace {} ", vo.getCreatedBy().getEmail(), createResponse.getId());
 					}
 					
-					
-					GenericMessage addGroupResponse = fabricWorkspaceClient.addGroup(createResponse.getId());
+					AddGroupDto addGroupDto = new AddGroupDto();
+					addGroupDto.setDisplayName(onboardGroupDisplayName);
+					addGroupDto.setIdentifier(onboardGroupIdenitifier);
+					addGroupDto.setPrincipalType("Group");
+					addGroupDto.setGroupUserAccessRight("Admin");
+					GenericMessage addGroupResponse = fabricWorkspaceClient.addGroup(createResponse.getId(),addGroupDto);
 					if(addGroupResponse == null || !"SUCCESS".equalsIgnoreCase(addGroupResponse.getSuccess())) {
 						log.error("Failed to add default group to workspace {}", createResponse.getId());
 						MessageDescription message = new MessageDescription();
@@ -251,8 +299,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
 					String creatorId = vo.getCreatedBy().getId(); 
-					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId));
-					FabricWorkspaceVO savedRecord = super.create(data);
+					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId()));
+					FabricWorkspaceVO savedRecord = null;
+					try{
+						savedRecord = super.create(data);
+					}catch(Exception e) {
+						ObjectMapper mapper = new ObjectMapper();
+						log.error("Failed to save record to db after processing usermanagement successfully for a new fabric record with data {}", mapper.writeValueAsString(data));
+					}
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
 					fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					responseData.setData(savedRecord);
@@ -292,11 +346,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 	
 	@Override
-	public CreateEntitlementRequestDto prepareEntitlementCreateRequestDto(String workspaceName, String permissionName) {
+	public CreateEntitlementRequestDto prepareEntitlementCreateRequestDto(String workspaceName, String workspaceId, String permissionName) {
 		CreateEntitlementRequestDto entitlementRequestDto = new CreateEntitlementRequestDto();
 		entitlementRequestDto.setType(ConstantsUtility.ENTITLEMENT_TYPE);
-		entitlementRequestDto.setEntitlementId(workspaceName + "_" + permissionName);
-		entitlementRequestDto.setDisplayName(workspaceName + "_" + permissionName);
+		entitlementRequestDto.setEntitlementId(subgroupPrefix +  workspaceId + "_" + permissionName);
+		entitlementRequestDto.setDisplayName(subgroupPrefix + workspaceId + "_" + permissionName);
 		entitlementRequestDto.setDescription("Entitlement for workspace " + workspaceName + " for " + permissionName + " Privileges");
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
@@ -305,25 +359,25 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 	
 	@Override
-	public EntitlementDetailsVO callEntitlementCreate(String workspaceName, String permissionName) {
-		CreateEntitlementRequestDto createRequestDto = this.prepareEntitlementCreateRequestDto(workspaceName, permissionName);
+	public EntitlementDetailsVO callEntitlementCreate(String workspaceName, String workspaceId, String permissionName) {
+		CreateEntitlementRequestDto createRequestDto = this.prepareEntitlementCreateRequestDto(workspaceName, workspaceId, permissionName);
 		EntitlementDetailsVO requestedEntitlement = new EntitlementDetailsVO();
-		requestedEntitlement.setDisplayName(workspaceName + "_" +  permissionName);
+		requestedEntitlement.setDisplayName(subgroupPrefix +  workspaceId + "_" + permissionName);
 		requestedEntitlement.setState(ConstantsUtility.PENDING_STATE);
 		try {
-			log.info("Calling identity management system to add entitlement {} for workspace {} ", workspaceName + "_" +  permissionName, workspaceName);
+			log.info("Calling identity management system to add entitlement {} for workspace {} ", subgroupPrefix  + workspaceId + "_" + permissionName, workspaceName);
 			EntiltlemetDetailsDto entitlementCreateResponse = identityClient.createEntitlement(createRequestDto);
 			if(entitlementCreateResponse!=null && entitlementCreateResponse.getEntitlementId()!=null) {
 				requestedEntitlement.setEntitlementId(entitlementCreateResponse.getEntitlementId());
 				requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
-				log.info("Called identity management system to add entitlement {} for workspace {} . Entitlement created successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, entitlementCreateResponse.getEntitlementId());
+				log.info("Called identity management system to add entitlement {} for workspace {} . Entitlement created successfully with id {} ", subgroupPrefix +  workspaceId + "_" + permissionName, workspaceName, entitlementCreateResponse.getEntitlementId());
 			}else {
 				requestedEntitlement.setState(ConstantsUtility.FAILED_STATE);
-				log.info("Called identity management system to add entitlement {} for workspace {} . Entitlement creat failed with unknown error", workspaceName + "_" + permissionName, workspaceName);
+				log.info("Called identity management system to add entitlement {} for workspace {} . Entitlement creat failed with unknown error", subgroupPrefix  + workspaceId + "_" + permissionName, workspaceName);
 			}
 		}catch(Exception e) {
 			requestedEntitlement.setState(ConstantsUtility.FAILED_STATE);
-			log.error("Called identity management system to add entitlement {} for workspace {} . Failed to create entitlement with error {} ", workspaceName + "_" +  permissionName, workspaceName, e.getMessage());
+			log.error("Called identity management system to add entitlement {} for workspace {} . Failed to create entitlement with error {} ", subgroupPrefix +  workspaceId + "_" + permissionName, workspaceName, e.getMessage());
 		}
 		return requestedEntitlement;
 	}
@@ -464,7 +518,40 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return updatedRole;
 	}
 	
-	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId) {
+	@Override
+	public GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName) {
+		if(existingGroupDetailsVO!=null) {
+			if(existingGroupDetailsVO.getState()!=null) {
+				if(!ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(existingGroupDetailsVO.getState())){
+					String displayName = existingGroupDetailsVO.getGroupName();
+					MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(displayName);
+					if(searchResult!=null) {
+						String groupIdentifier = searchResult.getId();
+						if(searchResult.getId()!=null) {
+							existingGroupDetailsVO.setGroupId(groupIdentifier);
+							AddGroupDto addGroupDto = new AddGroupDto();
+							addGroupDto.setDisplayName(displayName);
+							addGroupDto.setIdentifier(groupIdentifier);
+							addGroupDto.setPrincipalType("Group");
+							addGroupDto.setGroupUserAccessRight(permissionName);
+							GenericMessage addGroupResponse = fabricWorkspaceClient.addGroup(workspaceId,addGroupDto);
+							if(addGroupResponse == null || !"SUCCESS".equalsIgnoreCase(addGroupResponse.getSuccess())) {
+								log.error("Failed to add "+ displayName +" group to workspace {}", workspaceId);
+								existingGroupDetailsVO.setState(ConstantsUtility.FAILED_STATE);
+							}else {
+								log.info("Successfully added "+ displayName +" Group to workspace {} ", workspaceId);
+								existingGroupDetailsVO.setState(ConstantsUtility.ASSIGNED_STATE);
+							}
+						}
+					}
+				}
+			}
+		}
+		return existingGroupDetailsVO;
+	}
+	
+	@Override
+	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId) {
 				if(ConstantsUtility.INPROGRESS_STATE.equalsIgnoreCase(currentStatus.getState())) {
 					boolean isAdminEntitlementAvailable = false;
 					boolean isContributorEntitlementAvailable = false;
@@ -484,11 +571,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					List<EntitlementDetailsVO> updatedEntitlements  = new ArrayList<>();
 						//check for admin entitlement
 						Optional<EntitlementDetailsVO> existingAdminEntitlement = entitlements!=null && !entitlements.isEmpty() ? 
-								entitlements.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_ADMIN).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
-							EntitlementDetailsVO existingAdminEntitlementVO = existingAdminEntitlement!=null && existingAdminEntitlement.isPresent() ? existingAdminEntitlement.get() : new EntitlementDetailsVO();
+								entitlements.stream().filter(n->(subgroupPrefix + workspaceId + "_" + ConstantsUtility.PERMISSION_ADMIN).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
+							EntitlementDetailsVO existingAdminEntitlementVO = null;
+							if( existingAdminEntitlement!=null && existingAdminEntitlement.isPresent()) {
+								existingAdminEntitlementVO = existingAdminEntitlement.get();
+							}else {
+								existingAdminEntitlementVO = new EntitlementDetailsVO();
+								existingAdminEntitlementVO.setState(ConstantsUtility.PENDING_STATE);
+							}
 							if(existingAdminEntitlementVO.getState()!=null) {
 								if(!ConstantsUtility.CREATED_STATE.equalsIgnoreCase(existingAdminEntitlementVO.getState())){
-									EntitlementDetailsVO latestAdminEntitlement = this.callEntitlementCreate(workspaceName,ConstantsUtility.PERMISSION_ADMIN);
+									EntitlementDetailsVO latestAdminEntitlement = this.callEntitlementCreate(workspaceName,workspaceId,ConstantsUtility.PERMISSION_ADMIN);
 									if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(latestAdminEntitlement.getState())) {
 										isAdminEntitlementAvailable = true;
 									}
@@ -502,11 +595,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							}
 						//check for contributor entitlement
 						Optional<EntitlementDetailsVO> existingContributorEntitlement = entitlements!=null && !entitlements.isEmpty() ? 
-								entitlements.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_CONTRIBUTOR).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
-							EntitlementDetailsVO existingContributorEntitlementVO = existingContributorEntitlement!=null && existingContributorEntitlement.isPresent() ? existingContributorEntitlement.get() : new EntitlementDetailsVO();
+								entitlements.stream().filter(n->(subgroupPrefix +  workspaceId + "_" +  ConstantsUtility.PERMISSION_CONTRIBUTOR).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
+							EntitlementDetailsVO existingContributorEntitlementVO = null;
+							if( existingContributorEntitlement!=null && existingContributorEntitlement.isPresent()) {
+								existingContributorEntitlementVO = existingContributorEntitlement.get();
+							}else {
+								existingContributorEntitlementVO = new EntitlementDetailsVO();
+								existingContributorEntitlementVO.setState(ConstantsUtility.PENDING_STATE);
+							}
 							if(existingContributorEntitlementVO.getState()!=null) {
 								if(!ConstantsUtility.CREATED_STATE.equalsIgnoreCase(existingContributorEntitlementVO.getState())){
-									EntitlementDetailsVO latestContributorEntitlement = this.callEntitlementCreate(workspaceName,ConstantsUtility.PERMISSION_CONTRIBUTOR);
+									EntitlementDetailsVO latestContributorEntitlement = this.callEntitlementCreate(workspaceName,workspaceId,ConstantsUtility.PERMISSION_CONTRIBUTOR);
 									if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(latestContributorEntitlement.getState())) {
 										isContributorEntitlementAvailable = true;
 									}
@@ -520,11 +619,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							}
 						//check for Member entitlement
 						Optional<EntitlementDetailsVO> existingMemberEntitlement = entitlements!=null && !entitlements.isEmpty() ? 
-								entitlements.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_MEMBER).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
-							EntitlementDetailsVO existingMemberEntitlementVO = existingMemberEntitlement!=null && existingMemberEntitlement.isPresent() ? existingMemberEntitlement.get() : new EntitlementDetailsVO();
+								entitlements.stream().filter(n->(subgroupPrefix + workspaceId + "_" + ConstantsUtility.PERMISSION_MEMBER).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
+							EntitlementDetailsVO existingMemberEntitlementVO = null;
+							if( existingMemberEntitlement!=null && existingMemberEntitlement.isPresent()) {
+								existingMemberEntitlementVO = existingMemberEntitlement.get();
+							}else {
+								existingMemberEntitlementVO = new EntitlementDetailsVO();
+								existingMemberEntitlementVO.setState(ConstantsUtility.PENDING_STATE);
+							}
 							if(existingMemberEntitlementVO.getState()!=null) {
 								if(!ConstantsUtility.CREATED_STATE.equalsIgnoreCase(existingMemberEntitlementVO.getState())){
-									EntitlementDetailsVO latestMemberEntitlement = this.callEntitlementCreate(workspaceName,ConstantsUtility.PERMISSION_MEMBER);
+									EntitlementDetailsVO latestMemberEntitlement = this.callEntitlementCreate(workspaceName,workspaceId,ConstantsUtility.PERMISSION_MEMBER);
 									if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(latestMemberEntitlement.getState())) {
 										isMemberEntitlementAvailable = true;
 									}
@@ -538,11 +643,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							}
 						//check for viewer entitlement
 						Optional<EntitlementDetailsVO> existingViewerEntitlement = entitlements!=null && !entitlements.isEmpty() ? 
-								entitlements.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_VIEWER).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
-							EntitlementDetailsVO existingViewerEntitlementVO = existingViewerEntitlement!=null && existingViewerEntitlement.isPresent() ? existingViewerEntitlement.get() : new EntitlementDetailsVO();
+								entitlements.stream().filter(n->(subgroupPrefix +  workspaceId + "_" + ConstantsUtility.PERMISSION_VIEWER).equalsIgnoreCase(n.getDisplayName())).findFirst() : null;
+							EntitlementDetailsVO existingViewerEntitlementVO = null;
+							if( existingViewerEntitlement!=null && existingViewerEntitlement.isPresent()) {
+								existingViewerEntitlementVO = existingViewerEntitlement.get();
+							}else {
+								existingViewerEntitlementVO = new EntitlementDetailsVO();
+								existingViewerEntitlementVO.setState(ConstantsUtility.PENDING_STATE);
+							}
 							if(existingViewerEntitlementVO.getState()!=null) {
 								if(!ConstantsUtility.CREATED_STATE.equalsIgnoreCase(existingViewerEntitlementVO.getState())){
-									EntitlementDetailsVO latestViewerEntitlement = this.callEntitlementCreate(workspaceName,ConstantsUtility.PERMISSION_VIEWER);
+									EntitlementDetailsVO latestViewerEntitlement = this.callEntitlementCreate(workspaceName,workspaceId,ConstantsUtility.PERMISSION_VIEWER);
 									if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(latestViewerEntitlement.getState())) {
 										isViewerEntitlementAvailable = true;
 									}
@@ -560,58 +671,115 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					List<RoleDetailsVO> updatedRoles  = new ArrayList<>();
 						//check for admin Role
 						Optional<RoleDetailsVO> existingAdminRole = roles!=null && !roles.isEmpty() ? roles.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_ADMIN).equalsIgnoreCase(n.getName())).findFirst() : null;
-							RoleDetailsVO existingAdminRoleVO = existingAdminRole!=null && existingAdminRole.isPresent() ? existingAdminRole.get() : new RoleDetailsVO();
+							RoleDetailsVO existingAdminRoleVO = null;
+							if(existingAdminRole!=null && existingAdminRole.isPresent()) {
+								existingAdminRoleVO = existingAdminRole.get();
+							}else {
+								existingAdminRoleVO = new RoleDetailsVO();
+								existingAdminRoleVO.setState(ConstantsUtility.PENDING_STATE);
+								existingAdminRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_ADMIN);
+							}
 							RoleDetailsVO updatedAdminRoleVO = this.updateRoleDetails(adminEntitlement, existingAdminRoleVO, workspaceName, ConstantsUtility.PERMISSION_ADMIN, creatorId);
 							adminRole = updatedAdminRoleVO;
 							updatedRoles.add(updatedAdminRoleVO);
 						//check for contributor Role
 						Optional<RoleDetailsVO> existingContributorRole = roles!=null && !roles.isEmpty() ? roles.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_CONTRIBUTOR).equalsIgnoreCase(n.getName())).findFirst() : null;
-							RoleDetailsVO existingContributorRoleVO = existingContributorRole!=null && existingContributorRole.isPresent() ? existingContributorRole.get() : new RoleDetailsVO();
+							RoleDetailsVO existingContributorRoleVO = null;
+							if(existingContributorRole!=null && existingContributorRole.isPresent()) {
+								existingContributorRoleVO = existingContributorRole.get();
+							}else {
+								existingContributorRoleVO = new RoleDetailsVO();
+								existingContributorRoleVO.setState(ConstantsUtility.PENDING_STATE);
+								existingContributorRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_CONTRIBUTOR);
+							}
 							RoleDetailsVO updatedContributorRoleVO = this.updateRoleDetails(contributorEntitlement, existingContributorRoleVO, workspaceName, ConstantsUtility.PERMISSION_CONTRIBUTOR, creatorId);
 							contributorRole = updatedContributorRoleVO;
 							updatedRoles.add(contributorRole);
 						//check for member Role
 						Optional<RoleDetailsVO> existingMemberRole = roles!=null && !roles.isEmpty() ? roles.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_MEMBER).equalsIgnoreCase(n.getName())).findFirst() : null;
-							RoleDetailsVO existingMemberRoleVO = existingMemberRole!=null && existingMemberRole.isPresent() ? existingMemberRole.get() : new RoleDetailsVO();
+							RoleDetailsVO existingMemberRoleVO = null;
+							if(existingMemberRole!=null && existingMemberRole.isPresent()) {
+								existingMemberRoleVO = existingMemberRole.get();
+							}else {
+								existingMemberRoleVO = new RoleDetailsVO();
+								existingMemberRoleVO.setState(ConstantsUtility.PENDING_STATE);
+								existingMemberRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_MEMBER);
+							}
 							RoleDetailsVO updatedMemberRoleVO = this.updateRoleDetails(memberEntitlement, existingMemberRoleVO, workspaceName, ConstantsUtility.PERMISSION_MEMBER, creatorId);
 							memberRole = updatedMemberRoleVO;
 							updatedRoles.add(memberRole);
 						//check for viewer Role
 						Optional<RoleDetailsVO> existingViewerRole = roles!=null && !roles.isEmpty() ? roles.stream().filter(n->(workspaceName + "_" + ConstantsUtility.PERMISSION_VIEWER).equalsIgnoreCase(n.getName())).findFirst() : null;
-							RoleDetailsVO existingViewerRoleVO = existingViewerRole!=null && existingViewerRole.isPresent() ? existingViewerRole.get() : new RoleDetailsVO();
+							RoleDetailsVO existingViewerRoleVO = null;
+							if(existingViewerRole!=null && existingViewerRole.isPresent()) {
+								existingViewerRoleVO = existingViewerRole.get();
+							}else {
+								existingViewerRoleVO = new RoleDetailsVO();
+								existingViewerRoleVO.setState(ConstantsUtility.PENDING_STATE);
+								existingViewerRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_VIEWER);
+							}
 							RoleDetailsVO updatedViewerRoleVO = this.updateRoleDetails(contributorEntitlement, existingViewerRoleVO, workspaceName, ConstantsUtility.PERMISSION_VIEWER, creatorId);
 							viewerRole = updatedViewerRoleVO;
 							updatedRoles.add(viewerRole);
 					currentStatus.setRoles(updatedRoles);
 					
 					//adding group details
-					List<GroupDetailsVO> microsoftGroups = new ArrayList<>();
-					
-					GroupDetailsVO adminGroup = new GroupDetailsVO();
-					adminGroup.setGroupId("");
-					adminGroup.setGroupName(dnaGroupPrefix+"ID_"+ConstantsUtility.PERMISSION_ADMIN);
-					adminGroup.setState(ConstantsUtility.PENDING_STATE);
-					microsoftGroups.add(adminGroup);
-
-					GroupDetailsVO contributorGroup = new GroupDetailsVO();
-					contributorGroup.setGroupId("");
-					contributorGroup.setGroupName(dnaGroupPrefix+"ID_"+ConstantsUtility.PERMISSION_CONTRIBUTOR);
-					contributorGroup.setState(ConstantsUtility.PENDING_STATE);
-					microsoftGroups.add(contributorGroup);
-					
-					GroupDetailsVO viewerGroup = new GroupDetailsVO();
-					viewerGroup.setGroupId("");
-					viewerGroup.setGroupName(dnaGroupPrefix+"ID_"+ConstantsUtility.PERMISSION_VIEWER);
-					viewerGroup.setState(ConstantsUtility.PENDING_STATE);
-					microsoftGroups.add(viewerGroup);
-					
-					GroupDetailsVO memberGroup = new GroupDetailsVO();
-					memberGroup.setGroupId("");
-					memberGroup.setGroupName(dnaGroupPrefix+"ID_"+ConstantsUtility.PERMISSION_MEMBER);
-					memberGroup.setState(ConstantsUtility.PENDING_STATE);
-					microsoftGroups.add(memberGroup);
-					
-					currentStatus.setMicrosoftGroups(microsoftGroups);
+					List<GroupDetailsVO> groups  = currentStatus.getMicrosoftGroups();
+					List<GroupDetailsVO> updatedMicrosoftFabricGroups = new ArrayList<>();
+					//check for admin group
+					Optional<GroupDetailsVO> existingAdminGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					GroupDetailsVO existingAdminGroupVO = null;
+							if(existingAdminGroup!=null && existingAdminGroup.isPresent()) {
+								existingAdminGroupVO = existingAdminGroup.get();
+							}else {
+								existingAdminGroupVO = new GroupDetailsVO();
+								existingAdminGroupVO.setState(ConstantsUtility.PENDING_STATE);
+								existingAdminGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN);
+							}
+							
+							GroupDetailsVO updatedAdminRoleGroupVO = this.callGroupAssign(existingAdminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+							updatedMicrosoftFabricGroups.add(updatedAdminRoleGroupVO);
+					//check for contributor group
+					Optional<GroupDetailsVO> existingContributorGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					GroupDetailsVO existingContributorGroupVO = null;
+							if(existingContributorGroup!=null && existingContributorGroup.isPresent()) {
+								existingContributorGroupVO = existingContributorGroup.get();
+							}else {
+								existingContributorGroupVO = new GroupDetailsVO();
+								existingContributorGroupVO.setState(ConstantsUtility.PENDING_STATE);
+								existingContributorGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR);
+							}
+							
+							GroupDetailsVO updatedContributorGroupVO = this.callGroupAssign(existingContributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
+							updatedMicrosoftFabricGroups.add(updatedContributorGroupVO);
+					//check for member group
+					Optional<GroupDetailsVO> existingMemberGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					GroupDetailsVO existingMemberGroupVO = null;
+							if(existingMemberGroup!=null && existingMemberGroup.isPresent()) {
+								existingMemberGroupVO = existingMemberGroup.get();
+							}else {
+								existingMemberGroupVO = new GroupDetailsVO();
+								existingMemberGroupVO.setState(ConstantsUtility.PENDING_STATE);
+								existingMemberGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER);
+							}
+							
+							GroupDetailsVO updatedMemberRoleGroupVO = this.callGroupAssign(existingMemberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
+							updatedMicrosoftFabricGroups.add(updatedMemberRoleGroupVO);
+					//check for viewer group
+					Optional<GroupDetailsVO> existingViewerGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					GroupDetailsVO existingViewerGroupVO = null;
+							if(existingViewerGroup!=null && existingViewerGroup.isPresent()) {
+								existingViewerGroupVO = existingViewerGroup.get();
+							}else {
+								existingViewerGroupVO = new GroupDetailsVO();
+								existingViewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
+								existingViewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
+							}
+							
+							GroupDetailsVO updatedViewerRoleGroupVO = this.callGroupAssign(existingViewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
+							updatedMicrosoftFabricGroups.add(updatedViewerRoleGroupVO);
+							
+					currentStatus.setMicrosoftGroups(updatedMicrosoftFabricGroups);
 				}
 				return currentStatus;
 	}
@@ -619,6 +787,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 	@Transactional
 	public GenericMessage delete(String id) {
+		FabricWorkspaceVO existingWorkspace = this.getById(id);
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -632,6 +801,26 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					responseMessage.setSuccess("FAILED");
 					log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
 					return responseMessage;
+			}
+			if(existingWorkspace!=null && existingWorkspace.getStatus()!=null ) {
+				if(existingWorkspace.getStatus().getEntitlements()!=null && !existingWorkspace.getStatus().getEntitlements().isEmpty()) {
+					for(EntitlementDetailsVO entitlement : existingWorkspace.getStatus().getEntitlements()) {
+						if(entitlement!=null && ConstantsUtility.CREATED_STATE.equalsIgnoreCase(entitlement.getState())) {
+							GenericMessage deleteEntitlementResponse = identityClient.deleteEntitlement(entitlement.getEntitlementId());
+							errors.addAll(deleteEntitlementResponse.getErrors());
+							warnings.addAll(deleteEntitlementResponse.getWarnings());
+						}
+					}
+				}
+				if(existingWorkspace.getStatus().getRoles()!=null && !existingWorkspace.getStatus().getRoles().isEmpty()) {
+					for(RoleDetailsVO role : existingWorkspace.getStatus().getRoles()) {
+						if(role!=null && ConstantsUtility.CREATED_STATE.equalsIgnoreCase(role.getState())) {
+							GenericMessage deleteRoleResponse = identityClient.deleteRole(role.getName());
+							errors.addAll(deleteRoleResponse.getErrors());
+							warnings.addAll(deleteRoleResponse.getWarnings());
+						}
+					}
+				}
 			}
 			super.deleteById(id);
 			responseMessage.setSuccess("SUCCESS");
