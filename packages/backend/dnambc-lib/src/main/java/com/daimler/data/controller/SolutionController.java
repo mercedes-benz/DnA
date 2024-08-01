@@ -909,6 +909,8 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<GenericMessage> notifyUsecaseOwners(@ApiParam(value = "Request Body that contains data required for mailing use case owners." ,required=true )  @Valid @RequestBody EmailDataVO emailData) {
+        GenericMessage responseMessage = new GenericMessage();
+		MessageDescription errorMessage = new MessageDescription();
         try {
             CreatedByVO currentUser = this.userStore.getVO();
             String userId = currentUser != null ? currentUser.getId() : "";
@@ -921,15 +923,33 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
             List<String> tags = emailData.getTags();
 
-            solutionService.notifyUsecaseOwners(true, phases,
+            responseMessage = solutionService.notifyUsecaseOwners(true, phases,
                     new ArrayList<>(), emailData.getDivision(), locations, statuses, emailData.getUseCaseType(), userId, false, new ArrayList<>(),
                     tags, new ArrayList<>(),
                     new ArrayList<>(), false, emailData.getEmailText());
 
         } catch (EntityNotFoundException e) {
-            log.info("failed in controller");
+            errorMessage.setMessage("Entity not found for user.");
+			LOGGER.info("Entity not found for user. {}",e.getMessage());
+            List<MessageDescription> errorMessages = new ArrayList<>();
+            errorMessages.add(errorMessage);
+			responseMessage.setErrors(errorMessages);
+			responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage,HttpStatus.BAD_REQUEST);
         }
-        return null;
+        catch (Exception e){
+            errorMessage.setMessage("Some error occured. Failed to send mail.");
+			LOGGER.info("Some error occured. Failed to send mail. {}",e.getMessage());
+			List<MessageDescription> errorMessages = new ArrayList<>();
+            errorMessages.add(errorMessage);
+			responseMessage.setErrors(errorMessages);
+			responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage,HttpStatus.BAD_REQUEST);
+        }
+        if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())){
+            return new ResponseEntity<>(responseMessage,HttpStatus.OK);
+        }
+        return new ResponseEntity<>(responseMessage,HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 
