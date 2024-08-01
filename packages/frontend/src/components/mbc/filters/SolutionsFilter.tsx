@@ -159,8 +159,6 @@ const SolutionsFilter = ({
   }, [divisionFilterValues]);
 
   useEffect(() => {
-    const text = user.divisionAdmins.toString();
-    document.getElementById("divisionAdmin").innerHTML = text;
     const path = getPath().split('?')[0].split('/')[3] || getPath().split('/')[1];
     setGenAIPage(path === 'GenAI' ? true : false);
     ProgressIndicator.show();
@@ -1103,7 +1101,7 @@ const SolutionsFilter = ({
     </FilterWrapper>
     {isDivisionAdmin && !isPortfolioPage && (
       <FilterWrapper openFilters={openFilters}>
-        <label>Please note that you are the division admin of the divisions <span id="divisionAdmin"></span>. Ensure you have the right divisions set in your filter in order to notify the use case owners of your divisions.</label>
+        <label>Please note that you are the division admin of the divisions <span>{user?.divisionAdmins?.toString()}</span>. Ensure you have the right divisions set in your filter in order to notify the use case owners of your divisions.</label>
         <div className={classNames(Styles.actionWrapper)}>
         <button className={classNames('btn btn-primary', Styles.saveSettingsBtn )} tooltip-data="Email Use Case Owners" onClick={() => setShowMailingModal(true)}>
           Email Use Case Owners
