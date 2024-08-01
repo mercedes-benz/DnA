@@ -2,7 +2,6 @@ package com.daimler.data.application.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,6 +21,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
@@ -40,21 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class AuthoriserClient {
-    
-    @Value("${fabricWorkspaces.clientId}")
-	private String clientId;
-	
-	@Value("${fabricWorkspaces.clientSecret}")
-	private String clientSecret;
-	
-	@Value("${fabricWorkspaces.scope}")
-	private String scope;
-	
-	@Value("${fabricWorkspaces.grantType}")
-	private String grantType;
-	
-	@Value("${fabricWorkspaces.uri.login}")
-	private String loginUrl;
 
 	@Value("${authoriser.uri}")
 	private String authoriserBaseUrl;
@@ -65,7 +51,7 @@ public class AuthoriserClient {
 	@Value("${authoriser.ssoUri}")
 	private String ssoUri;
 	
-	@Value("${authoriser.identityRoleUrl}")
+	@Value("${authoriser.identityAuthLogin}")
 	private String entitlementGroupUri;
 
 	@Value("${authoriser.clientId}")
@@ -80,24 +66,24 @@ public class AuthoriserClient {
 	@Autowired
 	private RestTemplate proxyRestTemplate;
 	
+	@Autowired
+	private RestTemplate restTemplate;
+	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-            String basicAuthenticationHeader = Base64.getEncoder()
-                    .encodeToString(new StringBuffer(authoriserClientID).append(":").append(authoriserClientSecret).toString().getBytes());
-
+            map.add("client_id", authoriserClientID);
+            map.add("client_secret", authoriserClientSecret);
             map.add("grant_type", "client_credentials");
             map.add("scope", "openid authorization_group entitlement_group scoped_entitlement email profile");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-            headers.set("Authorization", "Basic " + basicAuthenticationHeader);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
             try {
                 ResponseEntity<String> response = proxyRestTemplate.postForEntity(ssoUri, request, String.class);
                 ObjectMapper objectMapper = new ObjectMapper();
                 FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
 				FabricOAuthResponse.class);
-                log.info("Introspection Response:" + introspectionResponse);
                 return introspectionResponse.getAccess_token();
             } catch (Exception e) {
                 log.error("Failed to fetch OIDC token with error {} ",e.getMessage());
@@ -115,7 +101,6 @@ public class AuthoriserClient {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				return entitlementsDto;
 			}
-
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
@@ -162,6 +147,78 @@ public class AuthoriserClient {
 			log.error("Failed to create Entitlement with displayName {} with error {} ", createRequest.getDisplayName(), e.getMessage());
 		}
 		return entiltlemetDetailsDto;
+    }
+    
+    public GenericMessage deleteEntitlement(String entitlementId){
+    	GenericMessage response = new GenericMessage();
+    	List<MessageDescription> errors = new ArrayList<>();
+    	List<MessageDescription> warnings = new ArrayList<>();
+    	response.setSuccess("FAILED");
+        try {
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				MessageDescription error = new MessageDescription("Failed to fetch token");
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				return response;
+			}
+
+			String uri = authoriserBaseUrl+"/applications/"+applicationId+"/entitlements/"+entitlementId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<Object> deleteEntitlementResponse = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+					requestEntity, Object.class);
+			if (deleteEntitlementResponse!=null && deleteEntitlementResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("Entitlement with displayName {} deleted successfully", entitlementId);
+				response.setSuccess("SUCCESS");
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+			}
+		}catch(Exception e) {
+			log.error("Failed to delete Entitlement with displayName {} with error {} ", entitlementId, e.getMessage());
+		}
+		return response;
+    }
+    
+    public GenericMessage deleteRole(String roleId){
+    	GenericMessage response = new GenericMessage();
+    	List<MessageDescription> errors = new ArrayList<>();
+    	List<MessageDescription> warnings = new ArrayList<>();
+    	response.setSuccess("FAILED");
+        try {
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				MessageDescription error = new MessageDescription("Failed to fetch token");
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				return response;
+			}
+
+			String uri = authoriserBaseUrl+"/roles/"+roleId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<Object> deleteRoleResponse = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+					requestEntity, Object.class);
+			if (deleteRoleResponse!=null && deleteRoleResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("Role with displayName {} deleted successfully", roleId);
+				response.setSuccess("SUCCESS");
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+			}
+		}catch(Exception e) {
+			log.error("Failed to delete Role with displayName {} with error {} ", roleId, e.getMessage());
+		}
+		return response;
     }
 
     public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest){

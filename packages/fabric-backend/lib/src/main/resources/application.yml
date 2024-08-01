@@ -3,7 +3,8 @@ spring:
   application:
     name: dna-fabric-workspace-service
     version: 1.1.0
-
+  profiles:
+    active: production
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
@@ -44,25 +45,32 @@ fabricWorkspaces:
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
+  subgroupPrefix: ${FABRIC_SUB_GROUP_PREFIX:XXXX}
   group:
     identifier:  ${FABRIC_ONBOARD_GROUP_IDENTIFIER:xxxxx}
     displayName:  ${FABRIC_ONBOARD_GROUP_DISPLAYNAME:xxxxx}
+    login: ${GROUPSEARCH_LOGIN:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
+    clientId: ${GROUPSEARCH_CLIENTID:XXXXX}
+    clientSecret: ${GROUPSEARCH_CLIENTSECRET:XXXXX}
+    grantType: ${GROUPSEARCH_OAUTH_GRANT_TYPE:client_credentials}
+    scope: ${GROUPSEARCH_OAUTH_SCOPE:https://graph.microsoft.com/.default}
   uri:
     login: ${FABRIC_LOGIN_URL:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
     workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}
     capacitiesBase: ${FABRIC_CAPACITY_URL:https://api.fabric.microsoft.com/v1/capacities}
     addUserUrl: ${FABRIC_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/groups/{groupId}/users}
+    
 
 authoriser:
-  ssoUri: ${IDENTITY_SSO_URI:XXXX}
   uri: ${IDENTITY_AUTH_URI:XXXX}
+  ssoUri: ${IDENTITY_SSO_URI:XXXX}
   applicationId: ${IDENTITY_AUTH_APPID:XXXX}
-  token: ${IDENTITY_AUTH_TOKEN:XXXX}
   community: ${IDENTITY_AUTH_COMMUNITY:XXXX1,XXXX2}
   workflowDefinitionId: ${IDENTITY_AUTH_WORKFLOW_DEF_ID:xxxx}
   dnaFabricEntitlementName: ${IDENTITY_AUTH_DNA_ENTITLEMENT_NAME:xxxx}
   dnaFabricEntitlementId: ${IDENTITY_AUTH_DNA_ENTITLEMENT_ID:xxxx}
-  identityRoleUrl: ${IDENTITY_AUTH_LOGIN:xxxx}
+  identityAuthLogin: ${IDENTITY_AUTH_LOGIN:XXXXX}
+  identityRoleUrl: ${IDENTITY_ROLE_LINK_PREFIX:XXXX}
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   
