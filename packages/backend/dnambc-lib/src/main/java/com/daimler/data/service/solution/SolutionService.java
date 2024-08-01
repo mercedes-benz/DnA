@@ -62,7 +62,7 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 
 	void deleteInActiveSolutionsOlderThan(Calendar startDate);
 
-	ResponseEntity<GenericMessage> notifyUsecaseOwners(Boolean published, List<String> phases,
+	GenericMessage notifyUsecaseOwners(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook, String message);
