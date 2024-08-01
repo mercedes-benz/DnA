@@ -1183,65 +1183,49 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	}
 
 	@Override
-	public ResponseEntity<GenericMessage> notifyUsecaseOwners(Boolean published, List<String> phases,
+	public GenericMessage notifyUsecaseOwners(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook,
 			String message) {
 
-		List<SolutionNotifyTeamMemberVO> teamMembers = customRepo.getTeamMembersWithFiltersUsingNativeQuery(published,
+		GenericMessage responseMessage = new GenericMessage();
+		MessageDescription errorMessage = new MessageDescription();
+		try{
+			List<SolutionNotifyTeamMemberVO> teamMembers = customRepo.getTeamMembersWithFiltersUsingNativeQuery(published,
 				phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, tags,
 				relatedProducts,
 				divisionsAdmin, hasNotebook);
 
-		// List<NotifyTeamMemberVO> useCaseOwners = new ArrayList<>();
 
-		// // Iterate through each SolutionNotifyTeamMemberVO
-		// for (SolutionNotifyTeamMemberVO solution : teamMembers) {
-		// // Iterate through each TeamMemberVO in the current
-		// SolutionNotifyTeamMemberVO
-		// List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
-		// for (NotifyTeamMemberVO teamMember : teamMembersList) {
-		// if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
-		// useCaseOwners.add(teamMember); // Add to useCaseOwners list
-		// }
-		// }
-		// }
-
-		// Map<String, String> uniqueShortIdToEmailMap = useCaseOwners.stream()
-		// .collect(Collectors.toMap(
-		// NotifyTeamMemberVO::getShortId, // Key: shortId
-		// useCaseOwner -> useCaseOwner.getEmail() != null ? useCaseOwner.getEmail() :
-		// "", // Value: email or empty string if null
-		// (existing, replacement) -> existing, // In case of duplicates, keep the
-		// existing email
-		// LinkedHashMap::new // Maintain insertion order
-		// ));
-
-		// // Extract unique shortIds and emails into separate lists
-		// List<String> shortIds = new ArrayList<>(uniqueShortIdToEmailMap.keySet());
-		// List<String> emailIds = new ArrayList<>(uniqueShortIdToEmailMap.values());
-
-		for (SolutionNotifyTeamMemberVO solution : teamMembers) {
-			String solId = solution.getId() + "@-@" + solution.getName();
-			List<String> shortIds = new ArrayList<>();
-			List<String> emailIds = new ArrayList<>();
-			List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
-			for (NotifyTeamMemberVO teamMember : teamMembersList) {
-				if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
-					shortIds.add(teamMember.getShortId());
-					emailIds.add(teamMember.getEmail() != null ? teamMember.getEmail() : "");
+			for (SolutionNotifyTeamMemberVO solution : teamMembers) {
+				String solId = solution.getId() + "@-@" + solution.getName();
+				List<String> shortIds = new ArrayList<>();
+				List<String> emailIds = new ArrayList<>();
+				List<NotifyTeamMemberVO> teamMembersList = solution.getTeammembers();
+				for (NotifyTeamMemberVO teamMember : teamMembersList) {
+					if (Boolean.TRUE.equals(teamMember.getIsUseCaseOwner())) {
+						shortIds.add(teamMember.getShortId());
+						emailIds.add(teamMember.getEmail() != null ? teamMember.getEmail() : "");
+					}
 				}
-			}
-			if (shortIds.size() != 0) {
-				kafkaProducer.send("Notify UseCaseOwners", solId, "", userId, message, true, shortIds, emailIds, null);
-			}
+				if (shortIds.size() != 0) {
+					kafkaProducer.send("Notify UseCaseOwners", solId, "", userId, message, true, shortIds, emailIds, null);
+				}
 
+			}
 		}
-
-		return null;
+		catch(Exception e){
+			errorMessage.setMessage("Some error occured. Failed to send mail.");
+			LOGGER.info("Some error occured. Failed to send mail. {}",e.getMessage());
+			List<MessageDescription> errorMessages = new ArrayList<>();
+            errorMessages.add(errorMessage);
+			responseMessage.setErrors(errorMessages);
+			responseMessage.setSuccess("FAILED");
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return responseMessage;
 
 	}
-
 }
