@@ -879,7 +879,22 @@ const SolutionsFilter = ({
         emailText: emailText,
       },
     };
-    ApiClient.notifyUseCaseOwners(notifyData); 
+    ProgressIndicator.show();
+    ApiClient.notifyUseCaseOwners(notifyData)
+    .then((res: any) => {
+      if (res.success === 'SUCCESS'){
+        Notification.show("Email sent successfully");
+        ProgressIndicator.hide();
+      }
+      else{
+        Notification.show("Error while sending email. Please try again later.");
+        ProgressIndicator.hide();
+      }
+    })
+    .catch((err: Error) => {
+      ProgressIndicator.hide();
+      Notification.show('Error in deleting code space. Please try again later.\n' + err.message, 'alert');
+    });
     setShowMailingModal(false); 
     setEmailBody('');
   };
