@@ -212,7 +212,8 @@ public class KafkaCoreCampaignService {
 						String[] splitResourceId = message.getResourceId().split("@-@");
 						String solutionURL = dnaBaseUri + SOLUTION_URI_PATH + splitResourceId[0];
 						emailBody += "<br/> <br/> You are receiving this email because you are the use case owner of the solution " + "<a href=\"" + solutionURL +"\">"+ splitResourceId[1] +"</a>";
-					
+						String notificationMessage = "Email Received from division admin regarding solution "+ "<a href=\"" + solutionURL +"\">"+ splitResourceId[1] +"</a>";
+						vo.setMessage(notificationMessage);
 					}					
 
 					if(appNotificationPreferenceFlag) {
