@@ -140,6 +140,7 @@ public class BaseRecipeService implements RecipeService{
 				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
 				fileContent.append(additionalProperties);
 			}
+			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
 			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
 			if( encodedFileContent != null) {
 				status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent);
@@ -187,7 +188,6 @@ public class BaseRecipeService implements RecipeService{
 				if(gitHubUrl.contains(".git")) {
 					gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
 				}
-				
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
