@@ -152,7 +152,7 @@ public class CodeServerClient {
 	}
 
     // create code server using jupyter hub for a user 
-	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName, String instructionSet) {
+	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -163,7 +163,7 @@ public class CodeServerClient {
 					|| createUser(userId, manageDto.getInputs().getIsCollaborator());
 
 			if (isUserCreated) {
-				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName,instructionSet);
+				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName);
 				if (isCreateServerStatus) {
 					status = "SUCCESS";
 				} else {
@@ -240,20 +240,12 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName, String instructionSet) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
-			String[] instructionsArray = instructionSet.trim().split("\\n");
-			String envInstructions = "";
-			for (String instruction : instructionsArray) {
-				String[] parts = instruction.split("=");
-				if (parts.length == 2) {
-					envInstructions += ", \"" + parts[0].trim() + "\": \"" + parts[1].trim() + "\"";
-				}
-			}
 			String requestJsonString = "{\"profile\": \"default\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 			+ "\", \"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase() + "\", \"isCollaborator\" : \"false\", "
-			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" + envInstructions + "}, "
+			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" +  "}, "
 			+ "\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
 			+ "\", \"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
 			+ "\", \"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\", \"cpu_limit\": "
