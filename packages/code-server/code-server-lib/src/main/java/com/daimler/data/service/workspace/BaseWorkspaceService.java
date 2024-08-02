@@ -518,21 +518,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			String codespaceName = vo.getProjectDetails().getProjectName();
 			String ownerwsid = vo.getWorkspaceId();
-			List<String> softwares = vo.getProjectDetails().getRecipeDetails().getSoftware();
-			Set<String> uniqueSoftwares = new HashSet<>();
-
-			if (softwares != null) {
-				uniqueSoftwares.addAll(softwares);
-			}
-
-			String instructionSet = "";
-			for (String addInfo : uniqueSoftwares) {
-				String additionalInfo = workspaceCustomRecipeRepo.findBySoftwareName(addInfo);
-				if (additionalInfo != null) {
-					instructionSet += "\n" + additionalInfo;
-				}
-			}
-			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName,instructionSet);
+			
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			if (createOwnerWSResponse != null) {
 				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
@@ -797,19 +784,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 		  	ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
 			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			String codespaceName = vo.getProjectDetails().getProjectName();
-			List<String> softwares = vo.getProjectDetails().getRecipeDetails().getSoftware();
-			Set<String> uniqueSoftwares = new HashSet<>();
-			if (softwares != null) {
-				uniqueSoftwares.addAll(softwares);
-			}
-			String instructionSet = "";
-			for (String addInfo : uniqueSoftwares) {
-				String additionalInfo = workspaceCustomRecipeRepo.findBySoftwareName(addInfo);
-				if (additionalInfo != null) {
-					instructionSet += "\n" + additionalInfo;
-				}
-			}
-			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName,instructionSet);
+			
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			if (createOwnerWSResponse != null) {
 				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
@@ -2232,20 +2208,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						return responseMessage;
 					}
 				}
-			List<String> softwares = workspace.getProjectDetails().getRecipeDetails().getSoftware();
-			Set<String> uniqueSoftwares = new HashSet<>();
-			if (softwares != null) {
-				uniqueSoftwares.addAll(softwares);
-			}
-
-			String instructionSet = "";
-			for (String addInfo : uniqueSoftwares) {
-				String additionalInfo = workspaceCustomRecipeRepo.findBySoftwareName(addInfo);
-				if (additionalInfo != null) {
-					instructionSet += "\n" + additionalInfo;
-				}
-			}
-				boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName,instructionSet);
+			 	boolean createOwnerWSResponse = client.createServer(ownerWorkbenchCreateDto,codespaceName);
 				if (!createOwnerWSResponse) {
 				responseMessage.setSuccess("FAILED");
 				MessageDescription errMsg = new MessageDescription("Failed to update resource workspace.");
