@@ -164,15 +164,6 @@ const ManageCodeSpace = () => {
       });
   };
 
-  const handleDataChange = () => {
-    // if (isConfigTab) {
-    //   getRequestedSecurityConfig();
-    // } else {
-    //   getRequestedNewCodeSpaces();
-    // }
-    getRequestedNewCodeSpaces();
-  };
-
   const sortByColumn = (propName, sortOrder) => {
     if (!propName && !sortOrder) {
       propName = 'requestedDate';
@@ -282,16 +273,9 @@ const ManageCodeSpace = () => {
     return (
       <CodeSpaceList
         key={recipe.recipeName}
-        id={recipe.recipeName}
-        projectName={recipe.recipeName}
-        maxRam={recipe.maxRam}
-        maxCpu={recipe.maxCpu}
-        diskSpace={recipe.diskSpace}
-        onDataChanged={handleDataChange}
-        software={recipe.software}
-        additionalServices={additionalServices?.filter(service => recipe.additionalServices.includes(service.serviceName))}
+        recipe={recipe}
+        additionalServices={additionalServices?.filter(service => recipe?.additionalServices?.includes(service.serviceName))}
         isConfigList={false}
-        isPublic={recipe.isPublic}
       />
     );
   });

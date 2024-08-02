@@ -1,42 +1,29 @@
 import cn from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceList.scss';
-// import { ICodeCollaborator } from 'globals/types';
 import { history } from '../../store';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-// import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import Modal from 'dna-container/Modal';
 
-// export interface IRecipeList {
-//   id: any;
-//   projectName: string;
-//   maxRam?: string;
-//   maxCpu?: string;
-//   diskSpace?: string;
-//   onDataChanged: () => void;
-//   software?: string[];
-//   isConfigList: boolean;
-//   isPublic: boolean;
-// }
-
-const CodeSpaceList = (props) => {
-  const [viewInfoModel, setviewInfoModel] = useState(false);
-  const [notificationMsg, setNotificationMsg] = useState(false);
+const CodeSpaceList = ({recipe, additionalServices, isConfigList}) => {
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const classNames = cn.bind(Styles);
+
   const onSecrityConfigClick = () => {
-    history.push(`/codespace/adminSecurityconfig/${props.id}?name=${props.projectName}`);
+    history.push(`/codespace/adminSecurityconfig/${recipe?.recipeId}?name=${recipe?.recipeName}`);
   };
 
   const onNewRecipeClick = () => {
-    setviewInfoModel(true);
+    setShowDetailsModal(true);
   };
 
   const chips =
-    props?.software && props?.software?.length
-      ? props?.software?.map((chip) => {
+    recipe?.software && recipe?.software?.length
+      ? recipe?.software?.map((chip) => {
         return (
           <label key={chip} className={classNames('chips', Styles.chips)}>{chip}</label>
         );
@@ -44,91 +31,54 @@ const CodeSpaceList = (props) => {
       : 'N/A';
 
   const chipsAdditionalServices =
-    props?.additionalServices && props?.additionalServices?.length
-      ? props?.additionalServices?.map((chip) => {
+    additionalServices && additionalServices?.length
+      ? additionalServices?.map((chip) => {
         return (
           <label key={chip.serviceName} className={classNames('chips', Styles.chips)}>{chip?.serviceName} {chip?.version}</label>
         );
       })
       : 'N/A';
 
-  const onNotificationMsgAccept = () => {
-    setNotificationMsg(false);
-    ProgressIndicator.show();
-    CodeSpaceApiClient.deleteCodeSpaceRecipe(props.projectName)
-    .then(() => {
-      ProgressIndicator.hide();
-      Notification.show("Recipe Deleted Successfully")
-    }).catch((err) => {
-      ProgressIndicator.hide();
-      Notification.show(err.message, 'alert');
-    });
-  };
-
   const convertRam = (value) => {
     const ramValue = parseInt(value)/1000;
     return ramValue.toString();
   };
 
-  const onNotificationMsgCancel = () => {
-    setNotificationMsg(false);
+  const handleRecipeDelete = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deleteCodeSpaceRecipe(recipe.recipeName)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show("Recipe Deleted Successfully");
+        setShowDeleteModal(false);
+      }).catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+      });
   }
 
-  const deleteModal = () => {
-    setNotificationMsg(true);
-  };
   return (
     <React.Fragment>
-      <div>
-        <Modal
-          title="Public Visibility"
-          show={notificationMsg}
-          showAcceptButton={false}
-          showCancelButton={false}
-          acceptButtonTitle="Confirm"
-          cancelButtonTitle="Cancel"
-          buttonAlignment='right'
-          scrollableContent={false}
-          hideCloseButton={true}
-          content={
-            <div>
-              <header>
-                <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
-              </header>
-              <div>
-                <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
-              </div>
-              <div className="btn-set footerRight">
-                <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
-                <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
-              </div>
-            </div>
-          } />
-      </div>
-      <tr
-        id={props.id}
-        key={props.id}
-        className={classNames('data-row', Styles.securityConfigRow)}
-      >
+      <tr className={classNames('data-row', Styles.securityConfigRow)}>
         <td className={'wrap-text ' + classNames(Styles.securityConfigName)}>
-          <div className={Styles.securityConfigNameDivide} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{props.projectName}</div>
+          <div className={Styles.securityConfigNameDivide} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{recipe.recipeName}</div>
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span className={Styles.securityConfig} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
-            {"DiskSpace- " + props.diskSpace + "GB" + " CPU- " + props.maxCpu + " RAM- " + convertRam(props.maxRam)+"GB"}
+          <span className={Styles.securityConfig} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+            {"DiskSpace- " + recipe.diskSpace + "GB" + " CPU- " + recipe.maxCpu + " RAM- " + convertRam(recipe.maxRam)+"GB"}
           </span>
         </td>
 
-        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
           {chips}
         </td>
 
-        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
           {chipsAdditionalServices}
         </td>
 
-        <td className={'wrap-text' + Styles.securityConfigCol} onClick={props.isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
-          <span>{props.isPublic ? "Yes" : 'No'}</span>
+        <td className={'wrap-text' + Styles.securityConfigCol} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+          <span>{recipe.isPublic ? "Yes" : 'No'}</span>
         </td>
         <td className={'wrap-text' + Styles.securityConfigCol + Styles.actionColumn}>
           <button
@@ -136,28 +86,52 @@ const CodeSpaceList = (props) => {
               'btn btn-primary ' + Styles.actionBtn
             }
             type="button"
-            onClick={deleteModal}
+            onClick={() => setShowDeleteModal(true)}
           >
             <i className='icon delete'></i>
           </button>
 
         </td>
       </tr>
-      {viewInfoModel && (
+      {showDetailsModal && (
         <Modal
           title={''}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth="60vw"
-          buttonAlignment="right"
-          show={viewInfoModel}
-          content={<ViewRecipe recipeName={props.projectName} />}
+          show={showDetailsModal}
+          scrollableContent={true}
+          content={<ViewRecipe recipe={recipe} additionalServices={additionalServices} />}
           onCancel={() => {
-            setviewInfoModel(false);
+            setShowDetailsModal(false);
           }}
         />
       )}
+      {showDeleteModal && 
+        <Modal
+          title="Delete Recipe"
+          show={showDeleteModal}
+          showAcceptButton={false}
+          showCancelButton={false}
+          scrollableContent={false}
+          hideCloseButton={true}
+          content={
+            <div>
+              <header>
+                <button className="modal-close-button" onClick={() => setShowDeleteModal(false)}><i className="icon mbc-icon close thin"></i></button>
+              </header>
+              <div>
+                <p>The Recipe will be deleted permanently. Are you sure you want to delete it?</p>
+              </div>
+              <div className="btn-set footerRight">
+                <button className="btn btn-primary" type="button" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                <button className="btn btn-tertiary" type="button" onClick={handleRecipeDelete}>Confirm</button>
+              </div>
+            </div>
+          } 
+        />
+      }
     </React.Fragment>
   );
 };
