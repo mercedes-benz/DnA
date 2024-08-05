@@ -51,7 +51,7 @@ const AllCodeSpaces = (props) => {
         CodeSpaceApiClient.getCodeSpacesList()
             .then((res) => {
                 setLoading(false);
-                setCodeSpaces(Array.isArray(res.data) ? res.data : (res.data.records));
+                setCodeSpaces(Array.isArray(res.data) ? res.data : (res.data.records) || []);
                 // setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
             })
             .catch((err) => {
@@ -293,7 +293,7 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {codeSpaces.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -311,7 +311,7 @@ const AllCodeSpaces = (props) => {
 
                                         </div>
                                     </div>
-                                    {(codeSpaces.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                                    {(codeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
                                                
                                         <div className={Styles.cardsSeparator}>
                                             <h5 className="sub-title-text">Collaborated Code Spaces</h5>
@@ -321,7 +321,7 @@ const AllCodeSpaces = (props) => {
                                     )}
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                            {codeSpaces.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
