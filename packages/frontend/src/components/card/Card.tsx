@@ -36,6 +36,11 @@ const DNACard = (props: IDNACardProps) => {
 
   const maxTagItem = 4;
 
+  const onViewDetailedPage = (e : any) => {
+    e.stopPropagation();
+    history.push(`/toolDetails/${props.id}`);
+  }
+
   return (
     <>
       <div
@@ -46,9 +51,7 @@ const DNACard = (props: IDNACardProps) => {
           props.isDisabled ? Styles.disabled : '',
           props.className,
         )}
-        onClick={() => {
-         props.isDetailedPage ? history.push('/toolDetails/' + props.id):( props.isExternalLink ? window.open(props.url) : history.push(props.url));
-        }}
+        onClick={() => { props.isExternalLink ? window.open(props.url) : history.push(props.url)}}
       >
         <div className={Styles.cardHeaderSection}>
           {props.isDisabled ? (
@@ -97,6 +100,19 @@ const DNACard = (props: IDNACardProps) => {
             );
           })}
           {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
+        </div>
+        <div className={Styles.cardFooterSection}>
+          {props.isDetailedPage ? (
+            <button
+              className={classNames('btn btn-primary', Styles.viewDetailedPage)}
+              type="button"
+              onClick={(e) => onViewDetailedPage(e)}
+            >
+              <h3>Show Details</h3>
+              <i className={classNames('icon mbc-icon arrow small right')} />
+            </button>
+          ) : ''
+          }
         </div>
       </div>
     </>
