@@ -36,7 +36,7 @@ spec:
               name: {{ .Values.app.backend.name }}       
       containers:
         - name: clamd-rest
-          image: {{ .Values.app.backend.image }} 
+          image: "{{ .Values.app.backend.image.repository }}:{{ .Values.app.backend.image.tag | default .Chart.AppVersion }}" 
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
