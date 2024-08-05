@@ -5,8 +5,8 @@ imagePullSecret:
 backend:
   replicas: 1
   image:
-    repository:  registry-emea.app.corpintra.net/dnaplatform/airflow-backend
-    tag: 74aed0a13f2897d87e775634a7106653f3a41d10
+    repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
+    tag: '104'
   imagePullPolicy: Always
   dbUrl: jdbc:postgresql://airflow-db.airflow.svc.cluster.local:64000/airflow
   secret:
@@ -210,8 +210,8 @@ vaultInjector:
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/namespace: fmas/dev
-    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
-    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka

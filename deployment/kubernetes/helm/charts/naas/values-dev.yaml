@@ -2,7 +2,9 @@ appName: naas
 namespace: naas
 app:
   backend:
-    image: registry-emea.app.corpintra.net/dnaplatform/naas-backend:975cc42e5930779b2c4b68232466d1fb101ca744
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
+      tag: '126'
     replicaCount: 1
     secrets:
       name: naas-app-secrets
@@ -44,9 +46,6 @@ app:
     readinessProbe:
       path: /actuator/health/readiness
       port: api
-image:
-  pullPolicy: Always
-  tag: '55'
 ingress:
   enabled: false
   host: naas.dev.dna.app.corpintra.net

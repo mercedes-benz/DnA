@@ -5,7 +5,7 @@ securityContext:
 app:
   backend:
     name: clamav-rest
-    image: 
+    image:
       repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
       tag: 3ccc860f5cdb125b396c8e7f3358c3a5e9cab344
     replicaCount: 1
@@ -55,7 +55,7 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-07-21
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-08-05
   replicaCount: 1
   pullPolicy: Always
   tag: '41'
