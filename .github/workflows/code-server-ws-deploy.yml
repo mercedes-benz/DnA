@@ -32,6 +32,7 @@ on:
         options: 
           - deploy
           - undeploy
+          - restart
       type:
         description: "Workspace type" 
         required: true  
@@ -201,6 +202,37 @@ jobs:
     uses: ./.github/workflows/cs-status-update.yml
     with:
       status: '${{ needs.undeploy.result }}'
+      wsid: '${{ github.event.inputs.wsid }}'
+      shortid: '${{ github.event.inputs.shortid }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+      target_env: ${{ github.event.inputs.target_env }}
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+  restart:
+    name: 'Restart Code Server Workspace'
+    if: ${{ github.event.inputs.action == 'restart'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [road-runner, medium]
+
+    steps:
+        
+      - uses: actions-hub/kubectl@v1.30.3
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG_BASE64 }}
+        with:
+          args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=codespaces-apps
+
+  statusUpdateRestart:
+    name: Update Status restart
+    needs: restart
+    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'restart' }}    
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.restart.result }}'
       wsid: '${{ github.event.inputs.wsid }}'
       shortid: '${{ github.event.inputs.shortid }}'
       action: ${{ github.event.inputs.action }}
