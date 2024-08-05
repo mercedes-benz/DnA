@@ -11,9 +11,9 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-mfe
   pullPolicy: IfNotPresent
-  tag: 1.3.2
+  tag: 1.3.0
 imagePullSecrets:
-  - name: imagepullsecret
+  - name: imagepullsecret 
 nameOverride: ''
 fullnameOverride: data-product-mfe
 podSecurityContext:

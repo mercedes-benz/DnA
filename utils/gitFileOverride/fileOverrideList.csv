@@ -2,7 +2,6 @@ SourcePath;DestinationPath
 ./deployment/dockerfiles/overrides/airflow/*;./deployment/dockerfiles/airflow/
 ./packages/frontend/overrides/.env;./packages/frontend/
 ./packages/frontend/overrides/public/DnA-Platform-General-TermsOfUse-V1.0.pdf;./packages/frontend/public/
-./packages/frontend/overrides/public/DnA-Storage-Bucket-TOU-v3.pdf;./packages/frontend/public/
 ./packages/frontend/overrides/public/images/branding/logo-brand.png;./packages/frontend/public/images/branding/
 ./packages/frontend/overrides/public/images/reportLogoImages/*;./packages/frontend/public/images/reportLogoImages/
 ./packages/frontend/overrides/public/images/solutionLogoImages/*;./packages/frontend/public/images/solutionLogoImages/
