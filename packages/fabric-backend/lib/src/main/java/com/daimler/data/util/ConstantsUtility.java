@@ -46,4 +46,7 @@ public class ConstantsUtility {
 	
 	public static final String DATACLASSIFICATION_CONFIDENTIAL = "CONFIDENTIAL";
 	
+	public static final String GROUPSEARCH_URL_PREFIX = "https://graph.microsoft.com/v1.0/groups?$filter=startsWith(displayName,'";
+	public static final String GROUPSEARCH_URL_SUFFIX = "')";
+	
 }
