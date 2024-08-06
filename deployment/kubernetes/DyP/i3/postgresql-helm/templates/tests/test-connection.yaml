@@ -1,0 +1,49 @@
+{{- if and .Values.test.enabled ( .Values.service.enabled ) }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "postgres.fullname" . }}-test-connection"
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: psql
+      image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+      {{- if .Values.resources.enabled }}
+      resources:
+        {{- if .Values.resources.limits.enabled }}
+        limits:
+          {{- if .Values.resources.limits.cpu  }}
+          cpu: {{ .Values.resources.limits.cpu | quote }}
+          {{- end }}
+          {{- if .Values.resources.limits.memory  }}
+          memory: {{ .Values.resources.limits.memory | quote }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.resources.request.enabled }}
+        requests:
+          {{- if .Values.resources.request.cpu  }}
+          cpu: {{ .Values.resources.request.cpu | quote }}
+          {{- end }}
+          {{- if .Values.resources.request.memory  }}
+          memory: {{ .Values.resources.request.memory | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      command: ['/srv/postgresql/product/default/bin/psql']
+      args:
+      - --dbname={{ .Values.DBName }}
+      - --host={{ include "postgres.servicename" . }}
+      - --port={{ .Values.service.port }}
+      - --username={{ .Values.dbusers.dbadm.username }}
+      - --command=\echo Ping
+      env:
+      - name: PGPASSWORD
+        value: {{ .Values.dbusers.dbadm.password }}
+  restartPolicy: OnFailure
+{{- end }}

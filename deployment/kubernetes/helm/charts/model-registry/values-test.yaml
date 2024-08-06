@@ -1,0 +1,112 @@
+namespace: model-registry
+envs:
+  - name: DNA_URI
+    value: ''
+  - name: DNA_AUTH_ENABLE
+    value: 'true'
+  - name: CORS_ORIGIN_URL
+    value: ''
+  - name: MINIO_MODELS_BUCKETNAME
+    value: models
+  - name: MINIO_MODELS_PATTERN_PREFIX
+    value: ''
+  - name: SWAGGER_HEADER_AUTH
+    value: ''
+  - name: HOST
+    value: ''
+  - name: CERT_MANAGER
+    value: ''
+  - name: MINIO_ENDPOINT
+    value: ''
+  - name: MINIO_ROOT_USER
+    valueFrom:
+      secretKeyRef:
+        key: root-user
+        name: model-registry
+  - name: MINIO_ROOT_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: root-password
+        name: model-registry
+  - name: JWT_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        key: jwt.secret.key
+        name: model-registry
+secret:
+  - key: jwt.secret.key
+    value: ''
+  - key: root-user
+    value: ''
+  - key: root-password
+    value: ''
+replicaCount: 1
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/model-registry
+  pullPolicy: IfNotPresent
+  tag: ef7bde3d10bf75dac4567d1c17055e68d81025d8
+imagePullSecrets:
+  name: imagepullsecret
+nameOverride: ''
+fullnameOverride: model-registry
+podSecurityContext:
+  runAsUser: 1000
+serviceAccount:
+  annotations: {}
+  name: model-registry-sa
+podAnnotations: {}
+containerPort: 7373
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: false
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: models.kfp.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - models.kfp.test.dna.app.corpintra.net
+      secretName: models-tls-secret
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1000Mi
+    cpu: 500m
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/namespace: fmas/staging
+    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
+    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/modelRegistryService
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "kv/dna/kubernetesSecret/modelRegistryService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/minio" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}           
+  saName: model-registry-sa
+  jarName: model-registry-lib*.jar

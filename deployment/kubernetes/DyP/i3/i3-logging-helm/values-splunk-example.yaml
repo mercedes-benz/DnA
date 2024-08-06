@@ -1,0 +1,45 @@
+opensearch-dashboards:
+  enabled: false
+
+opensearch:
+  enabled: false
+
+fluent-bit:
+  enabled: true
+  config:
+    filters: |
+      # Enable filtering of DHC CaaS Kubernetes api server audit logs. Comment to disable.
+      # If disabled, you need to enable extraFilters to avoid Opensearch index errors. See /documentation/FILTER.md for hints.
+      @INCLUDE filter_excludePlatformAuditLogs.conf
+
+      # Enable filtering of DHC CaaS Nodes kubelet logs. Comment to disable
+      @INCLUDE filter_excludePlatformKubeletLogs.conf
+
+      # Enable filtering of all container logs within namespace 'kube-system'. Comment to disable
+      @INCLUDE filter_excludeK8sSystemLogs.conf
+
+      @INCLUDE filter_splunk.conf
+    
+    outputs: |
+       @INCLUDE output_splunk.conf
+
+    extraFiles:
+    
+      filter_splunk.conf: |
+        [FILTER]
+          Name                modify
+          Match               *
+          Add index REPLACE_WITH_INDEX_NAME
+          Add host REPLACE_WITH_INDEX_HOST
+
+      output_splunk.conf: |
+        [OUTPUT]
+          Name  splunk
+          Match *
+          Host  REPLACE_WITH_SPLUNK_HOST
+          Port  8088
+          Splunk_Token  REPLACE_WITH_SPLUNK_TOKEN
+          tls On
+          tls.verify Off
+
+
