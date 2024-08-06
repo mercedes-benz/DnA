@@ -65,7 +65,7 @@ jobs:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
-          labels: "${{ github.event.inputs.privateBranch }},${{ github.event.inputs.publicBranch }}"
+          labels: "public,${{ github.event.inputs.privateBranch }},${{ github.event.inputs.publicBranch }}"
           reviewers: ${{ github.event.inputs.reviewers }}
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
@@ -81,7 +81,7 @@ jobs:
         with:
           github-token: ${{ secrets.PID_PAT }}
           number: ${{ steps.cpr.outputs.number }}
-          filter-label: automerge        
+          filter-label: dev        
                            
   create-public-pr:
         name: Create and Merge Public PR

@@ -235,12 +235,6 @@ jobs:
         commit: "main"
         token: ${{ secrets.PID_PAT }} 
 
-    - name: Delete HEAD branche
-      uses: dawidd6/action-delete-branch@v3.1.0
-      with:
-        github_token: ${{ secrets.PID_PAT }}
-        branches: ${{ github.head_ref }}               
-
   css-scan:
         name: Container security scan
         needs: build

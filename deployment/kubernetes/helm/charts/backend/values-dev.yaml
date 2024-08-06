@@ -15,7 +15,9 @@ ingress:
 app:
   backend:
     replicaCount: 1
-    image: registry-emea.app.corpintra.net/dnaplatform/dna-backend:c118b15f6e09ef41d1d0e4da9b6a10962e9cff8e
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/dna-backend
+      tag: '120'
     secrets:
       name: app-secrets
       notebookSecretToken: null
@@ -117,5 +119,3 @@ vaultInjector:
       {{- end }}      
   saName: default
   jarName: dnambc*.jar
-image:
-  tag: '41'

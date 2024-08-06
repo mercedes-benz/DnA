@@ -704,7 +704,7 @@ scheduler:
     command: ~
   # Airflow 2.0 allows users to run multiple schedulers,
   # However this feature is only recommended for MySQL 8+ and Postgres
-  replicas: 2
+  replicas: 1
   # Max number of old replicasets to retain
   revisionHistoryLimit: ~
 
@@ -2119,9 +2119,9 @@ dags:
     repo: <path:kv/data/dna/kubernetesSecret/officalairflow#repo>
     branch: <path:kv/data/dna/kubernetesSecret/officalairflow#branch>
     rev: HEAD
-    depth: 0
+    depth: 1
     # the number of consecutive failures allowed before aborting
-    maxFailures: 5
+    maxFailures: 0
     # subpath within the repo where dags are located
     # should be "" if dags are at repo root
     subPath: "dags"
@@ -2163,7 +2163,7 @@ dags:
     # interval between git sync attempts in seconds
     # high values are more likely to cause DAGs to become out of sync between different components
     # low values cause more traffic to the remote git repository
-    wait: 5
+    wait: 1
     containerName: git-sync
     uid: 65533
 
