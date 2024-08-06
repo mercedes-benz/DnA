@@ -202,6 +202,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
         this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1]+'xxx)' });
       }else{
         this.setState({ procedureIdError: '' });
+      }
       }else{
       this.setState({ procedureIdError: '' });
     }
