@@ -5,7 +5,9 @@ securityContext:
 app:
   backend:
     name: clamav-rest
-    image: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend:ec3f8770cc8df03ea2c040592a4a19c85e30ce04
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
+      tag: '81'
     replicaCount: 1
     secrets:
       name: oneapi-secrets
@@ -53,7 +55,7 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-07-21
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-08-05
   replicaCount: 1
   pullPolicy: Always
 ingress:

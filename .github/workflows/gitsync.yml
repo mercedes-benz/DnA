@@ -15,7 +15,7 @@ on:
           - staging
           - main   
       reviewers:
-        description: 'Reviewers for staging and main branch'  
+        description: 'Reviewers'  
         default: 'AMARIAR,BEALURI,RAMYRAO,VKURAPA'
         required: true   
 
@@ -58,37 +58,15 @@ jobs:
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
 
-      - name: Create dev pull request
+      - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.event.inputs.privateBranch == 'dev' }} 
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
-          labels: "automatic-pr,dev  ,automerge,${{ github.event.inputs.publicBranch }}"
-          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
-
-      - name: Create staging pull request
-        uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.event.inputs.privateBranch == 'staging' }} 
-        with:
-          github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.publicBranch }}
-          base: ${{ github.event.inputs.privateBranch }}
+          labels: "public,${{ github.event.inputs.privateBranch }},${{ github.event.inputs.publicBranch }}"
           reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr,staging,${{ github.event.inputs.publicBranch }}"
-          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
-
-      - name: Create main pull request
-        uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.event.inputs.privateBranch == 'main' }} 
-        with:
-          github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.publicBranch }}
-          base: ${{ github.event.inputs.privateBranch }}
-          reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr,main,${{ github.event.inputs.publicBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Print pull request details
@@ -103,7 +81,7 @@ jobs:
         with:
           github-token: ${{ secrets.PID_PAT }}
           number: ${{ steps.cpr.outputs.number }}
-          filter-label: automerge        
+          filter-label: dev        
                            
   create-public-pr:
         name: Create and Merge Public PR
