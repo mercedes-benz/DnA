@@ -12,156 +12,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import FabricWorkspaceForm from '../fabricWorkspaceForm/FabricWorkspaceForm';
-
-const RoleCreationStatus = ({workspace, onClose}) => {
-  useEffect(() => {
-    Tooltip.defaultSetup();
-  }, []);
-  
-  return (
-    <div className={Styles.modal}>
-      <div className={Styles.header}>
-        <h3>{workspace?.name}</h3>
-        <p>Entitlements, Roles, Microsoft Groups</p>
-      </div>
-      <div className={Styles.content}>
-        { /* Entitlements Table */}
-        <div className={Styles.tableContainer}>
-          <h4>Entitlements</h4>
-          <div className={Styles.table}>
-            <div className={classNames(Styles.tableRow, Styles.tableHeader)}>
-                <div className={Styles.tableCell}>Entitlement Name</div>
-                <div className={Styles.tableCell}>Status</div>
-            </div>
-            {workspace?.status?.entitlements?.map(entitlement => 
-              <div key={entitlement?.id} className={Styles.tableRow}>
-                <div className={Styles.tableCell}>{entitlement?.displayName}</div>
-                <div className={Styles.tableCell}>
-                  <div className={Styles.statusContainer}>
-                    <div className={Styles.statusItem}>
-                      <button>
-                        {entitlement?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
-                        {entitlement?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {entitlement?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>  
-            )}
-          </div>
-        </div>
-        { /* Roles Table */}
-        <div className={Styles.tableContainer}>
-          <h4>Roles</h4>
-          <div className={Styles.table}>
-            <div className={classNames(Styles.tableRow, Styles.tableHeader)}>
-                <div className={classNames(Styles.tableCell, Styles.column1)}>Role</div>
-                <div className={classNames(Styles.tableCell, Styles.column2)}>Entitlements</div>
-                <div className={classNames(Styles.tableCell, Styles.column3)}>Link</div>
-                <div className={classNames(Styles.tableCell, Styles.column4)}>Assign Entitilements State</div>
-                <div className={classNames(Styles.tableCell, Styles.column5)}>Status</div>
-            </div>
-            {workspace?.status?.roles?.map(role => 
-              <div key={role?.id} className={Styles.tableRow}>
-                <div className={classNames(Styles.tableCell, Styles.column1)}>{role?.name}</div>
-                <div className={classNames(Styles.tableCell, Styles.column2)}>
-                  {role?.entitlements.map(entitlement => <p key={entitlement?.id}>{entitlement?.displayName}</p>)}
-                </div>
-                <div className={classNames(Styles.tableCell, Styles.column3)}>
-                  <a href={role?.link} target='_blank' rel='noopener noreferrer'>Alice Link <i className={classNames('icon mbc-icon new-tab')} /></a>
-                </div>
-                <div className={classNames(Styles.tableCell, Styles.column4)}>
-                  <div className={Styles.statusContainer}>
-                    <div className={Styles.statusItem}>
-                      <button>
-                        {role?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
-                        {role?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {role?.state === 'ASSIGNED' && <><i className={classNames('icon mbc-icon check circle', Styles.assigned)} /> <span>Assigned</span></>}
-                        {role?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className={classNames(Styles.tableCell, Styles.column5)}>
-                  <div className={Styles.statusContainer}>
-                    <div className={Styles.statusItem}>
-                      <button>
-                        {role?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
-                        {role?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {role?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>  
-            )}
-          </div>
-        </div>
-        { /* Microsoft Groups Table */}
-        <div className={Styles.tableContainer}>
-          <h4>Microsoft Groups</h4>
-          <div className={Styles.table}>
-            <div className={classNames(Styles.tableRow, Styles.tableHeader)}>
-                <div className={Styles.tableCell}>Group Name</div>
-                <div className={Styles.tableCell}>Status</div>
-            </div>
-            {workspace?.status?.microsoftGroups?.map(group => 
-              <div key={group?.id} className={Styles.tableRow}>
-                <div className={Styles.tableCell}>{group?.groupName}</div>
-                <div className={Styles.tableCell}>
-                  <div className={Styles.statusContainer}>
-                    <div className={Styles.statusItem}>
-                      <button>
-                        {group?.state === 'PENDING' && <><Spinner /> <span>In progress</span></>}
-                        {group?.state === 'CREATED' && <><i className={classNames('icon mbc-icon check circle')} /> <span>Created</span></>}
-                        {group?.state === 'FAILED' && 
-                          <>
-                            <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} /> 
-                            <span>Failed</span> 
-                            <i className={classNames('icon mbc-icon refresh', Styles.retry)} tooltip-data={'Retry'} />
-                          </>
-                        }
-                        {group?.state === 'ASSIGNED' && <><i className={classNames('icon mbc-icon check circle', Styles.assigned)} /> <span>Assigned</span></>}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>  
-            )}
-          </div>
-        </div>
-      </div>
-      <div className={Styles.footer}>
-        <button
-          className="btn btn-tertiary"
-          type="button"
-          onClick={onClose}
-        >
-          Okay
-        </button>
-      </div>
-    </div>
-  );
-}
+import RoleCreationModal from '../roleCreationModal/RoleCreationModal';
 
 const Workspaces = (props) => {
   const [showDeleteModal, setDeleteModal] = useState(false);
@@ -424,10 +275,10 @@ const Workspaces = (props) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'950px'}
+          modalWidth={'80%'}
           buttonAlignment="right"
           show={showStatusModal}
-          content={<RoleCreationStatus workspace={selectedItem} onClose={() => setShowStatusModal(false)} />}
+          content={<RoleCreationModal workspace={selectedItem} onClose={() => setShowStatusModal(false)} />}
           scrollableContent={true}
           onCancel={() => setShowStatusModal(false)}
         />

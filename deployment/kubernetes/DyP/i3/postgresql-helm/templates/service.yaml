@@ -1,0 +1,43 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.servicename" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+spec:
+  ports:
+  - port: {{ .Values.service.port }}
+    name: postgresql
+    targetPort: postgresql
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    role: master #set by patroni
+{{- end }}
+{{- if .Values.endpoints.enabled }}
+---
+# this service will be created by patroni
+# we have empty scaffolds here to properly delete them on cleanup
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.clustername" . }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+spec:
+  clusterIP: None
+  sessionAffinity: None
+  type: ClusterIP
+{{- end }}
