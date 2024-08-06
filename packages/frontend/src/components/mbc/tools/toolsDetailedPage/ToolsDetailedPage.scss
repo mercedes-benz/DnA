@@ -20,7 +20,7 @@
         margin-top: -82px;
 
         .tag {
-          border: 1px solid #383F49;
+          border: 1px solid #4b5461;
           padding: 6px 20px 0px;
           margin : 0px 5px 5px 0px;
           align-items: center;
@@ -29,7 +29,7 @@
 
           h5 {
             font-family: var( --font-size-smallest);
-            color: #697582;
+            color: #7c8a98;
             font-size: var(--font-size-default);
           }
         }
@@ -206,11 +206,14 @@
     width: 98.5%;
     border-radius: 7px;
 
-    .pipeLineImage {
-      width: calc(60% - 9.5px);
-      size: 10px;
-    }
-
+  .pipeLineWrapper{
+    text-align: center;
+    width: calc(60% - 9.5px);
+  }
+  .pipeLineImage {
+    height: 90%;
+    size: 10px;
+  }
     .pipeLineDescription {
       width: calc(35% - 9.5px);
 
