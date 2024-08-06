@@ -21,6 +21,12 @@ env:
   PAPERLESS_SECRET_KEY: ""
   PAPERLESS_ADMIN_USER: "admin"
   PAPERLESS_ADMIN_PASSWORD: ""
+  PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
+  PAPERLESS_APP_TITLE: "DnA-Hosted paperless-ngx"
+  PAPERLESS_EMAIL_HOST: "mailhost.emea.svc.corpintra.net"
+  PAPERLESS_EMAIL_HOST_USER: "dna@mb.com"
+  PAPERLESS_REDIRECT_LOGIN_TO_SSO: "True"
+  PAPERLESS_SOCIALACCOUNT_PROVIDERS: ''
 
 service:
   # -- Configures service settings for the chart.
