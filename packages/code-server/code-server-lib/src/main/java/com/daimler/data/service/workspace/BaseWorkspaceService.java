@@ -2452,7 +2452,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(projectOwnerWsId);
-				deployJobInputDto.setProjectName(projectName);
+				deployJobInputDto.setProjectName(projectName.toLowerCase());
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
