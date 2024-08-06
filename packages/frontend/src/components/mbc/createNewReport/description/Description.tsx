@@ -203,7 +203,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       }else{
         this.setState({ procedureIdError: '' });
       }
-    }else{
+      }else{
       this.setState({ procedureIdError: '' });
     }
     this.setState({
