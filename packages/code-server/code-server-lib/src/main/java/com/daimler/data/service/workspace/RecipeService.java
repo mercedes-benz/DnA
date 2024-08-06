@@ -5,6 +5,7 @@ import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.CodeServerRecipeDto;
+import com.daimler.data.dto.workspace.recipe.AdditionalServiceLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.daimler.data.dto.CodeServerRecipeDto;
 
@@ -31,4 +32,6 @@ public interface RecipeService {
     GenericMessage validateGitHubUrl(String gitHubUrl);
 
     GenericMessage deleteRecipe(String recipeName);
+
+    List<AdditionalServiceLovVo> getAllAdditionalServiceLov();
 }
