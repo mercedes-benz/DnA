@@ -62,8 +62,13 @@
 
         .configIcon {
             margin-left: 8px;
-            margin-bottom: 2.5px;
-            display: inline;
+            display: flex;
+            align-items: center;
+
+            i {
+                margin-top: -5px;
+                margin-right: 2px;
+            }
         }
 
         i {

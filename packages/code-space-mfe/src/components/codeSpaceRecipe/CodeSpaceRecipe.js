@@ -372,30 +372,30 @@ const CodeSpaceRecipe = (props) => {
         software: requiredError,
       }));
     }
-    if (isPublic) {
-      if (gitRepoLoc === '') {
-        isValid = false;
-        setErrorObj((prevState) => ({
-          ...prevState,
-          gitRepoLoc: requiredError,
-        }));
-      }
-      if (gitPath === '') {
-        isValid = false;
-        setErrorObj((prevState) => ({
-          ...prevState,
-          gitPath: requiredError,
-        }));
-      }
-      if (deployPath === '') {
-        isValid = false;
-        setErrorObj((prevState) => ({
-          ...prevState,
-          deployPath: requiredError,
-        }));
+    // if (isPublic) {
+    //   if (gitRepoLoc === '') {
+    //     isValid = false;
+    //     setErrorObj((prevState) => ({
+    //       ...prevState,
+    //       gitRepoLoc: requiredError,
+    //     }));
+    //   }
+    //   if (gitPath === '') {
+    //     isValid = false;
+    //     setErrorObj((prevState) => ({
+    //       ...prevState,
+    //       gitPath: requiredError,
+    //     }));
+    //   }
+    //   if (deployPath === '') {
+    //     isValid = false;
+    //     setErrorObj((prevState) => ({
+    //       ...prevState,
+    //       deployPath: requiredError,
+    //     }));
 
-      }
-    }
+    //   }
+    // }
     return isValid;
   };
 
@@ -535,8 +535,8 @@ const CodeSpaceRecipe = (props) => {
                 </div>
 
                 {isPublic && (
-                  <div>
-                    <h4 className={classNames(Styles.sectionHeader)}>CI/CD</h4>
+                  <div className={Styles.disabledSection}>
+                    <h4 className={classNames(Styles.sectionHeader)}>CI/CD (Coming Soon)</h4>
                     <div className={classNames(Styles.formWrapper, Styles.mT)}>
                       <div className={classNames(Styles.flex)}>
                         <div className={classNames(Styles.col2)}>
