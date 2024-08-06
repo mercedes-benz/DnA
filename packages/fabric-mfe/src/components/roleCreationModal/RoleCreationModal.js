@@ -4,7 +4,6 @@ import { ReactFlow, Controls, ConnectionLineType, Background, useNodesState, use
 import '@xyflow/react/dist/style.css';
 import Styles from './role-creation-modal.scss';
 import Spinner from "../spinner/Spinner";
-import { flow } from "../../data/mock";
 import { FLOW_DIAGRAM_STATES, FLOW_DIAGRAM_TYPES } from "../../utilities/constants";
 import { generateNodesAndEdges, getLayoutedElements } from "../../utilities/utils";
 
@@ -61,10 +60,10 @@ const RoleEntitlementNode = ({ data }) => {
   );
 };
 
-const { nodes: initialNodes, edges: initialEdges } = generateNodesAndEdges(flow.data.status);
-const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(flow.data.status, initialNodes, initialEdges);
-
 const RoleCreationModal = ({workspace, onClose}) => {
+  const { nodes: initialNodes, edges: initialEdges } = generateNodesAndEdges(workspace?.status);
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(workspace?.status, initialNodes, initialEdges);
+
   // eslint-disable-next-line
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);

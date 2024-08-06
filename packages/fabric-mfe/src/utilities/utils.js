@@ -95,10 +95,10 @@ export const generateNodesAndEdges = (data) => {
     // Create and link group node
     const group = microsoftGroups.filter((group) => group.groupName.includes(role.name.split('_')[1]));
     const groupNodeId = createNode({ 
-      name: group[0].groupName, 
+      name: group[0]?.groupName, 
       label: 'to workspace', 
       type: FLOW_DIAGRAM_TYPES.GROUP, 
-      state: group[0].state 
+      state: group[0]?.state 
     });
 
     createEdge(`e${roleEntitlementNodeId}-${groupNodeId}`, String(roleEntitlementNodeId), String(groupNodeId));
