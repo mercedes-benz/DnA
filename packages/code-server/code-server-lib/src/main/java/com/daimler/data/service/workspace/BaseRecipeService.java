@@ -121,6 +121,9 @@ public class BaseRecipeService implements RecipeService{
 			String SHA = null;
 			String encodedFileContent = null;
 			StringBuffer fileContent =  new StringBuffer();
+			if(gitHubUrl.contains(".git")) {
+				gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+			}
 			String[] codespaceSplitValues = gitHubUrl.split("/");
 			int length = codespaceSplitValues.length;
 			repoName = codespaceSplitValues[length-1];
@@ -137,6 +140,7 @@ public class BaseRecipeService implements RecipeService{
 				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
 				fileContent.append(additionalProperties);
 			}
+			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
 			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
 			if( encodedFileContent != null) {
 				status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent);
@@ -180,13 +184,17 @@ public class BaseRecipeService implements RecipeService{
 			{
 				String repoName = null;
 				String gitUrl = null;
+				String applicationName = null;
+				if(gitHubUrl.contains(".git")) {
+					gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+				}
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
+				applicationName = codespaceSplitValues[length-2];
 				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-1], "");
-				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-2], "");
-            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName);
-
+				gitUrl = gitUrl.replace("/"+codespaceSplitValues[length-2], "");
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName,applicationName);
 				if(!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription msg = new MessageDescription();
 					List<MessageDescription> errorMessage = new ArrayList<>();

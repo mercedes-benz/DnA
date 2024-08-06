@@ -41,8 +41,8 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
                 additionalServiceLovVo.setVersion(entity.getData().getVersion());
                 if(entity.getData().getAdditionalProperties().getEnv() !=null ) { 
                     List<EnvironmentVariable> environmentVariables = entity.getData().getAdditionalProperties().getEnv(); 
-                    EnvVO envo =  new EnvVO();
                     for(EnvironmentVariable env: environmentVariables){
+                        EnvVO envo =  new EnvVO();
                         envo.setName(env.getName());
                         envo.setValue(env.getValue());
                         envVoS.add(envo);
@@ -55,8 +55,8 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
                  }
                 if(entity.getData().getAdditionalProperties().getPorts()!=null) {
                     List<Port> ports = entity.getData().getAdditionalProperties().getPorts();
-                    PortVO portVO = new PortVO();
                     for(Port port:ports) {
+                        PortVO portVO = new PortVO();
                         portVO.setContainerPort(port.getContainerPort());
                         portVO.setProtocol(port.getProtocol());
                         portVOs.add(portVO);
@@ -72,8 +72,8 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
                 }
                 if(entity.getData().getAdditionalProperties().getVolumeMounts()!=null){
                     List<VolumeMount> volumeMounts = entity.getData().getAdditionalProperties().getVolumeMounts();
-                    VolumeMountsVO volMountVo = new VolumeMountsVO();
                     for(VolumeMount volmounts: volumeMounts){
+                        VolumeMountsVO volMountVo = new VolumeMountsVO();
                         volMountVo.setName(volmounts.getName());
                         volMountVo.setMountPath(volmounts.getMountPath());
                         volumeMountsVO.add(volMountVo);
@@ -81,6 +81,10 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
                     additionalPropertiesVO.setVolumeMounts(volumeMountsVO);
                 }if(entity.getData().getAdditionalProperties().getImage()!=null) {
                     additionalPropertiesVO.setImage(entity.getData().getAdditionalProperties().getImage());
+                }
+                if(entity.getData().getAdditionalProperties().getName()!=null) {
+                    additionalPropertiesVO.setName(entity.getData().getAdditionalProperties().getName());
+
                 }
                 if(entity.getData().getAdditionalProperties().getImagePullPolicy()!=null) {
                     additionalPropertiesVO.setImagePullPolicy(entity.getData().getAdditionalProperties().getImagePullPolicy());

@@ -1262,7 +1262,11 @@ definitions:
       software:
         type: array
         items:
-          type: string 
+          type: string
+      additionalServices:
+        type: array
+        items:
+          type: string  
       toDeployType:
         type: string
       recipeType:
