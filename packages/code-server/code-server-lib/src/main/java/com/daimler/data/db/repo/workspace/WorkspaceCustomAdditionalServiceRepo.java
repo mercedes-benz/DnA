@@ -8,4 +8,5 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 public interface WorkspaceCustomAdditionalServiceRepo extends CommonDataRepository<CodeServerAdditionalServiceNsql, String>  {
     
     List<CodeServerAdditionalServiceNsql> findAllServices(int offset, int limit);
+    String findByServiceName(String serviceName);
 }

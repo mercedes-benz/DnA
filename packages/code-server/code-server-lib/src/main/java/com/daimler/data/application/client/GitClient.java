@@ -161,13 +161,13 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public HttpStatus validateGitUser(String gitBaseUrl,String repoName) {
+	public HttpStatus validateGitUser(String gitBaseUrl,String repoName, String applicationName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer "+ personalAccessToken);
-			String url = gitBaseUrl+ "/repos/" + applicationName + "/"+ repoName+ "/collaborators/" + pidValue +"/permission";
+			String url = gitBaseUrl+ "api/v3/repos/" + applicationName + "/"+ repoName+ "/collaborators/" + pidValue +"/permission";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
