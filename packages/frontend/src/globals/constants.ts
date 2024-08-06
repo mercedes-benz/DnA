@@ -146,6 +146,11 @@ export const ToolsPageImagesInfo = {
       id: 'fabric',
       banner: 'banner.png',
       toolPipeline:'toolPipeline.png'
+    },
+    {
+      id: 'powerPlatform',
+      banner: 'banner.png',
+      toolPipeline:'toolPipeline.png'
     }
   ]
 }

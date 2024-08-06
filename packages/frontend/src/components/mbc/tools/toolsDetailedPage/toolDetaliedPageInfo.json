@@ -335,5 +335,70 @@
       }
     ]
   },
+  {
+    "id": "powerPlatform",
+    "name": "Power Platform",
+    "description": "Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.",
+    "tags":  ["No / Low Code"],
+    "isExternalLink": false,
+    "url": "/powerPlatform",
+    "hasSubcription": true,
+    "info": [
+      {
+        "icon": "trainings",
+        "name": "Trainings",
+        "description": "Get tailor-made trainings from experts to master this tool with ease",
+        "links": [
+          {
+            "title": "Power Platform Learning ",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "Power Platform Tutorial",
+            "link": "https://microsoftlearning.github.io/mslearn-fabric/Instructions/Labs/05-dataflows-gen2.html"
+          },
+          {
+            "title": "Udemy Learn Power Platform ",
+            "link": "https://community.fabric.microsoft.com/t5/custom/page/page-id/CareerHubPage?ocid=fabric24_careerhub_fabric_updateblog_clphttp://"
+          },
+          {
+            "title": "Microsoft Learn Power Platform",
+            "link": "https://learn.microsoft.com/en-us/training/browse/?products=power-bi"
+          },
+          {
+            "title": "Get started with Power Platform (80 min)",
+            "link": "https://learn.microsoft.com/de-de/training/modules/get-started-with-power-bi/"
+          },
+
+          {
+            "title": "Create Dashboards (40 min)",
+            "link": "https://learn.microsoft.com/de-de/training/modules/create-dashboards-power-bi/"
+          }
+        ]
+      },
+      {
+        "icon": "profile",
+        "name": "support",
+        "info": ["Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem"]
+      },
+      {
+        "icon": "tem",
+        "name": "classification",
+        "type" : "Secret Data"
+      },
+      {
+        "icon": "tem",
+        "name": "Costs",
+        "isInfoIcon": "true",
+        "description" : "Get familiar with the costs",
+        "info":["Lorem ipsum dolor sit amet: 0.2 FTE / MONTH","Lorem ipsum dolor sit amet: 0.4 FTE / MONTH","Lorem ipsum dolor sit amet: 0.6 FTE / MONTH"]
+      },
+      {
+        "icon": "doc",
+        "name": "Terms Of Service",
+        "isInfoIcon": "true",
+        "info":["Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem"]
+      }
+    ]
   }
 ]
