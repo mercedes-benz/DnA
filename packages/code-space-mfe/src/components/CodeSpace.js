@@ -28,6 +28,7 @@ import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
+import ConfirmModal from 'dna-container/ConfirmModal';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -153,6 +154,9 @@ const CodeSpace = (props) => {
 
   const [serverStarted, setServerStarted] = useState(true);
   const [serverProgress, setServerProgress] = useState(0);
+
+  const [showRestartModal, setShowRestartModal] = useState(false);
+  const [env, setEnv] = useState("");
 
   const livelinessIntervalRef = React.useRef();
 
@@ -525,6 +529,32 @@ const CodeSpace = (props) => {
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
 
+  const RestartContent = (
+    <div>
+      <h3>Are you sure you want to restart your deployed application ? </h3>
+      <p>Note: Please refresh and check the application restart status on the deployment audit logs.</p>
+    </div>
+  );
+
+  const onRestart = (env) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.restartDeployments(codeSpaceData?.id, env)
+    .then((res) => {
+      if (res.data.success === 'SUCCESS') {
+        ProgressIndicator.hide();
+        Notification.show("Restart requested successfully")
+      } else {
+          ProgressIndicator.hide();
+          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
+      });
+    setShowRestartModal(false);
+  }
+
   return (
     <div
       id="codespace-view"
@@ -771,6 +801,15 @@ const CodeSpace = (props) => {
                             </span>
                           </li>
                         )}
+                        {codeDeployed && (
+                          <li>
+                            <span
+                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                            >
+                              Restart Deployed Application
+                            </span>
+                          </li>
+                        )}
                         <li>
                           <hr />
                         </li>
@@ -837,6 +876,15 @@ const CodeSpace = (props) => {
                               }}
                             >
                               Deployment Audit Logs
+                            </span>
+                          </li>
+                        )}
+                        {prodCodeDeployed && (
+                          <li>
+                            <span
+                              onClick={() => {setEnv("prod"); setShowRestartModal(true);}}
+                            >
+                              Restart Deployed Application
                             </span>
                           </li>
                         )}
@@ -1004,6 +1052,26 @@ const CodeSpace = (props) => {
           setCodeDeploying={setCodeDeploying}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
           navigateSecurityConfig={navigateSecurityConfig}
+        />
+      )}
+
+      { showRestartModal && (
+        <ConfirmModal
+          title={''}
+          acceptButtonTitle="Yes"
+          cancelButtonTitle="Cancel"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showRestartModal}
+          content={RestartContent}
+          onCancel={() => {
+            setEnv('');
+            setShowRestartModal(false);
+          }}
+          onAccept={() => {
+            onRestart(env);
+            setShowRestartModal(false);
+          }}
         />
       )}
 
