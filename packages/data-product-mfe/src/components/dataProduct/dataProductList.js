@@ -74,6 +74,7 @@ const DataProductList = ({ user, history }) => {
   const onViewByPageNum = (pageNum) => {
     let queryData = {...FilterQueryParams}
     queryData.limit = pageNum;
+    queryData.offset = 0;
     dispatch(setFilterQueryParams(queryData));
     dispatch(GetDataProducts(queryData));
     dispatch(
