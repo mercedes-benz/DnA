@@ -1,16 +1,12 @@
 spring:
-  mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
-    name: data-product-service
-    version: 1.2.0
-  profile:
-    active: production
+    name: dna-dashboard-service
+    version: 3.1.8
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}
-    encoding: ISO-8859-1
     
   jpa:
     database: POSTGRESQL
@@ -22,24 +18,6 @@ spring:
           use_jdbc_metadata_defaults: false
     hibernate:
       ddl-auto: none
-
-  datasource:
-    hikari:
-      connection-timeout: 4000
-    platform: postgres
-    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/data_product}
-    username: ${API_DB_USER:XXXX_user}
-    password: ${API_DB_PASS:XXXX_pass}
-    driverClassName: org.postgresql.Driver
-
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
-      
-  graphql:
-      path: /api/minified
-
   kafka:
     producer:
     properties:
@@ -53,7 +31,7 @@ spring:
           password: ${KEYSTORE_PASSWORD:XXXX}
           type: PKCS12
       security:
-          protocol: SSL  
+          protocol: SSL
   cloud:
     stream:
       default-binder: kafka
@@ -61,48 +39,41 @@ spring:
         binder:
           brokers: ${NAAS_BROKER:localhost:9092}
           
+  datasource:
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dashboard}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+
 kafka:
   centralTopic:
-    name: dnaCentralEventTopic              
-    
+    name: dnaCentralEventTopic
+          
 dna:
-  uri: ${DNA_URI:XXXXXX}
-  
-dataproduct:
-  base:
-    url: ${DATAPRODUCT_BASE_URL:XXXXXX}
-  refreshdb: ${DATAPRODUCT_REFRESH_DB:false}
-
-datatransfer:
-  base:
-    url: ${DATATRANSFER_BASE_URL:XXXXXX}
-  refreshdb: ${DATATRANSFER_REFRESH_DB:false}
-
-xapikeydetails:
-  key: ${XPATH_VALUE:XXXX}
-  header: ${XPATH_HEADER:XXXX}
-
-dashboard:
-  uri: ${REPORTS_BASE_URL:XXXXXXX}
-
-planningIT.headers.authorization.token: ${PLANNINGIT_HEADER_AUTH:XXXXXX}
+  uri: ${DNA_URI:xxxx}
+  dataSource:
+     bulkCreate:
+        api:
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
+             
+graphql:
+  servlet:
+    mapping: /api/minified
+    enabled: true
+    corsEnabled: true
 
 server:
-  port: 7184
+  port: 7173
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
- 
-
-      
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
 management.endpoint.health.probes.enabled: true
 management.endpoint.health.show-details: always
-
-planningit.defaultlimit: 50
 
 logging:
   service:
@@ -111,12 +82,19 @@ logging:
   level:
     com:
       daimler:
-        data: INFO
+        data:
+          application: INFO
     org.springframework.boot.autoconfigure.logging: INFO
     org:
       springframework:
         web:
           client:
             RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
       graphql:
         servlet: ERROR
+report:
+  update: ${UPDATE_REPORTDATA:XXXX}
