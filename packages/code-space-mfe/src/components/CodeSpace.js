@@ -531,7 +531,7 @@ const CodeSpace = (props) => {
 
   const RestartContent = (
     <div>
-      <h3>Are you sure you want to restart your deployed application ? </h3>
+      <h3>Are you sure you want to restart your deployed application?</h3>
       <p>Note: Please refresh and check the application restart status on the deployment audit logs.</p>
     </div>
   );
