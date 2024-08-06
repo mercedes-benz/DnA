@@ -136,7 +136,7 @@ const DataProductForm = ({ project, onCreate }) => {
       ) :
         dataProductType === 'EXISTING' ? (
         <div className={classNames(Styles.ExistingDpContainer)}>
-          {existingDp.length > 0 ?(<div className={classNames('input-field-group')}>
+          {existingDp?.length > 0 ?(<div className={classNames('input-field-group')}>
             <label className={classNames(Styles.inputLabel, 'input-label')}
               htmlFor="dataProducts">
               Your Data Products
