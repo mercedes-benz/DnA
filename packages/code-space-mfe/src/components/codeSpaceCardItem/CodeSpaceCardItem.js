@@ -56,7 +56,7 @@ const CodeSpaceCardItem = (props) => {
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment =
-    codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+    codeSpace?.projectDetails?.recipeDetails?.recipeId?.startsWith('public') ||
     DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
@@ -291,7 +291,7 @@ const CodeSpaceCardItem = (props) => {
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
+  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
   const isAPIRecipe =
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
