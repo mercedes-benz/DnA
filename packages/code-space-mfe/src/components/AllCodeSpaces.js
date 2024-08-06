@@ -14,7 +14,6 @@ import { CodeSpaceApiClient } from '../apis/codespace.api';
 // @ts-ignore
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import { IconGear } from 'dna-container/IconGear';
-import { USER_ROLE } from '../Utility/constants';
 // @ts-ignore
 import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
@@ -40,7 +39,6 @@ const AllCodeSpaces = (props) => {
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState();
-    const isCodeSpaceAdmin = props?.user?.roles?.some((role) => role?.id === USER_ROLE.CODESPACEADMIN);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -247,18 +245,14 @@ const AllCodeSpaces = (props) => {
                                 </button>
                             </>
                         ) : null}
-                        {isCodeSpaceAdmin ? (
-                            <>
-                                <button
-                                    className={classNames('btn btn-primary', Styles.configIcon)}
-                                    type="button"
-                                    onClick={onShowSecurityConfigRequest}
-                                >
-                                    <IconGear size={'14'} />
-                                    <span>&nbsp;Manage Recipes</span>
-                                </button>
-                            </>
-                        ) : null}
+                        <button
+                            className={classNames('btn btn-primary', Styles.configIcon)}
+                            type="button"
+                            onClick={onShowSecurityConfigRequest}
+                        >
+                            <IconGear size={'14'} />
+                            <span>&nbsp;Manage Recipes</span>
+                        </button>
                     </div>
                 </div>
                 {loading ? (
