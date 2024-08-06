@@ -104,7 +104,8 @@ export interface ICreateNewReportState {
   tags: ITag[];
   departmentTags: IDepartment[];
   fieldsMissing: boolean;
-  kpiClassifications: IKpiClassification[]
+  kpiClassifications: IKpiClassification[],
+  allSolutions:ITag[],
 }
 
 export interface ICreateNewReportProps {
@@ -146,6 +147,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       ],
       dataWarehouses: [],
       // commonFunctions: [],
+      allSolutions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -172,14 +174,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           productPhase: null,
           status: null,
           agileReleaseTrain: '',
-          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
           reportLink: '',
-          reportType: null,
           piiData: '',
-          procedureId: ''
+          procedureId: '',
+          dataClassification: '',
+          relatedSolutions: [],
         },
         kpis: [],
         customer: {
@@ -238,6 +240,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const departmentTags: IDepartment[] = response[13].data;
         const dataClassifications: IDataClassification[] = response[14].data;
         const kpiClassifications: IKpiClassification[] = response[15].data;
+        const allSolutions: ITag[] = response[16].data.solutions.records.map((rec : any) => { return {id: rec.id, name: rec.productName}});
+        console.log("responsee",allSolutions);
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -272,6 +276,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             dataClassifications,
             kpiClassifications,
             // commonFunctions,
+            allSolutions,
             report: {
               ...prevState.report,
               members: {
@@ -393,7 +398,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 (item: any) => item.name === res.description.designGuideImplemented,
               );
               report.description.agileReleaseTrain = res.description.agileReleaseTrain;
-              report.description.integratedPortal = res.description.integratedPortal;
               report.description.tags = res.description.tags;
               const division=res.description.division;
               if(!division.subdivision || !division.subdivision.id){
@@ -402,7 +406,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.division = division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
               report.description.reportLink = res.description.reportLink;
-              report.description.reportType = res.description?.reportType;
               report.description.piiData = res.description?.piiData;
               report.description.procedureId = res.description?.procedureId ? res.description?.procedureId : '';
               report.customer.internalCustomers = res.customer?.internalCustomers || [];
@@ -523,6 +526,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               }
               enableQuickPath={this.state.report.usingQuickPath}
               refineReport={this.changeQuickPath}
+              dataClassifications = {this.state.dataClassifications}
+              allSolutions = {this.state.allSolutions}
             />
           ) : (
             <div id="create-report-tabs" className="tabs-panel">
@@ -607,6 +612,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                         this.setState({ subDivisions }, () => SelectBox.defaultSetup())
                       }
                       enableQuickPath={false}
+                      dataClassifications = {this.state.dataClassifications}
+                      allSolutions = {this.state.allSolutions}
                     />
                   )}
                 </div>

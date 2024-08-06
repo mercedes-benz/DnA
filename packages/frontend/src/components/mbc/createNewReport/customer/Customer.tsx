@@ -14,7 +14,6 @@ import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
-import TeamSearch from '../../teamSearch/TeamSearch';
 // import { IconAvatar } from 'components/icons/IconAvatar';
 import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import IconAvatarNew from 'components/icons/IconAvatarNew';
@@ -625,21 +624,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   onChange={this.onTextOnChange}
                 />
               </div> */}
-                <div className={classNames('input-field-group include-error')}>
-                  <TeamSearch
-                    label={<>Process Owner</>}
-                    fieldMode={true}
-                    fieldValue={this.state.processOwnerToDisplay}
-                    setFieldValue={(val) => this.setState({ processOwnerToDisplay: val })}
-                    onAddTeamMember={(value) => this.addMemberFromTeamSearch(value)}
-                    btnText="Save"
-                    searchTerm={this.state.searchTerm}
-                    setSearchTerm={(value) => this.setState({ searchTerm: value })}
-                    showUserDetails={false}
-                    setShowUserDetails={() => {}}
-                  />
-                  {/* <span className={classNames('error-message')}>{this.state.internalCustomerErrors.processOwner}</span> */}
-                </div>
                 <div></div>
               </div>
             ) : (

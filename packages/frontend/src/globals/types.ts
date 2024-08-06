@@ -613,14 +613,15 @@ export interface IDescriptionRequest {
   productPhase: IProductPhase[] | any;
   status: IProductStatus[] | any;
   agileReleaseTrain: string;
-  integratedPortal: string;
   designGuideImplemented: IDesignGuide[] | any;
   frontendTechnologies: string[];
   tags: string[];
   reportLink: string;
-  reportType: string;
   piiData: string;
   procedureId: string;
+  dataClassification?: string;
+  archerId?: string;
+  relatedSolutions?: ITag[];
 }
 
 export interface ICustomers {
@@ -673,13 +674,13 @@ export interface IDataWarehouseInUse {
   // commonFunctions: string[];
   connectionType: string;
   dataWarehouse: string;
-  dataClassification: string;
+  //dataClassification: string;
 }
 
 export interface ISingleDataSources {
   connectionType: string;
   dataSources: IDataSources[];
-  dataClassification: string;
+  //dataClassification: string;
 }
 export interface IUserNewInfo {
   company: string;

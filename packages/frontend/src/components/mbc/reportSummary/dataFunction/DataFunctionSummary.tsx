@@ -49,13 +49,6 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           {data.connectionType ? data.connectionType : 'NA'}
                         </div>
                       </div>
-                      <div className={classNames(Styles.flexLayout)}>
-                        <div id="dataClassification">
-                          <label className="input-label summary">Data Classification</label>
-                          <br />
-                          {data.dataClassification ? data.dataClassification : 'NA'}
-                        </div>
-                      </div>
                       
                     </div>
                     {this.props.dataAndFunctions.dataWarehouseInUse.length > 1 ||
@@ -75,11 +68,6 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           <label className="input-label summary">Data Sources</label>
                           <br />
                           { data.dataSources ? data.dataSources?.map((item:any) => item.dataSource).join(' / ') : 'NA'}
-                        </div>
-                        <div id="commonFunctions">
-                          <label className="input-label summary">Data Classification</label>
-                          <br />
-                          {data.dataClassification ? data.dataClassification : 'NA'}
                         </div>
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>
