@@ -17,7 +17,7 @@ import { dataTransferApi } from '../../../../apis/datatransfers.api';
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import { useSelector } from 'react-redux';
-import { debounce } from 'lodash';
+//import { debounce } from 'lodash';
 
 const ContactInformation = ({
   onSave,
@@ -46,7 +46,7 @@ const ContactInformation = ({
     department,
     complianceOfficer: selectedcomplianceOfficer,
     businessOwnerName,
-    leanIX,
+    //leanIX,
     lcoNeeded,
   } = watch();
 
@@ -58,8 +58,8 @@ const ContactInformation = ({
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
 
-  const [planningITList, setPlanningITList] = useState([]);
-  const [selectedPlanningIT, setSelectedPlanningIT] = useState([]);
+  //const [planningITList, setPlanningITList] = useState([]);
+  //const [selectedPlanningIT, setSelectedPlanningIT] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
@@ -83,7 +83,9 @@ const ContactInformation = ({
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          setValue('subDivision', provideDataTransfers.selectedDataTransfer.consumer.subDivision);
+          if(provideDataTransfers?.selectedDataTransfer?.consumer){
+            setValue('subDivision', provideDataTransfers.selectedDataTransfer.consumer.subDivision);
+          }
         } else {
           setValue('subDivision', '0');
         }
@@ -171,11 +173,11 @@ const ContactInformation = ({
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessOwnerName]);
 
-  useEffect(() => {
-    if (leanIX?.appId?.length) {
-      setSelectedPlanningIT(leanIX);
-    }
-  }, [leanIX]);
+  // useEffect(() => {
+  //   if (leanIX?.appId?.length) {
+  //     setSelectedPlanningIT(leanIX);
+  //   }
+  // }, [leanIX]);
 
   const handleBusinessOwner = (field, value) => {
     let name = '';
@@ -206,24 +208,25 @@ const ContactInformation = ({
   const isLCORequired = (value) =>
     watch('lcoNeeded') === 'No' || (watch('lcoNeeded') === 'Yes' && value?.length > 0) || '*Missing entry';
 
-  const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
-    if (searchTerm.length > 3) {
-      showSpinner(true);
-      dataTransferApi
-        .getPlanningIT(searchTerm)
-        .then((res) => {
-          setPlanningITList(res.data.data || []);
-          showSpinner(false);
-        })
-        .catch((e) => {
-          showSpinner(false);
-          Notification.show(
-            e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
-            'alert',
-          );
-        });
-    }
-  }, 500);
+  // const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
+  //   if (searchTerm.length > 3) {
+  //     showSpinner(true);
+  //     dataTransferApi
+  //       .getPlanningIT(searchTerm)
+  //       .then((res) => {
+  //         setPlanningITList(res.data.data || []);
+  //         showSpinner(false);
+  //       })
+  //       .catch((e) => {
+  //         showSpinner(false);
+  //         Notification.show(
+  //           e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+  //           'alert',
+  //         );
+          
+  //       });
+  //   }
+  // }, 500);
 
   return (
     <>
@@ -479,7 +482,7 @@ const ContactInformation = ({
                   )}
                 />
               </div>
-              <div className={classNames('input-field-group')}>
+              {/* <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
                   name="leanIX"
@@ -524,7 +527,29 @@ const ContactInformation = ({
                     />
                   )}
                 />
-              </div>
+              </div> */}
+                  <div className={classNames('input-field-group include-error',  errors?.LeanIXappId  ? 'error' : '')}>
+                  <label id="leanIX" htmlFor="LeanIXappId" className="input-label">
+                  LeanIX App-ID
+                  </label>
+                  <input
+                     {...register('LeanIXappId', {
+                      pattern: {
+                        value: /^APP-[\w]+$/,
+                        message: "Enter a valid App-ID starting with 'APP-'"
+                      },
+                    })}
+                    name = "LeanIXappId"
+                    type="text"
+                    className="input-field"
+                    id="LeanIXappId"
+                    placeholder="Enter App-ID"
+                    autoComplete="off"
+                  />
+                   <span className={classNames('error-message',  errors?.LeanIXappId  ? '' : 'hide')}>
+                    { errors?.LeanIXappId?.message }
+                  </span>
+                </div>
             </div>
           </div>
         </div>
