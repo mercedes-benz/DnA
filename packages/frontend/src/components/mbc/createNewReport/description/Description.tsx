@@ -34,7 +34,7 @@ import { Envs } from 'globals/Envs';
 import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
 
 const classNames = cn.bind(Styles);
-const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX?.split(',');
 
 export interface IDescriptionProps {
   reportId?: string;
@@ -168,9 +168,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
   public componentDidMount() {
     SelectBox.defaultSetup();
-    if (this.props.description.procedureId == '' || this.props.description.procedureId == null) {
-      this.props.description.procedureId = procedureIdEnvs;
-    }
   }
 
   componentDidUpdate(prevProps: IDescriptionProps, prevState: IDescriptionState) {
@@ -197,40 +194,24 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   };
 
   public onProcedureIdOnChange = (e: React.FormEvent<HTMLInputElement>) => {
-    let procedureId = e.currentTarget.value;
-    if(!procedureId.startsWith(procedureIdEnvs)) {
-      procedureId = procedureIdEnvs
-    }
+    const procedureId = e.currentTarget.value;
     const description = this.props.description;
     description.procedureId = procedureId;
-    // if (procedureId === '' || procedureId === null) {
-    //   this.setState({ procedureIdError: '*Missing Entry' });
-    // } else {
-    //   this.setState({ procedureIdError: '' });
-    // }
+    if(procedureId?.length > 0){
+      if(!(procedureId?.startsWith(procedureIdEnvs[0]) || procedureId?.startsWith(procedureIdEnvs[1])) || (this.state.procedureId === procedureIdEnvs[0] || this.state.procedureId === procedureIdEnvs[1]) ) {
+        this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1]+'xxx)' });
+      }else{
+        this.setState({ procedureIdError: '' });
+      }
+      }else{
+      this.setState({ procedureIdError: '' });
+    }
     this.setState({
       procedureId,
     });
   };
 
-  public onProcedureIdOnBlur = (e: React.FormEvent<HTMLInputElement>) => {
-    if (procedureIdEnvs) {
-      const procedureId = e.currentTarget.value;
-      if (procedureId) {
-        if (!procedureId.startsWith(procedureIdEnvs)) {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
-        } 
-        // else if (procedureId.startsWith(procedureIdEnvs) && procedureId.replace(procedureIdEnvs, '') == '') {
-        //   this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
-        // } 
-        else {
-          this.setState({ procedureIdError: '' });
-        }
-      } else {
-        this.setState({ procedureIdError: '' });
-      }
-    }
-  };
+
 
   public onDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const desc = e.currentTarget.value;
@@ -879,7 +860,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       ) : (
                         ''
                       )}
-                      <div>
+                      <div  className={classNames('input-field-group include-error', procedureIdError ? 'error' : '' )}>
                         <TextBox
                           type="text"
                           controlId={'procedureIdInput'}
@@ -888,16 +869,15 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           placeholder={'Type here'}
                           infoTip={
                             'Procedure ID ' +
-                            (procedureIdEnvs ? '(' + procedureIdEnvs + 'xxx)' : '') +
+                            (procedureIdEnvs ? '(' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1] + 'xxx)' : '') +
                             ' from Records of Processing Activities (RoPA)'
                           }
                           value={this.state.procedureId}
-                          errorText={procedureIdError}
                           required={false}
                           maxLength={200}
-                          onChange={this.onProcedureIdOnChange}
-                          onBlur={this.onProcedureIdOnBlur}
+                          onChange={(e)=>this.onProcedureIdOnChange(e)}
                         />
+                       <span className={classNames('error-message', procedureIdError ? '' : 'hide')}>{procedureIdError}</span>
                       </div>
                     </div>
                   </div>
@@ -1004,30 +984,17 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   protected validateDescriptionForm = () => {
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
-
-    if (this.state.procedureId) {
-      if (this.state.procedureId === procedureIdEnvs) {
-        const description = this.props.description;
-        description.procedureId = '';
-        formValid = true;
+    if(this.state.procedureId){
+      if (this.state.procedureId === procedureIdEnvs[0] || this.state.procedureId === procedureIdEnvs[1]) {
+        this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1] + 'xxx)' });
+        formValid = false;
+      } else if (!(this.state.procedureId?.startsWith(procedureIdEnvs[0]) || this.state.procedureId?.startsWith(procedureIdEnvs[1]))) {
+        this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1] + 'xxx)' });
+        formValid = false;
       } else {
-        if (procedureIdEnvs && !this.state.procedureId.startsWith(procedureIdEnvs)) {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
-          formValid = false;
-        }
-        if (
-          procedureIdEnvs &&
-          this.state.procedureId.startsWith(procedureIdEnvs) &&
-          this.state.procedureId.replace(procedureIdEnvs, '') == ''
-        ) {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
-          formValid = false;
-        }
-        // if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
-        //   this.setState({ procedureIdError: errorMissingEntry });
-        //   formValid = false;
-        // }
-      }
+        this.setState({ procedureIdError: '' });
+      } 
+
     }
 
     if (!this.state.divisionValue || this.state.divisionValue.id === '0' || this.state.divisionValue.id === '') {
@@ -1078,6 +1045,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     // }
     if (!this.state.departmentTags?.length) {
       this.setState({ showDepartmentMissingError: true });
+      formValid = false;
+    }
+    if(this.state.procedureIdError && this.state.procedureId){
       formValid = false;
     }
     // if (!this.state.artValue?.length) {
@@ -1186,6 +1156,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     if (this.state.reportLinkError && this.state.reportLink) {
       this.setState({ reportLinkError: '' });
       // formValid = true;
+    }
+    if(this.state.procedureIdError && this.state.procedureId){
+      formValid = false;
     }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
