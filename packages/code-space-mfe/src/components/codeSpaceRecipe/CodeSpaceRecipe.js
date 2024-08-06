@@ -54,7 +54,7 @@ const CodeSpaceRecipe = (props) => {
   const recipeType = 'private';
   const [gitUrl, setGitUrl] = useState('');
 
-  const [gitPath, setGitPath] = useState('');
+  const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
   const [diskSpace, setDiskSpace] = useState('');
@@ -184,14 +184,14 @@ const CodeSpaceRecipe = (props) => {
     setSelectedAdditionalServices(selectedAdditionalServices);
   };
 
-  const onGitPathChange = (e) => {
-    const gitPath = e.currentTarget.value.trim();
-    setGitPath(gitPath);
-    setErrorObj((prevState) => ({
-      ...prevState,
-      gitPath: '',
-    }));
-  }
+  // const onGitPathChange = (e) => {
+  //   const gitPath = e.currentTarget.value.trim();
+  //   setGitPath(gitPath);
+  //   setErrorObj((prevState) => ({
+  //     ...prevState,
+  //     gitPath: '',
+  //   }));
+  // }
 
   const onGitRepoLocChange = (e) => {
     const gitRepoLoc = e.currentTarget.value.trim();
@@ -539,7 +539,7 @@ const CodeSpaceRecipe = (props) => {
                     <h4 className={classNames(Styles.sectionHeader)}>CI/CD (Coming Soon)</h4>
                     <div className={classNames(Styles.formWrapper, Styles.mT)}>
                       <div className={classNames(Styles.flex)}>
-                        <div className={classNames(Styles.col2)}>
+                        {/* <div className={classNames(Styles.col2)}>
                           <div className={classNames('input-field-group include-error')}>
                             <div>
                               <TextBox
@@ -556,7 +556,7 @@ const CodeSpaceRecipe = (props) => {
                               />
                             </div>
                           </div>
-                        </div>
+                        </div> */}
                         <div className={classNames(Styles.col2)}>
                           <div className={classNames('input-field-group include-error')}>
                             <div>
