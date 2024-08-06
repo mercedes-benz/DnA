@@ -60,6 +60,7 @@ public class CodeServerRecipe implements Serializable {
     private String gitRepoLoc;
     private String deployPath;
     private List<String> software;
+    private List<String> additionalServices;
     private Date createdOn;
     private UserInfo createdBy;
     private List<String> plugins;
