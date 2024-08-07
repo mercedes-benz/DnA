@@ -408,6 +408,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.reportLink = res.description.reportLink;
               report.description.piiData = res.description?.piiData;
               report.description.procedureId = res.description?.procedureId ? res.description?.procedureId : '';
+              report.description.dataClassification = res.description?.dataClassification ?  res.description?.dataClassification : '';
+              report.description.relatedSolutions = res.description?.relatedSolutions ? res.description?.relatedSolutions : [];
+              report.description.archerId = res.description?.archerId ? res.description?.archerId : '';
               report.customer.internalCustomers = res.customer?.internalCustomers || [];
               report.customer.externalCustomers = res.customer?.externalCustomers || [];
               // report.customer.processOwners = res.customer?.processOwners || [];

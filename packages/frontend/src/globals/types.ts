@@ -638,7 +638,6 @@ export interface IInternalCustomerDetails {
   legalEntity: string;
   division: any;
   accessToSensibleData: boolean | string;
-  processOwner: ITeams;
 }
 
 export interface IExternalCustomerDetails {
@@ -1196,7 +1195,7 @@ export interface IReportFilterParams {
   subDivision: string[];
   departments: string[];
   productOwners: string[];
-  processOwners: string[];
+  processOwners?: string[];
   tag: string[];
 }
 
@@ -1206,7 +1205,7 @@ export interface IReportFilterPreferences {
   subDivisions: string[];
   departments: IDepartment[];
   productOwners: ITeams[];
-  processOwners: ITeams[];
+  processOwners?: ITeams[];
   tags: string[];
 }
 

@@ -7,7 +7,7 @@ export const getDataForCSV = (
   queryParams: IReportFilterParams,
   numberOfSelectedArts: number,
   numberOfSelectedDepartments: number,
-  numberOfSelectedProcessOwners: number,
+  //numberOfSelectedProcessOwners: number,
   numberOfSelectedProductOwners: number,
   sortByField: string,
   sortType: string,
@@ -40,7 +40,7 @@ export const getDataForCSV = (
   ];
 
   let agileReleaseTrains = queryParams.agileReleaseTrains?.join(',');
-  let processOwners = queryParams.processOwners?.join(',');
+  //let processOwners = queryParams.processOwners?.join(',');
   let productOwners = queryParams.productOwners?.join(',');
   let departments = queryParams.departments?.join(',');
   const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
@@ -51,9 +51,9 @@ export const getDataForCSV = (
   if (queryParams.departments.length === numberOfSelectedDepartments) {
     departments = '';
   }
-  if (queryParams.processOwners.length === numberOfSelectedProcessOwners) {
-    processOwners = '';
-  }
+  // if (queryParams.processOwners.length === numberOfSelectedProcessOwners) {
+  //   processOwners = '';
+  // }
 
   if (queryParams.productOwners.length === numberOfSelectedProductOwners) {
     productOwners = '';
@@ -62,7 +62,7 @@ export const getDataForCSV = (
     divisionIds,
     agileReleaseTrains,
     departments,
-    processOwners,
+    //processOwners,
     productOwners,
     sortByField,
     sortType,
@@ -98,8 +98,7 @@ export const getDataForCSV = (
               + '|' + 'e2-department: ' + customer?.department
               + '|' + 'mbLegalEntity: ' + customer?.legalEntity
               + '|' + 'usRisk: ' + customer?.accessToSensibleData
-              + '|' + 'comment: ' + customer?.comment
-              + '|' + 'processOwner: ' + JSON.parse(JSON.stringify(customer?.processOwner))?.firstName +' '+ JSON.parse(JSON.stringify(customer?.processOwner))?.lastName)
+              + '|' + 'comment: ' + customer?.comment)
               : 'NA'),
             externalCustomers: report.customer?.externalCustomers?.length
               ? report.customer.externalCustomers?.map((customer) =>               

@@ -401,10 +401,6 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
-            <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Process Owner</Text>
-                <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
-              </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
                 <Text>{data.comment || 'NA'}</Text>
