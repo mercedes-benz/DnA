@@ -306,7 +306,7 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enablePowerPlatformService,
-    isDetailedPage: false,
+    isDetailedPage: true,
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
