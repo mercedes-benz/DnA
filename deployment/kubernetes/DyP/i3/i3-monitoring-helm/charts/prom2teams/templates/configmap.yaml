@@ -1,0 +1,36 @@
+{{- $valid := list "DEBUG" "INFO" "WARNING" "ERROR" "CRITICAL" -}}
+{{- if not (has .Values.prom2teams.loglevel $valid) -}}
+{{- fail "Invalid log level"}}
+{{- end -}}
+{{- if and .Values.prom2teams.connector (hasKey .Values.prom2teams.connectors "Connector") -}}
+{{- fail "Invalid configuration: prom2teams.connectors can't have a connector named Connector when prom2teams.connector is set"}}
+{{- end -}}
+{{- if and (not .Values.prom2teams.connector) (not .Values.prom2teams.connectors) -}}
+{{- fail "Invalid configuration: At least one connector must be provided"}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prom2teams-config
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  config.ini: |-
+    [HTTP Server]
+    Host: {{ .Values.prom2teams.host }}
+    Port: {{ .Values.prom2teams.port }}
+    [Microsoft Teams]
+    {{- with .Values.prom2teams.connector }}
+    Connector: {{ . }}
+    {{- end }}
+    {{- range $key, $val := .Values.prom2teams.connectors }}
+    {{ $key }}: {{ $val }}
+    {{- end }}
+    [Group Alerts]
+    Field: {{ .Values.prom2teams.group_alerts_by }}
+    [Log]
+    Level: {{ .Values.prom2teams.loglevel }}
+    [Template]
+    Path: {{ .Values.prom2teams.templatepath }}
+  teams.j2: {{ .Files.Get "files/teams.j2" |  quote }}
