@@ -96,7 +96,7 @@ const ManageCodeSpace = () => {
     const currentPageOffsetInit = pageNumberOnQuery ? (currentPageNumber - 1) * maxItemsPerPage : 0;
     setCurrentPageNumber(currentPageNumberInit);
     setCurrentPageOffset(currentPageOffsetInit);
-  }, []);
+  }, [currentPageNumber, maxItemsPerPage]);
   useEffect(() => {
     // if (currentTab === 'securityConfig') {
     //   getRequestedSecurityConfig();
@@ -104,6 +104,7 @@ const ManageCodeSpace = () => {
     //   getRequestedNewCodeSpaces();
     // }
     getRequestedNewCodeSpaces();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPageOffset, maxItemsPerPage]);
 
   const showErrorNotification = (message) => {
@@ -128,9 +129,27 @@ const ManageCodeSpace = () => {
   //     });
   // };
 
+  const [additionalServices, setAdditionalServices] = useState([]);
+
+  useEffect(() => {
+    CodeSpaceApiClient.getAdditionalServicesLov()
+      .then((response) => {
+        setAdditionalServices(response.data.data);
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+  }, []);
+
   const getRequestedNewCodeSpaces = () => {
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipeRequests()
+    CodeSpaceApiClient.getCodeSpaceRecipes()
       .then((res) => {
         setLoading(false);
         ProgressIndicator.hide();
@@ -143,15 +162,6 @@ const ManageCodeSpace = () => {
         setLoading(false);
         showErrorNotification(error.message ? error.message : 'Some Error Occured');
       });
-  };
-
-  const handleDataChange = () => {
-    // if (isConfigTab) {
-    //   getRequestedSecurityConfig();
-    // } else {
-    //   getRequestedNewCodeSpaces();
-    // }
-    getRequestedNewCodeSpaces();
   };
 
   const sortByColumn = (propName, sortOrder) => {
@@ -263,15 +273,9 @@ const ManageCodeSpace = () => {
     return (
       <CodeSpaceList
         key={recipe.recipeName}
-        id={recipe.recipeName}
-        projectName={recipe.recipeName}
-        maxRam={recipe.maxRam}
-        maxCpu={recipe.maxCpu}
-        diskSpace={recipe.diskSpace}
-        onDataChanged={handleDataChange}
-        software={recipe.software}
+        recipe={recipe}
+        additionalServices={additionalServices?.filter(service => recipe?.additionalServices?.includes(service.serviceName))}
         isConfigList={false}
-        isPublic={recipe.isPublic}
       />
     );
   });
@@ -413,8 +417,12 @@ const ManageCodeSpace = () => {
                               </th>
                               <th className={Styles.softwareColumn} >
                                 <label>
-                      
                                   Software Configuration
+                                </label>
+                              </th>
+                              <th className={Styles.softwareColumn} >
+                                <label>
+                                  Additional Services
                                 </label>
                               </th>
                               <th className={Styles.ciColumn}>
