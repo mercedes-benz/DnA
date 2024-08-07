@@ -323,21 +323,9 @@ const Description = (description: IDescriptionRequest) => (
       </View>
     </View>
     <View style={styles.flexLayout} wrap={false}>
-      <View style={styles.firstCol}>
-        <Text style={styles.sectionTitle}>Report Type</Text>
-        <Text>{description.reportType && description?.reportType != '0' ? description.reportType : 'NA'}</Text>
-      </View>
-      <View style={styles.flexCol2}>
+      <View style={styles.flexCol}>
         <Text style={styles.sectionTitle}>Status</Text>
         <Text>{description.status || 'NA'}</Text>
-      </View>
-      <View style={styles.flexCol2}>
-        <Text style={styles.sectionTitle}>Integrated In Portal</Text>
-        {description.integratedPortal && description?.integratedPortal != '0' ? (
-          <Text>{description.integratedPortal}</Text>
-        ) : (
-          <Text>NA</Text>
-        )}
       </View>
     </View>
     <View style={styles.flexLayout} wrap={false}>
@@ -413,10 +401,6 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
-            <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Process Owner</Text>
-                <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
-              </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
                 <Text>{data.comment || 'NA'}</Text>

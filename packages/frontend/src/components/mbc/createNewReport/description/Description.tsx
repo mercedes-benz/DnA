@@ -23,6 +23,8 @@ import {
   IDivisionAndSubDivision,
   IDepartment,
   ISimilarSearchListItem,
+  IDataClassification,
+
 } from 'globals/types';
 import Styles from './Description.scss';
 import Tags from 'components/formElements/tags/Tags';
@@ -54,6 +56,8 @@ export interface IDescriptionProps {
   setSubDivisions: (subDivisions: ISubDivision[]) => void;
   enableQuickPath: boolean;
   refineReport?: () => void;
+  dataClassifications: IDataClassification[];
+  allSolutions: ITag[];
 }
 
 export interface IDescriptionState {
@@ -84,8 +88,6 @@ export interface IDescriptionState {
   departmentTags: string[];
   reportLink: string;
   reportLinkError: string;
-  reportTypeValue: string;
-  reportTypeError: string;
   piiValue: string;
   piiError: string;
   procedureId: string;
@@ -97,6 +99,12 @@ export interface IDescriptionState {
   lastSearchedProductNameInput: string;
   similarReportsBasedOnProductName: ISimilarSearchListItem[];
   similarReportstoShow: ISimilarSearchListItem[];
+  dataClassificationValue: string;
+  dataClassificationError: string;
+  archerId: string;
+  archerIdError: string;
+  relatedSolutions: ITag[];
+  relatedSolutionTags: string[]
 }
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
@@ -111,14 +119,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       statusValue: props.description.status,
       designGuideValue: props.description.designGuideImplemented,
       artValue: props.description.agileReleaseTrain,
-      integratedPortalsValue: props.description.integratedPortal,
       tags: props.description.tags,
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
-      reportTypeValue: props.description.reportType,
       piiValue: props.description.piiData,
       procedureId: props.description.procedureId,
-    };
+      dataClassificationValue: props?.description.dataClassification,
+      archerId: props?.description?.archerId
+    }
   }
   constructor(props: IDescriptionProps) {
     super(props);
@@ -150,8 +158,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: [],
       reportLink: null,
       reportLinkError: null,
-      reportTypeValue: 'Self Service Report',
-      reportTypeError: null,
       piiValue: null,
       piiError: null,
       procedureId: '',
@@ -163,11 +169,22 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       lastSearchedProductNameInput: '',
       similarReportsBasedOnProductName: [],
       similarReportstoShow: [],
+      dataClassificationValue: null,
+      dataClassificationError: null,
+      archerId: null,
+      archerIdError: '',
+      relatedSolutions: [],
+      relatedSolutionTags: []
     };
   }
 
   public componentDidMount() {
+    console.log(this.props.description);
     SelectBox.defaultSetup();
+    if(this.props?.description?.relatedSolutions?.length){
+      const solTag = this.props?.description?.relatedSolutions.map(solution => solution.name);
+      this.setState({relatedSolutionTags: solTag});
+    }
   }
 
   componentDidUpdate(prevProps: IDescriptionProps, prevState: IDescriptionState) {
@@ -211,6 +228,37 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     });
   };
 
+  public onArcherIdChange = (e: React.FocusEvent<HTMLInputElement>) => {
+    const archerId = e.currentTarget.value;
+    const pattern = /^(INFO)-\d{5}$/.test(archerId);
+    const description = this.props.description;
+    description.archerId = archerId;
+    this.setState({ archerId: archerId, archerIdError: (archerId.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '') });
+
+  }
+
+  public onRelatedSolutionsChange = (arr: string[]) => {
+    const description = this.props.description;
+    const tempSolutions = this.props.allSolutions.filter(solution => {
+      if (arr.includes(solution.name)) {
+        return solution;
+      }
+    });
+    description.relatedSolutions = tempSolutions;
+    this.setState({relatedSolutions: tempSolutions});
+
+  }
+
+  public onDataClassificationChange = (e: React.FocusEvent<HTMLSelectElement>) => {
+    const dataClassification = e.currentTarget.value;
+    const description = this.props.description;
+    description.dataClassification = dataClassification;
+    this.setState({
+      dataClassificationValue: dataClassification,
+    });
+
+  }
+
 
   public onDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const desc = e.currentTarget.value;
@@ -227,22 +275,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     });
   };
 
-  public onReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
-    let selectedValues = '';
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        // const reportType: IReportType = { id: null, name: null };
-        // reportType.id = option.value;
-        // reportType.name = option.textContent;
-        // selectedValues.push(reportType);
-        selectedValues = option.value;
-      });
-    }
-    const description = this.props.description;
-    description.reportType = selectedValues;
-    this.setState({ reportTypeValue: selectedValues });
-  };
+
+
 
   public onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const target = e.target as HTMLSelectElement;
@@ -328,32 +362,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     this.setState({ piiValue: selectedValue });
   };
 
-  public onChangeItegratedPortal = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    // const selectedOptions = e.currentTarget.selectedOptions;
-    // const selectedValues: IIntegratedPortal[] = [];
-    // if (selectedOptions.length) {
-    //   Array.from(selectedOptions).forEach((option) => {
-    //     const integratedPortal: IIntegratedPortal = { id: null, name: null };
-    //     integratedPortal.id = option.value;
-    //     integratedPortal.name = option.textContent;
-    //     selectedValues.push(integratedPortal);
-    //   });
-    // }
-    // const description = this.props.description;
-    // description.integratedPortal = selectedValues;
-    // this.setState({ integratedPortalsValue: selectedValues });
-
-    const selectedOptions = e.currentTarget.selectedOptions;
-    let selectedValue = '';
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        selectedValue = option.value;
-      });
-    }
-    const description = this.props.description;
-    description.integratedPortal = selectedValue;
-    this.setState({ piiValue: selectedValue });
-  };
 
   public onChangeStatus = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -467,11 +475,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     // const productPhaseError = this.state.productPhaseError || '';
     const statusError = this.state.statusError || '';
     const artError = this.state.artError || '';
-    const integratedPortalError = this.state.integratedPortalError || '';
     const piiError = this.state.piiError || '';
     const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
-    const reportTypeError = this.state.reportTypeError || '';
     const procedureIdError = this.state.procedureIdError || '';
 
     const requiredError = '*Missing entry';
@@ -490,13 +496,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       })
       ?.toString();
 
-    const reportTypeValue = this.state.reportTypeValue ? this.state.reportTypeValue : 'Self Service Report';
 
     const piiValue = this.state.piiValue;
 
     const artValue = this.state.artValue;
 
-    const integratedInPortalValue = this.state.integratedPortalsValue;
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
@@ -541,57 +545,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         }
                       />
                     </div>
-                    {!this.props.enableQuickPath ? (
-                      // <div>
-                      //   <TextBox
-                      //     type="text"
-                      //     controlId={'reportTypeInput'}
-                      //     labelId={'reportTypeLabel'}
-                      //     label={'Report Type'}
-                      //     placeholder={'Type here'}
-                      //     value={this.state.productName}
-                      //     errorText={productNameError}
-                      //     required={true}
-                      //     maxLength={200}
-                      //     onChange={this.onProductNameOnChange}
-                      //   />
-                      // </div>
 
-                      <div className={classNames('input-field-group include-error', reportTypeError ? 'error' : '')}>
-                        <label id="reportTypeLabel" htmlFor="reportTypeField" className="input-label">
-                          Report Type<sup>*</sup>
-                        </label>
-                        <div className="custom-select">
-                          <select
-                            id="reportTypeField"
-                            required={true}
-                            required-error={requiredError}
-                            onChange={this.onReportTypeChange}
-                            value={reportTypeValue}
-                          >
-                            <option id="reportTypeOption" value={0}>
-                              Choose
-                            </option>
-                            <option id="StandardReport" value={'Standard Report'}>
-                              Standard Report
-                            </option>
-                            <option id="SelfServiceReport" value={'Self Service Report'}>
-                              Self Service Report
-                            </option>
-                            {/* {this.props.divisions?.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                {obj.name}
-                              </option>
-                            ))} */}
-                          </select>
-                        </div>
-                        <span className={classNames('error-message', reportTypeError ? '' : 'hide')}>
-                          {reportTypeError}
-                        </span>
-                      </div>
-                    ) : (
-                      ''
-                    )}
                   </div>
                   <div>
                     <TextArea
@@ -647,7 +601,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                   </div>
                 </div>
                 <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                  <div>
                   <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                  <div>
                     <div>
                       <div className={Styles.divisionContainer}>
                         <div
@@ -681,7 +637,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         </div>
                       </div>
                     </div>
-
+                  </div>
                     <div className={Styles.subDivisionContainer}>
                       <div className={classNames('input-field-group')}>
                         <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
@@ -714,41 +670,61 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         </div>
                       </div>
                     </div>
+                    </div>
+                    <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                    <div
+                      className={classNames(
+                        'input-field-group include-error',
+                        this.state.dataClassificationError ? 'error' : '',
+                      )}
+                    >
+                      <label id="dataClassificationLabel" htmlFor="dataClassificationInput" className="input-label">
+                        Data Classification<sup>*</sup>
+                      </label>
+                      <div className={`custom-select`}>
+                        <select
+                          required={true}
+                          required-error={requiredError}
+                          id="dataClassificationField"
+                          name="dataClassification"
+                          onChange={this.onDataClassificationChange}
+                          value={this.state.dataClassificationValue}
+                        >
+                          <option id="dataProd" value={''}> Choose </option>
+                          {this.props.dataClassifications?.map((item: any) => (
+                            <option id={item.name + item.id} key={item.id} value={item.name}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <span className={classNames('error-message', this.state.dataClassificationError ? '' : 'hide')}>
+                        {this.state.dataClassificationError}
+                      </span>
+                    </div>
+                    <div className={classNames('input-field-group include-error', this.state.archerIdError.length ? 'error' : '')}>
+                      <label className={classNames(Styles.inputLabel, 'input-label')}>Archer ID</label>
+                      <div>
+                        <input
+                          type="text"
+                          className={classNames('input-field', Styles.projectNameField)}
+                          id="archerId"
+                          placeholder="Type here eg.[INFO-XXXXX]"
+                          autoComplete="off"
+                          maxLength={55}
+                          defaultValue={this.state.archerId}
+                          value={this.state.archerId}
+                          onChange={this.onArcherIdChange}
+                        />
+                        <span className={classNames('error-message', this.state.archerIdError.length ? '' : 'hide')}>
+                          {this.state.archerIdError}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                     {!this.props.enableQuickPath ? (
                       <>
-                        <div>
-                          <div
-                            className={classNames(
-                              'input-field-group include-error',
-                              integratedPortalError ? 'error' : '',
-                            )}
-                          >
-                            <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
-                              Integrated In Portal
-                            </label>
-                            <div className="custom-select">
-                              <select
-                                id="integratedPortalField"
-                                multiple={false}
-                                required={false}
-                                onChange={this.onChangeItegratedPortal}
-                                value={integratedInPortalValue}
-                              >
-                                <option id="integratedPortalOption" value={0}>
-                                  Choose
-                                </option>
-                                {this.props.integratedPortals?.map((obj) => (
-                                  <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                    {obj.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <span className={classNames('error-message', integratedPortalError ? '' : 'hide')}>
-                              {integratedPortalError}
-                            </span>
-                          </div>
-                        </div>
                         <div>
                           <div
                             className={classNames('input-field-group include-error', piiError.length ? 'error' : '')}
@@ -789,7 +765,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '')}>
                         <div className={Styles.departmentTags}>
                           <Tags
-                            title={'E2-Department'}
+                            title={'Department'}
                             max={1}
                             chips={departmentValue}
                             tags={this.props.departmentTags}
@@ -859,6 +835,20 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       ) : (
                         ''
                       )}
+                  <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                      <div>
+                        <div className={classNames('input-field-group')}>
+                          <Tags
+                            title={'Related Solutions'}
+                            max={100}
+                            chips={this.state.relatedSolutionTags}
+                            tags={this.props.allSolutions.length > 0 ? this.props.allSolutions : []}
+                            setTags={this.onRelatedSolutionsChange}
+                            isMandatory={false}
+                            showMissingEntryError = {false}
+                          />
+                        </div>
+                      </div>
                       <div  className={classNames('input-field-group include-error', procedureIdError ? 'error' : '' )}>
                         <TextBox
                           type="text"
@@ -878,12 +868,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         />
                        <span className={classNames('error-message', procedureIdError ? '' : 'hide')}>{procedureIdError}</span>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          
           {!this.props.enableQuickPath ? (
             <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
               <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
@@ -1057,10 +1049,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   this.setState({ integratedPortalError: errorMissingEntry });
     //   formValid = false;
     // }
-    if (!this.state.reportTypeValue || this.state.reportTypeValue === '0') {
-      this.setState({ reportTypeError: errorMissingEntry });
-      formValid = false;
-    }
     if (!this.state.piiValue || this.state.piiValue === 'Choose') {
       this.setState({ piiError: errorMissingEntry });
       formValid = false;
@@ -1078,6 +1066,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.state.statusValue[0]?.id === 'Active'
     ) {
       this.setState({ reportLinkError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.dataClassificationValue === '' || this.state.dataClassificationValue === null) {
+      this.setState({ dataClassificationError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.archerIdError !== '') {
       formValid = false;
     }
 
