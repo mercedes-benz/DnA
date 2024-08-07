@@ -1,4 +1,4 @@
-/* LICENSE START
+ /* LICENSE START
  * 
  * MIT License
  * 
@@ -24,26 +24,21 @@
  * 
  * LICENSE END 
  */
+package com.daimler.data.db.jsonb.report;
 
-package com.daimler.data.db.repo.report;
+import java.io.Serializable;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.daimler.data.db.entities.ReportNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
-import com.daimler.data.dto.report.TeamMemberVO;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProjectDetails implements Serializable {
 
-public interface ReportCustomRepository extends CommonDataRepository<ReportNsql, String> {
-
-	List<ReportNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> statuses, String userId,
-			Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy,
-			String sortOrder, String division, List<String> department, List<String> art);
-
-	Long getCountUsingNativeQuery(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
-			List<String> searchTerms, List<String> tags, String division, List<String> department, List<String> art);
-
-	//List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery();
-
-	Integer getCountBasedPublishReport(Boolean published);
+    private static final long serialVersionUI = 1L; 
+    private String id;
+    private String name;
 
 }
