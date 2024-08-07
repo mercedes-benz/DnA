@@ -109,7 +109,7 @@ notification:
       airflowNotificationPref: ${DEFAULT_APP_AIRFLOW_NOTIFICATION_PREF:true}
       dataLakeNotificationPref: ${DEFAULT_APP_DATALAKE_NOTIFICATION_PREF:true}
       dataEntryNotificationPref: ${DEFAULT_APP_DATAENTRY_NOTIFICATION_PREF:true}
-      useCaseOwnerNotificationPref: ${DEFAULT_APP_USE_CASE_OWNER_NOTIFICATION_PREF:false}
+      useCaseOwnerNotificationPref: ${DEFAULT_APP_USE_CASE_OWNER_NOTIFICATION_PREF:true}
 graphql:
   servlet:
     mapping: /api/minified
