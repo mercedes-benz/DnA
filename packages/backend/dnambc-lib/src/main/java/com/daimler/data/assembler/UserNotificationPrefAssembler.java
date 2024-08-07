@@ -95,7 +95,7 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 					useCaseOwnerNotificationPrefVO.setEnableEmailNotifications(useCaseOwnerNotificationPrefJson.isEnableEmailNotifications());
 				}
 				else {
-					useCaseOwnerNotificationPrefVO.setEnableAppNotifications(false);
+					useCaseOwnerNotificationPrefVO.setEnableAppNotifications(true);
 					useCaseOwnerNotificationPrefVO.setEnableEmailNotifications(true);
 				}
 				vo.setUseCaseOwnerNotificationPref(useCaseOwnerNotificationPrefVO);
