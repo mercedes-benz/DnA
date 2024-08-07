@@ -234,20 +234,20 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                  <div id="productPhase">
+                  <div id="dataClassification">
                     <label className="input-label summary">Report Type</label>
                     <br />
-                    {description.reportType && description?.reportType != '0' ? description.reportType : 'NA'}
+                    {description?.dataClassification && description?.dataClassification != null ? description?.dataClassification : 'NA'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
                     <br />
                     {description.status ? description.status : 'NA'}
                   </div>
-                  <div id="integratedinportal">
+                  <div id="archerId">
                     <label className="input-label summary">Integrated In Portal</label>
                     <br />
-                    {description.integratedPortal && description?.integratedPortal != '0' ? description.integratedPortal : 'NA'}
+                    {description?.archerId && description?.archerId != null ? description?.archerId : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -265,6 +265,13 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
                     {description.frontendTechnologies?.join(', ')}
+                  </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id= 'relatedSolutions'>
+                  <label className="input-label summary">Related Solution</label>
+                    <br />
+                    {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'NA'}
                   </div>
                 </div>
               </div>

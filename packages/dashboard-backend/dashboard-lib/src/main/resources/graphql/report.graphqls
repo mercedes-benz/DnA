@@ -1,7 +1,7 @@
 type Query {
     reports(published: Boolean, status: String,
     searchTerm: String, tags: String, offset: Int, limit: Int, sortBy: String,
-    sortOrder: String, division: String, department: String, processOwner: String, art: String): ReportCollection!
+    sortOrder: String, division: String, department: String, art: String): ReportCollection!
     report(string: ID):ReportVO
 }
 
@@ -40,16 +40,17 @@ type CreatedByVO{
 type DescriptionVO{
     reportLink: String,
 	productDescription: String,
-	reportType: String,
 	piiData: String,
 	status: String,
-	integratedPortal: String,
 	frontendTechnologies: [String],
 	tags:[String],
 	agileReleaseTrain: String,
 	division : DivisionVO,
 	department: String,
-	procedureId: String
+	procedureId: String,
+    dataClassification: String,
+    archerId: String,
+    relatedSolutions: [ProjectReferenceDetailsVO],
 }
 
 type DivisionVO{
@@ -58,6 +59,11 @@ type DivisionVO{
     subdivision: SubdivisionVO,
 }
 type SubdivisionVO{
+    id: ID!,
+    name: String
+}
+
+type ProjectReferenceDetailsVO{
     id: ID!,
     name: String
 }
@@ -75,7 +81,6 @@ type InternalCustomerVO{
 	legalEntity: String,
 	accessToSensibleData: String,
 	comment: String,
-	processOwner: TeamMemberVO
 }
 
 type ExternalCustomerVO{
@@ -103,13 +108,11 @@ type DataAndFunctionVO{
 
 type DataWarehouseVO{
 	dataWarehouse: String,
-	dataClassification: String,
 	connectionType: String
 }
 
 type SingleDataSourceVO{
 	dataSources: [DataSourceVO],
-	dataClassification: String,
 	connectionType: String
 }
 
