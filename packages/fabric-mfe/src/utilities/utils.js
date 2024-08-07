@@ -93,7 +93,7 @@ export const generateNodesAndEdges = (data) => {
     createEdge(`e${intermediateNodeId}-${roleApproverNodeId}`, String(intermediateNodeId), String(roleApproverNodeId));
 
     // Create and link group node
-    const group = microsoftGroups.filter((group) => group.groupName.includes(role.name.split('_')[1]));
+    const group = microsoftGroups.filter((group) => group.groupName.includes(role.name.split('_').pop()));
     const groupNodeId = createNode({ 
       name: group[0]?.groupName, 
       label: 'to workspace', 
@@ -170,12 +170,13 @@ export const getLayoutedElements = (data, nodes, edges) => {
   };
 
   data.roles.forEach(role => {
-    const roleNode = newNodes.find(node => node.data.type === 'ROLE' && node.data.name === role.name);
-    const entitlementNode = newNodes.find(node => node.data.type === 'ENTITLEMENT' && node.data.name === role.name);
+    // Find the ROLE and ENTITLEMENT nodes for this group
+    const roleNode = newNodes.find(node => node.data.type === FLOW_DIAGRAM_TYPES.ROLE && node.data.name === role.name);
+    const entitlementNode = newNodes.find(node => node.data.type === FLOW_DIAGRAM_TYPES.ENTITLEMENT && node.data.name.includes(role.name.split('_').pop()));
 
     // Collect the ids of ENTITLEMENT_ROLE nodes
     const entitlementRoleNodes = newNodes.filter(node =>
-      node.data.type === 'ENTITLEMENT_ROLE' && node.data.name.includes(role.name)
+      node.data.type === FLOW_DIAGRAM_TYPES.ENTITLEMENT_ROLE && node.data.name.includes(role.name.split('_').pop())
     ).map(node => node.id);
 
     if (roleNode && entitlementNode && entitlementRoleNodes.length > 0) {
