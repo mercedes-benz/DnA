@@ -127,6 +127,18 @@
     max-width: 300px;
   }
 
+  .notice {
+    position: absolute;
+    top: -16px;
+    left: 0;
+    font-size: 9px;
+    color: #b6c5d3;
+
+    i {
+      font-size: 9px;
+    }
+  }
+
   .nodeContent {
     display: flex;
     align-items: center;
