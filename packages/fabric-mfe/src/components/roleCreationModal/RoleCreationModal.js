@@ -1,6 +1,6 @@
 import classNames from "classnames";
-import React, { useCallback } from "react";
-import { ReactFlow, Controls, ConnectionLineType, Background, useNodesState, useEdgesState, addEdge, Handle, Position } from '@xyflow/react';
+import React from "react";
+import { ReactFlow, Controls, ConnectionLineType, Background, useNodesState, useEdgesState, Handle, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import Styles from './role-creation-modal.scss';
 import Spinner from "../spinner/Spinner";
@@ -36,6 +36,11 @@ const RoleEntitlementNode = ({ data }) => {
           (data?.state === FLOW_DIAGRAM_STATES.ASSIGNED && Styles.assigned), 
           (data?.type === FLOW_DIAGRAM_TYPES.ENTITLEMENT_ROLE || data?.type === FLOW_DIAGRAM_TYPES.GROUP) && Styles.w300
         )}>
+        {data?.type === FLOW_DIAGRAM_TYPES.GROUP &&
+          <div className={Styles.notice}>
+            <i className="icon mbc-icon info"></i><span>Takes upto 5hrs</span>
+          </div>
+        }
         <div className={Styles.nodeContent}>
           <div className={Styles.icon}>
             {(data?.state === FLOW_DIAGRAM_STATES.PENDING || isPriviledgeRoleNull) && <Spinner /> }
@@ -47,7 +52,7 @@ const RoleEntitlementNode = ({ data }) => {
             {(isUpdateRoleEntitlementPending || isPriviledgeRoleNull) && 'Updating '}
             {(isUpdateRoleEntitlementCreated || isPriviledgeRole) && 'Updated '}
             {isUpdateRoleEntitlementAssigned && 'Assigned '}
-            {isGroupStatePending && 'Awaiting '}
+            {isGroupStatePending && 'Assigning '}
             {isGroupStateCreated && 'Created '}
             {isGroupStateAssigned && 'Assigned '}
             <span>{data.name}</span> {data.label}
@@ -66,19 +71,8 @@ const RoleCreationModal = ({workspace, onClose}) => {
 
   // eslint-disable-next-line
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
+  // eslint-disable-next-line
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
-
-  const onConnect = useCallback(
-    (params) =>
-      setEdges((eds) =>
-        addEdge(
-          { ...params, type: ConnectionLineType.SmoothStep, animated: true },
-          eds,
-        ),
-      ),
-    // eslint-disable-next-line
-    [],
-  );
 
   return (
     <div className={Styles.modal}>
@@ -93,8 +87,8 @@ const RoleCreationModal = ({workspace, onClose}) => {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
             fitView
+            fitViewOptions={{ padding: 0.2, minZoom: 0.95 }}
             connectionLineType={ConnectionLineType.SmoothStep}
             nodeTypes={{ 
               roleEntitlementNode: RoleEntitlementNode
