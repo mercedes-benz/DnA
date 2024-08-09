@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: vault-injector
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service
+spec:
+  destination:
+    namespace: vault-injector
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/vault-injector
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: vault-injector
+      valueFiles:
+        - values-dhc.yaml
+  project: dna
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+  ignoreDifferences:     
+  - group: admissionregistration.k8s.io                                                              
+    kind: MutatingWebhookConfiguration
+    jsonPointers:                                                                                    
+    - /webhooks/0/clientConfig/caBundle
+    - /webhooks/0/failurePolicy      

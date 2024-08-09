@@ -1,0 +1,208 @@
+namespace: storage
+envs:
+  - name: MAX_FILE_SIZE
+    value: 3000MB
+  - name: MAX_REQUEST_SIZE
+    value: 3000MB
+  - name: VAULT_HOST
+    value: null
+  - name: VAULT_PORT
+    value: null
+  - name: VAULT_SCHEME
+    value: http
+  - name: VAULT_AUTHENTICATION
+    value: TOKEN
+  - name: VAULT_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: vaultToken
+        name: storage-be
+  - name: VAULT_MOUNTPATH
+    value: kv
+  - name: VAULT_PATH
+    value: null
+  - name: DNA_URI
+    value: null
+  - name: DNA_AUTH_ENABLE
+    value: null
+  - name: JWT_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        key: jwt.secret.key
+        name: storage-be
+  - name: CORS_ORIGIN_URL
+    value: null
+  - name: MINIO_ENDPOINT
+    value: null
+  - name: MINIO_CLIENT_API
+    value: null
+  - name: MINIO_ROOT_USER
+    valueFrom:
+      secretKeyRef:
+        key: minioAccessKey
+        name: storage-be
+  - name: MINIO_ROOT_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: minioSecretKey
+        name: storage-be
+  - name: MINIO_POLICY_VERSION
+    value: '2012-10-17'
+  - name: LOGGING_ENVIRONMENT
+    value: DEV
+  - name: LOGGING_PATH
+    value: /tmp/storage/log
+  - name: ATTACHMENT_MALWARE_SCAN
+    value: 'true'
+  - name: MALWARE_SCANNER_URI
+    value: null
+  - name: MALWARE_SCANNER_APP_ID
+    valueFrom:
+      secretKeyRef:
+        key: malwareApiId
+        name: storage-be
+  - name: MALWARE_SCANNER_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: malwareApiKey
+        name: storage-be
+  - name: API_DB_USER
+    valueFrom:
+      secretKeyRef:
+        key: dbUser
+        name: storage-be
+  - name: API_DB_PASS
+    valueFrom:
+      secretKeyRef:
+        key: dbPassword
+        name: storage-be
+  - name: API_DB_URL
+    value: null
+  - name: NAAS_BROKER
+    value: null
+  - name: STORAGE_TERMS_OF_USE_URL
+    value: ''
+  - name: DATAIKU_PROD_URI
+    value: ''
+  - name: DATAIKU_PROD_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: dataikuProdApiKey
+        name: storage-be
+  - name: DATAIKU_TRAINING_URI
+    value: ''
+  - name: DATAIKU_TRAINING_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: dataikuTrainingApiKey
+        name: storage-be
+  - name: FLYWAY_ENABLED
+    value: 'true'
+  - name: FLYWAY_BASELINE_ON_MIGRATE
+    value: 'true'
+  - name: FLYWAY_BASELINEVERSION
+    value: '0'
+  - name: FLYWAY_SCHEMA
+    value: public
+secret:
+  - key: vaultToken
+    value: null
+  - key: jwt.secret.key
+    value: null
+  - key: minioAccessKey
+    value: null
+  - key: minioSecretKey
+    value: null
+  - key: malwareApiId
+    value: null
+  - key: malwareApiKey
+    value: null
+  - key: dbUser
+    value: null
+  - key: dbPassword
+    value: null
+  - key: dataikuProdApiKey
+    value: null
+  - key: dataikuTrainingApiKey
+    value: null
+replicaCount: 1
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
+  pullPolicy: IfNotPresent
+  tag: '80'
+imagePullSecrets:
+  - name: imagepullsecret
+nameOverride: ''
+fullnameOverride: storage-be
+podSecurityContext:
+  runAsUser: 1000
+containerPort: 7175
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: false
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: storage.test.dna.app.corpintra.net
+      paths:
+        - path: /api
+          pathType: Prefix
+        - path: /swagger-ui.html
+          pathType: Prefix
+        - path: /swagger-resources
+          pathType: Prefix
+        - path: /v2/api-docs
+          pathType: Prefix
+        - path: /webjars
+          pathType: Prefix
+  tls: null
+resources: {}
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/namespace: fmas/staging
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-truststore.jks: |
+      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.TRUSTSTORE }}
+      {{- end }}
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-keystore.p12: |
+      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.KEYSTORE }}
+      {{- end }}      
+    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/storageService
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "kv/dna/kubernetesSecret/storageService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+        {{- range $k, $v := .Data.data }}
+        {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}        
+        {{- end }}      
+      {{- end }}     
+      {{- with secret "kv/dna/kubernetesSecret/minio" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}             
+  saName: default
+  jarName: storage-lib*.jar
