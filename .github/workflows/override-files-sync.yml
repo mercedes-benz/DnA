@@ -47,7 +47,7 @@ jobs:
           GH_HOST: git.i.mercedes-benz.com
           GITHUB_HOST: git.i.mercedes-benz.com
         with:
-          branch: '/refs/heads/${{ github.event.inputs.sourceBranch }}/staging'
+          branch: 'refs/heads/${{ github.event.inputs.sourceBranch }}/staging'
           sha: '${{ github.sha }}'   
 
       - name: Create Dev Branch
@@ -57,7 +57,7 @@ jobs:
           GH_HOST: git.i.mercedes-benz.com
           GITHUB_HOST: git.i.mercedes-benz.com
         with:
-          branch: '/refs/heads/${{ github.event.inputs.sourceBranch }}/dev'
+          branch: 'refs/heads/${{ github.event.inputs.sourceBranch }}/dev'
           sha: '${{ github.sha }}'              
       
 
