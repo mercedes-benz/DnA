@@ -89,12 +89,5 @@ jobs:
         if: ${{ steps.cpr.outputs.number }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
-
-      # - name: Dev pull request merge
-      #   uses: sudo-bot/action-pull-request-merge@v1.2.0
-      #   with:
-      #     github-token: ${{ secrets.PID_PAT }}
-      #     number: ${{ steps.cpr.outputs.number }}
-      #     filter-label: automerge        
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"      
                            
