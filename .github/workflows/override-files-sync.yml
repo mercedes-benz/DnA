@@ -32,26 +32,17 @@ jobs:
         with:
           ref: '${{ github.event.inputs.sourceBranch }}'  
           fetch-depth: 0  
-
-      - name: Get Head Commit Message
+ 
+      - name: Get Head Commit Message and create branch
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
-
-      - name:  Create Staging Branch
-        uses: poorva17/create-pr-action@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.PID_PAT }}
-          HEAD_BRANCH: ${{ github.event.inputs.sourceBranch }}/staging
-          BASE_BRANCH: ${{ github.event.inputs.sourceBranch }}  
-
-      - name:  Create Dev Branch
-        uses: poorva17/create-pr-action@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.PID_PAT }}
-          HEAD_BRANCH: ${{ github.event.inputs.sourceBranch }}/dev
-          BASE_BRANCH: ${{ github.event.inputs.sourceBranch }}  
-                
+          git checkout ${{ github.event.inputs.sourceBranch }}
+          git pull origin ${{ github.event.inputs.sourceBranch }}
+          git checkout -b ${{ github.event.inputs.sourceBranch }}/staging
+          git push -u origin ${{ github.event.inputs.sourceBranch }}/staging
+          git checkout -b ${{ github.event.inputs.sourceBranch }}/dev                
+          git push -u origin ${{ github.event.inputs.sourceBranch }}/dev                
 
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
