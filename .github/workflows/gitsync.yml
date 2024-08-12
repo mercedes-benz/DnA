@@ -1,4 +1,4 @@
-name: Git Sync
+name: 1. Git Sync
 on:
   workflow_dispatch:
     inputs:
