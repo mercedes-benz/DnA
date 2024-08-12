@@ -34,6 +34,9 @@ jobs:
           fetch-depth: 0  
  
       - name: Get Head Commit Message and create branch
+        env:
+          GH_TOKEN: ${{ secrets.PID_PAT }}
+          GH_HOST: git.i.mercedes-benz.com
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
@@ -42,7 +45,8 @@ jobs:
           git checkout -b ${{ github.event.inputs.sourceBranch }}/staging
           git push -u origin ${{ github.event.inputs.sourceBranch }}/staging
           git checkout -b ${{ github.event.inputs.sourceBranch }}/dev                
-          git push -u origin ${{ github.event.inputs.sourceBranch }}/dev                
+          git push -u origin ${{ github.event.inputs.sourceBranch }}/dev          
+                
 
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
