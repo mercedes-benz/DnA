@@ -80,7 +80,7 @@ export interface IDescriptionState {
   designGuideValue: IDesignGuide[];
   designGuideError: string;
   frontEndTechValue: string[];
-  frontEndTechError: string;
+  showFrontEndTechError: boolean;
   chips: string[];
   showTagsMissingError: boolean;
   tags: string[];
@@ -149,7 +149,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       integratedPortalsValue: null,
       designGuideError: null,
       designGuideValue: null,
-      frontEndTechError: null,
+      showFrontEndTechError: false ,
       frontEndTechValue: null,
       chips: [],
       showTagsMissingError: false,
@@ -395,20 +395,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     this.setState({ piiValue: selectedValues });
   };
 
-  public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: string[] = [];
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        let frontEndTech = '';
-        frontEndTech = option.textContent;
-        selectedValues.push(frontEndTech);
-      });
-    }
+  public onChangeFrontTechnologies = (selectedValues: string[]) => {
     const description = this.props.description;
     description.frontendTechnologies = selectedValues;
     this.setState({ frontEndTechValue: selectedValues });
-  };
+  }
 
   public showSimilarReports = (type: string) => {
     let similarReportstoShow: ISimilarSearchListItem[] = [];
@@ -477,7 +468,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const statusError = this.state.statusError || '';
     const artError = this.state.artError || '';
     const piiError = this.state.piiError || '';
-    const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
     const procedureIdError = this.state.procedureIdError || '';
 
@@ -575,30 +565,20 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     />
                   </div>
                   <div>
-                    <div className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}>
-                      <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
-                        Frontend Technologies <sup>*</sup>
-                      </label>
-                      <div id="FrontEndTechnogies" className="custom-select">
-                        <select
-                          id="FrontEndTechnogiesField"
-                          multiple={true}
-                          required={true}
-                          required-error={requiredError}
-                          onChange={this.onChangeFrontTechnologies}
-                          value={frontEndTechValue}
-                        >
-                          {this.props.frontEndTechnologies?.map((obj) => (
-                            <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                              {obj.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
-                        {frontEndTechError}
-                      </span>
-                    </div>
+                    <div className={Styles.frontEndTechTags}>
+                          <Tags
+                            title={'Frontend Technologies'}
+                            max= {100}
+                            chips={frontEndTechValue}
+                            tags={this.props.frontEndTechnologies}
+                            setTags={this.onChangeFrontTechnologies}
+                            isMandatory={true}
+                            showMissingEntryError={this.state.showFrontEndTechError}
+                            showAllTagsOnFocus={true}
+                            disableOnBlurAdd={true}
+                            disableSelfTagAdd={true}
+                          />
+                        </div>
                   </div>
                 </div>
                 <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
@@ -850,7 +830,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           />
                         </div>
                       </div>
-                      <div  className={classNames('input-field-group include-error', procedureIdError ? 'error' : '' )}>
+                      <div  className={classNames('input-field-group include-error', procedureIdError ? 'error' : '', !this.props.enableQuickPath ? Styles.procedureId :'' )}>
                         <TextBox
                           type="text"
                           controlId={'procedureIdInput'}
@@ -1055,7 +1035,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       formValid = false;
     }
     if (this.state.frontEndTechValue.length === 0) {
-      this.setState({ frontEndTechError: errorMissingEntry });
+      this.setState({ showFrontEndTechError: true });
       formValid = false;
     }
     // if (this.state.reportLinkError && this.state.reportLink) {
@@ -1138,7 +1118,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       formValid = false;
     }
     if (!this.state.frontEndTechValue || this.state.frontEndTechValue.length === 0) {
-      this.setState({ frontEndTechError: errorMissingEntry });
+      this.setState({ showFrontEndTechError: true });
       formValid = false;
     }
     if (
