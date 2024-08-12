@@ -10,6 +10,9 @@ on:
         default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS,VKURAPA'
         required: true   
 
+permissions:                    
+  contents: read               
+  pull-requests: write  
 jobs:
   override-files-sync:
     name: "Override Or Additional Files Sync"
@@ -40,7 +43,12 @@ jobs:
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
           git checkout -b ${{ github.event.inputs.sourceBranch }}/staging
-          git push --set-upstream origin ${{ github.event.inputs.sourceBranch }}/staging
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          branch: ${{ github.event.inputs.sourceBranch }}/staging
 
       # - name: Create Staging Branch
       #   uses: peterjgrainger/action-create-branch@v3.0.0
