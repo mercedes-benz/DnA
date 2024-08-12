@@ -139,6 +139,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
             );
           })
         : 'NA';
+    const solChips =  description?.relatedSolutions && description?.relatedSolutions?.length
+    ? description.relatedSolutions?.map((chip: any, index: any) => {
+        return (
+          <div className="chips read-only" key={index}>
+            <label className="name">{chip.name}</label>
+          </div>
+        );
+      })
+    : 'NA';
     const pdfFileName = reportName?.replace(/[/|\\:*?"<>]/g, '').replace(/ /g, '-');
     const reportLink = this.props.reportLink;
 
@@ -235,7 +244,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="dataClassification">
-                    <label className="input-label summary">Report Type</label>
+                    <label className="input-label summary">Data Classification</label>
                     <br />
                     {description?.dataClassification && description?.dataClassification != null ? description?.dataClassification : 'NA'}
                   </div>
@@ -245,7 +254,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     {description.status ? description.status : 'NA'}
                   </div>
                   <div id="archerId">
-                    <label className="input-label summary">Integrated In Portal</label>
+                    <label className="input-label summary">Archer Id</label>
                     <br />
                     {description?.archerId && description?.archerId != null ? description?.archerId : 'NA'}
                   </div>
@@ -271,7 +280,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id= 'relatedSolutions'>
                   <label className="input-label summary">Related Solution</label>
                     <br />
-                    {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'NA'}
+                    <div className={Styles.tagColumn}>{solChips}</div>
                   </div>
                 </div>
               </div>
