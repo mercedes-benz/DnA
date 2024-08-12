@@ -105,7 +105,7 @@ const AllCodeSpaces = (props) => {
     };
 
     const onShowSecurityConfigRequest = () => {
-       history.push(`manageCodespace`);
+       history.push(`manageRecipes`);
     };
 
     const isCodeSpaceCreationSuccess = (status, codeSpaceData) => {

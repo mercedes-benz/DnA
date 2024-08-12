@@ -134,7 +134,7 @@ const createCodeSpaceRecipe = (data) => {
     );
 };
 
-const editCodeSpaceRecipe = (id, data) => {
+const updateCodeSpaceRecipe = (id, data) => {
     return server.put(`recipeDetails/${id}`, 
         data,
     );
@@ -296,7 +296,7 @@ export const CodeSpaceApiClient = {
     getRolesMappings,
     addCodeSpaceRequest,
     createCodeSpaceRecipe,
-    editCodeSpaceRecipe,
+    updateCodeSpaceRecipe,
     getCodeSpaceRecipes,
     getCodeSpaceRecipe,
     getRecipeLov,
