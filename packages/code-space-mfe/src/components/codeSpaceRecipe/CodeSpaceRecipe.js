@@ -3,46 +3,23 @@ import React, { useState, useEffect } from 'react';
 import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'dna-container/SelectBox';
 import TextBox from 'dna-container/TextBox';
-// import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
-// import TeamMemberListItem from 'dna-container/TeamMemberListItem';
-// import IconAvatarNew from 'dna-container/IconAvatarNew';
+import Caption from 'dna-container/Caption';
 import { Envs } from '../../Utility/envs';
-// import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { Notification } from '../../common/modules/uilab/bundle/js/uilab.bundle';
 import { isValidGitUrl } from '../../Utility/utils';
 import { useHistory } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Tags from 'dna-container/Tags';
 import Modal from 'dna-container/Modal';
 import ServiceCard from '../serviceCard/ServiceCard';
 const classNames = cn.bind(Styles);
-// export interface ICreateRecipe {
-//   createdBy: IUserInfo;
-//   recipeName: string;
-//   recipeType: string;
-//   gitUrl: string;
-//   diskSpace: string;
-//   minCpu: string;
-//   maxCpu: string;
-//   minRam: string;
-//   maxRam: string;
-//   isPublic: boolean;
-//   users: ICodeCollaborator[];
-//   software: string[];
-//   plugins: string[];
-
-// }
-// export interface Isoftware {
-//   name: string;
-//   version: string;
-// }
-
-// export interface IUserInfoProps {
-//   user: IUserInfo;
-// }
 
 const CodeSpaceRecipe = (props) => {
+  const { id: recipeId } = useParams();
+
+  const edit = recipeId ? true : false;
   const requiredError = '*Missing entry';
   const repeatedError = '*Recipe name already exists';
   const history = useHistory();
@@ -50,21 +27,23 @@ const CodeSpaceRecipe = (props) => {
   const [notificationMsg, setNotificationMsg] = useState(false);
   const [softwares, setSoftwares] = useState([]);
   const [enableCreate, setEnableCreate] = useState(false);
-  const [recipeName, setRecipeName] = useState('');
-  const recipeType = 'private';
-  const [gitUrl, setGitUrl] = useState('');
 
+  const [recipeName, setRecipeName] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
+  const [gitUrl, setGitUrl] = useState('');
+  const [hardware, setHardware] = useState('large');
+  const [software, setSoftware] = useState([]);
   const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
+  
+  const recipeType = 'private';
+  
   const [diskSpace, setDiskSpace] = useState('');
-  const minCpu = '1';
+  const [minCpu, setMinCpu] = useState('1');
   const [maxCpu, setMaxCpu] = useState('');
-  const minRam = '1000';
+  const [minRam, setMinRam] = useState('1000');
   const [maxRam, setMaxRam] = useState('');
-  const [hardware, setHardware] = useState('large');
-  const [software, setSoftware] = useState([]);
-  const [isPublic, setIsPublic] = useState(false);
   const [isSoftwareMissing, setSoftwareMissing] = useState(false);
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
@@ -93,6 +72,40 @@ const CodeSpaceRecipe = (props) => {
     SelectBox.defaultSetup();
   }, []);
   
+  useEffect(() => {
+    if(recipeId !== undefined) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getCodeSpaceRecipe(recipeId)
+        .then((res) => {
+          const recipe = res.data.data;
+          setDiskSpace(recipe?.diskSpace);
+          setMaxCpu(recipe?.maxCpu);
+          setMinCpu(recipe?.minCpu);
+          setMinRam(recipe?.minRam);
+          setMaxRam(recipe?.maxRam);
+          setRecipeName(recipe?.recipeName);
+          setGitUrl(recipe?.repodetails);
+          setSoftware(recipe?.software);
+          setIsPublic(recipe?.isPublic);
+          setGitRepoLoc(recipe?.gitRepoLoc);
+          setDeployPath(recipe?.deployPath);
+          setSelectedAdditionalServices(recipe?.additionalServices);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          if (err?.response?.data?.errors?.length > 0) {
+            err?.response?.data?.errors.forEach((err) => {
+              Notification.show(err?.message || 'Something went wrong.', 'alert');
+            });
+          } else {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          }
+        });
+    }
+  }, [recipeId]);
+
   useEffect(() => {
     CodeSpaceApiClient.getSoftwareLov()
       .then((response) => {
@@ -276,7 +289,8 @@ const CodeSpaceRecipe = (props) => {
         }
       });
   };
-  const onRequest = () => {
+
+  const onCreateRecipe = () => {
     if (validateForm()) {
       const CreateNewRecipe = {
         createdBy: {
@@ -311,7 +325,7 @@ const CodeSpaceRecipe = (props) => {
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
         .then(() => {
           ProgressIndicator.hide();
-          history.push('/manageCodespace');
+          history.push('/manageRecipe');
           Notification.show('New Recipe Created successfully');
         })
         .catch((err) => {
@@ -323,6 +337,51 @@ const CodeSpaceRecipe = (props) => {
               recipeName: repeatedError,
             }));
           }
+        });
+    }
+  };
+
+  const onUpdateRecipe = () => {
+    if (validateForm()) {
+      const data = {
+        createdBy: {
+          department: props.user.department,
+          email: props.user.email,
+          firstName: props.user.firstName,
+          gitUserName: props.user.id,
+          id: props.user.id,
+          lastName: props.user.lastName,
+          mobileNumber: props.user.mobileNumber,
+        },
+        diskSpace: diskSpace,
+        maxCpu: maxCpu,
+        minCpu: minCpu,
+        minRam: minRam,
+        maxRam: convertRam(),
+        oSName: 'Debian-OS-11',
+        osname: 'Debian-OS-11',
+        plugins: ['string'],
+        recipeName: recipeName,
+        recipeId: recipeName?.replace(/\s+/g, ''),
+        recipeType: recipeType,
+        repodetails: gitUrl,
+        software: software,
+        isPublic: isPublic,
+        gitPath: gitPath,
+        gitRepoLoc: gitRepoLoc,
+        deployPath: deployPath,
+        additionalServices: selectedAdditionalServices.map(service => service?.serviceName),
+      };
+      ProgressIndicator.show();
+      CodeSpaceApiClient.updateCodeSpaceRecipe(recipeId, data)
+        .then(() => {
+          ProgressIndicator.hide();
+          history.push('/manageRecipe');
+          Notification.show('Recipe Updated successfully');
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
         });
     }
   };
@@ -404,12 +463,12 @@ const CodeSpaceRecipe = (props) => {
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <h3>Create New Recipe</h3>
+            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} />
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
                 <div className={classNames(Styles.formWrapper)}>
                   <div className={classNames(Styles.flex)}>
-                    <div className={(Styles.col2)}>
+                    <div className={classNames(Styles.col2, recipeId && Styles.disabledSection)}>
                       <TextBox
                         type="text"
                         controlId={'recipeNameInput'}
@@ -637,8 +696,8 @@ const CodeSpaceRecipe = (props) => {
                 </div>
 
                 <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={onRequest}>
-                    Create Recipe
+                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={edit ? onUpdateRecipe : onCreateRecipe}>
+                    {edit ? 'Update Recipe' : 'Create Recipe'}
                   </button>
                 </div>
               </div>

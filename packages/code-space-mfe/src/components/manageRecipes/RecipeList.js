@@ -1,25 +1,17 @@
 import cn from 'classnames';
 import React, { useState } from 'react';
-import Styles from './CodeSpaceList.scss';
-import { history } from '../../store';
+import Styles from './RecipeList.scss';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import Modal from 'dna-container/Modal';
+import { history } from '../../store';
 
-const CodeSpaceList = ({recipe, additionalServices, isConfigList}) => {
+const RecipeList = ({ recipe, additionalServices }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const classNames = cn.bind(Styles);
-
-  const onSecrityConfigClick = () => {
-    history.push(`/codespace/adminSecurityconfig/${recipe?.recipeId}?name=${recipe?.recipeName}`);
-  };
-
-  const onNewRecipeClick = () => {
-    setShowDetailsModal(true);
-  };
 
   const chips =
     recipe?.software && recipe?.software?.length
@@ -44,6 +36,16 @@ const CodeSpaceList = ({recipe, additionalServices, isConfigList}) => {
     return ramValue.toString();
   };
 
+  const handleEditRecipe = (e) => {
+    e.stopPropagation();
+    history.push(`/codespaceRecipes/${recipe?.recipeName}`);
+  }
+
+  const handleDeleteRecipe = (e) => {
+    e.stopPropagation();
+    setShowDeleteModal(true)
+  }
+
   const handleRecipeDelete = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.deleteCodeSpaceRecipe(recipe.recipeName)
@@ -59,38 +61,35 @@ const CodeSpaceList = ({recipe, additionalServices, isConfigList}) => {
 
   return (
     <React.Fragment>
-      <tr className={classNames('data-row', Styles.securityConfigRow)}>
-        <td className={'wrap-text ' + classNames(Styles.securityConfigName)}>
-          <div className={Styles.securityConfigNameDivide} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>{recipe.recipeName}</div>
+      <tr 
+        className={classNames('data-row', Styles.dataRow)}
+        onClick={() => setShowDetailsModal(true)}>
+        <td className={'wrap-text'}>
+          <div className={Styles.securityConfigNameDivide}>{recipe.recipeName}</div>
         </td>
-        <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span className={Styles.securityConfig} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+        <td className={'wrap-text'}>
+          <span className={Styles.securityConfig}>
             {"DiskSpace- " + recipe.diskSpace + "GB" + " CPU- " + recipe.maxCpu + " RAM- " + convertRam(recipe.maxRam)+"GB"}
           </span>
         </td>
-
-        <td className={'wrap-text' + Styles.securityConfigCol} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+        <td className={'wrap-text'}>
           {chips}
         </td>
-
-        <td className={'wrap-text' + Styles.securityConfigCol} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+        <td className={'wrap-text'}>
           {chipsAdditionalServices}
         </td>
-
-        <td className={'wrap-text' + Styles.securityConfigCol} onClick={isConfigList ? onSecrityConfigClick : onNewRecipeClick}>
+        <td className={'wrap-text'}>
           <span>{recipe.isPublic ? "Yes" : 'No'}</span>
         </td>
-        <td className={'wrap-text' + Styles.securityConfigCol + Styles.actionColumn}>
-          <button
-            className={
-              'btn btn-primary ' + Styles.actionBtn
-            }
-            type="button"
-            onClick={() => setShowDeleteModal(true)}
-          >
-            <i className='icon delete'></i>
-          </button>
-
+        <td className={classNames('wrap-text', Styles.actionColumn)}>
+          <div>
+            <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
+              <i className='icon edit'></i>
+            </button>
+            <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleDeleteRecipe}>
+              <i className='icon delete'></i>
+            </button>
+          </div>
         </td>
       </tr>
       {showDetailsModal && (
@@ -135,4 +134,4 @@ const CodeSpaceList = ({recipe, additionalServices, isConfigList}) => {
     </React.Fragment>
   );
 };
-export default CodeSpaceList;
+export default RecipeList;

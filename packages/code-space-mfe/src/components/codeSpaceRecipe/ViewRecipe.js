@@ -2,43 +2,14 @@ import React from 'react';
 import Styles from './ViewRecipe.scss';
 import ServiceCard from '../serviceCard/ServiceCard';
 
-// export interface IViewRecipeProps {
-//   recipeName: string;
-// }
-
-// export interface IRecipeField {
-//   createdBy: ICodeCollaborator;
-//   createdOn: string;
-//   diskSpace: string;
-//   maxCpu: string;
-//   maxRam: string;
-//   minCpu: string;
-//   minRam: string;
-//   isPublic: boolean,
-//   oSName: string;
-//   gitPath:string,l
-//   gitRepoLoc:string,
-//   deployPath:string,
-//   recipeName: string;
-//   recipeType: string;
-//   repodetails: string;
-//   software: string[];
-// }
-
 const ViewRecipe = ({ recipe, additionalServices }) => {  
-  // useEffect(() => {
-  //   if (!recipeField?.isPublic && recipeField?.users !== null) {
-  //     const members =recipeField?.users.map(member => ({ ...member, shortId: member.id, userType: 'internal' }));
-  //     setTeamMembers(members);
-  //   }
-  // }, [recipeField]);
-  
+
   const convertRam = (value ) => {
     const ramValue = parseInt(value)/1000;
     return ramValue.toString();
   };
 
-  const chips =
+  const chips = 
     recipe?.software && recipe?.software?.length
         ? recipe?.software?.map((chip) => {
             return (
@@ -120,18 +91,20 @@ const ViewRecipe = ({ recipe, additionalServices }) => {
           </div>
         </div>
       }
-      <div>
-        <div className={Styles.projectItem}>
-          <p className={Styles.label}>Additional Services</p>
+      {additionalServices?.length > 0 && 
+        <div>
+          <div className={Styles.projectItem}>
+            <p className={Styles.label}>Additional Services</p>
+          </div>
+          <div className={Styles.flex}>
+            {additionalServices?.map(service => 
+              <div key={service?.serviceName} className={Styles.col3}>
+                <ServiceCard service={service} />
+              </div>
+            )}
+          </div>
         </div>
-        <div className={Styles.flex}>
-          {additionalServices?.map(service => 
-            <div key={service?.serviceName} className={Styles.col3}>
-              <ServiceCard service={service} />
-            </div>
-          )}
-        </div>
-      </div>
+      }
     </div>
   );
 };
