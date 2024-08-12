@@ -38,12 +38,29 @@ jobs:
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
 
+
+      - name: Create Staging Branch
+        uses: peterjgrainger/action-create-branch@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.PID_PAT }}
+        with:
+          branch: 'refs/heads/${{ github.event.inputs.sourceBranch }}/staging'
+          sha: '${{ github.event.inputs.sourceBranch }}'   
+
+      - name: Create Dev Branch
+        uses: peterjgrainger/action-create-branch@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.PID_PAT }}
+        with:
+          branch: 'refs/heads/${{ github.event.inputs.sourceBranch }}/dev'
+          sha: '${{ github.event.inputs.sourceBranch }}'                  
+
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.sourceBranch }}
+          head: ${{ github.event.inputs.sourceBranch }}/dev
           base: dev
           labels: "private,dev,${{ github.event.inputs.sourceBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
@@ -52,7 +69,7 @@ jobs:
         uses: thomaseizinger/create-pull-request@master
         with:
           github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.sourceBranch }}
+          head: ${{ github.event.inputs.sourceBranch }}/staging
           base: staging
           reviewers: ${{ github.event.inputs.reviewers }}
           labels: "private,staging,${{ github.event.inputs.sourceBranch }}"
