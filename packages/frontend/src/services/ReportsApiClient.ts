@@ -64,7 +64,7 @@ export class ReportsApiClient {
       this.get('departments'),
       this.get('lov/dataclassifications'),
       this.get('lov/kpiClassifications'), 
-      ReportsApiClient.allAllSolutions(),
+      ReportsApiClient.allSolutions(),
     ]);
   }
 
@@ -72,7 +72,7 @@ export class ReportsApiClient {
     return this.post('reports', data);
   }
 
-  public static allAllSolutions():Promise<any> {
+  public static allSolutions():Promise<any> {
     const reqQuery = `limit:0,published:true`;
       let resQuery = `totalCount
         records {
@@ -156,7 +156,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, frontendTechnologies, reportLink, procedureId  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, frontendTechnologies, reportLink, procedureId, archerId, dataClassification, relatedSolutions{ id, name } },
         customer {
           internalCustomers {            
             customerRelation,

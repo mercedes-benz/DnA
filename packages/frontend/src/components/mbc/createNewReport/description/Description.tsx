@@ -179,7 +179,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   }
 
   public componentDidMount() {
-    console.log(this.props.description);
     SelectBox.defaultSetup();
     if(this.props?.description?.relatedSolutions?.length){
       const solTag = this.props?.description?.relatedSolutions.map(solution => solution.name);
@@ -214,15 +213,17 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const procedureId = e.currentTarget.value;
     const description = this.props.description;
     description.procedureId = procedureId;
-    if(procedureId?.length > 0){
-      if(!(procedureId?.startsWith(procedureIdEnvs[0]) || procedureId?.startsWith(procedureIdEnvs[1])) || (this.state.procedureId === procedureIdEnvs[0] || this.state.procedureId === procedureIdEnvs[1]) ) {
-        this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1]+'xxx)' });
-      }else{
+    setTimeout(()=>{
+      if(procedureId?.length > 0){
+        if(!(procedureId?.startsWith(procedureIdEnvs[0]) || procedureId?.startsWith(procedureIdEnvs[1])) || (this.state.procedureId === procedureIdEnvs[0] || this.state.procedureId === procedureIdEnvs[1]) ) {
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs[0] + 'xxx) or (' + procedureIdEnvs[1]+'xxx)' });
+        }else{
+          this.setState({ procedureIdError: '' });
+        }
+        }else{
         this.setState({ procedureIdError: '' });
       }
-      }else{
-      this.setState({ procedureIdError: '' });
-    }
+    },10)
     this.setState({
       procedureId,
     });

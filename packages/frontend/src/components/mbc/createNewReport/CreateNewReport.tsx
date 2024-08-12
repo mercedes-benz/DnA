@@ -241,7 +241,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataClassifications: IDataClassification[] = response[14].data;
         const kpiClassifications: IKpiClassification[] = response[15].data;
         const allSolutions: ITag[] = response[16].data.solutions.records.map((rec : any) => { return {id: rec.id, name: rec.productName}});
-        console.log("responsee",allSolutions);
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
