@@ -39,8 +39,8 @@ jobs:
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
-          git checkout -b {{ github.event.inputs.sourceBranch }}/staging
-          git push --set-upstream origin {{ github.event.inputs.sourceBranch }}/staging
+          git checkout -b ${{ github.event.inputs.sourceBranch }}/staging
+          git push --set-upstream origin ${{ github.event.inputs.sourceBranch }}/staging
 
       # - name: Create Staging Branch
       #   uses: peterjgrainger/action-create-branch@v3.0.0
