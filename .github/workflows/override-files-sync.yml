@@ -45,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PID_PAT }}
         with:
-          branch: '/refs/heads/${{ github.event.inputs.sourceBranch }}/staging'
+          branch: '/${{ github.event.inputs.sourceBranch }}/staging'
           sha: '${{ github.sha }}'   
 
       - name: Create Dev Branch
@@ -53,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PID_PAT }}
         with:
-          branch: '/refs/heads/${{ github.event.inputs.sourceBranch }}/dev'
+          branch: '/${{ github.event.inputs.sourceBranch }}/dev'
           sha: '${{ github.sha }}'              
       
 
