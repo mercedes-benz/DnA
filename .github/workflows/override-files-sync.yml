@@ -1,4 +1,4 @@
-name: Override Or Additional Files Sync
+name: 2. Override Or Additional Files Sync
 on:
   workflow_dispatch:
     inputs:
