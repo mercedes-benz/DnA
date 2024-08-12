@@ -44,16 +44,20 @@ jobs:
         uses: peterjgrainger/action-create-branch@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.PID_PAT }}
+          GH_HOST: git.i.mercedes-benz.com
+          GITHUB_HOST: git.i.mercedes-benz.com
         with:
-          branch: '/${{ github.event.inputs.sourceBranch }}/staging'
+          branch: '/refs/heads/${{ github.event.inputs.sourceBranch }}/staging'
           sha: '${{ github.sha }}'   
 
       - name: Create Dev Branch
         uses: peterjgrainger/action-create-branch@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.PID_PAT }}
+          GH_HOST: git.i.mercedes-benz.com
+          GITHUB_HOST: git.i.mercedes-benz.com
         with:
-          branch: '/${{ github.event.inputs.sourceBranch }}/dev'
+          branch: '/refs/heads/${{ github.event.inputs.sourceBranch }}/dev'
           sha: '${{ github.sha }}'              
       
 
