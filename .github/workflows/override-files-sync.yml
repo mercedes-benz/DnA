@@ -38,22 +38,20 @@ jobs:
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
 
-
-      - name: Create Staging Branch
-        uses: peterjgrainger/action-create-branch@v3.0.0
+      - name:  Create Staging Branch
+        uses: poorva17/create-pr-action@main
         env:
           GITHUB_TOKEN: ${{ secrets.PID_PAT }}
-        with:
-          branch: 'refs/heads/${{ github.event.inputs.sourceBranch }}/staging'
-          sha: '${{ github.event.inputs.sourceBranch }}'   
+          HEAD_BRANCH: ${{ github.event.inputs.sourceBranch }}/staging
+          BASE_BRANCH: ${{ github.event.inputs.sourceBranch }}  
 
-      - name: Create Dev Branch
-        uses: peterjgrainger/action-create-branch@v3.0.0
+      - name:  Create Dev Branch
+        uses: poorva17/create-pr-action@main
         env:
           GITHUB_TOKEN: ${{ secrets.PID_PAT }}
-        with:
-          branch: 'refs/heads/${{ github.event.inputs.sourceBranch }}/dev'
-          sha: '${{ github.event.inputs.sourceBranch }}'                  
+          HEAD_BRANCH: ${{ github.event.inputs.sourceBranch }}/dev
+          BASE_BRANCH: ${{ github.event.inputs.sourceBranch }}  
+                
 
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
