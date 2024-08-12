@@ -23,7 +23,10 @@ export const getDataForCSV = (
     { label: 'Tags', key: 'tags' },
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
-    { label: 'E2-Department', key: 'department' },
+    { label: 'Department', key: 'department' },
+    { label: 'archerId', key: 'archerId' },
+    { label: 'dataClassification', key: 'dataClassification' },
+    {label: 'relatedSolutions', key: 'relatedSolutions'},
     { label: 'Status', key: 'status' },
     { label: 'Agile Release Train', key: 'agileReleaseTrains' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
@@ -83,6 +86,12 @@ export const getDataForCSV = (
             division: report.description.division?.name ? report.description.division.name : 'NA',
             subdivision: report.description.division?.subdivision ? report.description.division.subdivision.name : 'NA',
             department: report.description.department ? report.description.department : 'NA',
+            archerId: report.description.archerId ? report.description.archerId : 'NA',
+            relatedSolutions:
+              report.description.relatedSolutions && report.description.relatedSolutions.length > 0
+                ? sanitize(report.description.relatedSolutions.map( sol => sol.name).join(', '))
+                : 'NA',
+            dataClassification: report.description.dataClassification ? report.description.dataClassification : 'NA',
             status: report.description.status ? report.description.status : 'NA',
             agileReleaseTrains: report.description.agileReleaseTrain && report?.description.agileReleaseTrain != '0'
               ? report.description.agileReleaseTrain
