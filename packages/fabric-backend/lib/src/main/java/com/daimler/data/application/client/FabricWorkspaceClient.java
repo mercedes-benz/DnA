@@ -27,6 +27,7 @@ import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.AddUserDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
+import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
@@ -348,6 +349,76 @@ public class FabricWorkspaceClient {
 		return null;
 	}
 	
+	public FabricGroupsCollectionDto getGroupUsersInfo(String workspaceGroupId) {
+		FabricGroupsCollectionDto response = new FabricGroupsCollectionDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return null;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String getUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users";
+			ResponseEntity<FabricGroupsCollectionDto> getUserResponse = restTemplate.exchange(getUserToGroupUrl, HttpMethod.GET,
+					requestEntity, FabricGroupsCollectionDto.class);
+			if (getUserResponse!=null && getUserResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("Got users and groups of workspace {} successfully", workspaceGroupId);
+				response = getUserResponse.getBody();
+				return response;
+			}
+		}catch(Exception e) {
+			log.error("Failed to get users and groups of workspace {} with exception ",workspaceGroupId, e.getMessage());
+			return null;
+		}
+		return null;
+	}
+	
+	public GenericMessage removeUserGroup(String workspaceGroupId, String identifier) {
+		GenericMessage response = new GenericMessage();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errorMessage = new MessageDescription("Failed to login using service principal, please try later.");
+				errors.add(errorMessage);
+				response.setErrors(errors);
+				response.setWarnings(new ArrayList<>());
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String removeUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users/" + identifier;
+			ResponseEntity<Object> removeUserResponse = proxyRestTemplate.exchange(removeUserToGroupUrl, HttpMethod.DELETE,
+					requestEntity, Object.class);
+			if (removeUserResponse!=null && removeUserResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("Removed user/group {} from workspace {} successfully ", identifier , workspaceGroupId);
+				response.setSuccess("SUCCESS");
+				response.setErrors(new ArrayList<>());
+				response.setWarnings(new ArrayList<>());
+				return response;
+			}
+		}catch(Exception e) {
+			response.setSuccess("FAILED");
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription errorMessage = new MessageDescription("Failed to remove user/group from workspace with exception, please try again or contact Admin.");
+			errors.add(errorMessage);
+			response.setErrors(errors);
+			response.setWarnings(new ArrayList<>());
+			log.error("Failed to remove user/group {} from workspace {} with exception ", identifier, workspaceGroupId, e.getMessage());
+			return response;
+		}
+		return null;
+	}
+	
 	public GenericMessage addGroup(String workspaceGroupId, AddGroupDto addGroupDto) {
 		GenericMessage response = new GenericMessage();
 		try {
@@ -370,7 +441,7 @@ public class FabricWorkspaceClient {
 			String addUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users";
 			ResponseEntity<String> addUserResponse = proxyRestTemplate.exchange(addUserToGroupUrl, HttpMethod.POST,
 					requestEntity, String.class);
-			if (addUserResponse!=null && addUserResponse.getStatusCode().is2xxSuccessful()) {
+			if (addUserResponse!=null && ( addUserResponse.getStatusCode().is2xxSuccessful() || addUserResponse.getStatusCode().is4xxClientError())) {
 				log.info("Added default group {} to workspace {} successfully ", addGroupDto.getDisplayName(), workspaceGroupId);
 				response.setSuccess("SUCCESS");
 				response.setErrors(new ArrayList<>());
