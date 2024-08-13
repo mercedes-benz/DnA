@@ -11,7 +11,7 @@ on:
         required: true   
 
 permissions:                    
-  contents: read               
+  contents: write               
   pull-requests: write  
 jobs:
   override-files-sync:
@@ -46,7 +46,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PID_PAT }}
           branch: ${{ github.event.inputs.sourceBranch }}/staging
           force: true
 
