@@ -47,7 +47,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PID_PAT }}
-          branch: ${{ github.event.inputs.sourceBranch }}/staging
+          branch: ${{ github.event.inputs.sourceBranch }}-staging
           force: true
 
       # - name: Create Staging Branch
