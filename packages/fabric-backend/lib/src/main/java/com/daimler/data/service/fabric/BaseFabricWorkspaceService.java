@@ -891,8 +891,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
 				if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
 					if(ConstantsUtility.GROUPPRINCIPAL_USER_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
-						if(!userGroupDetail.getIdentifier().contains(creatorId+"@")) {
-							fabricWorkspaceClient.removeUserGroup(workspaceName, userGroupDetail.getIdentifier());
+						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")) {
+							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
 						}
 					}
 					else if(ConstantsUtility.GROUPPRINCIPAL_GROUP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
@@ -924,7 +924,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
 							viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 						}else {
-							fabricWorkspaceClient.removeUserGroup(workspaceName, userGroupDetail.getIdentifier());
+							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
 						}
 					}
 				}
