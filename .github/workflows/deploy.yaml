@@ -1,5 +1,5 @@
 
-name: Deploy
+name: 4. Deploy
 
 on:
   workflow_call:

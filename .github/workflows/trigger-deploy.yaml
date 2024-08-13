@@ -1,5 +1,5 @@
 
-name: Trigger Deploy
+name: 3. Trigger Deploy
 
 on:
   workflow_dispatch:
