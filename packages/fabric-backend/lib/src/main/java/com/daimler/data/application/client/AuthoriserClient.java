@@ -34,6 +34,7 @@ import com.daimler.data.dto.fabric.GlobalRoleAssignerPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleApproverPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -411,6 +412,36 @@ public class AuthoriserClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to Assign Role Approver Privileges to user :{} with error {} ",userId ,e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
+
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
+		try {
+					
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Successfully requested role {} for user {}",roleId,userId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(Exception e) {
+			log.error("Failed to request role {} to user :{} with error {} ",roleId,userId ,e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
