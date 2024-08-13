@@ -492,7 +492,7 @@ export default class AllReports extends React.Component<
                                 }
                               >
                                 <i className="icon sort" />
-                                E2-Department
+                                Department
                               </label>
                             </th>
                             {/* <th onClick={this.sortReports.bind(null, 'productOwner', this.state.sortBy.nextSortType)}>
