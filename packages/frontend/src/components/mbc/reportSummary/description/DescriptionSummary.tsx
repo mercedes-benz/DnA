@@ -237,7 +237,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     {description.division?.subdivision?.name ? description.division.subdivision.name : 'NA'}
                   </div>
                   <div id="department">
-                    <label className="input-label summary">E2-Department</label>
+                    <label className="input-label summary">Department</label>
                     <br />
                     {description.department ? description.department : 'NA'}
                   </div>

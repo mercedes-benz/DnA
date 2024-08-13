@@ -418,11 +418,7 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
-            <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Process Owner</Text>
-                <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
-              </View>
-              <View style={styles.flexCol2}>
+              <View style={styles.flexCol}>
                 <Text style={styles.sectionTitle}>Comment</Text>
                 <Text>{data.comment || 'NA'}</Text>
               </View>
@@ -532,12 +528,6 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                       <Text style={styles.sectionTitle}>Data Warehouse</Text>
                       <Text>{data.dataWarehouse || 'NA'}</Text>
                     </View>
-                  </View>
-                  <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-                    <View style={styles.firstCol}>
-                      <Text style={styles.sectionTitle}>Data Classification</Text>
-                      {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
-                    </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Connection Type</Text>
                       {data.connectionType ? <Text>{data.connectionType}</Text> : <Text>NA</Text>}
@@ -560,10 +550,6 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Sources</Text>
                       {data.dataSources ? <Text>{data.dataSources?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
-                    </View>
-                    <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Data Classification</Text>
-                      {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Connection Type</Text>
