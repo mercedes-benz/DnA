@@ -48,6 +48,7 @@ jobs:
         with:
           github_token: ${{ secrets.PID_PAT }}
           branch: ${{ github.event.inputs.sourceBranch }}/staging
+          force: true
 
       # - name: Create Staging Branch
       #   uses: peterjgrainger/action-create-branch@v3.0.0
