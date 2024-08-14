@@ -6,7 +6,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import Modal from 'dna-container/Modal';
-import { history } from '../../store';
+// import { history } from '../../store';
 
 const RecipeList = ({ recipe, additionalServices }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -36,10 +36,10 @@ const RecipeList = ({ recipe, additionalServices }) => {
     return ramValue.toString();
   };
 
-  const handleEditRecipe = (e) => {
-    e.stopPropagation();
-    history.push(`/codespaceRecipes/${recipe?.recipeName}`);
-  }
+  // const handleEditRecipe = (e) => {
+  //   e.stopPropagation();
+  //   history.push(`/codespaceRecipes/${recipe?.recipeName}`);
+  // }
 
   const handleDeleteRecipe = (e) => {
     e.stopPropagation();
