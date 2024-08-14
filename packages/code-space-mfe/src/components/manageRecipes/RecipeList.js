@@ -83,9 +83,9 @@ const RecipeList = ({ recipe, additionalServices }) => {
         </td>
         <td className={classNames('wrap-text', Styles.actionColumn)}>
           <div>
-            <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
+          {/* <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
               <i className='icon edit'></i>
-            </button>
+            </button> */}
             <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleDeleteRecipe}>
               <i className='icon delete'></i>
             </button>
