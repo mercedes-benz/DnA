@@ -10,7 +10,7 @@ spec:
     namespace: argocd
     server: https://kubernetes.default.svc
   source:
-    path: deployment/kubernetes/DyP/argocd
+    path: deployment/kubernetes/DyP/argocd/apps
     repoURL: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
     targetRevision: main
     plugin:
