@@ -48,6 +48,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'solutionNotificationPref':
             temp.title = 'Configure Notifications for Solutions';
             break;
+          case 'useCaseOwnerNotificationPref':
+            temp.title = 'Configure Notifications for Use Case Owners';
+            break;
           case 'notebookNotificationPref':
             temp.title = 'Configure Notifications for Notebooks';
             break;
@@ -274,6 +277,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
                       <input
                         type="checkbox"
                         className="ff-only"
+                        disabled={item.moduleName==='useCaseOwnerNotificationPref'}
                         checked={item.enableEmailNotifications}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           callToCommonFunctionOnChange(item.module, e)

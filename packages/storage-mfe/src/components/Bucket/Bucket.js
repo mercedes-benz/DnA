@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { BucketList } from './BucketList';
 import Styles from './Buckets.scss';
+import BucketTOU from './BucketTOU';
+import Modal from 'dna-container/Modal';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
@@ -19,6 +21,7 @@ const AllBuckets = (props) => {
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const dispatch = useDispatch();
   const {
     bucketList,
@@ -117,7 +120,7 @@ const AllBuckets = (props) => {
         {listViewMode && (
           <div className={classNames(Styles.listHeaderContent)}>
             {bucketList?.length ? (
-              <Link to="createBucket">
+              <Link onClick={(event) => {event.preventDefault(); setShowTermsModal(true);}}>
                 <button className={bucketList === null ? Styles.btnHide : 'btn btn-secondary'} type="button">
                   <span className={Styles.addCircle}>
                     <i className="icon mbc-icon plus" />
@@ -141,7 +144,7 @@ const AllBuckets = (props) => {
                   </div>
                   <div className={Styles.subscriptionListEmpty}>
                     <br />
-                    <Link to="createBucket">
+                    <Link onClick={(event) => {event.preventDefault(); setShowTermsModal(true);}}>
                       <button className={'btn btn-tertiary'} type="button">
                         <span>Create a Storage Bucket</span>
                       </button>
@@ -167,6 +170,21 @@ const AllBuckets = (props) => {
           </div>
         </div>
       </div>
+      <Modal
+        title=""
+        show={showTermsModal}
+        showAcceptButton={false}
+        showCancelButton={false}
+        content={<BucketTOU setShowTermsModal={setShowTermsModal} /> }
+        buttonAlignment="center"
+        onCancel={() => setShowTermsModal(false)}
+        modalStyle={{
+          padding: '50px 90px 35px',
+          minWidth: 'unset',
+          width: '65%',
+          maxWidth: '65%'
+        }}
+      />
     </>
   );
 };

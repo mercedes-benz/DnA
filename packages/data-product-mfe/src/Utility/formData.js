@@ -152,7 +152,25 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                     dataTransferName: values.dataTransferName,
                     isPublish: values.publish || false,
                   },
-                }
+                  consumerInformation: {
+                    ...values.consumerFormValues.consumerInformation,
+                    contactInformation: {
+                      ...values.consumerFormValues.consumerInformation.contactInformation,
+                      appId: values.consumerFormValues.consumerInformation.contactInformation?.appId || '',
+                      leanIXDetails: values.consumerFormValues.consumerInformation.contactInformation?.leanIXDetails || {
+                        objectState: null,
+                        appReferenceStr: null,
+                        name: null,
+                        providerOrgDeptid: null,
+                        providerOrgId: null,
+                        providerOrgRefstr: null,
+                        providerOrgShortname: null,
+                        shortName: null,
+                      },
+                    },
+                  },
+          
+              }
               : {
                   dataProductName: values.productName,
                   description: values.description,

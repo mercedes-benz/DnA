@@ -9,7 +9,9 @@ securityContext:
 app:
   backend:
     name: clamav-rest
-    image: ""
+    image:
+      repository: ""
+      tag: ""
     replicaCount: 1
     secrets:
       name: oneapi-secrets

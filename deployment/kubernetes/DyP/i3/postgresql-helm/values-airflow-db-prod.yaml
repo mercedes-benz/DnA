@@ -332,8 +332,8 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 15Gi
-    # storageClass: dhc-gp3
+    size: 45Gi
+    # storageClass: cinder
   file:
     name: airflow-backup
     # label: test

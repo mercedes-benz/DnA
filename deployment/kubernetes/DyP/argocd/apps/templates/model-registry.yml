@@ -14,8 +14,8 @@ spec:
     namespace: model-registry
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-model-registry.git
+    path: deployment/kubernetes/helm/charts/model-registry
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
       releaseName: dna-model-registry

@@ -2,23 +2,31 @@ package com.daimler.data.service.workspace;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-import com.daimler.data.dto.workspace.CreatedByVO;
+
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomSoftwareRepo;
+import com.daimler.data.assembler.AdditionalServiceAssembler;
 import com.daimler.data.assembler.RecipeAssembler;
+import com.daimler.data.db.entities.CodeServerAdditionalServiceNsql;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepoImpl;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceRecipeRepository;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
+import com.daimler.data.db.json.CodeServerAdditionalService;
 import com.daimler.data.db.json.CodeServerSoftware;
 import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.assembler.SoftwareAssembler;
@@ -28,13 +36,15 @@ import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 import java.util.UUID;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.CodeServerRecipeDto;
+import com.daimler.data.dto.workspace.recipe.AdditionalPropertiesVO;
+import com.daimler.data.dto.workspace.recipe.AdditionalServiceLovVo;
+import com.daimler.data.dto.workspace.recipe.InitializeAdditionalServiceLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
-import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import org.springframework.http.HttpStatus;
 import com.daimler.data.application.client.GitClient;
@@ -61,13 +71,19 @@ public class BaseRecipeService implements RecipeService{
 	private SoftwareAssembler softwareAssembler;
 
 	@Autowired
+	private AdditionalServiceAssembler additionalServiceAssembler;
+
+	@Autowired
 	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+	private WorkspaceCustomAdditionalServiceRepo additionalServiceRepo;
 
 	@Autowired
 	 private UserStore userStore;
 
-	 @Autowired
-	 private GitClient gitClient;
+	@Autowired
+	private GitClient gitClient;
     
 	@Override
 	@Transactional
@@ -94,16 +110,91 @@ public class BaseRecipeService implements RecipeService{
 	}
 
 	@Override
+	public GenericMessage createOrValidateSoftwareTemplate(String gitHubUrl, List<String> softwares) {
+		GenericMessage responseMessage = new GenericMessage();
+		HttpStatus status = null;
+		try {
+			String repoName = null;
+			String softwareFileName = null;
+			String gitUrl = null;
+			String repoOwner = null;
+			String SHA = null;
+			String encodedFileContent = null;
+			StringBuffer fileContent =  new StringBuffer();
+			if(gitHubUrl.contains(".git")) {
+				gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+			}
+			String[] codespaceSplitValues = gitHubUrl.split("/");
+			int length = codespaceSplitValues.length;
+			repoName = codespaceSplitValues[length-1];
+			repoOwner = codespaceSplitValues[length-2];
+			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
+			gitUrl = gitUrl.replace("/"+repoName, "");
+			JSONObject jsonResponse = gitClient.getSoftwareFileFromGit(repoName, repoOwner, gitUrl);
+			if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+				softwareFileName  = jsonResponse.getString("name");
+				SHA =  jsonResponse.has("sha")? jsonResponse.getString("sha") : null;
+				log.info("Retrieving a software's SHA was successfull from Git.");
+			}
+			for(String software: softwares) {
+				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
+				fileContent.append(additionalProperties);
+			}
+			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
+			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
+			if( encodedFileContent != null) {
+				status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent);
+				if(status.is2xxSuccessful()) {
+					log.info("Software creation was successfull in Git.");
+					responseMessage.setSuccess("SUCCESS");
+					return responseMessage;
+				}
+			}
+			else {
+				responseMessage = 	getMessageDescrption("An error occurred while encoding the software file into the Git repository.","FAILED");
+				return responseMessage;
+			}
+			log.info("Software creation failed in Git.");
+			responseMessage.setSuccess("FAILED");
+			return responseMessage;
+		} catch(Exception e) {
+			log.error(e.getMessage());
+			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+		}
+		return responseMessage;
+	}
+
+	private GenericMessage getMessageDescrption(String message, String statusMsg ) {
+		GenericMessage responseMessage = new GenericMessage();
+		MessageDescription msg = new MessageDescription();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		msg.setMessage(message);
+		errorMessage.add(msg);
+		responseMessage.addErrors(msg);
+		responseMessage.setSuccess(statusMsg);
+		return responseMessage;
+	}
+	
+
+	@Override
 	public GenericMessage validateGitHubUrl(String gitHubUrl){
 		GenericMessage responseMessage = new GenericMessage();
 		responseMessage.setSuccess("SUCCESS");
 		try
 			{
 				String repoName = null;
+				String gitUrl = null;
+				String applicationName = null;
+				if(gitHubUrl.contains(".git")) {
+					gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+				}
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
-            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(repoName);
+				applicationName = codespaceSplitValues[length-2];
+				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-1], "");
+				gitUrl = gitUrl.replace("/"+codespaceSplitValues[length-2], "");
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName,applicationName);
 				if(!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription msg = new MessageDescription();
 					List<MessageDescription> errorMessage = new ArrayList<>();
@@ -149,8 +240,31 @@ public class BaseRecipeService implements RecipeService{
 			log.info("there are no records of software ");
 		}
 		return null;
-		
+	}
 
+	@Override
+	@Transactional
+	public List<AdditionalServiceLovVo> getAllAdditionalServiceLov() {
+		List<AdditionalServiceLovVo> additionalServiceLovVo = new ArrayList<>();
+		try{
+			List<CodeServerAdditionalServiceNsql> allServices = additionalServiceRepo.findAllServices(10, 0);
+			if(!allServices.isEmpty() || allServices.size() >0)
+			{
+				additionalServiceLovVo = allServices.stream().map(n-> additionalServiceAssembler.toVo(n)).collect(Collectors.toList());
+				log.info("Additional Services fetched successfully");
+			}
+			else
+			{
+				log.info("Additional Services not available");
+				return null;
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			log.info("failed while fetching additional properties",e.getMessage());
+		}
+		return additionalServiceLovVo ;
 	}
 
 	@Override

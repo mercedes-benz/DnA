@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: dna-dashboard-service
+    version: 3.1.8
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}
+    
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+  kafka:
+    producer:
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
+          
+  datasource:
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dashboard}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
+          
+dna:
+  uri: ${DNA_URI:xxxx}
+  dataSource:
+     bulkCreate:
+        api:
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
+             
+graphql:
+  servlet:
+    mapping: /api/minified
+    enabled: true
+    corsEnabled: true
+
+server:
+  port: 7173
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
+      graphql:
+        servlet: ERROR
+report:
+  update: ${UPDATE_REPORTDATA:XXXX}

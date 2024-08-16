@@ -15,7 +15,7 @@ spec:
     server: {{ .Values.server | squote }}
   source:
     path: deployment/helm
-    repoURL: 'https://git.i.mercedes-benz.com/DNA/dna-kong.git'
+    repoURL: https://git.i.mercedes-benz.com/DNA/dna-kong.git
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm

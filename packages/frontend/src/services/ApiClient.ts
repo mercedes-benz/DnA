@@ -977,7 +977,8 @@ export class ApiClient {
           email,
           mobileNumber,
           company,
-          teamMemberPosition
+          teamMemberPosition,
+          isUseCaseOwner
         },
         dataSources {
           dataSources {
@@ -1196,4 +1197,8 @@ export class ApiClient {
   public static getSimilarSearchResult(endpoint: string):Promise<any> {
     return this.fetch(getSimilaritySearchUrl(endpoint), HTTP_METHOD.GET);
   } 
+
+  public static notifyUseCaseOwners(data: any):Promise<any>{
+    return this.post('/solutions/broadcast/usecaseowners',data.data);
+  }
 }

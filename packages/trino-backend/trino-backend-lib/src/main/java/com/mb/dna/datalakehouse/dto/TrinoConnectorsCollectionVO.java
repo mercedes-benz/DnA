@@ -14,5 +14,6 @@ public class TrinoConnectorsCollectionVO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private List<TrinoConnectorVO> connectors;
+	private List<String> reserveWords;
 
 }

@@ -1,4 +1,4 @@
-name: Git Sync
+name: 1. Git Sync
 on:
   workflow_dispatch:
     inputs:
@@ -15,24 +15,23 @@ on:
           - staging
           - main   
       reviewers:
-        description: 'Reviewers for staging and main branch'  
-        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS'
+        description: 'Reviewers'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,VKURAPA'
         required: true   
 
 env:
   PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
-  DEST_REPO: git.i.mercedes-benz.com/DNA/DnA-Private.git
+  DEST_REPO: git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
 
 jobs:
   gitsync:
     name: "Git Sync"
-    if: ${{ inputs.isSync == 'yes' || ( github.event_name == 'workflow_dispatch' && inputs.isSync == '' ) }}
     runs-on: [ road-runner, medium ]
     steps:
 
       - name: Check Source Branch
         run: |
-          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* || "${{ github.event.inputs.publicBranch }}" == *"bugfix"* || "${{ github.event.inputs.publicBranch }}" == *"hotfix"* ]]; then
+          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* || "${{ github.event.inputs.publicBranch }}" == *"bugfix"* || "${{ github.event.inputs.publicBranch }}" == *"hotfix"* || "${{ github.event.inputs.publicBranch }}" == *"infra"*  ]]; then
             echo "Public Branch name: ${{ github.event.inputs.publicBranch }}"
           else
             echo "Public Branch name does not valid"
@@ -58,53 +57,37 @@ jobs:
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
-          echo "$GITHUB_OUTPUT"
-          echo "Tt $HEAD_COMMIT_MESSAGE"
 
-      - name: Create dev pull request
+      - name: Create pull request
         uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.ref_name == 'dev' }} 
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
           head: ${{ github.event.inputs.publicBranch }}
           base: ${{ github.event.inputs.privateBranch }}
-          labels: "automatic-pr,automerge"
-          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
-
-      - name: Create staging pull request
-        uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.ref_name == 'staging' }} 
-        with:
-          github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.publicBranch }}
-          base: ${{ github.event.inputs.privateBranch }}
+          labels: "public,${{ github.event.inputs.privateBranch }},${{ github.event.inputs.publicBranch }}"
           reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr"
-          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
-
-      - name: Create main pull request
-        uses: thomaseizinger/create-pull-request@master
-        if: ${{ github.ref_name == 'main' }} 
-        with:
-          github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.publicBranch }}
-          base: ${{ github.event.inputs.privateBranch }}
-          reviewers: ${{ github.event.inputs.reviewers }}
-          labels: "automatic-pr"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
 
       - name: Print pull request details
-        if: ${{ steps.cpr.outputs.number && github.ref_name == 'dev' }}
+        if: ${{ steps.cpr.outputs.number && github.event.inputs.privateBranch == 'dev' }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
 
       - name: Dev pull request merge
-        if: ${{ github.ref_name == 'dev' }} 
+        if: ${{ github.event.inputs.privateBranch == 'dev' }} 
         uses: sudo-bot/action-pull-request-merge@v1.2.0
         with:
           github-token: ${{ secrets.PID_PAT }}
           number: ${{ steps.cpr.outputs.number }}
-          filter-label: automerge        
+          filter-label: dev        
                            
+  create-public-pr:
+        name: Create and Merge Public PR
+        needs: gitsync
+        if: ${{ github.event.inputs.privateBranch == 'main' }} 
+        uses: ./.github/workflows/public-repo-pr.yml
+        with:
+          head: '${{ github.event.inputs.publicBranch }}'
+        secrets: inherit  

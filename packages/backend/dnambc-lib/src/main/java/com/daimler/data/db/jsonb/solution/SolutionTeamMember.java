@@ -50,6 +50,7 @@ public class SolutionTeamMember implements Serializable{
 	private String mobileNumber;
 	private String company;
 	private String teamMemberPosition;
+	private Boolean isUseCaseOwner;
 
 //	public SolutionTeamMember() {
 //		super();

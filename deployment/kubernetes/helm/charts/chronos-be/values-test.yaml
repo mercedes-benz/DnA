@@ -3,7 +3,7 @@ namespace: chronos
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-be
   pullPolicy: IfNotPresent
-  tag: 1993821c6324f03e4620229ecd919e4e24adcbc0
+  tag: '81'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -13,38 +13,38 @@ serviceAccount:
   annotations: {}
   name: ''
 podAnnotations:
-    vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
-    vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/staging
-    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
-    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
-    vault.hashicorp.com/template-static-secret-render-interval: 10s
-    vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
-    vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
-      {{ base64Decode  .Data.data.TRUSTSTORE }}
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/role: dna
+  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/namespace: fmas/staging
+  vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+  vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+  vault.hashicorp.com/template-static-secret-render-interval: 10s
+  vault.hashicorp.com/agent-pre-populate-only: 'false'
+  vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-truststore.jks: |
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.TRUSTSTORE }}
+    {{- end }}
+  vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-keystore.p12: |
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.KEYSTORE }}
+    {{- end }}      
+  vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/chronosService
+  vault.hashicorp.com/agent-inject-template-envvar: |
+    {{- with secret "kv/dna/kubernetesSecret/chronosService" -}}
+      {{- range $k, $v := .Data.data }}
+          export {{ $k }}="{{ $v }}"
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
-    vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
-      {{ base64Decode  .Data.data.KEYSTORE }}
-      {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/chronosService
-    vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "kv/dna/kubernetesSecret/chronosService" -}}
-        {{- range $k, $v := .Data.data }}
-            export {{ $k }}="{{ $v }}"
-        {{- end }}
+    {{- end }}
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- range $k, $v := .Data.data }}
+      {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}        
       {{- end }}
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
-        {{- range $k, $v := .Data.data }}
-        {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
-            export {{ $k }}="{{ $v }}"
-        {{- end }}        
-        {{- end }}
-      {{- end }}
+    {{- end }}
 podSecurityContext:
   runAsUser: 1000
 securityContext: {}

@@ -308,14 +308,17 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           const similarSolutionsBasedOnInputData:ISimilarSearchListItem[] = [];
           res?.result.forEach((item: any) => {
             const solutionItem = item[0];
-            const score = item[1];
-            similarSolutionsBasedOnInputData.push({
-              id: solutionItem.id,
-              productName: solutionItem.productName,
-              description: solutionItem.description,
-              businessNeed: solutionItem.businessNeed,
-              score
-            });
+            const selectedSolutionId = this.props.id;
+            if (selectedSolutionId !== solutionItem.id) {
+              const score = item[1];
+              similarSolutionsBasedOnInputData.push({
+                id: solutionItem.id,
+                productName: solutionItem.productName,
+                description: solutionItem.description,
+                businessNeed: solutionItem.businessNeed,
+                score
+              });
+            }
           });
 
           switch(fieldType) {

@@ -14,8 +14,8 @@ spec:
     namespace: trino
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/helm/trino
-    repoURL: https://git.i.mercedes-benz.com/DNA/dna-trino.git
+    path: deployment/kubernetes/helm/charts/trino
+    repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
@@ -23,6 +23,10 @@ spec:
         - name: HELM_ARGS
           value: -f values-{{ .Values.env }}.yaml
   project: dna
+  ignoreDifferences:
+    - kind: ConfigMap
+      jsonPointers:
+        - /data/password.db
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
@@ -31,4 +35,5 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}

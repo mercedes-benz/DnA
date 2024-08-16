@@ -8,6 +8,8 @@ import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import Modal from 'dna-container/Modal';
+import BucketTOU from './BucketTOU';
 
 import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
 // import { setFiles } from '../Explorer/redux/fileExplorer.actions';
@@ -30,6 +32,7 @@ export const BucketList = (props) => {
   const [currentSortOrder, setCurrentSortOrder] = useState('asc');
   const [nextSortOrder, setNextSortOrder] = useState('desc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('bucketName');
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const {pagination: { maxItemsPerPage, currentPageOffset }} = useSelector((state) => state.bucket);
 
@@ -170,14 +173,14 @@ export const BucketList = (props) => {
     <>
       {isCardView ? (
         <>
-          <div className={Styles.newStorageCard} onClick={()=> history.push('createBucket')}>
+          <div className={Styles.newStorageCard} onClick={()=>{setShowTermsModal(true); }}>
             <div className={Styles.addicon}> &nbsp; </div>
             <label className={Styles.addlabel}>Create new Storage Bucket</label>
           </div>
           {bucketList?.map((item, index) => {
             const hasWriteAccess = item?.permission?.write;
             const isOwner = props.user?.id === item.createdBy?.id;
-            const collaborators = item.collaborators?.filter((val) => val.accesskey !== item?.createdBy.id && val.accesskey !== props?.user?.id );
+            const collaborators = item.collaborators?.filter((val) => val.accesskey !== item?.createdBy.id);
             return (
               <div key={'card-' + index} className={classNames(Styles.storageCard)}>
                 <div className={Styles.cardHead}>
@@ -211,6 +214,10 @@ export const BucketList = (props) => {
                         {displayPermission(item?.permission) || 'N/A'}
                         {isOwner && ` (Owner)`}
                       </div>
+                    </div>
+                    <div>
+                      <div>CreatedBy</div>
+                      <div>{(item.createdBy.firstName !== null  && item.createdBy.lastName !== null )? item.createdBy.firstName + " "+item.createdBy.lastName : item.createdBy.id}</div>
                     </div>
                     <div className={Styles.cardCollabSection}>
                       <div>Collaborators</div>
@@ -496,6 +503,22 @@ export const BucketList = (props) => {
         onCancel={deleteBucketClose}
         onAccept={deleteBucketAccept}
       />
+        <Modal
+        title=""
+        show={showTermsModal}
+        showAcceptButton={false}
+        showCancelButton={false}
+        content={<BucketTOU setShowTermsModal={setShowTermsModal} /> }
+        buttonAlignment="center"
+        onCancel={() => setShowTermsModal(false)}
+        modalStyle={{
+          padding: '50px 90px 35px',
+          minWidth: 'unset',
+          width: '65%',
+          maxWidth: '65%'
+        }}
+      />
+      
       {connect?.modal && (
         <InfoModal
           title="Connect"

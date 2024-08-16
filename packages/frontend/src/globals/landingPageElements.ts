@@ -193,7 +193,7 @@ export const ToolsLandingPageElements = [
     name: 'Fabric',
     description:
       'Fabric offers a comprehensive suite of services, including data lake, data engineering, and data integration, all in one place.',
-    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Frontend Reporting', 'Data Storage', 'Data Pipeline'],
     url: '/fabric',
     isExternalLink: false,
     isTextAlignLeft: true,
