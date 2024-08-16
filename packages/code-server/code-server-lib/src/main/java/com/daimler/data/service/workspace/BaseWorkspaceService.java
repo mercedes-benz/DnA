@@ -1324,6 +1324,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat"))) {
 					HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
+						log.info("Failed while adding {} as collaborator with status {}", repoName,
+								userRequestDto.getGitUserName(), addGitUser.name());
+						MessageDescription errMsg = new MessageDescription(
+								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator, Because"
+										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+						warnings.add(errMsg);
+					}
 					if (!addGitUser.is2xxSuccessful()) {
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
@@ -2445,7 +2453,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(projectOwnerWsId);
-				deployJobInputDto.setProjectName(projectName);
+				deployJobInputDto.setProjectName(projectName.toLowerCase());
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);

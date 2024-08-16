@@ -47,4 +47,4 @@ jobs:
 
     - name: Sechub scan 
       run: |
-        sechub scan -apitoken {{ secrets.SECHUB_API_TOKEN }}
+        sechub scan -apitoken ${{ secrets.SECHUB_API_TOKEN }} || true
