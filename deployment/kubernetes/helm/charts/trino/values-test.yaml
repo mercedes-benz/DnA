@@ -3,7 +3,7 @@ namespace: trino
 accessRules:
   endpoint: http://trino-backend-service.trino.svc.cluster.local:7575/service/access
 cert:
-  certManager: daimler-acme
+  certManager: mercedes-benz-acme
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-immuta/trino-immuta-v2
   pullPolicy: IfNotPresent
@@ -16,7 +16,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
 server:
   host: trino.test.dna.app.corpintra.net
