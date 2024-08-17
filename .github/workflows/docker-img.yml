@@ -12,10 +12,10 @@ on:
       pushImage:
         description: "Harbor pushing image tag"
         required: true
-        default: "registry.app.corpintra.net/dna/ngnix:latest"
+        default: "registry-emea.app.corpintra.net/dna/ngnix:latest"
 env:
-  REGISTRY: registry.app.corpintra.net
-  REGISTRY_DNA_USER: robot$dna+git-robo  
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
   RUNNER_ALLOW_RUNASROOT: 1
 
 
