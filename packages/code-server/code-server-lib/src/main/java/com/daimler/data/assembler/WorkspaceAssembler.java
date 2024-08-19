@@ -586,10 +586,12 @@
 			 recipeDetails.setRecipeId(vo.getRecipeId().toString());
 			 recipeDetails.setResource(vo.getResource());
 			 recipeDetails.setRepodetails(vo.getRepodetails());
-
 			 if(vo.getSoftware()!=null)
 			 {
 				recipeDetails.setSoftware(vo.getSoftware());
+			 }
+			 if(vo.getAdditionalServices()!=null) {
+				recipeDetails.setAdditionalServices(vo.getAdditionalServices());
 			 }
 		 }
 		 return recipeDetails;
@@ -615,7 +617,9 @@
 		 }
 		 return recipeDetailsVO;
 	 }
- 
+
+
+
 	 @Override
 	 public CodeServerWorkspaceVO toVo(CodeServerWorkspaceNsql entity) {
 		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
