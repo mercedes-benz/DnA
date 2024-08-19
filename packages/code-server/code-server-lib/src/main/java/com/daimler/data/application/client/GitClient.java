@@ -329,7 +329,6 @@ public class GitClient {
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			//GitLatestCommitIdDto commitId = objectMapper.readValue(response.getBody(),GitLatestCommitIdDto.class);
 			GitLatestCommitIdDto[] commits = objectMapper.readValue(response.getBody(), GitLatestCommitIdDto[].class);
 				if (commits.length > 0) {
 					 commitId = commits[0];
