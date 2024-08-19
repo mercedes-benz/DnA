@@ -62,7 +62,22 @@ import lombok.extern.slf4j.Slf4j;
 public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<CodeServerWorkspaceNsql, String>
 		implements WorkspaceCustomRepository {
 
-	
+	@Override
+	public List<CodeServerWorkspaceNsql> findAll(){
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> getAll = cq.select(root);
+		Predicate p1 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(p1);
+		cq.where(pMain);		
+		cq.orderBy(cb.asc(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))));
+		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
+		return getAllQuery.getResultList();		
+	} 
+			
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();

@@ -90,6 +90,7 @@ codeServer:
   git.pid: ${CODE_SERVER_PID_USER:XXXXX}
   recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
+  run.init: ${RUN_INIT_POST_CONSTRUCT:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

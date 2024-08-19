@@ -96,7 +96,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public JSONObject getSoftwareFileFromGit(String repoName, String repoOwner, String gitUrl) {
+	public JSONObject getSoftwareFileFromGit(String repoName, String repoOwner, String gitUrl) throws Exception {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -115,6 +115,7 @@ public class GitClient {
 			}
 		} catch (Exception e) {
 			log.error("error in git file", gitUrl,repoOwner,e.getMessage());
+			throw new Exception(e.getMessage());
 		}
 		log.info("The software file is not present in the Git repository.");
 		return null;
