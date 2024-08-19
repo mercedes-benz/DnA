@@ -1075,7 +1075,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
-					GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName() , gitOrgName);
+					GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
 					auditLog.setCommitId(commitId.getSha());
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());

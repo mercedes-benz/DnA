@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -316,17 +317,23 @@ public class GitClient {
 		
 	}
 
-	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName, String gitOrgName) {
+	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
+		GitLatestCommitIdDto commitId = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"per_page=1";
+			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			ObjectMapper objectMapper = new ObjectMapper();
-			GitLatestCommitIdDto commitId = objectMapper.readValue(response.getBody(),GitLatestCommitIdDto.class);
+			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			//GitLatestCommitIdDto commitId = objectMapper.readValue(response.getBody(),GitLatestCommitIdDto.class);
+			GitLatestCommitIdDto[] commits = objectMapper.readValue(response.getBody(), GitLatestCommitIdDto[].class);
+				if (commits.length > 0) {
+					 commitId = commits[0];
+				}
 			log.info("completed fetching latest commit id from git repo {} and branch {} ",repoName, branch);
 			return commitId;
 		} catch (Exception e) {
