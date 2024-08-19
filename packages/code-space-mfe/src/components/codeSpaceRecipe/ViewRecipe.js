@@ -23,7 +23,7 @@ const ViewRecipe = ({ recipe, additionalServices }) => {
   return (
     <div className={Styles.container}>
       <div className={Styles.header}>
-        <h3>{recipe?.recipeName} - Recipe Details</h3>
+        <h3>Recipe - {recipe?.recipeName}</h3>
         {/* <p>Project and Lean Governance details</p> */}
       </div>
       <div className={Styles.flex}>
@@ -54,7 +54,7 @@ const ViewRecipe = ({ recipe, additionalServices }) => {
         <div className={Styles.col3}>
           <div className={Styles.projectItem}>
             <p className={Styles.label}>Hardware Configuration</p>
-            <p className={Styles.value}>DiskSpace- {recipe?.diskSpace}GB CPU- {recipe?.maxCpu} Ram-{convertRam(recipe?.maxRamq)}GB</p>
+            <p className={Styles.value}>Disk Space: {recipe?.diskSpace}GB | CPU: {recipe?.maxCpu}GHz | RAM: {convertRam(recipe?.maxRam)}GB</p>
           </div>
         </div>
         <div className={Styles.col3}>

@@ -331,6 +331,7 @@ const CodeSpaceRecipe = (props) => {
         .catch((err) => {
           ProgressIndicator.hide();
           Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+          setGitUrl('');
           if (err.message === 'Value or Item already exist!') {
             setErrorObj((prevState) => ({
               ...prevState,
