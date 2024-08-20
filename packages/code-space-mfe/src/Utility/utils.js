@@ -73,7 +73,7 @@ export const buildLogViewURL = (deployedInstance, isStagging = false) => { //iss
 };
 export const isValidGitUrl = (str) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
-  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\/)?`);
+  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\.git)`);
   return (str == null) ? false : regex.test(str);
 };
 
