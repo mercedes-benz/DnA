@@ -531,6 +531,7 @@ globalArguments:
 - "--global.sendanonymoususage"
 - '--providers.kubernetescrd.allowCrossNamespace=true'
 - '--providers.kubernetesingress.ingressendpoint.publishedservice=ingress/ingress-traefik'
+- '--api.dashboard=true'
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
