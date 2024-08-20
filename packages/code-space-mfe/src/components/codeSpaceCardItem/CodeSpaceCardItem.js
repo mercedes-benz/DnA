@@ -454,7 +454,7 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
                         </span>
                       </li>
                     )}
@@ -523,7 +523,7 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
                         </span>
                       </li>
                     )}
@@ -1000,6 +1000,7 @@ const CodeSpaceCardItem = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
       <ConfirmModal
