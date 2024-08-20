@@ -8,7 +8,7 @@ import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import Modal from 'dna-container/Modal';
 // import { history } from '../../store';
 
-const RecipeList = ({ recipe, additionalServices }) => {
+const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const classNames = cn.bind(Styles);
@@ -53,6 +53,7 @@ const RecipeList = ({ recipe, additionalServices }) => {
         ProgressIndicator.hide();
         Notification.show("Recipe Deleted Successfully");
         setShowDeleteModal(false);
+        onRefresh();
       }).catch((err) => {
         ProgressIndicator.hide();
         Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
@@ -69,7 +70,7 @@ const RecipeList = ({ recipe, additionalServices }) => {
         </td>
         <td className={'wrap-text'}>
           <span className={Styles.securityConfig}>
-            {"DiskSpace- " + recipe.diskSpace + "GB" + " CPU- " + recipe.maxCpu + " RAM- " + convertRam(recipe.maxRam)+"GB"}
+            Disk Space: {recipe.diskSpace}GB | CPU: {recipe.maxCpu}GHz | RAM: {convertRam(recipe.maxRam)}GB
           </span>
         </td>
         <td className={'wrap-text'}>
