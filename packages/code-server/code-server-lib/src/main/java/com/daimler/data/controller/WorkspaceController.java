@@ -825,7 +825,7 @@ import org.springframework.beans.factory.annotation.Value;
 		resource+=recipeData.getMaxRam()+"M,"+recipeData.getMaxCpu();
 		newRecipeVO.setResource(resource);
 		newRecipeVO.setSoftware(recipeData.getSoftware());
-		newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		newRecipeVO.setToDeployType(recipeData.getToDeployType().isEmpty()?"default":recipeData.getToDeployType());
 		newRecipeVO.setGitPath(recipeData.getGitPath());
 		newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());

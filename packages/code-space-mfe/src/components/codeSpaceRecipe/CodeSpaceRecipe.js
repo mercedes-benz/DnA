@@ -37,8 +37,6 @@ const CodeSpaceRecipe = (props) => {
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
   
-  const recipeType = 'private';
-  
   const [diskSpace, setDiskSpace] = useState('');
   const [minCpu, setMinCpu] = useState('1');
   const [maxCpu, setMaxCpu] = useState('');
@@ -267,6 +265,7 @@ const CodeSpaceRecipe = (props) => {
     const ramValue = parseInt(maxRam)*1000;
     return ramValue.toString();
   };
+  
   const verifyRequest = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.verifyGitUser(gitHubUrl)
@@ -312,7 +311,7 @@ const CodeSpaceRecipe = (props) => {
         plugins: ['string'],
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
-        recipeType: recipeType,
+        recipeType: isPublic ? 'Public' : 'Private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
@@ -332,6 +331,12 @@ const CodeSpaceRecipe = (props) => {
           ProgressIndicator.hide();
           Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
           setGitUrl('');
+          if(err?.response?.status === 409) {
+            Notification.show(err?.response?.data?.data, 'alert');
+          }
+          if(err?.response?.status === 400) {
+            Notification.show(err?.response?.data?.data[0]?.message, 'alert');
+          }
           if (err.message === 'Value or Item already exist!') {
             setErrorObj((prevState) => ({
               ...prevState,
@@ -364,7 +369,7 @@ const CodeSpaceRecipe = (props) => {
         plugins: ['string'],
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
-        recipeType: recipeType,
+        recipeType: isPublic ? 'Public' : 'Private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
@@ -519,7 +524,7 @@ const CodeSpaceRecipe = (props) => {
                       </div>
                     </div>
                     <div className={classNames(Styles.col2)}>
-                      <div className={classNames(Styles.inputLabel, 'input-label')}>
+                      <div className={classNames(Styles.inputLabel, 'input-label', enableCreate && Styles.disabledSection)}>
                         <TextBox
                           type="text"
                           controlId={'gitUrlInput'}
@@ -537,13 +542,10 @@ const CodeSpaceRecipe = (props) => {
                             <i className="icon mbc-icon alert circle"></i>Kindly add the PID6C39 as admin contributor in your gitHub repo and click here to verify.
                           </button>
                         )}
-                        <p
-                          style={{ color: 'var(--color-green)'}}
-                          className={classNames(enableCreate ? '' : ' hide')}
-                        >
-                          <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
-                        </p>
                       </div>
+                      <p style={{ color: 'var(--color-green)'}} className={classNames(enableCreate ? '' : ' hide')}>
+                        <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
+                      </p>
                     </div>
                     <div className={classNames(Styles.col2)}>
                       <div className={classNames('input-field-group include-error')}>
