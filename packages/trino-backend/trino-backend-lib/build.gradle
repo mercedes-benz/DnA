@@ -111,7 +111,7 @@ dependencies {
     //implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.1.1'
 	implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
 	
-	implementation group: 'io.trino', name: 'trino-jdbc', version: '387'
+	implementation group: 'io.trino', name: 'trino-jdbc', version: '380'
 	
 	implementation group: 'org.apache.parquet', name: 'parquet-avro', version: '1.12.2'
 	implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1'

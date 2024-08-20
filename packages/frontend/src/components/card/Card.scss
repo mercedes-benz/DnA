@@ -1,5 +1,6 @@
 .cardWrapper {
     padding: 40px;
+    padding-bottom: 50px;
     background: #252a33;
     flex: 1 1 0px;
     // width: 100%;
@@ -229,6 +230,50 @@
     position: absolute;
     top: 24px;
     right: 20px;
+}
+
+.cardFooterSection {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    background: none;
+    text-align: center;
+    z-index: 1;
+}
+
+.viewDetailedPage {
+    display: flex;
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 27px;
+    margin: 30px 20px 10px auto;
+
+    h3 {
+        font-size: 11px;
+        font-family: var(--font-family-medium);
+        color: #99A5B3;
+        margin-top: 3.75px;
+    }
+
+    i {
+        font-size: 12px;
+        color: #00adef;
+        transition: transform 0.3s ease;
+    }
+
+    &:hover {
+        background: none;
+    }
+
+    &:hover h3 {
+        color: white;
+    }
+
+    &:hover i {
+        transform: translateX(3px);
+        color: #51cafa;
+    }
 }
 
 :global {
