@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import Styles from './ManageRecipes.scss';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import RecipeList from './RecipeList';
@@ -12,6 +13,7 @@ import { ProgressIndicator } from '../../common/modules/uilab/bundle/js/uilab.bu
 import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 
 const ManageRecipes = () => {
+  const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
 
@@ -78,6 +80,7 @@ const ManageRecipes = () => {
 
   const getCodespaceRecipes = () => {
     ProgressIndicator.show();
+    setLoading(true);
     CodeSpaceApiClient.getCodeSpaceRecipes()
       .then((res) => {
         setLoading(false);
@@ -161,6 +164,7 @@ const ManageRecipes = () => {
         key={recipe.recipeName}
         recipe={recipe}
         additionalServices={additionalServices?.filter(service => recipe?.additionalServices?.includes(service.serviceName))}
+        onRefresh={getCodespaceRecipes}
       />
     );
   });
@@ -169,72 +173,92 @@ const ManageRecipes = () => {
     <div className={Styles.mainPanel}>
       <div className={Styles.wrapper}>
         <Caption title="Manage Recipes" />
-          <div className="tabs-content-wrapper">
-            <div id="tab-content-2" className="tab-content">
-              <div className={Styles.content}>
-                {!loading && recipes?.length === 0 &&
-                  <div className={Styles.noRequests}>
-                    <h5>No Requests Found</h5>
+        {!loading && recipes?.length > 0 &&
+          <div className={Styles.actionBtns}>
+            <button
+              className={classNames('btn btn-primary', Styles.btnOutline)}
+              type="button"
+              onClick={() => history.push('/codespaceRecipes')}
+            >
+              <i className="icon mbc-icon plus" />
+              <span>Add New Recipe</span>
+            </button>
+          </div>
+        }
+        <div className="tabs-content-wrapper">
+          <div id="tab-content-2" className="tab-content">
+            <div className={Styles.content}>
+              {!loading && recipes?.length === 0 &&
+                <div className={Styles.noRequests}>
+                  <h5>You don&apos;t have any Code Space Recipe at this time.</h5>
+                  <p>Please create a new one.</p>
+                  <button
+                    className={classNames('btn btn-tertiary')}
+                    type="button"
+                    onClick={() => history.push('/codespaceRecipes')}
+                  >
+                    <span>Create New Recipe</span>
+                  </button>
+                </div>
+              }
+              {!loading && recipes?.length > 0 &&
+                <div className={Styles.allCodeSpace}>
+                  <div className={Styles.allcodeSpaceListviewContent}>
+                    <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
+                      <thead>
+                        <tr className={classNames('header-row', Styles.tableTitle)}>
+                          <th className={Styles.softwareColumn} onClick={() => sortByColumn('', sortBy.nextSortType)}>
+                            <label
+                              className={
+                                'sortable-column-header ' +
+                                (sortBy.name === 'recipeName' ? sortBy.currentSortType : '')
+                              }
+                            >
+                              <i className="icon sort" />
+                              Recipe Name
+                            </label>
+                          </th>
+                          <th>
+                            <label>
+                              Hardware Configuration
+                            </label>
+                          </th>
+                          <th className={Styles.softwareColumn} >
+                            <label>
+                              Software Configuration
+                            </label>
+                          </th>
+                          <th className={Styles.softwareColumn} >
+                            <label>
+                              Additional Services
+                            </label>
+                          </th>
+                          <th className={Styles.ciColumn}>
+                            <label>                            
+                              CI/CD Management
+                            </label>
+                          </th>
+                          <th className={Styles.actionColumn}>
+                            <label>Action</label>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>{recipeData}</tbody>
+                    </table>
                   </div>
-                }
-                {!loading && recipes?.length > 0 &&
-                  <div className={Styles.allCodeSpace}>
-                    <div className={Styles.allcodeSpaceListviewContent}>
-                      <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
-                        <thead>
-                          <tr className={classNames('header-row', Styles.tableTitle)}>
-                            <th className={Styles.softwareColumn} onClick={() => sortByColumn('', sortBy.nextSortType)}>
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (sortBy.name === 'recipeName' ? sortBy.currentSortType : '')
-                                }
-                              >
-                                <i className="icon sort" />
-                                Recipe Name
-                              </label>
-                            </th>
-                            <th>
-                              <label>
-                                Hardware Configuration
-                              </label>
-                            </th>
-                            <th className={Styles.softwareColumn} >
-                              <label>
-                                Software Configuration
-                              </label>
-                            </th>
-                            <th className={Styles.softwareColumn} >
-                              <label>
-                                Additional Services
-                              </label>
-                            </th>
-                            <th className={Styles.ciColumn}>
-                              <label>                            
-                                CI/CD Management
-                              </label>
-                            </th>
-                            <th className={Styles.actionColumn}>
-                              <label>Action</label>
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>{recipeData}</tbody>
-                      </table>
-                    </div>
-                      <Pagination
-                        totalPages={totalNumberOfPages}
-                        pageNumber={currentPageNumber}
-                        onPreviousClick={onPaginationPreviousClick}
-                        onNextClick={onPaginationNextClick}
-                        onViewByNumbers={onViewByPageNum}
-                        displayByPage={true}
-                      />
-                  </div>
-                }
-              </div>
+                    <Pagination
+                      totalPages={totalNumberOfPages}
+                      pageNumber={currentPageNumber}
+                      onPreviousClick={onPaginationPreviousClick}
+                      onNextClick={onPaginationNextClick}
+                      onViewByNumbers={onViewByPageNum}
+                      displayByPage={true}
+                    />
+                </div>
+              }
             </div>
           </div>
+        </div>
       </div>
     </div>
   );
