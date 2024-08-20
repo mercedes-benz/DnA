@@ -767,7 +767,7 @@ const CodeSpace = (props) => {
                                 setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                               }}
                             >
-                              Deployment Audit Logs
+                              Deploy & Action Audit Logs
                             </span>
                           </li>
                         )}
@@ -836,7 +836,7 @@ const CodeSpace = (props) => {
                                 setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                               }}
                             >
-                              Deployment Audit Logs
+                              Deploy & Action Audit Logs
                             </span>
                           </li>
                         )}
@@ -991,6 +991,7 @@ const CodeSpace = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
 
