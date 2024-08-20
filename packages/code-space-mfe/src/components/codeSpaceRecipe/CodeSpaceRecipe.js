@@ -6,8 +6,8 @@ import TextBox from 'dna-container/TextBox';
 import Caption from 'dna-container/Caption';
 import { Envs } from '../../Utility/envs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import { Notification } from '../../common/modules/uilab/bundle/js/uilab.bundle';
 import { isValidGitUrl } from '../../Utility/utils';
 import { useHistory } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
@@ -331,6 +331,8 @@ const CodeSpaceRecipe = (props) => {
           ProgressIndicator.hide();
           Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
           setGitUrl('');
+          console.log('err:', err);
+          console.log('err status:', err.response.status);
           if(err?.response?.status === 409) {
             Notification.show(err?.response?.data?.data, 'alert');
           }
