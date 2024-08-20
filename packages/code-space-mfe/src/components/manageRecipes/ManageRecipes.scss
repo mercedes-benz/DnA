@@ -3,6 +3,7 @@
 
   .wrapper {
     width: 100%;
+    position: relative;
   }
 
   .content {
@@ -20,7 +21,7 @@
 
     .allcodeSpaceListviewContent {
       background-color: #252a33;
-      padding-top: 30px;
+      padding-top: 15px;
 
       .codeSpaceMargininone {
         position: relative;
@@ -39,7 +40,7 @@
     background-color: #252a33;
     display: flex;
     flex-direction: column;
-    height: 300px;
+    height: 450px;
     justify-content: center;
     position: relative;
     width: 100%;
@@ -50,7 +51,7 @@
         width: 16.66%;
       }
       th:nth-child(2) {
-        width: 16.66%;
+        width: 18.66%;
       }
       th:nth-child(3) {
         width: 32.66%;
@@ -104,5 +105,24 @@
     color: #00adef;
   }
 }
+.actionBtns {
+  position: absolute;
+  z-index: 9999;
+  top: 70px;
+  right: 0;
+}
+.btnOutline {
+  background: none;
+  border: none !important;
+  color: #c0c8d0;
+  height: auto;
+  margin: 0px 10px;
+  outline: none;
+  padding: 0 2px;
 
+  &:hover {
+      color: #00adef;
+      background: unset;
+  }
+}
   
