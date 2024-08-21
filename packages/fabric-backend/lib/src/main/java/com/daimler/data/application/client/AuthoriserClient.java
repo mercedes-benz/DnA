@@ -285,6 +285,39 @@ public class AuthoriserClient {
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
     }
+	
+	public HttpStatus removeEntitlementFromRole(String entitlementId, String roleId){
+        
+        try {
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			String uri = authoriserBaseUrl+"/roles/"+roleId+"/applications/"+applicationId+"/entitlements/"+entitlementId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Entitlement :{} removed from Role {} Successfully",entitlementId,roleId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(HttpClientErrorException.Conflict e) {
+			log.error("Failed to remove Entitlement from Role with conflict error {} ", e.getMessage());
+			return HttpStatus.CONFLICT;
+		}catch(Exception e) {
+			log.error("Failed to remove Entitlement from Role with error {} ", e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 
 	public EntiltlemetGroupDto getEntitlementGroup(){
 		EntiltlemetGroupDto entitlementGroup = new EntiltlemetGroupDto();

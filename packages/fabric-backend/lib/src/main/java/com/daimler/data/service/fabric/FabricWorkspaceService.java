@@ -45,4 +45,12 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId);
 
+	FabricWorkspaceStatusVO fixBugsInWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
+			String creatorId, String workspaceId);
+
+	List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName,
+			String creatorId, String workspaceId);
+
+	FabricWorkspacesCollectionVO getAllLov(int limit, int offset);
+
 }
