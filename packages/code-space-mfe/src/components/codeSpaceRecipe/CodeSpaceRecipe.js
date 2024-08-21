@@ -328,16 +328,18 @@ const CodeSpaceRecipe = (props) => {
           Notification.show('New Recipe Created successfully');
         })
         .catch((err) => {
+          console.log('err', err);
           ProgressIndicator.hide();
-          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
           setGitUrl('');
-          console.log('err:', err);
-          console.log('err status:', err.response.status);
           if(err?.response?.status === 409) {
             Notification.show(err?.response?.data?.data, 'alert');
           }
           if(err?.response?.status === 400) {
             Notification.show(err?.response?.data?.data[0]?.message, 'alert');
+          }
+          if(err?.response?.status !== 409 && err?.response?.status !== 400) {
+            console.log('yo')
+            Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
           }
           if (err.message === 'Value or Item already exist!') {
             setErrorObj((prevState) => ({
