@@ -20,7 +20,7 @@ jobs:
 
   build:
     name: 'Pull and push docker image'
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
 
     
     steps:

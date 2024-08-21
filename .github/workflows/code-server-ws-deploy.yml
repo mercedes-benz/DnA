@@ -61,7 +61,7 @@ jobs:
     name: 'Build workspace application'
     if: ${{ github.event.inputs.action == 'deploy'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, large]
+    runs-on: [os-large-amd64-linux]
     steps:
 
     - name: Check out repository code
@@ -143,7 +143,7 @@ jobs:
 
   upload-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: deploy
     if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') }}
@@ -182,7 +182,7 @@ jobs:
     name: 'Delete Code Server Workspace'
     if: ${{ github.event.inputs.action == 'undeploy'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
 
     steps:
       - name: 'Delete Code Server Apps'
@@ -216,7 +216,7 @@ jobs:
     name: 'Restart Code Server Workspace'
     if: ${{ github.event.inputs.action == 'restart'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
 
     steps:
         
@@ -247,7 +247,7 @@ jobs:
     name: Sonar Qube Scan Gradle
     needs: deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -294,7 +294,7 @@ jobs:
     name: Sonar Qube Scan Javascript
     needs: deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     steps:
       - name: Check user repo
         uses: actions/checkout@v3
