@@ -599,14 +599,23 @@ definitions:
   FabricWorkspaceRoleRequestVO:
     type: object
     properties:
+      data:
+        type: object
+        $ref: "#/definitions/RolesListVO"
+      
+  
+
+  RolesListVO:
+    type: object
+    properties:
       roleList:
-        type: array
-        items:
-          $ref: "#/definitions/RoleListVO"
+          type: array
+          items:
+            $ref: "#/definitions/RolesVO"
       reason:
         type: string
-  
-  RoleListVO:
+
+  RolesVO:
     type: object
     properties:
       roleID:

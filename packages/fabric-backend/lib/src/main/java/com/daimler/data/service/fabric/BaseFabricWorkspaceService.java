@@ -47,7 +47,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
-import com.daimler.data.dto.fabricWorkspace.RoleListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -864,10 +865,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<MessageDescription> warnings = new ArrayList<>();
 
 		try{
-			List<RoleListVO> roleList = roleRequestVO.getRoleList();
-			for(RoleListVO role : roleList){
+			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+			for(RolesVO role : roleList){
 				UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
-				roleRequestDto.setReason(roleRequestVO.getReason());
+				roleRequestDto.setReason(roleRequestVO.getData().getReason());
 				roleRequestDto.setValidFrom(role.getValidFrom());
 				roleRequestDto.setValidTo(role.getValidTo());
 				HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
@@ -884,6 +885,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return response;
 		}
 		response.setSuccess(!warnings.isEmpty() ? "WARNING" : "SUCCESS");
+		response.setWarnings(warnings);
+		response.setErrors(errors);
 		return response;
 	}
 

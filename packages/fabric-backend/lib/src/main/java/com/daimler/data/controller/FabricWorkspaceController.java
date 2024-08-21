@@ -29,7 +29,8 @@ import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
-import com.daimler.data.dto.fabricWorkspace.RoleListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
@@ -376,29 +377,32 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		UserInfo userInfo = this.userStore.getUserInfo();
 		try{
 
-			if(roleRequestVO.getRoleList()==null || roleRequestVO.getRoleList().isEmpty()){
+			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
 				errors.add(new MessageDescription("Failed to request roles for the user, Atleast one Role Id should be there. Bad Request "));
 				response.setErrors(errors);
+				response.setWarnings(warnings);
 				response.setSuccess("FAILED");
 				log.error("Failed to request roles for the user, Atleast one Role Id should be there. Bad Request");
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
-			if(roleRequestVO.getReason().length()<20){
+			if(roleRequestVO.getData().getReason().length()<20){
 				errors.add(new MessageDescription("Failed to request roles for the user, Reason should be atleast of 20 characters. Bad Request "));
 				response.setErrors(errors);
+				response.setWarnings(warnings);
 				response.setSuccess("FAILED");
 				log.error("Failed to request roles for the user, Reason should be atleast of 20 characters. Bad Request");
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
-			List<RoleListVO> roleList = roleRequestVO.getRoleList();
+			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			for(RoleListVO role : roleList){
+			for(RolesVO role : roleList){
 
 				LocalDate validFrom = LocalDate.parse(role.getValidFrom(), formatter);
             	LocalDate validTo = LocalDate.parse(role.getValidTo(), formatter);
 				if(validTo.isBefore(validFrom)){
 					errors.add(new MessageDescription("Failed to request roles for the user, validTo date must be after validFrom date. Bad Request "));
 					response.setErrors(errors);
+					response.setWarnings(warnings);
 					response.setSuccess("FAILED");
 					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
 					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -413,6 +417,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		}catch(Exception e){
 			errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
 				response.setErrors(errors);
+				response.setWarnings(warnings);
 				response.setSuccess("FAILED");
 				log.error("Failed to request role  for user {}, Fabric workspace {} with exception {} ",id,userInfo.getId(),e.getMessage());
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
