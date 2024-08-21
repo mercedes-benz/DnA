@@ -1,0 +1,21 @@
+{{- if .Values.createGlobalResources -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "postgres.fullname" . }}-patroni-k8s-ep-access
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "postgres.fullname" . }}-patroni-k8s-ep-access
+subjects:
+- kind: ServiceAccount
+  name: {{ include "postgres.fullname" . }}
+# The namespace must be specified explicitly.
+# If deploying to the different namespace you have to change it.
+  namespace: {{ .Release.Namespace }}
+{{- end -}}

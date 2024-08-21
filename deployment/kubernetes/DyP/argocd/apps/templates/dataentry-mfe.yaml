@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: dataentry-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: frontend  
+spec:
+  destination:
+    namespace: dataentry
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/helm/charts/dataentry-mfe
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: dataentry-mfe
+      valueFiles:
+        - values-{{ .Values.env }}.yaml
+  project: dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}

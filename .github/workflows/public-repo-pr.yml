@@ -1,0 +1,35 @@
+name: Create and Merge Public PR
+on:
+  workflow_call:
+    inputs:
+      head:
+        required: true
+        type: string                      
+    secrets:
+      PUBLIC_PAT:
+        required: true
+
+jobs:
+  create-pr:
+    name: "Create and Merge Public PR"
+    runs-on: [os-medium-amd64-linux ]
+    steps:
+
+      - name: Create PR on Public Repo
+        id: cpr
+        run: |
+          echo "number=$(gh pr create --base dev --head ${{ inputs.head }} --title "Release: ${{ inputs.head }}" --body "Release: ${{ inputs.head }}" --repo mercedes-benz/DnA --reviewer venkat-99,agnelpraveen,boonbaluri | grep -o '[0-9]\+')" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_PAT }}
+          GH_HOST: github.com
+
+      - name: Merge pull request
+        if: ${{ steps.cpr.outputs.number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - https://github.com/mercedes-benz/DnA/pull/${{ steps.cpr.outputs.number }}"
+          gh pr merge https://github.com/mercedes-benz/DnA/pull/${{ steps.cpr.outputs.number }} -r --admin
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_PAT }}
+          GH_HOST: github.com             
+                           

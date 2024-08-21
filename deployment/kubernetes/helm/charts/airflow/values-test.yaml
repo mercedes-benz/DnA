@@ -1,0 +1,242 @@
+appName: airflow
+namespace: airflow
+imagePullSecret:
+  name: imagepullsecret
+backend:
+  replicas: 1
+  image:
+    repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
+    tag: '198'
+  imagePullPolicy: Always
+  dbUrl: jdbc:postgresql://airflow-db.airflow.svc.cluster.local:64000/airflow
+  secret:
+    name: airflow-backend-secrets
+    dbPassword: null
+    dbUsername: airflow
+    gitToken: null
+    jwtKey: null
+    oidcClientID: null
+    oidcClientSecret: null
+  containerPort: 7171
+  crossOriginUrl: https://*.app.corpintra.net
+  apiUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+  dnaAuthEnable: true
+  oidcInfoUrl: https://sso-int.mercedes-benz.com/idp/userinfo.openid
+  oidcIntrospectionUrl: https://sso-int.mercedes-benz.com/as/introspect.oauth2
+  oidcRevocationUrl: https://sso-int.mercedes-benz.com/as/revoke_token.oauth2
+  oidcDisabled: false
+  gitUrl: null
+  gitMountPath: /git/airflow-user-dags
+  gitBranch: helmtest
+  dag:
+    path: dags
+    ext: py
+    waitTime: 20
+    retry: 20
+  loggingPath: /tmp/airflow/log
+  loggingEnvironment: test
+  flywayBaseline: 'true'
+  flywayBaselineOnMigrate: 'true'
+  flywayBaselineVersion: '0'
+  flywaySchema: public
+ingress:
+  enabled: false
+  host: pipeline.test.dna.app.corpintra.net
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+airflow:
+  ingress:
+    enabled: false
+    host: pipeline.test.dna.app.corpintra.net
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+pullSecretData: <path:kv/data/dna/kubernetesSecret/airflow#pullSecretData>
+secret:
+  gitUserName: <path:kv/data/dna/kubernetesSecret/airflow#gitUserName>
+  gitPassword: <path:kv/data/dna/kubernetesSecret/airflow#gitPassword>
+  knownHosts: ''
+  postgresql:
+    sqlAlchemyConn: <path:kv/data/dna/kubernetesSecret/airflow#sqlAlchemyConn>
+    sqlAlchemyConnEn: <path:kv/data/dna/kubernetesSecret/airflow#sqlAlchemyConn | base64encode>
+  clientSecret: <path:kv/data/dna/kubernetesSecret/airflow#clientSecret | base64encode>
+gitSync:
+  image: registry-emea.app.corpintra.net/dnaplatform/git-sync:3.3.2
+  repo: <path:kv/data/dna/kubernetesSecret/airflow#repo>
+  dest: git-sync
+  branch: test
+  ssh: 'false'
+  root: /git
+configuration:
+  loggingLevel: INFO
+  executor: KubernetesExecutor
+  parallelism: 32
+  pluginsFolder: /usr/local/airflow/plugins
+  loadExamples: false
+  scheduler:
+    dagDirListInterval: 5
+    childProcessLogDirectory: /usr/local/airflow/logs/scheduler
+    jobHeartbeatSec: 5
+    parsingProcesses: 2
+    schedulerHeartbeatSec: 5
+    minFileProcessInterval: 0
+    statsdOn: false
+    statsdHost: localhost
+    statsdPort: 8125
+    statsdPrefix: airflow
+    minFileParsingLoopTime: 1
+    printStatsInterval: 30
+    schedulerZombieTaskThreshold: 300
+    maxTisPerQuery: 0
+    authenticate: false
+    catchupByDefault: true
+  webserver:
+    baseUrl: https://pipeline.test.dna.app.corpintra.net
+    path: /
+    rbac: true
+    host: 0.0.0.0
+    port: 8080
+    masterTimeout: 120
+    workerTimeout: 120
+    workerRefreshBatchSize: 1
+    workerRefreshInterval: 30
+    secretKey: <path:kv/data/dna/kubernetesSecret/airflow#secretKey>
+    numberOfWorkers: 4
+    workerClass: sync
+    exposeConfig: true
+    dagDefaultView: graph
+    dagOrientation: LR
+    demoMode: false
+    logFetchTimeoutSec: 5
+    hidePausedDagsByDefault: false
+    pageSize: 100
+  kubernetes:
+    workerContainerImagePullPolicy: Always
+    workerServiceAccountName: airflow
+    deleteWorkerPods: true
+    dagsInImage: false
+    gitSubpath: dags
+    inCluster: true
+    gitSyncContainerRepository: registry-emea.app.corpintra.net/dnaplatform/git-sync
+    gitSyncContainerTag: 3.3.2
+    gitSyncInitContainerName: git-sync-container
+    gitSyncRunAsUser: 1000
+    runAsUser: 1000
+    fsGroup: 65533
+  kubernetesLabels:
+    airflowWorker: null
+docker:
+  image:
+    name: registry-emea.app.corpintra.net/dnaplatform/airflow
+    tag: 1.10.16
+service:
+  port: 8080
+db:
+  port: 64000
+webserver:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 2000Mi
+    cpu: 1000m
+scheduler:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 2000Mi
+    cpu: 1000m
+gitContainer:
+  requests:
+    memory: 250Mi
+    cpu: 250m
+  limits:
+    memory: 1000Mi
+    cpu: 500m
+backendResources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1000Mi
+    cpu: 500m
+volumes:
+  logsPath: /usr/local/airflow/logs
+  dagsPath: /usr/local/airflow/dags/git-sync/dags
+  gitDagsPath: /usr/local/airflow/dags
+  airflowLogsClaim:
+    resourcePolicy: keep
+    accessMode: ReadWriteOnce
+    storage:
+      className: cinder-retain
+      size: 54Gi
+oidc:
+  logout:
+    uri: https://sso.mercedes-benz.com/idp/startSLO.ping?redirect_uri=
+Storage:
+  storageClass: cinder-retain
+  accessModes: ReadWriteOnce
+  nfsaccessModes: ReadWriteMany
+  nfsstorageClass: nfs-sc
+  size: 5Gi
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  livenessProbe:
+    path: /airflow/actuator/health/liveness
+    port: api-http
+  readinessProbe:
+    path: /airflow/actuator/health/readiness
+    port: api-http
+backendgit:
+  gitCloneurl: <path:kv/data/dna/kubernetesSecret/airflow#backendgitgitCloneurl>
+  gitbranch: <path:kv/data/dna/kubernetesSecret/airflow#backendgitgitbranch>
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/namespace: fmas/staging
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-truststore.jks: |
+      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.TRUSTSTORE }}
+      {{- end }}
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-keystore.p12: |
+      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.KEYSTORE }}
+      {{- end }}
+    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/airflowService
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "kv/dna/kubernetesSecret/airflowService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+        {{- range $k, $v := .Data.data }}
+        {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}        
+        {{- end }}      
+      {{- end }}    
+  saName: default
+  jarName: airflow-backend-lib*.jar
