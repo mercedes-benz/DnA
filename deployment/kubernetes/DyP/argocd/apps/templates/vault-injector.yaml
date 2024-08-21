@@ -20,7 +20,7 @@ spec:
     helm:
       releaseName: vault-injector
       valueFiles:
-        - values-dhc.yaml
+        - values-{{ .Values.env }}.yaml
   project: dna
   syncPolicy:
     automated:
