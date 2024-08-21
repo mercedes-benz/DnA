@@ -36,7 +36,7 @@ jobs:
 
   build:
     name: 'Build Code Server Image'
-    runs-on: [ large ]
+    runs-on: [ os-large-amd64-linux ]
     strategy:
       matrix:
         type: ${{ fromJson(github.event.inputs.type) }}

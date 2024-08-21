@@ -25,7 +25,7 @@ jobs:
           
   select-service:
     name: 'Detect changes in the service files'
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     outputs:
       code-server: ${{ steps.filter.outputs.code-server }}    
       chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}
