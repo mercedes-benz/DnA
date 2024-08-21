@@ -8,7 +8,7 @@ import Styles from './CustomerSummary.scss';
 import { ICustomers, 
   // ITeams 
 } from 'globals/types';
-import TeamMemberListItem from 'components/mbc/summary/team/teamMemberListItem/TeamMemberListItem';
+//import TeamMemberListItem from 'components/mbc/summary/team/teamMemberListItem/TeamMemberListItem';
 const classNames = cn.bind(Styles);
 
 interface ICustomerSummaryProps {
@@ -33,9 +33,6 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
             <h3 className={Styles.customersHeading}>Customer</h3>
               {this.props.customers.internalCustomers?.length
                 ? this.props.customers.internalCustomers?.map((customer, index) => {
-                  const processOwnerDetails: any = customer?.processOwner;
-                  const processOwner = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={processOwnerDetails} useFullWidth={true}/>;
-
                   // const customerName = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={customer} />;
                     return (
                       <React.Fragment key={index}>
@@ -86,11 +83,6 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                             
                           </div>
                           <div className={Styles.flexLayout}>
-                            <div id="processOwner">
-                              <label className="input-label summary">Process Owner</label>
-                              <br />
-                              <div className={Styles.breakWords+' '+Styles.removeGap}>{processOwner}</div>
-                            </div>
                             <div id="comment">
                               <label className="input-label summary">Comment</label>
                               <p>

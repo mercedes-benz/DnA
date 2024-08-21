@@ -25,7 +25,7 @@ public class CodespaceOwnershipUpdater {
     @Autowired
     private GitClient gitClient;
 
-    @PostConstruct
+    //@PostConstruct
     public void init() {
         List<CodeServerWorkspaceNsql> listOfCodespaces = customRepo.findAllByUniqueLiteral();
 
