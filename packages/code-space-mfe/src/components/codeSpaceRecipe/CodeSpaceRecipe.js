@@ -163,6 +163,7 @@ const CodeSpaceRecipe = (props) => {
   const onGitUrlChange = (e) => {
     const githubUrlVal = e.currentTarget.value.trim();
     setGitUrl(githubUrlVal);
+    setEnableCreate(false);
     const errorText = githubUrlVal.length
       ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
       : requiredError;
@@ -328,14 +329,12 @@ const CodeSpaceRecipe = (props) => {
           Notification.show('New Recipe Created successfully');
         })
         .catch((err) => {
-          console.log('err', err);
           ProgressIndicator.hide();
-          setGitUrl('');
           if(err?.response?.status === 409) {
             Notification.show(err?.response?.data?.data, 'alert');
           }
           if(err?.response?.status === 400) {
-            Notification.show(err?.response?.data?.data[0]?.message, 'alert');
+            Notification.show(`Kindly uncheck 'Do not allow bypassing the above settings' in branch protection rule settings.`, 'alert');
           }
           if(err?.response?.status !== 409 && err?.response?.status !== 400) {
             Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
@@ -527,7 +526,7 @@ const CodeSpaceRecipe = (props) => {
                       </div>
                     </div>
                     <div className={classNames(Styles.col2)}>
-                      <div className={classNames(Styles.inputLabel, 'input-label', enableCreate && Styles.disabledSection)}>
+                      <div className={classNames(Styles.inputLabel, 'input-label')}>
                         <TextBox
                           type="text"
                           controlId={'gitUrlInput'}
