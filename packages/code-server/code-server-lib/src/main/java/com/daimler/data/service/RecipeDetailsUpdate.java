@@ -46,9 +46,9 @@ public class RecipeDetailsUpdate {
                             CodeServerProjectDetails projectDetails = record.getProjectDetails();
                             if(projectDetails.getRecipeDetails()!=null) {
                                CodeServerRecipeDetails recipeDetails =  projectDetails.getRecipeDetails();
-                               if(recipeDetails.getRecipeId() != null) {
+                               if(recipeDetails != null && recipeDetails.getRecipeId() != null) {
                                 List<String> additionalServices =  new ArrayList<>();
-                                if(recipeDetails.getRecipeName().isBlank()) {
+                                if(recipeDetails.getRecipeName() == null || recipeDetails.getRecipeName().isBlank()) {
                                     switch (recipeDetails.getRecipeId()) {
                                         case "springboot":
                                             recipeDetails.setRecipeName("Microservice using Spring Boot with Gradle (Debian 11 OS, 2GB RAM, 1CPU)");
@@ -174,6 +174,7 @@ public class RecipeDetailsUpdate {
                             } else if(recipeDetails.getRecipeId() == null) {
                                 log.info("recipe name onboard failed for workpsace id : "+record.getWorkspaceId()); 
                             }
+                            
                         }
                     }
                 } 
