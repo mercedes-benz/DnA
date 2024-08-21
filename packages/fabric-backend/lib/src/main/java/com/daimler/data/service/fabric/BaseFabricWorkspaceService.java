@@ -126,6 +126,51 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public BaseFabricWorkspaceService() {
 		super();
 	}
+	
+	@Override
+	@Transactional
+	public FabricWorkspacesCollectionVO getAllLov( int limit,  int offset) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
+		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
+		if (allEntities != null && !allEntities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : allEntities) {
+				try {
+					String id = entity.getId();
+					log.info("Fetched fabric project record from db successfully for id {} ", id);
+					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+					if(dtoFromFabric!=null) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+								jpaRepo.deleteById(id);
+								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+						}else {
+							entity.getData().setName(dtoFromFabric.getDisplayName());
+							entity.getData().setDescription(dtoFromFabric.getDescription());
+							jpaRepo.save(entity);
+							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+							vos.add(updatedVO);
+						}
+					}
+				}catch(Exception e) {
+					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		if(vos!=null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int newOffset = offset>vos.size() ? 0 : offset;
+			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
+			paginatedVOs = vos.subList(newOffset, newLimit);
+		}
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		return collectionVO;
+	}
 
 	@Override
 	@Transactional
