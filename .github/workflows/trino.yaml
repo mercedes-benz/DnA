@@ -29,7 +29,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true  && github.ref_name == 'dev' ) || ( github.event_name == 'push' && github.ref_name == 'dev' ) || github.event.inputs.environment == 'Development' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     environment:
       name: Development
       url: https://trino.dev.dna.app.corpintra.net/
@@ -70,7 +70,7 @@ jobs:
     name: 'Deploy to staging'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || github.event.inputs.environment == 'Staging' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     environment:
       name: Staging
       url:  https://trino.test.dna.app.corpintra.net/
@@ -110,7 +110,7 @@ jobs:
     name: 'Deploy to Production'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     environment:
       name: Production
       url:  https://trino.dna.app.corpintra.net/
@@ -148,7 +148,7 @@ jobs:
   build:
     name: 'Build App'
     if: github.event_name == 'push' || github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:

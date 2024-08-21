@@ -2,10 +2,10 @@ appName: naas
 namespace: naas
 app:
   backend:
+    replicaCount: 1
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: '149'
-    replicaCount: 1
+      tag: 171
     secrets:
       name: naas-app-secrets
       jwtKey: null

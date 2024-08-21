@@ -33,7 +33,7 @@ jobs:
   status:
     name: 'Update Status'
     environment: ${{ inputs.environment }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     steps:
 
       - name: Get Status Code

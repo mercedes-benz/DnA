@@ -54,7 +54,7 @@ jobs:
 
   build:
     name: 'Build App'
-    runs-on: [road-runner, large]
+    runs-on: [os-large-amd64-linux]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:
@@ -150,7 +150,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ github.ref_name == 'dev' || inputs.ENVIRONMENT == 'Development' }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment:
       name: Development
     steps:
@@ -177,7 +177,7 @@ jobs:
     name: 'Deploy to staging'
     needs: build
     if: ${{ github.ref_name == 'staging' ||  inputs.ENVIRONMENT == 'Staging' }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment:
       name: Staging
     steps:
@@ -204,7 +204,7 @@ jobs:
     name: 'Deploy to Production'
     needs: build
     if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment:
       name: Production
     steps:
@@ -246,7 +246,7 @@ jobs:
 
   # quality-check:
   #   name: 'Quality Check'
-  #   runs-on: [road-runner, medium]
+  #   runs-on: [os-medium-amd64-linux]
   #   if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
   #   needs: build
   #   outputs:
@@ -307,7 +307,7 @@ jobs:
   #   name: Static Application secuirty Testing
   #   needs: build
   #   if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}    
-  #   runs-on: [road-runner, medium]
+  #   runs-on: [os-medium-amd64-linux]
     
   #   steps:    
 
