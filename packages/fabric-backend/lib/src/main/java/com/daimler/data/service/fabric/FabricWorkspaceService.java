@@ -13,6 +13,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.service.common.CommonService;
@@ -41,5 +42,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 			String creatorId, String workspaceId);
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList);
+
+	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId);
 
 }
