@@ -6,8 +6,8 @@ import TextBox from 'dna-container/TextBox';
 import Caption from 'dna-container/Caption';
 import { Envs } from '../../Utility/envs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import { Notification } from '../../common/modules/uilab/bundle/js/uilab.bundle';
 import { isValidGitUrl } from '../../Utility/utils';
 import { useHistory } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
@@ -36,8 +36,6 @@ const CodeSpaceRecipe = (props) => {
   const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
-  
-  const recipeType = 'private';
   
   const [diskSpace, setDiskSpace] = useState('');
   const [minCpu, setMinCpu] = useState('1');
@@ -165,6 +163,7 @@ const CodeSpaceRecipe = (props) => {
   const onGitUrlChange = (e) => {
     const githubUrlVal = e.currentTarget.value.trim();
     setGitUrl(githubUrlVal);
+    setEnableCreate(false);
     const errorText = githubUrlVal.length
       ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
       : requiredError;
@@ -267,6 +266,7 @@ const CodeSpaceRecipe = (props) => {
     const ramValue = parseInt(maxRam)*1000;
     return ramValue.toString();
   };
+  
   const verifyRequest = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.verifyGitUser(gitHubUrl)
@@ -312,7 +312,7 @@ const CodeSpaceRecipe = (props) => {
         plugins: ['string'],
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
-        recipeType: recipeType,
+        recipeType: isPublic ? 'Public' : 'Private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
@@ -330,8 +330,15 @@ const CodeSpaceRecipe = (props) => {
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
-          setGitUrl('');
+          if(err?.response?.status === 409) {
+            Notification.show(err?.response?.data?.data, 'alert');
+          }
+          if(err?.response?.status === 400) {
+            Notification.show(`Kindly uncheck 'Do not allow bypassing the above settings' in branch protection rule settings.`, 'alert');
+          }
+          if(err?.response?.status !== 409 && err?.response?.status !== 400) {
+            Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+          }
           if (err.message === 'Value or Item already exist!') {
             setErrorObj((prevState) => ({
               ...prevState,
@@ -364,7 +371,7 @@ const CodeSpaceRecipe = (props) => {
         plugins: ['string'],
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
-        recipeType: recipeType,
+        recipeType: isPublic ? 'Public' : 'Private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
@@ -537,13 +544,10 @@ const CodeSpaceRecipe = (props) => {
                             <i className="icon mbc-icon alert circle"></i>Kindly add the PID6C39 as admin contributor in your gitHub repo and click here to verify.
                           </button>
                         )}
-                        <p
-                          style={{ color: 'var(--color-green)'}}
-                          className={classNames(enableCreate ? '' : ' hide')}
-                        >
-                          <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
-                        </p>
                       </div>
+                      <p style={{ color: 'var(--color-green)'}} className={classNames(enableCreate ? '' : ' hide')}>
+                        <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
+                      </p>
                     </div>
                     <div className={classNames(Styles.col2)}>
                       <div className={classNames('input-field-group include-error')}>
