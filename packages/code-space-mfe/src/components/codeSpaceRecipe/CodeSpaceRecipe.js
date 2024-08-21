@@ -338,7 +338,6 @@ const CodeSpaceRecipe = (props) => {
             Notification.show(err?.response?.data?.data[0]?.message, 'alert');
           }
           if(err?.response?.status !== 409 && err?.response?.status !== 400) {
-            console.log('yo')
             Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
           }
           if (err.message === 'Value or Item already exist!') {
