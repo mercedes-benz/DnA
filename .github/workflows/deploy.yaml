@@ -54,7 +54,7 @@ jobs:
 
   build:
     name: 'Build App'
-    runs-on: [road-runner, os-large-amd64-linux]
+    runs-on: [os-large-amd64-linux]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:
