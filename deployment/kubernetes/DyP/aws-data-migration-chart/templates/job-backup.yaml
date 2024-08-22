@@ -1,13 +1,11 @@
 ---
-{{- $namespace := .Values.backupJob.namespace -}}
-{{- $path := .Values.backupJob.backupPath -}}
 {{- if .Values.backupJob.enabled }}
-{{- range $index,$pvcName := .Values.backupJob.backupPvcName }}
+{{- range $index,$pvc := .Values.backupJob.backupPvc }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $pvcName }}-bk-job
-  namespace: {{ $namespace | quote }}
+  name: {{ $pvc.pvcName }}-bk-job
+  namespace: {{ $pvc.namespace | quote }}
 spec:
   template:
     spec:
@@ -20,31 +18,31 @@ spec:
           - name: RESTIC_REPOSITORY
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: bucketName
                 optional: false
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }}  ## pvc name
+                name: {{ $pvc.pvcName }}  ## pvc name
                 key: resticKey
                 optional: false
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: accessKeyId
                 optional: false
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: secretAccessKey
                 optional: false          
       containers:
       - name: restic
         image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
-        workingDir: {{ $path }} ## path
+        workingDir: {{ $pvc.backupPath }} ## path
         args:
           - backup
           - --host
@@ -54,37 +52,37 @@ spec:
           - name: RESTIC_REPOSITORY
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: bucketName
                 optional: false
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: resticKey
                 optional: false
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: accessKeyId
                 optional: false
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $pvcName }} ## pvc name
+                name: {{ $pvc.pvcName }} ## pvc name
                 key: secretAccessKey
                 optional: false
         volumeMounts:
           - name: backupdata
-            mountPath: {{ $path }} #path
+            mountPath: {{ $pvc.backupPath }} #path
             readOnly: true
           - name: backupdata
             mountPath: /.cache
       volumes:
         - name: backupdata
           persistentVolumeClaim:
-            claimName: {{ $pvcName }}  # Change me ## pvc name
+            claimName: {{ $pvc.pvcName }}  # Change me ## pvc name
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000

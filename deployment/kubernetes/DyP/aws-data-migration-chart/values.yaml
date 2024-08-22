@@ -8,13 +8,16 @@ imagePullSecrets:
 
 backupJob:
   enabled: true
-  namespace: 'backup-ns'
-  backupPath: '/home/coder'
-# If the job is enabled, then mention the jobname below 
-  backupPvcName:
-    - ws1887
-    - ws1978
-    - ws2005
+  backupPvc:
+    - pvcName: ws1887
+      namespace: 'backup-ns-01'
+      backupPath: '/home/backup-ns-01'
+    - pvcName: ws1888
+      namespace: 'backup-ns-02'
+      backupPath: '/home/backup-ns-02'
+    - pvcName: ws1889
+      namespace: 'backup-ns-03'
+      backupPath: '/home/backup-ns-03'
 
 restoreJob:
   enabled: true
