@@ -11,7 +11,7 @@ backupJob:
   namespace: 'backup-ns'
   backupPath: '/home/coder'
 # If the job is enabled, then mention the jobname below 
-  backupJobName:
+  backupPvcName:
     - ws1887
     - ws1978
     - ws2005
@@ -21,7 +21,7 @@ restoreJob:
   namespace: restore-ns
   restorePath: '/home/coder'
 # If the job is enabled, then mention the jobname below  
-  restoreJobName:
+  restorePvcName:
     - ws1275
     - ws1639
     - ws1841

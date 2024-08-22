@@ -2,11 +2,11 @@
 {{- $namespace := .Values.restoreJob.namespace -}}
 {{- $path := .Values.restoreJob.restorePath -}}
 {{- if .Values.restoreJob.enabled }}
-{{- range $jobIndex, $jobName := .Values.restoreJob.restoreJobName }}
+{{- range $jobIndex, $pvcName := .Values.restoreJob.restorePvcName }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $jobName }}-rs-job
+  name: {{ $pvcName }}-rs-job
   namespace: {{ $namespace | quote }}
 spec:
   template:
@@ -25,26 +25,26 @@ spec:
         - name: RESTIC_REPOSITORY
           valueFrom:
             secretKeyRef:
-              name: {{ $jobName }}
+              name: {{ $pvcName }}
               key: bucketName
               optional: false
         - name: RESTIC_PASSWORD
           valueFrom:
             secretKeyRef:
               key: resticKey
-              name: {{ $jobName }}
+              name: {{ $pvcName }}
               optional: false
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
               key: accessKeyId
-              name: {{ $jobName }}
+              name: {{ $pvcName }}
               optional: false
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               key: secretAccessKey
-              name: {{ $jobName }}
+              name: {{ $pvcName }}
               optional: false
         volumeMounts:
         - mountPath: {{ $path}} ##
@@ -60,7 +60,7 @@ spec:
       volumes:
       - name: backupdata
         persistentVolumeClaim:
-          claimName: {{ $jobName }}  # change me ## pvc name
+          claimName: {{ $pvcName }}  # change me ## pvc name
 ---
 {{- end }}
 {{- end }}

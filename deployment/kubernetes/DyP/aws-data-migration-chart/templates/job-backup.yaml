@@ -2,11 +2,11 @@
 {{- $namespace := .Values.backupJob.namespace -}}
 {{- $path := .Values.backupJob.backupPath -}}
 {{- if .Values.backupJob.enabled }}
-{{- range $index,$jobName := .Values.backupJob.backupJobName }}
+{{- range $index,$pvcName := .Values.backupJob.backupPvcName }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $jobName }}-bk-job
+  name: {{ $pvcName }}-bk-job
   namespace: {{ $namespace | quote }}
 spec:
   template:
@@ -20,25 +20,25 @@ spec:
           - name: RESTIC_REPOSITORY
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: bucketName
                 optional: false
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }}  ## pvc name
+                name: {{ $pvcName }}  ## pvc name
                 key: resticKey
                 optional: false
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: accessKeyId
                 optional: false
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: secretAccessKey
                 optional: false          
       containers:
@@ -54,25 +54,25 @@ spec:
           - name: RESTIC_REPOSITORY
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: bucketName
                 optional: false
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: resticKey
                 optional: false
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: accessKeyId
                 optional: false
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $jobName }} ## pvc name
+                name: {{ $pvcName }} ## pvc name
                 key: secretAccessKey
                 optional: false
         volumeMounts:
@@ -84,7 +84,7 @@ spec:
       volumes:
         - name: backupdata
           persistentVolumeClaim:
-            claimName: {{ $jobName }}  # Change me ## pvc name
+            claimName: {{ $pvcName }}  # Change me ## pvc name
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
