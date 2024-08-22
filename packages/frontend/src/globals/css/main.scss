@@ -1257,6 +1257,10 @@
       content: "\e903";
     }
 
+    &.sort:before {
+      content: "\e912";
+    }
+
     &.workspace:before {
       content: "\e931";
     }

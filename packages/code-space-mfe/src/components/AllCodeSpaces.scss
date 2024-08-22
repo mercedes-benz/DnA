@@ -69,6 +69,17 @@
                 transform: translateY(-2px);
             }
         }
+        .tutorials{
+            display: inline;
+            margin-left: 8px;
+            span{
+                margin: 0px;
+                margin-right: 1px;
+            }
+            .trainingIcon{
+                font-size: 12px;
+            }
+        }
 
         i {
             font-size: var(--font-size-icon-content);
