@@ -1053,7 +1053,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				Boolean isValutInjectorEnable = false;
 				try{
-					isValutInjectorEnable = VaultClient.isValutInjectorEnable(projectName.toLowerCase(), environment);
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				}catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());

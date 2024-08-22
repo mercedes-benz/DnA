@@ -32,30 +32,34 @@ public class VaultClient {
 	RestTemplate restTemplate;
 
 
-    public Boolean isValutInjectorEnable(String projectName, String environment) throws Exception{
-        Boolean responseBoolean = false;
+    public boolean enableVaultInjector(String projectName, String environment) throws Exception {
+        boolean isEnabled = false;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
             headers.set("Content-Type", "application/json");
-            String url = vaultBaseUri+"/" + projectName + "/"+ environment;
-            HttpEntity entity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,String.class);
-            if (response != null && response.getStatusCode()!=null && response.getStatusCode().is2xxSuccessful()) {
+    
+            String url = vaultBaseUri + "/" + projectName + "/" + environment;
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+    
+            if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map<String, String> secMap = objectMapper.readValue(response.getBody(), new TypeReference<Map<String, String>>() {});
-                if(!secMap.isEmpty()){
-                    responseBoolean = true;
+    
+                if (!secMap.isEmpty()) {
+                    isEnabled = true;
                 }
-                LOGGER.info("Sucessfully fetched the secrets from vault, value = {} for projectname {} and evironment {}", responseBoolean,projectName,environment);
-            }else{
-                throw new Exception(" Failed at vault with the status: "+response.getStatusCode());
+    
+                LOGGER.info("Successfully fetched secrets from vault for project {} and environment {}. Enabled: {}", projectName, environment, isEnabled);
+            } else {
+                throw new Exception("Failed to fetch secrets from vault. HTTP Status: " + response.getStatusCode());
             }
         } catch (Exception e) {
-            LOGGER.error("Error occured while fetching secrets for project {} and environment {} with exception {} ", projectName,environment, e.getMessage());
+            LOGGER.error("Error while fetching secrets for project {} and environment {}: {}", projectName, environment, e.getMessage(), e);
             throw e;
         }
-        return responseBoolean;
-        }
+        return isEnabled;
+    }
 	
 }
