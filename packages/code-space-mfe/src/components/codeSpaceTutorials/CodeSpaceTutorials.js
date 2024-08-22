@@ -109,14 +109,14 @@ const CodeSpaceTutorials = () => {
 
   return (
     <div className={classNames(Styles.wrapper)}>
-      <h5 className={classNames(Styles.title)}>Code Space Tutorials</h5>
+      <h5 className={classNames(Styles.Modeltitle)}>Code Space Tutorials</h5>
       <div className={classNames(Styles.codeSpaceTutorials)}>
         <div className={classNames(Styles.leftPlane)}>
           <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
           <h5 className={classNames(Styles.selectedTitle)}>{selectedVideo.title}</h5>
           <span className={classNames(Styles.selectedDes)}>{selectedVideo.description}</span>
         </div>
-        <div className={classNames(Styles.rightPane)}>
+        <div className={classNames(Styles.rightPlane)}>
           <table className={classNames('ul-table', Styles.tutorialsTable)}>
             <tbody>
               {codespaceTutorials?.map((item) => (
