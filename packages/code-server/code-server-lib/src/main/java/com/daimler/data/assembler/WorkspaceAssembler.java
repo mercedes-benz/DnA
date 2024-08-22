@@ -295,6 +295,7 @@
 						 auditDetails.setTriggeredOn(audit.getTriggeredOn());
 					 }
 					 auditDetails.setBranch(audit.getBranch());
+					 auditDetails.setCommitId(audit.getCommitId());
 					 deployedAuditLogDetails.add(auditDetails);
 				 }
 			 }
@@ -350,6 +351,7 @@
 						 if(Objects.nonNull(audit.getTriggeredOn()))
 							 auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
 						 auditDetails.setBranch(audit.getBranch());
+						 auditDetails.setCommitId(audit.getCommitId());
 						 auditDetailsVO.add(auditDetails);
 				 }
 			 }
@@ -586,10 +588,12 @@
 			 recipeDetails.setRecipeId(vo.getRecipeId().toString());
 			 recipeDetails.setResource(vo.getResource());
 			 recipeDetails.setRepodetails(vo.getRepodetails());
-
 			 if(vo.getSoftware()!=null)
 			 {
 				recipeDetails.setSoftware(vo.getSoftware());
+			 }
+			 if(vo.getAdditionalServices()!=null) {
+				recipeDetails.setAdditionalServices(vo.getAdditionalServices());
 			 }
 		 }
 		 return recipeDetails;
@@ -615,7 +619,9 @@
 		 }
 		 return recipeDetailsVO;
 	 }
- 
+
+
+
 	 @Override
 	 public CodeServerWorkspaceVO toVo(CodeServerWorkspaceNsql entity) {
 		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");

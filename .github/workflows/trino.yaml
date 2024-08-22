@@ -1,0 +1,218 @@
+
+name: Trino & Hive Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target build environment"
+        type: environment
+        required: true
+        default: 'Development'
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  NO_PROXY: ''
+  RUNNER_ALLOW_RUNASROOT: 1
+  TRINO_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/trinodb/trino
+  HIVE_METASTORE_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/hivemetastore
+  TRINO_VERSION: 390
+  HIVE_METASTORE_IMAGE_VERSION: 0.5
+  TRINO_IMAGE_TAG_PATH: image.tag
+  HIVE_METASTORE_IMAGE_TAG_PATH: hivemetastore.image
+
+
+jobs: 
+
+  development:
+    name: 'Deploy to Development'
+    needs: build
+    if: ${{ ( github.event.pull_request.merged == true  && github.ref_name == 'dev' ) || ( github.event_name == 'push' && github.ref_name == 'dev' ) || github.event.inputs.environment == 'Development' }}
+    runs-on: [ os-medium-amd64-linux ]
+    environment:
+      name: Development
+      url: https://trino.dev.dna.app.corpintra.net/
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
+
+    - name: Update Trino Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/trino/values-dev.yaml
+        propertyPath: '${{ env.TRINO_IMAGE_TAG_PATH }}'
+        value: ${{ github.run_number }}
+        branch: dev
+        createPR: false
+        commitChange: false
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}    
+
+    - name: Update Hive Metastore Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/trino/values-dev.yaml
+        propertyPath: '${{ env.HIVE_METASTORE_IMAGE_TAG_PATH }}'
+        value: '${{ env.HIVE_METASTORE_IMAGE_NAME }}:${{ github.run_number }}'
+        branch: dev
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}    
+
+  staging:
+    name: 'Deploy to staging'
+    needs: build
+    if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || github.event.inputs.environment == 'Staging' }}
+    runs-on: [ os-medium-amd64-linux ]
+    environment:
+      name: Staging
+      url:  https://trino.test.dna.app.corpintra.net/
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: Update TRINO Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/trino/values-test.yaml
+        propertyPath: '${{ env.TRINO_IMAGE_TAG_PATH }}'
+        value: ${{ github.run_number }}
+        branch: staging
+        createPR: false
+        commitChange: false
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+
+    - name: Update Hive Metastore Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/trino/values-test.yaml
+        propertyPath: '${{ env.HIVE_METASTORE_IMAGE_TAG_PATH }}'
+        value: '${{ env.HIVE_METASTORE_IMAGE_NAME }}:${{ github.run_number }}'
+        branch: staging
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}    
+
+
+  production:
+    name: 'Deploy to Production'
+    needs: build
+    if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' }}
+    runs-on: [ os-medium-amd64-linux ]
+    environment:
+      name: Production
+      url:  https://trino.dna.app.corpintra.net/
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: Update Trino Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/trino/values-prod.yaml
+        propertyPath: '${{ env.TRINO_IMAGE_TAG_PATH }}'
+        value: '${{ env.TRINO_VERSION }}'
+        branch: main
+        createPR: false
+        commitChange: false
+        message: 'Update Image Version to ${{ env.TRINO_VERSION }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+
+    - name: Update Hive Metastore Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/trino/values-prod.yaml
+        propertyPath: '${{ env.HIVE_METASTORE_IMAGE_TAG_PATH }}'
+        value: '${{ env.HIVE_METASTORE_IMAGE_NAME }}:${{ env.HIVE_METASTORE_IMAGE_VERSION }}'
+        branch: main
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ env.HIVE_METASTORE_IMAGE_VERSION }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}    
+
+  build:
+    name: 'Build App'
+    if: github.event_name == 'push' || github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: [ os-medium-amd64-linux ]
+    outputs:
+      version: ${{ steps.updated.outputs.version }}
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+        
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+
+    # Uncomment the section if you have override files and update src,dest in utils\gitFileOverride\fileOverrideList.csv
+    - name: Override files & Login Registry
+      run: | 
+        chmod +x ./utils/gitFileOverride/fileOverride.sh
+        ./utils/gitFileOverride/fileOverride.sh 
+
+    - name: Build trino Application Containers
+      working-directory: .deployment/dockerfiles/trino
+      run: | 
+        docker build -t $TRINO_IMAGE_NAME:${{ github.run_number }} -f ./Dockerfile .
+        if [ ${{github.ref_name}} == main ]
+        then
+          docker tag $TRINO_IMAGE_NAME:${{ github.run_number }} $TRINO_IMAGE_NAME:$TRINO_VERSION
+          docker tag $TRINO_IMAGE_NAME:${{ github.run_number }} $TRINO_IMAGE_NAME:latest
+        fi          
+
+    - name: Build Hive Metastore Application Containers
+      working-directory: .deployment/dockerfiles/trino
+      run: | 
+        docker build -t $HIVE_METASTORE_IMAGE_NAME:${{ github.run_number }} -f ./Dockerfile .
+        if [ ${{github.ref_name}} == main ]
+        then
+          docker tag $HIVE_METASTORE_IMAGE_NAME:${{ github.run_number }} $HIVE_METASTORE_IMAGE_NAME:$HIVE_METASTORE_IMAGE_VERSION
+          docker tag $HIVE_METASTORE_IMAGE_NAME:${{ github.run_number }} $HIVE_METASTORE_IMAGE_NAME:latest
+        fi  
+
+    - name: Publish application containers to registry
+      run: |
+        docker push $TRINO_IMAGE_NAME:${{ github.run_number }}
+        docker push $HIVE_METASTORE_IMAGE_NAME:${{ github.run_number }}
+        if [ ${{github.ref_name}} == main ]
+        then
+          docker push $TRINO_IMAGE_NAME:$TRINO_VERSION
+          docker push $TRINO_IMAGE_NAME:latest
+          docker push $HIVE_METASTORE_IMAGE_NAME:$HIVE_METASTORE_IMAGE_VERSION
+          docker push $HIVE_METASTORE_IMAGE_NAME:latest
+        fi          
+
+
+
+  css-scan-trino:
+        name: Container security scan Trino
+        needs: production
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.TRINO_IMAGE_NAME }}:${{ env.TRINO_VERSION }}'
+        secrets: inherit
+
+
+  css-scan-metastore:
+        name: Container security scan Metastore
+        needs: production
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.HIVE_METASTORE_IMAGE_NAME }}:${{ env.HIVE_METASTORE_IMAGE_VERSION }}'
+        secrets: inherit

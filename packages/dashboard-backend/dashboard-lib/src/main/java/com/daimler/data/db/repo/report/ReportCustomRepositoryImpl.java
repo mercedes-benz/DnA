@@ -106,9 +106,9 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	@Override
 	public List<ReportNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> statuses, String userId,
 			Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy,
-			String sortOrder, String division, List<String> department, List<String> processOwner, List<String> art) {
+			String sortOrder, String division, List<String> department, List<String> art) {
 		Query q = getNativeQueryWithFilters("", published, statuses, userId, isAdmin, searchTerms, tags, offset, limit,
-				sortBy, sortOrder, "", "", division, department, processOwner, art);
+				sortBy, sortOrder, "", "", division, department, art);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<ReportNsql> convertedResults = results.stream().map(temp -> {
@@ -129,11 +129,10 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 	@Override
 	public Long getCountUsingNativeQuery(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
-			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> art) {
+			List<String> searchTerms, List<String> tags, String division, List<String> department, List<String> art) {
 
 		Query q = getNativeQueryWithFilters("select count(*) ", published, statuses, userId, isAdmin, searchTerms, tags,
-				0, 0, "", "asc", "", "", division, department, processOwner, art);
+				0, 0, "", "asc", "", "", division, department, art);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
@@ -141,14 +140,14 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, List<String> statuses,
 			String userId, Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit,
 			String sortBy, String sortOrder, String additionalPredicatesString, String groupByString, String division,
-			List<String> department, List<String> processOwner, List<String> art) {
+			List<String> department, List<String> art) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from report_nsql";
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, statuses, userId, isAdmin, searchTerms, tags,
-				division, department, processOwner, art);
+				division, department, art);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
@@ -190,14 +189,12 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	}
 
 	private String buildPredicateString(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
-			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> art) {
+			List<String> searchTerms, List<String> tags, String division, List<String> department, List<String> art) {
 
 		return getPublishedAndAccessPredicate(published, userId, isAdmin) + "\n"
 				+ getProjectStatusesPredicateString(statuses) + "\n" + getSearchTermsPredicateString(searchTerms) + "\n"
 				+ getTagsPredicateString(tags) + "\n" + getDivisionsPredicateString(division) + "\n"
-				+ getDepartmentsPredicateString(department) + "\n" + getProcessOwnersPredicateString(processOwner)
-				+ "\n" + getArtsPredicateString(art);
+				+ getDepartmentsPredicateString(department) + "\n" + getArtsPredicateString(art);
 	}
 
 	private String getPublishedAndAccessPredicate(Boolean published, String userId, Boolean isAdmin) {
@@ -306,24 +303,24 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		return "";
 	}
 
-	private String getProcessOwnersPredicateString(List<String> processOwners) {
-		if (processOwners != null && !processOwners.isEmpty()) {
-			String delimiterSeparatedProcessOwners = processOwners.stream().map(String::toLowerCase)
-					.collect(Collectors.joining("%|%", "%", "%"));
-			delimiterSeparatedProcessOwners = "'" + delimiterSeparatedProcessOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'customer','internalCustomers')) similar to "
-					+ delimiterSeparatedProcessOwners + " ) ";
-		}
-		return "";
-	}
+	// private String getProcessOwnersPredicateString(List<String> processOwners) {
+	// 	if (processOwners != null && !processOwners.isEmpty()) {
+	// 		String delimiterSeparatedProcessOwners = processOwners.stream().map(String::toLowerCase)
+	// 				.collect(Collectors.joining("%|%", "%", "%"));
+	// 		delimiterSeparatedProcessOwners = "'" + delimiterSeparatedProcessOwners + "'";
+	// 		return "  and (lower(jsonb_extract_path_text(data,'customer','internalCustomers')) similar to "
+	// 				+ delimiterSeparatedProcessOwners + " ) ";
+	// 	}
+	// 	return "";
+	// }
 
-	@Override
-	public List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery() {
-		String prefix = "select cast(data -> 'customer' -> 'internalCustomers' as text) from report_nsql";
-		String basicpredicate = " where jsonb_extract_path_text(data,'customer','internalCustomers') is not null";
-		String query = prefix + basicpredicate;
-		return getReportOwners(query);
-	}
+	// @Override
+	// public List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery() {
+	// 	String prefix = "select cast(data -> 'customer' -> 'internalCustomers' as text) from report_nsql";
+	// 	String basicpredicate = " where jsonb_extract_path_text(data,'customer','internalCustomers') is not null";
+	// 	String query = prefix + basicpredicate;
+	// 	return getReportOwners(query);
+	// }
 
 	@Override
 	public Integer getCountBasedPublishReport(Boolean published) {
@@ -333,33 +330,33 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		return results.intValue();
 	}
 
-	private List<TeamMemberVO> getReportOwners(String query) {
-		Query q = em.createNativeQuery(query);
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		List<Object> results = q.getResultList();
-		List<InternalCustomerVO> convertedResults = new ArrayList<>();
-		for (Object data : results) {
-			try {
-				String jsonData = data != null ? data.toString() : "";
-				List<InternalCustomerVO> list = mapper.readValue(jsonData,
-						new TypeReference<List<InternalCustomerVO>>() {
-						});
-				convertedResults.addAll(list);
-			} catch (Exception e) {
-				LOGGER.error("Failed to fetch report owners with exception {} ", e.getMessage());
+	// private List<TeamMemberVO> getReportOwners(String query) {
+	// 	Query q = em.createNativeQuery(query);
+	// 	ObjectMapper mapper = new ObjectMapper();
+	// 	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	// 	List<Object> results = q.getResultList();
+	// 	List<InternalCustomerVO> convertedResults = new ArrayList<>();
+	// 	for (Object data : results) {
+	// 		try {
+	// 			String jsonData = data != null ? data.toString() : "";
+	// 			List<InternalCustomerVO> list = mapper.readValue(jsonData,
+	// 					new TypeReference<List<InternalCustomerVO>>() {
+	// 					});
+	// 			convertedResults.addAll(list);
+	// 		} catch (Exception e) {
+	// 			LOGGER.error("Failed to fetch report owners with exception {} ", e.getMessage());
 
-			}
-		}
+	// 		}
+	// 	}
 
-		Map<String, TeamMemberVO> shortIdMap = new HashMap<>();
-		for (InternalCustomerVO item : convertedResults) {
-			if (item.getProcessOwner() != null && StringUtils.hasText(item.getProcessOwner().getShortId())) {
-				shortIdMap.put(item.getProcessOwner().getShortId(), item.getProcessOwner());
-			}
-		}
-		return shortIdMap.values().stream().collect(Collectors.toList());
-	}
+	// 	Map<String, TeamMemberVO> shortIdMap = new HashMap<>();
+	// 	for (InternalCustomerVO item : convertedResults) {
+	// 		if (item.getProcessOwner() != null && StringUtils.hasText(item.getProcessOwner().getShortId())) {
+	// 			shortIdMap.put(item.getProcessOwner().getShortId(), item.getProcessOwner());
+	// 		}
+	// 	}
+	// 	return shortIdMap.values().stream().collect(Collectors.toList());
+	// }
 
 	/**
 	 * To get Predicate string for division & subdivision combination.

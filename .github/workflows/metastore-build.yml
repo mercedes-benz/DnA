@@ -1,0 +1,26 @@
+name: Metastore Build
+
+on:
+  workflow_dispatch:
+
+jobs: 
+
+  development:
+    name: 'Deploy to Development'
+    runs-on: [ os-medium-amd64-linux ]
+
+    steps:
+
+    - name: run the hive_metastore_package
+      run: |
+        curl -s https://archive.apache.org/dist/hadoop/core/hadoop-3.2.0/hadoop-3.2.0.tar.gz \                                 
+        | tar xf -C /opt/ 
+
+    - name: run the hive_metastore_package_standlone
+      run: |       
+        curl -s https://downloads.apache.org/hive/hive-standalone-metastore-3.0.0/hive-standalone-metastore-3.0.0-bin.tar.gz \                           
+        | tar xf -C /opt/ 
+
+          
+
+

@@ -1,0 +1,43 @@
+# Author: PALANSA
+
+name: From public to Internal Harbor
+
+on:
+  workflow_dispatch:
+    inputs:
+      pullImage:
+        description: 'Image to pull'
+        required: true
+        default: "ngnix:latest"
+      pushImage:
+        description: "Harbor pushing image tag"
+        required: true
+        default: "registry-emea.app.corpintra.net/dna/ngnix:latest"
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  RUNNER_ALLOW_RUNASROOT: 1
+
+
+jobs:
+
+  docker:
+    name: 'Pull and push docker image'
+    runs-on: [ self-hosted ]
+
+    
+    steps:
+
+    - name: Pull Docker image
+      run: | 
+        docker pull ${{ github.event.inputs.pullImage }}
+
+
+    - name: Tag docker image
+      run: |
+        docker tag ${{ github.event.inputs.pullImage }} ${{ github.event.inputs.pushImage }}
+
+    - name: Publish docker image to harbor
+      run: |
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        docker push ${{ github.event.inputs.pushImage }}
