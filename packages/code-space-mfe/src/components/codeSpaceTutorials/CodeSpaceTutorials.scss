@@ -1,0 +1,80 @@
+.codeSpaceTutorials {
+  display: flex;
+  margin-top: 15px;
+
+  .leftPlane {
+    flex: 0 0 70%;
+  }
+
+  .rightPlane {
+    flex: 0 0 30%;
+    margin-left: 10px;
+  }
+}
+
+.tutorialsTable {
+  margin-left: 0px;
+}
+
+.title {
+  font-size: 13px;
+}
+
+.tutorialsRow {
+  height: 10px;
+}
+
+.selectedRow {
+  background-color: #1c2026;
+
+  .title {
+    color: #00adef !important;
+  }
+
+  .videoIcon {
+    color: #00adef;
+  }
+}
+
+.tutorialsRow {
+  &:hover {
+    cursor: pointer;
+    background-color: #1c2026;
+
+    .title {
+      padding-right: 15px;
+    }
+  }
+}
+
+.tutorialtitle {
+  display: inline-block;
+  padding: 6px;
+  padding-left: 0px;
+}
+
+.title {
+  font-size: 23px;
+}
+
+.title {
+  margin: 6px !important;
+}
+
+.selectedTitle {
+  font-size: 18px;
+  margin-top: 15px;
+
+}
+
+.selectedDes {
+  font-size: 12px;
+  color: #c0c8d0;
+}
+
+.videoIcon {
+  transform: rotate(-90deg);
+  color: #c0c8d0;
+  margin-top: 15px;
+  font-size: 10px;
+}
