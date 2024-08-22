@@ -432,7 +432,7 @@ const AllCodeSpaces = (props) => {
                     content={
                         <CodeSpaceTutorials />
                     }
-                    scrollableContent={false}
+                    scrollableContent={true}
                     onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
