@@ -45,6 +45,5 @@ public class DataWarehouse implements Serializable {
 	private static final long serialVersionUID = 152482308131566126L;
 
 	private String dataWarehouse;
-	private String dataClassification;
 	private String connectionType;
 }

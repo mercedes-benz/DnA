@@ -32,7 +32,7 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                   <React.Fragment key={`dataWarehouse${index}`}>
                     <div className={Styles.dataFunctionListView}>
                       
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                      <div className={classNames(Styles.flexLayout, Styles.twoColumn)}>
                         <div id='datawarehouse'>
                           <label className="input-label summary">Data Warehouse</label>
                           <br />
@@ -49,13 +49,6 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           {data.connectionType ? data.connectionType : 'NA'}
                         </div>
                       </div>
-                      <div className={classNames(Styles.flexLayout)}>
-                        <div id="dataClassification">
-                          <label className="input-label summary">Data Classification</label>
-                          <br />
-                          {data.dataClassification ? data.dataClassification : 'NA'}
-                        </div>
-                      </div>
                       
                     </div>
                     {this.props.dataAndFunctions.dataWarehouseInUse.length > 1 ||
@@ -70,16 +63,11 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                   <React.Fragment key={`singleDataSource${index}`}>
                     <div className={Styles.dataFunctionListView}>
                       <span className={Styles.dataAndFunction}>{`Single Data Source ${index + 1}`}</span>
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn, Styles.breakWords)}>
+                      <div className={classNames(Styles.flexLayout, Styles.twoColumn, Styles.breakWords)}>
                         <div id="dataSource">
                           <label className="input-label summary">Data Sources</label>
                           <br />
                           { data.dataSources ? data.dataSources?.map((item:any) => item.dataSource).join(' / ') : 'NA'}
-                        </div>
-                        <div id="commonFunctions">
-                          <label className="input-label summary">Data Classification</label>
-                          <br />
-                          {data.dataClassification ? data.dataClassification : 'NA'}
                         </div>
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>

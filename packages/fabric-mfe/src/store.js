@@ -1,9 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
-
-import fabricSlice from './redux/fabricSlice';
-
 import logger from 'redux-logger';
+import lovsReducer from './redux/lovsSlice';
 
 export const history = createHashHistory({
   basename: '/fabric',
@@ -13,7 +11,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default configureStore({
   reducer: {
-    fabric: fabricSlice,
+    lovs: lovsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     isDev

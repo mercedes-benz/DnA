@@ -46,7 +46,17 @@ rules:
     verbs: ["create", "get", "watch", "list", "patch"]  
   - apiGroups: ["networking.istio.io"]       # "" indicates the core API group
     resources: ["envoyfilters"]
-    verbs: ["create", "get", "watch", "list", "patch","delete"]      
+    verbs: ["create", "get", "watch", "list", "patch","delete"]
+  - apiGroups:	
+      - ''	
+    resources:	
+      - secrets	
+    verbs:	
+      - create	
+      - get	
+      - watch	
+      - list	
+      - patch   
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
