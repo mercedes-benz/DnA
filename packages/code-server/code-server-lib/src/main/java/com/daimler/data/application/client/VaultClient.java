@@ -32,7 +32,7 @@ public class VaultClient {
 	RestTemplate restTemplate;
 
 
-    public boolean isValutInjectorEnable(String projectName, String environment) throws Exception{
+    public Boolean isValutInjectorEnable(String projectName, String environment) throws Exception{
         Boolean responseBoolean = false;
         try {
             HttpHeaders headers = new HttpHeaders();
