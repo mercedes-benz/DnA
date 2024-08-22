@@ -82,8 +82,8 @@ const ContactInformation = ({
         if (!dirtyFields.division && !dirtyFields.subDivision) {
           let selected = isDataProduct
             ? provideDataTransfers?.selectedDataProduct
-            : provideDataTransfers?.selectedDataTransfer;
-          setValue('subDivision', selected?.subDivision);
+            : provideDataTransfers.selectedDataTransfer;
+          setValue('subDivision', selected.subDivision);
         } else {
           setValue('subDivision', '0');
         }

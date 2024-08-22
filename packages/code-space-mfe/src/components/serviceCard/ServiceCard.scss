@@ -1,0 +1,104 @@
+.serviceCard {
+  background: #282e39;
+  border: 1px solid #383f49;
+  padding: 20px;
+  margin-bottom: 14px;
+  height: calc(100% - 14px);
+  
+  .cardHead {
+    .cardHeadInfo {
+      .cardHeadTitle {
+        font-size: var(--font-size-headline);
+        text-transform: capitalize;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #383f49;
+
+        span {
+          font-size: var(--font-size-small);
+          float: right;
+          margin-top: 5px;
+          color: #acb8c4;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+  .cardFooter {
+    .btnMore {
+      background: unset;
+      border: unset;
+      padding: 0;
+      margin: 0;
+      font-size: var(--font-size-small);
+      color: #00adef;
+      height: unset;
+    }
+  }
+}
+
+.itemContainer {
+  margin-bottom: 10px;
+  .itemTitle {
+    font-family: 'Roboto-Medium';
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .item {
+    display: flex;
+    color: #acb8c4;
+    font-size: var(--font-size-small);
+    margin-bottom: 5px;
+    > p {
+      margin-bottom: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .name {
+      font-family: 'Roboto-Medium';
+      min-width: 40%;
+      max-width: 40%;
+    }
+    .value {
+      padding-left: 20px;
+    }
+  }
+}
+
+.modal {  
+  width: 650px;
+  margin: 0 auto 20px;
+  .header {
+    margin-bottom: 20px;
+    text-align: center;
+    span {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .copyJSON {
+    font-size: var(--font-size-small);
+    color: #acb8c4;
+    cursor: pointer;
+    float: right;
+  }
+  .item {
+    > p {
+      white-space: unset;
+      overflow: unset;
+      text-overflow: unset;
+      word-break: break-all;
+    }
+    .value {
+      width: 60%;
+    }
+  }
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+}

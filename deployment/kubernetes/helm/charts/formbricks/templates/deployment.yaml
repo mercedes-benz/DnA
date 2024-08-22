@@ -106,6 +106,8 @@ spec:
               value: "{{ .Values.formbricks.rateLimitingDisabled }}"
             - name: EMAIL_AUTH_DISABLED
               value: "{{ .Values.formbricks.emailAuthDisabled }}"
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "{{ .Values.formbricks.nodeTlsRejectUnauthorized }}"  #### Added new entry  
             {{- if and .Values.formbricks.mail .Values.formbricks.mail.mailFrom }}
             - name: MAIL_FROM
               value: "{{ .Values.formbricks.mail.mailFrom }}"

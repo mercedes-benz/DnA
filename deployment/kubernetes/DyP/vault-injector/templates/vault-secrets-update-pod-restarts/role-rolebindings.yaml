@@ -1,0 +1,49 @@
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "vault.fullname" . }}-rollouts-role
+  namespace: {{ include "vault.namespace" . }}
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - delete
+      - watch
+  - apiGroups: ["apps","extensions"]
+    resources:
+      - deployments
+      - deployments/scale
+      - deployments/status
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+      - scale
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "vault.fullname" . }}-rollouts-role-binding
+  namespace: {{ include "vault.namespace" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "vault.serviceAccount.name" . }}
+    namespace: {{ include "vault.namespace" . }}
+  - kind: ServiceAccount
+    name: {{ template "vault.fullname" . }}-agent-injector
+    namespace: {{ include "vault.namespace" . }}
+  - kind: ServiceAccount
+    name: default
+    namespace: {{ include "vault.namespace" . }}
+roleRef:
+  kind: Role
+  name: {{ template "vault.fullname" . }}-rollouts-role
+  apiGroup: rbac.authorization.k8s.io
