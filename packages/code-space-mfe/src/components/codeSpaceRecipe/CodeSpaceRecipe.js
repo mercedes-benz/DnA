@@ -325,7 +325,7 @@ const CodeSpaceRecipe = (props) => {
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
         .then(() => {
           ProgressIndicator.hide();
-          history.push('/manageRecipe');
+          history.push('/manageRecipes');
           Notification.show('New Recipe Created successfully');
         })
         .catch((err) => {
@@ -384,7 +384,7 @@ const CodeSpaceRecipe = (props) => {
       CodeSpaceApiClient.updateCodeSpaceRecipe(recipeId, data)
         .then(() => {
           ProgressIndicator.hide();
-          history.push('/manageRecipe');
+          history.push('/manageRecipes');
           Notification.show('Recipe Updated successfully');
         })
         .catch((err) => {
