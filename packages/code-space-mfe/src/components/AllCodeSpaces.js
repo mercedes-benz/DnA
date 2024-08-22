@@ -19,6 +19,7 @@ import { USER_ROLE } from '../Utility/constants';
 import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
+import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -39,7 +40,8 @@ const AllCodeSpaces = (props) => {
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
-        [onDeployCodeSpace, setOnDeployCodeSpace] = useState();
+        [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
+        [showTutorialsModel, setShowTutorialsModel] = useState(false);
     const isCodeSpaceAdmin = props?.user?.roles?.some((role) => role?.id === USER_ROLE.CODESPACEADMIN);
     const History = useHistory();
     const goback = () => {
@@ -259,6 +261,14 @@ const AllCodeSpaces = (props) => {
                                 </button>
                             </>
                         ) : null}
+                        <button
+                            className={classNames('btn btn-primary', Styles.tutorials)}
+                            tooltip-data="code space video tutorials"
+                            onClick={() => { setShowTutorialsModel(true) }}
+                        >
+                            <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
+                            <span>Video Tutorials</span>
+                        </button>
                     </div>
                 </div>
                 {loading ? (
@@ -383,6 +393,22 @@ const AllCodeSpaces = (props) => {
                             </button>
                         </>
                     }
+                />
+            )}
+            {showTutorialsModel && (
+                <Modal
+                    title={''}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="80%"
+                    buttonAlignment="right"
+                    show={showTutorialsModel}
+                    content={
+                        <CodeSpaceTutorials />
+                    }
+                    scrollableContent={false}
+                    onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
         </div>
