@@ -196,6 +196,7 @@
 				 } else {
 					 deployJobInputDto.setType("default");
 				 }
+				 
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 String projectOwnerWsId = entity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(projectOwnerWsId);
