@@ -53,6 +53,7 @@ import org.springframework.util.ObjectUtils;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.application.client.VaultClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.auth.client.DnaAuthClient;
@@ -139,6 +140,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
+
+	@Autowired
+	private VaultClient VaultClient;
 
 	public BaseWorkspaceService() {
 		super();
@@ -1009,7 +1013,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
+			boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1051,7 +1055,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(workspaceOwnerWsId);
 				deployJobInputDto.setProjectName(projectName.toLowerCase());
-				deployJobInputDto.setValutInjectorEnable(valutInjectorEnable);
+				deployJobInputDto.setValutInjectorEnable(VaultClient.isValutInjectorEnable(projectName, environment));
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);

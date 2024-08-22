@@ -1181,8 +1181,8 @@ definitions:
         type: boolean
       technicalUserDetailsForIAMLogin:
         type: string
-      valutInjectorEnable:  # Corrected property name
-        type: boolean
+      # valutInjectorEnable:  # Corrected property name
+      #   type: boolean
         default: false  # This should now work as expected
       clientID:
         type: string
