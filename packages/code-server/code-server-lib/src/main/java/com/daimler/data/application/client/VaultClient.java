@@ -23,10 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class VaultClient {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(VaultClient.class);
+
     @Value("${codeServer.vault.baseuri}")
 	private String vaultBaseUri;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(VaultClient.class);
     @Autowired
 	RestTemplate restTemplate;
 
