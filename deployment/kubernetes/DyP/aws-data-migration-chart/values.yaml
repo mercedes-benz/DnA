@@ -36,4 +36,7 @@ storageCredentials:
   accessKeyId: ""
   secretAccessKey: ""
   resticKey: ""
-  bucketName: ""
+  #Mounted directly to the pod env not as a secret
+  apiUrl: "s3:https://s3.eu-west-2.amazonaws.com"
+  bucketName: "example-bucket"
+  path: "pvc-name"

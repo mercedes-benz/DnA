@@ -1,5 +1,8 @@
 ---
 {{- if .Values.backupJob.enabled }}
+{{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
+{{- $bucketName := .Values.storageCredentials.bucketName }}
+{{- $path := .Values.storageCredentials.path }}
 {{- range $index,$pvc := .Values.backupJob.backupPvc }}
 apiVersion: batch/v1
 kind: Job
@@ -16,11 +19,7 @@ spec:
           - init
         env:
           - name: RESTIC_REPOSITORY
-            valueFrom:
-              secretKeyRef:
-                name: {{ $pvc.pvcName }} ## pvc name
-                key: bucketName
-                optional: false
+            value: "{{ $apiUrl }}/{{ $bucketName }}/{{ $path }}"
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
