@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.fabricWorkspace.FabricWorkspacesApi;
+import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -30,7 +31,6 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
-public class FabricWorkspaceController implements FabricWorkspacesApi
+public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 {
 	@Autowired
 	private FabricWorkspaceService service;
@@ -172,6 +172,37 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		}
     }
 
+	@Override
+	@ApiOperation(value = "List of values for available workspaces", nickname = "getWorkspacesLov", notes = "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = FabricWorkspacesCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/lov/fabric-workspaces",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricWorkspacesCollectionVO> getWorkspacesLov(@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    		@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+    		@ApiParam(value = "Sort workspaces by a given variable like name, createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+    		@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
+		FabricWorkspacesCollectionVO collection = new FabricWorkspacesCollectionVO();
+		int defaultLimit = 15;
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0) {
+			limit = defaultLimit;
+		}
+		collection = service.getAllLov(limit, offset);
+		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+		return new ResponseEntity<>(collection, responseCode);
+	}
+
+	
     @Override
     @ApiOperation(value = "Get all workspaces for the user.", nickname = "getAll", notes = "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
@@ -200,12 +231,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		UserInfo userInfo = this.userStore.getUserInfo();
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			System.out.println(mapper.writeValueAsString(userInfo));
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
 		String user = requestUser.getId();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
