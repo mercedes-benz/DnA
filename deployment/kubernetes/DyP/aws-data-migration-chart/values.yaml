@@ -21,7 +21,7 @@ backupJob:
 
 restoreJob:
   enabled: false
-  restorePvcName:
+  restorePvc:
     - pvcName: ws2000
       namespace: 'restore-ns-01'
       restorePath: '/home/backup-ns-01'

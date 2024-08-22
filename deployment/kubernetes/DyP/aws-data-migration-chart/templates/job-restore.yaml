@@ -1,6 +1,6 @@
 ---
 {{- if .Values.restoreJob.enabled }}
-{{- range $index, $pvc := .Values.restoreJob.restorePvcName }}
+{{- range $index, $pvc := .Values.restoreJob.restorePvc }}
 apiVersion: batch/v1
 kind: Job
 metadata:
