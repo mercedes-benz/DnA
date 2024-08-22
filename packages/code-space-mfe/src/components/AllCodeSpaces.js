@@ -42,7 +42,6 @@ const AllCodeSpaces = (props) => {
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
         [showTutorialsModel, setShowTutorialsModel] = useState(false);
-    const isCodeSpaceAdmin = props?.user?.roles?.some((role) => role?.id === USER_ROLE.CODESPACEADMIN);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -111,7 +110,7 @@ const AllCodeSpaces = (props) => {
     const onShowSecurityConfigRequest = () => {
        history.push(`manageCodespace`);
     };
-
+    
     const isCodeSpaceCreationSuccess = (status, codeSpaceData) => {
         if (showNewCodeSpaceModal) {
             setShowNewCodeSpaceModal(!status);
