@@ -85,10 +85,12 @@ const ManageRecipes = () => {
       .then((res) => {
         setLoading(false);
         ProgressIndicator.hide();
-        const totalNumberOfPagesInner = Math.ceil(res.data.count / maxItemsPerPage);
-        setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-        setTotalNumberOfPages(totalNumberOfPagesInner);
-        setRecipes(Array.isArray(res.data) ? res.data : (res.data.data));
+        if(Array.isArray(res?.data?.data)) {
+          const totalNumberOfPagesInner = Math.ceil(res?.data?.data.count / maxItemsPerPage);
+          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+          setTotalNumberOfPages(totalNumberOfPagesInner);
+          setRecipes(res?.data?.data);
+        }
       })
       .catch((err) => {
         setLoading(false);

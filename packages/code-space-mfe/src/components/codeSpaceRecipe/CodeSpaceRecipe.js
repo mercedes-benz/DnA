@@ -312,7 +312,7 @@ const CodeSpaceRecipe = (props) => {
         plugins: ['string'],
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
-        recipeType: isPublic ? 'Public' : 'Private',
+        recipeType: isPublic ? 'public' : 'private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
@@ -325,7 +325,7 @@ const CodeSpaceRecipe = (props) => {
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
         .then(() => {
           ProgressIndicator.hide();
-          history.push('/manageRecipe');
+          history.push('/manageRecipes');
           Notification.show('New Recipe Created successfully');
         })
         .catch((err) => {
@@ -371,7 +371,7 @@ const CodeSpaceRecipe = (props) => {
         plugins: ['string'],
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
-        recipeType: isPublic ? 'Public' : 'Private',
+        recipeType: isPublic ? 'public' : 'private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
@@ -384,7 +384,7 @@ const CodeSpaceRecipe = (props) => {
       CodeSpaceApiClient.updateCodeSpaceRecipe(recipeId, data)
         .then(() => {
           ProgressIndicator.hide();
-          history.push('/manageRecipe');
+          history.push('/manageRecipes');
           Notification.show('Recipe Updated successfully');
         })
         .catch((err) => {
