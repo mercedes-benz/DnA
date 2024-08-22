@@ -1050,6 +1050,9 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());

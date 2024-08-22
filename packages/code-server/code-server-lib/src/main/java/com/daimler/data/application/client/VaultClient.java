@@ -32,8 +32,8 @@ public class VaultClient {
 	RestTemplate restTemplate;
 
 
-    public boolean isValutInjectorEnable(String projectName, String environment){
-        Boolean responseValue = false;
+    public boolean isValutInjectorEnable(String projectName, String environment) throws Exception{
+        Boolean responseBoolean = false;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
@@ -45,14 +45,17 @@ public class VaultClient {
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map<String, String> secMap = objectMapper.readValue(response.getBody(), new TypeReference<Map<String, String>>() {});
                 if(!secMap.isEmpty()){
-                    responseValue = true;
+                    responseBoolean = true;
                 }
-                LOGGER.info("Sucessfully fetched the secrets from vault, value = {} for projectname {} and evironment {}", responseValue,projectName,environment);
+                LOGGER.info("Sucessfully fetched the secrets from vault, value = {} for projectname {} and evironment {}", responseBoolean,projectName,environment);
+            }else{
+                throw new Exception(" Failed at vault with the status: "+response.getStatusCode());
             }
         } catch (Exception e) {
             LOGGER.error("Error occured while fetching secrets for project {} and environment {} with exception {} ", projectName,environment, e.getMessage());
+            throw e;
         }
-        return responseValue;
+        return responseBoolean;
         }
 	
 }

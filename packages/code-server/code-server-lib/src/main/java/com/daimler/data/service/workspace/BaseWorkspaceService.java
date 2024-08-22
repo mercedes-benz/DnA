@@ -1051,11 +1051,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 					responseMessage.setErrors(errors);
 					return responseMessage;
 				}
+				Boolean isValutInjectorEnable = false;
+				try{
+					isValutInjectorEnable = VaultClient.isValutInjectorEnable(projectName.toLowerCase(), environment);
+				}catch(Exception e){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(workspaceOwnerWsId);
 				deployJobInputDto.setProjectName(projectName.toLowerCase());
-				deployJobInputDto.setValutInjectorEnable(VaultClient.isValutInjectorEnable(projectName, environment));
+				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
