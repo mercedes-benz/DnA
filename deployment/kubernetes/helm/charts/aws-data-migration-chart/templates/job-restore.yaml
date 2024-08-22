@@ -1,0 +1,66 @@
+---
+{{- $namespace := .Values.restoreJob.namespace -}}
+{{- $path := .Values.restoreJob.restorePath -}}
+{{- if .Values.restoreJob.enabled }}
+{{- range $jobIndex, $jobName := .Values.restoreJob.restoreJobName }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $jobName }}-rs-job
+  namespace: {{ $namespace | quote }}
+spec:
+  template:
+    spec:
+      containers:      
+      - image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
+        imagePullPolicy: IfNotPresent
+        name: restic
+        args:
+        - restore
+        - latest  # change me, if needed, to restore different snapshot
+        - --target
+        - {{ $path}} ## path
+        - --insecure-tls
+        env:
+        - name: RESTIC_REPOSITORY
+          valueFrom:
+            secretKeyRef:
+              name: {{ $jobName }}
+              key: bucketName
+              optional: false
+        - name: RESTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: resticKey
+              name: {{ $jobName }}
+              optional: false
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: accessKeyId
+              name: {{ $jobName }}
+              optional: false
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretAccessKey
+              name: {{ $jobName }}
+              optional: false
+        volumeMounts:
+        - mountPath: {{ $path}} ##
+          name: backupdata
+        - name: backupdata
+          mountPath: /.cache          
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000            
+      volumes:
+      - name: backupdata
+        persistentVolumeClaim:
+          claimName: {{ $jobName }}  # change me ## pvc name
+---
+{{- end }}
+{{- end }}

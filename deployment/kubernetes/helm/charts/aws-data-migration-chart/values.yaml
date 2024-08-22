@@ -1,0 +1,33 @@
+# Default values for aws-data-migration-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+imagePullSecrets:
+
+backupJob:
+  enabled: true
+  namespace: 'backup-ns'
+  backupPath: '/home/coder'
+# If the job is enabled, then mention the jobname below 
+  backupJobName:
+    - ws1887
+    - ws1978
+    - ws2005
+
+restoreJob:
+  enabled: true
+  namespace: restore-ns
+  restorePath: '/home/coder'
+# If the job is enabled, then mention the jobname below  
+  restoreJobName:
+    - ws1275
+    - ws1639
+    - ws1841
+
+storageCredentials:
+  accessKeyId: ""
+  secretAccessKey: ""
+  resticKey: ""
+  bucketName: ""

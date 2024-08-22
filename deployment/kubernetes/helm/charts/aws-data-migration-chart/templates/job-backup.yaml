@@ -1,0 +1,96 @@
+---
+{{- $namespace := .Values.backupJob.namespace -}}
+{{- $path := .Values.backupJob.backupPath -}}
+{{- if .Values.backupJob.enabled }}
+{{- range $index,$jobName := .Values.backupJob.backupJobName }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $jobName }}-bk-job
+  namespace: {{ $namespace | quote }}
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: init-container
+        image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
+        args:
+          - init
+        env:
+          - name: RESTIC_REPOSITORY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: bucketName
+                optional: false
+          - name: RESTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }}  ## pvc name
+                key: resticKey
+                optional: false
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: accessKeyId
+                optional: false
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: secretAccessKey
+                optional: false          
+      containers:
+      - name: restic
+        image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
+        workingDir: {{ $path }} ## path
+        args:
+          - backup
+          - --host
+          - kubernetes  # set a consistent hostname to avoid restic rescans
+          - .           # use workingDir to set path
+        env:
+          - name: RESTIC_REPOSITORY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: bucketName
+                optional: false
+          - name: RESTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: resticKey
+                optional: false
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: accessKeyId
+                optional: false
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $jobName }} ## pvc name
+                key: secretAccessKey
+                optional: false
+        volumeMounts:
+          - name: backupdata
+            mountPath: {{ $path }} #path
+            readOnly: true
+          - name: backupdata
+            mountPath: /.cache
+      volumes:
+        - name: backupdata
+          persistentVolumeClaim:
+            claimName: {{ $jobName }}  # Change me ## pvc name
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000                
+      restartPolicy: OnFailure
+---
+{{- end }}
+{{- end }}
