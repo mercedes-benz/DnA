@@ -20,14 +20,17 @@ backupJob:
       backupPath: '/home/backup-ns-03'
 
 restoreJob:
-  enabled: true
-  namespace: restore-ns
-  restorePath: '/home/coder'
-# If the job is enabled, then mention the jobname below  
+  enabled: false
   restorePvcName:
-    - ws1275
-    - ws1639
-    - ws1841
+    - pvcName: ws2000
+      namespace: 'restore-ns-01'
+      restorePath: '/home/backup-ns-01'
+    - pvcName: ws2001
+      namespace: 'restore-ns-02'
+      restorePath: '/home/backup-ns-02'
+    - pvcName: ws2002
+      namespace: 'restore-ns-03'
+      restorePath: '/home/backup-ns-03'
 
 storageCredentials:
   accessKeyId: ""

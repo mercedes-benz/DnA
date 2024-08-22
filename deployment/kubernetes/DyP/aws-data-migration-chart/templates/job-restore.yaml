@@ -1,13 +1,11 @@
 ---
-{{- $namespace := .Values.restoreJob.namespace -}}
-{{- $path := .Values.restoreJob.restorePath -}}
 {{- if .Values.restoreJob.enabled }}
-{{- range $jobIndex, $pvcName := .Values.restoreJob.restorePvcName }}
+{{- range $index, $pvc := .Values.restoreJob.restorePvcName }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $pvcName }}-rs-job
-  namespace: {{ $namespace | quote }}
+  name: {{ $pvc.pvcName }}-rs-job
+  namespace: {{ $pvc.namespace | quote }}
 spec:
   template:
     spec:
@@ -19,35 +17,35 @@ spec:
         - restore
         - latest  # change me, if needed, to restore different snapshot
         - --target
-        - {{ $path}} ## path
+        - {{ $pvc.restorePath }} ## path
         - --insecure-tls
         env:
         - name: RESTIC_REPOSITORY
           valueFrom:
             secretKeyRef:
-              name: {{ $pvcName }}
+              name: {{ $pvc.pvcName }}
               key: bucketName
               optional: false
         - name: RESTIC_PASSWORD
           valueFrom:
             secretKeyRef:
               key: resticKey
-              name: {{ $pvcName }}
+              name: {{ $pvc.pvcName }}
               optional: false
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
               key: accessKeyId
-              name: {{ $pvcName }}
+              name: {{ $pvc.pvcName }}
               optional: false
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               key: secretAccessKey
-              name: {{ $pvcName }}
+              name: {{ $pvc.pvcName }}
               optional: false
         volumeMounts:
-        - mountPath: {{ $path}} ##
+        - mountPath: {{ $pvc.restorePath }} ##
           name: backupdata
         - name: backupdata
           mountPath: /.cache          
@@ -60,7 +58,7 @@ spec:
       volumes:
       - name: backupdata
         persistentVolumeClaim:
-          claimName: {{ $pvcName }}  # change me ## pvc name
+          claimName: {{ $pvc.pvcName }}  # change me ## pvc name
 ---
 {{- end }}
 {{- end }}
