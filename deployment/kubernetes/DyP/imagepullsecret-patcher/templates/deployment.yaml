@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "imagepullsecret-patcher.fullname" . }}
+  labels:
+    {{- include "imagepullsecret-patcher.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "imagepullsecret-patcher.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "imagepullsecret-patcher.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: true
+      serviceAccountName: {{ include "imagepullsecret-patcher.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+            - name: CONFIG_FORCE
+              value: {{ .Values.conf.force | quote}}
+            - name: CONFIG_DEBUG
+              value: "{{ .Values.conf.debug }}"
+            - name: CONFIG_MANAGEDONLY
+              value: "{{ .Values.conf.managedonly}}"
+            - name: CONFIG_RUNONCE
+              value: "{{ .Values.conf.runone }}"
+            {{- $length := len .Values.conf.service_accounts }} {{ if gt $length 0 }}
+            - name: CONFIG_SERVICEACCOUNTS
+              value: "{{- join "," .Values.conf.service_accounts }}"
+            {{- end }}
+            - name: CONFIG_ALLSERVICEACCOUNT
+              value: {{ .Values.conf.all_service_accounts | quote }}
+            {{- $length := len .Values.conf.excluded_namespaces }} {{ if gt $length 0 }}
+            - name: CONFIG_EXCLUDED_NAMESPACES
+              value: "{{- join "," .Values.conf.excluded_namespaces }}"
+            {{- end }}
+            - name: CONFIG_SECRETNAME
+              value: "{{ .Values.conf.secretName }}"
+            - name: CONFIG_DOCKERCONFIGJSONPATH
+              value: "/app/secrets/.dockerconfigjson"
+            - name: CONFIG_LOOP_DURATION
+              value: {{ .Values.conf.interval | quote}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: src-dockerconfigjson
+              mountPath: "/app/secrets"
+              readOnly: true
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 15Mi
+            limits:
+              cpu: 0.2
+              memory: 30Mi
+      volumes:
+        - name: src-dockerconfigjson
+          secret: 
+            secretName: {{ .Values.conf.secretName }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -897,4 +897,61 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
         return solutionService.malwareScanUnsubscribe(solutionId);
     }
 
+    @Override
+    @ApiOperation(value = "notify use case owners of selected solutions", nickname = "notifyUsecaseOwners", notes = "notifies use case owners of selected solutions", response = GenericMessage.class, tags={ "solutions", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Email sent successfully.", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad request. Invalid parameters provided."),
+        @ApiResponse(code = 401, message = "Unauthorized. User does not have permission to send emails."),
+        @ApiResponse(code = 500, message = "Internal server error. Something went wrong on the server side.") })
+    @RequestMapping(value = "/solutions/broadcast/usecaseowners",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> notifyUsecaseOwners(@ApiParam(value = "Request Body that contains data required for mailing use case owners." ,required=true )  @Valid @RequestBody EmailDataVO emailData) {
+        GenericMessage responseMessage = new GenericMessage();
+		MessageDescription errorMessage = new MessageDescription();
+        try {
+            CreatedByVO currentUser = this.userStore.getVO();
+            String userId = currentUser != null ? currentUser.getId() : "";
+
+            List<String> phases = emailData.getPhase();
+
+            List<String> locations = emailData.getLocation();
+
+            List<String> statuses = emailData.getStatus();
+
+            List<String> tags = emailData.getTags();
+
+            responseMessage = solutionService.notifyUsecaseOwners(true, phases,
+                    new ArrayList<>(), emailData.getDivision(), locations, statuses, emailData.getUseCaseType(), userId, false, new ArrayList<>(),
+                    tags, new ArrayList<>(),
+                    new ArrayList<>(), false, emailData.getEmailText());
+
+        } catch (EntityNotFoundException e) {
+            errorMessage.setMessage("Entity not found for user.");
+			LOGGER.info("Entity not found for user. {}",e.getMessage());
+            List<MessageDescription> errorMessages = new ArrayList<>();
+            errorMessages.add(errorMessage);
+			responseMessage.setErrors(errorMessages);
+			responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage,HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception e){
+            errorMessage.setMessage("Some error occured. Failed to send mail.");
+			LOGGER.info("Some error occured. Failed to send mail. {}",e.getMessage());
+			List<MessageDescription> errorMessages = new ArrayList<>();
+            errorMessages.add(errorMessage);
+			responseMessage.setErrors(errorMessages);
+			responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage,HttpStatus.BAD_REQUEST);
+        }
+        if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())){
+            return new ResponseEntity<>(responseMessage,HttpStatus.OK);
+        }
+        return new ResponseEntity<>(responseMessage,HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+
 }

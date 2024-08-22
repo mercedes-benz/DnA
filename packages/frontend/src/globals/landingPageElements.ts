@@ -34,6 +34,7 @@ const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
+const genAILLMPromptUrl = Envs.GENAI_LLM_PROMPT_ENG_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
@@ -203,6 +204,7 @@ export const ToolsLandingPageElements = [
     upperTag: 'FC Private Preview',
     isSmallCard: false,
     isMediumCard: true,
+    isDetailedPage: true,
     svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
@@ -305,7 +307,7 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enablePowerPlatformService,
-    isDetailedPage: false,
+    isDetailedPage: true,
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
@@ -784,5 +786,16 @@ export const GenAILandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-direct-chat',
+  }, 
+  {
+    name: 'Prompt Craft LLM Engineering',
+    description: 'Prompt Craft is a fully functional LLM Engineering solution that leverages OpenSource and enables Prompt Engineers to build enterprise grade GenAI Applications.',
+    url: genAILLMPromptUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled:  !genAILLMPromptUrl?.startsWith('http') ,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'genai-solutions',
   }
 ];

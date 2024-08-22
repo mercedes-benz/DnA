@@ -1,0 +1,73 @@
+namespace: storage
+configJs: |
+  window["STORAGE_INJECTED_ENVIRONMENT"]={
+      CONTAINER_APP_URL: "",
+      STORAGE_API_BASEURL: "",
+      TOU_HTML: "", 
+      ENABLE_DATA_CLASSIFICATION_SECRET: false,
+      API_BASEURL: "",
+      TRINO_API_BASEURL: "",
+      ENABLE_TRINO_PUBLISH: true
+    }; 
+conf:
+  storageBackendUrl: http://storage-be.storage.svc.cluster.local:80
+replicaCount: 2
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/storage-mfe
+  pullPolicy: Always
+  tag: 3.3.1
+imagePullSecrets:
+  - name: imagepullsecret
+nameOverride: ''
+fullnameOverride: storage-mfe
+podSecurityContext:
+  runAsUser: 1001
+containerPort: 3000
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: storage.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - storage.dna.app.corpintra.net
+      secretName: storage-tls-secret
+resources: {}
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/namespace: fmas/prod
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/storageMFE
+    vault.hashicorp.com/agent-inject-file-configjs: config.js
+    vault.hashicorp.com/agent-inject-template-configjs: |
+      {{- with secret "kv/dna/kubernetesSecret/storageMFE" -}}
+          window["STORAGE_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}   
+  saName: default
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%

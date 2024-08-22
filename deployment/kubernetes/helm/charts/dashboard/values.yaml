@@ -3,7 +3,9 @@
 # Declare variables to be passed into your templates.
 
 namespace: dashboard
-image: ""
+image:
+  repository: ""
+  tag: ""
 imagePullPolicy: Always
 imagePullSecret: 
   name: harbor-pull-secrets
