@@ -41,7 +41,6 @@ const AllCodeSpaces = (props) => {
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
         [showTutorialsModel, setShowTutorialsModel] = useState(false);
-    const isCodeSpaceAdmin = props?.user?.roles?.some((role) => role?.id === USER_ROLE.CODESPACEADMIN);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -110,7 +109,7 @@ const AllCodeSpaces = (props) => {
     const onShowSecurityConfigRequest = () => {
        history.push(`manageRecipes`);
     };
-
+    
     const isCodeSpaceCreationSuccess = (status, codeSpaceData) => {
         if (showNewCodeSpaceModal) {
             setShowNewCodeSpaceModal(!status);
@@ -248,6 +247,8 @@ const AllCodeSpaces = (props) => {
                                 </button>
                             </>
                         ) : null}
+
+
                         <button
                             className={classNames('btn btn-primary', Styles.configIcon)}
                             type="button"
@@ -256,6 +257,7 @@ const AllCodeSpaces = (props) => {
                             <IconGear size={'14'} />
                             <span>&nbsp;Manage Recipes</span>
                         </button>
+
                         <button
                             className={classNames('btn btn-primary', Styles.tutorials)}
                             tooltip-data="code space video tutorials"
