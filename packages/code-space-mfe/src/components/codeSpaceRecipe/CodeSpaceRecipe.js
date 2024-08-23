@@ -334,7 +334,7 @@ const CodeSpaceRecipe = (props) => {
             Notification.show(err?.response?.data?.data, 'alert');
           }
           if(err?.response?.status === 400) {
-            Notification.show(`Kindly uncheck 'Do not allow bypassing the above settings' in branch protection rule settings.`, 'alert');
+            Notification.show(`Your git repo main branch is protected with repo lock. Kindly uncheck 'Do not allow bypassing the above settings' in branch protection rule settings and try again.`, 'warning');
           }
           if(err?.response?.status !== 409 && err?.response?.status !== 400) {
             Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
