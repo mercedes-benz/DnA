@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: dna-authenticator-service
+    version: 1.0.8
+    
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+
+pooluser:
+  email-domain: ${POOL_USER_EMAIL_DOMAIN:XXXXX}
+
+server:
+  port: 9797
+
+drd:
+  #DEV
+  request-url: ${INTERNAL_USER_REQUEST_URL:xxxxx}
+  certificate-file: ${INTERNAL_USER_CERT_FILE:xxxxx}
+  certificate-pass: ${INTERNAL_USER_CERT_PASS:xxxxx}
+    
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+corsPlugin:
+  allowedUrls: ${ALLOWED_URLS:xxxxx}
+  maxAge: ${MAX_AGE:xxxxx}
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+          controller.ItsmmGameController: DEBUG
+    org.springframework.boot.autoconfigure.logging: INFO
+    com.daimler.data.controller.ItsmmGameController: DEBUG
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
+
+kong:
+    uri: ${KONG_URI:XXXX}
+                
+

@@ -1,0 +1,44 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "imagepullsecret-patcher.labels" . | nindent 4 }}
+  name: {{ include "imagepullsecret-patcher.fullname" . }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - serviceaccounts
+  verbs:
+  - list
+  - secrets
+  - serviceaccounts
+  verbs:
+  - list
+  - patch
+  - create
+  - get
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "imagepullsecret-patcher.labels" . | nindent 4 }}
+  name: {{ include "imagepullsecret-patcher.fullname" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "imagepullsecret-patcher.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "imagepullsecret-patcher.fullname" . }}
+    namespace: {{ .Release.Namespace }}

@@ -1,0 +1,58 @@
+{{- if .Values.internal.enabled -}}
+# Network policy for connection prometheus -> alertmanager
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ template "dhc-monitoring-netpols.fullname" . }}-prometheus-to-alertmanager
+  labels:
+    {{- include "dhc-monitoring-netpols.metadata.labels" . | nindent 4}}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "dhc-monitoring-netpols.alertmanager.matchLabels" . | nindent 6 }}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "dhc-monitoring-netpols.server.matchLabels" . | nindent 12 }}
+      ports:
+      - port: 9093
+---
+# Network policy for connection grafana -> prometheus
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ template "dhc-monitoring-netpols.fullname" . }}-grafana-to-prometheus
+  labels:
+    {{- include "dhc-monitoring-netpols.metadata.labels" . | nindent 4}}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "dhc-monitoring-netpols.server.matchLabels" . | nindent 6 }}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "dhc-monitoring-netpols.grafana.matchLabels" . | nindent 12 }}
+      ports:
+      - port: 9090
+---
+# Network policy for connection prometheus -> pushgateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ template "dhc-monitoring-netpols.fullname" . }}-prometheus-to-pushgateway
+  labels:
+    {{- include "dhc-monitoring-netpols.metadata.labels" . | nindent 4}}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "dhc-monitoring-netpols.pushgateway.matchLabels" . | nindent 6 }}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "dhc-monitoring-netpols.server.matchLabels" . | nindent 12 }}
+    - ports:
+      - port: 9091
+{{- end -}}
