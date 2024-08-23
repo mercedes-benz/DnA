@@ -189,6 +189,7 @@
 
   > div {
     width: calc(25% - 12px);
+    min-height: 300px;
   }
 }
 .sectionTitle {
