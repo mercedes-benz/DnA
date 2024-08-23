@@ -2,7 +2,6 @@
 {{- if .Values.restoreJob.enabled }}
 {{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
 {{- $bucketName := .Values.storageCredentials.bucketName }}
-{{- $path := .Values.storageCredentials.path }}
 {{- range $index, $pvc := .Values.restoreJob.restorePvc }}
 apiVersion: batch/v1
 kind: Job
@@ -24,7 +23,7 @@ spec:
         - --insecure-tls
         env:
         - name: RESTIC_REPOSITORY
-          value: "{{ $apiUrl }}/{{ $bucketName }}/{{ $path }}"
+          value: "{{ $apiUrl }}/{{ $bucketName }}/{{ $pvc.pvcName }}"
         - name: RESTIC_PASSWORD
           valueFrom:
             secretKeyRef:
