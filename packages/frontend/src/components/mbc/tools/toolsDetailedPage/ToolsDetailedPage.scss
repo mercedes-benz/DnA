@@ -149,29 +149,36 @@
     padding: 24px;
     width: calc(33% - 9.5px);
     margin: 6.5px 0 6.5px;
-    height: 350px;
+    min-height: 350px;
     margin-right: 12px;
     border-radius: 7px;
 
     .serviceInfo {
-      font-size: 40px;
-      margin-bottom: 20px;
+      height: 100%;
+
+      i {
+        font-size: 40px;
+        margin-bottom: 10px;
+        display: block;
+        height: 58px;
+      }
 
       h3 {
         font-size: 15px;
-        font-family: var(--font-family-bold);
+        font-family: var(--font-family-roboto-medium);
         margin-bottom: 10px;
         color: #D9DFE4;
+        text-transform: capitalize;
       }
 
       h5 {
-        font-size: 11px;
-        font-family: var(--font-family-medium);
         color: #99A5B3;
-        min-width: 100px;
+        font-size: var(--font-size-small);
+        margin-bottom: 15px;
+        line-height: 1.5;
         max-width: 300px;
+        min-width: 100px;
         padding-bottom: 0px;
-        margin-bottom: 20px;
       }
 
       .infoLinks {
@@ -184,7 +191,7 @@
       }
 
       .infoContent {
-        h3 {
+        p {
           font-size: var(--font-size-default);
           display: block;
           margin-bottom: 8px;
@@ -304,9 +311,10 @@
     color: #a5a5a8;
     padding: 30px;
     padding-top: 55px !important;
+    height: 100%;
 
     h4 {
-      margin-top: 20px;
+      margin-bottom: 20px;
       font-size: 15px;
       color: #D9DFE4;
       font-family: var(--font-family-bold);

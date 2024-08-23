@@ -1,4 +1,6 @@
-[
+import { Envs } from "globals/Envs";
+
+export const ToolsDetailedPageElements = [
   {
     "id": "dataikuDSS",
     "name": "Dataiku DSS",
@@ -341,7 +343,7 @@
     "description": "Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.",
     "tags":  ["No / Low Code"],
     "isExternalLink": false,
-    "url": "/powerPlatform",
+    "url": "/powerplatform",
     "hasSubcription": true,
     "info": [
       {
@@ -350,36 +352,41 @@
         "description": "Get tailor-made trainings from experts to master this tool with ease",
         "links": [
           {
-            "title": "Power Platform Learning ",
-            "link": "YOUR_URL"
+            "title": "PL-900: Microsoft Power Platform Fundamentals (udemy.com)",
+            "link": `${Envs.UDEMY_URL}course/pl-900-microsoft-power-platform-fundamentals-r/`
           },
           {
-            "title": "Power Platform Tutorial",
-            "link": "https://microsoftlearning.github.io/mslearn-fabric/Instructions/Labs/05-dataflows-gen2.html"
+            "title": "Power Apps - Complete Guide to Microsoft PowerApps",
+            "link": `${Envs.UDEMY_URL}course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
           },
           {
-            "title": "Udemy Learn Power Platform ",
-            "link": "https://community.fabric.microsoft.com/t5/custom/page/page-id/CareerHubPage?ocid=fabric24_careerhub_fabric_updateblog_clphttp://"
+            "title": "Build Solutions with Power Apps, Power Automate & SharePoint (udemy.com)",
+            "link": `${Envs.UDEMY_URL}course/build-solutions-with-power-platform/`
           },
           {
-            "title": "Microsoft Learn Power Platform",
-            "link": "https://learn.microsoft.com/en-us/training/browse/?products=power-bi"
+            "title": "PL-200: The follow-up Power Platform course to the PL-100 (udemy.com)",
+            "link": `${Envs.UDEMY_URL}course/pl-200-microsoft-power-platform-functional-consultant-course/`
           },
           {
-            "title": "Get started with Power Platform (80 min)",
-            "link": "https://learn.microsoft.com/de-de/training/modules/get-started-with-power-bi/"
-          },
-
-          {
-            "title": "Create Dashboards (40 min)",
-            "link": "https://learn.microsoft.com/de-de/training/modules/create-dashboards-power-bi/"
+            "title": "Microsoft Power Automate for Power Apps developers (udemy.com)",
+            "link": `${Envs.UDEMY_URL}course/microsoft-power-automate-for-power-apps-developers/`
           }
         ]
       },
       {
         "icon": "profile",
         "name": "support",
-        "info": ["Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem"]
+        "info": ["Feel free to reach out for more information and personal support by team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
+        "links": [
+          {
+            "title": "Contact Email",
+            "link": `${Envs.POWER_PLATFORM_SUPPORT_EMAIL}`
+          },
+          {
+            "title": "Social Intranet Page",
+            "link": `${Envs.POWER_PLATFORM_SOCIAL_INTRANET_URL}`
+          },
+        ]
       },
       {
         "icon": "tem",
@@ -391,13 +398,13 @@
         "name": "Costs",
         "isInfoIcon": "true",
         "description" : "Get familiar with the costs",
-        "info":["Lorem ipsum dolor sit amet: 0.2 FTE / MONTH","Lorem ipsum dolor sit amet: 0.4 FTE / MONTH","Lorem ipsum dolor sit amet: 0.6 FTE / MONTH"]
+        "info":["Trial Account: 0.2 FTE / MONTH", "Citizen Developer Account: 0.4 FTE / MONTH", "Full Developer Account: 0.6 FTE / MONTH"]
       },
       {
         "icon": "doc",
         "name": "Terms Of Service",
         "isInfoIcon": "true",
-        "info":["Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem"]
+        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by [Your Company Name]. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
       }
     ]
   }

@@ -1,6 +1,6 @@
 .cardWrapper {
-    padding: 40px;
-    background-image: linear-gradient(14deg, #171A1F, #282b31);;
+    padding: 40px 20px;
+    background-image: linear-gradient(14deg, #13171c, #252a33);
     flex: 1 1 0px;
      width: 100%;
     margin: 0 15px 15px 0;
@@ -25,6 +25,7 @@
             text-overflow: ellipsis;
             overflow: hidden;
             display: -webkit-box;
+            line-clamp: 1;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
         }
@@ -34,6 +35,7 @@
             text-overflow: ellipsis;
             overflow: hidden;
             display: -webkit-box;
+            line-clamp: 3;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
         }
@@ -47,8 +49,8 @@
         text-align: center;
         margin-bottom: 5px; 
         span{
-            font-size: 15px !important;
-            font-family: var(--font-family-bold) !important;
+            font-family: var(--font-family-roboto-medium);
+            font-size: var(--font-size-sub-headline);
             color: #D9DFE4;
 
         }
@@ -87,7 +89,10 @@
       }
 }
 .actionWrapper{
-    margin-top: 0px;
-    margin-left: 70px;
-    align-self: center;
+    display: flex;
+    justify-content: center;
+
+    button {
+        min-width: 150px;
+    }
 }
