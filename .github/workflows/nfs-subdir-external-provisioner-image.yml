@@ -1,0 +1,46 @@
+# Author: ADEVALL
+
+name: NFS Subdir External Provisioner
+
+on:
+  workflow_dispatch:
+    inputs: 
+      pushImage:
+        description: "Harbor pushing image tag"
+        required: true
+        default: "registry-emea.app.corpintra.net/dnaplatform/ngnix:latest"     
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot  
+  RUNNER_ALLOW_RUNASROOT: 1
+
+
+jobs:
+
+  build:
+    name: 'Pull and push docker image'
+    runs-on: [ os-medium-amd64-linux ]
+
+    
+    steps:
+
+    - name: clone nfs-subdir-external-provisioner-image
+      run: |
+        cd /tmp 
+        git clone https://git.i.mercedes-benz.com/DHC/CaaS.git
+
+    - name: copy docker file 
+      run: |
+        cd /tmp
+        cp ./nfs-subdir-external-provisioner/docker/x86_64/Dockerfile ./nfs-subdir-external-provisioner/nfs-external-provisioner.Dockerfile
+
+    - name: build docker images 
+      run: |
+        cd /tmp/nfs-subdir-external-provisioner
+        docker build . -t ${{ github.event.inputs.pushImage }} -f ./nfs-external-provisioner.Dockerfile     
+        
+    - name: Publish docker image to harbor
+      run: |
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        docker push ${{ github.event.inputs.pushImage }}

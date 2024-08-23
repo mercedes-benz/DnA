@@ -1,0 +1,42 @@
+resourceName: i3-dashboards
+
+## Configmap annotations
+annotations: {}
+
+labels:
+  grafana_dashboard: "1"
+
+dashboards:
+- name: i3-access-v4
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+- name: i3-access-v5
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+- name: i3-k8s-alerts
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+- name: i3-k8s-cluster
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+- name: i3-k8s-cinder-disc-usage
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+- name: i3-k8s-namespaces
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+- name: i3-k8s-pods
+  enabled: true
+  replace: "${DS_PROMETHEUS}"
+  replace_with: "Prometheus"
+
+
+
+
+

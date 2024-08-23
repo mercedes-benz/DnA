@@ -1,0 +1,88 @@
+opensearch-dashboards:
+  extraEnvs:
+    # Defines the opensearch-dashboards url path prefix
+    - name: SERVER_BASEPATH
+      value: /logging
+      
+  extraContainers: |
+    - name: i3-jwt-proxy
+      image: registry-emea.app.corpintra.net/i3-images/i3-jwt-proxy:3.3.0
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: JWKS_URL
+        value: http://i3-access/JWKS
+      # Must match the jwt claim 'iss' set in i3-tex-service for validation
+      - name: ISSUER
+        value: http://i3-access
+      - name: XDG_CONFIG_HOME
+        value: /etc/caddy-config
+      volumeMounts:
+      - name: i3-jwt-proxy-caddyfile
+        mountPath: /etc/caddy
+      - name: i3-jwt-proxy-caddy-config
+        mountPath: /etc/caddy-config
+        readOnly: false
+      ports:
+      - containerPort: 8090
+        name: http
+        protocol: TCP
+      livenessProbe:
+        tcpSocket:
+          port: http
+        initialDelaySeconds: 1
+        timeoutSeconds: 5
+      readinessProbe:
+        tcpSocket:
+          port: http
+        initialDelaySeconds: 3
+
+  extraVolumes:
+    - name: i3-jwt-proxy-caddyfile
+      configMap:
+        name: i3-jwt-proxy-caddyfile
+    - name: i3-jwt-proxy-caddy-config
+      emptyDir: {}
+
+  extraObjects:
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: i3-jwt-proxy-caddyfile
+      data:
+        Caddyfile: |
+          (log_configuration) {
+            log {
+              format console  {
+                  time_key time
+                  time_format 2006-01-02T15:04:05.000Z
+              }
+            }
+          }
+          {
+              order jwt-proxy before respond
+              admin off
+              import log_configuration
+          }
+          :8090 {
+              root * /dev/null
+              import log_configuration
+              jwt-proxy {
+                  jwt  {
+                      paths / /
+                  }
+              }
+              reverse_proxy /* http://127.0.0.1:5601
+          }
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: i3-jwt-proxy-logging-svc
+      spec:
+        selector:
+          app: opensearch-dashboards
+        ports:
+        - protocol: TCP
+          port: 8090
+          targetPort: 8090
+          name: http
+
