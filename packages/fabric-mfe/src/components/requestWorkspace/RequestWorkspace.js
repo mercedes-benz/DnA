@@ -173,7 +173,7 @@ const RequestWorkspace = ({ onRefresh }) => {
         <div className={Styles.rolesContainer}>
           <h3>Select Role(s)</h3>
           <div className={Styles.flex}>
-            {selectedWorkspace?.roles?.map(role => 
+            {selectedWorkspace?.status?.roles?.map(role => 
               <RoleCard key={role.id} role={role} onAdd={handleAddRole} />
             )}
           </div>
