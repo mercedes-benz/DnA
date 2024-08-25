@@ -362,7 +362,7 @@ restore:
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
   recoveryFile: airflow-backup-2024-08-25_00-01-02.tar.zst
