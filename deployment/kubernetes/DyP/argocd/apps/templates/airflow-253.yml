@@ -16,7 +16,7 @@ spec:
   source:
     path: deployment/kubernetes/helm/charts/helm-offical-airflow253
     repoURL: {{ .Values.repoURL | squote }}
-    targetRevision: {{ .Values.branch }}
+    targetRevision: migration/aws-airflow
     plugin:
       name: argocd-vault-plugin-helm
       env:
