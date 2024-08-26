@@ -309,6 +309,8 @@ const CodeSpaceCardItem = (props) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
+  const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -538,7 +540,7 @@ const CodeSpaceCardItem = (props) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>
+              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}</div>
             </div>
             <div>
               <div>Environment</div>

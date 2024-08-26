@@ -179,6 +179,8 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
+  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('click', handleContextMenuOutside, true);
@@ -537,7 +539,7 @@ const CodeSpace = (props) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}>
+                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}>
                   {projectDetails.projectName}
                 </h2>
               </div>
