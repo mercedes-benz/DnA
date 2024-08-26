@@ -35,17 +35,21 @@ import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1085,6 +1089,38 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
 		jpaRepo.save(updatedEntity);
 		return existingFabricWorkspace;
+	}
+
+	@Override
+	public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		try{
+			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+			for(RolesVO role : roleList){
+				UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+				roleRequestDto.setReason(roleRequestVO.getData().getReason());
+				roleRequestDto.setValidFrom(role.getValidFrom());
+				roleRequestDto.setValidTo(role.getValidTo());
+				HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
+				if(!status.is2xxSuccessful()){
+					warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
+				}
+			}
+		}
+		catch(Exception e){
+			errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
+			response.setErrors(errors);
+			response.setSuccess("FAILED");
+			log.error("Failed to request role  Fabric workspace with exception {} ",e.getMessage());
+			return response;
+		}
+		response.setSuccess(!warnings.isEmpty() ? "WARNING" : "SUCCESS");
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 
 }
