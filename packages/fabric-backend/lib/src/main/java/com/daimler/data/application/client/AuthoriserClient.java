@@ -21,6 +21,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
@@ -69,6 +71,9 @@ public class AuthoriserClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private UserStore userStore;
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -452,17 +457,11 @@ public class AuthoriserClient {
 
 	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
 		try {
-					
-			String token = getToken();
-			if(!Objects.nonNull(token)) {
-				log.error("Failed to fetch token to invoke fabric Apis");
-				return HttpStatus.INTERNAL_SERVER_ERROR;
-			}
-
+			UserInfo userInfo = this.userStore.getUserInfo();
 			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", "Bearer "+token);
+			headers.set("Authorization", "Bearer "+userInfo.getAuthToken());
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
