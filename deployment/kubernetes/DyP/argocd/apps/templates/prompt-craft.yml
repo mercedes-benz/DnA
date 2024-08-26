@@ -1,3 +1,4 @@
+{{- if eq .Values.env "prod" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -23,6 +24,7 @@ spec:
         - name: HELM_ARGS
           value: --namespace tools -f values-{{ .Values.env }}.yaml
   project: dna
+{{- if .Values.enableSync }}
   syncPolicy:
     automated:
       prune: true
@@ -30,3 +32,5 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+{{- end }}
+{{- end }}      
