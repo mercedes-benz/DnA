@@ -29,6 +29,7 @@ const dataCatalogUrl = Envs.DATA_CATALOG_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
+const odinUrl = Envs.ODIN_URL; 
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
@@ -525,6 +526,23 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'spire',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'ODIN',
+    name: 'ODIN',
+    description: 'ODIN is a centralized platform that provides easy access to all your Power BI reports in one place. This eliminates the need to switch between different tools and helps you sort through your reports with ease. With ODIN, you can quickly find the report you need, without the struggle of searching through multiple platforms',
+    tags: ['Data Engineering'],
+    url: odinUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !odinUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'dataPreparation',
     isDnAInternalTool: false,
   },
 ];
