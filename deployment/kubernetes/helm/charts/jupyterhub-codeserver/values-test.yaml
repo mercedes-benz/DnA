@@ -541,7 +541,7 @@ singleuser:
 
               # Install SDK and extensions
               cd /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/
-              chmod +x pkg-install.sh
+              # chmod +x pkg-install.sh
               ./pkg-install.sh
 
               # Copy extentions
