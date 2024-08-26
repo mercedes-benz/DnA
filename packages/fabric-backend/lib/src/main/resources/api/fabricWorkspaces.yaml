@@ -296,7 +296,42 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+  
+  /fabric-workspaces/{id}/rolerequest:
+    post:
+        tags:
+          - "fabric-workspaces"
+        summary: "request a  fabric workspace role for a user."
+        description: "request a  fabric workspace role for a user."
+        operationId: "requestRole"
+        parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            type: "string"
+          - name: "roleRequestVO"
+            in: "body"
+            description: "Request Body that contains data required for requesting a workspace role"
+            required: true
+            schema:
+              $ref: "#/definitions/FabricWorkspaceRoleRequestVO"    
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
 
 definitions:
   CapacityVO:
@@ -582,4 +617,37 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
+
+  FabricWorkspaceRoleRequestVO:
+    type: object
+    properties:
+      data:
+        type: object
+        $ref: "#/definitions/RolesListVO"
+      
+  
+
+  RolesListVO:
+    type: object
+    properties:
+      roleList:
+          type: array
+          items:
+            $ref: "#/definitions/RolesVO"
+      reason:
+        type: string
+
+  RolesVO:
+    type: object
+    properties:
+      roleID:
+        type: string
+      validFrom:
+        type: string
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+      validTo:
+        type: string
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+
+
     
