@@ -146,7 +146,7 @@ redis:
     ##
     enabled: true    
   auth:
-    enabled: true
+    enabled: false
     username: ""
     # Use an existing secret for redis auth. Do this if you're using Argo to manage your instance or otherwise using helm template under the hood
     #     The secret name can vary, but the password key must be redis-password.
