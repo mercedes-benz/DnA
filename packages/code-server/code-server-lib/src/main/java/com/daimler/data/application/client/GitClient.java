@@ -115,7 +115,11 @@ public class GitClient {
 			}
 		} catch (Exception e) {
 			log.error("error in git file", gitUrl,repoOwner,e.getMessage());
-			throw new Exception(e.getMessage());
+			if(e.getMessage().contains("Not Found")) {
+				return null;
+			} else {
+				throw new Exception(e.getMessage());
+			}
 		}
 		log.info("The software file is not present in the Git repository.");
 		return null;
