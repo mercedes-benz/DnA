@@ -51,7 +51,7 @@ export const SubscriptionDetails = [
                     "classification": "Confidential",
                     "cost": "0.2 FTE /Month"
                 },
-                "link": `${Envs.POWER_PLATFORM_FULL_DEVELOPMENT_ACCOUNT_URL}`
+                "link": `${Envs.POWER_PLATFORM_FULL_DEVELOPER_ACCOUNT_URL}`
             }
         ]
     }
