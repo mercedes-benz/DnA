@@ -207,7 +207,7 @@ const FabricWorkspaces = ({user}) => {
                 </button>
                 <button className={'btn btn-secondary'} type="button" onClick={() => setRequestWorkspace(true)}>
                   <span className={Styles.addCircle}>
-                    <i className="icon mbc-icon plus" />
+                    <i className="icon mbc-icon document" />
                   </span>
                   <span>Request a Fabric Workspace</span>
                 </button>
@@ -225,7 +225,7 @@ const FabricWorkspaces = ({user}) => {
                     <label className={Styles.addlabel}>Create new Fabric Workspace</label>
                   </div>
                   <div className={Styles.createNewCard} onClick={() => setRequestWorkspace(true)}>
-                    <div className={Styles.addicon}> &nbsp; </div>
+                    <div className={Styles.requestIcon}><i className="icon mbc-icon document" /></div>
                     <label className={Styles.addlabel}>Request Fabric Workspace</label>
                   </div>
                   {ownWorkspaces.map((workspace) => 
