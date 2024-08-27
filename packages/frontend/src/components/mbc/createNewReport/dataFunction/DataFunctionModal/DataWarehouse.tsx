@@ -30,7 +30,6 @@ export const DataWarehouse = ({
   requiredError,
   dataWarehouses,
   // commonFunctions,
-  dataClassifications,
   connectionTypes,
 }: DataWarehouseProps) => {
   // const commonFunctionsError = errors.commonFunctions || '';
@@ -38,7 +37,7 @@ export const DataWarehouse = ({
   // const queriesError = errors.queries || '';
   // const originalDataSourcesError = errors.dataSources || '';
   const connectTypesError = errors.connectionType || '';
-  const dataClassificationError = errors.dataClassification || '';
+
 
   const selectedFilterValues = dataWarehouseInUseInfo;
 
@@ -52,15 +51,13 @@ export const DataWarehouse = ({
   // const queriesValue = selectedFilterValues.queries;
   // const originalDataSourcesValue = selectedFilterValues.dataSources;
   const connectionTypesValue = selectedFilterValues.connectionType;
-  const dataClassificationValue = selectedFilterValues.dataClassification?.toString();
 
   // const isCarla = selectedFilterValues.dataWarehouse?.toLowerCase() === 'carla';
   const isCarla = selectedFilterValues.dataWarehouse === 'carla';
   const conntectionTypesDropdown = isCarla
     ? connectionTypes?.filter((item) => item?.toLowerCase() === 'live connection')
     : connectionTypes;
-  
-  const dataClassificationDropdown = dataClassifications;
+
 
 
   return (
@@ -163,36 +160,6 @@ export const DataWarehouse = ({
           </div> */}
           <div>
             <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  dataClassificationError ? 'error' : '',
-                )}
-              >
-                <label id="dataClassificationLabel" htmlFor="dataClassificationInput" className="input-label">
-                  Data Classification<sup>*</sup>
-                </label>
-                <div className={`custom-select`}>
-                  <select
-                    id="dataClassificationField"
-                    name="dataClassification"
-                    value={dataClassificationValue}
-                    onChange={(e)=>onDropdownChange(e)}
-                    required={!isCarla}
-                    required-error={!isCarla ? requiredError : ''}
-                  >
-                    {!isCarla && <option value="">Choose</option>}
-                    {dataClassificationDropdown?.map((item, ind) => (
-                      <option id={item + ind} key={ind} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', dataClassificationError ? '' : 'hide')}>
-                  {dataClassificationError}
-                </span>
-              </div>
             </div>
           </div>
         </div>
