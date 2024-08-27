@@ -20,13 +20,13 @@ env:
   TZ: UTC
   PAPERLESS_SECRET_KEY: ""
   PAPERLESS_ADMIN_USER: "admin"
-  PAPERLESS_ADMIN_PASSWORD: ""
+  PAPERLESS_ADMIN_PASSWORD: "<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
   PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
   PAPERLESS_APP_TITLE: "DnA-Hosted paperless-ngx"
   PAPERLESS_EMAIL_HOST: "mailhost.emea.svc.corpintra.net"
   PAPERLESS_EMAIL_HOST_USER: "dna@mb.com"
   PAPERLESS_REDIRECT_LOGIN_TO_SSO: "True"
-  PAPERLESS_SOCIALACCOUNT_PROVIDERS: ''
+  PAPERLESS_SOCIALACCOUNT_PROVIDERS: '<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_SOCIALACCOUNT_PROVIDERS>'
 
 service:
   # -- Configures service settings for the chart.
@@ -49,14 +49,14 @@ ingress:
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       traefik.ingress.kubernetes.io/router.tls: 'true'
     hosts:
-      - host: gateway.dna.app.corpintra.net
+      - host: paperless-ngx.dna.app.corpintra.net
         paths:
           - path: /
             pathType: Prefix
     tls: 
-    - secretName: gateway-dna-tls
+    - secretName: paperless-ngx-dna-tls
       hosts:
-        - gateway.dna.app.corpintra.net
+        - paperless-ngx.dna.app.corpintra.net
 
 
 persistence:
