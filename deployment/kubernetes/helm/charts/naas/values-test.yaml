@@ -46,9 +46,6 @@ app:
     readinessProbe:
       path: /actuator/health/readiness
       port: api
-image:
-  pullPolicy: Always
-  tag: '69'
 ingress:
   enabled: false
   host: naas.test.dna.app.corpintra.net

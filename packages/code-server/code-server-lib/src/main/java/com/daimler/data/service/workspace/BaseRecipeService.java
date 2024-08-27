@@ -159,7 +159,13 @@ public class BaseRecipeService implements RecipeService{
 			return responseMessage;
 		} catch(Exception e) {
 			log.error(e.getMessage());
-			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+			if(e.getMessage().contains("pull request")){
+				responseMessage = getMessageDescrption("Conflict in Git while creating Software File","FAILED");
+			} else {
+				responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+
+			}
+			responseMessage.setSuccess("FAILED");
 		}
 		return responseMessage;
 	}
