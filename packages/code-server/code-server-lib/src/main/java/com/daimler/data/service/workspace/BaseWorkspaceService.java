@@ -53,6 +53,7 @@
  import com.daimler.data.application.auth.UserStore;
  import com.daimler.data.application.client.CodeServerClient;
  import com.daimler.data.application.client.GitClient;
+ import com.daimler.data.application.client.VaultClient;
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
@@ -148,6 +149,9 @@
  
 	 @Autowired
 	 private DnaAuthClient dnaAuthClient;
+	
+	 @Autowired
+	 private VaultClient VaultClient;
  
 	 public BaseWorkspaceService() {
 		 super();
@@ -1041,7 +1045,7 @@
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1083,11 +1087,23 @@
 					 responseMessage.setErrors(errors);
 					 return responseMessage;
 				 }
+				 Boolean isValutInjectorEnable = false;
+				 try{
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+				 }catch(Exception e){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				 }
 				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
 				 deployJobInputDto.setProjectName(projectName.toLowerCase());
-				 deployJobInputDto.setValutInjectorEnable(valutInjectorEnable);
+				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
 				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1244,7 +1260,7 @@
 				 responseMessage.setErrors(errors);
 				 return responseMessage;
 			 }
-		 
+     
 		 return responseMessage;
 	 }
  
@@ -2555,3 +2571,4 @@
 	}
 
 }
+
