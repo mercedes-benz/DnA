@@ -21,7 +21,7 @@ image:
 env:
   # -- Set the container timezone
   TZ: UTC
-  PAPERLESS_SECRET_KEY: ""
+  PAPERLESS_SECRET_KEY: "<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
   PAPERLESS_ADMIN_USER: "admin"
   PAPERLESS_ADMIN_PASSWORD: "<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
   PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
