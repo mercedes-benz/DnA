@@ -239,6 +239,24 @@
       top: 49%;
     }
   }
+  .requestIcon {
+    color: #00adef;
+    font-size: 26px;
+    justify-content: center;
+    top: calc(50% - 31px);
+    width: 63px;
+    height: 63px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    & > i {
+      margin: 0;
+      margin-top: -11px;  
+    }
+  }
   .addlabel {
     font-size: var(--font-size-headline);
     line-height: 23px;
