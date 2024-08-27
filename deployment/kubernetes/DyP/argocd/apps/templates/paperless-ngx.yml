@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: parperless-ngx
+  name: paperless-ngx
   namespace: {{ .Values.namespace }}
   labels:
     name: service
