@@ -45,6 +45,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset);
 
+	List<CodeServerWorkspaceNsql>  findAll();
+
 	Integer getCount(String userId);
 
 	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);

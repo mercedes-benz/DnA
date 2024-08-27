@@ -1,0 +1,6 @@
+apiVersion: v1
+name: i3-alerts
+version: 6.1.0
+appVersion: 6.1.0
+keywords:
+- monitoring

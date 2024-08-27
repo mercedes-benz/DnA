@@ -1,0 +1,637 @@
+deployment:
+  kong:
+    enabled: true
+  serviceAccount:
+    create: true
+  test:
+    enabled: false
+  sidecarContainers:
+    - name: simple-rp
+      image: registry-emea.app.corpintra.net/dnaplatform/simple-rp-code-space:1
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+  daemonset: false
+  hostNetwork: false
+namespace: kong
+env:
+  database: postgres
+  pg_port: '64000'
+  pg_ssl: 'off'
+  pg_ssl_verify: 'off'
+  pg_host:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.host
+        name: kong-settings
+  pg_user:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.user
+        name: kong-settings
+  pg_password:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.password
+        name: kong-settings
+  pg_database:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.db
+        name: kong-settings
+  pg_schema:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.schema
+        name: kong-settings
+  nginx_worker_processes: '2'
+  proxy_access_log: /dev/stdout
+  admin_gui_url: https://manager.serving.kfp.test.dna.app.corpintra.net
+  admin_api_uri: https://serving.kfp.test.dna.app.corpintra.net/admin
+  admin_listen: 0.0.0.0:8001
+  admin_gui-listen: 0.0.0.0:8002
+  admin_access_log: /dev/stdout
+  admin_gui_access_log: /dev/stdout
+  portal_api_access_log: /dev/stdout
+  proxy_error_log: /dev/stderr
+  admin_error_log: /dev/stderr
+  admin_gui_error_log: /dev/stderr
+  portal_api_error_log: /dev/stderr
+  prefix: /kong_prefix/
+  log_level: error
+  plugins: bundled,oneapi,jwt,oidc,jwtissuer,appauthoriser,apiauthoriser,fcjwtissuer,pathfinder,cookies-to-headers
+  oneapi_gateway_key:
+    valueFrom:
+      secretKeyRef:
+        key: ONEAPI_GATEWAY_KEY
+        name: kong-settings
+  oneapi_gateway_secret:
+    valueFrom:
+      secretKeyRef:
+        key: ONEAPI_GATEWAY_SECRET
+        name: kong-settings
+  oneapi_https_proxy: http://security-proxy.emea.svc.corpintra.net:3128
+  pluginserver_names: js
+  pluginserver_js_socket: /usr/local/kong/js_pluginserver.sock
+  pluginserver_js_start_cmd: /usr/bin/kong-js-pluginserver -v --plugins-directory /usr/local/kong/js-plugins
+  pluginserver_js_query_cmd: /usr/bin/kong-js-pluginserver --plugins-directory /usr/local/kong/js-plugins --dump-all-plugins
+extraLabels: {}
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/kong
+  tag: 6be1f65bede7abcea222867c35ecd24290efbc99
+  pullPolicy: Always
+  pullSecrets:
+    - imagepullsecret
+admin:
+  enabled: true
+  type: ClusterIP
+  annotations: {}
+  labels: {}
+  http:
+    enabled: true
+    servicePort: 8001
+    containerPort: 8001
+    parameters: []
+  tls:
+    enabled: false
+    servicePort: 8444
+    containerPort: 8444
+    parameters:
+      - http2
+  ingress:
+    enabled: false
+    ingressClassName: null
+    tls: kfp-serving-secret
+    hostname: serving.kfp.test.dna.app.corpintra.net
+    annotations:
+      cert-manager.io/cluster-issuer: daimler-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+      kubernetes.io/ingress.class: traefik
+      traefik.frontend.rule.type: PathPrefix
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+    path: /admin
+    pathType: Prefix
+status:
+  enabled: true
+  type: ClusterIP
+  http:
+    enabled: true
+    servicePort: 8100
+    containerPort: 8100
+    parameters: []
+  tls:
+    enabled: false
+    containerPort: 8543
+    parameters: []
+cluster:
+  enabled: false
+  annotations: {}
+  labels: {}
+  tls:
+    enabled: false
+    servicePort: 8005
+    containerPort: 8005
+    parameters: []
+  type: ClusterIP
+  ingress:
+    enabled: false
+    ingressClassName: null
+    hostname: null
+    annotations: {}
+    path: /
+    pathType: ImplementationSpecific
+proxy:
+  enabled: true
+  type: ClusterIP
+  annotations: {}
+  labels:
+    enable-metrics: 'true'
+  http:
+    enabled: true
+    servicePort: 80
+    containerPort: 8000
+    parameters: []
+  tls:
+    enabled: false
+    servicePort: 443
+    containerPort: 8443
+    parameters:
+      - http2
+  stream: []
+  ingress:
+    enabled: true
+    ingressClassName: null
+    tls: kfp-serving-secret
+    hostname: serving.kfp.test.dna.app.corpintra.net
+    annotations:
+      cert-manager.io/cluster-issuer: daimler-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+      kubernetes.io/ingress.class: traefik
+      traefik.frontend.rule.type: PathPrefix
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+    path: /
+    pathType: Prefix
+udpProxy:
+  enabled: false
+  type: LoadBalancer
+  annotations: {}
+  labels: {}
+  stream: []
+plugins: {}
+secretVolumes: []
+migrations:
+  preUpgrade: true
+  postUpgrade: true
+  annotations:
+    sidecar.istio.io/inject: false
+  jobAnnotations: {}
+  backoffLimit: null
+  resources: {}
+dblessConfig: null
+ingressController:
+  enabled: false
+  image:
+    repository: registry-emea.app.corpintra.net/kubernetes-ingress-controller
+    tag: 2.4.0
+    effectiveSemver: null
+  args: []
+  terminationGracePeriodSeconds: 30
+  watchNamespaces: []
+  env:
+    kong_admin_tls_skip_verify: true
+  admissionWebhook:
+    enabled: false
+    failurePolicy: Fail
+    port: 8080
+    certificate:
+      provided: false
+  ingressClass: kong
+  ingressClassAnnotations: {}
+  rbac:
+    create: true
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 10254
+      scheme: HTTP
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 10254
+      scheme: HTTP
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  resources: {}
+postgresql:
+  enabled: false
+  auth:
+    username: kong
+    database: kong
+  image:
+    tag: 13.6.0-debian-10-r52
+  service:
+    ports:
+      postgresql: '5432'
+waitImage:
+  enabled: true
+  pullPolicy: IfNotPresent
+updateStrategy: {}
+resources: {}
+readinessProbe:
+  httpGet:
+    path: /status
+    port: status
+    scheme: HTTP
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+livenessProbe:
+  httpGet:
+    path: /status
+    port: status
+    scheme: HTTP
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+lifecycle:
+  preStop:
+    exec:
+      command:
+        - kong
+        - quit
+        - '--wait=15'
+terminationGracePeriodSeconds: 30
+tolerations: []
+nodeSelector: {}
+podAnnotations:
+  kuma.io/gateway: enabled
+  traffic.sidecar.istio.io/includeInboundPorts: ''
+podLabels: {}
+replicaCount: 2
+deploymentAnnotations: {}
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  behavior: {}
+  targetCPUUtilizationPercentage: null
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%
+podSecurityPolicy:
+  enabled: false
+  spec:
+    privileged: false
+    fsGroup:
+      rule: RunAsAny
+    runAsUser:
+      rule: RunAsAny
+    runAsGroup:
+      rule: RunAsAny
+    seLinux:
+      rule: RunAsAny
+    supplementalGroups:
+      rule: RunAsAny
+    volumes:
+      - configMap
+      - secret
+      - emptyDir
+    allowPrivilegeEscalation: false
+    hostNetwork: false
+    hostIPC: false
+    hostPID: false
+    readOnlyRootFilesystem: true
+priorityClassName: ''
+securityContext:
+  runAsUser: 1000
+containerSecurityContext: {}
+serviceMonitor:
+  enabled: false
+enterprise:
+  enabled: true
+  vitals:
+    enabled: true
+  portal:
+    enabled: false
+  rbac:
+    enabled: false
+    admin_gui_auth: basic-auth
+    session_conf_secret: kong-session-config
+    admin_gui_auth_conf_secret: CHANGEME-admin-gui-auth-conf-secret
+  smtp:
+    enabled: false
+    portal_emails_from: none@example.com
+    portal_emails_reply_to: none@example.com
+    admin_emails_from: none@example.com
+    admin_emails_reply_to: none@example.com
+    smtp_admin_emails: none@example.com
+    smtp_host: smtp.example.com
+    smtp_port: 587
+    smtp_auth_type: ''
+    smtp_ssl: nil
+    smtp_starttls: true
+    auth:
+      smtp_username: ''
+      smtp_password_secret: CHANGEME-smtp-password
+manager:
+  enabled: true
+  type: NodePort
+  annotations:
+    konghq.com/protocols: https
+  labels: {}
+  http:
+    enabled: true
+    servicePort: 8002
+    containerPort: 8002
+    parameters: []
+  tls:
+    enabled: false
+    servicePort: 8445
+    containerPort: 8445
+    parameters:
+      - http2
+  ingress:
+    enabled: false
+    ingressClassName: null
+    tls: kfp-serving-secret-manager
+    hostname: manager.serving.kfp.test.dna.app.corpintra.net
+    annotations:
+      cert-manager.io/cluster-issuer: daimler-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+      kubernetes.io/ingress.class: traefik
+      traefik.frontend.rule.type: PathPrefix
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+    path: /
+    pathType: Prefix
+portal:
+  enabled: true
+  type: NodePort
+  annotations: {}
+  labels: {}
+  http:
+    enabled: true
+    servicePort: 8003
+    containerPort: 8003
+    parameters: []
+  tls:
+    enabled: true
+    servicePort: 8446
+    containerPort: 8446
+    parameters:
+      - http2
+  ingress:
+    enabled: false
+    ingressClassName: null
+    hostname: null
+    annotations: {}
+    path: /
+    pathType: ImplementationSpecific
+portalapi:
+  enabled: true
+  type: NodePort
+  annotations: {}
+  labels: {}
+  http:
+    enabled: true
+    servicePort: 8004
+    containerPort: 8004
+    parameters: []
+  tls:
+    enabled: true
+    servicePort: 8447
+    containerPort: 8447
+    parameters:
+      - http2
+  ingress:
+    enabled: false
+    ingressClassName: null
+    hostname: null
+    annotations: {}
+    path: /
+    pathType: ImplementationSpecific
+clustertelemetry:
+  enabled: false
+  annotations: {}
+  labels: {}
+  tls:
+    enabled: false
+    servicePort: 8006
+    containerPort: 8006
+    parameters: []
+  type: ClusterIP
+  ingress:
+    enabled: false
+    ingressClassName: null
+    hostname: null
+    annotations: {}
+    path: /
+    pathType: ImplementationSpecific
+extraConfigMaps: []
+extraSecrets: []
+kongSettings:
+  - key: postgres.host
+    value: <path:kv/data/dna/kubernetesSecret/kong#host>
+  - key: postgres.port
+    value: '64000'
+  - key: postgres.user
+    value: <path:kv/data/dna/kubernetesSecret/kong#user>
+  - key: postgres.password
+    value: <path:kv/data/dna/kubernetesSecret/kong#password>
+  - key: postgres.db
+    value: <path:kv/data/dna/kubernetesSecret/kong#dbname>
+  - key: postgres.schema
+    value: <path:kv/data/dna/kubernetesSecret/kong#schema>
+  - key: ONEAPI_GATEWAY_KEY
+    value: <path:kv/data/dna/kubernetesSecret/kong#oneapi.key>
+  - key: ONEAPI_GATEWAY_SECRET
+    value: <path:kv/data/dna/kubernetesSecret/kong#oneapi.secret>
+extraIngress:
+  enabled: true
+  hosts:
+    - host: scan.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: test.dna.app.corpintra.net
+      paths:
+        - path: /malware-scan/api/v1/scan
+          pathType: Prefix
+    - host: test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: api.dss.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: report.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: naas.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: storage.test.dna.app.corpintra.net
+      paths:
+        - path: /api
+          pathType: Prefix
+        - path: /swagger-ui.html
+          pathType: Prefix
+        - path: /swagger-resources
+          pathType: Prefix
+        - path: /v2/api-docs
+          pathType: Prefix
+        - path: /webjars
+          pathType: Prefix
+    - host: chronos.test.dna.app.corpintra.net
+      paths:
+        - path: /api
+          pathType: Prefix
+        - path: /swagger-ui.html
+          pathType: Prefix
+        - path: /swagger-resources
+          pathType: Prefix
+        - path: /v2/api-docs
+          pathType: Prefix
+        - path: /webjars
+          pathType: Prefix
+    - host: models.kfp.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: api.data-product.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: api.code-spaces.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: pipeline.test.dna.app.corpintra.net
+      paths:
+        - path: /airflow
+          pathType: Prefix
+    - host: trino.test.dna.app.corpintra.net
+      paths:
+        - path: /api
+          pathType: Prefix
+        - path: /swagger-ui.html
+          pathType: Prefix
+        - path: /swagger-resources
+          pathType: Prefix
+        - path: /v2/api-docs
+          pathType: Prefix
+        - path: /webjars
+          pathType: Prefix
+    - host: code-spaces.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: api.matomo.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: api.workspaces.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - scan.test.dna.app.corpintra.net
+      secretName: clamav-tls
+    - hosts:
+        - test.dna.app.corpintra.net
+      secretName: dna
+    - hosts:
+        - api.dss.test.dna.app.corpintra.net
+      secretName: dss-be
+    - hosts:
+        - report.test.dna.app.corpintra.net
+      secretName: report-tls
+    - hosts:
+        - naas.test.dna.app.corpintra.net
+      secretName: naas-tls
+    - hosts:
+        - models.kfp.test.dna.app.corpintra.net
+      secretName: model-kfp-tls
+    - hosts:
+        - api.data-product.test.dna.app.corpintra.net
+      secretName: data-product-api-tls
+    - hosts:
+        - api.code-spaces.test.dna.app.corpintra.net
+      secretName: code-server-api-tls
+    - hosts:
+        - code-spaces.test.dna.app.corpintra.net
+      secretName: code-space-tls
+    - hosts:
+        - api.matomo.test.dna.app.corpintra.net
+      secretName: api-matomo-tls
+    - hosts:
+        - api.workspaces.test.dna.app.corpintra.net
+      secretName: api-fabric-tls
+konga:
+  enabled: true
+  namespace: kong
+  ingress:
+    enabled: true
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: daimler-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+    hosts:
+      - host: konga.test.dna.app.corpintra.net
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - konga.test.dna.app.corpintra.net
+        secretName: kfp-serving-secret-manager
+  userdb_data: |
+    module.exports = [
+          {
+              "username": "admin",
+              "email": "kong-admin@dna.com",
+              "firstName": "Admin",
+              "lastName": "User",
+              "node_id": "http://dna-kong-gw-kong-admin:8001",
+              "admin": true,
+              "active" : true,
+              "password": "<path:kv/data/dna/kubernetesSecret/kong#konga.password>"
+          }
+      ]
+  kong_node_data: |
+    module.exports = [
+        {
+            "name": "Kong Admin API",
+            "type": "default",
+            "kong_admin_url": "http://dna-kong-gw-kong-admin:8001",
+            "health_checks": false,
+        }
+    ]      
