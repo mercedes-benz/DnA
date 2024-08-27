@@ -16,6 +16,7 @@ import PowerPlatformWorkspaceTable from '../../components/powerPlatformWorkspace
 import { powerPlatformApi } from '../../apis/power-platform.api';
 import { useDispatch } from 'react-redux';
 import { getLovs } from '../../redux/lovsSlice';
+import { Envs } from '../../utilities/envs';
 
 const PowerPlatformWorkspaces = ({user}) => {
   const dispatch = useDispatch();
@@ -29,7 +30,7 @@ const PowerPlatformWorkspaces = ({user}) => {
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
   const [projects, setProjects] = useState([]);
-  const [createProject, setCreateProject] = useState(false);
+  const [createProject, setCreateProject] = useState(true);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [editProject, setEditProject]  = useState(false);
@@ -128,8 +129,13 @@ const PowerPlatformWorkspaces = ({user}) => {
   return (
     <>
       <div className={classNames(Styles.mainPanel)}>
-        <Caption title="Power Platform Workspaces">
+        <Caption title="Power Platform Accounts">
           <div className={classNames(Styles.listHeader)}>
+            <div className={classNames(Styles.headerLink)}>
+              <button className={'btn btn-primary'} onClick={() => { window.open(`${Envs.CONTAINER_APP_URL}/#/toolDetails/powerPlatform`) }}>
+                <i className="icon mbc-icon info" /> <span>Show Power Platform Details Page</span>
+              </button>
+            </div>
             <div tooltip-data="Card View">
               <span
                 className={cardViewMode ? Styles.iconActive : Styles.iconInactive}
@@ -160,12 +166,12 @@ const PowerPlatformWorkspaces = ({user}) => {
         {projects?.length === 0 && 
           <div className={Styles.noProjectContainer}>
             <div className={Styles.messageContainer}>
-              <p className={Styles.lead}>Hi <span>{user.firstName} {user.lastName}</span>, you don&apos;t have<br/>any Power Platform workspaces.</p>
-              <p>Click on the below button to create one</p>
+              <p className={Styles.lead}>Hi <span>{user.firstName} {user.lastName}</span>, you don&apos;t have<br/>any Power Platform accounts.</p>
+              <p>Click on the below button to order one</p>
             </div>
             <div className={Styles.btnContainer}>
               <button className={'btn btn-tertiary'} onClick={() => setCreateProject(true)}>
-                <span>Create now</span>
+                <span>Order now</span>
               </button>
             </div>
           </div>
@@ -256,7 +262,7 @@ const PowerPlatformWorkspaces = ({user}) => {
       </div>
       { createProject &&
         <Modal
-          title={'Create Data Entry Project'}
+          title={'Order Power Platform Account'}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
