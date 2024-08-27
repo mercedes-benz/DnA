@@ -2,7 +2,6 @@ import classNames from "classnames";
 import React, { useState } from "react";
 import Styles from './role-card.scss';
 import DatePicker from 'dna-container/DatePicker';
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 
 const RoleCard = ({ role, onAdd, type }) => {
   const [validFrom, setValidFrom] = useState('');
@@ -54,7 +53,7 @@ const RoleCard = ({ role, onAdd, type }) => {
                   // minDate={minDate}
                   value={validFrom}
                   onChange={(value) => {
-                    setValidFrom(regionalDateAndTimeConversionSolution(new Date(value).toISOString()).split(',')[0]);
+                    setValidFrom(new Date(value).toLocaleDateString('en-CA'));
                   }}
                 />
               </div>
@@ -70,7 +69,7 @@ const RoleCard = ({ role, onAdd, type }) => {
                     // minDate={minDate}
                     value={validUntil}
                     onChange={(value) => {
-                      setValidUntil(regionalDateAndTimeConversionSolution(new Date(value).toISOString()).split(',')[0]);
+                      setValidUntil(new Date(value).toLocaleDateString('en-CA'));
                     }}
                   />
               </div>
