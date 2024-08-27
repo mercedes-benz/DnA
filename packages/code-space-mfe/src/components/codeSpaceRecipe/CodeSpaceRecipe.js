@@ -540,12 +540,12 @@ const CodeSpaceRecipe = (props) => {
                           onChange={onGitUrlChange}
                         />
                         {(!enableCreate &&
-                          <button className={classNames('btn btn-tertiary', Styles.verifyButton)} type="button" onClick={verifyRequest}>
+                          <button className={classNames('btn btn-tertiary', Styles.verifyButton, errorObj?.gitUrl?.length > 0 && Styles.giturlerror)} type="button" onClick={verifyRequest}>
                             <i className="icon mbc-icon alert circle"></i>Kindly add the PID6C39 as admin contributor in your gitHub repo and click here to verify.
                           </button>
                         )}
                       </div>
-                      <p style={{ color: 'var(--color-green)'}} className={classNames(enableCreate ? '' : ' hide')}>
+                      <p className={classNames(Styles.giturlsuccess, enableCreate ? '' : ' hide')}>
                         <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
                       </p>
                     </div>

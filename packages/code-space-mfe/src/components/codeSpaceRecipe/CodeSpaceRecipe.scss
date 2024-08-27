@@ -133,7 +133,7 @@
 
     .verifyButton {
       padding: 0 !important;
-      margin-top: -9px !important;
+      margin-top: -40px !important;
       background: none;
       border: none;
       outline: none;
@@ -141,11 +141,22 @@
       vertical-align: middle;
       text-align: left;
       font-size: 12px;
+      position: relative;
+      z-index: 999;
 
       &:hover {
         text-decoration: underline;
         background: none;
       }
+
+      &.giturlerror {
+        margin-top: -10px !important;
+      }
+    }
+
+    .giturlsuccess { 
+      color: var(--color-green);
+      margin-top: -20px;
     }
   }
 
