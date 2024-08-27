@@ -22,7 +22,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: --name-template paperless-ngx --namespace tools -f values-dyp.yaml
+          value: --namespace tools -f values-dyp.yaml
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:

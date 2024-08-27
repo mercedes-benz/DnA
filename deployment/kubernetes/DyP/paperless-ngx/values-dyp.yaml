@@ -5,6 +5,9 @@
 # https://github.com/bjw-s/helm-charts/blob/a081de5/charts/library/common/values.yaml
 #
 
+global:
+  fullnameOverride: "paperless-ngx"
+fullnameOverride: "paperless-ngx"
 image:
   # -- Image repository
   repository: registry-emea.app.corpintra.net/ghcrcache/paperless-ngx/paperless-ngx
