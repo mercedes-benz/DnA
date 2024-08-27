@@ -1,0 +1,42 @@
+annotations:
+  artifacthub.io/alternativeName: paperless
+  artifacthub.io/changes: |-
+    - kind: changed
+      description: Update ghcr.io/paperless-ngx/paperless-ngx docker tag to v2.11.2
+  artifacthub.io/links: |-
+    - name: App Source
+      url: https://github.com/paperless-ngx/paperless-ngx
+    - name: Chart Source
+      url: https://github.com/gabe565/charts/tree/main/charts/paperless-ngx
+apiVersion: v2
+appVersion: 2.11.2
+dependencies:
+- name: common
+  repository: https://bjw-s.github.io/helm-charts
+  version: 1.5.1
+- condition: postgresql.enabled
+  name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 14.0.5
+- condition: mariadb.enabled
+  name: mariadb
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.0.2
+- condition: redis.enabled
+  name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.6.4
+description: 'A community-supported supercharged version of paperless: scan, index
+  and archive all your physical documents'
+home: https://charts.gabe565.com/charts/paperless-ngx/
+icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/b948750/src-ui/src/assets/logo-notext.svg
+keywords:
+- documents
+- ocr
+- paper
+kubeVersion: '>=1.22.0-0'
+name: paperless-ngx
+sources:
+- https://github.com/paperless-ngx/paperless-ngx
+type: application
+version: 0.19.0
