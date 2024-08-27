@@ -540,7 +540,10 @@ singleuser:
               chmod +x /home/coder/.bashrc
 
               # Install SDK and extensions
-              cd /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/
+              TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
+              mkdir -pv $TEMP_DIR
+              cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+              cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
 
