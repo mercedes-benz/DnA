@@ -36,6 +36,24 @@
         }
     }
   }
+  .headerLink {
+    border-right: 1px solid #252a33;
+    margin-right: 10px;
+    padding-right: 10px;
+    height: 25px;
+
+    button {
+      background: unset;
+      border: unset;
+      padding: 0;
+      font-size: var(--font-size-small);
+      height: auto;
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
 
   .createNewArea {
     margin-top: 15px;
