@@ -1,15 +1,15 @@
 annotations:
   artifacthub.io/alternativeName: paperless
   artifacthub.io/changes: |-
-    - kind: fixed
-      description: Allow redis username to be overridden
+    - kind: changed
+      description: Update ghcr.io/paperless-ngx/paperless-ngx docker tag to v2.11.2
   artifacthub.io/links: |-
     - name: App Source
       url: https://github.com/paperless-ngx/paperless-ngx
     - name: Chart Source
       url: https://github.com/gabe565/charts/tree/main/charts/paperless-ngx
 apiVersion: v2
-appVersion: 2.8.6
+appVersion: 2.11.2
 dependencies:
 - name: common
   repository: https://bjw-s.github.io/helm-charts
@@ -39,4 +39,4 @@ name: paperless-ngx
 sources:
 - https://github.com/paperless-ngx/paperless-ngx
 type: application
-version: 0.18.1
+version: 0.19.0
