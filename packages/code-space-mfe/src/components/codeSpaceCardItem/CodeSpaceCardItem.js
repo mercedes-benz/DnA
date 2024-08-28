@@ -209,11 +209,11 @@ const CodeSpaceCardItem = (props) => {
   const onCodeSpaceSecurityConfigClick = (codeSpace) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(
-        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}`,
+        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`,
       );
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`);
   };
 
   const onCodeSpaceDelete = () => {
