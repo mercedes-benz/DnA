@@ -2,12 +2,13 @@
 {{- if .Values.backupJob.enabled }}
 {{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
 {{- $bucketName := .Values.storageCredentials.bucketName }}
-{{- range $index,$pvc := .Values.backupJob.backupPvc }}
+{{- $namespace :=  .Values.namespace }}
+{{- range $index,$pvc := .Values.pvcs }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ $pvc.pvcName }}-bk-job
-  namespace: {{ $pvc.namespace | quote }}
+  namespace: {{ $namespace | quote }}
 spec:
   template:
     spec:
@@ -22,19 +23,19 @@ spec:
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ $pvc.pvcName }}
+                name: s3-secret
                 key: resticKey
                 optional: false
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $pvc.pvcName }}
+                name: s3-secret
                 key: accessKeyId
                 optional: false
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $pvc.pvcName }}
+                name: s3-secret
                 key: secretAccessKey
                 optional: false          
       containers:
@@ -52,19 +53,19 @@ spec:
           - name: RESTIC_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ $pvc.pvcName }}
+                name: s3-secret
                 key: resticKey
                 optional: false
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $pvc.pvcName }}
+                name: s3-secret
                 key: accessKeyId
                 optional: false
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $pvc.pvcName }}
+                name: s3-secret
                 key: secretAccessKey
                 optional: false
         volumeMounts:

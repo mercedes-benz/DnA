@@ -6,36 +6,25 @@ replicaCount: 1
 
 imagePullSecrets:
 
+namespace: 'backup-ns-01'
+pvcs:
+  - pvcName: ws1887
+    backupPath: '/home/backup-ns-01'
+  - pvcName: ws1888
+    backupPath: '/home/backup-ns-02'
+  - pvcName: ws1889
+    backupPath: '/home/backup-ns-03'
+
 backupJob:
   enabled: true
-  backupPvc:
-    - pvcName: ws1887
-      namespace: 'backup-ns-01'
-      backupPath: '/home/backup-ns-01'
-    - pvcName: ws1888
-      namespace: 'backup-ns-02'
-      backupPath: '/home/backup-ns-02'
-    - pvcName: ws1889
-      namespace: 'backup-ns-03'
-      backupPath: '/home/backup-ns-03'
 
 restoreJob:
-  enabled: false
-  restorePvc:
-    - pvcName: ws2000
-      namespace: 'restore-ns-01'
-      restorePath: '/home/backup-ns-01'
-    - pvcName: ws2001
-      namespace: 'restore-ns-02'
-      restorePath: '/home/backup-ns-02'
-    - pvcName: ws2002
-      namespace: 'restore-ns-03'
-      restorePath: '/home/backup-ns-03'
+  enabled: true
 
 storageCredentials:
-  accessKeyId: ""
-  secretAccessKey: ""
-  resticKey: ""
+  accessKeyId: "test"
+  secretAccessKey: "test"
+  resticKey: "test"
   #Mounted directly to the pod env not as a secret
   apiUrl: "s3:https://s3.eu-west-2.amazonaws.com"
   bucketName: "example-bucket"
