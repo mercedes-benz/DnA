@@ -1321,7 +1321,6 @@ import com.daimler.data.util.ConstantsUtility;
 		 boolean isProjectOwner = false;
 		 boolean isAdmin = false;
 		 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") 
-		 		 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")
 				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
 				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 			 log.error("Cannot add collaborator for this project {} of recipe type - {} "
