@@ -133,7 +133,14 @@ networkPolicy:
           - ipBlock:
               cidr: 53.136.76.23/0       
           - ipBlock:
-              cidr: 53.137.140.156/0                  
+              cidr: 53.137.140.156/0
+#This n/w policy is for connecting code-server database using pgadmin
+          - podSelector:
+              matchLabels:
+                app: jupyterhub
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: code-server         
          
 ## Ingress
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
