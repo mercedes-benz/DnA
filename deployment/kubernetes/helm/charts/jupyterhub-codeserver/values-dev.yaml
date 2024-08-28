@@ -234,7 +234,14 @@ hub:
               app.kubernetes.io/name: prometheus
           namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: i3-monitoring  
+              kubernetes.io/metadata.name: i3-monitoring
+#This n/w policy is for connecting code-server database using pgadmin
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tools
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
           port: 8081  
