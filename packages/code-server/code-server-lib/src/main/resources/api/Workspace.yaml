@@ -1301,7 +1301,11 @@ definitions:
       software:
         type: array
         items:
-          type: string 
+          type: string
+      additionalServices:
+        type: array
+        items:
+          type: string  
       toDeployType:
         type: string
       recipeType:
@@ -1682,6 +1686,9 @@ definitions:
       branch:
         type: string
         description: "branch one which codespace is deployed"
+      commitId:
+        type: string
+        description: "commit id one which codespace is deployed"
 
   CodespaceSecurityConfigDetailVO:
     type: object  
