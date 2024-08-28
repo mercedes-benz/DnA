@@ -2467,8 +2467,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseMessage;
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				Boolean isValutInjectorEnable = false;
+				try{
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), env);
+				}catch(Exception e){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Some error occured during restart, with exception " + e.getMessage());
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				}
 				deployJobInputDto.setWsid(projectOwnerWsId);
 				deployJobInputDto.setProjectName(projectName.toLowerCase());
+				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
