@@ -56,7 +56,7 @@ const CodeSpaceCardItem = (props) => {
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment =
-    codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+    codeSpace?.projectDetails?.recipeDetails?.recipeId?.startsWith('public') ||
     DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
@@ -294,7 +294,7 @@ const CodeSpaceCardItem = (props) => {
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
+  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
   const isAPIRecipe =
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
@@ -311,6 +311,8 @@ const CodeSpaceCardItem = (props) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+
+  const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
   const securedWithIAMContent = (
     <svg
@@ -430,7 +432,7 @@ const CodeSpaceCardItem = (props) => {
                         (DORA Metrics)
                       </span>
                     </li>
-                    {isAPIRecipe && (
+                    {isAPIRecipe && isOwner && (
                       <li>
                         <span
                           onClick={() => {
@@ -483,7 +485,7 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
                         </span>
                       </li>
                     )}
@@ -508,7 +510,7 @@ const CodeSpaceCardItem = (props) => {
                         (DORA Metrics)
                       </span>
                     </li>
-                    {isAPIRecipe && (
+                    {isAPIRecipe && isOwner && (
                       <li>
                         <span
                           onClick={() => {
@@ -561,7 +563,7 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
                         </span>
                       </li>
                     )}
@@ -585,7 +587,7 @@ const CodeSpaceCardItem = (props) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>
+              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}</div>
             </div>
             <div>
               <div>Environment</div>
@@ -1047,6 +1049,7 @@ const CodeSpaceCardItem = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
       <ConfirmModal
