@@ -414,7 +414,7 @@ export default class SecurityConfig extends React.Component {
             showAcceptButton={true}
             showCancelButton={false}
             show={this.state.showRedeployWarningModal}
-            content={<div id="contentparentdiv">Please redeploy by reentering the client id and client secret to reflect the authorization changes. Only authentication will be handled unless you redeploy.</div>}
+            content={<div id="contentparentdiv">Please redeploy by reentering the client id and client secret for the authorization changes to be reflected. Note that only authentication will be handled unless you redeploy.</div>}
             onAccept={() => {this.setState({showRedeployWarningModal: false})}}
           />
           <ConfirmModal
