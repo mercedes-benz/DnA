@@ -825,7 +825,11 @@ import org.springframework.beans.factory.annotation.Value;
 		resource+=recipeData.getMaxRam()+"M,"+recipeData.getMaxCpu();
 		newRecipeVO.setResource(resource);
 		newRecipeVO.setSoftware(recipeData.getSoftware());
-		newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		if(recipeData.getToDeployType()!=null){
+			newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		} else {
+			newRecipeVO.setToDeployType("default");
+		}
 		newRecipeVO.setGitPath(recipeData.getGitPath());
 		newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
@@ -1043,20 +1047,23 @@ import org.springframework.beans.factory.annotation.Value;
 			// 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 			// 	 }
 			//  }
-			 if(deployRequestDto.isValutInjectorEnable()!=null)
-			 {
-				deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			 }
-			 else
-			 {
-				deployRequestDto.setValutInjectorEnable(false);
-			 }
+			//  if(deployRequestDto.isValutInjectorEnable()!=null)
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
+			//  }
+			//  else
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(false);
+			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());

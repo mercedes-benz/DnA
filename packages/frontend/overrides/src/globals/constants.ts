@@ -185,6 +185,16 @@ export const ToolsPageImagesInfo = {
       id: 'powerBI',
       banner: 'banner.jpg',
       toolPipeline:'toolPipeline.png'
+    }, 
+    {
+      id: 'fabric',
+      banner: 'banner.png',
+      toolPipeline:'toolPipeline.png'
+    },
+    {
+      id: 'powerPlatform',
+      banner: 'banner.png',
+      toolPipeline:'toolPipeline.png'
     }
   ]
 };
