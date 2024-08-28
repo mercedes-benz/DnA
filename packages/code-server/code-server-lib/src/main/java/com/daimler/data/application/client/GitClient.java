@@ -50,13 +50,14 @@ public class GitClient {
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
 
-	public HttpStatus createRepo(String repoName, String recipeName) {
+	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "-template/generate";
+
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
 					+ "\",\"description\":\"" + recipeName
 					+ " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";

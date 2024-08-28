@@ -85,7 +85,8 @@
  import com.daimler.data.dto.workspace.ResourceVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
- import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
+import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
  import com.fasterxml.jackson.databind.ObjectMapper;
  import com.daimler.data.db.json.DeploymentAudit;
@@ -627,11 +628,23 @@
 								 .startsWith("bat")) {
 					 repoName = vo.getProjectDetails().getGitRepoName();
 					 String recipeName = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase();
+					 if(null != RecipeIdEnum.fromValue(recipeName)){
+						recipeName = recipeName+"-template";
+					 }
  //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
  //							.equalsIgnoreCase("default")
  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
  //									.startsWith("bat")) {
-						 HttpStatus createRepoStatus = gitClient.createRepo(repoName,recipeName);
+						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+						String repoOwner = null;
+						if(null != gitUrl && !gitUrl.isBlank()) {
+							String[] codespaceSplitValues = gitUrl.split("/");
+							int length = codespaceSplitValues.length;
+							repoOwner = codespaceSplitValues[length-2];
+						} else {
+							repoOwner = "DNA";
+						}
+						 HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						 if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
@@ -1307,8 +1320,8 @@
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
 		 boolean isProjectOwner = false;
 		 boolean isAdmin = false;
-		 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
+		 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") 
+		 		 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")
 				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
 				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 			 log.error("Cannot add collaborator for this project {} of recipe type - {} "
