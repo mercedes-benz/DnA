@@ -38,6 +38,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
+// import com.daimler.data.dto.solution.EmailDataVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface SolutionService extends CommonService<SolutionVO, SolutionNsql, String> {
@@ -60,6 +61,11 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category);
 
 	void deleteInActiveSolutionsOlderThan(Calendar startDate);
+
+	GenericMessage notifyUsecaseOwners(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook, String message);
 
 	List<ChangeLogVO> getChangeLogsBySolutionId(String id);
 
