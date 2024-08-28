@@ -96,5 +96,7 @@ public interface WorkspaceService {
 
 	GenericMessage updateResourceValue(CodeServerWorkspaceNsql entity, @Valid ResourceVO updatedResourceValue);
 
+	GenericMessage restartWorkspace(String userId, String id, String env);
+
 	
 }
