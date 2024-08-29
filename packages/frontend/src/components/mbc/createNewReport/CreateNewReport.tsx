@@ -240,7 +240,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const departmentTags: IDepartment[] = response[13].data;
         const dataClassifications: IDataClassification[] = response[14].data;
         const kpiClassifications: IKpiClassification[] = response[15].data;
-        const allSolutions: ITag[] = response[16].data.solutions.records.map((rec : any) => { return {id: rec.id, name: rec.productName}});
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -275,7 +274,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             dataClassifications,
             kpiClassifications,
             // commonFunctions,
-            allSolutions,
             report: {
               ...prevState.report,
               members: {
@@ -305,6 +303,18 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         );
       } else {
         ProgressIndicator.hide();
+      }
+    });
+    ApiClient.getAllSolutions().then((response : any) => {
+      if (response) {
+        const allSolutions: ITag[] = response.records.map((rec : any) => { return {id: rec.id, name: rec.productName}});
+        this.setState(
+          (prevState) => ({
+            allSolutions,
+            report: {
+              ...prevState.report,
+            },
+          }));
       }
     });
 
