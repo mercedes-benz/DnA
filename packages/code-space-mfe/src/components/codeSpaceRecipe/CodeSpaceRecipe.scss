@@ -220,3 +220,7 @@
 .m5{
   margin-left: 5px;
 }
+.disabledSection {
+  opacity: 0.5;
+  pointer-events: none;
+}
