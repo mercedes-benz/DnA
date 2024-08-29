@@ -324,7 +324,8 @@ public class GitClient {
 	}
 
 	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
-		GitLatestCommitIdDto commitId = null;
+		try{
+			GitLatestCommitIdDto commitId = null;
 			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -342,7 +343,7 @@ public class GitClient {
 		return new GitLatestCommitIdDto();
 	}
 	
-public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
+	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
   	try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
