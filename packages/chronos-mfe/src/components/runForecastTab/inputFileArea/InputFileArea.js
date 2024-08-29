@@ -56,10 +56,10 @@ const InputFileArea = ({ showTutorial }) => {
               <Link to="/help">forecasting guidelines</Link>.
             </p>
             <p>
-              For a quick start, you can download the template for univariate forecast (target only) <a href={`/chronos-templates/target.xlsx`} download={true}>right here</a>.
+              For a quick start, you can download the template to forecast target only <a href={`/chronos-templates/target.xlsx`} download={true}>right here</a>.
             </p>
             <p>
-              To run a univariate forecast with exogenous variables (target with drivers), download the template <a href={`/chronos-templates/target_with_drivers.xlsx`} download={true}>right here</a>.
+              To run a forecast on target variables with drivers, download the template <a href={`/chronos-templates/target_with_drivers.xlsx`} download={true}>right here</a>.
             </p>
           </div>
           { chronosForm.inputFile.length > 0 ? 
