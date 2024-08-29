@@ -326,7 +326,7 @@ public class GitClient {
 			headers.set("Authorization", "token "+ personalAccessToken);
 			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				log.info("completed checking user {} as collaborator for git repo {}, with status ", username, gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
