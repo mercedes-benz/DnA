@@ -86,6 +86,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.email.dataEntryNotificationPref}")
 	private boolean defaultDataEntryEmailNotificationPref;
+
+	@Value("${notification.email.useCaseOwnerNotificationPref}")
+	private boolean defaultUseCaseOwnerEmailNotificationPref;
 	
 	@Value("${notification.app.solutionNotificationPref}")
 	private boolean defaultSolutionAppNotificationPref;
@@ -119,6 +122,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.app.dataEntryNotificationPref}")
 	private boolean defaultDataEntryAppNotificationPref;
+
+	@Value("${notification.app.useCaseOwnerNotificationPref}")
+	private boolean defaultUseCaseOwnerAppNotificationPref;
 
 	public BaseUserNotificationPrefService() {
 		super();
@@ -189,6 +195,10 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				dataEntryNotificationPref.setEnableAppNotifications(defaultDataEntryAppNotificationPref);
 				dataEntryNotificationPref.setEnableEmailNotifications(defaultDataEntryEmailNotificationPref);
 				preferencesVO.setDataEntryNotificationPref(dataEntryNotificationPref);
+				NotificationPreferenceVO useCaseOwnerNotificationPref = new NotificationPreferenceVO();
+				useCaseOwnerNotificationPref.setEnableAppNotifications(defaultUseCaseOwnerAppNotificationPref);
+				useCaseOwnerNotificationPref.setEnableEmailNotifications(defaultUseCaseOwnerEmailNotificationPref);
+				preferencesVO.setUseCaseOwnerNotificationPref(useCaseOwnerNotificationPref);
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);

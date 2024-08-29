@@ -83,7 +83,9 @@ const ContactInformation = ({
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          setValue('subDivision', provideDataTransfers.selectedDataTransfer.consumer.subDivision);
+          if(provideDataTransfers?.selectedDataTransfer?.consumer){
+            setValue('subDivision', provideDataTransfers.selectedDataTransfer.consumer.subDivision);
+          }
         } else {
           setValue('subDivision', '0');
         }

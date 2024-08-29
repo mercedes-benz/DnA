@@ -295,6 +295,7 @@
 						 auditDetails.setTriggeredOn(audit.getTriggeredOn());
 					 }
 					 auditDetails.setBranch(audit.getBranch());
+					 auditDetails.setCommitId(audit.getCommitId());
 					 deployedAuditLogDetails.add(auditDetails);
 				 }
 			 }
@@ -350,6 +351,7 @@
 						 if(Objects.nonNull(audit.getTriggeredOn()))
 							 auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
 						 auditDetails.setBranch(audit.getBranch());
+						 auditDetails.setCommitId(audit.getCommitId());
 						 auditDetailsVO.add(auditDetails);
 				 }
 			 }

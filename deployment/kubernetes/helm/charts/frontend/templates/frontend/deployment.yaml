@@ -36,7 +36,7 @@ spec:
             matchLabels:
               app: {{ .Release.Name }}-frontend
       containers:
-        - image: {{ .Values.appFrontend.image }}
+        - image: "{{ .Values.appFrontend.image.repository }}:{{ .Values.appFrontend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: Always
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
