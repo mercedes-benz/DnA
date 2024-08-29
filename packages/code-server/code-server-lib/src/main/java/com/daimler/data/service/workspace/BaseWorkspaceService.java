@@ -1361,6 +1361,27 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
  
 				 String gitUser = userRequestDto.getGitUserName();
+
+				 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ){
+					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					String repoOwner = null;
+					if(null != gitUrl && !gitUrl.isBlank()) {
+						String[] codespaceSplitValues = gitUrl.split("/");
+						int length = codespaceSplitValues.length;
+						repoOwner = codespaceSplitValues[length-2];
+					} else {
+						repoOwner = "DNA";
+					}
+					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
+					if(!status.is2xxSuccessful()){
+						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
+						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
+						errors.add(msg);
+						responseMessage.setSuccess("FAILED");
+			 			responseMessage.setErrors(errors);
+					}
+				}
+
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
