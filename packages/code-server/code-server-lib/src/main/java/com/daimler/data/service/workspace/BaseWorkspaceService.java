@@ -641,6 +641,7 @@ import com.daimler.data.util.ConstantsUtility;
 							String[] codespaceSplitValues = gitUrl.split("/");
 							int length = codespaceSplitValues.length;
 							repoOwner = codespaceSplitValues[length-2];
+							recipeName = codespaceSplitValues[length-1].replace(".git", "");
 						} else {
 							repoOwner = "DNA";
 						}
