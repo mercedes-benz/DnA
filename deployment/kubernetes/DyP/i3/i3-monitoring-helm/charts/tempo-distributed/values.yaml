@@ -206,17 +206,17 @@ ingester:
     # -- Number of copies of spans to store in the ingester ring
     replication_factor: 3
     # -- Amount of time a trace must be idle before flushing it to the wal.
-    trace_idle_period: null
+    trace_idle_period: 5m
     # -- How often to sweep all tenants and move traces from live -> wal -> completed blocks.
-    flush_check_period: null
+    flush_check_period: 1m
     # -- Maximum size of a block before cutting it
-    max_block_bytes: null
+    max_block_bytes: 500MB
     # -- Maximum length of time before cutting a block
-    max_block_duration: null
+    max_block_duration: 1h
     # -- Duration to keep blocks in the ingester after they have been flushed
-    complete_block_timeout: null
+    complete_block_timeout: 48h
     # -- Flush all traces to backend when ingester is stopped
-    flush_all_on_shutdown: false
+    flush_all_on_shutdown: true
   service:
     # -- Annotations for ingester service
     annotations: {}
@@ -530,25 +530,25 @@ compactor:
       # -- Duration to keep blocks
       block_retention: 48h
       # Duration to keep blocks that have been compacted elsewhere
-      compacted_block_retention: 1h
+      compacted_block_retention: 24h
       # -- Blocks in this time window will be compacted together
       compaction_window: 1h
       # -- Amount of data to buffer from input blocks
-      v2_in_buffer_bytes: 5242880
+      v2_in_buffer_bytes: 5MB
       # -- Flush data to backend when buffer is this large
-      v2_out_buffer_bytes: 20971520
+      v2_out_buffer_bytes: 20MB
       # -- Maximum number of traces in a compacted block. WARNING: Deprecated. Use max_block_bytes instead.
       max_compaction_objects: 6000000
       # -- Maximum size of a compacted block in bytes
-      max_block_bytes: 107374182400
+      max_block_bytes: 500MB
       # -- Number of tenants to process in parallel during retention
       retention_concurrency: 10
       # -- Number of traces to buffer in memory during compaction
-      v2_prefetch_traces_count: 1000
+      v2_prefetch_traces_count: 2000
       # -- The maximum amount of time to spend compacting a single tenant before moving to the next
-      max_time_per_tenant: 5m
+      max_time_per_tenant: 10m
       # -- The time between compaction cycles
-      compaction_cycle: 30s
+      compaction_cycle: 1m
   service:
     # -- Annotations for compactor service
     annotations: {}
