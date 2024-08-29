@@ -359,6 +359,7 @@ public HttpStatus isUserCollaborator( String orgName,String username, String rep
 			log.error("Error occured while checking collaborator {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
+		
 	}
 	
 }
