@@ -813,7 +813,8 @@ import org.springframework.beans.factory.annotation.Value;
 		newRecipeVO.setRecipeName(recipeData.getRecipeName());
 		if(RecipeIdEnum.fromValue(recipeValue)!=null) {
 			newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
-
+		} else if(recipeData.getRecipeType().equals(ConstantsUtility.GENERIC)) {
+			newRecipeVO.setRecipeId(RecipeIdEnum.TEMPLATE);
 		} else {
 			newRecipeVO.setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
 		}
