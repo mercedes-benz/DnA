@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,17 +23,22 @@ public class CreateRoleRequestDto implements Serializable{
     private String id;
     private String name;
     private String description;
+    @JsonProperty("isJobTitle")
     private boolean isJobTitle;
     private boolean notificationsActive;
-//    private boolean isDynamic;
+
+    @JsonProperty("isDynamic")
+    private boolean isDynamic;
+    @JsonProperty("isSelfRequestable")
     private boolean isSelfRequestable;
     private boolean needsAdditionalSelfRequestApproval;
     private boolean needsOrgScopes;
     private boolean needsCustomScopes;
-    
     private String defaultValidityType;
     private boolean deprovisioning;
+    @JsonProperty("isGlobalCentralAvailable")
     private boolean isGlobalCentralAvailable;
+    @JsonProperty("isWorkflowBased")
     private boolean isWorkflowBased;
     private String roleType;
     private String dataClassification;

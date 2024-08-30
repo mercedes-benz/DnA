@@ -36,7 +36,7 @@ spec:
               app: {{ .Release.Name }}        
       containers:
         - name: backend
-          image: {{ .Values.app.backend.image }}
+          image: "{{ .Values.app.backend.image.repository }}:{{ .Values.app.backend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: Always
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]

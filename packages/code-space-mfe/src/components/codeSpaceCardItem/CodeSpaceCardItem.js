@@ -56,7 +56,7 @@ const CodeSpaceCardItem = (props) => {
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment =
-    codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+    codeSpace?.projectDetails?.recipeDetails?.recipeId?.startsWith('public') ||
     DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
@@ -69,6 +69,9 @@ const CodeSpaceCardItem = (props) => {
   const [serverStarted, setServerStarted] = useState(false);
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
+
+  const [showRestartModal, setShowRestartModal] = useState(false);
+  const [env, setEnv] = useState("");
 
   useEffect(() => {
 
@@ -209,11 +212,11 @@ const CodeSpaceCardItem = (props) => {
   const onCodeSpaceSecurityConfigClick = (codeSpace) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(
-        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}`,
+        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`,
       );
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`);
   };
 
   const onCodeSpaceDelete = () => {
@@ -291,7 +294,7 @@ const CodeSpaceCardItem = (props) => {
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
+  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
   const isAPIRecipe =
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
     props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
@@ -325,6 +328,32 @@ const CodeSpaceCardItem = (props) => {
       <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
     </svg>
   );
+
+  const RestartContent = (
+    <div>
+      <h3>Are you sure you want to restart your deployed application?</h3>
+      <p>Note: Please refresh and check the application restart status under action audit logs.</p>
+    </div>
+  );
+
+  const onRestart = (env) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
+    .then((res) => {
+      if (res.data.success === 'SUCCESS') {
+        ProgressIndicator.hide();
+        Notification.show("Restart requested successfully")
+      } else {
+          ProgressIndicator.hide();
+          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
+      });
+    setShowRestartModal(false);
+  }
 
   return (
     <>
@@ -403,7 +432,7 @@ const CodeSpaceCardItem = (props) => {
                         (DORA Metrics)
                       </span>
                     </li>
-                    {isAPIRecipe && (
+                    {isAPIRecipe && isOwner && (
                       <li>
                         <span
                           onClick={() => {
@@ -456,7 +485,16 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
+                        </span>
+                      </li>
+                    )}
+                    {intDeployed && (
+                      <li>
+                        <span
+                          onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                        >
+                          Restart Deployed Application
                         </span>
                       </li>
                     )}
@@ -472,7 +510,7 @@ const CodeSpaceCardItem = (props) => {
                         (DORA Metrics)
                       </span>
                     </li>
-                    {isAPIRecipe && (
+                    {isAPIRecipe && isOwner && (
                       <li>
                         <span
                           onClick={() => {
@@ -525,7 +563,16 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
+                        </span>
+                      </li>
+                    )}
+                    {prodDeployed && (
+                      <li>
+                        <span
+                          onClick={() => {setEnv("prod"); setShowRestartModal(true);}}
+                        >
+                          Restart Deployed Application
                         </span>
                       </li>
                     )}
@@ -1002,6 +1049,7 @@ const CodeSpaceCardItem = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
       <ConfirmModal
@@ -1036,6 +1084,24 @@ const CodeSpaceCardItem = (props) => {
           }}
         />
       )}
+      { showRestartModal && (
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showRestartModal}
+        content={RestartContent}
+        onCancel={() => {
+          setEnv('');
+          setShowRestartModal(false);
+        }}
+        onAccept={() => {
+          onRestart(env);
+          setShowRestartModal(false);
+        }}
+      />)}
     </>
   );
 };

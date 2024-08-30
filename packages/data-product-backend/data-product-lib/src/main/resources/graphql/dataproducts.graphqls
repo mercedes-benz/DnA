@@ -4,7 +4,7 @@ type DataProductCollection {
 }
 
 type DataProductVO {
-    id: ID!,
+    id: ID,
     dataProductId: String,
     dataProductName: String,
     description: String,
@@ -70,7 +70,7 @@ type StepDetailsVO{
 }
 
 type CarLaFunctionVO {
-    id: ID!,
+    id: ID,
     name: String
 }
 
@@ -80,12 +80,12 @@ type PlatformVO {
 }
 
 type FrontendToolsVO {
-    id: ID!,
-    name: String!
+    id: ID,
+    name: String
 }
 
 type AgileReleaseTrainVO {
-    id: ID!,
+    id: ID,
     name: String
 }
 
@@ -104,7 +104,7 @@ type DataProductContactInformationVO {
 }
 
 type DataProductTeamMemberVO {
-    shortId: String!,
+    shortId: String,
     userType: String,
     firstName: String,
     lastName: String,
@@ -128,7 +128,7 @@ type SubdivisionVO {
 }
 
 type CreatedByVO {
-    id: ID!,
+    id: ID,
     name: String,
     description: String,
     firstName: String,

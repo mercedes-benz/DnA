@@ -1,0 +1,582 @@
+
+name: 3. Trigger Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target build environment"
+        type: environment
+        required: true
+        default: 'Development'      
+
+  pull_request:
+    types:
+      - closed
+    branches:
+      - 'dev'
+      - 'staging'
+      - 'main'
+    paths:
+      - 'packages/**'   
+      - 'deployment/dockerfiles/**'   
+
+jobs: 
+          
+  select-service:
+    name: 'Detect changes in the service files'
+    runs-on: [os-medium-amd64-linux]
+    outputs:
+      code-server: ${{ steps.filter.outputs.code-server }}    
+      chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}
+      chronos-be: ${{ steps.filter.outputs.chronos-be }}
+      code-space-mfe: ${{ steps.filter.outputs.code-space-mfe }}
+      storage-mfe: ${{ steps.filter.outputs.storage-mfe }}
+      storage-be: ${{ steps.filter.outputs.storage-be }}
+      dss-mfe: ${{ steps.filter.outputs.dss-mfe }}
+      dss-be: ${{ steps.filter.outputs.dss-be }} 
+      data-product-backend: ${{ steps.filter.outputs.data-product-backend }}
+      authenticator-service: ${{ steps.filter.outputs.authenticator-service }}
+      airflow-backend: ${{ steps.filter.outputs.airflow-backend }}
+      trino-backend: ${{ steps.filter.outputs.trino-backend }}
+      dna-backend: ${{ steps.filter.outputs.dna-backend }}
+      dna-frontend: ${{ steps.filter.outputs.dna-frontend }}
+      dataentry-mfe: ${{ steps.filter.outputs.dataentry-mfe }}
+      dashboard-backend: ${{ steps.filter.outputs.dashboard-backend }} 
+      data-product-mfe: ${{ steps.filter.outputs.data-product-mfe }}
+      malware-scanner: ${{ steps.filter.outputs.malware-scanner }} 
+      naas: ${{ steps.filter.outputs.naas }}
+      datalake-mfe: ${{ steps.filter.outputs.datalake-mfe }} 
+      matomo-mfe: ${{ steps.filter.outputs.matomo-mfe }}
+      matomo-backend: ${{ steps.filter.outputs.matomo-backend }}
+      fabric-backend: ${{ steps.filter.outputs.fabric-backend }}
+      fabric-mfe: ${{ steps.filter.outputs.fabric-mfe }}
+      power-platform-mfe: ${{ steps.filter.outputs.power-platform-mfe }}
+
+    permissions:
+      pull-requests: read    
+      contents: read
+      packages: write   
+      actions: write   
+      checks: write            
+    steps:
+
+      # For pull requests it's not necessary to checkout the code
+      - name: checkout 
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: |
+            code-server: 
+              - 'packages/code-server/**'
+              - 'deployment/dockerfiles/codeServer/cs-backend.Dockerfile'
+            chronos-mfe: 
+              - 'packages/chronos-mfe/**'
+              - 'deployment/dockerfiles/chronosService/chronos-mfe.Dockerfile'
+            chronos-be:
+              - 'packages/chronos/**'
+              - 'deployment/dockerfiles/chronosService/chronos-be.Dockerfile'  
+            code-space-mfe: 
+              - 'packages/code-space-mfe/**'
+              - 'deployment/dockerfiles/codeServer/code-space-mfe.Dockerfile'
+            storage-mfe:
+              - 'packages/storage-mfe/**'
+              - 'deployment/dockerfiles/storageService/storage-mfe.Dockerfile' 
+            storage-be:
+              - 'packages/storage-backend/**'
+              - 'deployment/dockerfiles/storageService/storage-be.Dockerfile' 
+            dss-mfe:
+              - 'packages/dss-mfe/**'
+              - 'deployment/dockerfiles/dss/dss-mfe.Dockerfile'
+            dss-be:
+              - 'packages/dataiku-backend/**'
+              - 'deployment/dockerfiles/dss/dss-be.Dockerfile'  
+            data-product-backend:
+              - 'packages/data-product-backend/**'
+              - 'deployment/dockerfiles/dataProduct/dataProduct-be.Dockerfile'
+            authenticator-service:
+              - 'packages/authenticator-service/**'
+              - 'deployment/dockerfiles/authenticator-service/Dockerfile'
+            airflow-backend:
+              - 'packages/airflow-backend/**'
+              - 'deployment/dockerfiles/airflow/airflow-backend.Dockerfile'
+            trino-backend:
+              - 'packages/trino-backend/**'
+              - 'deployment/dockerfiles/trinoBackend/trinoBackend.Dockerfile'
+            dna-backend:
+              - 'packages/backend/**'
+              - 'deployment/dockerfiles/app/result-backend.Dockerfile'
+            dna-frontend:
+              - 'packages/frontend/**'
+              - 'deployment/dockerfiles/app/result-frontend.Dockerfile'  
+            dataentry-mfe:
+              - 'packages/dataentry-mfe/**'
+              - 'deployment/dockerfiles/dataentry/dataentry-mfe.Dockerfile'
+            dashboard-backend:
+              - 'packages/dashboard-backend/**'
+              - 'deployment/dockerfiles/dashboard/dashboard-backend.Dockerfile' 
+            data-product-mfe:
+              - 'packages/data-product-mfe/**'
+              - 'deployment/dockerfiles/dataProduct/dataProduct-mfe.Dockerfile'
+            malware-scanner:
+              - 'packages/malware-scanner/**'
+              - 'deployment/dockerfiles/clamav/clamav-service.Dockerfile'
+            naas:
+              - 'packages/naas/**'
+              - 'deployment/dockerfiles/naas/naas-backend.Dockerfile'
+            datalake-mfe:
+              - 'packages/datalake-mfe/**'
+              - 'deployment/dockerfiles/datalakeService/datalake-mfe.Dockerfile'
+            matomo-mfe:
+              - 'packages/matomo-mfe/**'
+              - 'deployment/dockerfiles/matomo/matomo-mfe.Dockerfile'
+            matomo-backend:
+              - 'packages/matomo-backend/**'
+              - 'deployment/dockerfiles/matomo/matomo-be.Dockerfile'
+            fabric-backend:
+              - 'packages/fabric-backend/**'
+              - 'deployment/dockerfiles/fabric/fabric-be.Dockerfile'
+            fabric-mfe:
+              - 'packages/fabric-mfe/**'
+              - 'deployment/dockerfiles/fabric/fabric-mfe.Dockerfile' 
+            power-platform-mfe:
+              - 'packages/power-platform-mfe/**'
+              - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'     
+
+      - name: Delete HEAD branche
+        if: ${{ github.ref_name == 'main' }}      
+        uses: dawidd6/action-delete-branch@v3.1.0
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          branches: ${{ github.head_ref }}                                               
+                
+
+  code-server:
+        name: Code Server Backend
+        needs: select-service
+        if: needs.select-service.outputs.code-server == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/code-server-be'
+          DOCKER_FILE_PATH: 'codeServer/cs-backend.Dockerfile'
+          DETECT_PROJECT_NAME: 'CodeServerBE'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/code-server'
+          APP_VERSION_FILE_PATH: 'packages/code-server/code-server-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/code-server-backend'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  chronos-be:
+        name: Chronos Backend
+        needs: select-service
+        if: needs.select-service.outputs.chronos-be == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/chronos-be'
+          DOCKER_FILE_PATH: 'chronosService/chronos-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'chronos-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/chronos'
+          APP_VERSION_FILE_PATH: 'packages/chronos/chronos-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/chronos-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  chronos-mfe:
+        name: Chronos MFE
+        needs: select-service
+        if: needs.select-service.outputs.chronos-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/chronos-mfe'
+          DOCKER_FILE_PATH: 'chronosService/chronos-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'ChronosMFE'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/chronos-mfe'
+          APP_VERSION_FILE_PATH: 'packages/chronos-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/chronos-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  code-space-mfe:
+        name: Codespace MFE
+        needs: select-service
+        if: needs.select-service.outputs.code-space-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe'
+          DOCKER_FILE_PATH: 'codeServer/code-space-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'codespace-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/code-space-mfe'
+          APP_VERSION_FILE_PATH: 'packages/code-space-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/code-space-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit 
+  storage-mfe:
+        name: Storage MFE
+        needs: select-service
+        if: needs.select-service.outputs.storage-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/storage-mfe'
+          DOCKER_FILE_PATH: 'storageService/storage-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'storage-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/storage-mfe'
+          APP_VERSION_FILE_PATH: 'packages/storage-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/storage-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  storage-be:
+        name: Storage Backend
+        needs: select-service
+        if: needs.select-service.outputs.storage-be == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/storage-be'
+          DOCKER_FILE_PATH: 'storageService/storage-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'storage-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/storage-backend'
+          APP_VERSION_FILE_PATH: 'packages/storage-backend/storage-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/storage-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  dss-be:    ## Code changes are not detected
+        name: DSS Backend
+        needs: select-service
+        if: needs.select-service.outputs.dss-be == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dss-backend'
+          DOCKER_FILE_PATH: 'dss/dss-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'dss-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/dataiku-backend'
+          APP_VERSION_FILE_PATH: 'packages/dataiku-backend/dataiku-backend-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/dss-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  dss-mfe:
+        name: DSS MFE
+        needs: select-service
+        if: needs.select-service.outputs.dss-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dss-mfe'
+          DOCKER_FILE_PATH: 'dss/dss-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'dss-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/dss-mfe'
+          APP_VERSION_FILE_PATH: 'packages/dss-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/dss-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  data-product-mfe:  ## Code changes are not detected
+        name: Dataproduct MFE
+        needs: select-service
+        if: needs.select-service.outputs.data-product-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/data-product-mfe'
+          DOCKER_FILE_PATH: 'dataProduct/dataProduct-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'data-product-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/data-product-mfe'
+          APP_VERSION_FILE_PATH: 'packages/data-product-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/data-product-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit       
+  data-product-backend:
+        name: Dataproduct Backend
+        needs: select-service
+        if: needs.select-service.outputs.data-product-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/data-product-be'
+          DOCKER_FILE_PATH: 'dataProduct/dataProduct-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'data-product-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/data-product-backend'
+          APP_VERSION_FILE_PATH: 'packages/data-product-backend/data-product-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/data-product-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit 
+  authenticator-service:
+        name: Authenticator Service
+        needs: select-service
+        if: needs.select-service.outputs.authenticator-service == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/authenticator-service'
+          DOCKER_FILE_PATH: 'authenticator-service/Dockerfile'
+          DETECT_PROJECT_NAME: 'authenticator-service'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/authenticator-service'
+          APP_VERSION_FILE_PATH: 'packages/authenticator-service/authenticator-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/authenticator-service'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  airflow-backend:
+        name: Airflow Backend
+        needs: select-service
+        if: needs.select-service.outputs.airflow-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/airflow-backend'
+          DOCKER_FILE_PATH: 'airflow/airflow-backend.Dockerfile'
+          DETECT_PROJECT_NAME: 'airflow-backend'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/airflow-backend'
+          APP_VERSION_FILE_PATH: 'packages/airflow-backend/airflow-backend-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/airflow'
+          YML_IMAGE_TAG_PATH: 'backend.image.tag' 
+        secrets: inherit
+  trino-backend:
+        name: Trino Backend
+        needs: select-service
+        if: needs.select-service.outputs.trino-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/trino-backend'
+          DOCKER_FILE_PATH: 'trinoBackend/trinoBackend.Dockerfile'
+          DETECT_PROJECT_NAME: 'trino-backend'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/trino-backend'
+          APP_VERSION_FILE_PATH: 'packages/trino-backend/trino-backend-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/trinoBackend'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  dna-backend:
+        name: DNA Backend
+        needs: select-service
+        if: needs.select-service.outputs.dna-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-backend'
+          DOCKER_FILE_PATH: 'app/result-backend.Dockerfile'
+          DETECT_PROJECT_NAME: 'dna-backend'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/backend'
+          APP_VERSION_FILE_PATH: 'packages/backend/dnambc-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/backend'
+          YML_IMAGE_TAG_PATH: 'app.backend.image.tag' 
+        secrets: inherit
+  dna-frontend:   ## Code changes are not detected
+        name: DNA Frontend
+        needs: select-service
+        if: needs.select-service.outputs.dna-frontend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-frontend'
+          DOCKER_FILE_PATH: 'app/result-frontend.Dockerfile'
+          DETECT_PROJECT_NAME: 'dna-frontend'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/frontend'
+          APP_VERSION_FILE_PATH: 'packages/frontend/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/frontend'
+          YML_IMAGE_TAG_PATH: 'appFrontend.image.tag' 
+        secrets: inherit      
+  dataentry-mfe:
+        name: Dataentry MFE
+        needs: select-service
+        if: needs.select-service.outputs.dataentry-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dataentry-mfe'
+          DOCKER_FILE_PATH: 'dataentry/dataentry-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'dataentry-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/dataentry-mfe'
+          APP_VERSION_FILE_PATH: 'packages/dataentry-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/dataentry-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  dashboard-backend:
+        name: Dashboard Backend
+        needs: select-service
+        if: needs.select-service.outputs.dashboard-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dashboard-backend'
+          DOCKER_FILE_PATH: 'dashboard/dashboard-backend.Dockerfile'
+          DETECT_PROJECT_NAME: 'dashboard-backend'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/dashboard-backend'
+          APP_VERSION_FILE_PATH: 'packages/dashboard-backend/dashboard-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/dashboard'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit 
+  malware-scanner:
+        name: Malware Scanner
+        needs: select-service
+        if: needs.select-service.outputs.malware-scanner == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend'
+          DOCKER_FILE_PATH: 'clamav/clamav-service.Dockerfile'
+          DETECT_PROJECT_NAME: 'malware-scanner'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/malware-scanner'
+          APP_VERSION_FILE_PATH: 'packages/malware-scanner/malwarescan-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/clamav'
+          YML_IMAGE_TAG_PATH: 'app.backend.image.tag'
+        secrets: inherit  
+  naas:
+        name: NAAS
+        needs: select-service
+        if: needs.select-service.outputs.naas == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/naas-backend'
+          DOCKER_FILE_PATH: 'naas/naas-backend.Dockerfile'
+          DETECT_PROJECT_NAME: 'naas'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/naas'
+          APP_VERSION_FILE_PATH: 'packages/naas/naas-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/naas'
+          YML_IMAGE_TAG_PATH: 'app.backend.image.tag'
+        secrets: inherit   
+  datalake-mfe:
+        name: Datalake MFE
+        needs: select-service
+        if: needs.select-service.outputs.datalake-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/datalake-mfe'
+          DOCKER_FILE_PATH: 'datalakeService/datalake-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'datalake-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/datalake-mfe'
+          APP_VERSION_FILE_PATH: 'packages/datalake-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/datalake-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit  
+  matomo-mfe:   ## Code changes are not detected
+        name: Matomo MFE
+        needs: select-service
+        if: needs.select-service.outputs.matomo-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/matomo-mfe'
+          DOCKER_FILE_PATH: 'matomo/matomo-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'matomo-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/matomo-mfe'
+          APP_VERSION_FILE_PATH: 'packages/matomo-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/matomo-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit                                                                                                                 
+  matomo-backend:
+        name: Matomo Backend
+        needs: select-service
+        if: needs.select-service.outputs.matomo-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/matomo-backend'
+          DOCKER_FILE_PATH: 'matomo/matomo-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'matomo-backend'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/matomo-backend'
+          APP_VERSION_FILE_PATH: 'packages/matomo-backend/matomo-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/matomo-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit 
+  fabric-backend:
+        name: Fabric Backend
+        needs: select-service
+        if: needs.select-service.outputs.fabric-backend == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/fabric-be'
+          DOCKER_FILE_PATH: 'fabric/fabric-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'fabric-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/fabric-backend'
+          APP_VERSION_FILE_PATH: 'packages/fabric-backend/lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/fabric-be'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit 
+  fabric-mfe:
+        name: Fabric MFE
+        needs: select-service
+        if: needs.select-service.outputs.fabric-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/fabric-mfe'
+          DOCKER_FILE_PATH: 'fabric/fabric-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'fabric-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/fabric-mfe'
+          APP_VERSION_FILE_PATH: 'packages/fabric-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/fabric-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit
+  power-platform-mfe:
+        name: PowerPlatform MFE
+        needs: select-service
+        if: needs.select-service.outputs.power-platform-mfe == 'true'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe'
+          DOCKER_FILE_PATH: 'power-platform/power-platform-mfe.Dockerfile'
+          DETECT_PROJECT_NAME: 'powerplatform-mfe'
+          IS_OVERRIDE_REQUIRED: false
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: true
+          CODE_FOLDER: 'packages/power-platform-mfe'
+          APP_VERSION_FILE_PATH: 'packages/power-platform-mfe/package.json'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/power-platform-mfe'
+          YML_IMAGE_TAG_PATH: 'image.tag' 
+        secrets: inherit                  
+
