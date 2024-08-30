@@ -53,7 +53,7 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                               <div>{customer.level ? customer.level : 'NA'}</div>
                             </div>
                             <div id="department">
-                              <label className="input-label summary">E2-Department</label>
+                              <label className="input-label summary">Department</label>
                               <br />
                               <div>{customer.department ? customer.department : 'NA'}</div>
                             </div>
