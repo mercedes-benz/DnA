@@ -561,8 +561,6 @@ import com.daimler.data.util.ConstantsUtility;
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 String ownerwsid = vo.getWorkspaceId();
-			 log.info("Ajay 23"+ownerWorkbenchCreateDto.toString());
-			 log.info("Ajay 24"+ codespaceName);
 			 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			 if (createOwnerWSResponse != null) {
 				 if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
