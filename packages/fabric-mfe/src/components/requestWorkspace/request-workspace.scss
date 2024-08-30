@@ -23,6 +23,10 @@
   .formFooter {
     display: flex;
     justify-content: flex-end;
+
+    button {
+      margin-left: 10px;
+    }
   }
 }
 
@@ -120,6 +124,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-bottom: 20px;
 
   i {
     margin-top: -7px;
@@ -171,8 +176,10 @@
 .workspaceSummaryContent {
   display: flex;
   align-items: center;
-  padding: 20px 0;
+  padding-bottom: 20px;
   column-gap: 15px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #3a3f43;
 
   .workspaceIcon {
     font-size: 20px;
@@ -199,4 +206,11 @@
   border: 1px solid #697582;
   min-height: 100px;
   margin-bottom: 20px;
+}
+.subTitle {
+  margin-bottom: 20px;
+}
+.selectedRolesContainer {
+  margin-bottom: 25px;
+  border-bottom: 1px solid #3a3f43;
 }
