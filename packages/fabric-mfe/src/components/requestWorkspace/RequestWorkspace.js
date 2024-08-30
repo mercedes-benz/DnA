@@ -32,7 +32,7 @@ const RequestWorkspace = ({ onRefresh }) => {
   const [selectedWorkspace, setSelectedWorkspace] = useState({});
   const [roleList, setRoleList] = useState([]);
   const [reason, setReason] = useState('');
-  const [reasonError, setReasonError] = useState(true);
+  const [reasonError, setReasonError] = useState(false);
   const [currentStep, setCurrentStep] = useState('workspace-selection');
 
   useEffect(() => {
@@ -42,6 +42,7 @@ const RequestWorkspace = ({ onRefresh }) => {
         .then((res) => {
           if(res.status !== 204) {
             setWorkspaces(res?.data?.records);
+            setFilteredWorkspaces(res?.data?.records);
           } else {
             setWorkspaces([]);
           }
@@ -60,14 +61,18 @@ const RequestWorkspace = ({ onRefresh }) => {
 
   const handleWorkspaceSearch = (e) => {
     const search = e.target.value;
-    const filteredWorkspacesTemp = workspaces.filter(workspace =>
-      workspace.name.toLowerCase().includes(search.toLowerCase())
-    );
-    setFilteredWorkspaces(filteredWorkspacesTemp);
+    if(search?.length > 0) {
+      const filteredWorkspacesTemp = workspaces.filter(workspace =>
+        workspace.name.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredWorkspaces(filteredWorkspacesTemp);
+    } else {
+      setFilteredWorkspaces(workspaces);
+    }
   }
 
   useEffect(() => {
-    reason.length > 20 ? setReasonError(false) : setReasonError(true); 
+    reason.length > 20 && setReasonError(false); 
   }, [reason]);
 
   const handleAddRole = (role) => {
@@ -76,8 +81,27 @@ const RequestWorkspace = ({ onRefresh }) => {
   }
 
   const handleWorkspaceRequest = (workspace) => {
+    setRoleList([]);
+    setReason('');
+    setReasonError(false);
     setSelectedWorkspace(workspace);
     setCurrentStep('role-selection');
+  }
+
+  const handleRoleSelectionNext = () => {
+    if(roleList?.length > 0) {
+      setCurrentStep('reason');
+    } else {
+      Notification.show('Please select a role and proceed', 'alert');
+    }
+  }
+
+  const handleReasonNext = () => {
+    if(reason.length > 20) {
+      setCurrentStep('summary')
+    } else {
+      setReasonError(true);
+    }
   }
 
   const handleSubmit = () => {
@@ -89,11 +113,11 @@ const RequestWorkspace = ({ onRefresh }) => {
     fabricApi.requestRoles(selectedWorkspace?.id, data).then(() => {
       ProgressIndicator.hide();
       onRefresh();
-      Notification.show('Fabric Workspace successfully requested');
+      Notification.show('Fabric Workspace Access successfully requested');
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while requesting fabric workspace',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while requesting fabric workspace access',
         'alert',
       );
     });
@@ -102,8 +126,8 @@ const RequestWorkspace = ({ onRefresh }) => {
   return (
     <div className={classNames(Styles.form)}>
       <div className={Styles.formHeader}>
-        <h3>Request Fabric Workspace</h3>
-        <p>Search a workspace and request</p>
+        <h3>Request Fabric Workspace Access</h3>
+        <p>Search a workspace and request access</p>
       </div>
       {/* Top navigation */}
       <div>
@@ -137,7 +161,7 @@ const RequestWorkspace = ({ onRefresh }) => {
       {/* Search and request workspace */}
       {currentStep === 'workspace-selection' && 
         <div className={Styles.searchContainer}>
-          <h3>Select Workspace</h3>
+          <h3 className={Styles.subTitle}>Select Workspace</h3>
           <div className={Styles.flex}>
             <div className={Styles.col}>
               <div className={classNames('input-field-group', Styles.searchBox)}>
@@ -160,7 +184,7 @@ const RequestWorkspace = ({ onRefresh }) => {
           {/* No workspaces */}
           {filteredWorkspaces.length === 0 &&
             <div className={Styles.noWorkspaces}>
-              <i className="icon mbc-icon search"></i> <span>Search for workspaces</span>
+              <i className="icon mbc-icon search"></i> <span>No Workspace Found. Please try again.</span>
             </div>
           }
           <div className={Styles.workspaceList}>
@@ -171,17 +195,30 @@ const RequestWorkspace = ({ onRefresh }) => {
       {/* Select Role */}
       {currentStep === 'role-selection' &&
         <div className={Styles.rolesContainer}>
-          <h3>Select Role(s)</h3>
+          <h3 className={Styles.subTitle}>Select Role(s)</h3>
           <div className={Styles.flex}>
+            {/* No roles */}
+            {(selectedWorkspace?.status?.roles === null || selectedWorkspace?.status?.roles?.length === 0) &&
+              <div className={classNames(Styles.col, Styles.noWorkspaces)}>
+                <i className="icon mbc-icon info"></i> <span>No roles found for this workspace. Please try another.</span>
+              </div>
+            }
             {selectedWorkspace?.status?.roles?.map(role => 
               <RoleCard key={role.id} role={role} onAdd={handleAddRole} />
             )}
           </div>
           <div className={Styles.formFooter}>
             <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => setCurrentStep('workspace-selection')}
+            >
+              Prev
+            </button>
+            <button
               className="btn btn-tertiary"
               type="button"
-              onClick={() => setCurrentStep('reason')}
+              onClick={handleRoleSelectionNext}
             >
               Next
             </button>
@@ -192,7 +229,7 @@ const RequestWorkspace = ({ onRefresh }) => {
       {/* Fill reason */}
       {currentStep === 'reason' &&
         <div className={Styles.rolesForm}>
-          <h3>Reason</h3>
+          <h3 className={Styles.subTitle}>Reason</h3>
           <div className={Styles.flex}>
             <div className={Styles.col}>
               {/* <div className={classNames('input-field-group include-error area', errors.reason ? 'error' : '')}> */}
@@ -213,10 +250,17 @@ const RequestWorkspace = ({ onRefresh }) => {
             </div>
           </div>
           <div className={Styles.formFooter}>
+          <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => { setRoleList([]); setCurrentStep('role-selection') }}
+            >
+              Prev
+            </button>
             <button
               className="btn btn-tertiary"
               type="button"
-              onClick={() => setCurrentStep('summary')}
+              onClick={handleReasonNext}
             >
               Next
             </button>
@@ -226,7 +270,7 @@ const RequestWorkspace = ({ onRefresh }) => {
       {/* Summary */}
       {currentStep === 'summary' &&
         <div className={Styles.summary}>
-          <h3>Apply Role for</h3>
+          <h3 className={Styles.subTitle}>Apply Role for</h3>
           <div className={Styles.workspaceSummaryContent}>
             <div className={Styles.workspaceIcon}>
               <i className="icon mbc-icon tools-mini"></i>
@@ -238,11 +282,13 @@ const RequestWorkspace = ({ onRefresh }) => {
               </div>
             </div>
           </div>
-          <h3>Selected Roles</h3>
-          <div className={Styles.flex}>
-            {roleList?.map(role => 
-              <RoleCard type={'display'} key={role.id} role={role} />
-            )}
+          <div className={Styles.selectedRolesContainer}>
+            <h3 className={Styles.subTitle}>Selected Roles</h3>
+            <div className={Styles.flex}>
+              {roleList?.map(role => 
+                <RoleCard type={'display'} key={role.id} role={role} />
+              )}
+            </div>
           </div>
           <h3>Additional Information</h3>
           <p>Reason</p>
@@ -250,6 +296,13 @@ const RequestWorkspace = ({ onRefresh }) => {
             {reason}
           </div>
           <div className={Styles.formFooter}>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => setCurrentStep('reason')}
+            >
+              Prev
+            </button>
             <button
               className="btn btn-tertiary"
               type="button"
