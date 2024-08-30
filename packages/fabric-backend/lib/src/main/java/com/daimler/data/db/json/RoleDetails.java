@@ -22,5 +22,7 @@ public class RoleDetails implements Serializable{
 	private String link;
 	private List<EntitlementDetails> entitlements;
 	private String assignEntitlementsState;
-	
+	private String roleOwner;
+	private String globalRoleAssigner;
+	private String roleApprover;
 }
