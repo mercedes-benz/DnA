@@ -398,7 +398,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   public onChangeFrontTechnologies = (selectedValues: string[]) => {
     const description = this.props.description;
     description.frontendTechnologies = selectedValues;
-    this.setState({ frontEndTechValue: selectedValues });
+    this.setState({ frontEndTechValue: selectedValues, showFrontEndTechError: false });
   }
 
   public showSimilarReports = (type: string) => {
@@ -816,7 +816,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       ) : (
                         ''
                       )}
-                  <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                  <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '' , Styles.divWrapper )}>
                       <div>
                         <div className={classNames('input-field-group')}>
                           <Tags
@@ -827,6 +827,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                             setTags={this.onRelatedSolutionsChange}
                             isMandatory={false}
                             showMissingEntryError = {false}
+                            disableSelfTagAdd={true}
+                            placeholder={this.props.allSolutions.length > 0 ? 'Type here' : 'Loading...' }
                           />
                         </div>
                       </div>
@@ -847,7 +849,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           maxLength={200}
                           onChange={(e)=>this.onProcedureIdOnChange(e)}
                         />
-                       <span className={classNames('error-message', procedureIdError ? '' : 'hide')}>{procedureIdError}</span>
+                       <span className={classNames('error-message', procedureIdError ? '' : 'hide', Styles.procedureIdError)} >{procedureIdError}</span>
                       </div>
                       </div>
                     </div>
@@ -1110,6 +1112,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
     if (!this.state.statusValue || this.state.statusValue[0].name === 'Choose') {
       this.setState({ statusError: errorMissingEntry });
+      formValid = false;
+    }
+  
+    if (this.state.dataClassificationValue === '' || this.state.dataClassificationValue === null) {
+      this.setState({ dataClassificationError: errorMissingEntry });
       formValid = false;
     }
 

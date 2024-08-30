@@ -64,7 +64,6 @@ export class ReportsApiClient {
       this.get('departments'),
       this.get('lov/dataclassifications'),
       this.get('lov/kpiClassifications'), 
-      ReportsApiClient.allSolutions(),
     ]);
   }
 
@@ -72,7 +71,7 @@ export class ReportsApiClient {
     return this.post('reports', data);
   }
 
-  public static allSolutions():Promise<any> {
+  public static getAllSolutions():Promise<any> {
     const reqQuery = `limit:0,published:true`;
       let resQuery = `totalCount
         records {
@@ -218,7 +217,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType, procedureId  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, frontendTechnologies, reportLink, procedureId, archerId, dataClassification, relatedSolutions{ id, name }  },
         customer {
           internalCustomers {            
             customerRelation,
@@ -245,14 +244,14 @@ export class ReportsApiClient {
         },
         kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
         dataAndFunctions { 
-          dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
+          dataWarehouseInUse { dataWarehouse, connectionType } , 
           singleDataSources { 
             dataSources{
               dataSource,
               weightage
             }, 
-            connectionType, 
-            dataClassification } 
+            connectionType 
+            } 
         }
         members {
           reportAdmins { firstName, lastName, department, shortId }

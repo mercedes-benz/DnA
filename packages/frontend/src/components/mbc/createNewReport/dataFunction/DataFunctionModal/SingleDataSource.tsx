@@ -119,7 +119,6 @@ export const SingleDataSource = ({
             </div>
           </div>
           <div>
-          <div className={Styles.flexLayout}>
           <div>
             <div>
               <div className={classNames('input-field-group include-error', 
@@ -148,7 +147,6 @@ export const SingleDataSource = ({
                 {/* <span className={classNames('error-message', errors.connectionType ? '' : 'hide')}>
                   {errors.connectionType}
                 </span> */}
-              </div>
             </div>
           </div>
         </div>
