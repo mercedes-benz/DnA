@@ -9,6 +9,35 @@
       color: #acb8c4 !important;
       text-align: center !important;
     }
+    .overallStatusContainer {
+      display: flex;
+      justify-content: center;
+      margin: 20px;
+
+      > div {
+        background-color: #1d202b;
+        padding: 10px 20px;
+        margin: 0 20px;
+        min-width: 250px;
+        position: relative;
+        font-size: var(--font-size-small);
+
+        &::after {
+          content: "";
+          background-color: #1d202b;
+          display: block;
+          height: 2px;
+          width: 25%;
+          position: absolute;
+          right: -25%;
+          top: 50%;
+        }
+
+        &:last-child::after {
+          display: none;
+        }
+      }
+    }
   }
   .content {
     height: 500px;

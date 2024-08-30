@@ -155,7 +155,7 @@ const FabricWorkspace = () => {
                       <div id="tags">
                         <label className="input-label summary">Tags</label>
                         <br />
-                        {workspace?.tags ? workspace.tags?.map((chip) => {
+                        {workspace?.tags?.length > 0 ? workspace.tags?.map((chip) => {
                           return (
                             <>
                               <label className="chips">{chip}</label>&nbsp;&nbsp;

@@ -226,7 +226,7 @@ const FabricWorkspaces = ({user}) => {
                   </div>
                   <div className={Styles.createNewCard} onClick={() => setRequestWorkspace(true)}>
                     <div className={Styles.requestIcon}><i className="icon mbc-icon document" /></div>
-                    <label className={Styles.addlabel}>Request Fabric Workspace</label>
+                    <label className={Styles.addlabel}>Request Fabric Workspace Access</label>
                   </div>
                   {ownWorkspaces.map((workspace) => 
                     <FabricWorkspaceCard
@@ -381,7 +381,7 @@ const FabricWorkspaces = ({user}) => {
       }
       { requestWorkspace &&
         <Modal
-          title={'Request Fabric Workspace'}
+          title={'Request Fabric Workspace Access'}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
