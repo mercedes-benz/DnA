@@ -261,7 +261,7 @@ public class CodeServerClient {
 				return true;
 			}
 		} catch (Exception e) {
-			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
+			log.error("Error occurred while intializing server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
 	}
