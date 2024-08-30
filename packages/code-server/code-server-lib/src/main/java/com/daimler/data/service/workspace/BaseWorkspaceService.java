@@ -87,7 +87,8 @@
  import com.daimler.data.dto.workspace.ResourceVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
- import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
+import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
  import com.fasterxml.jackson.databind.ObjectMapper;
  import com.daimler.data.db.json.DeploymentAudit;
@@ -477,7 +478,15 @@
 			 UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
 			 String projectOwnerId = "";
 			 // validate user pat
-			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
+			 String RecipeId = null;
+			if(vo.getProjectDetails().getRecipeDetails().getRecipeId()!=null){
+				vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.fromValue(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString()));
+			} else if(vo.getProjectDetails().getRecipeDetails().getRecipeType().equals(ConstantsUtility.GENERIC)) {
+				vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.TEMPLATE);
+			} else {
+				vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
+			}
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
@@ -536,12 +545,26 @@
 			 } else {
 				 ownerWorkbenchCreateInputsDto.setType("default");
 			 }
+			 List<String> extraContainers = new ArrayList<>();
+			 List<String> additionalServices =  vo.getProjectDetails().getRecipeDetails().getAdditionalServices();
+			 if (additionalServices != null) {
+				 for (String additionalService : additionalServices) {
+					 String additionalServiceEnv = additionalServiceRepo.findByServiceName(additionalService);
+					 if(!additionalServiceEnv.isEmpty()) {
+						 StringBuffer addStringBuffer =  new StringBuffer();
+						 addStringBuffer.append(additionalServiceEnv);
+						 addStringBuffer.deleteCharAt(0);
+						 addStringBuffer.deleteCharAt(addStringBuffer.length()-1);
+						 extraContainers.add(addStringBuffer.toString());
+					 }
+				 }
+			 }
+			 ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
 			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			 ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 String ownerwsid = vo.getWorkspaceId();
-			 
 			 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			 if (createOwnerWSResponse != null) {
 				 if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
@@ -631,11 +654,24 @@
 								 .startsWith("bat")) {
 					 repoName = vo.getProjectDetails().getGitRepoName();
 					 String recipeName = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase();
+					 if(null != RecipeIdEnum.fromValue(recipeName)){
+						recipeName = recipeName+"-template";
+					 }
  //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
  //							.equalsIgnoreCase("default")
  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
  //									.startsWith("bat")) {
-						 HttpStatus createRepoStatus = gitClient.createRepo(repoName,recipeName);
+						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+						String repoOwner = null;
+						if(null != gitUrl && !gitUrl.isBlank()) {
+							String[] codespaceSplitValues = gitUrl.split("/");
+							int length = codespaceSplitValues.length;
+							repoOwner = codespaceSplitValues[length-2];
+							recipeName = codespaceSplitValues[length-1].replace(".git", "");
+						} else {
+							repoOwner = "DNA";
+						}
+						 HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						 if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
@@ -995,7 +1031,6 @@
 				 case "public-dna-fabric-backend":
 					 workspaceUrl = workspaceUrl + "/" + "packages/fabric-backend";
 					 break;
- 
 			 }
 		 }
 		 return workspaceUrl;
@@ -1329,8 +1364,7 @@
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
 		 boolean isProjectOwner = false;
 		 boolean isAdmin = false;
-		 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
+		 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") 
 				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
 				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 			 log.error("Cannot add collaborator for this project {} of recipe type - {} "
@@ -1371,6 +1405,27 @@
 				 }
  
 				 String gitUser = userRequestDto.getGitUserName();
+
+				 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ){
+					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					String repoOwner = null;
+					if(null != gitUrl && !gitUrl.isBlank()) {
+						String[] codespaceSplitValues = gitUrl.split("/");
+						int length = codespaceSplitValues.length;
+						repoOwner = codespaceSplitValues[length-2];
+					} else {
+						repoOwner = "DNA";
+					}
+					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
+					if(!status.is2xxSuccessful()){
+						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
+						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
+						errors.add(msg);
+						responseMessage.setSuccess("FAILED");
+			 			responseMessage.setErrors(errors);
+					}
+				}
+
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")

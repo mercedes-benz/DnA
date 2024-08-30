@@ -54,13 +54,14 @@ public class GitClient {
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
 
-	public HttpStatus createRepo(String repoName, String recipeName) {
+	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "-template/generate";
+
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
 					+ "\",\"description\":\"" + recipeName
 					+ " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
@@ -321,6 +322,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
+	
 
 	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
 		GitLatestCommitIdDto commitId = null;
@@ -346,5 +348,25 @@ public class GitClient {
 		return new GitLatestCommitIdDto();
 	}
 	
+  public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
+    try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ personalAccessToken);
+      String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				log.info("completed checking user {} as collaborator for git repo {}, with status ", username, gitOrgName,response.getStatusCode());
+				return response.getStatusCode();
+			}
+		} catch (Exception e) {
+			log.error("Error occured while checking collaborator {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+		
+	}
+    
 	
 }
