@@ -235,3 +235,14 @@
   opacity: 0.5;
   pointer-events: none;
 }
+.publicWarning {
+  i {
+    color: #FFEB3B;
+  }
+  pre {
+    display: inline;
+  }
+  li {
+    margin-bottom: 5px;
+  }
+}
