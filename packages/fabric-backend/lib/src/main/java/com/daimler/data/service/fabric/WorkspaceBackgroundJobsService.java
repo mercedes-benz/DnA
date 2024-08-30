@@ -2,6 +2,8 @@ package com.daimler.data.service.fabric;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,22 +27,36 @@ public class WorkspaceBackgroundJobsService {
 	@Autowired
 	private FabricWorkspaceService fabricService;
 	
-//	@PostConstruct
-//	public void init() {
-//		
-//		 WorkspacesCollectionDto collection = fabricWorkspaceClient.getAllWorkspacesDetails();
-//		log.info("Fetched all fabric workspaces from API successfully");
-//		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
-//			log.info("Workspaces available, proceeding with provisioning for each");
-//			for(WorkspaceDetailDto workspace: collection.getValue()) {
-//					fabricWorkspaceClient.provisionWorkspace(workspace.getId());
-//					fabricWorkspaceClient.addGroup(workspace.getId());
-//			}
-//		}
-//	}
+	@PostConstruct
+	public void init() {
+		List<FabricWorkspaceVO> workspaceVOs = fabricService.getAll();
+		log.info("Fetched all fabric workspaces from service successfully during init job");
+		if(workspaceVOs!=null && !workspaceVOs.isEmpty()) {
+			log.info("During init job, fetch success. Workspaces available, proceeding with processing user management bug fixing for each");
+			for(FabricWorkspaceVO workspaceVO: workspaceVOs) {
+				if(workspaceVO!=null && workspaceVO.getStatus()!=null && (ConstantsUtility.INPROGRESS_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState()) || ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState()))){
+					FabricWorkspaceStatusVO currentStatus = workspaceVO.getStatus();
+					FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
+					FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
+					try {
+						updatedStatus = fabricService.fixBugsInWorkspaceUserManagement(currentStatus, workspaceVO.getName(), workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+						tempWorkspaceVO.setStatus(updatedStatus);
+						try {
+							fabricService.create(tempWorkspaceVO);
+						}catch(Exception saveException) {
+							log.error("During scheduled job, failed to update the workspace with latest status {} for workspace {} and id {} with exception {}",
+										updatedStatus.getState(), workspaceVO.getName(), workspaceVO.getId(), saveException.getMessage());
+						}
+					}catch(Exception e) {
+						log.error("During scheduled job, failed to process workspace user management for workspace {} and id {} with exception {}", workspaceVO.getName(), workspaceVO.getId(), e.getMessage());
+					}
+				}
+			}
+		}
+}
 	
 	
-	@Scheduled(cron = "0 0/3 * * * *")
+	@Scheduled(cron = "0 0/5 * * * *")
 	public void updateWorkspacesJob() {		
 		List<FabricWorkspaceVO> workspaceVOs = fabricService.getAll();
 			log.info("Fetched all fabric workspaces from service successfully during scheduled job");
@@ -60,10 +76,12 @@ public class WorkspaceBackgroundJobsService {
 								log.error("During scheduled job, failed to update the workspace with latest status {} for workspace {} and id {} with exception {}",
 											updatedStatus.getState(), workspaceVO.getName(), workspaceVO.getId(), saveException.getMessage());
 							}
-						
 						}catch(Exception e) {
 							log.error("During scheduled job, failed to process workspace user management for workspace {} and id {} with exception {}", workspaceVO.getName(), workspaceVO.getId(), e.getMessage());
 						}
+					}
+					if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
+						fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), workspaceVO.getName(), workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
 					}
 				}
 			}
