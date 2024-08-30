@@ -167,9 +167,6 @@ public class RecipeDetailsUpdate {
                                                 recipeDetails.setRecipeName("Recipe from Private Github(https://"+gitUrl+")");
                                             }
                                             break;
-                                        default:
-                                            recipeDetails.setRecipeName("Plain or Empty");
-                                            break;
                                     }
                             } else if(recipeDetails.getRecipeId() == null) {
                                 log.info("recipe name onboard failed for workpsace id : "+record.getWorkspaceId()); 
