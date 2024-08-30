@@ -474,7 +474,15 @@ import com.daimler.data.util.ConstantsUtility;
 			 UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
 			 String projectOwnerId = "";
 			 // validate user pat
-			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
+			 String RecipeId = null;
+			if(vo.getProjectDetails().getRecipeDetails().getRecipeId()!=null){
+				vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.fromValue(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString()));
+			} else if(vo.getProjectDetails().getRecipeDetails().getRecipeType().equals(ConstantsUtility.GENERIC)) {
+				vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.TEMPLATE);
+			} else {
+				vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
+			}
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
@@ -533,12 +541,26 @@ import com.daimler.data.util.ConstantsUtility;
 			 } else {
 				 ownerWorkbenchCreateInputsDto.setType("default");
 			 }
+			 List<String> extraContainers = new ArrayList<>();
+			 List<String> additionalServices =  vo.getProjectDetails().getRecipeDetails().getAdditionalServices();
+			 if (additionalServices != null) {
+				 for (String additionalService : additionalServices) {
+					 String additionalServiceEnv = additionalServiceRepo.findByServiceName(additionalService);
+					 if(!additionalServiceEnv.isEmpty()) {
+						 StringBuffer addStringBuffer =  new StringBuffer();
+						 addStringBuffer.append(additionalServiceEnv);
+						 addStringBuffer.deleteCharAt(0);
+						 addStringBuffer.deleteCharAt(addStringBuffer.length()-1);
+						 extraContainers.add(addStringBuffer.toString());
+					 }
+				 }
+			 }
+			 ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
 			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			 ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 String ownerwsid = vo.getWorkspaceId();
-			 
 			 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
 			 if (createOwnerWSResponse != null) {
 				 if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
@@ -1005,7 +1027,6 @@ import com.daimler.data.util.ConstantsUtility;
 				 case "public-dna-fabric-backend":
 					 workspaceUrl = workspaceUrl + "/" + "packages/fabric-backend";
 					 break;
- 
 			 }
 		 }
 		 return workspaceUrl;
