@@ -534,13 +534,13 @@ compactor:
       # -- Blocks in this time window will be compacted together
       compaction_window: 1h
       # -- Amount of data to buffer from input blocks
-      v2_in_buffer_bytes: 5MB
+      v2_in_buffer_bytes: 5242880
       # -- Flush data to backend when buffer is this large
-      v2_out_buffer_bytes: 20MB
+      v2_out_buffer_bytes: 20971520
       # -- Maximum number of traces in a compacted block. WARNING: Deprecated. Use max_block_bytes instead.
       max_compaction_objects: 6000000
       # -- Maximum size of a compacted block in bytes
-      max_block_bytes: 500MB
+      max_block_bytes: 524288000
       # -- Number of tenants to process in parallel during retention
       retention_concurrency: 10
       # -- Number of traces to buffer in memory during compaction
