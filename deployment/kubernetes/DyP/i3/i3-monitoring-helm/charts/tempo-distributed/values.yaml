@@ -210,7 +210,7 @@ ingester:
     # -- How often to sweep all tenants and move traces from live -> wal -> completed blocks.
     flush_check_period: 1m
     # -- Maximum size of a block before cutting it
-    max_block_bytes: 500MB
+    max_block_bytes: 524288000
     # -- Maximum length of time before cutting a block
     max_block_duration: 1h
     # -- Duration to keep blocks in the ingester after they have been flushed
