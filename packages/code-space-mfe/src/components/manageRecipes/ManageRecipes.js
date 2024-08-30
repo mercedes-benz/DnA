@@ -81,7 +81,7 @@ const ManageRecipes = () => {
   const getCodespaceRecipes = () => {
     ProgressIndicator.show();
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipes()
+    CodeSpaceApiClient.getCodeSpaceRecipes(currentPageOffset, maxItemsPerPage)
       .then((res) => {
         setLoading(false);
         ProgressIndicator.hide();
