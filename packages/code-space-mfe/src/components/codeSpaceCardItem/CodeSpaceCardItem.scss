@@ -241,15 +241,25 @@
   }
 
   .btnOutline {
+    display: flex;
     background: none;
     border: none !important;
     color: #c0c8d0;
     height: auto;
     outline: none;
     padding: 0 2px;
-    margin-left: 4px;
-    margin-bottom: 5px;
-    i {
+    width: -webkit-fill-available;
+    justify-content: space-between;
+    &:hover {
+      background: unset;
+    }
+  }
+  .btnDisabled{
+    pointer-events: none;
+  }
+
+  .showIcon{
+    i{
       font-size: 7px !important;
     }
   }

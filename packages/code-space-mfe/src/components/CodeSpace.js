@@ -709,18 +709,22 @@ const CodeSpace = (props) => {
                           </>
                         )}
                         <li>
-                          <strong>Staging:</strong>{' '}
-                          {intDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${codeDeployedBranch}]`
-                            : 'No Deployment'}
-                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
-                            (DORA Metrics)
-                          </span>
-                          {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
-                            <button className={classNames('btn btn-primary', Styles.btnOutline)} onClick={() => setShowStagingActions(!showStagingActions)}>
-                              <i className={classNames(showStagingActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up", Styles.showIcon)} />
-                            </button>
-                          )}
+                          <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowStagingActions(!showStagingActions)}>
+                            <div>
+                              <strong>Staging:</strong>{' '}
+                              {intDeploymentDetails?.lastDeployedBranch
+                                ? `[Branch - ${intDeploymentDetails?.lastDeployedBranch}]`
+                                : 'No Deployment'}
+                              <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
+                                (DORA Metrics)
+                              </span>
+                            </div>
+                            <div className={classNames(Styles.showIcon)}>
+                              {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                <i className={classNames(showStagingActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                              )}
+                            </div>
+                          </button>
                         </li>
                         {showStagingActions && (
                           <>
@@ -787,18 +791,22 @@ const CodeSpace = (props) => {
                           <hr />
                         </li>
                         <li>
-                          <strong>Production:</strong>{' '}
-                          {prodDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${prodCodeDeployedBranch}]`
-                            : 'No Deployment'}
-                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
-                            (DORA Metrics)
-                          </span>
-                          {((isAPIRecipe && isOwner)|| prodDeploymentDetails?.deploymentAuditLogs) && (
-                            <button className={classNames('btn btn-primary', Styles.btnOutline)} onClick={() => setShowProdActions(!showProdActions)}>
-                              <i className={classNames(showProdActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up", Styles.showIcon)} />
-                            </button>
-                          )}
+                          <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowProdActions(!showProdActions)}>
+                            <div>
+                              <strong>Production:</strong>{' '}
+                              {prodDeploymentDetails?.lastDeployedBranch
+                                ? `[Branch - ${prodDeploymentDetails?.lastDeployedBranch}]`
+                                : 'No Deployment'}
+                              <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
+                                (DORA Metrics)
+                              </span>
+                            </div>
+                            <div className={classNames(Styles.showIcon)}>
+                              {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                <i className={classNames(showProdActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                              )}
+                            </div>
+                          </button>
                         </li>
                         {showProdActions && (
                           <>
