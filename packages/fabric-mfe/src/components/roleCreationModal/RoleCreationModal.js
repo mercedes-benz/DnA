@@ -79,6 +79,11 @@ const RoleCreationModal = ({workspace, onClose}) => {
       <div className={Styles.header}>
         <h3>{workspace?.name}</h3>
         <p>Entitlements, Roles, Microsoft Groups</p>
+        <div className={Styles.overallStatusContainer}>
+          <div><Spinner /> <span>Creating Roles & Entitlements</span></div>
+          <div><Spinner /> <span>Updating Roles with Entitlements</span></div>
+          <div><Spinner /> <span>Assigning Roles to Microsoft Groups</span></div>
+        </div>
       </div>
       <div className={Styles.content}>
         <div style={{ width: '100%', height: '100%' }}>

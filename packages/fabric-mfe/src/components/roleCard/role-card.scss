@@ -12,6 +12,20 @@
 .formFooter {
   display: flex;
   justify-content: flex-end;
+
+  button {
+    background: unset;
+    border: 0;
+    padding: 0;
+    height: auto;
+    color: #00adef;
+    font-size: var(--font-size-default);
+    font-family: var(--font-family-medium);
+
+    &:hover {
+      background: unset;
+    }
+  }
 }
 
 .rolesContainer {
@@ -43,6 +57,11 @@
     i {
       color: #0ae6ab;
     }
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 .roleContent {
