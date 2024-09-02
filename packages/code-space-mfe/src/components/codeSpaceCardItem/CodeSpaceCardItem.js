@@ -409,7 +409,7 @@ const CodeSpaceCardItem = (props) => {
                         </div>
                         <div className={classNames(Styles.showIcon)}>
                           {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
-                            <i className={classNames(showStagingActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                            <i className={classNames(!showStagingActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
                           )}
                         </div>
                       </button>
@@ -491,7 +491,7 @@ const CodeSpaceCardItem = (props) => {
                         </div>
                         <div className={classNames(Styles.showIcon)}>
                           {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
-                            <i className={classNames(showProdActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                            <i className={classNames(!showProdActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
                           )}
                         </div>
                       </button>
