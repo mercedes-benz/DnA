@@ -239,6 +239,20 @@
       }
     }
   }
+
+  .btnOutline {
+    background: none;
+    border: none !important;
+    color: #c0c8d0;
+    height: auto;
+    outline: none;
+    padding: 0 2px;
+    margin-left: 4px;
+    margin-bottom: 5px;
+    i {
+      font-size: 7px !important;
+    }
+  }
   
   .OpenNewTab {
     display: inline-block;
