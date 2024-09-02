@@ -1263,7 +1263,7 @@ triggerer:
     # Enable persistent volumes
     enabled: false
     # Volume size for triggerer StatefulSet
-    size: 3Gi
+    size: 2Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
     storageClassName: "" 
     # Execute init container to chown log directory.
@@ -2098,7 +2098,7 @@ dags:
     # Enable persistent volume for storing dags
     enabled: true
     # Volume size for dags
-    size: 3Gi
+    size: 2Gi
     # If using a custom storageClass, pass name here
     storageClassName: "" 
     # access mode of the persistent volume
@@ -2189,7 +2189,7 @@ logs:
     # Enable persistent volume for storing logs
     enabled: true
     # Volume size for logs
-    size: 3Gi
+    size: 2Gi
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
