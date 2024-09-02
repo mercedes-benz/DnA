@@ -140,17 +140,17 @@ ingress:
     pathType: "ImplementationSpecific"
 
     # The hostname for the web Ingress (Deprecated - renamed to `ingress.web.hosts`)
-    host: <path:kv/data/dna/kubernetesSecret/officalairflow#dnahosturl>
+    host: <path:kv/data/dna/kubernetesSecret/officalairflowAws#dnahosturl>
 
     # The hostnames or hosts configuration for the web Ingress
     hosts: 
-    - name: <path:kv/data/dna/kubernetesSecret/officalairflow#dnahosturl>
+    - name: <path:kv/data/dna/kubernetesSecret/officalairflowAws#dnahosturl>
       # configs for web Ingress TLS
       tls:
         # Enable TLS termination for the web Ingress
         enabled: true
         # the name of a pre-created Secret containing a TLS private key and certificate
-        secretName: <path:kv/data/dna/kubernetesSecret/officalairflow#dnahostsecret>
+        secretName: <path:kv/data/dna/kubernetesSecret/officalairflowAws#dnahostsecret>
 
     # The Ingress Class for the web Ingress (used only with Kubernetes v1.19 and above)
     ingressClassName: ""
@@ -160,7 +160,7 @@ ingress:
       # Enable TLS termination for the web Ingress
       enabled: true
       # the name of a pre-created Secret containing a TLS private key and certificate
-      secretName: <path:kv/data/dna/kubernetesSecret/officalairflow#dnahostsecret>
+      secretName: <path:kv/data/dna/kubernetesSecret/officalairflowAws#dnahostsecret>
 
     # HTTP paths to add to the web Ingress before the default path
     precedingPaths: []
@@ -357,7 +357,7 @@ extraEnvFrom: ~
 #       name: '{{ .Release.Name }}-airflow-connections'
 #   - configMapRef:
 #       name: '{{ .Release.Name }}-airflow-variables'
-sqlAlchemyConn: <path:kv/data/dna/kubernetesSecret/officalairflow#sqlAlchemyConn>
+sqlAlchemyConn: <path:kv/data/dna/kubernetesSecret/officalairflowAws#sqlAlchemyConn>
 # Airflow database & redis config
 data:
   # If secret names are provided, use those secrets
@@ -382,12 +382,12 @@ data:
 
   # Otherwise pass connection values in
   metadataConnection:
-    user: <path:kv/data/dna/kubernetesSecret/officalairflow#airflowdbuser | squote>
-    pass: <path:kv/data/dna/kubernetesSecret/officalairflow#airflowdbpass| squote>
+    user: <path:kv/data/dna/kubernetesSecret/officalairflowAws#airflowdbuser | squote>
+    pass: <path:kv/data/dna/kubernetesSecret/officalairflowAws#airflowdbpass| squote>
     protocol: postgresql
     host: airflow-db.airflow.svc.cluster.local
     port: 64000
-    db: <path:kv/data/dna/kubernetesSecret/officalairflow#airflowdb| squote>
+    db: <path:kv/data/dna/kubernetesSecret/officalairflowAws#airflowdb| squote>
     sslmode: disable
     
   # resultBackendConnection defaults to the same database as metadataConnection
@@ -406,11 +406,11 @@ data:
 
 # Fernet key settings
 # Note: fernetKey can only be set during install, not upgrade
-fernetKey: <path:kv/data/dna/kubernetesSecret/officalairflow#fernetKey>
+fernetKey: <path:kv/data/dna/kubernetesSecret/officalairflowAws#fernetKey>
 fernetKeySecretName: ~
 
 # Flask secret key for Airflow Webserver: `[webserver] secret_key` in airflow.cfg
-webserverSecretKey: <path:kv/data/dna/kubernetesSecret/officalairflow#webserverSecretKey>
+webserverSecretKey: <path:kv/data/dna/kubernetesSecret/officalairflowAws#webserverSecretKey>
 webserverSecretKeySecretName: ~
 
 # In order to use kerberos you need to create secret containing the keytab file
@@ -1105,11 +1105,11 @@ webserver:
   defaultUser:
     enabled: false
     role: Admin
-    username: <path:kv/data/dna/kubernetesSecret/officalairflow#adminuser>
+    username: <path:kv/data/dna/kubernetesSecret/officalairflowAws#adminuser>
     email: admin@example.com
     firstName: admin
     lastName: user
-    password: <path:kv/data/dna/kubernetesSecret/officalairflow#adminpass>
+    password: <path:kv/data/dna/kubernetesSecret/officalairflowAws#adminpass>
 
   # Launch additional containers into webserver.
   extraContainers: []
@@ -2098,7 +2098,7 @@ dags:
     # Enable persistent volume for storing dags
     enabled: true
     # Volume size for dags
-    size: 5Gi
+    size: 3Gi
     # If using a custom storageClass, pass name here
     storageClassName: "" 
     # access mode of the persistent volume
@@ -2113,8 +2113,8 @@ dags:
     # git repo clone url
     # ssh example: git@github.com:apache/airflow.git
     # https example: https://github.com/apache/airflow.git
-    repo: <path:kv/data/dna/kubernetesSecret/officalairflow#repo>
-    branch: <path:kv/data/dna/kubernetesSecret/officalairflow#branch>
+    repo: <path:kv/data/dna/kubernetesSecret/officalairflowAws#repo>
+    branch: <path:kv/data/dna/kubernetesSecret/officalairflowAws#branch>
     rev: HEAD
     depth: 1
     # the number of consecutive failures allowed before aborting
@@ -2189,11 +2189,11 @@ logs:
     # Enable persistent volume for storing logs
     enabled: true
     # Volume size for logs
-    size: 5Gi
+    size: 3Gi
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
     storageClassName: "" 
     ## the name of an existing PVC to use
     existingClaim:
-clientSecret: <path:kv/data/dna/kubernetesSecret/officalairflow#clientSecret>
+clientSecret: <path:kv/data/dna/kubernetesSecret/officalairflowAws#clientSecret>
