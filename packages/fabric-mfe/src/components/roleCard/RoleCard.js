@@ -9,6 +9,8 @@ const RoleCard = ({ role, onAdd, type }) => {
   const [validUntil, setValidUntil] = useState('');
   const [toggle, setToggle] = useState(false);
 
+  const minDate = new Date();
+
   const handleAddRole = () => {
     if(validFrom && validUntil) {
       setToggle(!toggle);
@@ -25,7 +27,7 @@ const RoleCard = ({ role, onAdd, type }) => {
   return (
     <>
       <div className={Styles.col}>
-        <div className={classNames(Styles.roleContainer, !toggle && validFrom && Styles.selected)} onClick={handleToggle}>
+        <div className={classNames(Styles.roleContainer, !toggle && validFrom && Styles.selected, (type !== 'display' && role?.state !== 'CREATED') && Styles.disabled)} onClick={handleToggle}>
           <div className={Styles.roleContent}>
             <h3>{type === 'display' ? role?.roleID : role?.id}</h3>
             <p>{type === 'display' ? role?.roleID?.split('_').pop() : role?.id?.split('_').pop()} role for workspace {type === 'display' ? role?.roleID?.split('_')[0] : role?.id?.split('_')[0]}</p>
@@ -55,7 +57,7 @@ const RoleCard = ({ role, onAdd, type }) => {
                 <DatePicker
                   label="Valid From"
                   name={'validFrom'}
-                  // minDate={minDate}
+                  minDate={minDate}
                   value={validFrom}
                   onChange={(value) => {
                     setValidFrom(new Date(value).toLocaleDateString('en-CA'));
@@ -71,7 +73,7 @@ const RoleCard = ({ role, onAdd, type }) => {
                   <DatePicker
                     label="Valid Until"
                     name={'validUntil'}
-                    // minDate={minDate}
+                    minDate={minDate}
                     value={validUntil}
                     onChange={(value) => {
                       setValidUntil(new Date(value).toLocaleDateString('en-CA'));
