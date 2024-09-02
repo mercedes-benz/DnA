@@ -590,6 +590,7 @@
 			 }
 			 recipeDetails.setResource(vo.getResource());
 			 recipeDetails.setRepodetails(vo.getRepodetails());
+			 recipeDetails.setDeployEnabled(vo.isIsDeployEnabled());
 			 if(vo.getSoftware()!=null)
 			 {
 				recipeDetails.setSoftware(vo.getSoftware());
@@ -614,6 +615,7 @@
 			 recipeDetailsVO.setRecipeId(RecipeIdEnum.fromValue(recipe.getRecipeId()));
 			 recipeDetailsVO.setResource(recipe.getResource());
 			 recipeDetailsVO.setRepodetails(recipe.getRepodetails());
+			 recipeDetailsVO.setIsDeployEnabled(recipe.isDeployEnabled());
 			 if(recipe.getSoftware()!=null)
 			 {
 				recipeDetailsVO.setSoftware(recipe.getSoftware());
