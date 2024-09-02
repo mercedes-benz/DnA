@@ -58,6 +58,11 @@
       color: #0ae6ab;
     }
   }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 .roleContent {
   h3 {
