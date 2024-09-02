@@ -831,6 +831,7 @@ import org.springframework.beans.factory.annotation.Value;
 		} else {
 			newRecipeVO.setToDeployType("default");
 		}
+		newRecipeVO.setIsDeployEnabled(recipeData.isDeployEnabled());
 		newRecipeVO.setGitPath(recipeData.getGitPath());
 		newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());

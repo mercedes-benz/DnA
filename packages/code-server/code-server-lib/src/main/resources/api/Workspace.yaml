@@ -1275,6 +1275,8 @@ definitions:
         type: string
       gitRepoLoc:
         type: string
+      isDeployEnabled:
+        type: boolean
       required:
         -recipeId
         -recipeName

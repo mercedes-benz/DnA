@@ -488,6 +488,8 @@ definitions:
         description: "deploy path for recipe" 
       toDeployType:
         type: string
+      isDeployEnabled:
+        type: boolean
       # users:
       #   type: array
       #   items:
