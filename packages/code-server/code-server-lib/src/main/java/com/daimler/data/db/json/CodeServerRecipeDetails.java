@@ -31,5 +31,6 @@ public class CodeServerRecipeDetails implements Serializable {
 	private String recipeType;
 	private String gitPath;
 	private String gitRepoLoc;
+	private boolean isDeployEnabled;
 	
 }

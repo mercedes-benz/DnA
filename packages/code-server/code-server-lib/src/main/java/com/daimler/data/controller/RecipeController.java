@@ -80,6 +80,7 @@ public class RecipeController implements CodeServerRecipeApi {
 		recipeRequestVO.setCreatedBy(currentUserVO);
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
+		recipeRequestVO.setIsDeployEnabled(false);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
