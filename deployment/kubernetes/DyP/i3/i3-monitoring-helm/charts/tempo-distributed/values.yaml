@@ -530,7 +530,7 @@ compactor:
       # -- Duration to keep blocks
       block_retention: 48h
       # Duration to keep blocks that have been compacted elsewhere
-      compacted_block_retention: 24h
+      compacted_block_retention: 72h
       # -- Blocks in this time window will be compacted together
       compaction_window: 1h
       # -- Amount of data to buffer from input blocks
