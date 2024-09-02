@@ -33,7 +33,7 @@ metadata:
   annotations: {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  accessModes: ["ReadWriteMany"]
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
       storage: {{ .Values.logs.persistence.size | quote }}
