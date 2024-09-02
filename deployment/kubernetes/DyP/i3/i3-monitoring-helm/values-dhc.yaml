@@ -1002,12 +1002,7 @@ tempo-distributed:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub
   fullnameOverride: 'tempo'
-  ingester:
-    persistence:
-      enabled: false
-      inMemory: false
-      size: 10Gi
-      storageClass: cinder    
+  ingester:   
     complete_block_timeout: 720h
   compactor:    
     config:
