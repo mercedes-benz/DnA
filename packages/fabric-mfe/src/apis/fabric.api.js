@@ -28,11 +28,17 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
-// const getAllSolutions = () => {
-//   return hostServer.get(`/solutions?limit=0`, {
-//     data: {},
-//   });
-// };
+const getFabricWorkspaceLov = () => {
+  return server.get(`/lov/fabric-workspaces`, {
+    data: {},
+  });
+};
+
+const requestRoles = (id, data) => {
+  return server.post(`/fabric-workspaces/${id}/rolerequest`, {
+    data,
+  });
+};
 
 const getAllSolutions = () => {
   const reqQuery = `limit:0,published:true`;
@@ -77,6 +83,8 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
+  getFabricWorkspaceLov,
+  requestRoles,
   getAllReports,
   getAllSolutions,
   getLovData,
