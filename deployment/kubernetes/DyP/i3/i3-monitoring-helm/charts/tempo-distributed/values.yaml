@@ -1347,10 +1347,10 @@ storage:
     s3:
       endpoint: "http://minio.minio.svc.cluster.local:80"
       bucket: "tempo-traces"
-      insecure: true                      # Set to false if using HTTPS
+      insecure: "true"
       access_key_id: "VIMHASK"
       secret_access_key: ""
-      s3forcepathstyle: true   
+      s3forcepathstyle: "true"   
     # The worker pool is used primarily when finding traces by id, but is also used by other.
     pool:
       # -- Total number of workers pulling jobs from the queue
