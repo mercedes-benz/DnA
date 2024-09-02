@@ -606,7 +606,8 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
-		 InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
 		 responseVO.setData(vo);
 		 responseVO.setSuccess("FAILED");
 		 List<MessageDescription> errors = new ArrayList<>();
@@ -756,6 +757,12 @@ import com.daimler.data.util.ConstantsUtility;
 					 responseVO.setErrors(errors);
 					 return responseVO;
 				 }
+				 List<UserInfoVO> userInfoVOs= vo.getProjectDetails().getProjectCollaborators();
+				 for(UserInfoVO userInfo:userInfoVOs) {
+					GenericMessage collaboratorWarning = this.addCollabById(currentUser.getId(), vo, userInfo);
+					responseVO.setWarnings(collaboratorWarning.getErrors());
+					log.info("Collaborator Addition Failed for Private recipes "+collaboratorWarning.getErrors());
+				}
 				 repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 			 }
 			 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
