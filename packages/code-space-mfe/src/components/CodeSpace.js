@@ -791,7 +791,7 @@ const CodeSpace = (props) => {
                           <hr />
                         </li>
                         <li>
-                          <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowProdActions(!showProdActions)}>
+                          <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowProdActions(!showProdActions)}>
                             <div>
                               <strong>Production:</strong>{' '}
                               {prodDeploymentDetails?.lastDeployedBranch
