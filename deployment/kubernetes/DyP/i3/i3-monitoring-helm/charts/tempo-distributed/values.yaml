@@ -1339,7 +1339,7 @@ storage:
     # Settings for the block storage backend and buckets.
     block:
       # -- The supported block versions are specified here https://grafana.com/docs/tempo/latest/configuration/parquet/
-      version: null
+      version: v2
       # -- Lis with dedicated attribute columns (only for vParquet3 or later)
       dedicated_columns: []
     # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/tempo/latest/configuration/#storage
