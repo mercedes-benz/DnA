@@ -37,7 +37,7 @@ tenant:
       ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
       volumesPerServer: 4
       ## size specifies the capacity per volume
-      size: 2Gi
+      size: 2500Mi
       ## storageClass specifies the storage class name to be used for this pool
       storageClassName: cinder-retain
       ## Used to specify annotations for pods
@@ -83,7 +83,7 @@ tenant:
       ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
       volumesPerServer: 4
       ## size specifies the capacity per volume
-      size: 2Gi
+      size: 2500Mi
       ## storageClass specifies the storage class name to be used for this pool
       storageClassName: cinder-retain
       ## Used to specify annotations for pods
