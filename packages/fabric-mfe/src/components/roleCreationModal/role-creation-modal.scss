@@ -13,6 +13,7 @@
       display: flex;
       justify-content: center;
       margin: 20px;
+      align-items: center;
 
       > div {
         background-color: #1d202b;
@@ -35,6 +36,11 @@
 
         &:last-child::after {
           display: none;
+        }
+
+        span {
+          text-align: left;
+          margin-left: 30px;
         }
       }
     }
