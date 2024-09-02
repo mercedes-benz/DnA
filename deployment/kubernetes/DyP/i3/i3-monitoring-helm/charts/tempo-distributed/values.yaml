@@ -212,9 +212,9 @@ ingester:
     # -- Maximum size of a block before cutting it
     max_block_bytes: 524288000
     # -- Maximum length of time before cutting a block
-    max_block_duration: 1h
+    max_block_duration: 2h
     # -- Duration to keep blocks in the ingester after they have been flushed
-    complete_block_timeout: 48h
+    complete_block_timeout: 72h
     # -- Flush all traces to backend when ingester is stopped
     flush_all_on_shutdown: true
   service:
@@ -548,7 +548,7 @@ compactor:
       # -- The maximum amount of time to spend compacting a single tenant before moving to the next
       max_time_per_tenant: 10m
       # -- The time between compaction cycles
-      compaction_cycle: 1m
+      compaction_cycle: 2m
   service:
     # -- Annotations for compactor service
     annotations: {}
