@@ -2098,7 +2098,7 @@ dags:
     # Enable persistent volume for storing dags
     enabled: true
     # Volume size for dags
-    size: 2Gi
+    size: 4Gi
     # If using a custom storageClass, pass name here
     storageClassName: "dhc-io2" 
     # access mode of the persistent volume
@@ -2189,7 +2189,7 @@ logs:
     # Enable persistent volume for storing logs
     enabled: true
     # Volume size for logs
-    size: 2Gi
+    size: 4Gi
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
