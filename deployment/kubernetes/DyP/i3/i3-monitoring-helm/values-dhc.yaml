@@ -1004,7 +1004,7 @@ tempo-distributed:
   fullnameOverride: 'tempo'
   ingester:
     persistence:
-      enabled: true
+      enabled: false
       inMemory: false
       size: 10Gi
       storageClass: cinder    
