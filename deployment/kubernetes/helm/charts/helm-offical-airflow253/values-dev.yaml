@@ -2100,7 +2100,7 @@ dags:
     # Volume size for dags
     size: 2Gi
     # If using a custom storageClass, pass name here
-    storageClassName: "" 
+    storageClassName: "dhc-io2" 
     # access mode of the persistent volume
     accessMode: ReadWriteOnce
     ## the name of an existing PVC to use
@@ -2193,7 +2193,7 @@ logs:
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
-    storageClassName: "" 
+    storageClassName: "dhc-io2" 
     ## the name of an existing PVC to use
     existingClaim:
 clientSecret: <path:kv/data/dna/kubernetesSecret/officalairflow#clientSecret>
