@@ -353,7 +353,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     )}
                   >
                     <label id="departmentLabel" htmlFor="departmentField" className="input-label">
-                      Customer E2-Department<sup>*</sup>
+                      Customer Department<sup>*</sup>
                     </label>
                     <div className="custom-select">
                       <select
