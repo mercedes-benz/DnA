@@ -190,7 +190,7 @@ const FabricWorkspaces = ({user}) => {
                 <span>Create now</span>
               </button>
               <button className={'btn btn-tertiary'} onClick={() => setRequestWorkspace(true)}>
-                <span>Request now</span>
+                <span>Request Access now</span>
               </button>
             </div>
           </div>
@@ -209,7 +209,7 @@ const FabricWorkspaces = ({user}) => {
                   <span className={Styles.addCircle}>
                     <i className="icon mbc-icon document" />
                   </span>
-                  <span>Request a Fabric Workspace</span>
+                  <span>Request Fabric Workspace Access</span>
                 </button>
               </div>
             ) : null}
@@ -226,7 +226,7 @@ const FabricWorkspaces = ({user}) => {
                   </div>
                   <div className={Styles.createNewCard} onClick={() => setRequestWorkspace(true)}>
                     <div className={Styles.requestIcon}><i className="icon mbc-icon document" /></div>
-                    <label className={Styles.addlabel}>Request Fabric Workspace</label>
+                    <label className={Styles.addlabel}>Request Fabric Workspace Access</label>
                   </div>
                   {ownWorkspaces.map((workspace) => 
                     <FabricWorkspaceCard
@@ -247,7 +247,7 @@ const FabricWorkspaces = ({user}) => {
                       }}
                     />
                   )}
-                  <h2 className={Styles.sectionTitle}>Requested Workspaces</h2>
+                  <h2 className={Styles.sectionTitle}>Workspaces with Requested Access</h2>
                   {requestedWorkspaces.map((workspace) => 
                     <FabricWorkspaceCard
                       key={workspace.id}
@@ -381,7 +381,7 @@ const FabricWorkspaces = ({user}) => {
       }
       { requestWorkspace &&
         <Modal
-          title={'Request Fabric Workspace'}
+          title={'Request Fabric Workspace Access'}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
