@@ -583,7 +583,9 @@
 			 recipeDetails.setEnvironment(codeServerEnvValue);
 			 recipeDetails.setOperatingSystem(vo.getOperatingSystem().toString());
 			 recipeDetails.setRamSize(vo.getRamSize().toString());
-			 recipeDetails.setRecipeId(vo.getRecipeId().toString());
+			 if(vo.getRecipeId()!=null){
+				recipeDetails.setRecipeId(vo.getRecipeId().toString());
+			 }
 			 recipeDetails.setResource(vo.getResource());
 			 recipeDetails.setRepodetails(vo.getRepodetails());
 			 recipeDetails.setDeployEnabled(vo.isIsDeployEnabled());

@@ -712,6 +712,7 @@ const CodeSpaceRecipe = (props) => {
         {notificationMsg && 
           <Modal
             title="Public Visibility"
+            hiddenTitle={true}
             show={notificationMsg}
             showAcceptButton={false}
             showCancelButton={false}
@@ -725,8 +726,19 @@ const CodeSpaceRecipe = (props) => {
                 <header>
                   <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
                 </header>
-                <div>
+                <div className={Styles.publicWarning}>
+                  <h4>Recipe Visibility</h4>
                   <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
+                  <div>
+                    <p><i className="icon mbc-icon alert circle"></i> Please make sure to check <pre>&apos;Template repository&apos;</pre> setting. You can follow below steps:</p>
+                    <ol>
+                      <li>Open your recipe repository</li>
+                      <li>Once you&apos;re in the repository, look for the <pre>&apos;Settings&apos;</pre> tab at the top of the page and click on it.</li>
+                      <li>In the <pre>&apos;Settings&apos;</pre> menu, click on <pre>&apos;General&apos;</pre> section.</li>
+                      <li>In the <pre>&apos;General&apos;</pre> settings, you&apos;ll find an option labeled <pre>&apos;Template repository&apos;</pre>. Check the box next to it to enable this repository as a template.</li>
+                    </ol>
+                    <p>These steps will help you smoothly convert your repository into a template repository on GitHub and make your recipe template public.</p>
+                  </div>
                 </div>
                 <div className="btn-set footerRight">
                   <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
