@@ -1,4 +1,4 @@
-namespace: airflow
+namespace: dev-dna-airflow
 annotations:
   argocdvault: "kv/data/dna/kubernetesSecret/airflowdb"
 ## I³ PostgreSQL image version
@@ -365,7 +365,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: airflow-backup-2024-08-24_00-01-17.tar.zst
+  recoveryFile: airflow-backup-2024-09-03_00-01-00.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
