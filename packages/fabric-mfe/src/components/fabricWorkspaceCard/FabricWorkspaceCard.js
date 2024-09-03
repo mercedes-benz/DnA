@@ -6,9 +6,9 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
 
-const FabricWorkspaceCard = ({workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
+const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-  const isRequestedWorkspace = workspace?.role !== workspace?.createdBy?.id;
+  const isRequestedWorkspace = user?.id !== workspace?.createdBy?.id;
   
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -66,7 +66,7 @@ const FabricWorkspaceCard = ({workspace, onSelectWorkspace, onEditWorkspace, onD
               {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
-          {workspace?.role === workspace?.createdBy?.id &&
+          {user?.id === workspace?.createdBy?.id &&
             <div className={Styles.btnGrp}>
               <button
                 className={'btn btn-primary'}
