@@ -6,7 +6,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Spinner from '../spinner/Spinner';
 
-const FabricWorkspaceRow = ({workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
+const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const FabricWorkspaceRow = ({workspace, onSelectWorkspace, onEditWorkspace, onDe
         {workspace?.dataClassification}
       </div>
       <div className={Styles.col6}>
-        {workspace?.role === workspace?.createdBy?.id &&
+        {user?.id === workspace?.createdBy?.id &&
           <div className={Styles.btnTblGrp}>
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
