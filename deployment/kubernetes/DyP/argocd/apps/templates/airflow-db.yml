@@ -5,13 +5,13 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dev-airflow-db
+  name: airflow-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
 spec:
   destination:
-    namespace: dev-dna-airflow
+    namespace: airflow
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -26,7 +26,7 @@ spec:
           {{ else }}
           value: -f values-airflow-db-{{ .Values.env }}.yaml
           {{- end }}          
-  project: dev-dna
+  project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
