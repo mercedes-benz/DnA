@@ -37,8 +37,8 @@ const FabricWorkspaces = ({user}) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [requestWorkspace, setRequestWorkspace] = useState(false);
 
-  const ownWorkspaces = workspaces.filter(workspace => workspace?.role === workspace?.createdBy?.id);
-  const requestedWorkspaces = workspaces.filter(workspace => workspace?.role !== workspace?.createdBy?.id);
+  const ownWorkspaces = workspaces.filter(workspace => user.id === workspace?.createdBy?.id);
+  const requestedWorkspaces = workspaces.filter(workspace => user.id !== workspace?.createdBy?.id);
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
