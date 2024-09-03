@@ -938,7 +938,7 @@ enterpriseFederationFrontend:
   # -- Extra volumes for federation-frontend deployment
   extraVolumes: []
 
-multitenancyEnabled: false
+multitenancyEnabled: true
 
 traces:
   jaeger:
