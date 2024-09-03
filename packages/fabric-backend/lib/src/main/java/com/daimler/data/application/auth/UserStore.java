@@ -90,7 +90,9 @@ public class UserStore {
 		private String personal_data_hint;
 		private String updated_at;
 		private List<UserRole> userRole;
-
+		private List<String> entitlement_group;
+		private String authToken;
+		
 		public UserInfo() {
 			this.department = "";
 		}

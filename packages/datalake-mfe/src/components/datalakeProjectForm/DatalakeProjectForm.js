@@ -114,37 +114,11 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
   // }
 
   const handleCreateProject = (values) => {
-    ProgressIndicator.show();
-    const data = {
-    projectName: values.projectName,
-    connectorType: connectorType,
-    description: values.description,
-    divisionId: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[0] : '',
-    divisionName: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[1] : '',
-    subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
-    subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
-    collabs: table,
-    department: departmentName[0],
-    status: '',
-    classificationType: values.dataClassification,
-    hasPii: values.pii
-    }
-    datalakeApi.createDatalakeProject(data).then((res) => {
-    ProgressIndicator.hide();
-    history.push(`/graph/${res.data.data.id}`);
-    Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
-    }).catch(error => {
-    ProgressIndicator.hide();
-    Notification.show(
-    error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
-    'alert',
-    );
-    });
-    };
-  const handleEditProject = (values) => {
-    const data = {
-      projectName: project?.data?.projectName,
-      connectorType: project?.data?.connectorType,
+    if(!departmentName[0] == ''){
+      ProgressIndicator.show();
+      const data = {
+      projectName: values.projectName,
+      connectorType: connectorType,
       description: values.description,
       divisionId: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[0] : '',
       divisionName: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[1] : '',
@@ -154,21 +128,56 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
       department: departmentName[0],
       status: '',
       classificationType: values.dataClassification,
-      hasPii: values.pii,
-      tables: project.data.tables,
-    }
-    ProgressIndicator.show();
-    datalakeApi.updateDatalakeProject(project?.data?.id, data).then(() => {
+      hasPii: values.pii
+      }
+      datalakeApi.createDatalakeProject(data).then((res) => {
       ProgressIndicator.hide();
-      Notification.show('Data Lakehouse Project successfully updated');
-      onSave();
-    }).catch(error => {
+      history.push(`/graph/${res.data.data.id}`);
+      Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
+      }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
-        'alert',
+      error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
+      'alert',
       );
-    });
+      });
+    }else{
+      setDepartmentError('*MissingEntry');
+    }
+    };
+  const handleEditProject = (values) => {
+    if(!departmentName[0] == ''){
+      const data = {
+        projectName: project?.data?.projectName,
+        connectorType: project?.data?.connectorType,
+        description: values.description,
+        divisionId: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+        divisionName: values.datalakeDivision?.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+        subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+        subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+        collabs: table,
+        department: departmentName[0],
+        status: '',
+        classificationType: values.dataClassification,
+        hasPii: values.pii,
+        tables: project.data.tables,
+      }
+      ProgressIndicator.show();
+      datalakeApi.updateDatalakeProject(project?.data?.id, data).then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Data Lakehouse Project successfully updated');
+        onSave();
+      }).catch(error => {
+        ProgressIndicator.hide();
+        Notification.show(
+          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
+          'alert',
+        );
+      });
+    }else{
+      setDepartmentError('*MissingEntry');
+    }
+    
   };
 
 
@@ -384,9 +393,6 @@ const DatalakeProjectForm = ({project, edit, onSave, user}) => {
                           />
                         
                     </div>
-                    <span className={classNames('error-message', departmentError?.length ? '' : 'hide')}>
-                      {departmentError}
-                    </span>
                     </div>
                     </div>
                 {/* <div

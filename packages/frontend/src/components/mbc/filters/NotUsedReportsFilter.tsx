@@ -184,7 +184,7 @@ const ReportsFilter = ({
                 ?.filter((item: any) => filterPreferences.departments.indexOf(item.name) > -1)
                 ?.map((item) => item.name) as any;
               queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => art.name);
-              queryParams.processOwners = filterPreferences.processOwners as any;
+              //queryParams.processOwners = filterPreferences.processOwners as any;
               // queryParams.productOwners = filterPreferences.productOwners as any;
               // populate subDivision dropdown values
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
