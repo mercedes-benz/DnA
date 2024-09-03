@@ -23,7 +23,7 @@ import { CodeSpaceApiClient } from '../apis/codespace.api';
 import { getParams } from '../Utility/utils';
 import classNames from 'classnames';
 import { CODE_SPACE_TITLE } from '../Utility/constants';
-import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../Utility/constants';
+// import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../Utility/constants';
 import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
@@ -494,7 +494,8 @@ const CodeSpace = (props) => {
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
-  const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
