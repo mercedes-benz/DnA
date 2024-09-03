@@ -1005,7 +1005,7 @@ tempo-distributed:
   ingester:
     persistence:
       enabled: true
-      inMemory: true
+      inMemory: false
       size: 10Gi
       storageClass: cinder    
     complete_block_timeout: 720h
