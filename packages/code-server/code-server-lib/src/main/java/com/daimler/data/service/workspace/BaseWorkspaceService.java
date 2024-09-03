@@ -659,15 +659,7 @@ import com.daimler.data.util.ConstantsUtility;
  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
  //									.startsWith("bat")) {
 						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-						String repoOwner = null;
-						if(null != gitUrl && !gitUrl.isBlank()) {
-							String[] codespaceSplitValues = gitUrl.split("/");
-							int length = codespaceSplitValues.length;
-							repoOwner = codespaceSplitValues[length-2];
-							recipeName = codespaceSplitValues[length-1].replace(".git", "");
-						} else {
-							repoOwner = "DNA";
-						}
+						String repoOwner = getRepoNameFromGitUrl(gitUrl).get(0);
 						 HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						 if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
@@ -756,15 +748,9 @@ import com.daimler.data.util.ConstantsUtility;
 					 errors.add(errMsg);
 					 responseVO.setErrors(errors);
 					 return responseVO;
-				 }
-				 List<UserInfoVO> userInfoVOs= vo.getProjectDetails().getProjectCollaborators();
-				 for(UserInfoVO userInfo:userInfoVOs) {
-					GenericMessage collaboratorWarning = this.addCollabById(currentUser.getId(), vo, userInfo);
-					responseVO.setWarnings(collaboratorWarning.getErrors());
-					log.info("Collaborator Addition Failed for Private recipes "+collaboratorWarning.getErrors());
-				}
+				 }				 
 				 repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
-			 }
+				}
 			 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
 			 if(!addAdminAccessToGitUser.is2xxSuccessful())
 			 {
@@ -918,6 +904,18 @@ import com.daimler.data.util.ConstantsUtility;
 			 entities.add(ownerEntity);
 			 if (collabs != null && !collabs.isEmpty()) {
 				 for (UserInfoVO collaborator : collabs) {
+					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+					.startsWith("private")) {
+						List<String> repoDetails = getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+						String orgName = repoDetails.get(0);
+						repoName = repoDetails.get(1);
+						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
+						if(!status.is2xxSuccessful()) {
+							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
+							warnings.add(new MessageDescription("Cannot add User "+collaborator.getId()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
+							continue;
+						}
+					}
 					 CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
 					 CodeServerWorkspace collabData = new CodeServerWorkspace();
 					 collabData.setDescription(ownerEntity.getData().getDescription());
@@ -937,8 +935,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 			 jpaRepo.saveAllAndFlush(entities);
-			 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId,
-					 projectName);
+			 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId, projectName);
 			 CodeServerWorkspaceVO savedOwnerVO = workspaceAssembler.toVo(savedOwnerEntity);
 			 responseVO.setErrors(new ArrayList<>());
 			 responseVO.setWarnings(errors);
@@ -1393,14 +1390,9 @@ import com.daimler.data.util.ConstantsUtility;
 
 				 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ){
 					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					String repoOwner = null;
-					if(null != gitUrl && !gitUrl.isBlank()) {
-						String[] codespaceSplitValues = gitUrl.split("/");
-						int length = codespaceSplitValues.length;
-						repoOwner = codespaceSplitValues[length-2];
-					} else {
-						repoOwner = "DNA";
-					}
+					List<String> repoDetails = getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+					String repoOwner = repoDetails.get(0);
+					repoName = repoDetails.get(1);
 					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
 					if(!status.is2xxSuccessful()){
 						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
@@ -1478,6 +1470,19 @@ import com.daimler.data.util.ConstantsUtility;
  
 		 return responseMessage;
 	 }
+
+	private List<String> getRepoNameFromGitUrl(String gitUrl) {
+		List<String> repoDetails = new ArrayList<>();
+		if(null != gitUrl && !gitUrl.isBlank()) {
+			String[] codespaceSplitValues = gitUrl.split("/");
+			int length = codespaceSplitValues.length;
+			repoDetails.add(codespaceSplitValues[length-2]);
+			repoDetails.add(codespaceSplitValues[length-1]);
+		} else {
+			repoDetails.add("DNA");
+		}
+		return repoDetails;
+	}
  
 	 @Override
 	 @Transactional
