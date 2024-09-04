@@ -54,7 +54,7 @@ defaultAirflowTag: "similaritysearchv2"
 defaultAirflowDigest: ~
 
 webserverConfig:
-  enabled: false
+  enabled: true
 
 # Airflow version (Used to make some decisions based on Airflow Version being deployed)
 airflowVersion: "2.5.3"
@@ -124,7 +124,7 @@ ingress:
   # Configs for the Ingress of the web Service
   web:
     # Enable web ingress resource
-    enabled: false
+    enabled: true
     # Annotations for the web Ingress
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -560,7 +560,7 @@ workers:
     # Volume size for worker StatefulSet
     size: 1Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName: "" 
+    storageClassName: nfs-sc 
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
     # of local-path provisioner.
@@ -1263,9 +1263,9 @@ triggerer:
     # Enable persistent volumes
     enabled: false
     # Volume size for triggerer StatefulSet
-    size: 2Gi
+    size: 5Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName: "" 
+    storageClassName: nfs-sc
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
     # of local-path provisioner.
@@ -1831,7 +1831,7 @@ redis:
     # Volume size for worker StatefulSet
     size: 1Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName: "" 
+    storageClassName: nfs-sc
     # Annotations to add to redis volumes
     annotations: {}
 
@@ -2098,9 +2098,9 @@ dags:
     # Enable persistent volume for storing dags
     enabled: true
     # Volume size for dags
-    size: 4Gi
+    size: 5Gi
     # If using a custom storageClass, pass name here
-    storageClassName: "dhc-io2" 
+    storageClassName: nfs-sc
     # access mode of the persistent volume
     accessMode: ReadWriteOnce
     ## the name of an existing PVC to use
@@ -2189,11 +2189,11 @@ logs:
     # Enable persistent volume for storing logs
     enabled: true
     # Volume size for logs
-    size: 4Gi
+    size: 5Gi
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
-    storageClassName: "dhc-io2" 
+    storageClassName: nfs-sc
     ## the name of an existing PVC to use
     existingClaim:
 clientSecret: <path:kv/data/dna/kubernetesSecret/officalairflow#clientSecret>
