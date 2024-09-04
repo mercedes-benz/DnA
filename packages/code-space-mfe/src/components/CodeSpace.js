@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 // @ts-ignore
 import Notification from '../common/modules/uilab/js/src/notification';
 // @ts-ignore
@@ -733,7 +733,7 @@ const CodeSpace = (props) => {
                             <div ref={stagingWrapperRef} className={classNames(Styles.iconWrapper, showStagingActions ? Styles.open : '')} >
                               {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
                                 <>
-                                  <span className="animation-wrapper"></span>
+                                  <span className={classNames('animation-wrapper',Styles.animation)}></span>
                                   <i className={classNames("icon down-up-flip")}></i>
                                 </>
                               )}
@@ -826,7 +826,7 @@ const CodeSpace = (props) => {
                             <div ref={prodWrapperRef} className={classNames(Styles.iconWrapper, showProdActions ? Styles.open : '')} >
                               {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
                                 <>
-                                  <span className="animation-wrapper"></span>
+                                  <span className={classNames('animation-wrapper',Styles.animation)}></span>
                                   <i className={classNames("icon down-up-flip")}></i>
                                 </>
                               )}
