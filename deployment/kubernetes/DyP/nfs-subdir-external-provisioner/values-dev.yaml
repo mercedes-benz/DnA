@@ -5,7 +5,8 @@ image:
   repository: registry-emea.app.corpintra.net/dnaplatform/nfs-subdir-external
   tag: v4.0.1-1000
   pullPolicy: IfNotPresent
-imagePullSecrets: []
+imagePullSecrets:
+  - name: imagepullsecret
 
 nfs:
   server: <path:kv/data/dna/kubernetesSecret/nfsprovisioner#server>
