@@ -46,7 +46,6 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dev.dna.app.corpintra.net/#/codespaces
-      cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -85,18 +84,18 @@ hub:
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
   db:
-    type: postgres
+    type: sqlite-pvc
     upgrade:
     pvc:
       annotations: {}
       selector: {}
       accessModes:
         - ReadWriteOnce
-      storage: 5Gi
+      storage: 1Gi
       subPath:
-      storageClassName: cinder-retain
-    url: postgresql+psycopg2://jupyterhub-db.svc.cluster.local:64000/jupyterhub
-    password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#dbadm.password>
+      storageClassName: cinder
+    url:
+    password:
   labels: {}
   annotations: {}
   command: []
