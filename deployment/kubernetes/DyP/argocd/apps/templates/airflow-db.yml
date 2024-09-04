@@ -5,7 +5,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dev-dna-airflowdb
+  name: {{ .Values.env }}-dna-airflowdb
   namespace: {{ .Values.namespace }}
   labels:
     name: db
