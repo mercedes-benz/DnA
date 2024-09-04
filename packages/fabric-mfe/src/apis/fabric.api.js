@@ -29,7 +29,7 @@ const deleteFabricWorkspace = (id) => {
 };
 
 const getFabricWorkspaceLov = () => {
-  return server.get(`/lov/fabric-workspaces`, {
+  return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
     data: {},
   });
 };
