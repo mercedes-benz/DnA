@@ -246,3 +246,12 @@
     margin-bottom: 5px;
   }
 }
+.warning {
+  margin-bottom: 0;
+  margin-top: -16px;
+  color: #FFEE58;
+
+  pre {
+    display: inline;
+  }
+}
