@@ -471,7 +471,9 @@ const CodeSpaceRecipe = (props) => {
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} />
+            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'}>
+              <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>
+            </Caption>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
                 <div className={classNames(Styles.formWrapper)}>
