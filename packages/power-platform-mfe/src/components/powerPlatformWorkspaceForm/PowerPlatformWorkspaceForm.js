@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 import { useSelector } from 'react-redux';
@@ -7,26 +7,34 @@ import { useSelector } from 'react-redux';
 import Styles from './power-platform-workspace-form.scss';
 // import from DNA Container
 import Tags from 'dna-container/Tags';
+import Modal from 'dna-container/Modal';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-// Utils
-import { Envs } from '../../utilities/envs';
 // Api
 import { powerPlatformApi } from '../../apis/power-platform.api';
 
-const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
+const PowerPlatformWorkspaceForm = () => {
   let history = useHistory();
 
   const { departments } = useSelector(state => state.lovs);
   
+  const [showTou, setShowTou] = useState(false);
+  
   const methods = useForm({ 
-    defaultValues: { 
-      name: edit && project?.name !== null ? project?.name : '',
-      dcustomRequirements: edit && project?.customRequirements ? project?.customRequirements : '',
-      department: edit && project?.department ? [project?.department] : [],
-      hasPii: edit && project?.hasPii ? project?.hasPii?.toString() : 'false',
-      termsOfUse: edit && project?.termsOfUse ? project?.termsOfUse : false,
+    defaultValues: {
+      name: '',
+      environmentOwnerName: '',
+      environmentOwnerUserId: '',
+      deputyEnvironmentOwnerName: '',
+      deputyEnvironmentOwnerUserId: '',
+      department: [],
+      billingContact: '',
+      billingPlant: '',
+      billingCostCenter: '',
+      customRequirements: '',
+      isImmediate: 'false',
+      termsOfUse: false,
     }
   });
   const {
@@ -39,11 +47,17 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
 
   const formValues = (values) => {
     return {
-      typeOfProject: values?.typeOfProject,
-      name: values.name.trim(),
-      customRequirements: values?.customRequirements.trim(),
+      name: values?.name,
+      environmentOwnerName: values?.environmentOwnerName,
+      environmentOwnerUserId: values?.environmentOwnerUserId,
+      deputyEnvironmentOwnerName: values?.deputyEnvironmentOwnerName,
+      deputyEnvironmentOwnerUserId: values?.deputyEnvironmentOwnerUserId,
       department: values?.department,
-      hasPii: values?.hasPii,
+      billingContact: values?.billingContact,
+      billingPlant: values?.billingPlant,
+      billingCostCenter: values?.billingCostCenter,
+      customRequirements: values?.customRequirements,
+      isImmediate: values?.isImmediate,
       termsOfUse: values?.termsOfUse ? true : false,
     }
   }
@@ -51,33 +65,22 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = formValues(values);
-    powerPlatformApi.createDataEntryProject(data).then((res) => {
+    powerPlatformApi.createPowerPlatformWorkspace(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/project/${res.data.data.id}`);
-      Notification.show('Data Entry Project successfully created');
+      Notification.show('Shared Developer Account created successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating shared developer account',
         'alert',
       );
     });
   };
-  const handleEditProject = (values) => {
-    const data = formValues(values);
-    ProgressIndicator.show();
-    powerPlatformApi.updateDataEntryProject(project.id, data).then(() => {
-      ProgressIndicator.hide();
-      Notification.show('Data Entry project successfully updated');
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data entry project',
-        'alert',
-      );
-    });
-  };
+
+  const touModalContent = (<>
+    <h1>hello tou</h1>
+  </>);
 
   return (
     <>
@@ -96,7 +99,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="workspaceName"
+                  id="name"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
@@ -113,11 +116,11 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
+                  id="environmentOwnerName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('akfield')}
+                  {...register('environmentOwnerName')}
                 />
               </div>
             </div>
@@ -129,11 +132,11 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
+                  id="environmentOwnerUserId"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('akfield')}
+                  {...register('environmentOwnerUserId')}
                 />
               </div>
             </div>
@@ -145,11 +148,11 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
+                  id="deputyEnvironmentOwnerName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('akfield')}
+                  {...register('deputyEnvironmentOwnerName')}
                 />
               </div>
             </div>
@@ -161,11 +164,11 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
+                  id="deputyEnvironmentOwnerUserId"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('akfield')}
+                  {...register('deputyEnvironmentOwnerUserId')}
                 />
               </div>
             </div>
@@ -205,44 +208,46 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
+                  id="billingContact"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('akfield')}
+                  {...register('billingContact')}
                 />
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group')}>
+              <div className={classNames('input-field-group include-error', errors?.billingPlant ? 'error' : '')}>
                 <label className={'input-label'}>
-                  Billing Plant
+                  Billing Plant <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
-                  placeholder="Type here"
+                  id="billingPlant"
+                  placeholder="Example 020"
                   autoComplete="off"
-                  maxLength={256}
-                  {...register('akfield')}
-                />
+                  maxLength={3}
+                  {...register('billingPlant', { required: '*Missing entry', pattern: /^\d{3}$/ })}
+                />                
+                <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && 'Please enter 3 digit billing plant code'}</span>
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group')}>
+              <div className={classNames('input-field-group include-error', errors?.billingCostCenter ? 'error' : '')}>
                 <label className={'input-label'}>
-                  Billing Cost Center
+                  Billing Cost Center <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="akfield"
-                  placeholder="Type here"
+                  id="billingCostCenter"
+                  placeholder="Example 000-1234"
                   autoComplete="off"
-                  maxLength={256}
-                  {...register('akfield')}
+                  maxLength={9}
+                  {...register('billingCostCenter', { required: '*Missing entry', pattern: /^\d{3}-\d{4}$/ })}
                 />
+                <span className={'error-message'}>{errors?.billingCostCenter?.message}{errors.billingCostCenter?.type === 'pattern' && 'Please enter valid billing cost center code'}</span>
               </div>
             </div>
             <div className={Styles.col}>
@@ -261,7 +266,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
               </div>
             </div>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error', errors?.hasPii?.message ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.isImmediate?.message ? 'error' : '')}>
                 <label className={'input-label'}>
                   Do you want the PROD environment immediately or later? <sup>*</sup>
                 </label>
@@ -272,7 +277,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                         type="radio"
                         className="ff-only"
                         value={'true'}
-                        {...register('hasPii', {
+                        {...register('isImmediate', {
                           required: '*Missing entry'
                         })}
                       />
@@ -285,7 +290,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                         type="radio"
                         className="ff-only"
                         value={'false'}
-                        {...register('hasPii', {
+                        {...register('isImmediate', {
                           required: '*Missing entry'
                         })}
                       />
@@ -293,8 +298,8 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                     <span className="label">Later</span>
                   </label>
                 </div>
-                <span className={classNames('error-message', errors?.hasPii?.message ? '' : 'hide')}>
-                  {errors?.hasPii?.message}
+                <span className={classNames('error-message', errors?.isImmediate?.message ? '' : 'hide')}>
+                  {errors?.isImmediate?.message}
                 </span>
               </div>
             </div>
@@ -320,7 +325,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                         ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
                     }}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
+                    <div>Accept <span onClick={() => setShowTou(true)}>terms of use</span></div>
                     <sup>*</sup>
                   </div>
                 </div>
@@ -338,7 +343,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                edit ? handleEditProject(values) : handleCreateProject(values);
+                handleCreateProject(values);
               })}
             >
               Order Account
@@ -346,6 +351,20 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
           </div>
         </div>
       </FormProvider>
+      { showTou &&
+        <Modal
+          title={'Terms of Use'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          buttonAlignment="right"
+          show={showTou}
+          content={touModalContent}
+          scrollableContent={true}
+          onCancel={() => setShowTou(false)}
+        />
+      }
     </>
   );
 }
