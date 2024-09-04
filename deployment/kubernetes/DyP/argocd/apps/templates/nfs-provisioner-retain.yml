@@ -5,13 +5,13 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: nfs-sc-retain
+  name: {{ .Values.env }}-dna-nfssc-retain
   namespace: {{ .Values.namespace }}
   labels:
     name: dhc
 spec:
   destination:
-    namespace: nfs-sc
+    namespace: {{ .Values.env }}-dna-nfssc
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/nfs-subdir-external-provisioner
@@ -21,8 +21,8 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS         
-          value: -f values-retain-{{ .Values.env }}.yaml -n nfs-sc      
-  project: dna
+          value: -f values-retain-{{ .Values.env }}.yaml -n {{ .Values.env }}-dna-nfssc      
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

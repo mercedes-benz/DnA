@@ -11,7 +11,7 @@ metadata:
     name: service
 spec:
   destination:
-    namespace: dev-dna-airflow
+    namespace: {{ .Values.env }}-dna-airflow
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/helm-offical-airflow253
@@ -21,7 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS         
-          value: -f values-{{ .Values.env }}.yaml -n airflow      
+          value: -f values-{{ .Values.env }}.yaml -n {{ .Values.env }}-dna-airflow      
   project: dev-dna
 {{- if .Values.enableSync }}
   syncPolicy:
