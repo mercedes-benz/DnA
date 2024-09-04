@@ -86,6 +86,7 @@
  import com.daimler.data.dto.workspace.UserInfoVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
+import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
  import com.fasterxml.jackson.databind.ObjectMapper;
@@ -461,8 +462,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
-					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							 .startsWith("bat")) {
+				) {
 				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
@@ -650,9 +650,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .startsWith("private") &&
 						 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-						 .equalsIgnoreCase("default")
-						 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-								 .startsWith("bat")) {
+						 .equalsIgnoreCase("default")) {
 					 repoName = vo.getProjectDetails().getGitRepoName();
 					 String recipeName = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase();
 					 if(null != RecipeIdEnum.fromValue(recipeName)){
@@ -663,7 +661,7 @@ import com.daimler.data.util.ConstantsUtility;
  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
  //									.startsWith("bat")) {
 						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-						String repoOwner = getRepoNameFromGitUrl(gitUrl).get(0);
+						String repoOwner = CommonUtils.getRepoNameFromGitUrl(gitUrl).get(0);
 						 HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						 if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
@@ -801,9 +799,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 String pathCheckout = "";
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							 .startsWith("private")
-					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							 .startsWith("bat")) {
+							 .startsWith("private")) {
 								 
 								 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			 } else {
@@ -902,8 +898,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
-					 vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
-					 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+					 vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 				 ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
 				 collabs = new ArrayList<>();
 			 } else {
@@ -914,7 +909,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 for (UserInfoVO collaborator : collabs) {
 					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 					.startsWith("private")) {
-						List<String> repoDetails = getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 						String orgName = repoDetails.get(0);
 						repoName = repoDetails.get(1);
 						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
@@ -1207,88 +1202,113 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 @Transactional
-	 public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo, UserInfoVO newOwnerDeatils) {
-		 GenericMessage responseVO = new GenericMessage();
-		 List<MessageDescription> errors = new ArrayList<>();
-		 List<MessageDescription> warnings = new ArrayList<>();
-		 GenericMessage responseMessage = new GenericMessage();
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUser.getId(), vo.getId());
-		 boolean isProjectOwner = false;
-		 String projectName = entity.getData().getProjectDetails().getProjectName();
- 
-		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
-		 if (projectOwnerId.equalsIgnoreCase(currentUser.getId())) {
-			 isProjectOwner = true;
-		 }
- 
-		 
-			 UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
-			 UserInfo newOwner = new UserInfo();
-			 BeanUtils.copyProperties(newOwnerDeatils, newOwner);
- 
-			 try {
-				 // To update project owner.
-				 GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
-						 .updateProjectOwnerDetails(projectName, newOwner);
-				 String repoName = vo.getProjectDetails().getGitRepoName();
-				 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
-						 .getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-					 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-				 }
-				 //adding new owner as repo admin
-				 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(newOwner.getGitUserName(), repoName);
-				 if(!addAdminAccessToGitUser.is2xxSuccessful())
-				 {
-					 MessageDescription warnMsg = new MessageDescription("Failed while adding " +newOwner.getGitUserName()
-					 + " as admin to repository");
-					 log.info("Failed while adding {} as admin to repository. Please add manually",
-					 newOwner.getGitUserName());
-					 warnings.add(warnMsg);
-					 responseVO.setWarnings(warnings);
-				 }
- 
-				 // To add current owner as collaborator.
-				 GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository
-						 .updateCollaboratorDetails(projectName, currentOwnerAsCollab, false);
- 
-				 // To remove new owner from collaborator.
-				 GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository
-						 .updateCollaboratorDetails(projectName, newOwner, true);
-				 //removing old user as repo admin
-				 HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(projectOwnerId, repoName);
-				 if(!removeAdminAccessToGitUser.is2xxSuccessful())
-				 {
-					 MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
-					 + " as admin to repository");
-					 log.info("Failed while removing {} as admin to repository. Please add manually",
-					 projectOwnerId);
-					 warnings.add(warnMsg);
-					 responseVO.setWarnings(warnings);
-				 }
- 
-				 if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
-						 || "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
-						 || "FAILED".equalsIgnoreCase(removeNewOwnerFromCollab.getSuccess())) {
- //					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-					 log.error("Failed to update project owner details");
-					 MessageDescription msg = new MessageDescription("Failed to update project owner details");
-					 errors.add(msg);
-					 responseMessage.setSuccess("FAILED");
-					 responseMessage.setErrors(errors);
-					 return responseMessage;
-				 }
-				 responseMessage.setSuccess("SUCCESS");
-			 } catch (Exception e) {
-				 log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
-				 MessageDescription msg = new MessageDescription("Failed to add collaborator details");
-				 errors.add(msg);
-				 responseMessage.setSuccess("FAILED");
-				 responseMessage.setErrors(errors);
-				 return responseMessage;
-			 }
-		 
-		 return responseMessage;
-	 }
+	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo,
+			UserInfoVO newOwnerDeatils) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUser.getId(), vo.getId());
+		boolean isProjectOwner = false;
+		String projectName = entity.getData().getProjectDetails().getProjectName();
+
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if (projectOwnerId.equalsIgnoreCase(currentUser.getId())) {
+			isProjectOwner = true;
+		}
+
+		try {
+
+			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+					.startsWith("private")) {
+				List<String> repoDetails = CommonUtils
+						.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+				Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), newOwnerDeatils.getId(),
+						repoDetails.get(1));
+				if (!isUserAdmin) {
+					log.error("collab user is not an admin for the private repo, cannot transfer ownership");
+					MessageDescription msg = new MessageDescription(
+							"Collab user not an admin of the repo, cannot transfer ownership.");
+					errors.add(msg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+			}
+
+			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
+			UserInfo newOwner = new UserInfo();
+			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
+
+			// To update project owner.
+			GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
+					.updateProjectOwnerDetails(projectName, newOwner);
+			String repoName = vo.getProjectDetails().getGitRepoName();
+			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
+					|| vo
+							.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+							.startsWith("private")) {
+				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			// adding new owner as repo admin
+			if (!entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+					.startsWith("private")) {
+				HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(newOwner.getGitUserName(),
+						repoName);
+				if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+					MessageDescription warnMsg = new MessageDescription(
+							"Failed while adding " + newOwner.getGitUserName()
+									+ " as admin to repository");
+					log.info("Failed while adding {} as admin to repository. Please add manually",
+							newOwner.getGitUserName());
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
+			}
+			// To add current owner as collaborator.
+			GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository
+					.updateCollaboratorDetails(projectName, currentOwnerAsCollab, false);
+
+			// To remove new owner from collaborator.
+			GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository
+					.updateCollaboratorDetails(projectName, newOwner, true);
+			// removing old user as repo admin
+			if (!entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+					.startsWith("private")) {
+				HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(projectOwnerId, repoName);
+				if (!removeAdminAccessToGitUser.is2xxSuccessful()) {
+					MessageDescription warnMsg = new MessageDescription("Failed while adding " + projectOwnerId
+							+ " as admin to repository");
+					log.info("Failed while removing {} as admin to repository. Please add manually",
+							projectOwnerId);
+					warnings.add(warnMsg);
+					responseVO.setWarnings(warnings);
+				}
+			}
+
+			if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
+					|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
+					|| "FAILED".equalsIgnoreCase(removeNewOwnerFromCollab.getSuccess())) {
+				// TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				log.error("Failed to update project owner details");
+				MessageDescription msg = new MessageDescription("Failed to update project owner details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+		} catch (Exception e) {
+			log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+			MessageDescription msg = new MessageDescription("Failed to add collaborator details");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+
+		return responseMessage;
+	}
  
 	 @Override
 	 public Integer getTotalCountOfWorkSpace() {
@@ -1356,8 +1376,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 boolean isProjectOwner = false;
 		 boolean isAdmin = false;
 		 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") 
-				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
-				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+				 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 			 log.error("Cannot add collaborator for this project {} of recipe type - {} "
 					 + entity.getData().getWorkspaceId(), vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase());
 			 MessageDescription msg = new MessageDescription(
@@ -1399,7 +1418,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 				 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ){
 					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					List<String> repoDetails = getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
 					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
@@ -1415,8 +1434,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
-						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
-						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat"))) {
+						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
 					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 					 if (!addGitUser.is2xxSuccessful()) {
 						 log.info("Failed while adding {} as collaborator with status {}", repoName,
@@ -1480,19 +1498,6 @@ import com.daimler.data.util.ConstantsUtility;
  
 		 return responseMessage;
 	 }
-
-	private List<String> getRepoNameFromGitUrl(String gitUrl) {
-		List<String> repoDetails = new ArrayList<>();
-		if(null != gitUrl && !gitUrl.isBlank()) {
-			String[] codespaceSplitValues = gitUrl.split("/");
-			int length = codespaceSplitValues.length;
-			repoDetails.add(codespaceSplitValues[length-2]);
-			repoDetails.add(codespaceSplitValues[length-1].replaceAll(".git",""));
-		} else {
-			repoDetails.add("DNA");
-		}
-		return repoDetails;
-	}
  
 	 @Override
 	 @Transactional
@@ -1736,7 +1741,6 @@ import com.daimler.data.util.ConstantsUtility;
 			 } else {
 				 if (projectRecipe.toLowerCase().startsWith("public")
 						 || projectRecipe.toLowerCase().startsWith("private")
-						 || projectRecipe.toLowerCase().startsWith("bat")
 						 || projectRecipe.equalsIgnoreCase("default")) {
 					 log.error("Cannot update public/private recipe types, deploy n undeploy is disabled");
 					 MessageDescription msg = new MessageDescription(
@@ -2266,9 +2270,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 String pathCheckout = "";
 			 if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
 					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							 .startsWith("private")
-					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							 .startsWith("bat")) {
+							 .startsWith("private")) {
 				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 				 log.info("repoNameWithOrg>>>>"+repoNameWithOrg);
 			 } else {
@@ -2381,9 +2383,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 String pathCheckout = "";
 			 if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
 					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							 .startsWith("private")
-					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							 .startsWith("bat")) {
+							 .startsWith("private")) {
 				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();

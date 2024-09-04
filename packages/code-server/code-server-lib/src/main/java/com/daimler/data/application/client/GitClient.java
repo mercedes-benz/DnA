@@ -337,5 +337,34 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
+	public Boolean isUserAdmin( String orgName,String username, String repoName) {
+		Boolean isAdmin = false;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username+"/permission";
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					String responseBody = response.getBody();
+					JSONObject jsonResponse = new JSONObject(responseBody);
+					if(jsonResponse !=null && jsonResponse.has("permission")) {
+						log.info("completed checking user {} as admin for git repo {}.", username, gitOrgName);
+						String permission = jsonResponse.get("permission").toString();
+						if("admin".equalsIgnoreCase(permission)){
+							isAdmin = true;
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error occured while checking admin {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return isAdmin;
+		
+	}
 	
 }
