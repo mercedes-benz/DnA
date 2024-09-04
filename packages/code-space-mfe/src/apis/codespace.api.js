@@ -140,8 +140,8 @@ const updateCodeSpaceRecipe = (id, data) => {
     );
 };
   
-const getCodeSpaceRecipes = (offset, limit) => {
-    return server.get(`recipeDetails?limit=${limit}&offset=${offset}`, {
+const getCodeSpaceRecipes = () => {
+    return server.get(`recipeDetails`, {
         data: {},
     });
 };
