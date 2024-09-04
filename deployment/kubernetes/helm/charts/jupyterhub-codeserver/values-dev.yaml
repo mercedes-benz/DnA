@@ -84,18 +84,18 @@ hub:
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
   db:
-    type: sqlite-pvc
+    type: postgres
     upgrade:
     pvc:
       annotations: {}
       selector: {}
       accessModes:
         - ReadWriteOnce
-      storage: 1Gi
+      storage: 5Gi
       subPath:
-      storageClassName: cinder
-    url:
-    password:
+      storageClassName: cinder-retain
+    url: postgresql+psycopg2://jupyterhub-db.svc.cluster.local:64000/jupyterhub
+    password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#dbadm.password>
   labels: {}
   annotations: {}
   command: []
