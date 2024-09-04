@@ -28,6 +28,7 @@ import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
+import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -158,6 +159,8 @@ const CodeSpace = (props) => {
   const [showProdActions, setShowProdActions] = useState(false);
 
   const livelinessIntervalRef = React.useRef();
+  const stagingWrapperRef = useRef(null);
+  const prodWrapperRef = useRef(null);
 
   // const [branchValue, setBranchValue] = useState('main');
   // const [deployEnvironment, setDeployEnvironment] = useState('staging');
@@ -709,7 +712,15 @@ const CodeSpace = (props) => {
                           </>
                         )}
                         <li>
-                          <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowStagingActions(!showStagingActions)}>
+                          <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                            onClick={() => {
+                              setShowStagingActions(!showStagingActions);
+                              if (stagingWrapperRef.current) {
+                                setRippleAnimation(stagingWrapperRef.current);
+                              }
+                            }}
+                          >
                             <div>
                           <strong>Staging:</strong>{' '}
                           {intDeploymentDetails?.lastDeployedBranch
@@ -719,9 +730,12 @@ const CodeSpace = (props) => {
                             (DORA Metrics)
                           </span>
                             </div>
-                            <div className={classNames(Styles.showIcon)}>
+                            <div ref={stagingWrapperRef} className={classNames(Styles.iconWrapper, showStagingActions ? Styles.open : '')} >
                               {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
-                                <i className={classNames(showStagingActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                                <>
+                                  <span className="animation-wrapper"></span>
+                                  <i className={classNames("icon down-up-flip")}></i>
+                                </>
                               )}
                             </div>
                           </button>
@@ -791,7 +805,15 @@ const CodeSpace = (props) => {
                           <hr />
                         </li>
                         <li>
-                          <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowProdActions(!showProdActions)}>
+                          <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                            onClick={() => {
+                              setShowProdActions(!showProdActions);
+                              if (prodWrapperRef.current) {
+                                setRippleAnimation(prodWrapperRef.current);
+                              }
+                            }}
+                          >
                             <div>
                           <strong>Production:</strong>{' '}
                           {prodDeploymentDetails?.lastDeployedBranch
@@ -801,9 +823,12 @@ const CodeSpace = (props) => {
                             (DORA Metrics)
                           </span>
                             </div>
-                            <div className={classNames(Styles.showIcon)}>
+                            <div ref={prodWrapperRef} className={classNames(Styles.iconWrapper, showProdActions ? Styles.open : '')} >
                               {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
-                                <i className={classNames(!showProdActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                                <>
+                                  <span className="animation-wrapper"></span>
+                                  <i className={classNames("icon down-up-flip")}></i>
+                                </>
                               )}
                             </div>
                           </button>

@@ -142,14 +142,30 @@
   .btnDisabled{
     pointer-events: none;
   }
+  .animation {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    display: block;
+    border-radius: 50%;
+  }
 
-  .showIcon{
-    i{
-      font-size: 7px !important;
+  .iconWrapper{
+    color: #697582; //Used by ripple animation
+    transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    position: relative;
+    border-radius: 1px;
+    &.open {
+      i{
+        &::before {
+          transform: rotate(-45deg) !important;
+        }
+        &::after {
+          transform: rotate(45deg) !important;
+        }
+      }
     }
   }
-  
-
   .trigger {
     display: inline-block;
     padding: 2px 10px;

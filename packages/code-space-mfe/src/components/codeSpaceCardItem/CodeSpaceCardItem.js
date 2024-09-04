@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
@@ -24,6 +24,7 @@ import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
 import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
+import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -72,7 +73,8 @@ const CodeSpaceCardItem = (props) => {
 
   const [showStagingActions, setShowStagingActions] = useState(true);
   const [showProdActions, setShowProdActions] = useState(false);
-
+  const stagingWrapperRef = useRef(null);
+  const prodWrapperRef = useRef(null);
 
   useEffect(() => {
 
@@ -397,7 +399,15 @@ const CodeSpaceCardItem = (props) => {
                       <hr />
                     </li>
                     <li>
-                      <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowStagingActions(!showStagingActions)}>
+                      <button
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        onClick={() => {
+                          setShowStagingActions(!showStagingActions);
+                          if (stagingWrapperRef.current) {
+                            setRippleAnimation(stagingWrapperRef.current);
+                          }
+                        }}
+                      >
                         <div>
                           <strong>Staging:</strong>{' '}
                           {intDeploymentDetails?.lastDeployedBranch
@@ -407,9 +417,12 @@ const CodeSpaceCardItem = (props) => {
                             (DORA Metrics)
                           </span>
                         </div>
-                        <div className={classNames(Styles.showIcon)}>
+                        <div ref={stagingWrapperRef} className={classNames(Styles.iconWrapper, showStagingActions ? Styles.open : '')}>
                           {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
-                            <i className={classNames(!showStagingActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                            <>
+                              <span className={classNames('animation-wrapper', Styles.animation)}></span>
+                              <i className={classNames("icon down-up-flip")}></i>
+                            </>
                           )}
                         </div>
                       </button>
@@ -479,7 +492,15 @@ const CodeSpaceCardItem = (props) => {
                       <hr />
                     </li>
                     <li>
-                      <button className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)} onClick={() => setShowProdActions(!showProdActions)}>
+                      <button
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        onClick={() => {
+                          setShowProdActions(!showProdActions);
+                          if (prodWrapperRef.current) {
+                            setRippleAnimation(prodWrapperRef.current);
+                          }
+                        }}
+                      >
                         <div>
                           <strong>Production:</strong>{' '}
                           {prodDeploymentDetails?.lastDeployedBranch
@@ -489,9 +510,12 @@ const CodeSpaceCardItem = (props) => {
                             (DORA Metrics)
                           </span>
                         </div>
-                        <div className={classNames(Styles.showIcon)}>
+                        <div ref={prodWrapperRef} className={classNames(Styles.iconWrapper, showProdActions ? Styles.open : '')} >
                           {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
-                            <i className={classNames(!showProdActions ? "icon mbc-icon arrow small down" : "icon mbc-icon arrow small up")} />
+                            <>
+                              <span className={classNames('animation-wrapper', Styles.animation)}></span>
+                              <i className={classNames("icon down-up-flip")}></i>
+                            </>
                           )}
                         </div>
                       </button>
