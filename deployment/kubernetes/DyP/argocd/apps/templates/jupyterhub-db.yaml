@@ -34,5 +34,4 @@ spec:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
 {{- end }}
-
 {{- end }} 
