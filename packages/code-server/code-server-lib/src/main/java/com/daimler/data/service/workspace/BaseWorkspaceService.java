@@ -474,7 +474,7 @@ import com.daimler.data.util.ConstantsUtility;
 					pathCheckout = "";
 				}
 			 }
-			 if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
+			 if(repoNameWithOrg.isEmpty()) {
 				pathCheckout = "";
 				repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
 			}
@@ -542,7 +542,7 @@ import com.daimler.data.util.ConstantsUtility;
 				  ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			  }
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				 ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -818,7 +818,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 // repoNameWithOrg = url[0];
 				 // pathCheckout = url[1];
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
 			 if(vo.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
