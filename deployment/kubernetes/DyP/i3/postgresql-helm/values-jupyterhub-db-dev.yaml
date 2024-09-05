@@ -204,7 +204,7 @@ dbusers:
     password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: jupyterhub
+    username: jovyan
     password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#dbadm.password>
 
     createSchema:
