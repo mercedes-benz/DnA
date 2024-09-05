@@ -124,7 +124,7 @@ public class GitClient {
 				return null;
 			} else {
 			throw new Exception(e.getMessage());
-		}
+			}
 		}
 		log.info("The software file is not present in the Git repository.");
 		return null;
