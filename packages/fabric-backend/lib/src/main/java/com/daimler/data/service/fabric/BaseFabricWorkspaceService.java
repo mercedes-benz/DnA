@@ -175,6 +175,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(vos!=null && !vos.isEmpty()) {
 			totalCount = vos.size();
 			int newOffset = offset>vos.size() ? 0 : offset;
+			if(limit==0)
+				limit = vos.size();
 			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
 			paginatedVOs = vos.subList(newOffset, newLimit);
 		}
