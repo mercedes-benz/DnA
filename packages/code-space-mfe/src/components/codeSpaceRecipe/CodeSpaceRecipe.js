@@ -38,7 +38,7 @@ const CodeSpaceRecipe = (props) => {
   const [deployPath, setDeployPath] = useState('');
   
   const [diskSpace, setDiskSpace] = useState('');
-  const [minCpu, setMinCpu] = useState('1');
+  const [minCpu, setMinCpu] = useState('0.5');
   const [maxCpu, setMaxCpu] = useState('');
   const [minRam, setMinRam] = useState('1000');
   const [maxRam, setMaxRam] = useState('');
