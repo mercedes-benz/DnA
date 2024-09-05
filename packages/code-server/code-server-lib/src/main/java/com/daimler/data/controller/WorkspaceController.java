@@ -1226,11 +1226,20 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
  
 		 final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId, offset, limit);
+		 List<CodeServerWorkspaceVO> workspacesWithDeployEnabled = new ArrayList<>();
 		 WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
 		 collection.setTotalCount(service.getCount(userId));
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
-			 collection.setRecords(workspaces);
+			for(CodeServerWorkspaceVO vo :workspaces ){
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+				}else{
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+				}
+				workspacesWithDeployEnabled.add(vo);
+			}
+			 collection.setRecords(workspacesWithDeployEnabled);
 			 return new ResponseEntity<>(collection, HttpStatus.OK);
 		 } else {
 			 return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
