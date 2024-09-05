@@ -478,6 +478,10 @@ import com.daimler.data.util.ConstantsUtility;
 					pathCheckout = "";
 				}
 			 }
+			 if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
+				pathCheckout = "";
+				repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+			}
 			 UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
 			 UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
 			 String projectOwnerId = "";
@@ -810,7 +814,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 				 if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
-					 pathCheckout = vo.getProjectDetails().getRecipeDetails().getRepodetails().replace("https://", "");
+					 pathCheckout = "";
 					 repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
 				 }
 				 // repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
