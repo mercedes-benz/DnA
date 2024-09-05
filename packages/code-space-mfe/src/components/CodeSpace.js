@@ -502,7 +502,7 @@ const CodeSpace = (props) => {
   // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
-    projectDetals?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
     <svg
