@@ -135,6 +135,8 @@ const CodeSpaceCardItem = (props) => {
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
+    setRippleAnimation(prodWrapperRef.current);
+    setRippleAnimation(stagingWrapperRef.current);
     setContextMenuOffsetTop(e.currentTarget.offsetTop - 17);
     setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 230);
     setShowContextMenu(!showContextMenu);
@@ -403,9 +405,6 @@ const CodeSpaceCardItem = (props) => {
                         className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowStagingActions(!showStagingActions);
-                          if (stagingWrapperRef.current) {
-                            setRippleAnimation(stagingWrapperRef.current);
-                          }
                         }}
                       >
                         <div>
@@ -417,10 +416,10 @@ const CodeSpaceCardItem = (props) => {
                             (DORA Metrics)
                           </span>
                         </div>
-                        <div ref={stagingWrapperRef} className={classNames(Styles.iconWrapper, showStagingActions ? Styles.open : '')}>
+                        <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}>
                           {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
                             <>
-                              <span className={classNames('animation-wrapper', Styles.animation)}></span>
+                              <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
                             </>
                           )}
@@ -496,9 +495,6 @@ const CodeSpaceCardItem = (props) => {
                         className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowProdActions(!showProdActions);
-                          if (prodWrapperRef.current) {
-                            setRippleAnimation(prodWrapperRef.current);
-                          }
                         }}
                       >
                         <div>
@@ -510,10 +506,10 @@ const CodeSpaceCardItem = (props) => {
                             (DORA Metrics)
                           </span>
                         </div>
-                        <div ref={prodWrapperRef} className={classNames(Styles.iconWrapper, showProdActions ? Styles.open : '')} >
+                        <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
                           {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
                             <>
-                              <span className={classNames('animation-wrapper', Styles.animation)}></span>
+                              <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
                             </>
                           )}
