@@ -46,7 +46,7 @@ const DeployModal = (props) => {
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
-  const [vaultEnabled, setVaultEnabled] = useState(false);
+  // const [vaultEnabled, setVaultEnabled] = useState(false);
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   // const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
   // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
@@ -84,17 +84,17 @@ const DeployModal = (props) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
-    setVault();
+    // setVault();
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    setVault();
-  }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
+  // useEffect(() => {
+  //   setVault();
+  // }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
     let entitlements;
-    ProgressIndicator.show();
+    // ProgressIndicator.show();
     CodeSpaceApiClient.getPublishedConfig(id, env).then((res) => {
       appId = res.data.appID || '';
       entitlements = res.data.entitlements || [];
@@ -143,27 +143,27 @@ const DeployModal = (props) => {
   //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
   // };
 
-  const setVault = () => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.read_secret(
-      projectDetails?.projectName.toLowerCase(),
-      deployEnvironment === 'staging' ? 'int' : 'prod',
-    )
-      .then((response) => {
-        ProgressIndicator.hide();
-        Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-      })
-      .catch(() => {
-        ProgressIndicator.hide();
-        // if (err?.response?.data?.errors?.length > 0) {
-        //   err?.response?.data?.errors.forEach((err: any) => {
-        //     Notification.show(err?.message || 'Something went wrong.', 'alert');
-        //   });
-        // } else {
-        //   Notification.show(err?.message || 'Something went wrong.', 'alert');
-        // }
-      });
-  };
+  // const setVault = () => {
+  //   ProgressIndicator.show();
+  //   CodeSpaceApiClient.read_secret(
+  //     projectDetails?.projectName.toLowerCase(),
+  //     deployEnvironment === 'staging' ? 'int' : 'prod',
+  //   )
+  //     .then((response) => {
+  //       ProgressIndicator.hide();
+  //       Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+  //     })
+  //     .catch(() => {
+  //       ProgressIndicator.hide();
+  //       // if (err?.response?.data?.errors?.length > 0) {
+  //       //   err?.response?.data?.errors.forEach((err: any) => {
+  //       //     Notification.show(err?.message || 'Something went wrong.', 'alert');
+  //       //   });
+  //       // } else {
+  //       //   Notification.show(err?.message || 'Something went wrong.', 'alert');
+  //       // }
+  //     });
+  // };
 
   const onAcceptCodeDeploy = () => {
     // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
@@ -201,7 +201,7 @@ const DeployModal = (props) => {
         // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
         targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
         branch: branchValue,
-        valutInjectorEnable: vaultEnabled,
+        // valutInjectorEnable: vaultEnabled,
         clientID: clientId,
         clientSecret: clientSecret,
       };

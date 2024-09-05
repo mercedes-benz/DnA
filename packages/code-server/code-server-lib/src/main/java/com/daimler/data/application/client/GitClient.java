@@ -8,11 +8,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.json.JSONObject;
 
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
+import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,13 +54,14 @@ public class GitClient {
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
 
-	public HttpStatus createRepo(String repoName, String recipeName) {
+	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "-template/generate";
+
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
 					+ "\",\"description\":\"" + recipeName
 					+ " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
@@ -96,7 +101,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public JSONObject getSoftwareFileFromGit(String repoName, String repoOwner, String gitUrl) {
+	public JSONObject getSoftwareFileFromGit(String repoName, String repoOwner, String gitUrl) throws Exception {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -115,6 +120,11 @@ public class GitClient {
 			}
 		} catch (Exception e) {
 			log.error("error in git file", gitUrl,repoOwner,e.getMessage());
+			if(e.getMessage().contains("Not Found")) {
+				return null;
+			} else {
+				throw new Exception(e.getMessage());
+			}
 		}
 		log.info("The software file is not present in the Git repository.");
 		return null;
@@ -161,13 +171,13 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public HttpStatus validateGitUser(String gitBaseUrl,String repoName) {
+	public HttpStatus validateGitUser(String gitBaseUrl,String repoName, String applicationName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer "+ personalAccessToken);
-			String url = gitBaseUrl+ "/repos/" + applicationName + "/"+ repoName+ "/collaborators/" + pidValue +"/permission";
+			String url = gitBaseUrl+ "api/v3/repos/" + applicationName + "/"+ repoName+ "/collaborators/" + pidValue +"/permission";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -312,6 +322,78 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
+
+	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
+		GitLatestCommitIdDto commitId = null;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			GitLatestCommitIdDto[] commits = objectMapper.readValue(response.getBody(), GitLatestCommitIdDto[].class);
+				if (commits.length > 0) {
+					 commitId = commits[0];
+				}
+			log.info("completed fetching latest commit id from git repo {} and branch {} ",repoName, branch);
+			return commitId;
+		} catch (Exception e) {
+			log.error("Error occured while  fetching latest commit id from git repo {} and branch {} with exception {}", repoName, branch, e.getMessage());
+		}
+		return new GitLatestCommitIdDto();
+	}
 	
+	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
+  	try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				log.info("completed checking user {} as collaborator for git repo {}, with status ", username, gitOrgName,response.getStatusCode());
+				return response.getStatusCode();
+			}
+		} catch (Exception e) {
+			log.error("Error occured while checking collaborator {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+		
+	}
+	public Boolean isUserAdmin( String orgName,String username, String repoName) {
+		Boolean isAdmin = false;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username+"/permission";
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					String responseBody = response.getBody();
+					JSONObject jsonResponse = new JSONObject(responseBody);
+					if(jsonResponse !=null && jsonResponse.has("permission")) {
+						log.info("completed checking user {} as admin for git repo {}.", username, gitOrgName);
+						String permission = jsonResponse.get("permission").toString();
+						if("admin".equalsIgnoreCase(permission)){
+							isAdmin = true;
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error occured while checking admin {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return isAdmin;
+		
+	}
 	
 }

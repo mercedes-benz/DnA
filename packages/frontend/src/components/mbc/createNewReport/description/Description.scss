@@ -17,6 +17,10 @@
       width: calc(50% - 7px);
     }
   }
+  
+  .procedureId{
+    margin-top: 22px;
+  }
 
   .formWrapper {
     margin: 60px 70px 0;
@@ -57,4 +61,11 @@
 
 .similarReportInfo {
   color: var(--color-orange);
+}
+
+.divWrapper{
+  margin-top: 4px;
+}
+.procedureIdError{
+  margin-top: -9px !important;
 }

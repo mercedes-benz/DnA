@@ -1,0 +1,62 @@
+# Network policies for internal communication between components
+internal:
+  enabled: true
+
+# External
+external:
+  alertmanager:
+    enabled: true
+    # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+    # ingresses:
+    #   - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           k8s-app: "traefik"
+    #       namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: "infra"
+    #   - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           k8s-app: "traefik"
+    #       namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: "infra-internet"
+  prometheus:
+    enabled: true
+    # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+    # ingresses:
+    #   - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           k8s-app: "traefik"
+    #       namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: "infra"
+    #   - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           k8s-app: "traefik"
+    #       namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: "infra-internet"
+  grafana:
+    enabled: true
+    # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+    # ingresses:
+    #   - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           k8s-app: "traefik"
+    #       namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: "infra"
+    #   - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           k8s-app: "traefik"
+    #       namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: "infra-internet"
+    # Adjust this value, if grafana uses other port than 3000
+    port: 3000
