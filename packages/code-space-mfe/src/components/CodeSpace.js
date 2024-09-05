@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 // @ts-ignore
 import Notification from '../common/modules/uilab/js/src/notification';
 // @ts-ignore
@@ -28,6 +28,7 @@ import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
+import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -154,7 +155,12 @@ const CodeSpace = (props) => {
   const [serverStarted, setServerStarted] = useState(true);
   const [serverProgress, setServerProgress] = useState(0);
 
+  const [showStagingActions, setShowStagingActions] = useState(true);
+  const [showProdActions, setShowProdActions] = useState(false);
+
   const livelinessIntervalRef = React.useRef();
+  const stagingWrapperRef = useRef(null);
+  const prodWrapperRef = useRef(null);
 
   // const [branchValue, setBranchValue] = useState('main');
   // const [deployEnvironment, setDeployEnvironment] = useState('staging');
@@ -235,6 +241,8 @@ const CodeSpace = (props) => {
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
+    setRippleAnimation(prodWrapperRef.current);
+    setRippleAnimation(stagingWrapperRef.current);
     setContextMenuOffsetTop(e.currentTarget.offsetTop - 17);
     setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 230);
     setShowContextMenu(!showContextMenu);
@@ -706,6 +714,13 @@ const CodeSpace = (props) => {
                           </>
                         )}
                         <li>
+                          <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                            onClick={() => {
+                              setShowStagingActions(!showStagingActions);
+                            }}
+                          >
+                            <div>
                           <strong>Staging:</strong>{' '}
                           {intDeploymentDetails?.lastDeployedBranch
                             ? `[Branch - ${codeDeployedBranch}]`
@@ -713,7 +728,19 @@ const CodeSpace = (props) => {
                           <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                             (DORA Metrics)
                           </span>
+                            </div>
+                            <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')} >
+                              {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                <>
+                                  <span className={classNames('animation-wrapper',Styles.animationWrapper)}></span>
+                                  <i className={classNames("icon down-up-flip")}></i>
+                                </>
+                              )}
+                            </div>
+                          </button>
                         </li>
+                        {showStagingActions && (
+                          <>
                         {isAPIRecipe && isOwner && (
                           <li>
                             <span
@@ -770,19 +797,40 @@ const CodeSpace = (props) => {
                               Deployment Audit Logs
                             </span>
                           </li>
+                            )}
+                          </>
                         )}
                         <li>
                           <hr />
                         </li>
                         <li>
+                          <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                            onClick={() => {
+                              setShowProdActions(!showProdActions);
+                            }}
+                          >
+                            <div>
                           <strong>Production:</strong>{' '}
                           {prodDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${prodCodeDeployedBranch}]`
+                              ? `[Branch - ${prodCodeDeployedBranch}]`
                             : 'No Deployment'}
                           <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                             (DORA Metrics)
                           </span>
+                            </div>
+                            <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
+                              {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                <>
+                                  <span className={classNames('animation-wrapper',Styles.animationWrapper)}></span>
+                                  <i className={classNames("icon down-up-flip")}></i>
+                                </>
+                              )}
+                            </div>
+                          </button>
                         </li>
+                        {showProdActions && (
+                          <>
                         {isAPIRecipe && isOwner && (
                           <li>
                             <span
@@ -839,6 +887,8 @@ const CodeSpace = (props) => {
                               Deployment Audit Logs
                             </span>
                           </li>
+                            )}
+                          </>
                         )}
                       </ul>
                     </div>
