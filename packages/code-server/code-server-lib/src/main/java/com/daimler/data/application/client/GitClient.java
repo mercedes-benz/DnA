@@ -123,7 +123,7 @@ public class GitClient {
 			if(e.getMessage().contains("Not Found")) {
 				return null;
 			} else {
-			throw new Exception(e.getMessage());
+				throw new Exception(e.getMessage());
 			}
 		}
 		log.info("The software file is not present in the Git repository.");
@@ -322,10 +322,33 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
-	
+
 	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
 		GitLatestCommitIdDto commitId = null;
 		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			GitLatestCommitIdDto[] commits = objectMapper.readValue(response.getBody(), GitLatestCommitIdDto[].class);
+				if (commits.length > 0) {
+					 commitId = commits[0];
+				}
+			log.info("completed fetching latest commit id from git repo {} and branch {} ",repoName, branch);
+			return commitId;
+		} catch (Exception e) {
+			log.error("Error occured while  fetching latest commit id from git repo {} and branch {} with exception {}", repoName, branch, e.getMessage());
+		}
+		return new GitLatestCommitIdDto();
+	}
+	
+	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
+  	try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
@@ -343,7 +366,6 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
-
 	public Boolean isUserAdmin( String orgName,String username, String repoName) {
 		Boolean isAdmin = false;
 		try {
