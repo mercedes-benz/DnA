@@ -123,8 +123,8 @@ public class GitClient {
 			if(e.getMessage().contains("Not Found")) {
 				return null;
 			} else {
-				throw new Exception(e.getMessage());
-			}
+			throw new Exception(e.getMessage());
+		}
 		}
 		log.info("The software file is not present in the Git repository.");
 		return null;
@@ -322,7 +322,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
-
+	
 	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
 		GitLatestCommitIdDto commitId = null;
 		try {
