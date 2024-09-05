@@ -96,7 +96,7 @@ hub:
       storage: 1Gi
       subPath:
       storageClassName: dhc-gp3
-    url: postgresql+psycopg2://jupyterhub-db.svc.cluster.local:64000/jupyterhub
+    url: postgresql+psycopg2://jupyterhub-db.code-server.svc.cluster.local:64000/jupyterhub
     password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#dbadm.password>
   labels: {}
   annotations: {}
