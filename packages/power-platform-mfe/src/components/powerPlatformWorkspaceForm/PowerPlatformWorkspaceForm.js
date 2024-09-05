@@ -11,6 +11,7 @@ import Modal from 'dna-container/Modal';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import SharedDevelopmentTou from '../sharedDevelopmentTou/SharedDevelopmentTou';
 // Api
 import { powerPlatformApi } from '../../apis/power-platform.api';
 
@@ -41,9 +42,15 @@ const PowerPlatformWorkspaceForm = () => {
     register,
     handleSubmit,
     getValues,
+    setValue,
     control,
     formState: { errors },
   } = methods;
+
+  const handleTouAccept = () => {
+    setShowTou(false);
+    setValue('termsOfUse', true);
+  }
 
   const formValues = (values) => {
     return {
@@ -77,10 +84,6 @@ const PowerPlatformWorkspaceForm = () => {
       );
     });
   };
-
-  const touModalContent = (<>
-    <h1>hello tou</h1>
-  </>);
 
   return (
     <>
@@ -360,7 +363,7 @@ const PowerPlatformWorkspaceForm = () => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={showTou}
-          content={touModalContent}
+          content={<SharedDevelopmentTou onAccept={handleTouAccept} />}
           scrollableContent={true}
           onCancel={() => setShowTou(false)}
         />
