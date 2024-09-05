@@ -8,11 +8,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.json.JSONObject;
 
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
+import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -318,7 +322,9 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
-	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
+
+	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
+		GitLatestCommitIdDto commitId = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -337,6 +343,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
+
 	public Boolean isUserAdmin( String orgName,String username, String repoName) {
 		Boolean isAdmin = false;
 		try {

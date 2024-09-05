@@ -6,7 +6,9 @@ namespace: naas
 app:
   backend:
     replicaCount: 1
-    image: ""
+    image:
+      repository: ""
+      tag: ""
     secrets:
       name: naas-app-secrets
       jwtKey: ""
