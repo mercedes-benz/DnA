@@ -385,7 +385,7 @@ data:
     user: <path:kv/data/dna/kubernetesSecret/officalairflow#airflowdbuser | squote>
     pass: <path:kv/data/dna/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
-    host: airflow-db.airflow.svc.cluster.local
+    host: airflow-db.dev-dna-airflow.svc.cluster.local
     port: 64000
     db: <path:kv/data/dna/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
