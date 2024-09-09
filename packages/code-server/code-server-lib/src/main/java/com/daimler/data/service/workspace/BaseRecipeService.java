@@ -140,6 +140,9 @@ public class BaseRecipeService implements RecipeService{
 				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
 				fileContent.append(additionalProperties);
 			}
+			if(fileContent.toString().contains("dotnet")){
+				fileContent.append("\ncode-server --install-extension ms-dotnettools.vscode-dotnet-runtime\ncode-server --install-extension aliasadidev.nugetpackagemanagergui");
+			}
 			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
 			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
 			if( encodedFileContent != null) {
@@ -159,7 +162,13 @@ public class BaseRecipeService implements RecipeService{
 			return responseMessage;
 		} catch(Exception e) {
 			log.error(e.getMessage());
-			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+			if(e.getMessage().contains("pull request")){
+				responseMessage = getMessageDescrption("Conflict in Git while creating Software File","FAILED");
+			} else {
+				responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+
+			}
+			responseMessage.setSuccess("FAILED");
 		}
 		return responseMessage;
 	}

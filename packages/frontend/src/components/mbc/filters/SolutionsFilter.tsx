@@ -1115,8 +1115,9 @@ const SolutionsFilter = ({
       </div>
     </FilterWrapper>
     {isDivisionAdmin && !isPortfolioPage && (
-      <FilterWrapper openFilters={openFilters}>
+      <FilterWrapper openFilters={openFilters} divisionAdminFilter={true}>
         <label>Please note that you are the division admin of the divisions <span>{user?.divisionAdmins?.toString()}</span>. Ensure you have the right divisions set in your filter in order to notify the use case owners of your divisions.</label>
+        <br/>
         <div className={classNames(Styles.actionWrapper)}>
         <button className={classNames('btn btn-primary', Styles.saveSettingsBtn )} tooltip-data="Email Use Case Owners" onClick={() => setShowMailingModal(true)}>
           Email Use Case Owners
