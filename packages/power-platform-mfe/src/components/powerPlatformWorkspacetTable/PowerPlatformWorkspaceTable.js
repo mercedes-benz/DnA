@@ -8,7 +8,7 @@ const PowerPlatformWorkspaceTable = ({project, onEditProject, onDeleteProject}) 
   const history = useHistory();
 
   return (
-    <div className={Styles.projectRow} onClick={() => {history.push(`/project/${project.id}`)}}>
+    <div className={Styles.projectRow} onClick={() => {history.push(`/workspace/${project.id}`)}}>
       <div className={Styles.col1}>
         <span>
           {project?.name}
