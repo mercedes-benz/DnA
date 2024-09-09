@@ -1606,6 +1606,7 @@ singleuser:
             imagePullPolicy: IfNotPresent
             securityContext:
               runAsUser: 1000
+
 # scheduling relates to the user-scheduler pods and user-placeholder pods.
 scheduling:
   userScheduler:
