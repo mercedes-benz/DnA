@@ -5,13 +5,11 @@
   h3 {
     font-size: 24px;
     color: #dee3e8; 
-    margin-top: 12px;
-    margin-bottom: 22px;
-    margin-left: 20px;
+    margin-top: 20px;
+    margin-bottom: 25px;
   }
 
   .btnConatiner{
-    margin-right: 70px;
     text-align: right;
     margin-bottom: 12px;
   }
@@ -54,10 +52,7 @@
 
   .firstPanel {
     background: #252a33;
-    margin-bottom: 15px;
-    padding-top: 20px;
-    padding-left: 20px;
-    padding-bottom: 20px;
+    padding: 60px 70px;
     .textDesc {
       color: #697582;
     }
@@ -68,19 +63,22 @@
 
     .flex {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       flex-wrap: wrap;
+      column-gap: 14px;
       > .col {
         width: 100%;
       }
       > .col2 {
-        width: calc(50% - 7px);
+        width: calc(50% - 10px);
         position: relative;
       }
       > .col3 {
-        width: calc(33.33% - 7px);
+        width: calc(33.33% - 10px);
       }
-      
+      > .col4 {
+        width: calc(25% - 7px);
+      }
     }
 
     .SelectBoxWrapper {
@@ -101,10 +99,6 @@
         width: calc(30% - 9px);
       }
 
-    }
-
-    .formWrapper {
-      margin: 60px 70px 0;
     }
 
     .wrapper {
@@ -139,7 +133,7 @@
 
     .verifyButton {
       padding: 0 !important;
-      margin-top: -9px !important;
+      margin-top: -40px !important;
       background: none;
       border: none;
       outline: none;
@@ -147,11 +141,22 @@
       vertical-align: middle;
       text-align: left;
       font-size: 12px;
+      position: relative;
+      z-index: 999;
 
       &:hover {
         text-decoration: underline;
         background: none;
       }
+
+      &.giturlerror {
+        margin-top: -10px !important;
+      }
+    }
+
+    .giturlsuccess { 
+      color: var(--color-green);
+      margin-top: -20px;
     }
   }
 
@@ -220,10 +225,33 @@
 }
 
 .sectionHeader {
-  margin-left: 68px !important;
   margin-top: 40px !important;
 }
 
 .m5{
   margin-left: 5px;
+}
+.disabledSection {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.publicWarning {
+  i {
+    color: #FFEB3B;
+  }
+  pre {
+    display: inline;
+  }
+  li {
+    margin-bottom: 5px;
+  }
+}
+.warning {
+  margin-bottom: 0;
+  margin-top: -16px;
+  color: #FFEE58;
+
+  pre {
+    display: inline;
+  }
 }

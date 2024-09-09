@@ -416,7 +416,7 @@ public class DataProductController implements DataproductsApi{
 			if(sortBy == null) {
 				sortBy = "dataProductName";
 			}
-			List<DataProductVO> dataProducts = service.getAllWithFilters(published, offset, limit, sortBy,
+			List<DataProductVO> dataProducts = service.getAllWithFilters(published, 0, 0, sortBy,
 					sortOrder, recordStatus, artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList,dataStewardsList,informationOwnerList,departmentList,division);
 			List<DataProductVO> publishedDataProducts = new ArrayList<>();
 			List<DataProductVO> unPublishedDataProducts = new ArrayList<>();
@@ -433,8 +433,17 @@ public class DataProductController implements DataproductsApi{
 			orderedDataProducts.addAll(unPublishedDataProducts);
 			log.info("DataProducts fetched successfully");
 			if (!ObjectUtils.isEmpty(orderedDataProducts)) {
-				dataProductCollection.setTotalCount(count.intValue());
-				dataProductCollection.setRecords(orderedDataProducts);
+				int countIntVal = count.intValue();
+                dataProductCollection.setTotalCount(countIntVal);
+                if(offset>countIntVal) {
+                    offset = 0;
+                }
+                limit = offset + limit;
+                if(limit >countIntVal) {
+                    limit = countIntVal;
+                }
+                List<DataProductVO> paginatedDataproducts = orderedDataProducts.subList(offset, limit);
+				dataProductCollection.setRecords(paginatedDataproducts);
 				return new ResponseEntity<>(dataProductCollection, HttpStatus.OK);
 			} else {
 				dataProductCollection.setTotalCount(count.intValue());

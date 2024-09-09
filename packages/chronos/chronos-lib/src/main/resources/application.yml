@@ -3,6 +3,8 @@ spring:
   application:
     name: dna-chronos-service
     version: 1.4.6
+  profile:
+    active: production
   kafka:
     bootstrap-servers: ${NAAS_BROKER:localhost:9092}
     properties:

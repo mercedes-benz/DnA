@@ -20,7 +20,7 @@ import { trackEvent } from '../../Utility/utils';
 import Notification from '../../common/modules/uilab/js/src/notification';
 // import { IUserInfo } from 'globals/types';
 import { IconGear } from 'dna-container/IconGear';
-import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
+// import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
 import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
@@ -56,9 +56,10 @@ const CodeSpaceCardItem = (props) => {
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
-  const disableDeployment =
-    codeSpace?.projectDetails?.recipeDetails?.recipeId?.startsWith('public') ||
-    DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  // const disableDeployment =
+  //   codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+  //   DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment = !codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled;
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const [logsList, setlogsList] = useState([]);
@@ -75,6 +76,8 @@ const CodeSpaceCardItem = (props) => {
   const [showProdActions, setShowProdActions] = useState(false);
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
+  const [showRestartModal, setShowRestartModal] = useState(false);
+  const [env, setEnv] = useState("");
 
   useEffect(() => {
 
@@ -317,6 +320,8 @@ const CodeSpaceCardItem = (props) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
+  const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -331,6 +336,32 @@ const CodeSpaceCardItem = (props) => {
       <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
     </svg>
   );
+
+  const RestartContent = (
+    <div>
+      <h3>Are you sure you want to restart your deployed application?</h3>
+      <p>Note: Please refresh and check the application restart status under action audit logs.</p>
+    </div>
+  );
+
+  const onRestart = (env) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
+    .then((res) => {
+      if (res.data.success === 'SUCCESS') {
+        ProgressIndicator.hide();
+        Notification.show("Restart requested successfully")
+      } else {
+          ProgressIndicator.hide();
+          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
+      });
+    setShowRestartModal(false);
+  }
 
   return (
     <>
@@ -485,7 +516,16 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                      </>
+                      {intDeployed && (
+                        <li>
+                          <span
+                            onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                          >
+                            Restart Deployed Application
+                          </span>
+                        </li>
+                      )}
+                   </>
                     )}
                     <li>
                       <hr />
@@ -571,7 +611,16 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
+                        </span>
+                      </li>
+                    )}
+                    {prodDeployed && (
+                      <li>
+                        <span
+                          onClick={() => {setEnv("prod"); setShowRestartModal(true);}}
+                        >
+                          Restart Deployed Application
                         </span>
                       </li>
                     )}
@@ -589,7 +638,7 @@ const CodeSpaceCardItem = (props) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>
+              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}</div>
             </div>
             <div>
               <div>Environment</div>
@@ -1051,6 +1100,7 @@ const CodeSpaceCardItem = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
       <ConfirmModal
@@ -1085,6 +1135,24 @@ const CodeSpaceCardItem = (props) => {
           }}
         />
       )}
+      { showRestartModal && (
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showRestartModal}
+        content={RestartContent}
+        onCancel={() => {
+          setEnv('');
+          setShowRestartModal(false);
+        }}
+        onAccept={() => {
+          onRestart(env);
+          setShowRestartModal(false);
+        }}
+      />)}
     </>
   );
 };

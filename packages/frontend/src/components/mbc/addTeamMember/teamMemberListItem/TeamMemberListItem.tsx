@@ -112,7 +112,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
               {this.props?.hidePosition ? null : <h6>{teamMember?.teamMemberPosition}</h6>}
               <div className={Styles.memberDetails}>
                 <div>
-                  {teamMember?.firstName} {teamMember?.lastName} <br />
+                  {teamMember?.firstName} {teamMember?.lastName}{teamMember?.isUseCaseOwner && <span className={Styles.draftIndicator}>Use Case Owner</span> } <br />
                   {this.props.division ? (this.props.division+' / '+this.props.department) : teamMember?.department}
                 </div>
                 <div>

@@ -1,5 +1,7 @@
 package com.daimler.data.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -28,5 +30,6 @@ public class WorkbenchManageInputDto {
 	private double cpu_limit;
 	private double cpu_guarantee;
 	private String pathCheckout;
+	private List<String> extraContainers;
 	
 }
