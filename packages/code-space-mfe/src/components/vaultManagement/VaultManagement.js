@@ -70,7 +70,7 @@ const VaultManagement = (props) => {
 
   const onKeySearch = () => {
     let FilteredList = keyValue?.keyValueList;
-    if (searchTerm.length) {
+    if (searchTerm?.length) {
       FilteredList = FilteredList.filter((val) => val.key.includes(searchTerm));
     }
     setFilteredList({ keyValueList: FilteredList });
@@ -282,7 +282,7 @@ const VaultManagement = (props) => {
                     onChange={(e) => { setSearchTerm(e.target.value) }}
                     onKeyDown={handleKeyDown}
                     onBlur={() => {
-                      if (searchTerm.length) {
+                      if (searchTerm?.length) {
                         setShowCloseIcon(true)
                       }
                     }}
@@ -374,7 +374,7 @@ const VaultManagement = (props) => {
           </div>
           ) : (keyValue?.keyValueList?.length > 0 && searchTerm?.length) ?
               <div className={classNames(Styles.noData)}>No Data Found</div>
-            : <></>
+            : <div className={classNames(Styles.noData)}>{`You don't have any vault value for ${env} at this time. Please add a new one.`}</div>
         } 
       </div>
       <ConfirmModal
