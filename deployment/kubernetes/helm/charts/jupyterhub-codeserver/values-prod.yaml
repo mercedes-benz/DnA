@@ -245,7 +245,7 @@ hub:
               app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
-          port: 8081
+          port: 8081  
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -546,7 +546,6 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
-
               
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
@@ -555,7 +554,7 @@ singleuser:
               cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
-             
+
               # Copy extentions
               mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
               mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/

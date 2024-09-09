@@ -461,8 +461,9 @@ export default class Entitlement extends React.Component {
                 {this.props.env === 'int' ? 'Save Staging' : 'Save Production'}
               </button>
               <button
-                className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+                className={'btn btn-primary ' + classNames(Styles.publishBtn)}
                 type="button"
+                disabled={this.state.entitelmentListResponse.length === 0 || this.state.appId.length === 0 }
                 onClick={this.onEntitlementPublish}
               >
                 {this.props.env === 'int' ? 'Publish Staging' : 'Publish Production'}

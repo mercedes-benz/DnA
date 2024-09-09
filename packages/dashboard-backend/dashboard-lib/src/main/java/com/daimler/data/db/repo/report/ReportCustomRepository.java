@@ -37,13 +37,12 @@ public interface ReportCustomRepository extends CommonDataRepository<ReportNsql,
 
 	List<ReportNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> statuses, String userId,
 			Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy,
-			String sortOrder, String division, List<String> department, List<String> processOwner, List<String> art);
+			String sortOrder, String division, List<String> department, List<String> art);
 
 	Long getCountUsingNativeQuery(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
-			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> art);
+			List<String> searchTerms, List<String> tags, String division, List<String> department, List<String> art);
 
-	List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery();
+	//List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery();
 
 	Integer getCountBasedPublishReport(Boolean published);
 

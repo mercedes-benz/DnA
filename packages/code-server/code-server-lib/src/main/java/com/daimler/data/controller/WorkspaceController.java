@@ -104,6 +104,7 @@ import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.db.json.CodeServerRecipe;
 import com.daimler.data.db.json.CodeServerWorkspace;
@@ -725,8 +726,6 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
 
 		 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default") ) {
 			 log.error("Invalid recipe type {} for Reassign action. for project {} ", vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
 					 , vo.getProjectDetails().getProjectName());
@@ -813,7 +812,8 @@ import org.springframework.beans.factory.annotation.Value;
 		newRecipeVO.setRecipeName(recipeData.getRecipeName());
 		if(RecipeIdEnum.fromValue(recipeValue)!=null) {
 			newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
-
+		} else if(recipeData.getRecipeType().equals(ConstantsUtility.GENERIC)) {
+			newRecipeVO.setRecipeId(RecipeIdEnum.TEMPLATE);
 		} else {
 			newRecipeVO.setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
 		}
@@ -825,7 +825,12 @@ import org.springframework.beans.factory.annotation.Value;
 		resource+=recipeData.getMaxRam()+"M,"+recipeData.getMaxCpu();
 		newRecipeVO.setResource(resource);
 		newRecipeVO.setSoftware(recipeData.getSoftware());
-		newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		if(recipeData.getToDeployType()!=null){
+			newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		} else {
+			newRecipeVO.setToDeployType("default");
+		}
+		newRecipeVO.setIsDeployEnabled(recipeData.isDeployEnabled());
 		newRecipeVO.setGitPath(recipeData.getGitPath());
 		newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
@@ -982,7 +987,6 @@ import org.springframework.beans.factory.annotation.Value;
 			 }
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -1043,20 +1047,23 @@ import org.springframework.beans.factory.annotation.Value;
 			// 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 			// 	 }
 			//  }
-			 if(deployRequestDto.isValutInjectorEnable()!=null)
-			 {
-				deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			 }
-			 else
-			 {
-				deployRequestDto.setValutInjectorEnable(false);
-			 }
+			//  if(deployRequestDto.isValutInjectorEnable()!=null)
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
+			//  }
+			//  else
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(false);
+			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());
@@ -1125,7 +1132,6 @@ import org.springframework.beans.factory.annotation.Value;
 			 }
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -1223,11 +1229,20 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
  
 		 final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId, offset, limit);
+		 List<CodeServerWorkspaceVO> workspacesWithDeployEnabled = new ArrayList<>();
 		 WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
 		 collection.setTotalCount(service.getCount(userId));
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
-			 collection.setRecords(workspaces);
+			for(CodeServerWorkspaceVO vo :workspaces ){
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+				}else{
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+				}
+				workspacesWithDeployEnabled.add(vo);
+			}
+			 collection.setRecords(workspacesWithDeployEnabled);
 			 return new ResponseEntity<>(collection, HttpStatus.OK);
 		 } else {
 			 return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
@@ -2238,7 +2253,21 @@ import org.springframework.beans.factory.annotation.Value;
 				}
 			}
 			if(isCollabIdPartOfProject){
-				if(isAdmin){
+				if(isAdmin && vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
+					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+					Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), collabUserId, repoDetails.get(1));
+					if(!isUserAdmin){
+						log.error("collab user is not an admin for the private repo, cannot make user as admin");
+						GenericMessage emptyResponse = new GenericMessage();
+						List<MessageDescription> errors = new ArrayList<>();
+						msg.setMessage("Invalid User, Please make sure that collab user should be an admin of the repo. Bad request");
+						errors.add(msg);
+						emptyResponse.setErrors(errors);
+						emptyResponse.setSuccess("FAILED");
+						return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+					}
+				}
+				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
 					if(!addAdminAccessToGitUser.is2xxSuccessful())
 					{
@@ -2249,7 +2278,8 @@ import org.springframework.beans.factory.annotation.Value;
 						warnings.add(warnMsg);
 						responseMessage.setWarnings(warnings);
 					}
-				}else{
+				}
+				if(!isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
 					HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
 					if(!removeAdminAccessToGitUser.is2xxSuccessful())
 					{
