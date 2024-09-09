@@ -264,34 +264,37 @@ const VaultManagement = (props) => {
           </div>
         </div>
         {keyValue?.keyValueList?.length > 0 && (
-          <div className={classNames(Styles.searchBox)}>
-            <div className={classNames('input-field-group')}>
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Search Key
-              </label>
-              <div className={classNames(Styles.searchPanel)}>
-                <input
-                  type="text"
-                  className={classNames('input-field', Styles.searchField)}
-                  id="searchTerm"
-                  placeholder="Type here"
-                  autoComplete="off"
-                  value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value) }}
-                  onKeyDown={handleKeyDown}
-                  onBlur={() => {
-                    if (searchTerm.length) {
-                      setShowCloseIcon(true)
-                    }
-                  }}
-                />
-                <i
-                  className={classNames('icon', 'mbc-icon', showCloseIcon ? 'close circle' : 'search', Styles.searchIcon)}
-                  onClick={showCloseIcon ? handleClear : null}
-                />
+          <>
+            <hr></hr>
+            <div className={classNames(Styles.searchBox)}>
+              <div className={classNames('input-field-group')}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Search Key
+                </label>
+                <div className={classNames(Styles.searchPanel)}>
+                  <input
+                    type="text"
+                    className={classNames('input-field', Styles.searchField)}
+                    id="searchTerm"
+                    placeholder="Type here"
+                    autoComplete="off"
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value) }}
+                    onKeyDown={handleKeyDown}
+                    onBlur={() => {
+                      if (searchTerm.length) {
+                        setShowCloseIcon(true)
+                      }
+                    }}
+                  />
+                  <i
+                    className={classNames('icon mbc-icon', showCloseIcon ? 'close circle' : 'search', Styles.searchIcon)}
+                    onClick={showCloseIcon ? handleClear : null}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
         {filteredList?.keyValueList?.length > 0 ? (
           <div className={classNames(Styles.allCodeSpace)}>
