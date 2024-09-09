@@ -18,7 +18,7 @@ const PowerPlatformWorkspaceCard = ({project, onEditProject, onDeleteProject}) =
         <div className={classNames(Styles.cardHeadInfo)}>
           <div
             className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-            onClick={() => {history.push(`/project/${project.id}`)}}
+            onClick={() => {history.push(`/workspace/${project.id}`)}}
           >
             {project.name}
           </div>
@@ -32,8 +32,16 @@ const PowerPlatformWorkspaceCard = ({project, onEditProject, onDeleteProject}) =
             <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
           </div>
           <div>
-            <div>Classification</div>
-            <div>{project?.dataClassification || 'N/A'}</div>
+            <div>Owner</div>
+            <div>{project?.createdBy?.firstName} {project?.createdBy?.lastName}</div>
+          </div>
+          <div>
+            <div>Environment Type</div>
+            <div>{project?.environmentType || 'N/A'}</div>
+          </div>
+          <div>
+            <div>Your Role</div>
+            <div>{project?.role || 'N/A'}</div>
           </div>
         </div>
       </div>
