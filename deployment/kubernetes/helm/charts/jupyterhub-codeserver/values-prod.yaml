@@ -38,6 +38,7 @@ hub:
       admin_users:
         - palansa
         - ghosdeb
+        - vimhask
       auto_login: true
       allowed_users:
         - ramyrao
@@ -545,12 +546,15 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
-
+              
               # Install SDK and extensions
-              cd /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/
+              TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
+              mkdir -pv $TEMP_DIR
+              cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+              cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
-
+             
               # Copy extentions
               mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
               mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
@@ -563,8 +567,9 @@ singleuser:
               code-server --install-extension /home/coder/extension/GitHub.copilot-*.vsix
               code-server --install-extension /home/coder/extension/mbos-studio-marketplace-*.vsix
               code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
+              
+          fi 
 
-          fi        
   extraEnv: 
     HTTPS_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
     HTTP_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
