@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Styles from './power-platform-workspaces.scss';
 // dna-container
 import Caption from 'dna-container/Caption';
@@ -20,6 +21,8 @@ import { Envs } from '../../utilities/envs';
 
 const PowerPlatformWorkspaces = ({user}) => {
   const dispatch = useDispatch();
+  
+  const { account } = useParams();
 
   useEffect(() => {
     dispatch(getLovs());
@@ -30,7 +33,7 @@ const PowerPlatformWorkspaces = ({user}) => {
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
   const [projects, setProjects] = useState([]);
-  const [createProject, setCreateProject] = useState(true);
+  const [createProject, setCreateProject] = useState(account ? true : false);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [editProject, setEditProject]  = useState(false);
@@ -87,16 +90,16 @@ const PowerPlatformWorkspaces = ({user}) => {
   const deleteProjectAccept = () => {
     ProgressIndicator.show();
     powerPlatformApi
-      .deleteDataEntryProject(selectedItem.id)
+      .deletePowerPlatformWorkspace(selectedItem.id)
       .then(() => {
         getProjects();
-        Notification.show(`Data Entry Project ${selectedItem.name} deleted successfully.`);
+        Notification.show(`Power Platform Account ${selectedItem.name} deleted successfully.`);
       })
       .catch((e) => {
         Notification.show(
           e.response.data.errors?.length
             ? e.response.data.errors[0].message
-            : 'Error while deleting data entry project. Try again later!',
+            : 'Error while deleting power platform account. Try again later!',
           'alert',
         );
         ProgressIndicator.hide();
@@ -120,7 +123,7 @@ const PowerPlatformWorkspaces = ({user}) => {
           Notification.show(
             e.response.data.errors?.length
               ? e.response.data.errors[0].message
-              : 'Fetching data entry projects failed!',
+              : 'Fetching power platform accounts failed!',
             'alert',
           );
         });
@@ -163,19 +166,6 @@ const PowerPlatformWorkspaces = ({user}) => {
             </div>
           </div>
         </Caption>
-        {projects?.length === 0 && 
-          <div className={Styles.noProjectContainer}>
-            <div className={Styles.messageContainer}>
-              <p className={Styles.lead}>Hi <span>{user.firstName} {user.lastName}</span>, you don&apos;t have<br/>any Power Platform accounts.</p>
-              <p>Click on the below button to order one</p>
-            </div>
-            <div className={Styles.btnContainer}>
-              <button className={'btn btn-tertiary'} onClick={() => setCreateProject(true)}>
-                <span>Order now</span>
-              </button>
-            </div>
-          </div>
-        }
         {listViewMode && (
           <>
             {projects && projects?.length ? (
@@ -194,10 +184,40 @@ const PowerPlatformWorkspaces = ({user}) => {
           <div className={classNames(listViewMode ? Styles.listContainer : '')}>
             {cardViewMode &&
               <div className={classNames(Styles.projectsContainer)}>
-                <div className={Styles.createNewCard} onClick={() => setCreateProject(true)}>
+                {/* <div className={Styles.createNewCard} onClick={() => setCreateProject(true)}>
                   <div className={Styles.addicon}> &nbsp; </div>
                   <label className={Styles.addlabel}>Create new Power Platform Workspace</label>
-                </div>
+                </div> */}
+                {projects.map((project) => 
+                  <PowerPlatformWorkspaceCard
+                    key={project.id}
+                    project={project}
+                    onEditProject={(project) => { 
+                      setSelectedItem(project);
+                      setEditProject(true);}
+                    }
+                    onDeleteProject={(project) => {
+                      setSelectedItem(project);
+                      setDeleteModal(true);
+                    }}
+                  />
+                )}
+                <h2 className={Styles.sectionTitle}>Shared Development Account Environments</h2>
+                {projects.map((project) => 
+                  <PowerPlatformWorkspaceCard
+                    key={project.id}
+                    project={project}
+                    onEditProject={(project) => { 
+                      setSelectedItem(project);
+                      setEditProject(true);}
+                    }
+                    onDeleteProject={(project) => {
+                      setSelectedItem(project);
+                      setDeleteModal(true);
+                    }}
+                  />
+                )}
+                <h2 className={Styles.sectionTitle}>Full Development Account Environments</h2>
                 {projects.map((project) => 
                   <PowerPlatformWorkspaceCard
                     key={project.id}
