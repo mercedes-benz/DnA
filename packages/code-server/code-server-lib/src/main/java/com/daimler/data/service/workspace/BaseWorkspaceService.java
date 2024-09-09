@@ -660,14 +660,12 @@ import com.daimler.data.util.ConstantsUtility;
 					 if(null != RecipeIdEnum.fromValue(recipeName)){
 						recipeName = recipeName+"-template";
 					 }
- //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //							.equalsIgnoreCase("default")
- //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //									.startsWith("bat")) {
 						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-						String repoOwner = CommonUtils.getRepoNameFromGitUrl(gitUrl).get(0);
-						 HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
-						 if (!createRepoStatus.is2xxSuccessful()) {
+						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(gitUrl);
+						String repoOwner = repoDetails.get(0);
+						recipeName = repoDetails.get(1);
+						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
+						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
 											 + " for codespace  with status " + createRepoStatus.name()
@@ -908,7 +906,8 @@ import com.daimler.data.util.ConstantsUtility;
 			 } else {
 					collabs = vo.getProjectDetails().getProjectCollaborators();
 			 }
-			 entities.add(ownerEntity);
+			 List<UserInfo> ownerCollab = new ArrayList<>();
+			 ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
 			 if (collabs != null && !collabs.isEmpty()) {
 				 for (UserInfoVO collaborator : collabs) {
 					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
@@ -922,8 +921,8 @@ import com.daimler.data.util.ConstantsUtility;
 							warnings.add(new MessageDescription("Cannot add User "+collaborator.getId()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
 							continue;
 						}
+						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
 					}
-					
 					 CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
 					 CodeServerWorkspace collabData = new CodeServerWorkspace();
 					 collabData.setDescription(ownerEntity.getData().getDescription());
@@ -942,6 +941,8 @@ import com.daimler.data.util.ConstantsUtility;
 					 entities.add(collabEntity);
 				 }
 			 }
+			 ownerEntity.getData().getProjectDetails().setProjectCollaborators(ownerCollab);
+			 entities.add(ownerEntity);
 			 jpaRepo.saveAllAndFlush(entities);
 			 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId, projectName);
 			 CodeServerWorkspaceVO savedOwnerVO = workspaceAssembler.toVo(savedOwnerEntity);
