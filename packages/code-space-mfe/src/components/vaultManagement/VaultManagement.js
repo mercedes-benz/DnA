@@ -30,7 +30,10 @@ const VaultManagement = (props) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleteKey, setDeleteKey] = useState('');
   const [deleteValue, setDeleteValue] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showCloseIcon, setShowCloseIcon] = useState(false);
   //const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [filteredList, setFilteredList] = useState({ keyValueList: [] });
   let formValid = true;
   const env = props.isStaging ? 'int' : 'prod';
 
@@ -44,6 +47,7 @@ const VaultManagement = (props) => {
           datalist.keyValueList.push({ key: item, value: response.data[item], visible: false }),
         );
         setKeyvalue({ ...datalist });
+        setFilteredList({...datalist});
       })
       .catch((err) => {
         ProgressIndicator.hide();
@@ -63,6 +67,29 @@ const VaultManagement = (props) => {
     setKey(keyVal);
     formValid = true;
   };
+
+  const onKeySearch = () => {
+    let FilteredList = keyValue?.keyValueList;
+    if (searchTerm?.length) {
+      FilteredList = FilteredList.filter((val) => val.key.includes(searchTerm));
+    }
+    setFilteredList({ keyValueList: FilteredList });
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setShowCloseIcon(true);
+    }
+  };
+
+  const handleClear = () => {
+    setSearchTerm('');
+    setShowCloseIcon(false);
+  };
+  useEffect(() => {
+    onKeySearch();
+  }, [searchTerm, keyValue])
+
 
   const onValueChange = (evnt) => {
     setValueError('');
@@ -236,8 +263,40 @@ const VaultManagement = (props) => {
                   </span> */}
           </div>
         </div>
-
-        {keyValue.keyValueList?.length > 0 && (
+        {keyValue?.keyValueList?.length > 0 && (
+          <>
+            <hr></hr>
+            <div className={classNames(Styles.searchBox)}>
+              <div className={classNames('input-field-group')}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Search Key
+                </label>
+                <div className={classNames(Styles.searchPanel)}>
+                  <input
+                    type="text"
+                    className={classNames('input-field', Styles.searchField)}
+                    id="searchTerm"
+                    placeholder="Type here"
+                    autoComplete="off"
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value) }}
+                    onKeyDown={handleKeyDown}
+                    onBlur={() => {
+                      if (searchTerm?.length) {
+                        setShowCloseIcon(true)
+                      }
+                    }}
+                  />
+                  <i
+                    className={classNames('icon mbc-icon', showCloseIcon ? 'close circle' : 'search', Styles.searchIcon)}
+                    onClick={showCloseIcon ? handleClear : null}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        {filteredList?.keyValueList?.length > 0 ? (
           <div className={classNames(Styles.allCodeSpace)}>
             <div className={classNames(Styles.allcodeSpaceListviewContent)}>
               <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
@@ -255,11 +314,23 @@ const VaultManagement = (props) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {keyValue?.keyValueList?.map((item) => (
+                  {filteredList?.keyValueList?.map((item) => (
                     <tr className={classNames('data-row')} key={item.key}>
                       <td>{item.key}</td>
                       <td>
                         <span className={classNames(Styles.action)}>
+                          {' '}
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.value).then(() => {
+                                Notification.show('Copied to `Clipboard`');
+                              });
+                            }}
+                            className={Styles.actionBtn + ' btn btn-primary'}
+                            type="button"
+                          >
+                            <i className={classNames('icon mbc-icon copy', Styles.copyIcon)} />
+                          </button>
                           {' '}
                           {item.visible ? (
                             <i
@@ -301,7 +372,10 @@ const VaultManagement = (props) => {
               </table>
             </div>
           </div>
-        )}
+          ) : (keyValue?.keyValueList?.length > 0 && searchTerm?.length) ?
+              <div className={classNames(Styles.noData)}>No Data Found</div>
+            : <div className={classNames(Styles.noData)}>{`You don't have any vault value for ${env} at this time. Please add a new one.`}</div>
+        } 
       </div>
       <ConfirmModal
         title={''}
