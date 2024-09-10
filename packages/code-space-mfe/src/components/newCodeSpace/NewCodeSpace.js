@@ -382,7 +382,7 @@ const NewCodeSpace = (props) => {
         } else {
           setCodeSpaceCollaborators([...existingColloborators]);
           Notification.show(
-            `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.`,
+            `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.\n ${res.data.errors[0].message}`,
             'alert',
           );
         }
