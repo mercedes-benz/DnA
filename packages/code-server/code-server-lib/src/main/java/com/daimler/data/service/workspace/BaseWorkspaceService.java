@@ -918,7 +918,7 @@ import com.daimler.data.util.ConstantsUtility;
 						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
-							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
+							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
 							responseVO.setErrors(errors);
 							responseVO.setWarnings(new ArrayList<>());
 							responseVO.setSuccess("FAILED");
@@ -1435,7 +1435,7 @@ import com.daimler.data.util.ConstantsUtility;
 					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
 					if(!status.is2xxSuccessful()){
 						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
-						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
+						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
 						errors.add(msg);
 						responseMessage.setSuccess("FAILED");
 			 			responseMessage.setErrors(errors); 
