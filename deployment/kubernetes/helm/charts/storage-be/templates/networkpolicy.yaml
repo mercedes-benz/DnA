@@ -7,6 +7,14 @@ spec:
   ingress:
     - ports:
         - port: {{ .Values.containerPort }}
+    - podSelector:
+          matchLabels:
+            app: dna-kong-gw-kong
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kong          
   podSelector:
     matchLabels:
       {{- include "storage-be.selectorLabels" . | nindent 8 }}
+  policyTypes:
+    - Ingress    

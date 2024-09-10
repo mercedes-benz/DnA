@@ -10,3 +10,11 @@ spec:
   ingress:
     - ports:
       - port: {{ .Values.backend.containerPort }}
+    - podSelector:
+          matchLabels:
+            app: dna-kong-gw-kong
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kong
+  policyTypes:
+    - Ingress      

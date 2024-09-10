@@ -9,7 +9,13 @@ spec:
         - port: 3000
           protocol: TCP
         - port: 7175
-          protocol: TCP
+          protocol: TCP  
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefikv2
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress      
   podSelector:
     matchLabels:
       {{- include "storage-mfe.selectorLabels" . | nindent 8 }}

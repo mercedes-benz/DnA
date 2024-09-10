@@ -8,7 +8,13 @@ spec:
     matchLabels:
       name: {{ .Chart.Name }}-backend
   ingress:
-    #- from: []
+    - from:
+       - podSelector:
+          matchLabels:
+            app: dna-kong-gw-kong
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kong      
     # - from:
     #   - podSelector: 
     #       matchLabels:
@@ -19,6 +25,6 @@ spec:
   #   - ports:
   #     - port: 8080
   #       protocol: TCP
-  # policyTypes:
-  # - Ingress
+  policyTypes:
+  - Ingress
 
