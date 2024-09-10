@@ -71,7 +71,7 @@ const VaultManagement = (props) => {
   const onKeySearch = () => {
     let FilteredList = keyValue?.keyValueList;
     if (searchTerm?.length) {
-      FilteredList = FilteredList.filter((val) => val.key.includes(searchTerm));
+      FilteredList = FilteredList.filter((val) => val.key.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     setFilteredList({ keyValueList: FilteredList });
   }
