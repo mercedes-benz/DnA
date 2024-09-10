@@ -266,28 +266,18 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	public GenericMessage updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql){
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
-		List<MessageDescription> errors = new ArrayList<>();
-		List<MessageDescription> warnings = new ArrayList<>();  
-		//EntityTransaction transaction = em.getTransaction();
-		String updateQuery ="UPDATE public.workspace_nsql SET data = jsonb_set(jsonb_set(data, '{projectDetails,recipeDetails,recipeName}', '"
-		+codeServerWorkspaceNsql.getData().getProjectDetails().getRecipeDetails().getRecipeName() +"'), '{projectDetails,recipeDetails,isDeployEnabled}',"
-		+codeServerWorkspaceNsql.getData().getProjectDetails().getRecipeDetails().isDeployEnabled()+") WHERE jsonb_extract_path_text(data, 'workspaceId') = '"
+		String updateQuery ="UPDATE public.workspace_nsql SET data = jsonb_set(data, '{projectDetails,recipeDetails,recipeName}', '\""
+		+codeServerWorkspaceNsql.getData().getProjectDetails().getRecipeDetails().getRecipeName() +"\"') WHERE jsonb_extract_path_text(data, 'workspaceId') = '"
 		+ codeServerWorkspaceNsql.getData().getWorkspaceId()+"'";
 		try {
-		   // transaction.begin(); 
 			Query q = em.createNativeQuery(updateQuery);
 			q.executeUpdate();
-			//transaction.commit();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
 			updateResponse.setWarnings(new ArrayList<>());
 			log.info("migration recipe updated successfully ", codeServerWorkspaceNsql.getData().getWorkspaceId());
-		} catch (PersistenceException e) {
-			//transaction.rollback();
-			log.error("Exception "+e);
-			
-		}finally{
-			//.close();
+		} catch (Exception e) {
+			log.error("Exception occured while migrating recipe Name for workspace {} with exception {}",codeServerWorkspaceNsql.getData().getWorkspaceId(),e);
 		}
 		return updateResponse;
 	}
