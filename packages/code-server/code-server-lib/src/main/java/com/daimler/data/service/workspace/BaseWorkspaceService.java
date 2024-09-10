@@ -661,9 +661,12 @@ import com.daimler.data.util.ConstantsUtility;
 						recipeName = recipeName+"-template";
 					 }
 						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(gitUrl);
+						List<String> repoDetails = null;
+						repoDetails = CommonUtils.getRepoNameFromGitUrl(gitUrl);
+						if(null!=gitUrl && !gitUrl.isBlank()) {
+							recipeName = repoDetails.get(1);
+						}
 						String repoOwner = repoDetails.get(0);
-						recipeName = repoDetails.get(1);
 						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
@@ -959,7 +962,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 return responseVO;
 		 } catch (Exception e) {
 			 MessageDescription errMsg = new MessageDescription(
-					 "Failed with exception {}. Please delete repository manually if created and retry create workspaces");
+					 "Failed with exception. Please delete repository manually if created and retry create workspaces "+e.getMessage());
 			 errors.add(errMsg);
 			 responseVO.setErrors(errors);
 			 return responseVO;

@@ -180,7 +180,6 @@ public class CodeServerClient {
 					userId, manageDto.getInputs().getAction(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception: " + e.getMessage());
-			e.printStackTrace();
 			errors.add(error);
 		}
 
