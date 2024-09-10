@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -41,6 +42,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -256,6 +258,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed to query workspaces under project {} , which are not in deleted state", projectName);
 		}
 		return id;
+	}
+
+
+	@Override
+	@Transactional
+	public GenericMessage updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql){
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		String updateQuery ="UPDATE public.workspace_nsql SET data = jsonb_set(data, '{projectDetails,recipeDetails,recipeName}', '\""
+		+codeServerWorkspaceNsql.getData().getProjectDetails().getRecipeDetails().getRecipeName() +"\"') WHERE jsonb_extract_path_text(data, 'workspaceId') = '"
+		+ codeServerWorkspaceNsql.getData().getWorkspaceId()+"'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("migration recipe updated successfully ", codeServerWorkspaceNsql.getData().getWorkspaceId());
+		} catch (Exception e) {
+			log.error("Exception occured while migrating recipe Name for workspace {} with exception {}",codeServerWorkspaceNsql.getData().getWorkspaceId(),e);
+		}
+		return updateResponse;
 	}
 
 	@Override
