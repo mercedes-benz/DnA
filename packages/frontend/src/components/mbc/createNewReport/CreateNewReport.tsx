@@ -305,9 +305,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         ProgressIndicator.hide();
       }
     });
-    ApiClient.getAllSolutions().then((response : any) => {
+    ReportsApiClient.getAllSolutions().then((response : any) => {
       if (response) {
-        const allSolutions: ITag[] = response.records.map((rec : any) => { return {id: rec.id, name: rec.productName}});
+        const allSolutions: ITag[] = response?.data?.solutions?.records?.map((rec : any) => { return {id: rec.id, name: rec.productName}}) || [];
         this.setState(
           (prevState) => ({
             allSolutions,
