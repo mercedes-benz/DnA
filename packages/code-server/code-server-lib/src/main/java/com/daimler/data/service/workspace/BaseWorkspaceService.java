@@ -918,9 +918,15 @@ import com.daimler.data.util.ConstantsUtility;
 						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
-							warnings.add(new MessageDescription("Cannot add User "+collaborator.getId()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
-							continue;
+							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+"as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
+							responseVO.setErrors(errors);
+							responseVO.setWarnings(new ArrayList<>());
+							responseVO.setSuccess("FAILED");
+							responseVO.setData(null);
+							return responseVO;
 						}
+						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
+					}else{
 						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
 					}
 					 CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
