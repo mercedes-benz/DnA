@@ -764,7 +764,7 @@ const NewCodeSpace = (props) => {
               'alert',
             );
           } else {
-            Notification.show('Error in creating new code space. Please try again later.\n' + err.message, 'alert');
+            Notification.show('Error in creating new code space. Please try again later.\n' + err.response.data.errors[0].message, 'alert');
           }
         });
     }
