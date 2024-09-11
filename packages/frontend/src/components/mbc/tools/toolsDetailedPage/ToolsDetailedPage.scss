@@ -75,6 +75,10 @@
   h4 {
     color: #c8c9cb;
   }
+
+  .note {
+    color: #00adef;
+  }
 }
 
 .navButton {
@@ -188,6 +192,14 @@
           margin-bottom: 8px;
           color: #00adef;
         }
+      }
+
+      .moreBtn button {
+        background-color: initial;
+        border: 0;
+        color: #00adef;
+        padding: 0;
+        outline: 0;
       }
 
       .infoContent {

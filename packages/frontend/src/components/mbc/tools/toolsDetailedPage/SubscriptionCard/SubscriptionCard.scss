@@ -1,9 +1,10 @@
 .cardWrapper {
-    padding: 40px 20px;
+    padding: 20px 40px 60px;
     background-image: linear-gradient(14deg, #13171c, #252a33);
     flex: 1 1 0px;
-     width: 100%;
+    width: 100%;
     margin: 0 15px 15px 0;
+    position: relative;
     .cardIconSection {
         text-align: center;
         margin-top: 35px;
@@ -86,11 +87,19 @@
         display: block;
         margin-bottom: 8px;
         color: #C0C8D0;
+        text-align: center;
       }
+    pre {
+        text-align: center;
+    }
 }
 .actionWrapper{
     display: flex;
     justify-content: center;
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
 
     button {
         min-width: 150px;
