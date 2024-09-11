@@ -1232,10 +1232,12 @@ import org.springframework.beans.factory.annotation.Value;
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
 			for(CodeServerWorkspaceVO vo :workspaces ){
-				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
-					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
-				}else{
-					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null) {
+					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+					}else{
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+					}
 				}
 				workspacesWithDeployEnabled.add(vo);
 			}
@@ -1312,10 +1314,12 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			 }
 			 log.info("Returning workspace details");
-			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
-				vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
-			 }else{
-				vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null) {
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+				}else{
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+				}
 			 }
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
