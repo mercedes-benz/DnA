@@ -203,8 +203,11 @@ const RequestWorkspace = ({ onRefresh }) => {
                 <i className="icon mbc-icon info"></i> <span>No roles found for this workspace. Please try another.</span>
               </div>
             }
-            {selectedWorkspace?.status?.roles?.map(role => 
-              <RoleCard key={role.id} role={role} onAdd={handleAddRole} />
+            {selectedWorkspace?.status?.roles?.map(role => {
+              const matchingRole = roleList.find(r => r.roleID === role.id);
+              const updatedRole = matchingRole ? { ...role, validFrom: matchingRole.validFrom, validTo: matchingRole.validTo, isSelected: true } : role;
+              return <RoleCard key={role.id} role={updatedRole} onAdd={handleAddRole} />
+            }
             )}
           </div>
           <div className={Styles.formFooter}>
@@ -253,7 +256,7 @@ const RequestWorkspace = ({ onRefresh }) => {
           <button
               className="btn btn-primary"
               type="button"
-              onClick={() => { setRoleList([]); setCurrentStep('role-selection') }}
+              onClick={() => { setCurrentStep('role-selection') }}
             >
               Prev
             </button>
