@@ -270,8 +270,7 @@ public class BaseRecipeService implements RecipeService{
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
-			log.info("failed while fetching additional properties",e.getMessage());
+			log.error("failed while fetching additional properties",e);
 		}
 		return additionalServiceLovVo ;
 	}
