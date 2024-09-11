@@ -125,9 +125,13 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 					DataSourceVO dataSourceVO = new DataSourceVO();
 					BeanUtils.copyProperties(dataSourceCreateVO, dataSourceVO);
 					if(dataSourceCreateVO.getLastModifiedDate()==null ||dataSourceCreateVO.getModifiedBy()==null ){
-						SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-						Date now = isoFormat.parse(isoFormat.format(new Date()));
-						dataSourceVO.setLastModifiedDate(now);
+						try{ 
+							SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+							Date now = isoFormat.parse(isoFormat.format(new Date()));
+							dataSourceVO.setLastModifiedDate(now);
+						}catch(Exception e){
+							logger.error("Error occured while parsing date to iso format");
+						}
 						dataSourceVO.setModifiedBy(pid);
 
 					}
