@@ -14,6 +14,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import PowerPlatformWorkspaceForm from '../../components/powerPlatformWorkspaceForm/PowerPlatformWorkspaceForm';
 import PowerPlatformWorkspaceCard from '../../components/powerPlatformWorkspaceCard/PowerPlatformWorkspaceCard';
 import PowerPlatformWorkspaceTable from '../../components/powerPlatformWorkspacetTable/PowerPlatformWorkspaceTable';
+import SharedDevelopmentTou from '../../components/sharedDevelopmentTou/SharedDevelopmentTou';
 import { powerPlatformApi } from '../../apis/power-platform.api';
 import { useDispatch } from 'react-redux';
 import { getLovs } from '../../redux/lovsSlice';
@@ -33,10 +34,11 @@ const PowerPlatformWorkspaces = ({user}) => {
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
   const [projects, setProjects] = useState([]);
-  const [createProject, setCreateProject] = useState(account ? true : false);
+  const [createProject, setCreateProject] = useState(account === 'shared' ? true : false);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [editProject, setEditProject]  = useState(false);
+  const [showTou, setShowTou] = useState(account === 'tou' ? true : false);
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -317,6 +319,20 @@ const PowerPlatformWorkspaces = ({user}) => {
           content={<PowerPlatformWorkspaceForm edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
           scrollableContent={true}
           onCancel={() => setEditProject(false)}
+        />
+      }
+      { showTou &&
+        <Modal
+          title={'Terms of Use'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          buttonAlignment="right"
+          show={showTou}
+          content={<SharedDevelopmentTou hideAccept={true} />}
+          scrollableContent={true}
+          onCancel={() => setShowTou(false)}
         />
       }
     </>

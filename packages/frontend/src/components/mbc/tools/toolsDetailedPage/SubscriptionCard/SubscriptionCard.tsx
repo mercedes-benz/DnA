@@ -52,9 +52,8 @@ const SubscriptionCard = (ISubscriptionData: any) => {
                 <IconNameRenderer name={item.icon} />
               </div>
               <div className={classNames(Styles.infoSection)}>
-                <span>- {item.info.feature}</span>
-                <span>- Classification: {item.info.classification}</span>
-                <span>- Costs: {item.info.cost}</span>
+                <span>{item.info.text}</span>
+                <pre>{item.info.cost}</pre>
               </div>
               <div className={Styles.actionWrapper}>
               <button className={classNames("btn btn-primary", Styles.Btn)} onClick={() => onOderClick(item.link)} type="button">
