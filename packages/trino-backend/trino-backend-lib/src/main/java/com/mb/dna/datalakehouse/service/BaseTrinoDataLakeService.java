@@ -609,6 +609,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 					log.error("Failed while dropping table {} under catalog {} schema {} . Caused due to Exception {}", vo.getTableName(),catalog, schema, e.getMessage());
 				}
 			}else {
+				List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
+				columns = trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), vo.getTableName());
+				vo.setColumns(columns);
 				updatedTablesVO.add(vo);
 			}
 		}

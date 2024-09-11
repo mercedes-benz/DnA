@@ -248,6 +248,37 @@ paths:
   #  Supported http methods GET
   #
   # path example ../solutions
+  /solutions/broadcast/usecaseowners:
+    post:
+      tags:
+        - "solutions"
+      summary: "notify use case owners of selected solutions"
+      description: "notifies use case owners of selected solutions"
+      operationId: "notifyUsecaseOwners"
+      parameters:
+        - name: "EmailData"
+          in: "body"
+          description: "Request Body that contains data required for mailing use case owners."
+          required: true
+          schema:
+            $ref: "#/definitions/EmailDataVO"
+      responses:
+        201:
+          description: Email sent successfully.
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: Bad request. Invalid parameters provided.
+        401:
+          description: Unauthorized. User does not have permission to send emails.
+        500:
+          description: Internal server error. Something went wrong on the server side.
+
+  # Fetch solutions by intent
+  #
+  #  Supported http methods GET
+  #
+  # path example ../solutions
   /solutions/{id}:
     get:
       tags:
@@ -1501,4 +1532,30 @@ definitions:
         type: number
         minimum: 0
         description: "Number of FTE requested for the needed Role."
-    
+
+  EmailDataVO:
+    description: "Solution filters and message to be mailed."
+    type: object
+    properties:
+      location:
+        type: array
+        items:
+          type: string
+      division:
+        type: string
+      phase:
+        type: array
+        items:
+          type: string
+      status:
+        type: array
+        items:
+          type: string
+      useCaseType:
+        type: string
+      tags:
+        type: array
+        items:
+          type: string
+      emailText:
+        type: string

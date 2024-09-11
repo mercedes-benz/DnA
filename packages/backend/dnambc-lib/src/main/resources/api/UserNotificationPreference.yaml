@@ -166,7 +166,9 @@ definitions:
     dataLakeNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
     dataEntryNotificationPref:
-      $ref: "#/definitions/NotificationPreferenceVO"                 
+      $ref: "#/definitions/NotificationPreferenceVO" 
+    useCaseOwnerNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"                
   required:
      - userId
      - termsOfUse
@@ -178,6 +180,7 @@ definitions:
      - dataProductNotificationPref
      - chronosNotificationPref
      - codespaceNotificationPref
+     - useCaseOwnerNotificationPref
      
  NotificationPreferenceVO:
   type: object

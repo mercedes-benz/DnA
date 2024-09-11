@@ -2,6 +2,7 @@ micronaut:
   application:
     name: dataiku
     version: 1.0.7
+  environments: production
   security:
     enabled: false
   router:

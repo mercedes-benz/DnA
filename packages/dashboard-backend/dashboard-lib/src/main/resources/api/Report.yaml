@@ -127,9 +127,6 @@ paths:
           description: List of deparments. Example dep1,dep2,dep3
           required: false
           type: string 
-        - name: processOwner
-          in: query
-          description: List of processOwner. Example shortID1,shortId2
           required: false
           type: string
         - name: art
@@ -284,35 +281,35 @@ paths:
           
 
   # path to get all processOwner
-  #
+  
   #  supported http methods GET
-  #
+  
   # path example ../reports/processowners
 
-  /reports/processowners:
-    get:
-      tags:
-        - "reports"
-      summary: "Get all available processOwners."
-      description: "Get all processOwners. This endpoints will be used to get all valid available processOwners records."
-      operationId: "getAllProcessOwner"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/ProcessOwnerCollection"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /reports/processowners:
+  #   get:
+  #     tags:
+  #       - "reports"
+  #     summary: "Get all available processOwners."
+  #     description: "Get all processOwners. This endpoints will be used to get all valid available processOwners records."
+  #     operationId: "getAllProcessOwner"
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure"
+  #         schema:
+  #           $ref: "#/definitions/ProcessOwnerCollection"
+  #       204:
+  #         description: "Fetch complete, no content found."
+  #       400:
+  #         description: "Bad request."
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
 
   /reports/transparency:
     get:
@@ -355,9 +352,6 @@ definitions:
         description: "Description about the report"
         type: string
         minLength: 1
-      reportType: 
-        description: "Type of report"
-        type: string
       piiData: 
         type: string
         description: "Personally identifiable information."
@@ -371,8 +365,6 @@ definitions:
         type: string
         description: "Department of the report"
         minLength: 1                         
-      integratedPortal:
-        type: string
       frontendTechnologies:
         type: array
         items:
@@ -385,11 +377,27 @@ definitions:
         type: string
       procedureId: 
         type: string
+      relatedSolutions:
+        type: array
+        items:
+          $ref: "#/definitions/ProjectReferenceDetailsVO"
+      dataClassification:
+        type: string
+      archerId:
+        type: string
     required:
       - productDescription
       - status
       - frontendTechnologies
       - department
+  
+  ProjectReferenceDetailsVO:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
   
   CustomerVO:
     type: object
@@ -428,8 +436,6 @@ definitions:
         type: string              
       comment:
         type: string
-      processOwner:
-        $ref: "#/definitions/TeamMemberVO"        
     required:
       - customerRelation
       - level
@@ -497,14 +503,10 @@ definitions:
 #        type: array
 #        items:
 #          type: string
-      dataClassification: 
-        type: string
-        minLength: 1
       connectionType:
         type: string
     required:
       - dataWarehouse
-      - dataClassification
           
   SingleDataSourceVO:
     type: object
@@ -513,14 +515,10 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/DataSourceVO"          
-      dataClassification: 
-        type: string
-        minLength: 1
       connectionType:
         type: string
     required:
       - dataSources
-      - dataClassification
       
   DataSourceVO:
     type: object
@@ -716,14 +714,14 @@ definitions:
         type: string
         description: name of subdivision
       
-  ProcessOwnerCollection:
-    description: "Collection of processOwners."
-    type: object
-    properties:
-      records:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"                               
+  # ProcessOwnerCollection:
+  #   description: "Collection of processOwners."
+  #   type: object
+  #   properties:
+  #     records:
+  #       type: array
+  #       items:
+  #         $ref: "#/definitions/TeamMemberVO"                               
           
   CreatedByVO:
     type: object

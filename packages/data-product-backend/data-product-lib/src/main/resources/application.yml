@@ -2,7 +2,9 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: data-product-service
-    version: 1.1.8
+    version: 1.2.0
+  profile:
+    active: production
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
