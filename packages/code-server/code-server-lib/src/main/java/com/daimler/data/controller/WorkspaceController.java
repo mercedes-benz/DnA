@@ -1235,7 +1235,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
 			for(CodeServerWorkspaceVO vo :workspaces ){
-				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null) {
+				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
 					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
 						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
 					}else{
@@ -1317,7 +1317,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			 }
 			 log.info("Returning workspace details");
-			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null) {
+			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
 				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
 					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
 				}else{
