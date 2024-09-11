@@ -210,7 +210,9 @@ probes:
 
 appFrontend:
   replicaCount: 1
-  image: dna/app-frontend
+  image:
+    repository: harbor.dna.com/dna/dna-frontend
+    tag: "latest"
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
     avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80

@@ -402,6 +402,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
 						" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
 						" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
+						" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
 						" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
 					if(i+1 < deploymentAuditLogs.size()) {
 						updateQuery += ",";

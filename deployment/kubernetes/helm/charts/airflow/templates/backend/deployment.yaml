@@ -29,7 +29,7 @@ spec:
       {{- end }}        
       initContainers:
         - name: git-clone-init
-          image: {{ .Values.backend.image }}
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: Always
           env:
             - name: AIRFLOW_GIT_URI
@@ -51,8 +51,8 @@ spec:
             matchLabels:
               name: {{ .Chart.Name }}-backend       
       containers:
-        - name: {{ .Chart.Name }}-backend-rest
-          image: {{ .Values.backend.image }}
+        - name: {{ .Chart.Name }}-backend-rest          
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: Always
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
