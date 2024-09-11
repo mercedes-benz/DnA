@@ -102,7 +102,7 @@ export const ToolsDetailedPageElements = [
         ]
       }
     ],
-    "classification": "Secret Data",
+    "classification": "Confidential",
     "accessSteps": [
       {
         "id": "Step 1",
@@ -391,19 +391,20 @@ export const ToolsDetailedPageElements = [
       {
         "icon": "tem",
         "name": "classification",
-        "type" : "Secret Data"
+        "type" : "Confidential"
       },
       {
         "icon": "tem",
         "name": "Costs",
         "isInfoIcon": "true",
         "description" : "Get familiar with the costs",
-        "info":["Trial Account: 0.2 FTE / MONTH", "Citizen Developer Account: 0.4 FTE / MONTH", "Full Developer Account: 0.6 FTE / MONTH"]
+        "info":["Default Environment: Free", "Citizen Developer Account: starting at 125€ per month", "Shared Development Account: starting 200€ per month", "Full Development Account: starting 526€ per month"]
       },
       {
         "icon": "doc",
         "name": "Terms Of Service",
         "isInfoIcon": "true",
+        "moreBtn": true,
         "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by [Your Company Name]. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
       }
     ]

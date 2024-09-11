@@ -128,9 +128,9 @@ const PowerPlatformWorkspaceForm = () => {
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group')}>
+              <div className={classNames('input-field-group include-error', errors?.environmentOwnerUserId ? 'error' : '')}>
                 <label className={'input-label'}>
-                  Environment Owner User ID
+                  Environment Owner User ID <sup>*</sup>
                 </label>
                 <input
                   type="text"
@@ -139,8 +139,9 @@ const PowerPlatformWorkspaceForm = () => {
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('environmentOwnerUserId')}
+                  {...register('environmentOwnerUserId', {required: '*Missing entry'})}
                 />
+                <span className={'error-message'}>{errors?.environmentOwnerUserId?.message}</span>
               </div>
             </div>
             <div className={Styles.col2}>

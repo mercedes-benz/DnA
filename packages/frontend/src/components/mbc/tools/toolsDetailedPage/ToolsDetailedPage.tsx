@@ -68,6 +68,11 @@ const InfoTile = (props: any) => {
                 })}
               </div>)
             }
+            {item.moreBtn && (
+              <div className={Styles.moreBtn}>
+                <button onClick={() => history.push('/powerplatform/tou')}>More</button>
+              </div>
+            )}
           </div>
         </div>) : 
         <>
@@ -171,7 +176,10 @@ const ToolsDetailedPage = (IData: any) => {
           </div>
           <div className={Styles.contentSection}>
             {pageDetails?.hasSubcription && (
-              <SubscriptionCard />
+              <>
+                <SubscriptionCard />
+                <p className={Styles.note}><sup>*</sup>Please be advised that the licensing cost may incur additional expenses.</p>
+              </>
             )}
           </div>
           {pageDetails.useCases && (

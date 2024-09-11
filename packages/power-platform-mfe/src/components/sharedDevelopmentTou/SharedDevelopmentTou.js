@@ -3,7 +3,7 @@ import React from 'react';
 import { Envs } from '../../utilities/envs';
 import Styles from './shared-development-tou.scss';
 
-const SharedDevelopmentTou = ({ onAccept }) => {
+const SharedDevelopmentTou = ({ onAccept, hideAccept }) => {
   return (
     <div className={classNames(Styles.form)}>
       <div className={Styles.formHeader}>
@@ -17,15 +17,17 @@ const SharedDevelopmentTou = ({ onAccept }) => {
           </div>
         </div>
       </div>
-      <div className={Styles.formFooter}>
-        <button
-          className="btn btn-tertiary"
-          type="button"
-          onClick={onAccept}
-        >
-          Accept Terms of Use
-        </button>
-      </div>
+      { !hideAccept && 
+        <div className={Styles.formFooter}>
+          <button
+            className="btn btn-tertiary"
+            type="button"
+            onClick={onAccept}
+          >
+            Accept Terms of Use
+          </button>
+        </div>
+      }
     </div>
   )
 };
