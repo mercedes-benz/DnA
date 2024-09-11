@@ -27,6 +27,7 @@
 
 package com.daimler.data.service.datasource;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,6 +84,9 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 
 	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
 	private String accessToken;
+
+	@Value("${dna.piduser}")
+	private String pid;
 	
 	public BaseDataSourceService() {
 		super();
@@ -119,6 +123,13 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 					logger.info("Creating new datasource:{}", dataSourceCreateVO.getName());
 					DataSourceVO dataSourceVO = new DataSourceVO();
 					BeanUtils.copyProperties(dataSourceCreateVO, dataSourceVO);
+					if(dataSourceCreateVO.getLastModifiedDate()==null ||dataSourceCreateVO.getModifiedBy()==null ){
+						SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+						Date now = isoFormat.parse(isoFormat.format(new Date()));
+						dataSourceVO.setLastModifiedDate(now);
+						dataSourceVO.setModifiedBy(pid);
+
+					}
 					super.create(dataSourceVO);
 				}
 			}
