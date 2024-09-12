@@ -255,13 +255,13 @@ public class CodeServerClient {
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
-			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
+				if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Completed creating Jupiter repo {} initiated by user with status {}", codespaceName,
 						manageWorkbenchResponse.getStatusCode());
 				return true;
 			}
 		} catch (Exception e) {
-			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
+			log.error("Error occurred while intializing server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
 	}

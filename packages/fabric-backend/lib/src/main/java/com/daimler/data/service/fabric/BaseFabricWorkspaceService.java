@@ -35,17 +35,21 @@ import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,6 +125,51 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	public BaseFabricWorkspaceService() {
 		super();
+	}
+	
+	@Override
+	@Transactional
+	public FabricWorkspacesCollectionVO getAllLov( int limit,  int offset) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
+		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
+		if (allEntities != null && !allEntities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : allEntities) {
+				try {
+					String id = entity.getId();
+					log.info("Fetched fabric project record from db successfully for id {} ", id);
+					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+					if(dtoFromFabric!=null) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+								jpaRepo.deleteById(id);
+								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+						}else {
+							entity.getData().setName(dtoFromFabric.getDisplayName());
+							entity.getData().setDescription(dtoFromFabric.getDescription());
+							jpaRepo.save(entity);
+							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+							vos.add(updatedVO);
+						}
+					}
+				}catch(Exception e) {
+					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		if(vos!=null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int newOffset = offset>vos.size() ? 0 : offset;
+			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
+			paginatedVOs = vos.subList(newOffset, newLimit);
+		}
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		return collectionVO;
 	}
 
 	@Override
@@ -1040,6 +1089,38 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
 		jpaRepo.save(updatedEntity);
 		return existingFabricWorkspace;
+	}
+
+	@Override
+	public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		try{
+			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+			for(RolesVO role : roleList){
+				UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+				roleRequestDto.setReason(roleRequestVO.getData().getReason());
+				roleRequestDto.setValidFrom(role.getValidFrom());
+				roleRequestDto.setValidTo(role.getValidTo());
+				HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
+				if(!status.is2xxSuccessful()){
+					warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
+				}
+			}
+		}
+		catch(Exception e){
+			errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
+			response.setErrors(errors);
+			response.setSuccess("FAILED");
+			log.error("Failed to request role  Fabric workspace with exception {} ",e.getMessage());
+			return response;
+		}
+		response.setSuccess(!warnings.isEmpty() ? "WARNING" : "SUCCESS");
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 
 }
