@@ -643,6 +643,7 @@ singleuser:
       default: true
       kubespawner_override:
         image: registry-emea.app.corpintra.net/dnaplatform/cs-template:4.92.2
+        image_pull_policy: Always
         start_timeout: 900
         http_timeout: 900
     - display_name: "React"
@@ -1405,6 +1406,7 @@ singleuser:
       description: "Development environment using default template"
       kubespawner_override:
         image: registry-emea.app.corpintra.net/dnaplatform/cs-template:4.92.2
+        image_pull_policy: Always
         start_timeout: 360
         http_timeout: 360
     - display_name: "Spring Boot with Maven "
