@@ -472,7 +472,7 @@ const NewCodeSpace = (props) => {
           props.onUpdateCodeSpaceComplete();
         } else {
           Notification.show(
-            `Error transferring Code Space ownership to collaborator '${collaboratorToTransferOwnership.firstName}'. Please try again later.`,
+            `Error transferring Code Space ownership to collaborator '${collaboratorToTransferOwnership.firstName}'. Please try again later.\n ${res?.data?.errors[0]?.message}`,
             'alert',
           );
         }
