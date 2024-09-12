@@ -41,7 +41,7 @@ backend:
   flywaySchema: public
 ingress:
   enabled: false
-  host: pipeline.dev.dna.app.corpintra.net
+  host: pipeline.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik
@@ -52,7 +52,7 @@ ingress:
 airflow:
   ingress:
     enabled: false
-    host: pipeline.dev.dna.app.corpintra.net
+    host: pipeline.dna-aws.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: traefik
@@ -100,7 +100,7 @@ configuration:
     authenticate: false
     catchupByDefault: true
   webserver:
-    baseUrl: https://pipeline.dev.dna.app.corpintra.net
+    baseUrl: https://pipeline.dna-aws.app.corpintra.net
     path: /
     rbac: true
     host: 0.0.0.0

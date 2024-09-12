@@ -10,7 +10,7 @@ image:
   tag: 419-v1
 ingress:
   enabled: true
-  host: trino.dev.dna.app.corpintra.net
+  host: trino.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik
@@ -19,7 +19,7 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
 server:
-  host: trino.dev.dna.app.corpintra.net
+  host: trino.dna-aws.app.corpintra.net
   workers: 1
   node:
     environment: dev

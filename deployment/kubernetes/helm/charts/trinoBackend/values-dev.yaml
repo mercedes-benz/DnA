@@ -57,7 +57,7 @@ envs:
 containerPort: 7575
 ingress:
   enabled: false
-  host: trino.dev.dna.app.corpintra.net
+  host: trino.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik
