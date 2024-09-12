@@ -45,4 +45,4 @@ SourcePath;DestinationPath
 ./packages/dashboard-backend/overrides/V4__update_data.sql;./packages/dashboard-backend/dashboard-lib/src/main/resources/db/migration
 ./packages/dashboard-backend/overrides/V8__create_kpiClassificationData.sql;./packages/dashboard-backend/dashboard-lib/src/main/resources/db/migration
 ./packages/frontend/overrides/public/DnA-Storage-Bucket-TOU-v3.pdf;./packages/frontend/public/
-./packages/frontend/overrides/public/PowerPlatform_SelfService_TermsConditions.pdf;./packages/frontend/public/
+./packages/frontend/overrides/public/PowerPlatform-SelfService-TermsConditions.pdf;./packages/frontend/public/
