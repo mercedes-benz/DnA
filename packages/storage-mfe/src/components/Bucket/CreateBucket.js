@@ -140,10 +140,10 @@ const CreateBucket = ({ user }) => {
   useEffect(() => {
     subDivisions.length > 0 &&
       id && setSubDivision(editAPIResponse?.subDivisionId + '@-@' + editAPIResponse?.subDivision || '0');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setTimeout(() => {
       SelectBox.defaultSetup();
     }, 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subDivisions]);
 
   // useEffect(() => {
