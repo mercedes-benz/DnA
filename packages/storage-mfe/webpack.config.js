@@ -100,16 +100,6 @@ const base = {
       }
     ],
   },
-  resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.mjs'], // Add .mjs to be resolved
-    alias: {
-      'process': 'process/browser', // Ensures 'process' is correctly resolved for browser
-    },
-    fallback: {
-      process: require.resolve('process/browser'),  // Fallback for node-built-in modules
-      buffer: require.resolve('buffer/'),
-    },
-  },
   plugins: [
     new ESLintPlugin({
       extensions: ['js'],
