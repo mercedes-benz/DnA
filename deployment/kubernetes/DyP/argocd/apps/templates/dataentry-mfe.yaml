@@ -8,7 +8,9 @@ metadata:
   name: dataentry-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend  
+    name: frontend
+    env: {{ .Values.env }}
+    project: dna  
 spec:
   destination:
     namespace: dataentry

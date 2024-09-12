@@ -10,6 +10,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: matomo-be-db
+    env: {{ .Values.env }}
+    project: dna
 spec:
   destination:
     namespace: matomo

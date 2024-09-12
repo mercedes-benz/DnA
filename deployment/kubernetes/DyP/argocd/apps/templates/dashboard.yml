@@ -8,7 +8,9 @@ metadata:
   name: report
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: backend
+    env: {{ .Values.env }}
+    project: dna  
 spec:
   destination:
     namespace: dashboard

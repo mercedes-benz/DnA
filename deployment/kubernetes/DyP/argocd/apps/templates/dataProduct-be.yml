@@ -8,7 +8,9 @@ metadata:
   name: dataproduct-backend
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: backend
+    env: {{ .Values.env }}
+    project: dna  
 spec:
   destination:
     namespace: data-product

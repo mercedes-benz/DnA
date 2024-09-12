@@ -8,7 +8,9 @@ metadata:
   name: openmetadata-dependencies
   namespace: {{ .Values.namespace }}
   labels:
-    name: service  
+    name: service
+    env: {{ .Values.env }}
+    project: dna  
 spec:
   destination:
     namespace: openmetadata

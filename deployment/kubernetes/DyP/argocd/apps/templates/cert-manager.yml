@@ -9,6 +9,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: dyp
+    env: {{ .Values.env }}
+    project: dna 
 spec:
   destination:
     namespace: cert-manager

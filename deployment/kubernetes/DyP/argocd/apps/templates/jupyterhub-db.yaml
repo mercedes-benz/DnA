@@ -10,6 +10,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: db
+    env: {{ .Values.env }}
+    project: dna
 spec:
   destination:
     namespace: code-server
