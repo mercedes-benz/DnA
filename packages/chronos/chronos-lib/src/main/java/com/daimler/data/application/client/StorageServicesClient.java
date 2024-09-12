@@ -282,9 +282,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String userinfo = httpRequest.getHeader("dna-request-userdetails");
+			// String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			headers.set("Accept", "application/json");
-			headers.set("dna-request-userdetails", userinfo);
+			// headers.set("dna-request-userdetails", userinfo);
 			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
