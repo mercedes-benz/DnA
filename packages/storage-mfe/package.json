@@ -8,7 +8,7 @@
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
     "autoprefixer": "^10.4.2",
-    "axios": "^1.6.8",
+    "axios": "^1.7.7",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.3",
     "chonky": "^2.3.2",
