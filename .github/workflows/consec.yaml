@@ -1,0 +1,46 @@
+
+
+
+name: Container security scan
+
+on:
+  workflow_call:
+    inputs:
+      FULL_IMAGE_NAME:
+        required: true
+        type: string                      
+    secrets:
+      CSS_USER:
+        required: true
+      CSS_PASSWORD:
+        required: true      
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  
+jobs: 
+  css:
+    name: 'CSS Image Scan'
+    runs-on: [os-medium-amd64-linux]
+    steps:
+
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        
+    - name: Docker pull
+      run: |
+        docker pull ${{ inputs.FULL_IMAGE_NAME }}
+
+    - name: CSS Image Scan
+      id: scan
+      uses: consec/scan@v3
+      with:
+        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
+        pcc_user: ${{ secrets.CSS_USER }}
+        pcc_pass: ${{ secrets.CSS_PASSWORD }}
+        image_name: ${{ inputs.FULL_IMAGE_NAME }}
+      env:
+        no_proxy: "consec-img-scan.app.corpintra.net"
+        JOB_NAME: "${{ secrets.CSS_USER }}" 
