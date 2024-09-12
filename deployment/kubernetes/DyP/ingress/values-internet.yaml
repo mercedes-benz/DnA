@@ -532,8 +532,8 @@ globalArguments:
 - '--providers.kubernetescrd.allowCrossNamespace=true'
 - '--providers.kubernetesingress.ingressendpoint.publishedservice=ingress-internet/ingress-traefik'
 - '--api.dashboard=true'
-- '--providers.kubernetesingress.ingressclass=traefik-internet'
-- '--providers.kubernetescrd.ingressclass=traefik-internet'
+# - '--providers.kubernetesingress.ingressclass=traefik-internet'
+# - '--providers.kubernetescrd.ingressclass=traefik-internet'
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
