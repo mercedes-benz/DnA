@@ -430,7 +430,7 @@ const CodeSpaceCardItem = (props) => {
                         (DORA Metrics)
                       </span>
                     </li>
-                    {isAPIRecipe && (
+                    {isAPIRecipe && isOwner && (
                       <li>
                         <span
                           onClick={() => {
@@ -508,7 +508,7 @@ const CodeSpaceCardItem = (props) => {
                         (DORA Metrics)
                       </span>
                     </li>
-                    {isAPIRecipe && (
+                    {isAPIRecipe && isOwner && (
                       <li>
                         <span
                           onClick={() => {

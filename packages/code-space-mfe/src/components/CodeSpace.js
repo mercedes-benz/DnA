@@ -744,7 +744,7 @@ const CodeSpace = (props) => {
                             (DORA Metrics)
                           </span>
                         </li>
-                        {isAPIRecipe && (
+                        {isAPIRecipe && isOwner && (
                           <li>
                             <span
                               onClick={() => {
@@ -822,7 +822,7 @@ const CodeSpace = (props) => {
                             (DORA Metrics)
                           </span>
                         </li>
-                        {isAPIRecipe && (
+                        {isAPIRecipe && isOwner && (
                           <li>
                             <span
                               onClick={() => {
