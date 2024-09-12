@@ -45,6 +45,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset);
 
+	List<CodeServerWorkspaceNsql>  findAll();
+
 	Integer getCount(String userId);
 
 	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);
@@ -55,6 +57,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails);
+
+	GenericMessage  updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql);
 
 	GenericMessage updateProjectOwnerDetails(String projectName, UserInfo updatedProjectOwnerDetails);
 
