@@ -5,25 +5,23 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: ingress
+  name: ingress-intranet
   namespace: {{ .Values.namespace }}
   labels:
     name: dyp
-    env: {{ .Values.env }}
-    project: dna
 spec:
   destination:
-    namespace: ingress
+    namespace: ingress-intranet
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/ingress
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: ingress
+      releaseName: ingress-intranet
       skipCrds: false
       valueFiles:
-        - values.yaml    
+        - values-{{ .Values.env }}.yaml    
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
