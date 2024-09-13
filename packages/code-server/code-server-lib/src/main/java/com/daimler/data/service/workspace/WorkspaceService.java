@@ -57,7 +57,7 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 

@@ -1036,16 +1036,16 @@ import org.springframework.beans.factory.annotation.Value;
 			// 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 			// 	 }
 			//  }
-			 if(deployRequestDto.isValutInjectorEnable()!=null)
-			 {
-				deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			 }
-			 else
-			 {
-				deployRequestDto.setValutInjectorEnable(false);
-			 }
+			//  if(deployRequestDto.isValutInjectorEnable()!=null)
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
+			//  }
+			//  else
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(false);
+			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
