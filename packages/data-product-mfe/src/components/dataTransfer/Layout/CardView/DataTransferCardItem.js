@@ -154,20 +154,22 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false, is
             <div className={!product?.publish ? Styles.disabled : ''}>
               <label>Consumer</label>
               {product?.publish ? (
-                product?.consumerInformation?.contactInformation?.leanIXDetails?.appReferenceStr !== null ? (
-                  <a
-                    href={`${Envs.LEANIX_BASEURL}/${product.consumerInformation?.contactInformation?.leanIXDetails?.appReferenceStr}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {product.consumerInformation?.contactInformation?.appId}
-                  </a>
-                ) : (
-                  <span>
-                    {product.consumerInformation?.contactInformation?.appId ||
-                      "-"}
-                  </span>
-                )
+                 product?.consumerInformation !== null ?(
+                  product?.consumerInformation?.contactInformation?.leanIXDetails?.appReferenceStr !== null ? (
+                    <a
+                      href={`${Envs.LEANIX_BASEURL}/${product.consumerInformation?.contactInformation?.leanIXDetails?.appReferenceStr}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {product.consumerInformation?.contactInformation?.appId}
+                    </a>
+                  ) : (
+                    <span>
+                      {product.consumerInformation?.contactInformation?.appId ||
+                        "-"}
+                    </span>
+                  )
+                 ): <span>-</span>
               ) : (
                 <span>pending...</span>
               )}

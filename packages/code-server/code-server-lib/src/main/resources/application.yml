@@ -3,6 +3,8 @@ spring:
   application:
     name: dna-codeserver-service
     version: 1.1.27
+  profile:
+    active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -90,6 +92,7 @@ codeServer:
   git.pid: ${CODE_SERVER_PID_USER:XXXXX}
   recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
+  vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

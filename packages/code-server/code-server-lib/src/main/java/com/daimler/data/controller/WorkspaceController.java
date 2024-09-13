@@ -1036,20 +1036,23 @@ import org.springframework.beans.factory.annotation.Value;
 			// 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 			// 	 }
 			//  }
-			 if(deployRequestDto.isValutInjectorEnable()!=null)
-			 {
-				deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			 }
-			 else
-			 {
-				deployRequestDto.setValutInjectorEnable(false);
-			 }
+			//  if(deployRequestDto.isValutInjectorEnable()!=null)
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
+			//  }
+			//  else
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(false);
+			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());
@@ -2324,6 +2327,92 @@ import org.springframework.beans.factory.annotation.Value;
 
 		}
 		return null;
+	}
+
+	@Override
+	@ApiOperation(value = "Restart deployed workspace Project for a given Id.", nickname = "restartWorkspaceProject", notes = "restart deployed workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/restart",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> restartWorkspaceProject(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "environment variable to select the target environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env){
+
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			CodeServerWorkspaceVO vo = service.getById(userId, id);
+			if (vo == null || vo.getWorkspaceId() == null) {
+				log.debug("No workspace found, returning empty");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> warnings = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("No workspace found for given id and the user");
+				warnings.add(msg);
+				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+			}
+			List<String> authorizedUsers = new ArrayList<>();
+			if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
+				String owner = vo.getProjectDetails().getProjectOwner().getId();
+				authorizedUsers.add(owner);
+			}
+			if (vo.getProjectDetails().getProjectCollaborators() != null
+					&& !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+				List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
+						.collect(Collectors.toList());
+				authorizedUsers.addAll(collabUsers);
+			}
+			if (!authorizedUsers.contains(userId)) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Not authorized to restart project for workspace. User does not have privileges.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				log.info("User {} cannot restart project for workspace {}, insufficient privileges.", userId,
+						vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			}
+			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
+					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
+					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"Invalid type, cannot restart this type of recipe");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot restart project of recipe {} for workspace {}, invalid type.", userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
+			GenericMessage responseMsg = service.restartWorkspace(userId, id, env);
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+			}
+			log.info("User {} restarted  workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.error("No workspace found with id {}, failed to deploy", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to restart workspace {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to restart due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
  }
