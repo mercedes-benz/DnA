@@ -1009,7 +1009,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
+			boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1051,7 +1051,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(workspaceOwnerWsId);
 				deployJobInputDto.setProjectName(projectName.toLowerCase());
-				deployJobInputDto.setValutInjectorEnable(valutInjectorEnable);
+				//deployJobInputDto.setValutInjectorEnable(valutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1083,27 +1083,28 @@ public class BaseWorkspaceService implements WorkspaceService {
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					//calling kong to create service, route and plugins
-					boolean apiRecipe = false;
+					// boolean apiRecipe = false;
 					String serviceName = projectName;
-					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					String reactRecipeId = RecipeIdEnum.REACT.toString();
-					String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					String dashRecipeId = RecipeIdEnum.DASH.toString();
-					String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+					// String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					// String reactRecipeId = RecipeIdEnum.REACT.toString();
+					// String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					// String dashRecipeId = RecipeIdEnum.DASH.toString();
+					// String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					// String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					// String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					String workspaceId = entity.getData().getWorkspaceId();
-					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							|| projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-							|| projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-							|| projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					} else {
-						apiRecipe = true;
-						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					}
+					// if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		|| projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+					// 		|| projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+					// 		|| projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					// } else {
+					// 	apiRecipe = true;
+					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					// }
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope);
 					status = "SUCCESS";
 				} else {
 					status = "FAILED";
