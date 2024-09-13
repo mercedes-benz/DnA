@@ -12,7 +12,9 @@ airflowMiddleware:
   enabled: false 
 backend:
   replicas: 1
-  image: ""
+  image:
+    repository: ""
+    tag: ""    
   imagePullPolicy: Always
   dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
   secret:

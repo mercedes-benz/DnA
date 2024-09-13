@@ -167,7 +167,9 @@ const ToolsDetailedPage = (IData: any) => {
             <h4>Tool Pipeline</h4>
             <div className={Styles.portHeader}>
               <div className={Styles.toolPipeLine}>
+                <div className={Styles.pipeLineWrapper}>
                 <img className={Styles.pipeLineImage} src={pipeLineImage}></img>
+                </div>
                 <div className={Styles.pipeLineDescription}>
                   {pageDetails.toolPipeLine?.description && (
                     pageDetails.toolPipeLine.description.map((value: any, key: any) =>
