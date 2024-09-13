@@ -75,6 +75,8 @@ const CodeSpaceCardItem = (props) => {
   const [showProdActions, setShowProdActions] = useState(false);
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
+  const [showRestartModal, setShowRestartModal] = useState(false);
+  const [env, setEnv] = useState("");
 
   useEffect(() => {
 
@@ -332,6 +334,32 @@ const CodeSpaceCardItem = (props) => {
     </svg>
   );
 
+  const RestartContent = (
+    <div>
+      <h3>Are you sure you want to restart your deployed application?</h3>
+      <p>Note: Please refresh and check the application restart status under action audit logs.</p>
+    </div>
+  );
+
+  const onRestart = (env) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
+    .then((res) => {
+      if (res.data.success === 'SUCCESS') {
+        ProgressIndicator.hide();
+        Notification.show("Restart requested successfully")
+      } else {
+          ProgressIndicator.hide();
+          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
+      });
+    setShowRestartModal(false);
+  }
+
   return (
     <>
       <div
@@ -481,7 +509,16 @@ const CodeSpaceCardItem = (props) => {
                                 setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                               }}
                             >
-                              Deployment Audit Logs
+                              Deploy & Action Audit Logs
+                            </span>
+                          </li>
+                        )}
+                        {intDeployed && (
+                          <li>
+                            <span
+                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                            >
+                              Restart Deployed Application
                             </span>
                           </li>
                         )}
@@ -571,7 +608,16 @@ const CodeSpaceCardItem = (props) => {
                             setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                           }}
                         >
-                          Deployment Audit Logs
+                          Deploy & Action Audit Logs
+                        </span>
+                      </li>
+                    )}
+                    {prodDeployed && (
+                      <li>
+                        <span
+                          onClick={() => {setEnv("prod"); setShowRestartModal(true);}}
+                        >
+                          Restart Deployed Application
                         </span>
                       </li>
                     )}
@@ -1051,6 +1097,7 @@ const CodeSpaceCardItem = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
       <ConfirmModal
@@ -1085,6 +1132,24 @@ const CodeSpaceCardItem = (props) => {
           }}
         />
       )}
+      { showRestartModal && (
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showRestartModal}
+        content={RestartContent}
+        onCancel={() => {
+          setEnv('');
+          setShowRestartModal(false);
+        }}
+        onAccept={() => {
+          onRestart(env);
+          setShowRestartModal(false);
+        }}
+      />)}
     </>
   );
 };

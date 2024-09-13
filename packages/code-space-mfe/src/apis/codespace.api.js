@@ -261,6 +261,10 @@ const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => { /
     };
 }
 
+const restartDeployments = (id, env) => {
+    return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -302,4 +306,5 @@ export const CodeSpaceApiClient = {
     startStopWorkSpace,
     workSpaceStatus,
     serverStatusFromHub,
+    restartDeployments,
 };

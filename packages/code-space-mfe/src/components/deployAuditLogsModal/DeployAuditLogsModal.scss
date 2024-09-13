@@ -2,10 +2,19 @@
     margin-bottom: 15px;
     flex: 1 auto;
     position: relative;
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      > div {
+        width: calc(50% - 7px);
+      }
+      padding-top: 20px;
+    }
   
     .allcodeSpaceListviewContent {
       background-color: #252a33;
-      padding-top: 20px;
+      padding-top: 15px;
       // overflow-x:auto
   
       .codeSpaceMargininone {

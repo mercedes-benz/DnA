@@ -53,6 +53,7 @@ import org.springframework.util.ObjectUtils;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.application.client.VaultClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.auth.client.DnaAuthClient;
@@ -70,6 +71,7 @@ import com.daimler.data.db.repo.workspace.WorkspaceRepository;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
+import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.solution.ChangeLogVO;
@@ -139,6 +141,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
+
+	@Autowired
+	private VaultClient VaultClient;
 
 	public BaseWorkspaceService() {
 		super();
@@ -1009,7 +1014,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, boolean valutInjectorEnable, String clientID, String clientSecret) {
+			boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1047,11 +1052,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 					responseMessage.setErrors(errors);
 					return responseMessage;
 				}
+				Boolean isValutInjectorEnable = false;
+				try{
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+				}catch(Exception e){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(workspaceOwnerWsId);
 				deployJobInputDto.setProjectName(projectName.toLowerCase());
-				deployJobInputDto.setValutInjectorEnable(valutInjectorEnable);
+				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1074,6 +1091,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
+					GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
+					if(commitId == null){
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage("Error while adding commit id to deployment audit log");
+					}
+					auditLog.setCommitId(commitId.getSha());
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
 					auditLog.setBranch(branch);					
@@ -1318,6 +1341,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat"))) {
 					HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
+						log.info("Failed while adding {} as collaborator with status {}", repoName,
+								userRequestDto.getGitUserName(), addGitUser.name());
+						MessageDescription errMsg = new MessageDescription(
+								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator, Because"
+										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+						warnings.add(errMsg);
+					}
 					if (!addGitUser.is2xxSuccessful()) {
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
@@ -1702,9 +1733,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 					// 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					// 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					// }
-				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
-					deploymentDetails.setDeploymentUrl(null);
-					deploymentDetails.setLastDeploymentStatus(latestStatus);
+				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
+					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
+						deploymentDetails.setDeploymentUrl(null);
+						deploymentDetails.setLastDeploymentStatus(latestStatus);
+					}
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs != null && !auditLogs.isEmpty()) {
 						int lastIndex = auditLogs.size() - 1;
@@ -2400,6 +2433,111 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setSuccess("FAILED");
 			responseMessage.setErrors(errorMessage);
 		}
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage restartWorkspace(String userId, String id, String env){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+			if (entity != null) {
+				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
+				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
+				deployJobInputDto.setAction("restart");
+				deployJobInputDto.setBranch("main");
+				deployJobInputDto
+						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				deployJobInputDto.setShortid(projectOwner);
+				deployJobInputDto.setTarget_env(env);
+				deployJobInputDto.setType("RESTART");
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
+						projectName);
+				if (ownerEntity == null || ownerEntity.getData() == null
+						|| ownerEntity.getData().getWorkspaceId() == null) {
+					MessageDescription error = new MessageDescription();
+					error.setMessage(
+							"Failed while restarting  codeserver workspace project, couldnt fetch project owner details");
+					errors.add(error);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				if(("int".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
+				.getIntDeploymentDetails().getLastDeploymentStatus())) || "prod".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
+				.getProdDeploymentDetails().getLastDeploymentStatus())){
+					MessageDescription error = new MessageDescription();
+					error.setMessage(
+							"Failed while restarting  codeserver workspace project, couldnt restart project Which is not in deployed state");
+					errors.add(error);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				Boolean isValutInjectorEnable = false;
+				try{
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), env);
+				}catch(Exception e){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Some error occured during restart, with exception " + e.getMessage());
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				}
+				deployJobInputDto.setWsid(projectOwnerWsId);
+				deployJobInputDto.setProjectName(projectName.toLowerCase());
+				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
+				deploymentJobDto.setInputs(deployJobInputDto);
+				deploymentJobDto.setRef(codeServerEnvRef);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+					String environmentJsonbName = "intDeploymentDetails";
+					CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
+							.getIntDeploymentDetails();
+					if (!"int".equalsIgnoreCase(env)) {
+						environmentJsonbName = "prodDeploymentDetails";
+						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					}
+					
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if (auditLogs == null) {
+						auditLogs = new ArrayList<>();
+					}
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					DeploymentAudit auditLog = new DeploymentAudit();
+					auditLog.setTriggeredOn(now);
+					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
+					auditLog.setDeploymentStatus("RESTART_REQUESTED");
+					auditLogs.add(auditLog);
+					deploymentDetails.setDeploymentAuditLogs(auditLogs);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
+							deploymentDetails);
+					status = "SUCCESS";
+					
+				} else {
+					status = "FAILED";
+					errors.addAll(jobResponse.getErrors());
+				}
+			}
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failed while restarting codeserver workspace project with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
 
