@@ -156,12 +156,10 @@ const CodeSpace = (props) => {
   const [serverStarted, setServerStarted] = useState(true);
   const [serverProgress, setServerProgress] = useState(0);
 
-
   const [showStagingActions, setShowStagingActions] = useState(true);
   const [showProdActions, setShowProdActions] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
-
 
   const livelinessIntervalRef = React.useRef();
   const stagingWrapperRef = useRef(null);
@@ -507,7 +505,6 @@ const CodeSpace = (props) => {
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
-
   // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =

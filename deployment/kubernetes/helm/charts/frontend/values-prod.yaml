@@ -103,9 +103,9 @@ probes:
     port: 3000
 appFrontend:
   replicaCount: 2
-  image: 
+  image:
     repository: registry-emea.app.corpintra.net/dnaplatform/dna-frontend
-    tag: 3.8.3
+    tag: 3.9.0
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
     grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
