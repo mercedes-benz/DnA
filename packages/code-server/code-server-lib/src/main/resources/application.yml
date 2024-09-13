@@ -2,7 +2,9 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.2.0
+    version: 1.1.27
+  profile:
+    active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -91,6 +93,7 @@ codeServer:
   recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
   run.init: ${RUN_INIT_POST_CONSTRUCT:YOUR_INIT_POST_CONSTRUCT_BOOLEAN}
+  vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

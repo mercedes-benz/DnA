@@ -38,6 +38,7 @@ import com.daimler.data.dto.SolDigitalValueDTO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
+import com.daimler.data.dto.SolutionNotifyTeamMemberVO;
 
 public interface SolutionCustomRepository extends CommonDataRepository<SolutionNsql, String> {
 
@@ -327,5 +328,10 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	List<Integer> getMinMaxYearDetails();
+
+	List<SolutionNotifyTeamMemberVO> getTeamMembersWithFiltersUsingNativeQuery(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin, Boolean hasNotebook);
 
 }

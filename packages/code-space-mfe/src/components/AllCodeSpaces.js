@@ -49,7 +49,7 @@ const AllCodeSpaces = (props) => {
         CodeSpaceApiClient.getCodeSpacesList()
             .then((res) => {
                 setLoading(false);
-                setCodeSpaces(Array.isArray(res.data) ? res.data : (res.data.records));
+                setCodeSpaces(Array.isArray(res.data) ? res.data : (res.data.records) || []);
                 // setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
             })
             .catch((err) => {
@@ -202,10 +202,10 @@ const AllCodeSpaces = (props) => {
     const navigateSecurityConfig = () => {
         const projectDetails = onDeployCodeSpace?.projectDetails;
         if (projectDetails?.publishedSecuirtyConfig) {
-            window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?name=${projectDetails.projectName}`, '_blank');
+            window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
             return;
         }
-        window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}`, '_blank');
+        window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
     }
 
     return (
@@ -287,7 +287,35 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {codeSpaces?.map((codeSpace, index) => {
+                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                                return (
+                                                    <CodeSpaceCardItem
+                                                        key={index}
+                                                        userInfo={props.user}
+                                                        codeSpace={codeSpace}
+                                                        toggleProgressMessage={toggleProgressMessage}
+                                                        onDeleteSuccess={onDeleteSuccess}
+                                                        onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
+                                                        onCodeSpaceEdit={onCodeSpaceEdit}
+                                                        onShowDeployModal={onCodeSpaceDeploy}
+                                                        onStartStopCodeSpace={onStartStopCodeSpace}
+                                                    />
+                                                );
+                                            })}
+
+                                        </div>
+                                    </div>
+                                    {(codeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                                               
+                                        <div className={Styles.cardsSeparator}>
+                                            <h5 className="sub-title-text">Collaborated Code Spaces</h5>
+                                            <hr />
+                                        </div>
+                                                
+                                    )}
+                                    <div className={Styles.allCodeSpacesContent}>
+                                        <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
+                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
