@@ -1005,6 +1005,45 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/restart:        
+    post:
+      tags:
+        - "code-server"
+      summary: "Restart deployed workspace Project for a given Id."
+      description: "restart deployed workspace Project for a given identifier."
+      operationId: "restartWorkspaceProject"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
           
 definitions:
 
@@ -1081,8 +1120,8 @@ definitions:
 #        description: "Date of last deployment"  
       status:
         type: string
-        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED"]
-        description: "Status of workspace job action create/delete/deploy request"
+        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED"]
+        description: "Status of workspace job action create/delete/deploy/restart request"
       targetEnvironment:
         type: string
       branch:
@@ -1181,8 +1220,8 @@ definitions:
         type: boolean
       technicalUserDetailsForIAMLogin:
         type: string
-      valutInjectorEnable:  # Corrected property name
-        type: boolean
+      # valutInjectorEnable:  # Corrected property name
+      #   type: boolean
         default: false  # This should now work as expected
       clientID:
         type: string
