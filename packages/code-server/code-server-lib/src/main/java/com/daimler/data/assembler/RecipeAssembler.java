@@ -65,6 +65,11 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
 				}
+				if(recipe.isDeployEnabled()){
+					recipeVo.setIsDeployEnabled(true);
+				}else{
+					recipeVo.setIsDeployEnabled(false);
+				}
 				// List<UserInfoVO> users = new ArrayList<>();
 				// List<UserInfo> userDetails = recipe.getUsers();
 				// if(recipe.getIsPublic()!=null){
@@ -109,6 +114,11 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 			}
 			if (vo.getPlugins() != null) {
 				recipeData.setPlugins(vo.getPlugins());
+			}
+			if(vo.isIsDeployEnabled()!=null){
+				recipeData.setDeployEnabled(vo.isIsDeployEnabled());
+			}else{
+				recipeData.setDeployEnabled(false);
 			}
 			// List<UserInfo> users = new ArrayList<>();
 			// List<UserInfoVO> userDetails = vo.getUsers();
