@@ -63,6 +63,7 @@ kafka:
     name: dnaCentralEventTopic
 #DNA feature configuration allowed or not(true/false) 
 dna:
+  piduser: ${PID_USER:xxxx}
   feature:
       jupyternotebook: ${JUPYTER_NOTEBOOK:false}
       dataiku: ${DATAIKU:false}
