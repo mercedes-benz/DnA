@@ -322,4 +322,3 @@ export const CodeSpaceApiClient = {
     serverStatusFromHub,
     restartDeployments,
 };
-

@@ -53,7 +53,7 @@
  import com.daimler.data.application.auth.UserStore;
  import com.daimler.data.application.client.CodeServerClient;
  import com.daimler.data.application.client.GitClient;
-import com.daimler.data.application.client.VaultClient;
+ import com.daimler.data.application.client.VaultClient;
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
@@ -151,9 +151,9 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Autowired
 	 private DnaAuthClient dnaAuthClient;
-	 
+	
 	 @Autowired
-	private VaultClient VaultClient;
+	 private VaultClient VaultClient;
  
 	 public BaseWorkspaceService() {
 		 super();
@@ -1145,9 +1145,9 @@ import com.daimler.data.util.ConstantsUtility;
 					 return responseMessage;
 				 }
 				 Boolean isValutInjectorEnable = false;
-				try{
+				 try{
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
-				}catch(Exception e){
+				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
 					errors.add(error);
@@ -1155,7 +1155,7 @@ import com.daimler.data.util.ConstantsUtility;
 					responseMessage.setWarnings(warnings);
 					responseMessage.setSuccess(status);
 					return responseMessage;
-				}
+				 }
 				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
@@ -1183,7 +1183,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					 Date now = isoFormat.parse(isoFormat.format(new Date()));
 					 DeploymentAudit auditLog = new DeploymentAudit();
-					 GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
+					GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
 						warning.setMessage("Error while adding commit id to deployment audit log");
@@ -1472,16 +1472,15 @@ import com.daimler.data.util.ConstantsUtility;
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
 					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
-
-if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
+					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
 						MessageDescription errMsg = new MessageDescription(
 								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator, Because"
 										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
 						warnings.add(errMsg);
-					}					 
-					if (!addGitUser.is2xxSuccessful()) {
+					}
+					 if (!addGitUser.is2xxSuccessful()) {
 						 log.info("Failed while adding {} as collaborator with status {}", repoName,
 								 userRequestDto.getGitUserName(), addGitUser.name());
 						 MessageDescription errMsg = new MessageDescription(
@@ -1868,12 +1867,12 @@ if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 					 // 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					 // 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					 // }
-				 } else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
+				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
 					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
-						deploymentDetails.setDeploymentUrl(null);
-						deploymentDetails.setLastDeploymentStatus(latestStatus);
-					}				
-					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					 deploymentDetails.setDeploymentUrl(null);
+					 deploymentDetails.setLastDeploymentStatus(latestStatus);
+					}
+					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					 if (auditLogs != null && !auditLogs.isEmpty()) {
 						 int lastIndex = auditLogs.size() - 1;
 						 DeploymentAudit lastAudit = auditLogs.get(lastIndex);
@@ -2569,8 +2568,8 @@ if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 		 }
 		 return responseMessage;
 	 }
-
- @Override
+ 
+	@Override
 	@Transactional
 	public GenericMessage restartWorkspace(String userId, String id, String env){
 		GenericMessage responseMessage = new GenericMessage();
@@ -2675,5 +2674,4 @@ if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 		return responseMessage;
 	}
 
- }
-
+}
