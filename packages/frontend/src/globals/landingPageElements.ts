@@ -202,7 +202,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableFabricService,
     isMoreServicesCard:false,
-    upperTag: 'FC Private Preview',
+    upperTag: 'FC PoC',
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
