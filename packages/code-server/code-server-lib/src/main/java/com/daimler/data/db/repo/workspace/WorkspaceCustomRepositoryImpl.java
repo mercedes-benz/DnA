@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -41,6 +42,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -62,7 +64,22 @@ import lombok.extern.slf4j.Slf4j;
 public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<CodeServerWorkspaceNsql, String>
 		implements WorkspaceCustomRepository {
 
-	
+	@Override
+	public List<CodeServerWorkspaceNsql> findAll(){
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> getAll = cq.select(root);
+		Predicate p1 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(p1);
+		cq.where(pMain);		
+		cq.orderBy(cb.asc(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))));
+		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
+		return getAllQuery.getResultList();		
+	} 
+			
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -243,6 +260,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return id;
 	}
 
+
+	@Override
+	@Transactional
+	public GenericMessage updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql){
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		String updateQuery ="UPDATE public.workspace_nsql SET data = jsonb_set(data, '{projectDetails,recipeDetails,recipeName}', '\""
+		+codeServerWorkspaceNsql.getData().getProjectDetails().getRecipeDetails().getRecipeName() +"\"') WHERE jsonb_extract_path_text(data, 'workspaceId') = '"
+		+ codeServerWorkspaceNsql.getData().getWorkspaceId()+"'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("migration recipe updated successfully ", codeServerWorkspaceNsql.getData().getWorkspaceId());
+		} catch (Exception e) {
+			log.error("Exception occured while migrating recipe Name for workspace {} with exception {}",codeServerWorkspaceNsql.getData().getWorkspaceId(),e);
+		}
+		return updateResponse;
+	}
+
 	@Override
 	public GenericMessage updateProjectOwnerDetails(String projectName, UserInfo updatedProjectOwnerDetails) {
 		GenericMessage updateResponse = new GenericMessage();
@@ -363,6 +402,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
 						" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
 						" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
+						" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
 						" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
 					if(i+1 < deploymentAuditLogs.size()) {
 						updateQuery += ",";
