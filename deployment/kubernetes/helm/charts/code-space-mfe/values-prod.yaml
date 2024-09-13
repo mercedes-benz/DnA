@@ -10,7 +10,7 @@ codeserverbackend: http://code-server-backend.code-server.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: 1.0.0
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
