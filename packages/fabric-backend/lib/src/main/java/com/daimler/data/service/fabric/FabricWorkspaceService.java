@@ -42,4 +42,10 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList);
 
+	FabricWorkspaceStatusVO fixBugsInWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
+			String creatorId, String workspaceId);
+
+	List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName,
+			String creatorId, String workspaceId);
+
 }
