@@ -62,8 +62,12 @@
 
         .configIcon {
             margin-left: 8px;
-            margin-bottom: 2.5px;
-            display: inline;
+            align-items: center;
+
+            i {
+                margin-right: 2px;
+                transform: translateY(-2px);
+            }
         }
         .tutorials{
             display: inline;
@@ -121,6 +125,7 @@
             width: calc(33% - 15px);
             margin: 0 15px 15px 0;
             min-width: 250px;
+            min-height: 300px;
             position: relative;
             border: 1px solid #383F49;
             cursor: pointer;
@@ -175,4 +180,8 @@
             }
         }
     }
+}
+
+.cardsSeparator {
+    margin-top: 20px;
 }
