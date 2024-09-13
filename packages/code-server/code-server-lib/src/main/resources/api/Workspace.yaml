@@ -1682,6 +1682,9 @@ definitions:
       branch:
         type: string
         description: "branch one which codespace is deployed"
+      commitId:
+        type: string
+        description: "commit id one which codespace is deployed"
 
   CodespaceSecurityConfigDetailVO:
     type: object  
