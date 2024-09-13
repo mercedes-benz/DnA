@@ -1,0 +1,135 @@
+spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
+  application:
+    name: notification-service
+    version: 3.1.10
+  cache:
+    type: redis
+  redis:
+    host: ${REDIS_HOST:XXXX}
+    port: ${REDIS_PORT:XXXX}
+    user: ${REDIS_ROOT_USER:XXXX}
+    password: ${REDIS_ROOT_PASSWORD:XXXX}
+
+  mail:
+    host: ${DNA_MAIL_SERVER_HOST:XXXX}
+    port: ${DNA_MAIL_SERVER_PORT:XXXX}
+#    host: smtp.gmail.com
+#    port: 587
+#    username: XXXXX@gmail.com
+#    password: XXXXXX
+    properties:
+      mail:
+        transport.protocol: smtp
+        smtp:
+          auth: false
+          starttls.enabled: false
+          starttls.required: false
+        
+  datasource:
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      
+  kafka:
+    bootstrap-servers: ${NAAS_BROKER:localhost:9092}
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL   
+  cloud:
+    stream:
+      function:
+        bindings:
+          consume-in-0: consume1
+      
+      default-binder: kafka
+      kafka:
+        binder:
+          allow:
+            auto:
+              create:
+                topics: false
+          
+      bindings:
+        output:
+          binder: kafka
+          destination: dnaCentralEventTopic
+          content-type: text/plain
+        consume1:
+          binder: kafka
+          destination: dnaCentralEventTopic
+          content-type: text/plain     
+
+kafka:
+  centralTopic:
+    name: ${NAAS_CENTRAL_TOPIC:dnaCentralEventTopic}
+  centralReadTopic:
+    name: ${NAAS_CENTRALREAD_TOPIC:dnaCentralReadTopic}
+  centralDeleteTopic:
+    name: ${NAAS_CENTRALDELTE_TOPIC:dnaCentralDeleteTopic}
+  consumer:
+    pollingTime: ${POLL_TIME:5000}
+    maxPollRecors: ${MAX_POLL_RECORDS:5000}
+    
+server:
+  port: 7272
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+
+#NAAS Authentication with DNA Backend and fetch user notification preferences details
+dna:
+  uri: ${DNA_URI:http://localhost:7171}
+  ui.uri: ${DNA_UI_URI:XXXX}
+# token: ${DNA_AUTH_API_TOKEN:XXXX}
+  user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
+  user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
+  notification.senderEmail: ${DNA_NOTIFICATION_SENDER_EMAIL:system@dna-naas}
+  
+#NAAS Authentication ends
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:xxxx}
+
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        dna:
+          notifications: INFO
+    org.springframework.boot.autoconfigure.logging: ERROR
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: ERROR
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
+      graphql:
+        servlet: ERROR

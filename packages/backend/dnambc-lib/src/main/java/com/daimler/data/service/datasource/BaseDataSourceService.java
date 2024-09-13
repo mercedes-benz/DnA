@@ -27,9 +27,11 @@
 
 package com.daimler.data.service.datasource;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +85,9 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 
 	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
 	private String accessToken;
+
+	@Value("${dna.piduser}")
+	private String pid;
 	
 	public BaseDataSourceService() {
 		super();
@@ -119,6 +124,17 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 					logger.info("Creating new datasource:{}", dataSourceCreateVO.getName());
 					DataSourceVO dataSourceVO = new DataSourceVO();
 					BeanUtils.copyProperties(dataSourceCreateVO, dataSourceVO);
+					if(dataSourceCreateVO.getLastModifiedDate()==null ||dataSourceCreateVO.getModifiedBy()==null ){
+						try{ 
+							SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+							Date now = isoFormat.parse(isoFormat.format(new Date()));
+							dataSourceVO.setLastModifiedDate(now);
+						}catch(Exception e){
+							logger.error("Error occured while parsing date to iso format");
+						}
+						dataSourceVO.setModifiedBy(pid);
+
+					}
 					super.create(dataSourceVO);
 				}
 			}

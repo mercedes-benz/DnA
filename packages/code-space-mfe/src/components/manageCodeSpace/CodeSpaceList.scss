@@ -13,11 +13,11 @@
     }
   }
   .actionBtn{
-    background-color: #252a33 !important;
-    border-color: #252a33 !important;
+    background: unset;
+    border: unset;
+    padding: 0;
     &:hover{
       color: #00adef;
-      background-color: #252a33 !important;
     }
   }
   
@@ -61,5 +61,9 @@
       padding-right: 15px;
     }
   }
-  
+  .chips {
+    margin-right: 8px;
+    padding: 8px 16px;
+    margin-bottom: 0;
+  }
   
