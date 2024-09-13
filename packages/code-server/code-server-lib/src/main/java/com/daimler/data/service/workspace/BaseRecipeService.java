@@ -12,15 +12,21 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomSoftwareRepo;
+import com.daimler.data.assembler.AdditionalServiceAssembler;
 import com.daimler.data.assembler.RecipeAssembler;
+import com.daimler.data.db.entities.CodeServerAdditionalServiceNsql;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepoImpl;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceRecipeRepository;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
+import com.daimler.data.db.json.CodeServerAdditionalService;
 import com.daimler.data.db.json.CodeServerSoftware;
 import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.assembler.SoftwareAssembler;
@@ -30,6 +36,9 @@ import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 import java.util.UUID;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.CodeServerRecipeDto;
+import com.daimler.data.dto.workspace.recipe.AdditionalPropertiesVO;
+import com.daimler.data.dto.workspace.recipe.AdditionalServiceLovVo;
+import com.daimler.data.dto.workspace.recipe.InitializeAdditionalServiceLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
@@ -62,7 +71,13 @@ public class BaseRecipeService implements RecipeService{
 	private SoftwareAssembler softwareAssembler;
 
 	@Autowired
+	private AdditionalServiceAssembler additionalServiceAssembler;
+
+	@Autowired
 	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+	private WorkspaceCustomAdditionalServiceRepo additionalServiceRepo;
 
 	@Autowired
 	 private UserStore userStore;
@@ -106,6 +121,9 @@ public class BaseRecipeService implements RecipeService{
 			String SHA = null;
 			String encodedFileContent = null;
 			StringBuffer fileContent =  new StringBuffer();
+			if(gitHubUrl.contains(".git")) {
+				gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+			}
 			String[] codespaceSplitValues = gitHubUrl.split("/");
 			int length = codespaceSplitValues.length;
 			repoName = codespaceSplitValues[length-1];
@@ -122,6 +140,10 @@ public class BaseRecipeService implements RecipeService{
 				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
 				fileContent.append(additionalProperties);
 			}
+			if(fileContent.toString().contains("dotnet")){
+				fileContent.append("\ncode-server --install-extension ms-dotnettools.vscode-dotnet-runtime\ncode-server --install-extension aliasadidev.nugetpackagemanagergui");
+			}
+			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
 			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
 			if( encodedFileContent != null) {
 				status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent);
@@ -140,7 +162,13 @@ public class BaseRecipeService implements RecipeService{
 			return responseMessage;
 		} catch(Exception e) {
 			log.error(e.getMessage());
-			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+			if(e.getMessage().contains("pull request")){
+				responseMessage = getMessageDescrption("Conflict in Git while creating Software File","FAILED");
+			} else {
+				responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+
+			}
+			responseMessage.setSuccess("FAILED");
 		}
 		return responseMessage;
 	}
@@ -165,13 +193,17 @@ public class BaseRecipeService implements RecipeService{
 			{
 				String repoName = null;
 				String gitUrl = null;
+				String applicationName = null;
+				if(gitHubUrl.contains(".git")) {
+					gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+				}
 				String[] codespaceSplitValues = gitHubUrl.split("/");
 				int length = codespaceSplitValues.length;
 				repoName = codespaceSplitValues[length-1];
+				applicationName = codespaceSplitValues[length-2];
 				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-1], "");
-				gitUrl = gitHubUrl.replace("/"+codespaceSplitValues[length-2], "");
-            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName);
-
+				gitUrl = gitUrl.replace("/"+codespaceSplitValues[length-2], "");
+            	HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName,applicationName);
 				if(!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription msg = new MessageDescription();
 					List<MessageDescription> errorMessage = new ArrayList<>();
@@ -217,8 +249,30 @@ public class BaseRecipeService implements RecipeService{
 			log.info("there are no records of software ");
 		}
 		return null;
-		
+	}
 
+	@Override
+	@Transactional
+	public List<AdditionalServiceLovVo> getAllAdditionalServiceLov() {
+		List<AdditionalServiceLovVo> additionalServiceLovVo = new ArrayList<>();
+		try{
+			List<CodeServerAdditionalServiceNsql> allServices = additionalServiceRepo.findAllServices(10, 0);
+			if(!allServices.isEmpty() || allServices.size() >0)
+			{
+				additionalServiceLovVo = allServices.stream().map(n-> additionalServiceAssembler.toVo(n)).collect(Collectors.toList());
+				log.info("Additional Services fetched successfully");
+			}
+			else
+			{
+				log.info("Additional Services not available");
+				return null;
+			}
+		}
+		catch(Exception e)
+		{
+			log.error("failed while fetching additional properties",e);
+		}
+		return additionalServiceLovVo ;
 	}
 
 	@Override

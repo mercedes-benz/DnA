@@ -4,6 +4,8 @@ spring:
   application:
     name: dna-matomo-service
     version: 1.0.2
+  profile:
+    active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:true}

@@ -1,0 +1,172 @@
+spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
+  application:
+    name: dna-codeserver-service
+    version: 1.1.27
+
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}   
+        
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  kafka:
+    producer:
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}    
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+    
+dna:
+  uri: ${DNA_URI:XXXXXX}
+
+codeserver:
+  userauth: ${CODESERVER_USERAUTH:XXXX}
+    
+authenticator:
+   uri: ${AUTHENTICATOR_URI:XXXX}  
+  
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic  
+
+server:
+  port: 7979
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+codeServer:
+  gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
+  gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
+  gitjob.pat: ${CODE_SERVER_GITJOB_PAT:XXXX}
+  git.pat: ${CODE_SERVER_GIT_PAT:XXXX}
+  git.orgname: ${CODE_SERVER_ORGNAME:XXXXX}
+  git.orguri: ${CODE_SERVER_ORGURI:XXXXX}
+  git.baseuri: ${CODE_SERVER_GIT_BASEURI:XXXXXX}
+  base.uri: ${CODE_BASE_URI:XXXX}
+  env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
+  env.value: ${CODE_SERVER_GIT_ENV:Development}
+  env.url: ${CODE_SERVER_ENVURL:XXX}
+  git.appname: ${CODE_SERVER_APPLICATION_NAME:XXXX}
+  jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
+  jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
+  workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
+  workspace.apikey: ${CODE_SERVER_API_KEY:XXX}
+  git.pid: ${CODE_SERVER_PID_USER:XXXXX}
+  recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
+  recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+          controller.ItsmmGameController: DEBUG
+    org.springframework.boot.autoconfigure.logging: INFO
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
+proxy: 
+  port: ${CUSTOMPROXY_PORT:XXXX}
+  host: ${CUSTOMPROXY_HOST:XXXX}
+  
+codespace:
+  recipe: ${DnARECIPE:XXXX}
+
+kong:
+   bearerOnly: ${BEARER_ONLY:XXXX}
+   clientId: ${CLIENT_ID:XXXX}
+   clientSecret: ${CLIENT_SECRET:XXXX}
+   discovery: ${DISCOVERY:XXXX}
+   introspectionEndpoint: ${INTROSPECTION_ENDPOINT:XXXX}
+   introspectionEndpointAuthMethod: ${INTROSPECTION_ENDPOINT_AUTH_METHOD:XXXX}
+   logoutPath: ${LOGOUT_PATH:XXXX}
+   realm: ${REALM:XXXX}
+   redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
+   revokeTokensOnLogout: ${REVOKE_TOKENS_ON_LOGOUT:XXXX}
+   responseType: ${RESPONSE_TYPE:XXXX}
+   scope: ${SCOPE:XXXX}
+   sslVerify: ${SSL_VERIFY:XXXX}
+   tokenEndpointAuthMethod: ${TOKEN_ENDPOINT_AUTH_METHOD:XXXX}  
+   algorithm: ${ALGORITHM:XXXX}
+   secret: ${SECRET:XXXX}
+   clientHomeUrl: ${CLIENT_HOME_URL:XXXX}
+   privateKeyFilePath: ${PRIVATE_KEY_FILEPATH:XXXX}
+   expiresIn: ${EXPIRES_IN:XXXX}
+   jwtClientId: ${JWT_CLIENT_ID:XXXX}
+   jwtClientSecret: ${JWT_CLIENT_SECRET:XXXX}
+   uiRecipesToUseOidc: ${UI_RECIPES_TO_USE_OIDC:XXXX}
+   enableAuthTokenIntrospection: ${enableAuthTokenIntrospection:XXXX}
+   csvalidateurl: ${csvalidateurl:XXXX}
+   logType: ${LOG_TYPE:XXXX}
+   wsconfigurl: ${WSCONFIGURL:XXXX}
+   applicationName: ${APPLICATION_NAME:XXXX}
+   poolID: ${POOL_ID:XXXX}
+   userinfoIntrospectionUri: ${USERINFO_INTROSPECTION_URL:XXXX}
+   enableUserinfoIntrospection: ${ENABLE_USERINFO_INTROSPECTION:XXXX}
+   authoriserBearerOnly: ${AUTHORISER_BEARER_ONLY:XXXX}
+   authoriserClientId: ${AUTHORISER_CLIENT_ID:XXXX}
+   authoriserClientSecret: ${AUTHORISER_CLIENT_SECRET:XXXX}
+   authoriserIntrospectionEndpointAuthMethod: ${AUTHORISER_INTROSPECTION_ENDPOINT_AUTH_METHOD:XXXX}
+   authoriserScope: ${AUTHORISER_SCOPE:XXXX}
+   authoriserRedirectAfterLogoutUri: ${AUTHORISER_REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   authoriserDiscovery: ${AUTHORISER_DISCOVERY:XXXX}
+   authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
+
+workspace:
+  update: ${UPDATE_WORKSPACEDATA:XXXX}   
+  callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
