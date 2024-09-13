@@ -512,7 +512,7 @@ const CodeSpaceCardItem = (props) => {
                                 setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                               }}
                             >
-                              Deployment Audit Logs
+                              Deploy & Action Audit Logs
                             </span>
                           </li>
                         )}

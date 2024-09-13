@@ -161,7 +161,6 @@ const CodeSpace = (props) => {
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
 
-
   const livelinessIntervalRef = React.useRef();
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
