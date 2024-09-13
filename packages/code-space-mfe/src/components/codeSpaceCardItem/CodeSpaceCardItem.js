@@ -516,16 +516,17 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {intDeployed && (
-                          <li>
-                            <span
-                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
-                            >
-                              Restart Deployed Application
-                            </span>
-                          </li>
-                         )}
-                      </>
+                     {intDeployed && (
+                      <li>
+                        <span
+                          onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                        >
+                          Restart Deployed Application
+                        </span>
+                      </li>
+                    )}
+                        
+                    </>
                     )}
                     <li>
                       <hr />
