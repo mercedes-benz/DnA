@@ -236,6 +236,7 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiParam(value = "Request Body that contains data required for adding new datasources", required = true) @Valid @RequestBody DataSourceBulkRequestVO dataSourceBulkRequestVO) {
 		if(datasourceService.accessTokenIntrospection(accessToken)) {
 			logger.info("Valid access token.");
+			logger.info("Inserting new datasources using bulk API.");
 			return datasourceService.bulkCreate(dataSourceBulkRequestVO.getData());
 		}else {
 			GenericMessage genericMessage = new GenericMessage();
