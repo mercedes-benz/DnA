@@ -20,7 +20,7 @@ import { trackEvent } from '../../Utility/utils';
 import Notification from '../../common/modules/uilab/js/src/notification';
 // import { IUserInfo } from 'globals/types';
 import { IconGear } from 'dna-container/IconGear';
-import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
+// import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
 import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
@@ -56,9 +56,10 @@ const CodeSpaceCardItem = (props) => {
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
-  const disableDeployment =
-    codeSpace?.projectDetails?.recipeDetails?.recipeId?.startsWith('public') ||
-    DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  // const disableDeployment =
+  //   codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+  //   DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment = !codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled;
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const [logsList, setlogsList] = useState([]);
@@ -318,6 +319,8 @@ const CodeSpaceCardItem = (props) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+
+  const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
   const securedWithIAMContent = (
     <svg
@@ -635,7 +638,7 @@ const CodeSpaceCardItem = (props) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>
+              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}</div>
             </div>
             <div>
               <div>Environment</div>

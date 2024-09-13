@@ -133,8 +133,14 @@ const createCodeSpaceRecipe = (data) => {
         data,
     );
 };
+
+const updateCodeSpaceRecipe = (id, data) => {
+    return server.put(`recipeDetails/${id}`, 
+        data,
+    );
+};
   
-const getCodeSpaceRecipeRequests = () => {
+const getCodeSpaceRecipes = () => {
     return server.get(`recipeDetails`, {
         data: {},
     });
@@ -184,6 +190,12 @@ const verifyGitUser = (data)  => {
 
 const getSoftwareLov = () => {
     return server.get(`recipeDetails/softwareLov`, {
+        data: {},
+    });
+};
+
+const getAdditionalServicesLov = () => {
+    return server.get(`recipeDetails/additionalServiceLov`, {
         data: {},
     });
 };
@@ -288,7 +300,8 @@ export const CodeSpaceApiClient = {
     getRolesMappings,
     addCodeSpaceRequest,
     createCodeSpaceRecipe,
-    getCodeSpaceRecipeRequests,
+    updateCodeSpaceRecipe,
+    getCodeSpaceRecipes,
     getCodeSpaceRecipe,
     getRecipeLov,
     deleteCodeSpaceRecipe,
@@ -297,6 +310,7 @@ export const CodeSpaceApiClient = {
     acceptCodeSpaceRecipeRequest,
     publishCodeSpaceRecipeRequest,
     getSoftwareLov,
+    getAdditionalServicesLov,
     getLovData,
     getWorkspaceConfigs,
     acceptSecurityConfigRequest,

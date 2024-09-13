@@ -23,7 +23,7 @@ import { CodeSpaceApiClient } from '../apis/codespace.api';
 import { getParams } from '../Utility/utils';
 import classNames from 'classnames';
 import { CODE_SPACE_TITLE } from '../Utility/constants';
-import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../Utility/constants';
+// import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../Utility/constants';
 import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
@@ -187,6 +187,8 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
+
+  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -503,7 +505,8 @@ const CodeSpace = (props) => {
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
-  const disableDeployment = projectDetails?.recipeDetails?.recipeId?.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
@@ -574,7 +577,7 @@ const CodeSpace = (props) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}>
+                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}>
                   {projectDetails.projectName}
                 </h2>
               </div>

@@ -69,9 +69,9 @@ export const buildLogViewURL = (deployedInstance, isStagging = false) => { //iss
       return "Error in building log view Url. Please check the deployment Url."
     }
 };
-export const isValidGitUrl = (str, isPublicRecipeChoosen) => {
+export const isValidGitUrl = (str) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
-  const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\/)?');
+  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\.git)`);
   return (str == null) ? false : regex.test(str);
 };
 
