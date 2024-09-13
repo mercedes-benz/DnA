@@ -1,7 +1,7 @@
 # Default values for Traefik
 # This is a YAML-formatted file.
 # Declare variables to be passed into templates
-fullnameOverride: "traefik-internet"
+fullnameOverride: "test-ingress-internet"
 image:
   # -- Traefik image host registry
   registry: registry-emea.app.corpintra.net
@@ -530,10 +530,10 @@ globalArguments:
 - "--global.checknewversion"
 - "--global.sendanonymoususage"
 - '--providers.kubernetescrd.allowCrossNamespace=true'
-- '--providers.kubernetesingress.ingressendpoint.publishedservice=traefik-internet/traefik-internet'
+- '--providers.kubernetesingress.ingressendpoint.publishedservice=test-ingress-internet/test-ingress-internet'
 - '--api.dashboard=true'
-- '--providers.kubernetesingress.ingressclass=traefik-internet'
-- '--providers.kubernetescrd.ingressclass=traefik-internet'
+- '--providers.kubernetesingress.ingressclass=test-ingress-internet'
+- '--providers.kubernetescrd.ingressclass=test-ingress-internet'
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
@@ -735,7 +735,7 @@ service:
   type: LoadBalancer
   # -- Additional annotations applied to both TCP and UDP services (e.g. for cloud provider specific config)
   annotations: 
-    loadbalancer.openstack.org/class: internet
+    caas.mercedes-benz.com/load-balancer-scheme: internet
   # -- Additional annotations for TCP service only
   annotationsTCP: {}
   # -- Additional annotations for UDP service only
@@ -892,9 +892,9 @@ extraObjects:
     kind: NetworkPolicy
     metadata:
       labels:
-        app.kubernetes.io/name: traefik-internet
+        app.kubernetes.io/name: test-ingress-internet
       name: traefik
-      namespace: traefik-internet
+      namespace: test-ingress-internet
     spec:
       ingress:
       - ports:
@@ -904,7 +904,7 @@ extraObjects:
           protocol: TCP
       podSelector:
         matchLabels:
-          app.kubernetes.io/name: traefik-internet
+          app.kubernetes.io/name: test-ingress-internet
       policyTypes:
       - Ingress  
 

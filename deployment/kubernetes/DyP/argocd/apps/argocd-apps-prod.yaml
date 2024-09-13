@@ -4,7 +4,7 @@ metadata:
   name: argocd-apps-prod
   namespace: argocd
   labels:
-    name: argocd-apps 
+    name: argocd-apps-prod 
 spec:
   destination:
     namespace: argocd

@@ -21,7 +21,7 @@ spec:
       releaseName: ingress-internet
       skipCrds: false
       valueFiles:
-        - values-internet.yaml    
+        - values-{{ .Values.env }}.yaml    
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
