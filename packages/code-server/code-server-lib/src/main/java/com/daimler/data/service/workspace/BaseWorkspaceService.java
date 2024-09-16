@@ -704,7 +704,7 @@ import com.daimler.data.util.ConstantsUtility;
 								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
 									log.info("Failed while adding {} as collaborator with status {}",gitUser, addGitUser.name());
 									MessageDescription errMsg = new MessageDescription(
-											"Failed while adding " + gitUser
+											"Failed while adding " + gitUser.getKey()
 													+ " as collaborator, Because"
 													+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
 									errors.add(errMsg);
