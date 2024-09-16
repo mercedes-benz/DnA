@@ -5,7 +5,7 @@ metadata:
   name: broker01
 spec:
   type: LoadBalancer
-  loadBalancerIP: 53.137.140.156
+  loadBalancerIP: <broker01_advertisedhost>
   loadBalancerSourceRanges:
   - 53.0.0.0/8
   selector:
@@ -24,7 +24,7 @@ metadata:
   name: broker02
 spec:
   type: LoadBalancer
-  loadBalancerIP: 53.137.140.156
+  loadBalancerIP: <broker02_advertisedhost>
   loadBalancerSourceRanges:
   - 53.0.0.0/8
   selector:
@@ -43,7 +43,7 @@ metadata:
   name: broker03
 spec:
   type: LoadBalancer
-  loadBalancerIP: 53.137.140.156
+  loadBalancerIP: <broker03_advertisedhost>
   loadBalancerSourceRanges:
   - 53.0.0.0/8
   selector:
@@ -92,19 +92,19 @@ spec:
         configuration:
           brokers:
             - broker: 0
-              advertisedHost: 53.137.140.156
+              advertisedHost: <broker01_advertisedhost>
               advertisedPort: 8001
             - broker: 1
-              advertisedHost: 53.137.140.156
+              advertisedHost: <broker02_advertisedhost>
               advertisedPort: 8002
             - broker: 2
-              advertisedHost: 53.137.140.156
+              advertisedHost: <broker03_advertisedhost>
               advertisedPort: 8003
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
-      # log.message.format.version: "2.6"
+      log.message.format.version: "2.6"
       auto.create.topics.enable: "true"
       default.replication.factor: 3
     storage:
