@@ -702,7 +702,7 @@ import com.daimler.data.util.ConstantsUtility;
 						 	for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
 								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
 								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
-									log.info("Failed while adding {} as collaborator with status {}",gitUser, addGitUser.name());
+									log.info("Failed while adding {} as collaborator with status {}",gitUser.getKey(), addGitUser.name());
 									MessageDescription errMsg = new MessageDescription(
 											"Failed while adding " + gitUser.getKey()
 													+ " as collaborator, Because"
