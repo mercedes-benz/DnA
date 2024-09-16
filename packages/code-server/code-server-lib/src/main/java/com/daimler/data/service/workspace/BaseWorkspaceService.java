@@ -1571,7 +1571,6 @@ import com.daimler.data.util.ConstantsUtility;
 					responseMessage.setWarnings(warnings);
 					responseMessage.setSuccess(status);
 					return responseMessage;
-<<<<<<< HEAD
 				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
@@ -1651,93 +1650,6 @@ import com.daimler.data.util.ConstantsUtility;
 	@Override
 	@Transactional
 	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo, UserInfoVO newOwnerDeatils) {
-=======
-				 }
-				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
-				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 deployJobInputDto.setWsid(workspaceOwnerWsId);
-				 deployJobInputDto.setProjectName(projectName.toLowerCase());
-				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
-				 deploymentJobDto.setInputs(deployJobInputDto);
-				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
-				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-					 String environmentJsonbName = "intDeploymentDetails";
-					 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
-							 .getIntDeploymentDetails();
-					 if (!"int".equalsIgnoreCase(environment)) {
-						 environmentJsonbName = "prodDeploymentDetails";
-						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
-					 }
-					 deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					 // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
-					 
-					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
-					 if (auditLogs == null) {
-						 auditLogs = new ArrayList<>();
-					 }
-					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					 Date now = isoFormat.parse(isoFormat.format(new Date()));
-					 DeploymentAudit auditLog = new DeploymentAudit();
-					GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
-					if(commitId == null){
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
-					}
-					auditLog.setCommitId(commitId.getSha());
-					 auditLog.setTriggeredOn(now);
-					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					 auditLog.setBranch(branch);					
-					 auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
-					 auditLogs.add(auditLog);
-					 deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
-					 //calling kong to create service, route and plugins
-					 boolean apiRecipe = false;
-					 String serviceName = projectName;
-					 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					 String reactRecipeId = RecipeIdEnum.REACT.toString();
-					 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					 String dashRecipeId = RecipeIdEnum.DASH.toString();
-					 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
-					 String workspaceId = entity.getData().getWorkspaceId();
-					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 } else {
-						 apiRecipe = true;
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 }
-					 status = "SUCCESS";
-				 } else {
-					 status = "FAILED";
-					 errors.addAll(jobResponse.getErrors());
-				 }
-			 }
-		 } catch (Exception e) {
-			 MessageDescription error = new MessageDescription();
-			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
-			 errors.add(error);
-		 }
-		 responseMessage.setErrors(errors);
-		 responseMessage.setWarnings(warnings);
-		 responseMessage.setSuccess(status);
-		 return responseMessage;
-	 }
- 
-	 @Override
-	 @Transactional
-	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo,
-			UserInfoVO newOwnerDeatils) {
->>>>>>> 38274b52c172e6498d2510f96069ecd1fbd8d8d6
 		GenericMessage responseVO = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
