@@ -30,6 +30,7 @@ package com.daimler.data.util;
 public class ConstantsUtility {
 
 	public static final String CREATEACTION = "create";
+	public static final String GENERIC = "public";
 	public static final String SPRINGBOOT = "springboot";
 	public static final String SPRINGBOOTWITHMAVEN = "springbootwithmaven";
 	public static final String VUEJS = "vuejs";

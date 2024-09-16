@@ -382,7 +382,7 @@ const NewCodeSpace = (props) => {
         } else {
           setCodeSpaceCollaborators([...existingColloborators]);
           Notification.show(
-            `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.`,
+            `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.\n ${res.data.errors[0].message}`,
             'alert',
           );
         }
@@ -472,7 +472,7 @@ const NewCodeSpace = (props) => {
           props.onUpdateCodeSpaceComplete();
         } else {
           Notification.show(
-            `Error transferring Code Space ownership to collaborator '${collaboratorToTransferOwnership.firstName}'. Please try again later.`,
+            `Error transferring Code Space ownership to collaborator '${collaboratorToTransferOwnership.firstName}'\n ${res?.data?.errors[0]?.message} Please try again later.`,
             'alert',
           );
         }
@@ -764,7 +764,7 @@ const NewCodeSpace = (props) => {
               'alert',
             );
           } else {
-            Notification.show('Error in creating new code space. Please try again later.\n' + err.message, 'alert');
+            Notification.show('Error in creating new code space. Please try again later.\n' + err.response.data.errors[0].message, 'alert');
           }
         });
     }
@@ -850,6 +850,7 @@ const NewCodeSpace = (props) => {
   const recipe = recipesMaster.find((item) => item.id === recipeValue);
   const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
   const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
+  const resources = projectDetails?.recipeDetails?.resource?.split(',');
   return (
     <React.Fragment>
       {onBoadingMode ? (
@@ -918,7 +919,7 @@ const NewCodeSpace = (props) => {
               <label>Recipe</label>
               </div>
               <div style={{ width: '75%' }}>
-              {projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}  
+              {projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}  
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -1508,7 +1509,7 @@ const NewCodeSpace = (props) => {
                   <div>
                     <label>Recipe</label>
                   </div>
-                  <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>                </div>
+                  <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}</div>                </div>
                 <div className={Styles.flexLayout}>
                   <div>
                     <label>Environment</label>
