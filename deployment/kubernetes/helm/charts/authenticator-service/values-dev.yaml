@@ -13,7 +13,7 @@ serviceAccount:
   annotations: {}
   name: ''
 podAnnotations:
-  vault.hashicorp.com/namespace: fmas/dev
+  vault.hashicorp.com/namespace: DnAPlatform/dev
   vault.hashicorp.com/agent-inject: 'true'
   vault.hashicorp.com/role: dna
   vault.hashicorp.com/tls-skip-verify: 'true'
