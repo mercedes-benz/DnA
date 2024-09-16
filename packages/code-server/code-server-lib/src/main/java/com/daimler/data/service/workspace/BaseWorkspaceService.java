@@ -699,55 +699,69 @@ import com.daimler.data.util.ConstantsUtility;
 								 gitUsers.put(user.getGitUserName(),user.isIsAdmin());
 							 }
 						 }
-						 for (Map.Entry<String,Boolean> gitUser: gitUsers.entrySet()) {
-							 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
-							 if (!addGitUser.is2xxSuccessful()) {
-								 MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser
-										 + " as collaborator to repository. Please add manually");
-								 log.info("Failed while adding {} as collaborator to repository. Please add manually",
-										 gitUser);
-								 warnings.add(warnMsg);
-								 responseVO.setWarnings(warnings);
-								 /*
-								  * HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
-								  * log.
-								  * info("Created git repository {} successfully. Failed while adding {} as collaborator with status {} and delete repo status as {} "
-								  * ,repoName,gitUser,addGitUser.name(),deleteRepoStatus.name());
-								  * if(deleteRepoStatus.is2xxSuccessful()) {
-								  * MessageDescription errMsg = new MessageDescription("Created git repository "
-								  * +repoName + " successfully. Failed while adding " + gitUser +
-								  * " as collaborator . Please make " + gitUser +
-								  * " is valid git user. Deleted repository successfully, please retry");
-								  * errors.add(errMsg);
-								  * responseVO.setErrors(errors);
-								  * return responseVO;
-								  * }else {
-								  * MessageDescription errMsg = new MessageDescription("Created git repository "
-								  * +repoName + " successfully. Failed while adding " + gitUser +
-								  * " as collaborator . Please make " + gitUser +
-								  * " is valid git user. Unable to delete repository because of " +
-								  * deleteRepoStatus.name() + ", please delete repository manually and retry");
-								  * errors.add(errMsg);
-								  * responseVO.setErrors(errors);
-								  * return responseVO;
-								  * }
-								  */
-							 }
-							 if(gitUser.getValue()!=null){
-								 if(gitUser.getValue()){
-									 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(gitUser.getKey(), repoName);
-									 if(!addAdminAccessToGitUser.is2xxSuccessful())
-									 {
-										 MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser.getKey()
-										 + " as admin to repository");
-										 log.info("Failed while adding {} as collaborator to repository. Please add manually",
-										 gitUser.getKey());
-										 warnings.add(warnMsg);
-										 responseVO.setWarnings(warnings);
-									 }
-								 }
-							 }
-						 }
+						 	for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
+								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
+								if (!addGitUser.is2xxSuccessful()) {
+									MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser
+											+ " as collaborator to repository. Please add manually");
+									log.info(
+											"Failed while adding {} as collaborator to repository. Please add manually",
+											gitUser);
+									warnings.add(warnMsg);
+									responseVO.setWarnings(warnings);
+									/*
+									 * HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
+									 * log.
+									 * info("Created git repository {} successfully. Failed while adding {} as collaborator with status {} and delete repo status as {} "
+									 * ,repoName,gitUser,addGitUser.name(),deleteRepoStatus.name());
+									 * if(deleteRepoStatus.is2xxSuccessful()) {
+									 * MessageDescription errMsg = new MessageDescription("Created git repository "
+									 * +repoName + " successfully. Failed while adding " + gitUser +
+									 * " as collaborator . Please make " + gitUser +
+									 * " is valid git user. Deleted repository successfully, please retry");
+									 * errors.add(errMsg);
+									 * responseVO.setErrors(errors);
+									 * return responseVO;
+									 * }else {
+									 * MessageDescription errMsg = new MessageDescription("Created git repository "
+									 * +repoName + " successfully. Failed while adding " + gitUser +
+									 * " as collaborator . Please make " + gitUser +
+									 * " is valid git user. Unable to delete repository because of " +
+									 * deleteRepoStatus.name() + ", please delete repository manually and retry");
+									 * errors.add(errMsg);
+									 * responseVO.setErrors(errors);
+									 * return responseVO;
+									 * }
+									 */
+								}
+								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
+									log.info("Failed while adding {} as collaborator with status {}",gitUser, addGitUser.name());
+									MessageDescription errMsg = new MessageDescription(
+											"Failed while adding " + gitUser
+													+ " as collaborator, Because"
+													+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+									errors.add(errMsg);
+									responseVO.setSuccess("FAILED");
+									responseVO.setErrors(errors);
+									return responseVO;
+								}
+								if (gitUser.getValue() != null) {
+									if (gitUser.getValue()) {
+										HttpStatus addAdminAccessToGitUser = gitClient
+												.addAdminAccessToRepo(gitUser.getKey(), repoName);
+										if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+											MessageDescription warnMsg = new MessageDescription(
+													"Failed while adding " + gitUser.getKey()
+															+ " as admin to repository");
+											log.info(
+													"Failed while adding {} as collaborator to repository. Please add manually",
+													gitUser.getKey());
+											warnings.add(warnMsg);
+											responseVO.setWarnings(warnings);
+										}
+									}
+								}
+							}
  //					}
 				 }
 			 } else {
@@ -1333,6 +1347,16 @@ import com.daimler.data.util.ConstantsUtility;
 				responseMessage.setErrors(errors);
 				return responseMessage;
 			}
+			//Notifying transfered user  
+			String eventType = "Codespace-Transfer Ownership Status Update";
+			String resourceID = vo.getProjectDetails().getProjectName();
+			List <String> transferedUserId = new ArrayList<>();
+			List <String> transferedUserEmail = new ArrayList<>();
+			transferedUserId.add(newOwnerDeatils.getId());
+			transferedUserEmail.add(newOwnerDeatils.getEmail());
+			String message = "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName() + "\" has been transferred to you by user " + currentUser.getId() + ".";
+			kafkaProducer.send(eventType, resourceID, "", currentUser.getId(), message, true, transferedUserId, transferedUserEmail, null);
+			
 			responseMessage.setSuccess("SUCCESS");
 		} catch (Exception e) {
 			log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
@@ -1478,7 +1502,10 @@ import com.daimler.data.util.ConstantsUtility;
 						MessageDescription errMsg = new MessageDescription(
 								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator, Because"
 										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
-						warnings.add(errMsg);
+						errors.add(errMsg);
+						responseMessage.setSuccess("FAILED");
+			 			responseMessage.setErrors(errors); 
+						return responseMessage;
 					}
 					 if (!addGitUser.is2xxSuccessful()) {
 						 log.info("Failed while adding {} as collaborator with status {}", repoName,
