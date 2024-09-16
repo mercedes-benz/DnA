@@ -9,8 +9,6 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: service
-    env: {{ .Values.env }}
-    project: dna
 spec:
   destination:
     namespace: i3-logging

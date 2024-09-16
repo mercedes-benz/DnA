@@ -10,7 +10,7 @@ metadata:
   labels:
     name: service
     env: {{ .Values.env }}
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: {{ .Values.env }}-dna-airflow

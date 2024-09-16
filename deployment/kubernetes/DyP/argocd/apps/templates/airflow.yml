@@ -24,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-{{ .Values.env }}.yaml
-  project: {{ .Values.env }}-dev
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

@@ -10,7 +10,7 @@ metadata:
   labels:
     name: db
     env: {{ .Values.env }}
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: dev-dna-airflow
@@ -28,7 +28,7 @@ spec:
           {{ else }}
           value: -f values-airflow-db-{{ .Values.env }}.yaml
           {{- end }}          
-  project: dev-dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
