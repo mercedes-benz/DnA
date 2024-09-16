@@ -15,13 +15,11 @@ export const getParams = () => {
 };
 
 export const getQueryParam = (paramName) => {
-  const hashParts = window.location.hash?.split('?');
-  const queryString = hashParts[1] || "";
-
+  const hash = window.location.hash.slice(1);
+  const queryString = hash.replace(/\?/g, '&');
   const params = new URLSearchParams(queryString);
   return params.get(paramName);
 }
-
 
 export const getPath = () => {
   return window.location.hash;
@@ -71,9 +69,9 @@ export const buildLogViewURL = (deployedInstance, isStagging = false) => { //iss
       return "Error in building log view Url. Please check the deployment Url."
     }
 };
-export const isValidGitUrl = (str, isPublicRecipeChoosen) => {
+export const isValidGitUrl = (str) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
-  const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\/)?');
+  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\.git)`);
   return (str == null) ? false : regex.test(str);
 };
 
