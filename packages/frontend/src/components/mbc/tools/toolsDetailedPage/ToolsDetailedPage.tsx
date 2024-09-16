@@ -5,6 +5,7 @@ import { getParams } from '../../../../router/RouterUtils';
 import { ToolsPageImagesInfo } from 'globals/constants';
 import ToolsDetailedPageElements from './toolDetaliedPageInfo.json';
 import { history } from '../../../../router/History';
+import SubscriptionCard from './SubscriptionCard/SubscriptionCard'
 
 export interface IData {
   id?: string;
@@ -43,7 +44,7 @@ const InfoTile = (props: any) => {
   const item = { ...props.item };
   return (
     <div className={Styles.infoTile}>
-      <div className={Styles.serviceInfo}>
+      {item.name !== 'classification' ? (<div className={Styles.serviceInfo}>
         <i className={`icon mbc-icon ${item.icon}`} />
         <div className={Styles.infoDescription}>
           <h3>{item.name}</h3>
@@ -63,7 +64,17 @@ const InfoTile = (props: any) => {
             })}
           </div>)}
         </div>
-      </div>
+      </div>) : <>
+
+        <div className={Styles.serviceInfo}>
+          <h3>classification</h3>
+          <div className={Styles.classIcon}>
+            <i className={`icon mbc-icon sec`} />
+            <h4>{item.type}</h4>
+          </div>
+        </div>
+      </>
+      }
     </div>
   )
 }
@@ -154,21 +165,29 @@ const ToolsDetailedPage = (IData: any) => {
             </div>
           </div>
           <div className={Styles.contentSection}>
-            <h4>Use Cases</h4>
-            <div className={Styles.portHeader}>
-              {pageDetails.useCases && (
-                pageDetails.useCases.map((item: any, key: any) =>
-                  <UseCaseTile item={item} key={key} />
-                )
-              )}
-            </div>
+            {pageDetails?.hasSubcription && (
+              <SubscriptionCard />
+            )}
           </div>
-          <div className={Styles.contentSection}>
+          {pageDetails.useCases && (
+            <div className={Styles.contentSection}>
+              <h4>Use Cases</h4>
+              <div className={Styles.portHeader}>
+                {pageDetails.useCases && (
+                  pageDetails.useCases.map((item: any, key: any) =>
+                    <UseCaseTile item={item} key={key} />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {pageDetails.toolPipeLine && (<div className={Styles.contentSection}>
             <h4>Tool Pipeline</h4>
             <div className={Styles.portHeader}>
               <div className={Styles.toolPipeLine}>
                 <div className={Styles.pipeLineWrapper}>
-                <img className={Styles.pipeLineImage} src={pipeLineImage}></img>
+                  <img className={Styles.pipeLineImage} src={pipeLineImage}></img>
                 </div>
                 <div className={Styles.pipeLineDescription}>
                   {pageDetails.toolPipeLine?.description && (
@@ -198,7 +217,8 @@ const ToolsDetailedPage = (IData: any) => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>)}
+
           <div className={Styles.contentSection}>
             <div className={Styles.portHeader}>
               {pageDetails.info && (pageDetails.info.map((item: any, key: any) =>
@@ -208,14 +228,14 @@ const ToolsDetailedPage = (IData: any) => {
           </div>
           <div className={Styles.contentSection}>
             <div className={Styles.portHeader}>
-              <div className={Styles.classificationSection}>
+              {pageDetails?.classification && (<div className={Styles.classificationSection}>
                 <h3>classification</h3>
                 <div className={Styles.classificationIcon}>
                   <i className={`icon mbc-icon sec`} />
                   <h4>{pageDetails.classification}</h4>
                 </div>
-              </div>
-              <div className={Styles.accessSection}>
+              </div>)}
+              {pageDetails?.accessSteps && (<div className={Styles.accessSection}>
                 <div className={Styles.serviceInfo}>
                   <div className={Styles.serviceIcon}>
                     <i className={`icon mbc-icon portfolio`} />
@@ -230,7 +250,7 @@ const ToolsDetailedPage = (IData: any) => {
                     )
                   )}
                 </div>
-              </div>
+              </div>)}
             </div>
           </div>
         </div>
@@ -239,7 +259,7 @@ const ToolsDetailedPage = (IData: any) => {
       </div>
       <div className={Styles.stickyPanel}>
         <div className={Styles.navButton}>
-          <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>Open in Browser</button>
+          <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>{pageDetails.id === 'powerPlatform' ? 'Default Environment' : 'Open in browser'}</button>
         </div>
       </div>
     </div>
