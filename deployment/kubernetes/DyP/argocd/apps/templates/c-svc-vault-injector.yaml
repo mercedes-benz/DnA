@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,7 +10,6 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: service
-    env: {{ .Values.env }}
     project: dna
 spec:
   destination:
@@ -23,7 +23,7 @@ spec:
       releaseName: vault-injector
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: c-svc
   syncPolicy:
     automated:
       prune: true
@@ -37,3 +37,4 @@ spec:
     jsonPointers:                                                                                    
     - /webhooks/0/clientConfig/caBundle
     - /webhooks/0/failurePolicy      
+{{- end -}}

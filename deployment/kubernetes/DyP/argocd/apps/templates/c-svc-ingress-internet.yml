@@ -5,30 +5,33 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: kafka
+  name: {{ .Values.env }}-ingress-internet
   namespace: {{ .Values.namespace }}
   labels:
-    name: service
-    env: {{ .Values.env }}    
+    name: dyp
+    env: {{ .Values.env }}
+    project: c-svc
 spec:
   destination:
-    namespace: kafka
+    namespace: {{ .Values.env }}-ingress-internet
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/i3/i3-kafka/strimzi-kafka-operator
+    path: deployment/kubernetes/DyP/ingress
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: kafka
-      skipCrds: true
+      releaseName: {{ .Values.env }}-ingress-internet
+      skipCrds: false
       valueFiles:
-        - values-{{ .Values.env }}.yaml
-  project: dna
+        - values-{{ .Values.env }}.yaml    
+  project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
+      prune: true
       selfHeal: true
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}

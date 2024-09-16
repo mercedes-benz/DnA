@@ -5,24 +5,26 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: pgadmin
+  name: {{ .Values.env }}-ingress-intranet
   namespace: {{ .Values.namespace }}
   labels:
-    name: tools
+    name: dyp
+    env: {{ .Values.env }}
+    project: c-svc
 spec:
   destination:
-    namespace: tools
+    namespace: {{ .Values.env }}-ingress-intranet
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/pgadmin
+    path: deployment/kubernetes/DyP/ingress
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    plugin:
-      name: argocd-vault-plugin-helm
-      env:
-        - name: HELM_ARGS
-          value: -f values-{{ .Values.env }}.yaml -n tools
-  project: dna
+    helm:
+      releaseName: {{ .Values.env }}-ingress-intranet
+      skipCrds: false
+      valueFiles:
+        - values-{{ .Values.env }}.yaml    
+  project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
@@ -31,6 +33,5 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
-      - PruneLast=true
-      - Replace=true
+      - RespectIgnoreDifferences=true
 {{- end }}

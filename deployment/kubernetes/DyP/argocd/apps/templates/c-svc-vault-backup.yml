@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,25 +6,25 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-ingress-internet
+  name: vault-backup
   namespace: {{ .Values.namespace }}
   labels:
-    name: dyp
+    name: service
     env: {{ .Values.env }}
-    project: dna
+    project: c-svc
 spec:
   destination:
-    namespace: {{ .Values.env }}-ingress-internet
+    namespace: vault
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/ingress
+    path: deployment/kubernetes/helm/charts/vault-backup
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    helm:
-      releaseName: ingress-internet
-      skipCrds: false
-      valueFiles:
-        - values-{{ .Values.env }}.yaml    
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-dhc.yaml
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
@@ -33,5 +34,5 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
-      - RespectIgnoreDifferences=true
 {{- end }}
+{{- end -}}

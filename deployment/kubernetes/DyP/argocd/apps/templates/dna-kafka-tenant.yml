@@ -5,30 +5,27 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: imagepullsecret-patcher
+  name: {{ .Values.env }}-dna-kafka
   namespace: {{ .Values.namespace }}
   labels:
-    name: service 
-    env: {{ .Values.env }}
-    project: {{ .Values.env }}-dna 
+    name: service
+    project: dna
 spec:
   destination:
-    namespace: imagepullsecret-patcher
+    namespace: {{ .Values.env }}-dna-i3-kafka
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/imagepullsecret-patcher
+    path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-tenant
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    plugin:
-      name: argocd-vault-plugin-helm
-      env:
-        - name: HELM_ARGS
-          value: --namespace imagepullsecret-patcher -f values.yaml                     
+    helm:
+      releaseName: {{ .Values.env }}-dna-i3-kafka
+      valueFiles:
+        - values-{{ .Values.env }}.yaml
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
     syncOptions:
       - ApplyOutOfSyncOnly=true

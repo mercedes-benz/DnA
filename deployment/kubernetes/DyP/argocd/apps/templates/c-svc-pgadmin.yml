@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,26 +6,25 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: vault-auto-unseal
+  name: pgadmin
   namespace: {{ .Values.namespace }}
   labels:
-    name: service
-    env: {{ .Values.env }}
-    project: dna
+    name: tools
+    project: c-svc
 spec:
   destination:
-    namespace: vault
+    namespace: tools
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/vault-auto-unseal
+    path: deployment/kubernetes/DyP/pgadmin
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-dhc.yaml
-  project: dna
+          value: -f values-{{ .Values.env }}.yaml -n tools
+  project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
@@ -33,4 +33,8 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - PruneLast=true
+      - Replace=true
 {{- end }}
+
+{{- end -}}

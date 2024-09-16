@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,26 +6,25 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-ingress-intranet
+  name: logger
   namespace: {{ .Values.namespace }}
   labels:
-    name: dyp
-    env: {{ .Values.env }}
-    project: dna
+    name: service
+    project: c-svc
 spec:
   destination:
-    namespace: {{ .Values.env }}-ingress-intranet
+    namespace: i3-logging
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/ingress
+    path: deployment/kubernetes/DyP/i3/i3-logging-helm
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    helm:
-      releaseName: ingress-intranet
-      skipCrds: false
-      valueFiles:
-        - values-{{ .Values.env }}.yaml    
-  project: dna
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: --namespace i3-logging -f values-{{ .Values.env }}.yaml
+  project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
@@ -33,5 +33,6 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
-      - RespectIgnoreDifferences=true
 {{- end }}
+
+{{- end -}}

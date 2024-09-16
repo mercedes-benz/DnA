@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,23 +6,25 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-model-registry
+  name: cert-manager
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: dyp
+    project: c-svc
 spec:
   destination:
-    namespace: model-registry
+    namespace: cert-manager
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/model-registry
+    path: deployment/kubernetes/DyP/cert-manager
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    helm:
-      releaseName: dna-model-registry
-      valueFiles:
-        - values-{{ .Values.env }}.yaml
-  project: dna
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-dhc.yaml -n cert-manager  
+  project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
@@ -30,4 +33,6 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}
+{{- end -}}

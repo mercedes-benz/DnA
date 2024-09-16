@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,31 +6,32 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: vault
+  name: kafka
   namespace: {{ .Values.namespace }}
   labels:
     name: service
-    env: {{ .Values.env }}
-    project: dna
+    project: c-svc 
 spec:
   destination:
-    namespace: vault
+    namespace: i3-kafka
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/vault
+    path: deployment/kubernetes/DyP/i3/i3-kafka/strimzi-kafka-operator
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: vault
+      releaseName: i3-kafka
+      skipCrds: false
       valueFiles:
-        - values-dhc.yaml
-  project: dna
+        - values-{{ .Values.env }}.yaml
+  project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
 {{- end }}
+
+{{- end -}}
