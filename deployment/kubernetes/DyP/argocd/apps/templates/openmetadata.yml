@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: openmetadata
+  name: {{ .Values.env }}-dna-openmetadata
   namespace: {{ .Values.namespace }}
   labels:
-    name: service  
+    name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: openmetadata
+    namespace: {{ .Values.env }}-dna-openmetadata
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/openmetadata
@@ -22,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: --namespace openmetadata -f values-dyp.yaml          
-  project: dna
+  project: {{ .Values.env }}-dna
   syncPolicy:
     automated:
       prune: true

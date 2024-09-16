@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: redis
+  name: {{ .Values.env }}-dna-redis
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: redis
+    namespace: {{ .Values.env }}-dna-redis
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/redis
@@ -21,7 +23,7 @@ spec:
       releaseName: redis
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

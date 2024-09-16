@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: power-platform-frontend
+  name: {{ .Values.env }}-dna-power-platform-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend  
+    name: frontend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: power-platform
+    namespace: {{ .Values.env }}-dna-power-platform
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/power-platform-mfe
@@ -21,7 +23,7 @@ spec:
       releaseName: power-platform-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

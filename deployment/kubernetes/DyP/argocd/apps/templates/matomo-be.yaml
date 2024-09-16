@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: matomo-be
+  name: {{ .Values.env }}-dna-matomo-be
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: backend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: matomo
+    namespace: {{ .Values.env }}-dna-matomo
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/matomo-be
@@ -21,7 +23,7 @@ spec:
       releaseName: matomo-be
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

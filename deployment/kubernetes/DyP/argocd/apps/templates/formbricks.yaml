@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: formbricks
+  name: {{ .Values.env }}-dna-formbricks
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: formbricks
+    namespace: {{ .Values.env }}-dna-formbricks
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/formbricks
@@ -21,8 +23,8 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS         
-          value: -f values-{{ .Values.env }}.yaml -n formbricks      
-  project: dna
+          value: -f values-{{ .Values.env }}.yaml -n {{ .Values.env }}-dna-formbricks     
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

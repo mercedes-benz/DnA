@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: ingress-intranet
+  name: {{ .Values.env }}-ingress-intranet
   namespace: {{ .Values.namespace }}
   labels:
     name: dyp
+    env: {{ .Values.env }}
+    project: dna
 spec:
   destination:
-    namespace: ingress-intranet
+    namespace: {{ .Values.env }}-ingress-intranet
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/ingress

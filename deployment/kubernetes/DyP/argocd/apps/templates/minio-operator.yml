@@ -8,7 +8,8 @@ metadata:
   name: minio-operator
   namespace: {{ .Values.namespace }}
   labels:
-    name: service  
+    name: service
+    project: dna  
 spec:
   destination:
     namespace: minio-operator

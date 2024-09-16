@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: chronos-frontend
+  name: {{ .Values.env }}-dna-chronos-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend  
+    name: frontend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: chronos
+    namespace: {{ .Values.env }}-dna-chronos
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/chronos-mfe
@@ -21,7 +23,7 @@ spec:
       releaseName: chronos-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

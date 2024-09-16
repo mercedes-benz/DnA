@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: data-product-frontend
+  name: {{ .Values.env }}-dna-data-product-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend  
+    name: frontend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: data-product
+    namespace: {{ .Values.env }}-dna-data-product
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/data-product-mfe
@@ -21,7 +23,7 @@ spec:
       releaseName: data-product-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

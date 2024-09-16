@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-authenticator-service
+  name: {{ .Values.env }}-dna-authenticator-service
   namespace: {{ .Values.namespace }}
   labels:
     name: backend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: kong 
+    namespace: {{ .Values.env }}-dna-kong 
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/authenticator-service
@@ -21,7 +23,7 @@ spec:
       releaseName: dna-authenticator
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

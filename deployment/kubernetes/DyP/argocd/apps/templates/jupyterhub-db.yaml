@@ -6,13 +6,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: jupyterhub-db
+  name: {{ .Values.env }}-dna-jupyterhub-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: code-server
+    namespace: {{ .Values.env }}-dna-code-server
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -23,7 +25,7 @@ spec:
       env:
         - name: HELM_ARGS         
           value: -f values-jupyterhub-db-dev.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

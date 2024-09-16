@@ -48,7 +48,7 @@ app:
       port: api
 ingress:
   enabled: false
-  host: naas.dev.dna.app.corpintra.net
+  host: naas.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik

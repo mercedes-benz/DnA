@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: fabric-db
+  name: {{ .Values.env }}-dna-fabric-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: fabric
+    namespace: {{ .Values.env }}-dna-fabric
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -26,7 +28,7 @@ spec:
           {{ else }}
           value: -f values-fabric-db-{{ .Values.env }}.yaml
           {{- end }}             
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

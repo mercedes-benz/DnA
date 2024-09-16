@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: chronos-backend
+  name: {{ .Values.env }}-dna-chronos-backend
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: backend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: chronos
+    namespace: {{ .Values.env }}-dna-chronos
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/chronos-be
@@ -21,7 +23,7 @@ spec:
       releaseName: chronos-backend
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

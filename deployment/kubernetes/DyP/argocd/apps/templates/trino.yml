@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-trino
+  name: {{ .Values.env }}-dna-trino
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: trino
+    namespace: {{ .Values.env }}-dna-trino
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/trino
@@ -22,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
   ignoreDifferences:
     - kind: ConfigMap
       jsonPointers:

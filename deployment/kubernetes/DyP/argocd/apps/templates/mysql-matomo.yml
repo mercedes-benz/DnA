@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: mysql-matomo
+  name: {{ .Values.env }}-dna-mysql-matomo
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: matomo
+    namespace: {{ .Values.env }}-dna-matomo
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/matomo-mysql
@@ -22,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS         
           value: -f values-{{ .Values.env }}.yaml       
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

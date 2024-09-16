@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: airflow
+  name: {{ .Values.env }}-dna-airflow
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: dna
 spec:
   destination:
-    namespace: airflow
+    namespace: {{ .Values.env }}-dna-airflow
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/airflow
@@ -22,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

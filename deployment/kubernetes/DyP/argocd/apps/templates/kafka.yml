@@ -9,6 +9,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}    
 spec:
   destination:
     namespace: kafka

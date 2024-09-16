@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: storage-frontend
+  name: {{ .Values.env }}-dna-storage-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend  
+    name: frontend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: storage
+    namespace: {{ .Values.env }}-dna-storage
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/storage-mfe
@@ -21,7 +23,7 @@ spec:
       releaseName: dna-storage-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

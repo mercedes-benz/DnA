@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: ingress-internet
+  name: {{ .Values.env }}-ingress-internet
   namespace: {{ .Values.namespace }}
   labels:
     name: dyp
+    env: {{ .Values.env }}
+    project: dna
 spec:
   destination:
-    namespace: ingress-internet
+    namespace: {{ .Values.env }}-ingress-internet
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/ingress

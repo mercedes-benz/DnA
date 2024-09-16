@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: neo4j
+  name: {{ .Values.env }}-dna-neo4j
   namespace: {{ .Values.namespace }}
   labels:
-    name: service  
+    name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: neo4j
+    namespace: {{ .Values.env }}-dna-neo4j
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/neo4j
@@ -21,7 +23,7 @@ spec:
       releaseName: neo4j-release
       valueFiles:
         - values-dhc.yaml                 
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

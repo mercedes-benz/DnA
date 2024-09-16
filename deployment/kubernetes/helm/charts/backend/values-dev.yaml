@@ -3,7 +3,7 @@ imagePullSecrets: null
 ingress:
   enabled: false
   namespace: ingress
-  host: dev.dna.app.corpintra.net
+  host: dna-aws.app.corpintra.net
   lbIP: 53.6.53.65
   annotations:
     traefik.frontend.rule.type: PathPrefix

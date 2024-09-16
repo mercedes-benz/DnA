@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: clamav
+  name: {{ .Values.env }}-dna-clamav
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: clamav
+    namespace: {{ .Values.env }}-dna-clamav
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/clamav
@@ -21,7 +23,7 @@ spec:
       releaseName: dna-clamav
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

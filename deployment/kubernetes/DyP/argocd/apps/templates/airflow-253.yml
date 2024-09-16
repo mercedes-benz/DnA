@@ -9,6 +9,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: {{ .Values.env }}-dna-airflow
@@ -22,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS         
           value: -f values-{{ .Values.env }}.yaml -n {{ .Values.env }}-dna-airflow      
-  project: dev-dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

@@ -36,13 +36,13 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: storage.dev.dna.app.corpintra.net
+    - host: storage.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - storage.dev.dna.app.corpintra.net
+        - storage.dna-aws.app.corpintra.net
       secretName: storage-tls-secret
 resources: {}
 vaultInjector:
