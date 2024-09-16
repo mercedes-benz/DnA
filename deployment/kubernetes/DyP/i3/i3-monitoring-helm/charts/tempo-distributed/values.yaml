@@ -473,9 +473,9 @@ distributor:
     log_received_traces: null
     # -- Enable to log every received span to help debug ingestion or calculate span error distributions using the logs
     log_received_spans:
-      enabled: false
-      include_all_attributes: false
-      filter_by_status_error: false
+      enabled: true
+      include_all_attributes: true
+      filter_by_status_error: true
     # -- Disables write extension with inactive ingesters
     extend_writes: null
   # -- Adds the appProtocol field to the distributor service. This allows distributor to work with istio protocol selection.
