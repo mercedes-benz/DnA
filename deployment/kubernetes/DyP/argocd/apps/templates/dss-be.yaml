@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dss-backend
+  name: {{ .Values.env }}-dna-dss-backend
   namespace: {{ .Values.namespace }}
   labels:
     name: backend
     env: {{ .Values.env }}
-    project: dna  
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: dss
+    namespace: {{ .Values.env }}-dna-dss
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/dss-be
@@ -23,7 +23,7 @@ spec:
       releaseName: dss-be
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

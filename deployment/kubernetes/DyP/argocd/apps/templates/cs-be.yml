@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: code-server-backend
+  name: {{ .Values.env }}-dna-code-server-backend
   namespace: {{ .Values.namespace }}
   labels:
     name: backend
     env: {{ .Values.env }}
-    project: dna  
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: code-server
+    namespace: {{ .Values.env }}-dna-code-server
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/code-server-backend
@@ -23,7 +23,7 @@ spec:
       releaseName: code-server-be
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

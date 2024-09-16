@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: fabric-frontend
+  name: {{ .Values.env }}-dna-fabric-frontend
   namespace: {{ .Values.namespace }}
   labels:
     name: frontend 
     env: {{ .Values.env }}
-    project: dna 
+    project: {{ .Values.env }}-dna 
 spec:
   destination:
-    namespace: fabric
+    namespace: {{ .Values.env }}-dna-fabric
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/fabric-mfe
@@ -23,7 +23,7 @@ spec:
       releaseName: fabric-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

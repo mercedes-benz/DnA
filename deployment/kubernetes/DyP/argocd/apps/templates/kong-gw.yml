@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-kong-gw
+  name: {{ .Values.env }}-dna-kong-gw
   namespace: {{ .Values.namespace }}
   labels:
     name: gateway
     env: {{ .Values.env }}
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: kong
+    namespace: {{ .Values.env }}-dna-kong
     server: {{ .Values.server | squote }}
   source:
     path: deployment/helm
@@ -24,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-{{ .Values.env }}.yaml -n kong
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

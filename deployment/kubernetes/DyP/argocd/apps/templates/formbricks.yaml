@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: formbricks
+  name: {{ .Values.env }}-dna-formbricks
   namespace: {{ .Values.namespace }}
   labels:
     name: service
     env: {{ .Values.env }}
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: formbricks
+    namespace: {{ .Values.env }}-dna-formbricks
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/formbricks
@@ -24,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS         
           value: -f values-{{ .Values.env }}.yaml -n formbricks      
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

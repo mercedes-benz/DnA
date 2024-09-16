@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: datalake-frontend
+  name: {{ .Values.env }}-dna-datalake-frontend
   namespace: {{ .Values.namespace }}
   labels:
     name: frontend
     env: {{ .Values.env }}
-    project: dna  
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: datalake
+    namespace: {{ .Values.env }}-dna-datalake
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/datalake-mfe
@@ -23,7 +23,7 @@ spec:
       releaseName: dna-datalake-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

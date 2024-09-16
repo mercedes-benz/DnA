@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: storage-backend
+  name: {{ .Values.env }}-dna-storage-backend
   namespace: {{ .Values.namespace }}
   labels:
     name: backend 
     env: {{ .Values.env }}
-    project: dna 
+    project: {{ .Values.env }}-dna 
 spec:
   destination:
-    namespace: storage
+    namespace: {{ .Values.env }}-dna-storage
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/storage-be
@@ -23,7 +23,7 @@ spec:
       releaseName: dna-storage-be
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

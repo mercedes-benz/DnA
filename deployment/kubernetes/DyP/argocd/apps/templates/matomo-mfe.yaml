@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: matomo-frontend
+  name: {{ .Values.env }}-dna-matomo-frontend
   namespace: {{ .Values.namespace }}
   labels:
     name: frontend
     env: {{ .Values.env }}
-    project: dna  
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: matomo
+    namespace: {{ .Values.env }}-dna-matomo
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/matomo-mfe
@@ -23,7 +23,7 @@ spec:
       releaseName: matomo-mfe
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

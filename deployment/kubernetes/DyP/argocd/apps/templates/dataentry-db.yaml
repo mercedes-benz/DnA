@@ -5,15 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dataentry-db
+  name: {{ .Values.env }}-dna-dataentry-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
     env: {{ .Values.env }}
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: dataentry
+    namespace: {{ .Values.env }}-dna-dataentry
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -28,7 +28,7 @@ spec:
           {{ else }}
           value: -f values-dataentry-db-{{ .Values.env }}.yaml
           {{- end }}             
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
