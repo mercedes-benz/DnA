@@ -524,7 +524,7 @@ const CodeSpaceCardItem = (props) => {
                               Restart Deployed Application
                             </span>
                           </li>
-                         )}
+                        )}
                       </>
                     )}
                     <li>
