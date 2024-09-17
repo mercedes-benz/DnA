@@ -71,7 +71,9 @@ jobs:
     env:
       IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/cs-default'
     needs: build
-    uses: ./.github/workflows/consec.yaml
-    with:
-      FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
-    secrets: inherit 
+    steps:
+      - name: Run container security scan
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: ${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}
+        secrets: inherit
