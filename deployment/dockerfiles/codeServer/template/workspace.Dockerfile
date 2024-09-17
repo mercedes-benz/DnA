@@ -1,5 +1,5 @@
 # Author : Sathishkumar
-FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.90.3
+FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.92.2
 COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
 USER root
 
@@ -15,9 +15,9 @@ RUN sudo apt-get update \
  jq \
  net-tools \
  postgresql-client \
- libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev wget build-essential libreadline-dev liblzma-dev
+ libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev wget build-essential libreadline-dev \
+ make llvm libncurses5-dev xz-utils liblzma-dev python3-openssl iputils-ping telnet netcat-traditional dnsutils traceroute tcpdump
 
- 
 #Install Minio Client
 WORKDIR /usr/local/bin/
 RUN sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc
