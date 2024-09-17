@@ -139,6 +139,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
             );
           })
         : 'NA';
+    const solChips =  description?.relatedSolutions && description?.relatedSolutions?.length
+    ? description.relatedSolutions?.map((chip: any, index: any) => {
+        return (
+          <div className="chips read-only" key={index}>
+            <label className="name">{chip.name}</label>
+          </div>
+        );
+      })
+    : 'NA';
     const pdfFileName = reportName?.replace(/[/|\\:*?"<>]/g, '').replace(/ /g, '-');
     const reportLink = this.props.reportLink;
 
@@ -228,26 +237,26 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     {description.division?.subdivision?.name ? description.division.subdivision.name : 'NA'}
                   </div>
                   <div id="department">
-                    <label className="input-label summary">E2-Department</label>
+                    <label className="input-label summary">Department</label>
                     <br />
                     {description.department ? description.department : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                  <div id="productPhase">
-                    <label className="input-label summary">Report Type</label>
+                  <div id="dataClassification">
+                    <label className="input-label summary">Data Classification</label>
                     <br />
-                    {description.reportType && description?.reportType != '0' ? description.reportType : 'NA'}
+                    {description?.dataClassification && description?.dataClassification != null ? description?.dataClassification : 'NA'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
                     <br />
                     {description.status ? description.status : 'NA'}
                   </div>
-                  <div id="integratedinportal">
-                    <label className="input-label summary">Integrated In Portal</label>
+                  <div id="archerId">
+                    <label className="input-label summary">Archer Id</label>
                     <br />
-                    {description.integratedPortal && description?.integratedPortal != '0' ? description.integratedPortal : 'NA'}
+                    {description?.archerId && description?.archerId != null ? description?.archerId : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -265,6 +274,13 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
                     {description.frontendTechnologies?.join(', ')}
+                  </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id= 'relatedSolutions'>
+                  <label className="input-label summary">Related Solution</label>
+                    <br />
+                    <div className={Styles.tagColumn}>{solChips}</div>
                   </div>
                 </div>
               </div>
