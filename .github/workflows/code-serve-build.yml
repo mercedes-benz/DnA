@@ -68,9 +68,9 @@ jobs:
           
   css-scan:
     name: Container security scan
-    needs: build
     env:
       IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/cs-default'
+    needs: build
     uses: ./.github/workflows/consec.yaml
     with:
       FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
