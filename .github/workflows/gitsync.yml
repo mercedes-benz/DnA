@@ -1,0 +1,93 @@
+name: 1. Git Sync
+on:
+  workflow_dispatch:
+    inputs:
+      publicBranch:
+        description: 'Public Branch name'
+        required: true  
+      privateBranch:
+        description: 'Private Branch name'
+        default: dev
+        required: true         
+        type: choice
+        options: 
+          - dev
+          - staging
+          - main   
+      reviewers:
+        description: 'Reviewers'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,VKURAPA'
+        required: true   
+
+env:
+  PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
+  DEST_REPO: git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
+
+jobs:
+  gitsync:
+    name: "Git Sync"
+    runs-on: [os-medium-amd64-linux ]
+    steps:
+
+      - name: Check Source Branch
+        run: |
+          if [[ "${{ github.event.inputs.publicBranch }}" == *"feature"* || "${{ github.event.inputs.publicBranch }}" == *"bugfix"* || "${{ github.event.inputs.publicBranch }}" == *"hotfix"* || "${{ github.event.inputs.publicBranch }}" == *"infra"*  ]]; then
+            echo "Public Branch name: ${{ github.event.inputs.publicBranch }}"
+          else
+            echo "Public Branch name does not valid"
+            echo "Given Branch name: ${{ github.event.inputs.publicBranch }}"
+            exit 1
+          fi
+
+      - name: Sync code with Public repo
+        uses: wei/git-sync@v3
+        with:
+          source_repo: "$PUBLIC_SRC_REPO"
+          source_branch: "${{ github.event.inputs.publicBranch }}"
+          destination_repo: "https://${{ secrets.PID_PAT }}@$DEST_REPO"
+          destination_branch: "${{ github.event.inputs.publicBranch }}-${{ github.event.inputs.privateBranch }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: '${{ github.event.inputs.publicBranch }}-${{ github.event.inputs.privateBranch }}'  
+          fetch-depth: 0  
+
+      - name: Get Head Commit Message
+        id: get_head_commit_message
+        run: |
+          echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        uses: thomaseizinger/create-pull-request@master
+        id: cpr
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.publicBranch }}-${{ github.event.inputs.privateBranch }}
+          base: ${{ github.event.inputs.privateBranch }}
+          labels: "public,${{ github.event.inputs.privateBranch }},${{ github.event.inputs.publicBranch }}"
+          reviewers: ${{ github.event.inputs.reviewers }}
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Print pull request details
+        if: ${{ steps.cpr.outputs.number && github.event.inputs.privateBranch == 'dev' }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
+
+      - name: Dev pull request merge
+        if: ${{ github.event.inputs.privateBranch == 'dev' }} 
+        uses: sudo-bot/action-pull-request-merge@v1.2.0
+        with:
+          github-token: ${{ secrets.PID_PAT }}
+          number: ${{ steps.cpr.outputs.number }}
+          filter-label: dev        
+                           
+  create-public-pr:
+        name: Create and Merge Public PR
+        needs: gitsync
+        if: ${{ github.event.inputs.privateBranch == 'main' }} 
+        uses: ./.github/workflows/public-repo-pr.yml
+        with:
+          head: '${{ github.event.inputs.publicBranch }}'
+        secrets: inherit  
