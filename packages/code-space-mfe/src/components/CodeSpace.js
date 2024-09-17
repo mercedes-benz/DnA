@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 // @ts-ignore
 import Notification from '../common/modules/uilab/js/src/notification';
 // @ts-ignore
@@ -23,11 +23,12 @@ import { CodeSpaceApiClient } from '../apis/codespace.api';
 import { getParams } from '../Utility/utils';
 import classNames from 'classnames';
 import { CODE_SPACE_TITLE } from '../Utility/constants';
-import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../Utility/constants';
+// import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../Utility/constants';
 import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
+import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
 
 // export interface ICodeSpaceProps {
@@ -155,10 +156,14 @@ const CodeSpace = (props) => {
   const [serverStarted, setServerStarted] = useState(true);
   const [serverProgress, setServerProgress] = useState(0);
 
+  const [showStagingActions, setShowStagingActions] = useState(true);
+  const [showProdActions, setShowProdActions] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
 
   const livelinessIntervalRef = React.useRef();
+  const stagingWrapperRef = useRef(null);
+  const prodWrapperRef = useRef(null);
 
   // const [branchValue, setBranchValue] = useState('main');
   // const [deployEnvironment, setDeployEnvironment] = useState('staging');
@@ -182,6 +187,8 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
+
+  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -239,6 +246,8 @@ const CodeSpace = (props) => {
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
+    setRippleAnimation(prodWrapperRef.current);
+    setRippleAnimation(stagingWrapperRef.current);
     setContextMenuOffsetTop(e.currentTarget.offsetTop - 17);
     setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 230);
     setShowContextMenu(!showContextMenu);
@@ -496,7 +505,8 @@ const CodeSpace = (props) => {
   };
 
   const projectDetails = codeSpaceData?.projectDetails;
-  const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
@@ -520,10 +530,10 @@ const CodeSpace = (props) => {
 
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
+      window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
       return;
     }
-    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}`, '_blank');
+    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
@@ -567,7 +577,7 @@ const CodeSpace = (props) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}>
+                <h2 tooltip-data={projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}>
                   {projectDetails.projectName}
                 </h2>
               </div>
@@ -736,6 +746,13 @@ const CodeSpace = (props) => {
                           </>
                         )}
                         <li>
+                          <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                            onClick={() => {
+                              setShowStagingActions(!showStagingActions);
+                            }}
+                          >
+                            <div>
                           <strong>Staging:</strong>{' '}
                           {intDeploymentDetails?.lastDeployedBranch
                             ? `[Branch - ${codeDeployedBranch}]`
@@ -743,7 +760,19 @@ const CodeSpace = (props) => {
                           <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                             (DORA Metrics)
                           </span>
+                            </div>
+                            <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')} >
+                              {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                <>
+                                  <span className={classNames('animation-wrapper',Styles.animationWrapper)}></span>
+                                  <i className={classNames("icon down-up-flip")}></i>
+                                </>
+                              )}
+                            </div>
+                          </button>
                         </li>
+                        {showStagingActions && (
+                          <>
                         {isAPIRecipe && isOwner && (
                           <li>
                             <span
@@ -809,19 +838,40 @@ const CodeSpace = (props) => {
                               Restart Deployed Application
                             </span>
                           </li>
+                            )}
+                          </>
                         )}
                         <li>
                           <hr />
                         </li>
                         <li>
+                          <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                            onClick={() => {
+                              setShowProdActions(!showProdActions);
+                            }}
+                          >
+                            <div>
                           <strong>Production:</strong>{' '}
                           {prodDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${prodCodeDeployedBranch}]`
+                              ? `[Branch - ${prodCodeDeployedBranch}]`
                             : 'No Deployment'}
                           <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                             (DORA Metrics)
                           </span>
+                            </div>
+                            <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
+                              {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                <>
+                                  <span className={classNames('animation-wrapper',Styles.animationWrapper)}></span>
+                                  <i className={classNames("icon down-up-flip")}></i>
+                                </>
+                              )}
+                            </div>
+                          </button>
                         </li>
+                        {showProdActions && (
+                          <>
                         {isAPIRecipe && isOwner && (
                           <li>
                             <span
@@ -887,6 +937,8 @@ const CodeSpace = (props) => {
                               Restart Deployed Application
                             </span>
                           </li>
+                            )}
+                          </>
                         )}
                       </ul>
                     </div>

@@ -52,6 +52,9 @@ export default class SecurityConfig extends React.Component {
     this.state = {
       id: '',
       projectName: '',
+      intIAM:'false',
+      prodIAM:'false',
+      showRedeployWarningModal: false,
       editMode: false,
       currentTab: 'stagingEntitlement',
       nextTab: 'productionEntitlement',
@@ -77,7 +80,9 @@ export default class SecurityConfig extends React.Component {
       id = params?.id.split('?name=')[0];
     }
     const name = getQueryParam('name');
-    this.setState({ projectName: name });
+    const intIAMEnabled = getQueryParam('intIAM');
+    const prodIAMEnabled = getQueryParam('prodIAM');
+    this.setState({projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled});
     const path = getPath();
     SelectBox.defaultSetup();
     InputFields.defaultSetup();
@@ -97,24 +102,16 @@ export default class SecurityConfig extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     if (this.state.currentTab !== prevState.currentTab) {
       // this.setState({ isSaved: false });
-      const params = getParams();
-      let id = params?.id;
-      if (id.includes('?name=')) {
-        id = params?.id.split('?name=')[0];
-      }
-      const name = getQueryParam('name');
-      this.setState({ projectName: name });
       const path = getPath();
       SelectBox.defaultSetup();
       InputFields.defaultSetup();
-      this.setState({ id: id });
       if (path.includes('publishedSecurityconfig')) {
         this.setState({
           readOnlyMode: true,
         });
-        !this.state.showStagingModal ? this.getPublishedConfig(id, 'prod') : this.getPublishedConfig(id, 'int');
+        !this.state.showStagingModal ? this.getPublishedConfig(this.state.id, 'prod') : this.getPublishedConfig(this.state.id, 'int');
       } else {
-        !this.state.showStagingModal ? this.getConfig(id, 'prod') : this.getConfig(id, 'int');
+        !this.state.showStagingModal ? this.getConfig(this.state.id, 'prod') : this.getConfig(this.state.id, 'int');
       }
     }
   }
@@ -214,6 +211,20 @@ export default class SecurityConfig extends React.Component {
   };
 
   onPublish = (config, env) => {
+    CodeSpaceApiClient.getPublishedConfig(this.state.id, env)
+    .then((res) => {
+      let IAMEnabled = 'false';
+      if(env === 'int'){
+        IAMEnabled = this.state.intIAM
+      } 
+      else{
+        IAMEnabled = this.state.prodIAM
+      }
+      ((!res?.data) && IAMEnabled === 'true' )? this.setState({showRedeployWarningModal:true}) : this.setState({showRedeployWarningModal:false});
+    })
+    .catch((error) => {
+      this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+    });
     this.setState(
       {
         config: config,
@@ -300,7 +311,7 @@ export default class SecurityConfig extends React.Component {
 
   navigateEditOrReadOnlyMode = () => {
     if (this.state.readOnlyMode) {
-      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}`);
+      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM === 'true' ? 'true' : 'false'}?prodIAM=${this.state.prodIAM === 'true' ? 'true' : 'false'}`);
     } else {
       this.setState({
         editModeNavigateModal: true,
@@ -398,6 +409,15 @@ export default class SecurityConfig extends React.Component {
             </div>
           </div>
           <ConfirmModal
+            title=""
+            acceptButtonTitle="OK"
+            showAcceptButton={true}
+            showCancelButton={false}
+            show={this.state.showRedeployWarningModal}
+            content={<div id="contentparentdiv">Please redeploy by reentering the client id and client secret for the authorization changes to be reflected. Note that only authentication will be handled unless you redeploy.</div>}
+            onAccept={() => {this.setState({showRedeployWarningModal: false})}}
+          />
+          <ConfirmModal
             title="Are you sure you want to Navigate ?"
             acceptButtonTitle="Navigate"
             cancelButtonTitle="Cancel"
@@ -424,7 +444,7 @@ export default class SecurityConfig extends React.Component {
               });
             }}
             onAccept={() => {
-              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}`);
+              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM === 'true' ? 'true' : 'false'}?prodIAM=${this.state.prodIAM === 'true' ? 'true' : 'false'}`);
             }}
           />
         </div>

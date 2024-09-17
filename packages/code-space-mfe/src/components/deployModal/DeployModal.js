@@ -12,8 +12,9 @@ import Modal from 'dna-container/Modal';
 // import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from '../../Utility/constants';
 // import { Envs } from '../../Utility/envs';
-import { trackEvent } from '../../Utility/utils';
+import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
+import Tags from 'dna-container/Tags';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -44,7 +45,8 @@ import TextBox from 'dna-container/TextBox';
 const DeployModal = (props) => {
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState(true);
   const [branches, setBranches] = useState([]);
-  const [branchValue, setBranchValue] = useState('main');
+  const [branchValue, setBranchValue] = useState(['main']);
+  const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
   // const [vaultEnabled, setVaultEnabled] = useState(false);
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
@@ -63,6 +65,25 @@ const DeployModal = (props) => {
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
 
   useEffect(() => {
+  const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
+  const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
+  let lastDeployedBranch = 'main';
+  if(intDeployLogs.length || prodDeployLogs.length){
+    const intLastDeployedTime = new Date(
+      regionalDateAndTimeConversionSolution(
+        intDeployLogs[(intDeployLogs.length)-1]?.triggeredOn || 0
+      ),
+    ).getTime();
+  
+    const prodLastDeployedTime = new Date(
+      regionalDateAndTimeConversionSolution(
+        prodDeployLogs[(prodDeployLogs.length)-1]?.triggeredOn || 0
+      ),
+    ).getTime();
+  
+    lastDeployedBranch = intLastDeployedTime > prodLastDeployedTime ? intDeployLogs[(intDeployLogs.length)-1]?.branch : prodDeployLogs[(prodDeployLogs.length)-1]?.branch ;
+    setBranchValue([lastDeployedBranch]);
+  }
     setClientId('');
     setClientIdError('');
     setClientSecret('');
@@ -75,7 +96,11 @@ const DeployModal = (props) => {
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeDeployModal(true);
-        setBranches(res.data);
+        let branches = res?.data;
+        branches.forEach(element => {
+          element.id = element.name;
+        });
+        setBranches(branches);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
         setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
@@ -106,8 +131,9 @@ const DeployModal = (props) => {
     });
   };
 
-  const onBranchChange = (e) => {
-    setBranchValue(e.currentTarget.value);
+  const onBranchChange = (selectedTags) => {
+    setBranchValue(selectedTags);
+    setIsBranchValueMissing(false);
   };
 
   const onChangeSecureWithIAM = (e) => {
@@ -195,12 +221,16 @@ const DeployModal = (props) => {
       formValid = false;
       setClientSecretError('*Missing Entry');
     }
+    if(branchValue.length === 0){
+      formValid = false;
+      setIsBranchValueMissing(true);
+    }
     if (formValid) {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
         // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
         targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-        branch: branchValue,
+        branch: branchValue[0],
         // valutInjectorEnable: vaultEnabled,
         clientID: clientId,
         clientSecret: clientSecret,
@@ -258,20 +288,19 @@ const DeployModal = (props) => {
           </p>
           <div className={Styles.flexLayout}>
             <div>
-              <div id="branchContainer" className="input-field-group">
-                <label id="branchLabel" className="input-label" htmlFor="branchSelect">
-                  Code Branch to Deploy
-                </label>
-                <div id="branch" className="custom-select">
-                  <select id="branchSelect" onChange={onBranchChange} value={branchValue}>
-                    {branches.map((obj) => (
-                      <option key={obj.name} id={obj.name + '-branch'} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                <Tags
+                  title={'Code Branch to Deploy'}
+                  max={1}
+                  chips={branchValue}
+                  placeholder={'Type here...'}
+                  tags={branches}
+                  setTags={onBranchChange}
+                  isMandatory={true}
+                  showMissingEntryError={isBranchValueMissing}
+                  showAllTagsOnFocus={true}
+                  disableSelfTagAdd={true}
+                  suggestionPopupHeight={150}
+                />
             </div>
             <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
