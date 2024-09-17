@@ -1,4 +1,4 @@
-/* LICENSE START
+ /* LICENSE START
  * 
  * MIT License
  * 
@@ -24,38 +24,21 @@
  * 
  * LICENSE END 
  */
-
 package com.daimler.data.db.jsonb.report;
 
 import java.io.Serializable;
-import java.util.List;
- 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
- 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
- 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Description implements Serializable {
- 
-	private static final long serialVersionUID = 152482308131566126L;
- 
-	private String productDescription;
-	private String reportLink;
-	private String piiData;
-	private String status;
-	private List<ProjectDetails> relatedSolutions;
-	private String dataClassification;
-	private String archerId;
-	private List<String> frontendTechnologies;
-	private List<String> tags;
-	private String agileReleaseTrain;
-	private String department;
-	private Division division;
-	private String procedureId;
- }
- 
+public class ProjectDetails implements Serializable {
+
+    private static final long serialVersionUI = 1L; 
+    private String id;
+    private String name;
+
+}
