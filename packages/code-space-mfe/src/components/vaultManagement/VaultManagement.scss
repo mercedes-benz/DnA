@@ -31,6 +31,41 @@
         color: #00adef;
       }
     }
+    .searchBox{
+      width: 200px;
+      margin: 0px;
+    }
+    .searchPanel{
+      display: flex;
+      background: none !important;
+      i{
+        font-size: var(--font-size-icon-content) !important;
+        position: absolute;
+        color: #57626e;
+      }
+    }
+    .noData{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      background-color: #252a33;
+      text-align: center;
+      width: calc(100% - 40px);
+      height: 200px;
+    }
+    
+    .searchField{
+      width: 200px;
+    }
+    .searchIcon{
+      margin-left: 180px;
+      margin-top: 12px;
+    }
+    .copyIcon{ 
+      font-size: 13px !important;
+      margin-bottom: 10px !important;
+    }
 
     .allCodeSpace {
       margin-bottom: 15px;
@@ -39,7 +74,7 @@
   
       .allcodeSpaceListviewContent {
         background-color: #252a33;
-        padding-top: 20px;
+        //padding-top: 20px;
         // overflow-x:auto
   
         .codeSpaceMargininone {
