@@ -257,6 +257,12 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       if (target.value) {
         this.updateChips(target.value);
       }
+      else{
+        this.setState({
+          userInput: '',
+          filteredTags: [],
+        });
+      }
     } else {
       this.setState({
         userInput: '',
