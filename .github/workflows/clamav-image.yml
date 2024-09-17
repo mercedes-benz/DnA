@@ -1,0 +1,118 @@
+#Author: KAMERAO
+# This is the build & deploy workflow for Clamav Malware Scanner base image
+
+name: Build & Publish Clamav Docker image
+on:
+  workflow_dispatch:  
+  schedule:
+    - cron:  '0 1 */1 * *' # every day at midnight
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot  
+  IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/clamav
+  CLAMAV_VERSION: '1.0.1'
+jobs:
+  
+  build:
+    name: "Build Clamav Docker Image"
+    runs-on: [os-medium-amd64-linux]
+    outputs:
+      date: ${{ steps.date.outputs.date }}
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    # - name: Copy virus db
+    #   working-directory: ./deployment/dockerfiles/clamav
+    #   run: |
+    #     mkdir runner-db
+    #     cp -r /var/lib/clamav/*.* ./runner-db/
+    
+    - name: Get current date
+      id: date
+      run:  |
+        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+    - name: Build image
+      working-directory: ./deployment/dockerfiles/clamav/1.0.1
+      run: docker  build . --file clamav.Dockerfile --tag $IMAGE_NAME:$CLAMAV_VERSION --tag $IMAGE_NAME:${{ steps.date.outputs.date }}    
+
+    - name: Log into DNA Registry
+      run: echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker  login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+      
+    - name: Push image
+      run: |
+        docker  push $IMAGE_NAME:$CLAMAV_VERSION
+        docker  push $IMAGE_NAME:${{ steps.date.outputs.date }} 
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-dev.yaml
+        propertyPath: 'image.repo'
+        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ steps.date.outputs.date }}"
+        branch: dev
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ steps.date.outputs.date }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }} 
+
+  css-scan:
+        name: Container security scan
+        needs: build
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}'
+        secrets: inherit
+
+  staging:
+    name: "Update tag staging"
+    needs: build
+    runs-on: [road-runner]
+    
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: 'staging' 
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-test.yaml
+        propertyPath: 'image.repo'
+        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
+        branch: staging
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}  
+
+  main:
+    name: "Update tag main"
+    needs: build
+    runs-on: [road-runner]
+    
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: 'main' 
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-prod.yaml
+        propertyPath: 'image.repo'
+        value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
+        branch: main
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}  
+

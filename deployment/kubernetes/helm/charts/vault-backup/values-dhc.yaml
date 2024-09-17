@@ -1,0 +1,32 @@
+schedule: <path:kv/data/dna/kubernetesSecret/vaultBackup#schedule>
+restartPolicy: OnFailure
+successfulJobsHistoryLimit: 1
+namespace: vault
+
+backup:
+  image:
+    name: registry-emea.app.corpintra.net/dnaplatform/vault/medusa
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  #Add new env as array value with name/value field. Keep one tab indentation.
+  envs:
+    - name: VAULT_SKIP_VERIFY
+      value: "true"
+    - name: VAULT_ADDR
+      value: <path:kv/data/dna/kubernetesSecret/vaultBackup#address>
+    - name: VAULT_PATH
+      value: <path:kv/data/dna/kubernetesSecret/vaultBackup#path>
+    - name: VAULT_TOKEN
+      value: <path:kv/data/dna/kubernetesSecret/vaultBackup#token>
+
+minio:
+  image:
+    name: registry-emea.app.corpintra.net/dnaplatform/minio/minio-client
+    tag: 2022.1.25-debian-10-r2
+    pullPolicy: IfNotPresent
+  bucket: <path:kv/data/dna/kubernetesSecret/vaultBackup#bucket>
+  endpoint: <path:kv/data/dna/kubernetesSecret/vaultBackup#endpoint>
+  accessKey: <path:kv/data/dna/kubernetesSecret/vaultBackup#accessKey>
+  secretKey: <path:kv/data/dna/kubernetesSecret/vaultBackup#secretKey>
+  fileName: <path:kv/data/dna/kubernetesSecret/vaultBackup#fileName>
