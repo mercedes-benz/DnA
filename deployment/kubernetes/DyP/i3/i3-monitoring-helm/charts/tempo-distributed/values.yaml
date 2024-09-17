@@ -1022,9 +1022,6 @@ memberlist:
   bind_port: 7946
   packet_dial_timeout: "5s"
   packet_write_timeout: "5s"
-  join_members:
-   - tempo-distributor.{{ .Release.Namespace }}.svc.cluster.local
-   - tempo-ingester.{{ .Release.Namespace }}.svc.cluster.local
 
 # -- Config file contents for Tempo distributed. Passed through the `tpl` function to allow templating
 
@@ -1267,6 +1264,8 @@ config: |
     {{- end }}
     join_members:
       - dns+{{ include "tempo.fullname" . }}-gossip-ring:{{ .Values.memberlist.bind_port }}
+      - tempo-distributor.{{ .Release.Namespace }}.svc.cluster.local
+      - tempo-ingester.{{ .Release.Namespace }}.svc.cluster.local
   overrides:
     {{- toYaml .Values.global_overrides | nindent 2 }}
   server:
