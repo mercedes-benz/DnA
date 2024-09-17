@@ -50,7 +50,7 @@ jobs:
       env:
         CORP_CA_BASE64: ${{ secrets.CORP_CA_BASE64 }}
       run: |
-        echo "$CORP_CA_BASE64" | base64 --decode > ./${{ matrix.type }}/Corp-Root-CA-G2.crt
+        echo "$CORP_CA_BASE64" | base64 --decode > ./deployment/dockerfiles/codeServer/default/Corp-Root-CA-G2.crt
 
     - name: Login Registry
       run: | 
