@@ -9,7 +9,7 @@ on:
     inputs:   
       type:
         description: "Workspace type" 
-        default: "['template']"
+        default: "['default']"
         required: true
         type: string
   # push:
@@ -30,6 +30,7 @@ env:
   RUNNER_ALLOW_RUNASROOT: 1
   ### Imp: Also update the version in code-server-manager.yml in dna-codeserver-backend repo
   ### If you are using jupyterhub, update the image version
+  IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/cs-default
   IMAGE_CODE_SERVER: 4.92.2 # This is the version of the code-server image
 
 jobs:
@@ -57,7 +58,7 @@ jobs:
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         
     - name: Build Code Server
-      working-directory: ./deployment/dockerfiles/codeServer/template
+      working-directory: ./deployment/dockerfiles/codeServer/default
       run: | 
        docker build -t registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:$IMAGE_CODE_SERVER -f workspace.Dockerfile .
 
