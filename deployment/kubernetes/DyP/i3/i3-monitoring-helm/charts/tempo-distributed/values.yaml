@@ -374,7 +374,7 @@ metricsGenerator:
 # Configuration for the distributor
 distributor:
   # -- Number of replicas for the distributor
-  replicas: 1
+  replicas: 2
   # -- hostAliases to add
   hostAliases: []
   #  - ip: 1.2.3.4
@@ -476,6 +476,21 @@ distributor:
       enabled: true
       include_all_attributes: true
       filter_by_status_error: true
+    
+    # Optional.
+    # Enable to log every discarded span to help debug ingestion or calculate span error distributions using the logs.
+    log_discarded_spans:
+      enabled: true
+      include_all_attributes: true
+      filter_by_status_error: true
+
+    # Optional.
+    # Enable to metric every received span to help debug ingestion
+    # This is not recommended for production environments
+    metric_received_spans:
+      enabled: true
+      root_only: true
+
     # -- Disables write extension with inactive ingesters
     extend_writes: null
   # -- Adds the appProtocol field to the distributor service. This allows distributor to work with istio protocol selection.
