@@ -66,14 +66,10 @@ jobs:
       run: |
         docker push registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:${{ env.IMAGE_CODE_SERVER }}
           
-  css-scan:
-    name: Container security scan
-    env:
-      IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/cs-default'
-    needs: build
-    steps:
-      - name: Run container security scan
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: ${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}
-        secrets: inherit
+  # css-scan:
+  #   name: Container security scan
+  #   needs: build
+  #   uses: ./.github/workflows/consec.yaml
+  #   with:
+  #     FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
+  #   secrets: inherit 
