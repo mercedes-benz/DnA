@@ -1218,8 +1218,8 @@ definitions:
         type: string
       secureWithIAMRequired:
         type: boolean
-      technicalUserDetailsForIAMLogin:
-        type: string
+      # technicalUserDetailsForIAMLogin:
+      #   type: string
       # valutInjectorEnable:  # Corrected property name
       #   type: boolean
         default: false  # This should now work as expected
@@ -1227,6 +1227,15 @@ definitions:
         type: string
       clientSecret:
         type: string
+      redirectUri:
+        type: string
+      ignorePaths:
+        type: string
+      scope:
+        type: string
+      isApiRecipe:
+        type: boolean
+        required: true
 
 
            
