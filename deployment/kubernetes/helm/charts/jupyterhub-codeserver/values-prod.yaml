@@ -190,7 +190,7 @@ hub:
               'successThreshold': 1,
               'failureThreshold': 10
             }
-          }        
+          }
 
   #   livenessProbe:
   #     httpGet:
@@ -554,7 +554,7 @@ singleuser:
               cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
-
+             
               # Copy extentions
               mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
               mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
@@ -1165,7 +1165,7 @@ singleuser:
               - |
                   if [ -d "/home/coder/app" ]; then
                     echo "Directory is already present"
-                  else              
+                  else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
                     git checkout $GIT_BRANCH
@@ -1354,7 +1354,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH   
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
