@@ -80,6 +80,7 @@ public class RecipeController implements CodeServerRecipeApi {
 		recipeRequestVO.setCreatedBy(currentUserVO);
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
+		recipeRequestVO.setIsDeployEnabled(false);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
@@ -98,13 +99,13 @@ public class RecipeController implements CodeServerRecipeApi {
 				log.info("The creation of a recipe failed due to an unspecified recipe name. "+recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 			} else {
-				responseMessage.setData(null);
+				responseMessage.setData(softwareMessage.getErrors());
 				responseMessage.setSuccess("FAILED");
 				log.info("The software creation process failed in the Git repository for the recipe."+recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 			}
 		} else {
-			responseMessage.setData(null);
+			responseMessage.setData("Recipe name already exist. Kindly give a unique name");
 			responseMessage.setSuccess("CONFLICT");
 			log.info("workspace {} already exists for User {} with name: {} ", recipeName);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
