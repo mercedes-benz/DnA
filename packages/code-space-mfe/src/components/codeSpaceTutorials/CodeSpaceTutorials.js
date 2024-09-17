@@ -9,57 +9,39 @@ const CodeSpaceTutorials = () => {
   const codespaceTutorials = [
     {
       id: '1',
-      title: "Introduction to codespaces",
+      title: "Introduction to Codespaces",
       url:'code-space-tutorials/Intoduction.mp4',
       description: "An overview of what codespaces are and how they can be used."
     },
     {
       id: '2',
-      title: "How to create codespace",
+      title: "How to create a new Codespace",
       url: "code-space-tutorials/Creation of codespaces.mp4",
       description: "Step-by-step guide on creating a new codespace."
     },
     {
       id: '3',
-      title: "Alice configuration - Staging",
-      url: "code-space-tutorials/Alice Configuration - Staging.mp4",
-      description: "Configuring Alice for staging environments."
+      title: "How to deploy and monitor a Codespace",
+      url: "code-space-tutorials/Deployment and View Log.mp4",
+      description: "Deploy the code in stagging or production environment and monitoring the build & deployed application logs."
     },
     {
       id: '4',
-      title: "Alice configuration - Production",
-      url: "code-space-tutorials/Alice Configuration - Production.mp4",
-      description: "Configuring Alice for production environments."
+      title: "How to manage secrets in a Codespace",
+      url: "code-space-tutorials/EnvironmentVariableConfig.mp4",
+      description: "Configure secrets for your deployed applications using environment variables "
     },
     {
       id: '5',
-      title: "Secret Management - Staging",
-      url: "code-space-tutorials/Secret Management - Staging.mp4",
-      description: "Managing secrets in staging environments."
+      title: "How to configure security in a Codespace",
+      url: "code-space-tutorials/securityConfig.mp4",
+      description: "Security configuration in codespaces using IAM authentication and Alice authorization"
     },
     {
       id: '6',
-      title: "Secret Management - Production",
-      url: "code-space-tutorials/Secret Management - Production.mp4",
-      description: "Managing secrets in production environments."
-    },
-    {
-      id: '7',
-      title: "Deployment and view logs - Staging",
-      url: "code-space-tutorials/Staging - Deployment and View Log.mp4",
-      description: "How to deploy and view logs in staging environment."
-    },
-    {
-      id: '8',
-      title: "Deployment and view logs - Production",
-      url: "code-space-tutorials/Production - Deployment and view logs.mp4",
-      description: "How to deploy and view logs in production environment."
-    },
-    {
-      id: '9',
-      title: "Python_Recipe",
-      url: "code-space-tutorials/Python_Recipe.mp4",
-      description: "A tutorial on Python recipes and use cases."
+      title: "E.g. Codespace that uses python fastAPI",
+      url: "code-space-tutorials/exampleCodespace-Python.mp4",
+      description: "An example codespace that uses python fastAPI"
     },
   ];
 
