@@ -65,9 +65,7 @@ import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from 'globals/constants';
 import { TeamMemberType } from 'globals/Enums';
 import Caption from '../shared/caption/Caption';
-import { Envs } from 'globals/Envs';
 
-const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 const classNames = cn.bind(Styles);
 
@@ -106,7 +104,8 @@ export interface ICreateNewReportState {
   tags: ITag[];
   departmentTags: IDepartment[];
   fieldsMissing: boolean;
-  kpiClassifications: IKpiClassification[]
+  kpiClassifications: IKpiClassification[],
+  allSolutions:ITag[],
 }
 
 export interface ICreateNewReportProps {
@@ -148,6 +147,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       ],
       dataWarehouses: [],
       // commonFunctions: [],
+      allSolutions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -174,14 +174,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           productPhase: null,
           status: null,
           agileReleaseTrain: '',
-          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
           reportLink: '',
-          reportType: null,
           piiData: '',
-          procedureId: procedureIdEnvs ? procedureIdEnvs: ''
+          procedureId: '',
+          dataClassification: '',
+          relatedSolutions: [],
         },
         kpis: [],
         customer: {
@@ -305,6 +305,18 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         ProgressIndicator.hide();
       }
     });
+    ReportsApiClient.getAllSolutions().then((response : any) => {
+      if (response) {
+        const allSolutions: ITag[] = response?.data?.solutions?.records?.map((rec : any) => { return {id: rec.id, name: rec.productName}}) || [];
+        this.setState(
+          (prevState) => ({
+            allSolutions,
+            report: {
+              ...prevState.report,
+            },
+          }));
+      }
+    });
 
     // ApiClient.getCreateNewSolutionData().then((response) => {
     //   if (response) {
@@ -395,7 +407,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 (item: any) => item.name === res.description.designGuideImplemented,
               );
               report.description.agileReleaseTrain = res.description.agileReleaseTrain;
-              report.description.integratedPortal = res.description.integratedPortal;
               report.description.tags = res.description.tags;
               const division=res.description.division;
               if(!division.subdivision || !division.subdivision.id){
@@ -404,9 +415,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.division = division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
               report.description.reportLink = res.description.reportLink;
-              report.description.reportType = res.description?.reportType;
               report.description.piiData = res.description?.piiData;
-              report.description.procedureId = res.description?.procedureId ? res.description?.procedureId : procedureIdEnvs;
+              report.description.procedureId = res.description?.procedureId ? res.description?.procedureId : '';
+              report.description.dataClassification = res.description?.dataClassification ?  res.description?.dataClassification : '';
+              report.description.relatedSolutions = res.description?.relatedSolutions ? res.description?.relatedSolutions : [];
+              report.description.archerId = res.description?.archerId ? res.description?.archerId : '';
               report.customer.internalCustomers = res.customer?.internalCustomers || [];
               report.customer.externalCustomers = res.customer?.externalCustomers || [];
               // report.customer.processOwners = res.customer?.processOwners || [];
@@ -525,6 +538,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               }
               enableQuickPath={this.state.report.usingQuickPath}
               refineReport={this.changeQuickPath}
+              dataClassifications = {this.state.dataClassifications}
+              allSolutions = {this.state.allSolutions}
             />
           ) : (
             <div id="create-report-tabs" className="tabs-panel">
@@ -609,6 +624,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                         this.setState({ subDivisions }, () => SelectBox.defaultSetup())
                       }
                       enableQuickPath={false}
+                      dataClassifications = {this.state.dataClassifications}
+                      allSolutions = {this.state.allSolutions}
                     />
                   )}
                 </div>
