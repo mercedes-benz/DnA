@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: datalake-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: frontend  
+spec:
+  destination:
+    namespace: datalake
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/helm/charts/datalake-mfe
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: dna-datalake-mfe
+      valueFiles:
+        - values-{{ .Values.env }}.yaml
+  project: dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}
