@@ -17,6 +17,12 @@ const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
 
+const baseUrlSolutions = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+
+const getSolutionsUrl = (endpoint: string) => {
+  return `${baseUrlSolutions}/${endpoint}`;
+};
+
 export class ReportsApiClient {
   public static get(endpoint: string) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.GET);
@@ -36,6 +42,9 @@ export class ReportsApiClient {
   public static delete(endpoint: string, body?: any) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
+  public static postSolutions(endpoint: string, body?:any) {
+    return ApiClient.fetch(getSolutionsUrl(endpoint), HTTP_METHOD.POST, body);
+  }
 
   public static getCreateNewReportData(): Promise<any[]> {
     return Promise.all([
@@ -54,12 +63,29 @@ export class ReportsApiClient {
       ApiClient.get('divisions'),
       this.get('departments'),
       this.get('lov/dataclassifications'),
-      this.get('lov/kpiClassifications'),
+      this.get('lov/kpiClassifications'), 
     ]);
   }
 
   public static createNewReport(data: ICreateNewReportRequest): Promise<ICreateNewReportRequest> {
     return this.post('reports', data);
+  }
+
+  public static getAllSolutions():Promise<any> {
+    const reqQuery = `limit:0,published:true`;
+      let resQuery = `totalCount
+        records {
+          id,
+          productName
+        }`;
+      const apiQuery = {
+        query: `query {
+          solutions(${reqQuery}){
+            ${resQuery}
+          }
+        }`,
+      };
+     return this.postSolutions('minified',apiQuery);
   }
 
   public static getReportById(id: string): Promise<ICreateNewReport> {
@@ -78,7 +104,7 @@ export class ReportsApiClient {
     divisions: string,
     agileReleaseTrains: string,
     departments: string,
-    processOwners: string,
+    //processOwners: string,
     productOwners: string,
     tags: string,
     limit: number,
@@ -87,7 +113,7 @@ export class ReportsApiClient {
     sortOrder: string,
     published?: boolean,
   ): Promise<any> {
-    let reqQuery = `division:"${divisions}",art:"${agileReleaseTrains}", department:"${departments}", tags:"${tags}",processOwner:"${processOwners}",offset:${offset},limit:${limit},sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
+    let reqQuery = `division:"${divisions}",art:"${agileReleaseTrains}", department:"${departments}", tags:"${tags}",offset:${offset},limit:${limit},sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {
       reqQuery += `,published:${published}`;
     }
@@ -116,20 +142,20 @@ export class ReportsApiClient {
     divisions: string,
     agileReleaseTrains: string,
     departments: string,
-    processOwners: string,
+    //processOwners: string,
     productOwners: string,
     sortBy: string,
     sortOrder: string,
     published?: boolean,
   ): Promise<any> {
-    let reqQuery = `division:"${divisions}",art:"${agileReleaseTrains}", department:"${departments}",processOwner:"${processOwners}",sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
+    let reqQuery = `division:"${divisions}",art:"${agileReleaseTrains}", department:"${departments}",sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {
       reqQuery += `,published:${published}`;
     }
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType, procedureId  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, frontendTechnologies, reportLink, procedureId, archerId, dataClassification, relatedSolutions{ id, name } },
         customer {
           internalCustomers {            
             customerRelation,
@@ -145,8 +171,7 @@ export class ReportsApiClient {
                 name
               }
             },
-            accessToSensibleData,
-            processOwner { firstName, lastName, department, shortId }
+            accessToSensibleData
           },
           externalCustomers {
             companyName,
@@ -156,14 +181,13 @@ export class ReportsApiClient {
         },
         kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
         dataAndFunctions { 
-          dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
+          dataWarehouseInUse { dataWarehouse, connectionType } , 
           singleDataSources { 
             dataSources{
               dataSource,
               weightage
             }, 
-            connectionType, 
-            dataClassification } 
+            connectionType } 
         }
         members {
           reportAdmins { firstName, lastName, department, shortId }
@@ -193,7 +217,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType, procedureId  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, frontendTechnologies, reportLink, procedureId, archerId, dataClassification, relatedSolutions{ id, name }  },
         customer {
           internalCustomers {            
             customerRelation,
@@ -210,7 +234,7 @@ export class ReportsApiClient {
               }
             },
             accessToSensibleData,
-            processOwner { firstName, lastName, department, shortId }
+            
           },
           externalCustomers {
             companyName,
@@ -220,14 +244,14 @@ export class ReportsApiClient {
         },
         kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
         dataAndFunctions { 
-          dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
+          dataWarehouseInUse { dataWarehouse, connectionType } , 
           singleDataSources { 
             dataSources{
               dataSource,
               weightage
             }, 
-            connectionType, 
-            dataClassification } 
+            connectionType 
+            } 
         }
         members {
           reportAdmins { firstName, lastName, department, shortId }
@@ -258,7 +282,7 @@ export class ReportsApiClient {
       this.get('lov/agilereleasetrains'),
       ApiClient.get('divisions'),
       this.get('departments'),
-      this.get('reports/processowners'),
+      //this.get('reports/processowners'),
       this.get('tags'),
     ]);
   }
