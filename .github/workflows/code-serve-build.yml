@@ -30,7 +30,6 @@ env:
   RUNNER_ALLOW_RUNASROOT: 1
   ### Imp: Also update the version in code-server-manager.yml in dna-codeserver-backend repo
   ### If you are using jupyterhub, update the image version
-  IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/cs-default'
   IMAGE_CODE_SERVER: 4.92.2 # This is the version of the code-server image
 
 jobs:
@@ -71,6 +70,8 @@ jobs:
         name: Container security scan
         needs: build
         uses: ./.github/workflows/consec.yaml
+        env:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/cs-default'
         with:
           FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
         secrets: inherit 
