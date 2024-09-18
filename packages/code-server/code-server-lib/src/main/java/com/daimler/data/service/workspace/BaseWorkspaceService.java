@@ -701,9 +701,20 @@ import com.daimler.data.util.ConstantsUtility;
 						 }
 						 	for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
 								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
+								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
+									log.info("Failed while adding {} as collaborator with status {}",gitUser.getKey(), addGitUser.name());
+									MessageDescription errMsg = new MessageDescription(
+											"Failed while adding " + gitUser.getKey()
+													+ " as collaborator, Because"
+													+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+									errors.add(errMsg);
+									responseVO.setSuccess("FAILED");
+									responseVO.setErrors(errors);
+									return responseVO;
+								}
 								if (!addGitUser.is2xxSuccessful()) {
 									MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser
-											+ " as collaborator to repository. Please add manually");
+											+ " as collaborator to repository. Please add manually and try again.");
 									log.info(
 											"Failed while adding {} as collaborator to repository. Please add manually",
 											gitUser);
@@ -733,17 +744,6 @@ import com.daimler.data.util.ConstantsUtility;
 									 * return responseVO;
 									 * }
 									 */
-								}
-								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
-									log.info("Failed while adding {} as collaborator with status {}",gitUser, addGitUser.name());
-									MessageDescription errMsg = new MessageDescription(
-											"Failed while adding " + gitUser
-													+ " as collaborator, Because"
-													+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
-									errors.add(errMsg);
-									responseVO.setSuccess("FAILED");
-									responseVO.setErrors(errors);
-									return responseVO;
 								}
 								if (gitUser.getValue() != null) {
 									if (gitUser.getValue()) {
