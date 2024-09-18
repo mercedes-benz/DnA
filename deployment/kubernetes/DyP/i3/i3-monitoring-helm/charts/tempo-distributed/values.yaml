@@ -1350,8 +1350,8 @@ storage:
     # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/tempo/latest/configuration/#storage
     backend: s3
     s3:
-      endpoint: minio.minio.svc.cluster.local:80
-      bucket: tempo-traces
+      endpoint: ""
+      bucket: ""
       insecure: true
       access_key: ""
       secret_key: ""
