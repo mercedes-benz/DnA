@@ -543,9 +543,9 @@ compactor:
   config:
     compaction:
       # -- Duration to keep blocks
-      block_retention: 48h
+      block_retention: 720h
       # Duration to keep blocks that have been compacted elsewhere
-      compacted_block_retention: 72h
+      compacted_block_retention: 720h
       # -- Blocks in this time window will be compacted together
       compaction_window: 10m
       # -- Amount of data to buffer from input blocks
