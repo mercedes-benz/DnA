@@ -53,6 +53,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricWorkspace.*;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
@@ -1227,5 +1228,37 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		return collectionVO;
 	}
+	
+	@Override
+    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
+        GenericMessage response = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        List<MessageDescription> warnings = new ArrayList<>();
+ 
+        try{
+            List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+            for(RolesVO role : roleList){
+                UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+                roleRequestDto.setReason(roleRequestVO.getData().getReason());
+                roleRequestDto.setValidFrom(role.getValidFrom());
+                roleRequestDto.setValidTo(role.getValidTo());
+                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
+                if(!status.is2xxSuccessful()){
+                    warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
+                }
+            }
+        }
+        catch(Exception e){
+            errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
+            response.setErrors(errors);
+            response.setSuccess("FAILED");
+            log.error("Failed to request role  Fabric workspace with exception {} ",e.getMessage());
+            return response;
+        }
+        response.setSuccess(!warnings.isEmpty() ? "WARNING" : "SUCCESS");
+        response.setWarnings(warnings);
+        response.setErrors(errors);
+        return response;
+    }
 
 }
