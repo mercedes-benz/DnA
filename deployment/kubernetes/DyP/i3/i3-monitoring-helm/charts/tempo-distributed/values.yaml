@@ -374,7 +374,7 @@ metricsGenerator:
 # Configuration for the distributor
 distributor:
   # -- Number of replicas for the distributor
-  replicas: 2
+  replicas: 1
   # -- hostAliases to add
   hostAliases: []
   #  - ip: 1.2.3.4
