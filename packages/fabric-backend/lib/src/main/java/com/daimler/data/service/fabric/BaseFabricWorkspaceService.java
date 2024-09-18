@@ -27,29 +27,37 @@ import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
+import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseDto;
+import com.daimler.data.dto.fabric.LakehouseResponseDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
-import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
-import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
-import com.daimler.data.dto.fabricWorkspace.RolesListVO;
-import com.daimler.data.dto.fabricWorkspace.RolesVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -164,6 +172,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(vos!=null && !vos.isEmpty()) {
 			totalCount = vos.size();
 			int newOffset = offset>vos.size() ? 0 : offset;
+			if(limit==0)
+				limit = vos.size();
 			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
 			paginatedVOs = vos.subList(newOffset, newLimit);
 		}
@@ -224,6 +234,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(vos!=null && !vos.isEmpty()) {
 			totalCount = vos.size();
 			int newOffset = offset>vos.size() ? 0 : offset;
+			if(limit == 0) {
+				limit = totalCount;
+			}
 			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
 			paginatedVOs = vos.subList(newOffset, newLimit);
 		}
@@ -257,6 +270,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			voFromDb.setName(dtoFromFabric.getDisplayName());
 			voFromDb.setDescription(dtoFromFabric.getDescription());
 			try {
+				LakehouseCollectionDto lakehousesCollection = fabricWorkspaceClient.listLakehouses(id);
+				if(lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
+					List<LakehouseDto> value = lakehousesCollection.getValue();
+					List<FabricLakehouseVO> lakehouseVOs = new ArrayList<>();
+					lakehouseVOs = value.stream().map(n -> assembler.toLakehouseVOFromDto(n)).collect(Collectors.toList());
+					voFromDb.setLakehouses(lakehouseVOs);
+				}
 				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
 				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
 				jpaRepo.save(updatedEntity);
@@ -267,6 +287,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return voFromDb;
 	}
 
+	
 	@Override
 	@Transactional
 	public ResponseEntity<FabricWorkspaceResponseVO> createWorkspace(FabricWorkspaceVO vo) {
@@ -1092,35 +1113,119 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
-	public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
-		GenericMessage response = new GenericMessage();
+	@Transactional
+	public GenericMessage deleteLakehouse(String id, String lakehouseId) {
+		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-
-		try{
-			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
-			for(RolesVO role : roleList){
-				UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
-				roleRequestDto.setReason(roleRequestVO.getData().getReason());
-				roleRequestDto.setValidFrom(role.getValidFrom());
-				roleRequestDto.setValidTo(role.getValidTo());
-				HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
-				if(!status.is2xxSuccessful()){
-					warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
-				}
+		try {
+			ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteLakehouse(id, lakehouseId);
+			if(deleteResponse!=null && deleteResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(deleteResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while deleting fabric workspace lakehouse {} ", id);
+					return responseMessage;
 			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to delete lakehouse for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while deleting fabric workspace {} lakehouse {} ", id, lakehouseId);
+			return responseMessage;
 		}
-		catch(Exception e){
-			errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
-			response.setErrors(errors);
-			response.setSuccess("FAILED");
-			log.error("Failed to request role  Fabric workspace with exception {} ",e.getMessage());
-			return response;
+	}
+
+	@Override
+	public GenericMessage createLakehouse(String id,  FabricLakehouseCreateRequestVO createRequestVO) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		CreateLakehouseDto createLakehouseDto = new CreateLakehouseDto();
+		try {
+			createLakehouseDto.setDescription(createRequestVO.getDescription());
+			createLakehouseDto.setDisplayName(createRequestVO.getName());
+			LakehouseResponseDto createResponse = fabricWorkspaceClient.createLakehouse(id, createLakehouseDto);
+			if(createResponse!=null && createResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(createResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while creating fabric workspace lakehouse {} ", id);
+					return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to creating lakehouse for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while creating fabric workspace {} lakehouse {} ", id, createRequestVO.getName());
+			return responseMessage;
 		}
-		response.setSuccess(!warnings.isEmpty() ? "WARNING" : "SUCCESS");
-		response.setWarnings(warnings);
-		response.setErrors(errors);
-		return response;
+	}
+
+	@Override
+	public GenericMessage createLakehouseS3Shortcut(String id, String lakehouseId,
+			 ShortcutCreateRequestVO createRequestVO) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		LakehouseS3ShortcutDto createLakehouseS3ShortcutDto = new LakehouseS3ShortcutDto();
+		try {
+			createLakehouseS3ShortcutDto.setName(createRequestVO.getBucketname());
+			createLakehouseS3ShortcutDto.setPath("Files/");
+			createLakehouseS3ShortcutDto.setTarget(null);
+			LakehouseS3ShortcutResponseDto createResponse = fabricWorkspaceClient.createShortcut(id, lakehouseId, createLakehouseS3ShortcutDto);
+			if(createResponse!=null && createResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(createResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while creating fabric workspace lakehouse s3 shortcut {} ", id);
+					return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to creating lakehouse  s3 shortcut for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while creating fabric  s3 shortcut {} for workspace {} lakehouse {} ",createRequestVO.getBucketname(), id, lakehouseId);
+			return responseMessage;
+		}
+	}
+
+	@Override
+	public FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId) {
+		FabricShortcutsCollectionVO collectionVO = new FabricShortcutsCollectionVO();
+		LakehouseS3ShortcutCollectionDto collection = fabricWorkspaceClient.listLakehouseshortcuts(id, lakehouseId);
+		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
+			Integer totalRecords = collection.getValue().size();
+			collectionVO.setTotalCount(totalRecords);
+			List<ShortcutVO> records = new ArrayList<>();
+			records = collection.getValue().stream().map(n -> assembler.toLakehouseShortcutVOFromDto(n)).collect(Collectors.toList());
+			collectionVO.setRecords(records);
+		}
+		return collectionVO;
 	}
 
 }
