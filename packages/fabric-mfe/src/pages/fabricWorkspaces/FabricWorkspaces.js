@@ -247,7 +247,7 @@ const FabricWorkspaces = ({user}) => {
                       }}
                     />
                   )}
-                  <h2 className={Styles.sectionTitle}>Workspaces with Requested Access</h2>
+                  {requestedWorkspaces.length > 0 && <h2 className={Styles.sectionTitle}>Workspaces with Requested Access</h2> }
                   {requestedWorkspaces.map((workspace) => 
                     <FabricWorkspaceCard
                       key={workspace.id}
