@@ -1,7 +1,5 @@
 package com.daimler.data.controller;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,14 +25,14 @@ import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
-import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
-import com.daimler.data.dto.fabricWorkspace.RolesListVO;
-import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 
 import io.swagger.annotations.Api;
@@ -176,6 +174,208 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			}
 		}
     }
+	
+	@ApiOperation(value = "Delete lakehouse for a given workspace and lakehouse Id.", nickname = "deleteLakehouse", notes = "Delete lakehouse for a given identifier.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/lakehouses/{lakehouseId}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteLakehouse(@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("lakehouseId") String lakehouseId){
+		FabricWorkspaceVO existingFabricWorkspace = service.getById(id);
+		if(existingFabricWorkspace==null || !id.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}else {
+			GenericMessage deleteResponse = service.deleteLakehouse(id,lakehouseId);
+			if(deleteResponse!=null) {
+				if("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
+					return new ResponseEntity<>(deleteResponse, HttpStatus.OK);
+				}else {
+					return new ResponseEntity<>(deleteResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}else {
+				GenericMessage response = new GenericMessage();
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errMsg = new MessageDescription("");
+				errors.add(errMsg);
+				response.setErrors(errors);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+    }
+	
+	@ApiOperation(value = "Create lakehouse for a given workspace and lakehouse Id.", nickname = "createLakehouse", notes = "Create lakehouse for a given identifier.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/lakehouses",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> createLakehouse(@ApiParam(value = "Workspace ID",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "Request Body that contains data required for creating a new workspace lakehouse" ,required=true )  @Valid @RequestBody FabricLakehouseCreateRequestVO createRequestVO){
+		FabricWorkspaceVO existingFabricWorkspace = service.getById(id);
+		if(existingFabricWorkspace==null || !id.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}else {
+			GenericMessage createLakehouseResponse = service.createLakehouse(id,createRequestVO);
+			if(createLakehouseResponse!=null) {
+				if("SUCCESS".equalsIgnoreCase(createLakehouseResponse.getSuccess())) {
+					return new ResponseEntity<>(createLakehouseResponse, HttpStatus.OK);
+				}else {
+					return new ResponseEntity<>(createLakehouseResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}else {
+				GenericMessage response = new GenericMessage();
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errMsg = new MessageDescription("");
+				errors.add(errMsg);
+				response.setErrors(errors);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+    }
+	
+	@ApiOperation(value = "Create lakehouse s3 shortcut for a given workspace and lakehouse Id.", nickname = "createS3Shortcut", notes = "Create lakehouse s3 shortcut for a given identifier.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/lakehouses/{lakehouseId}/shortcuts",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricShortcutsCollectionVO> getLakehouseS3Shortcut(@ApiParam(value = "Workspace ID",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("lakehouseId") String lakehouseId){
+		FabricShortcutsCollectionVO response = service.getLakehouseS3Shortcuts(id,lakehouseId);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "Create lakehouse s3 shortcut for a given workspace and lakehouse Id.", nickname = "createS3Shortcut", notes = "Create lakehouse s3 shortcut for a given identifier.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/lakehouses/{lakehouseId}/shortcuts",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> createLakehouseS3Shortcut(@ApiParam(value = "Workspace ID",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("lakehouseId") String lakehouseId,
+    		@ApiParam(value = "Request Body that contains data required for creating a new workspace lakehouse s3 shortcut" ,required=true )  @Valid @RequestBody ShortcutCreateRequestVO createRequestVO){
+		FabricWorkspaceVO existingFabricWorkspace = service.getById(id);
+		if(existingFabricWorkspace==null || !id.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}else {
+			GenericMessage createLakehouseS3ShortcutResponse = service.createLakehouseS3Shortcut(id,lakehouseId,createRequestVO);
+			if(createLakehouseS3ShortcutResponse!=null) {
+				if("SUCCESS".equalsIgnoreCase(createLakehouseS3ShortcutResponse.getSuccess())) {
+					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.OK);
+				}else {
+					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}else {
+				GenericMessage response = new GenericMessage();
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errMsg = new MessageDescription("");
+				errors.add(errMsg);
+				response.setErrors(errors);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+    }
+	
+	@ApiOperation(value = "Create lakehouse s3 shortcut for a given workspace and lakehouse Id.", nickname = "createS3Shortcut", notes = "Create lakehouse s3 shortcut for a given identifier.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/lakehouses/{lakehouseId}/shortcuts/{shortcutId}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteLakehouseS3Shortcut(@ApiParam(value = "Workspace ID",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "lakehouseid",required=true) @PathVariable("lakehouseId") String lakehouseId,
+    		@ApiParam(value = "shortcut id to be deleted",required=true) @PathVariable("shortcutId") String shortcutId){
+		FabricWorkspaceVO existingFabricWorkspace = service.getById(id);
+		if(existingFabricWorkspace==null || !id.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}else {
+			GenericMessage createLakehouseS3ShortcutResponse = new GenericMessage(); //service.deleteLakehouseS3Shortcut(id,lakehouseId,shortcutId);
+			if(createLakehouseS3ShortcutResponse!=null) {
+				if("SUCCESS".equalsIgnoreCase(createLakehouseS3ShortcutResponse.getSuccess())) {
+					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.OK);
+				}else {
+					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}else {
+				GenericMessage response = new GenericMessage();
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errMsg = new MessageDescription("");
+				errors.add(errMsg);
+				response.setErrors(errors);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+    }
+	
 
 	@Override
 	@ApiOperation(value = "List of values for available workspaces", nickname = "getWorkspacesLov", notes = "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })

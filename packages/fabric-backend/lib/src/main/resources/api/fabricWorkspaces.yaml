@@ -423,6 +423,10 @@ definitions:
         format: date
       role:
         type: string
+      lakehouses:
+        type: array
+        items:
+          $ref: "#/definitions/FabricLakehouseVO"
   
   FabricWorkspaceStatusVO:
     type: object
@@ -595,8 +599,103 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user"
-
+        
+  FabricLakehousesCollectionVO:
+    description: "Collection of fabric lakehouses."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/FabricLakehouseVO"
  
+
+  FabricLakehouseCreateRequestVO:
+    description: "Lakehouse details of fabric workspace."
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of lakehouse belonging to fabric workspace"
+      description:
+        type: string
+        description: "description of lakehouse belonging to fabric workspace"
+        
+  FabricLakehouseVO:
+    description: "Lakehouse details of fabric workspace."
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Id of lakehouse belonging to fabric workspace"
+      name:
+        type: string
+        description: "Name of lakehouse belonging to fabric workspace"
+      description:
+        type: string
+        description: "description of lakehouse belonging to fabric workspace"
+      sensitivityLabel:
+        type: string
+        description: "sensitivityLabel of lakehouse belonging to fabric workspace"
+      shortcuts:
+        type: array
+        items:
+          $ref: "#/definitions/ShortcutVO"
+
+
+  ShortcutCreateRequestVO:
+    type: object
+    properties:
+      accessKey:
+        type: string
+        description: "Name of shortcut"
+      secretKey:
+        type: string
+        description: "path of shortcut"
+      bucketname:
+        type: string
+        description: "bucketname of shortcut"
+      bucketId:
+        type: string
+        description: "bucketid of shortcut"
+        
+  FabricShortcutsCollectionVO:
+    description: "Collection of fabric lakehouse shortcuts."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/ShortcutVO"
+                        
+  ShortcutVO:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of shortcut"
+      path:
+        type: string
+        description: "path of shortcut"
+      bucketname:
+        type: string
+        description: "bucketname of shortcut"
+      bucketpath:
+        type: string
+        description: "bucketpath of shortcut"
+      connectionId:
+        type: string
+        description: "connectionId of shortcut"
+      connectionName:
+        type: string
+        description: "connection name used for creating shortcut"
+  
   MessageDescription:
     type: object
     properties:
