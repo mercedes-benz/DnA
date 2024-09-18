@@ -1349,13 +1349,6 @@ storage:
       dedicated_columns: []
     # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/tempo/latest/configuration/#storage
     backend: s3
-    s3:
-      endpoint: ""
-      bucket: ""
-      insecure: true
-      access_key: ""
-      secret_key: ""
-      forcepathstyle: true
     # The worker pool is used primarily when finding traces by id, but is also used by other.
     pool:
       # -- Total number of workers pulling jobs from the queue
