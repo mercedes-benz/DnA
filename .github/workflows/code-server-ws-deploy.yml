@@ -122,7 +122,7 @@ jobs:
         --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
         --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
         --build-arg INDEX_URL=https://${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}@artifacts.i.mercedes-benz.com/artifactory/api/pypi/pypi-opensource-virtual/simple \
-        --build-arg BUILD_NPM_TOKEN=${{ env.BUILD_NPM_TOKEN }} \
+        --build-arg NPM_TOKEN=${{ env.BUILD_NPM_TOKEN }} \
         -f build.Dockerfile --no-cache ../
       env:
         no_proxy: "artifacts.i.mercedes-benz.com"     
