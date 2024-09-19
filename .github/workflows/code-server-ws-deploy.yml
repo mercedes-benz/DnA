@@ -117,12 +117,13 @@ jobs:
     - name: Build application
       working-directory: ./workspace-repo/deploy
       run: | 
+       build_args=$(env | grep '^BUILD_' | awk -F= '{print "--build-arg " $1 "=" $2}' | xargs)
        docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} \
         --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
         --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
         --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
         --build-arg INDEX_URL=https://${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}@artifacts.i.mercedes-benz.com/artifactory/api/pypi/pypi-opensource-virtual/simple \
-        --build-arg NPM_TOKEN=${{ env.BUILD_NPM_TOKEN }} \
+        $build_args \
         -f build.Dockerfile --no-cache ../
       env:
         no_proxy: "artifacts.i.mercedes-benz.com"     
