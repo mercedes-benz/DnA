@@ -100,6 +100,21 @@ jobs:
       with:
         dot-npmrc: ${{ secrets.DOT_NPMRC }}
         working-directory: ./workspace-repo
+
+    - name: Import Secrets from vault
+      uses: hashicorp/vault-action
+      with:
+        url: https://hcvault.app.corpintra.net
+        method: userpass
+        username: ${{ secrets.VAULT_USERNAME }}
+        password: ${{ secrets.VAULT_PASSWORD }}
+        namespace: fmas/codespace/staging
+        secrets: |
+            kv/data/alicetest-spring/int ER | ER ;
+
+    - name: Step following 'Import Secrets'
+      run: |
+        echo "${{ env.ER }}"
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
