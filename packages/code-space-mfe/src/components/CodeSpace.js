@@ -156,7 +156,7 @@ const CodeSpace = (props) => {
   const [serverStarted, setServerStarted] = useState(true);
   const [serverProgress, setServerProgress] = useState(0);
 
-  const [showStagingActions, setShowStagingActions] = useState(true);
+  const [showStagingActions, setShowStagingActions] = useState(false);
   const [showProdActions, setShowProdActions] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
@@ -716,233 +716,272 @@ const CodeSpace = (props) => {
                   <div onClick={toggleFullScreenMode}>
                     <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
-                  {!disableDeployment && <div>
-                    <span
-                      onClick={toggleContextMenu}
-                      className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
-                    >
-                      <i className="icon mbc-icon listItem context" />
-                    </span>
-                    <div
-                      style={{
-                        top: contextMenuOffsetTop + 'px',
-                        left: contextMenuOffsetLeft + 'px',
-                        zIndex: 5,
-                      }}
-                      className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
-                    >
-                      <ul>
-                        {projectDetails?.gitRepoName && (
-                          <>
-                            <li>
-                              <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName)} rel="noreferrer">
-                                Go to code repo
-                                <i className="icon mbc-icon new-tab" />
-                              </a>
-                            </li>
-                            <li>
-                              <hr />
-                            </li>
-                          </>
-                        )}
-                        <li>
-                          <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
-                            onClick={() => {
-                              setShowStagingActions(!showStagingActions);
-                            }}
-                          >
-                            <div>
-                          <strong>Staging:</strong>{' '}
-                          {intDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${codeDeployedBranch}]`
-                            : 'No Deployment'}
-                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
-                            (DORA Metrics)
-                          </span>
-                            </div>
-                            <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')} >
-                              {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
-                                <>
-                                  <span className={classNames('animation-wrapper',Styles.animationWrapper)}></span>
-                                  <i className={classNames("icon down-up-flip")}></i>
-                                </>
+                  {!disableDeployment && (
+                    <div>
+                      <span
+                        onClick={toggleContextMenu}
+                        className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}
+                      >
+                        <i className="icon mbc-icon listItem context" />
+                      </span>
+                      <div
+                        style={{
+                          top: contextMenuOffsetTop + 'px',
+                          left: contextMenuOffsetLeft + 'px',
+                          zIndex: 5,
+                        }}
+                        className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
+                      >
+                        <ul>
+                          {projectDetails?.gitRepoName && (
+                            <>
+                              <li>
+                                <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName)} rel="noreferrer">
+                                  Go to code repo
+                                  <i className="icon mbc-icon new-tab" />
+                                </a>
+                              </li>
+                              <li>
+                                <hr />
+                              </li>
+                            </>
+                          )}
+                          <li>
+                            <button
+                              className={classNames(
+                                'btn btn-primary',
+                                Styles.btnOutline,
+                                !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) &&
+                                  Styles.btnDisabled,
                               )}
-                            </div>
-                          </button>
-                        </li>
-                        {showStagingActions && (
-                          <>
-                        {isAPIRecipe && isOwner && (
-                          <li>
-                            <span
                               onClick={() => {
-                                setShowVaultManagementModal(true);
-                                setIsStaging(true);
+                                setShowStagingActions(!showStagingActions);
                               }}
                             >
-                              Environment variables config
-                            </span>
+                              <div>
+                                <strong>Staging:</strong>{' '}
+                                {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                                <span
+                                  className={classNames(Styles.metricsTrigger, 'hide')}
+                                  onClick={handleOpenDoraMetrics}
+                                >
+                                  (DORA Metrics)
+                                </span>
+                              </div>
+                              <div
+                                ref={stagingWrapperRef}
+                                className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}
+                              >
+                                {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                  <>
+                                    <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
+                                    <i className={classNames('icon down-up-flip')}></i>
+                                  </>
+                                )}
+                              </div>
+                            </button>
                           </li>
-                        )}
-                        {intDeploymentDetails?.gitjobRunID && (
-                          <li>
-                            <a
-                              target="_blank"
-                              href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
-                              rel="noreferrer"
-                            >
-                              Last Build &amp; Deploy Logs{' '}
-                              {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
-                          </li>
-                        )}
-                        {codeDeployed && (
-                          <li>
-                            <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
-                          </li>
-                        )}
-                        {intDeploymentDetails?.lastDeploymentStatus && (
-                          <li>
-                            <a
-                              target="_blank"
-                              href={buildLogViewURL(codeDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
-                              rel="noreferrer"
-                            >
-                              Application Logs <i className="icon mbc-icon new-tab" />
-                            </a>
-                          </li>
-                        )}
-                        {intDeploymentDetails?.deploymentAuditLogs && (
-                          <li>
-                            <span
-                              onClick={() => {
-                                setShowAuditLogsModal(true);
-                                setIsStaging(true);
-                                setlogsList(intDeploymentDetails?.deploymentAuditLogs);
-                              }}
-                            >
-                              Deploy & Action Audit Logs
-                            </span>
-                          </li>
-                        )}
-                        {codeDeployed && (
-                          <li>
-                            <span
-                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
-                            >
-                              Restart Deployed Application
-                            </span>
-                          </li>
-                            )}
-                          </>
-                        )}
-                        <li>
-                          <hr />
-                        </li>
-                        <li>
-                          <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
-                            onClick={() => {
-                              setShowProdActions(!showProdActions);
-                            }}
-                          >
-                            <div>
-                          <strong>Production:</strong>{' '}
-                          {prodDeploymentDetails?.lastDeployedBranch
-                              ? `[Branch - ${prodCodeDeployedBranch}]`
-                            : 'No Deployment'}
-                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
-                            (DORA Metrics)
-                          </span>
-                            </div>
-                            <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
-                              {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
-                                <>
-                                  <span className={classNames('animation-wrapper',Styles.animationWrapper)}></span>
-                                  <i className={classNames("icon down-up-flip")}></i>
-                                </>
+                          {showStagingActions && (
+                            <>
+                              {intDeploymentDetails?.lastDeployedBranch && (
+                                <li style={{ color: 'var(--color-orange)' }}>[Branch - {codeDeployedBranch}]</li>
                               )}
-                            </div>
-                          </button>
-                        </li>
-                        {showProdActions && (
-                          <>
-                        {isAPIRecipe && isOwner && (
+                              {isAPIRecipe && isOwner && (
+                                <li>
+                                  <span
+                                    onClick={() => {
+                                      setShowVaultManagementModal(true);
+                                      setIsStaging(true);
+                                    }}
+                                  >
+                                    Environment variables config
+                                  </span>
+                                </li>
+                              )}
+                              {intDeploymentDetails?.gitjobRunID && (
+                                <li>
+                                  <a
+                                    target="_blank"
+                                    href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                    rel="noreferrer"
+                                  >
+                                    Last Build &amp; Deploy Logs{' '}
+                                    {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                                    <i className="icon mbc-icon new-tab" />
+                                  </a>
+                                </li>
+                              )}
+                              {codeDeployed && (
+                                <li>
+                                  <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                                    Deployed App URL{' '}
+                                    {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                    <i className="icon mbc-icon new-tab" />
+                                  </a>
+                                </li>
+                              )}
+                              {intDeploymentDetails?.lastDeploymentStatus && (
+                                <li>
+                                  <a
+                                    target="_blank"
+                                    href={buildLogViewURL(
+                                      codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      true,
+                                    )}
+                                    rel="noreferrer"
+                                  >
+                                    Application Logs <i className="icon mbc-icon new-tab" />
+                                  </a>
+                                </li>
+                              )}
+                              {intDeploymentDetails?.deploymentAuditLogs && (
+                                <li>
+                                  <span
+                                    onClick={() => {
+                                      setShowAuditLogsModal(true);
+                                      setIsStaging(true);
+                                      setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                                    }}
+                                  >
+                                    Deploy & Action Audit Logs
+                                  </span>
+                                </li>
+                              )}
+                              {codeDeployed && (
+                                <li>
+                                  <span
+                                    onClick={() => {
+                                      setEnv('int');
+                                      setShowRestartModal(true);
+                                    }}
+                                  >
+                                    Restart Deployed Application
+                                  </span>
+                                </li>
+                              )}
+                            </>
+                          )}
                           <li>
-                            <span
+                            <hr />
+                          </li>
+                          <li>
+                            <button
+                              className={classNames(
+                                'btn btn-primary',
+                                Styles.btnOutline,
+                                !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) &&
+                                  Styles.btnDisabled,
+                              )}
                               onClick={() => {
-                                setShowVaultManagementModal(true);
-                                setIsStaging(false);
+                                setShowProdActions(!showProdActions);
                               }}
                             >
-                              Environment variables config
-                            </span>
+                              <div>
+                                <strong>Production:</strong>{' '}
+                                {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                                <span
+                                  className={classNames(Styles.metricsTrigger, 'hide')}
+                                  onClick={handleOpenDoraMetrics}
+                                >
+                                  (DORA Metrics)
+                                </span>
+                              </div>
+                              <div
+                                ref={prodWrapperRef}
+                                className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')}
+                              >
+                                {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                  <>
+                                    <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
+                                    <i className={classNames('icon down-up-flip')}></i>
+                                  </>
+                                )}
+                              </div>
+                            </button>
                           </li>
-                        )}
-                        {prodDeploymentDetails?.gitjobRunID && (
-                          <li>
-                            <a
-                              target="_blank"
-                              href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
-                              rel="noreferrer"
-                            >
-                              Build &amp; Deploy Logs{' '}
-                              {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
-                          </li>
-                        )}
-                        {prodCodeDeployed && (
-                          <li>
-                            <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
-                          </li>
-                        )}
-                        {prodDeploymentDetails?.lastDeploymentStatus && (
-                          <li>
-                            <a
-                              target="_blank"
-                              href={buildLogViewURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase())}
-                              rel="noreferrer"
-                            >
-                              Application Logs <i className="icon mbc-icon new-tab" />
-                            </a>
-                          </li>
-                        )}
-                        {prodDeploymentDetails?.deploymentAuditLogs && (
-                          <li>
-                            <span
-                              onClick={() => {
-                                setShowAuditLogsModal(true);
-                                setIsStaging(false);
-                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
-                              }}
-                            >
-                              Deploy & Action Audit Logs
-                            </span>
-                          </li>
-                        )}
-                        {prodCodeDeployed && (
-                          <li>
-                            <span
-                              onClick={() => {setEnv("prod"); setShowRestartModal(true);}}
-                            >
-                              Restart Deployed Application
-                            </span>
-                          </li>
-                            )}
-                          </>
-                        )}
-                      </ul>
+                          {showProdActions && (
+                            <>
+                              {prodDeploymentDetails?.lastDeployedBranch && (
+                                <li style={{ color: 'var(--color-orange)' }}>[Branch - {prodCodeDeployedBranch}]</li>
+                              )}
+                              {isAPIRecipe && isOwner && (
+                                <li>
+                                  <span
+                                    onClick={() => {
+                                      setShowVaultManagementModal(true);
+                                      setIsStaging(false);
+                                    }}
+                                  >
+                                    Environment variables config
+                                  </span>
+                                </li>
+                              )}
+                              {prodDeploymentDetails?.gitjobRunID && (
+                                <li>
+                                  <a
+                                    target="_blank"
+                                    href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                    rel="noreferrer"
+                                  >
+                                    Build &amp; Deploy Logs{' '}
+                                    {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                                    <i className="icon mbc-icon new-tab" />
+                                  </a>
+                                </li>
+                              )}
+                              {prodCodeDeployed && (
+                                <li>
+                                  <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                                    Deployed App URL{' '}
+                                    {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                    <i className="icon mbc-icon new-tab" />
+                                  </a>
+                                </li>
+                              )}
+                              {prodDeploymentDetails?.lastDeploymentStatus && (
+                                <li>
+                                  <a
+                                    target="_blank"
+                                    href={buildLogViewURL(
+                                      prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                    )}
+                                    rel="noreferrer"
+                                  >
+                                    Application Logs <i className="icon mbc-icon new-tab" />
+                                  </a>
+                                </li>
+                              )}
+                              {prodDeploymentDetails?.deploymentAuditLogs && (
+                                <li>
+                                  <span
+                                    onClick={() => {
+                                      setShowAuditLogsModal(true);
+                                      setIsStaging(false);
+                                      setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                                    }}
+                                  >
+                                    Deploy & Action Audit Logs
+                                  </span>
+                                </li>
+                              )}
+                              {prodCodeDeployed && (
+                                <li>
+                                  <span
+                                    onClick={() => {
+                                      setEnv('prod');
+                                      setShowRestartModal(true);
+                                    }}
+                                  >
+                                    Restart Deployed Application
+                                  </span>
+                                </li>
+                              )}
+                            </>
+                          )}
+                        </ul>
+                      </div>
                     </div>
-                  </div>}
+                  )}
                 </div>
               )}
             </div>
