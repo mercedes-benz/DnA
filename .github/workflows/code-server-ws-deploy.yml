@@ -109,9 +109,9 @@ jobs:
         username: ${{ secrets.VAULT_USERNAME }}
         password: ${{ secrets.VAULT_PASSWORD }}
         namespace: fmas/codespace/prod
-        # ignoreNotFound: 'true'
+        ignoreNotFound: true
         secrets: |
-            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} NPM_TOKEN | NPM_TOKEN ;         
+            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * |  ;         
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
