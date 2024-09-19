@@ -1,42 +1,41 @@
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 // styles
 import Styles from './power-platform-workspace-form.scss';
 // import from DNA Container
 import Tags from 'dna-container/Tags';
-import SelectBox from 'dna-container/SelectBox';
+import Modal from 'dna-container/Modal';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-// Utils
-import { Envs } from '../../utilities/envs';
+import SharedDevelopmentTou from '../sharedDevelopmentTou/SharedDevelopmentTou';
 // Api
 import { powerPlatformApi } from '../../apis/power-platform.api';
-import { getSubDivisions, resetSubDivisions } from '../../redux/lovsSlice';
 
-const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
+const PowerPlatformWorkspaceForm = () => {
   let history = useHistory();
 
-  const dispatch = useDispatch();
-  const { divisions, subDivisions, departments, classifications, loading, tagsLov } = useSelector(state => state.lovs);
+  const { departments } = useSelector(state => state.lovs);
+  
+  const [showTou, setShowTou] = useState(false);
   
   const methods = useForm({ 
-    defaultValues: { 
-      typeOfProject: edit && project?.typeOfProject ? project?.typeOfProject : '0',
-      name: edit && project?.name !== null ? project?.name : '',
-      description: edit && project?.decription ? project?.decription : '',
-      division: edit ? (project?.divisionId ? project?.divisionId + '@-@' + project?.division : '0') : '0',
-      subDivision: '0',
-      department: edit && project?.department ? [project?.department] : '',
-      tags: edit && project?.tags !== null ? [...project.tags] : [],
-      dataClassification: edit && project?.dataClassification ? project?.dataClassification : '0',
-      hasPii: edit && project?.hasPii ? project?.hasPii?.toString() : 'false',
-      archerId: edit && project?.archerId ? project?.archerId : '',
-      procedureId: edit && project?.procedureId ? project?.procedureId : '',
-      termsOfUse: edit && project?.termsOfUse ? project?.termsOfUse : false,
+    defaultValues: {
+      name: '',
+      environmentOwnerName: '',
+      environmentOwnerUserId: '',
+      deputyEnvironmentOwnerName: '',
+      deputyEnvironmentOwnerUserId: '',
+      department: [],
+      billingContact: '',
+      billingPlant: '',
+      billingCostCenter: '',
+      customRequirements: '',
+      isImmediate: 'false',
+      termsOfUse: false,
     }
   });
   const {
@@ -44,56 +43,28 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
     handleSubmit,
     getValues,
     setValue,
-    watch,
     control,
     formState: { errors },
   } = methods;
-  const selectedDivision = watch('division');
-  const selectedSubDivision = watch('subDivision');
-  const selectedTypeOfProject = watch('typeOfProject');
 
-  useEffect(() => {
-    return () => {
-      dispatch(resetSubDivisions());
-    }
-  }, [dispatch]);
-  
-  useEffect(() => {
-    const divId = selectedDivision.includes('@-@') ? selectedDivision.split('@-@')[0] : selectedDivision;
-    if (divId && divId!=='0' ) {
-      dispatch(getSubDivisions(divId));
-    }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDivision]);
-
-  useEffect(() => {
-    if(loading) {
-      ProgressIndicator.show()
-    } else {
-      ProgressIndicator.hide();
-      edit && setValue('subDivision', (project?.subDivisionId ? project?.subDivisionId + '@-@' + project?.subDivision : '0'));
-    }
-  }, [loading, edit, project, setValue]);
-
-  useEffect(() => {
-    SelectBox.defaultSetup();
-  }, [loading, selectedDivision, selectedSubDivision]);
+  const handleTouAccept = () => {
+    setShowTou(false);
+    setValue('termsOfUse', true);
+  }
 
   const formValues = (values) => {
     return {
-      typeOfProject: values?.typeOfProject,
-      name: values.name.trim(),
-      description: values?.description.trim(),
-      divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
-      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
-      subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
-      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
+      name: values?.name,
+      environmentOwnerName: values?.environmentOwnerName,
+      environmentOwnerUserId: values?.environmentOwnerUserId,
+      deputyEnvironmentOwnerName: values?.deputyEnvironmentOwnerName,
+      deputyEnvironmentOwnerUserId: values?.deputyEnvironmentOwnerUserId,
       department: values?.department,
-      tags: values?.tags,
-      dataClassification: values?.dataClassification,
-      hasPii: values?.hasPii,
-      archerId: values?.archerId,
-      procedureId: values?.procedureId,
+      billingContact: values?.billingContact,
+      billingPlant: values?.billingPlant,
+      billingCostCenter: values?.billingCostCenter,
+      customRequirements: values?.customRequirements,
+      isImmediate: values?.isImmediate,
       termsOfUse: values?.termsOfUse ? true : false,
     }
   }
@@ -101,29 +72,14 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = formValues(values);
-    powerPlatformApi.createDataEntryProject(data).then((res) => {
+    powerPlatformApi.createPowerPlatformWorkspace(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/project/${res.data.data.id}`);
-      Notification.show('Data Entry Project successfully created');
+      Notification.show('Shared Developer Account created successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating data entry project',
-        'alert',
-      );
-    });
-  };
-  const handleEditProject = (values) => {
-    const data = formValues(values);
-    ProgressIndicator.show();
-    powerPlatformApi.updateDataEntryProject(project.id, data).then(() => {
-      ProgressIndicator.hide();
-      Notification.show('Data Entry project successfully updated');
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data entry project',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating shared developer account',
         'alert',
       );
     });
@@ -134,43 +90,11 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
       <FormProvider {...methods}>
         <div className={classNames(Styles.form)}>
           <div className={Styles.formHeader}>
-            <h3>{edit ? 'Edit' : 'Create'} your Power Platform Workspace</h3>
-            <p>{edit ? 'Edit the information and save!' : 'Enter the information to start creating!'}</p>
+            <h3>Power Platform: Shared Development Account</h3>
+            <p>Enter following information to start!</p>
           </div>
           <div className={Styles.flex}>
-            <div className={Styles.col2}>
-              <div className={
-                    classNames(
-                      'input-field-group include-error',
-                      errors?.typeOfProject?.message ? 'error' : ''
-                  )}
-              >
-                <label className={'input-label'}>
-                  Type of Project <sup>*</sup>
-                </label>
-                <div className={classNames('custom-select')}>
-                  <select id="reportStatusField"
-                    {...register('typeOfProject', {
-                      required: '*Missing entry',
-                      validate: (value) => value !== '0' || '*Missing entry'
-                    })}
-                  >
-                    <option id="typeOfProjectOption" value={0}>
-                      Choose
-                    </option>
-                    {(!edit || project?.typeOfProject === 'Playground') && <option value={'Playground'}>Playground</option>}
-                    <option value={'Proof of Concept'}>Proof of Concept</option>
-                    <option value={'Production'}>Production</option>
-                  </select>
-                </div>
-                <p style={{ color: 'var(--color-orange)' }}
-                  className={classNames((selectedTypeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not being used.</p>
-                <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
-                  {errors?.typeOfProject?.message}
-                </span>
-              </div>
-            </div>
-            <div className={Styles.col2}>
+            <div className={Styles.col}>
               <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
                 <label className={'input-label'}>
                   Name of Project <sup>*</sup>
@@ -178,7 +102,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="workspaceName"
+                  id="name"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
@@ -187,83 +111,69 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                 <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names must contain characters only - is allowed. Admin monitoring name is not allowed.'}</span>
               </div>
             </div>
-            <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
-                <label id="description" className="input-label" htmlFor="description">
-                  Description <sup>*</sup>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <label className={'input-label'}>
+                  Environment Owner Name
                 </label>
-                <textarea
-                  id="description"
-                  className={'input-field-area'}
+                <input
                   type="text"
-                  rows={50}
-                  {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/ })}
+                  className={'input-field'}
+                  id="environmentOwnerName"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  {...register('environmentOwnerName')}
                 />
-                <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
               </div>
             </div>
             <div className={Styles.col2}>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  errors?.division?.message ? 'error' : '',
-                )}
-              >
+              <div className={classNames('input-field-group include-error', errors?.environmentOwnerUserId ? 'error' : '')}>
                 <label className={'input-label'}>
-                  Division <sup>*</sup>
+                  Environment Owner User ID <sup>*</sup>
                 </label>
-                <div className={classNames('custom-select')}>
-                  <select
-                    id="divisionField"
-                    {...register('division', {
-                      required: '*Missing entry',
-                      validate: (value) => value !== '0' || '*Missing entry'
-                    })}
-                  >
-                    <option id="divisionOption" value={0}>
-                      Choose
-                    </option>
-                    {divisions?.map((obj) => {
-                      return (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
-                          {obj.name}
-                        </option>
-                      )
-                    })}
-                  </select>
-                </div>
-                <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
-                  {errors?.division?.message}
-                </span>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="environmentOwnerUserId"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  {...register('environmentOwnerUserId', {required: '*Missing entry'})}
+                />
+                <span className={'error-message'}>{errors?.environmentOwnerUserId?.message}</span>
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={'input-field-group'}>
+              <div className={classNames('input-field-group')}>
                 <label className={'input-label'}>
-                  Sub Division
+                  Deputy Environment Owner Name
                 </label>
-                <div className={classNames('custom-select')}>
-                  <select id="subDivisionField"
-                    {...register('subDivision')}
-                  >
-                    {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
-                      <option id="subDivisionDefault" value={0}>
-                        None
-                      </option>
-                    ) : (
-                      <>
-                        <option id="subDivisionDefault" value={0}>
-                          Choose
-                        </option>
-                        {subDivisions?.map((obj) => (
-                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
-                            {obj.name}
-                          </option>
-                        ))}
-                      </>
-                    )}
-                  </select>
-                </div>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="deputyEnvironmentOwnerName"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  {...register('deputyEnvironmentOwnerName')}
+                />
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <label className={'input-label'}>
+                  Deputy Environment Owner User ID
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="deputyEnvironmentOwnerUserId"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  {...register('deputyEnvironmentOwnerUserId')}
+                />
               </div>
             </div>
             <div className={Styles.col2}>
@@ -273,7 +183,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                   name="department"
                   rules={{
                     validate: (value) => {
-                      value === undefined || value === '' || '*Missing entry';
+                      return value === undefined || value.length !== 0 || '*Missing entry';
                     },
                   }}
                   render={({ field }) => (
@@ -282,87 +192,87 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                       value={getValues('department')}
                       name={field.name}
                       max={1}
-                      chips={[getValues('department')]}
+                      chips={getValues('department')}
                       tags={departments}
                       setTags={(selectedTags) => {
-                        field.onChange(selectedTags[0]);
+                        field.onChange(selectedTags);
                       }}
                       isMandatory={true}
-                      showMissingEntryError={getValues('department') === undefined || getValues('department') === '' ? true : false}
+                      showMissingEntryError={errors.department}
                     />
                   )}
                 />
               </div>
             </div>
             <div className={Styles.col2}>
-              {selectedTypeOfProject !== 'Playground' &&
-                <div className={'input-field-group'}>
-                  <Controller
-                    control={control}
-                    name="tags"
-                    rules={{
-                      validate: (value) => {
-                        value === undefined || value === '' || '*Missing entry';
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Tags
-                        title={'Tags'}
-                        value={getValues('tags')}
-                        name={field.name}
-                        max={100}
-                        chips={getValues('tags')}
-                        tags={tagsLov}
-                        setTags={(selectedTags) => {
-                          let tagsTemp = selectedTags?.map((item) => item.toUpperCase().trim());
-                          setValue('tags', tagsTemp);
-                        }}
-                        isMandatory={false}
-                      />
-                    )}
-                  />
-                </div>
-              }
-            </div>
-            <div className={Styles.col2}>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  errors?.dataClassification?.message ? 'error' : '',
-                )}
-              >
+              <div className={classNames('input-field-group')}>
                 <label className={'input-label'}>
-                  Data Classification <sup>*</sup>
+                  Billing Contact
                 </label>
-                <div className={classNames('custom-select')}>
-                  <select
-                    id="classificationField"
-                    {...register('dataClassification', {
-                      validate: (value) => value !== '0' || '*Missing entry'
-                    })}
-                  >
-                    <option value={'0'}>Choose</option>
-                    {classifications?.map((item) => (
-                      <option
-                        id={item.id}
-                        key={item.id}
-                        value={item.name}
-                      >
-                        {item.name}
-                      </option>
-                    ))}
-
-                  </select>
-                </div>
-                <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
-                  {errors?.dataClassification?.message}
-                </span>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="billingContact"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  {...register('billingContact')}
+                />
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group include-error', errors?.hasPii?.message ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.billingPlant ? 'error' : '')}>
                 <label className={'input-label'}>
-                  PII (Personally Identifiable Information) <sup>*</sup>
+                  Billing Plant <sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="billingPlant"
+                  placeholder="Example 020"
+                  autoComplete="off"
+                  maxLength={3}
+                  {...register('billingPlant', { required: '*Missing entry', pattern: /^\d{3}$/ })}
+                />                
+                <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && 'Please enter 3 digit billing plant code'}</span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error', errors?.billingCostCenter ? 'error' : '')}>
+                <label className={'input-label'}>
+                  Billing Cost Center <sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="billingCostCenter"
+                  placeholder="Example 000-1234"
+                  autoComplete="off"
+                  maxLength={9}
+                  {...register('billingCostCenter', { required: '*Missing entry', pattern: /^\d{3}-\d{4}$/ })}
+                />
+                <span className={'error-message'}>{errors?.billingCostCenter?.message}{errors.billingCostCenter?.type === 'pattern' && 'Please enter valid billing cost center code'}</span>
+              </div>
+            </div>
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group include-error area', errors.customRequirements ? 'error' : '')}>
+                <label id="customRequirements" className="input-label" htmlFor="customRequirements">
+                  Custom Requirements
+                </label>
+                <textarea
+                  id="customRequirements"
+                  className={'input-field-area'}
+                  type="text"
+                  rows={50}
+                  {...register('customRequirements', { pattern: /^(?!\s+$)(\s*\S+\s*)+$/ })}
+                />
+                <span className={'error-message'}>{errors?.customRequirements?.message}{errors.customRequirements?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
+              </div>
+            </div>
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group include-error', errors?.isImmediate?.message ? 'error' : '')}>
+                <label className={'input-label'}>
+                  Do you want the PROD environment immediately or later? <sup>*</sup>
                 </label>
                 <div className={Styles.pIIField}>
                   <label className={classNames('radio')}>
@@ -371,12 +281,12 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                         type="radio"
                         className="ff-only"
                         value={'true'}
-                        {...register('hasPii', {
+                        {...register('isImmediate', {
                           required: '*Missing entry'
                         })}
                       />
                     </span>
-                    <span className="label">Yes</span>
+                    <span className="label">Immediately</span>
                   </label>
                   <label className={classNames('radio')}>
                     <span className="wrapper">
@@ -384,61 +294,19 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                         type="radio"
                         className="ff-only"
                         value={'false'}
-                        {...register('hasPii', {
+                        {...register('isImmediate', {
                           required: '*Missing entry'
                         })}
                       />
                     </span>
-                    <span className="label">No</span>
+                    <span className="label">Later</span>
                   </label>
                 </div>
-                <span className={classNames('error-message', errors?.hasPii?.message ? '' : 'hide')}>
-                  {errors?.hasPii?.message}
+                <span className={classNames('error-message', errors?.isImmediate?.message ? '' : 'hide')}>
+                  {errors?.isImmediate?.message}
                 </span>
               </div>
             </div>
-            {selectedTypeOfProject !== 'Playground' &&
-              <>
-                <div className={Styles.col2}>
-                  <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
-                    <label className={'input-label'}>
-                      Archer ID
-                    </label>
-                    <div>
-                      <input
-                        type="text"
-                        className={classNames('input-field', Styles.workspaceNameField)}
-                        id="archerId"
-                        placeholder="Type here eg.[INFO-XXXXX]"
-                        autoComplete="off"
-                        maxLength={55}
-                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/ })}
-                      />
-                      <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className={Styles.col2}>
-                  <div className={classNames('input-field-group include-error', errors?.procedureId ? 'error' : '')}>
-                    <label className={'input-label'}>
-                      Procedure ID
-                    </label>
-                    <div>
-                      <input
-                        type="text"
-                        className={classNames('input-field', Styles.workspaceNameField)}
-                        id="procedureId"
-                        placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
-                        autoComplete="off"
-                        maxLength={55}
-                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/ })}
-                      />
-                      <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            }
             <div className={Styles.col}>
               <div className={classNames(errors?.termsOfUse?.message ? 'error' : '')}>
                 <div className={Styles.termsOfUseContent}>
@@ -461,7 +329,7 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
                         ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
                     }}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
+                    <div>Accept <span onClick={() => setShowTou(true)}>terms of use</span></div>
                     <sup>*</sup>
                   </div>
                 </div>
@@ -479,14 +347,28 @@ const PowerPlatformWorkspaceForm = ({ project, edit, onSave }) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                edit ? handleEditProject(values) : handleCreateProject(values);
+                handleCreateProject(values);
               })}
             >
-              {edit ? 'Save' : 'Create'} Workspace
+              Order Account
             </button>
           </div>
         </div>
       </FormProvider>
+      { showTou &&
+        <Modal
+          title={'Terms of Use'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          buttonAlignment="right"
+          show={showTou}
+          content={<SharedDevelopmentTou onAccept={handleTouAccept} />}
+          scrollableContent={true}
+          onCancel={() => setShowTou(false)}
+        />
+      }
     </>
   );
 }
