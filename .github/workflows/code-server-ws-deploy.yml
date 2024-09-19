@@ -102,7 +102,7 @@ jobs:
         working-directory: ./workspace-repo
 
     - name: Import Secrets from vault
-      uses: hashicorp/vault-action
+      uses: hashicorp/vault-action@v3.0.0
       with:
         url: https://hcvault.app.corpintra.net
         method: userpass
