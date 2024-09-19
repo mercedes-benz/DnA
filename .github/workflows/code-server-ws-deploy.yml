@@ -112,7 +112,7 @@ jobs:
         namespace: fmas/codespace/prod
         ignoreNotFound: true
         secrets: |
-            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
+            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} BUILD_* | BUILD_ ;         
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
