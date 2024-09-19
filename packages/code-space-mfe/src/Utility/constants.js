@@ -62,4 +62,4 @@ export const HTTP_METHOD = {
   
   export const CODE_SPACE_STATUS = ['DRAFT', 'PUBLISHED']; 
   export const CODE_SPACE_DISABLE_DNA_PROTECT = ['PUBLISHED', 'ACCEPTED', 'REQUESTED'];
-  export const CODE_SPACE_TITLE = 'Securtity Configuration'; 
+  export const CODE_SPACE_TITLE = 'Security Configuration'; 
