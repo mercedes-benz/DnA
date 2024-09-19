@@ -587,7 +587,7 @@ const CodeSpace = (props) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {(isOwner && !deployingInProgress) && (
+                      {(isOwner && !deployingInProgress && isIAMRecipe) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
