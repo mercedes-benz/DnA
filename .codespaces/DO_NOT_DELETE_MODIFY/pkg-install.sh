@@ -16,7 +16,7 @@ source "$HOME/.sdkman/bin/sdkman-init.sh"
 sdk install java 17.0.12-amzn
 code-server --install-extension vscjava.vscode-java-pack
 source "$HOME/.sdkman/bin/sdkman-init.sh"
-sdk install gradle 7.6.1
+sdk install gradle 7.2
 
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
