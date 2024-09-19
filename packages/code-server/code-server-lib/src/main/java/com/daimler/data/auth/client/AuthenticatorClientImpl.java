@@ -650,14 +650,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 									}
-									attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
+									attachOIDCPluginConfigVO.setBearer_only("no");
 									attachOIDCPluginConfigVO.setClient_id(clientID);
 									attachOIDCPluginConfigVO.setClient_secret(clientSecret);
 									attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
 									attachOIDCPluginConfigVO.setLogout_path(logoutPath);
 									attachOIDCPluginConfigVO.setRealm(realm);
 									attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser);
-									attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
+									attachOIDCPluginConfigVO.setRevoke_tokens_on_logout("no");
 									attachOIDCPluginConfigVO.setResponse_type(responseType);
 									attachOIDCPluginConfigVO.setScope(scope);
 									attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
