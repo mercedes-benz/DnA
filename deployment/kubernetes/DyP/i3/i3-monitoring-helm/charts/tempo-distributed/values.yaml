@@ -40,7 +40,7 @@ externalRuntimeConfigName: '{{ include "tempo.resourceName" (dict "ctx" . "compo
 externalConfigVersion: '0'
 
 # -- If true, Tempo will report anonymous usage data about the shape of a deployment to Grafana Labs
-reportingEnabled: true
+reportingEnabled: false
 
 tempo:
   image:
@@ -206,17 +206,17 @@ ingester:
     # -- Number of copies of spans to store in the ingester ring
     replication_factor: 3
     # -- Amount of time a trace must be idle before flushing it to the wal.
-    trace_idle_period: null
+    trace_idle_period: 30s
     # -- How often to sweep all tenants and move traces from live -> wal -> completed blocks.
-    flush_check_period: null
+    flush_check_period: 30s
     # -- Maximum size of a block before cutting it
-    max_block_bytes: null
+    max_block_bytes: 104857600
     # -- Maximum length of time before cutting a block
-    max_block_duration: null
+    max_block_duration: 10m
     # -- Duration to keep blocks in the ingester after they have been flushed
-    complete_block_timeout: null
+    complete_block_timeout: 72h
     # -- Flush all traces to backend when ingester is stopped
-    flush_all_on_shutdown: false
+    flush_all_on_shutdown: true
   service:
     # -- Annotations for ingester service
     annotations: {}
@@ -476,6 +476,7 @@ distributor:
       enabled: false
       include_all_attributes: false
       filter_by_status_error: false
+
     # -- Disables write extension with inactive ingesters
     extend_writes: null
   # -- Adds the appProtocol field to the distributor service. This allows distributor to work with istio protocol selection.
@@ -528,11 +529,11 @@ compactor:
   config:
     compaction:
       # -- Duration to keep blocks
-      block_retention: 48h
+      block_retention: 720h
       # Duration to keep blocks that have been compacted elsewhere
-      compacted_block_retention: 1h
+      compacted_block_retention: 720h
       # -- Blocks in this time window will be compacted together
-      compaction_window: 1h
+      compaction_window: 10m
       # -- Amount of data to buffer from input blocks
       v2_in_buffer_bytes: 5242880
       # -- Flush data to backend when buffer is this large
@@ -540,15 +541,15 @@ compactor:
       # -- Maximum number of traces in a compacted block. WARNING: Deprecated. Use max_block_bytes instead.
       max_compaction_objects: 6000000
       # -- Maximum size of a compacted block in bytes
-      max_block_bytes: 107374182400
+      max_block_bytes: 104857600
       # -- Number of tenants to process in parallel during retention
       retention_concurrency: 10
       # -- Number of traces to buffer in memory during compaction
-      v2_prefetch_traces_count: 1000
+      v2_prefetch_traces_count: 2000
       # -- The maximum amount of time to spend compacting a single tenant before moving to the next
-      max_time_per_tenant: 5m
+      max_time_per_tenant: 10m
       # -- The time between compaction cycles
-      compaction_cycle: 30s
+      compaction_cycle: 1m
   service:
     # -- Annotations for compactor service
     annotations: {}
@@ -1249,6 +1250,10 @@ config: |
     {{- end }}
     join_members:
       - dns+{{ include "tempo.fullname" . }}-gossip-ring:{{ .Values.memberlist.bind_port }}
+      - tempo-distributor.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.memberlist.bind_port }}
+      - tempo-ingester.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.memberlist.bind_port }}
+      - tempo-compactor.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.memberlist.bind_port }}
+      - tempo-query-frontend.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.memberlist.bind_port }}
   overrides:
     {{- toYaml .Values.global_overrides | nindent 2 }}
   server:
@@ -1339,17 +1344,18 @@ storage:
     # Settings for the block storage backend and buckets.
     block:
       # -- The supported block versions are specified here https://grafana.com/docs/tempo/latest/configuration/parquet/
-      version: null
+      version: vParquet4
       # -- Lis with dedicated attribute columns (only for vParquet3 or later)
       dedicated_columns: []
     # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/tempo/latest/configuration/#storage
-    backend: local
+    backend: s3
     # The worker pool is used primarily when finding traces by id, but is also used by other.
     pool:
       # -- Total number of workers pulling jobs from the queue
       max_workers: 400
       # -- Length of job queue. imporatant for querier as it queues a job for every block it has to search
       queue_depth: 20000
+
   # Settings for the Admin client storage backend and buckets. Only valid is enterprise.enabled is true.
   admin:
     # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/enterprise-traces/latest/config/reference/#admin_client_config
