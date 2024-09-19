@@ -1,0 +1,1875 @@
+# fullnameOverride and nameOverride distinguishes blank strings, null values,
+# and non-blank strings. For more details, see the configuration reference.
+fullnameOverride: "cs-hub"
+nameOverride:
+
+# enabled is ignored by the jupyterhub chart itself, but a chart depending on
+# the jupyterhub chart conditionally can make use this config option as the
+# condition.
+enabled:
+
+# custom can contain anything you want to pass to the hub pod, as all passed
+# Helm template values will be made available there.
+custom: {}
+
+# imagePullSecret is configuration to create a k8s Secret that Helm chart's pods
+# can get credentials from to pull their images.
+imagePullSecret:
+  create: false
+  automaticReferenceInjection: true
+  registry:
+  username:
+  password:
+  email:
+# imagePullSecrets is configuration to reference the k8s Secret resources the
+# Helm chart's pods can get credentials from to pull their images.
+imagePullSecrets: 
+  - name: imagepullsecret
+
+# hub relates to the hub pod, responsible for running JupyterHub, its configured
+# Authenticator class KubeSpawner, and its configured Proxy class
+# ConfigurableHTTPProxy. KubeSpawner creates the user pods, and
+# ConfigurableHTTPProxy speaks with the actual ConfigurableHTTPProxy server in
+# the proxy pod.
+hub:
+  revisionHistoryLimit:
+  config:
+    Authenticator:
+      admin_users:
+        - palansa
+        - ghosdeb
+        - vimhask
+      auto_login: true
+      allowed_users:
+        - ramyrao
+    JupyterHub:
+      admin_access: true
+      authenticator_class: generic-oauth
+      redirect_to_server: false
+      default_url: https://dna.app.corpintra.net/#/codespaces
+    GenericOAuthenticator:
+      client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
+      client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
+      oauth_callback_url: https://code-spaces.dna.app.corpintra.net/hub/oauth_callback
+      authorize_url: https://sso.mercedes-benz.com/as/authorization.oauth2
+      token_url: https://sso.mercedes-benz.com/as/token.oauth2  
+      userdata_url: https://sso.mercedes-benz.com/idp/userinfo.openid
+      login_service: 'Mercedes-Benz SSO'
+      username_claim: 'sub'
+      allow_existing_users: true
+      scope: 
+        - openid
+        - email    
+        - group_type
+  service:
+    type: ClusterIP
+    annotations: {}
+    ports:
+      nodePort:
+    extraPorts: []
+    loadBalancerIP:
+  baseUrl: /
+  cookieSecret:
+  initContainers: []
+  nodeSelector: {}
+  tolerations: []
+  concurrentSpawnLimit: 64
+  consecutiveFailureLimit: 5
+  activeServerLimit:
+  deploymentStrategy:
+    ## type: Recreate
+    ## - sqlite-pvc backed hubs require the Recreate deployment strategy as a
+    ##   typical PVC storage can only be bound to one pod at the time.
+    ## - JupyterHub isn't designed to support being run in parallell. More work
+    ##   needs to be done in JupyterHub itself for a fully highly available (HA)
+    ##   deployment of JupyterHub on k8s is to be possible.
+    type: Recreate
+  db:
+    type: sqlite-pvc
+    upgrade:
+    pvc:
+      annotations: {}
+      selector: {}
+      accessModes:
+        - ReadWriteOnce
+      storage: 20Gi
+      subPath:
+      storageClassName: cinder-retain
+    url:
+    password:
+  labels: {}
+  annotations: {}
+  command: []
+  args: []
+  extraConfig: 
+    code_spawner.py: |
+      from kubespawner.spawner import KubeSpawner
+      from jupyterhub.spawner import _quote_safe
+
+      class CodeSpaceKubeSpawner(KubeSpawner):
+          def get_args(self):
+              """Custom args function for the coder"""
+
+              # Turn off authentication (happens via jupyterhub)
+              args = ["--auth", "none"]
+              # Turn off telemetry
+              args += ["--disable-telemetry"]
+              # Set App Name
+              args += ["--app-name", "DnACodeSpace"]
+
+              # set port and ip if given
+              ip = "0.0.0.0"
+              if self.ip:
+                  ip = _quote_safe(self.ip)
+
+              port = 8888
+              if self.port:
+                  port = self.port
+              elif self.server and self.server.port:
+                  self.log.warning(
+                      "Setting port from user.server is deprecated as of JupyterHub 0.7."
+                  )
+                  port = self.server.port
+
+              args += ["--bind-addr", f"{ip}:{port}"]
+
+              # set startup folder
+              if self.notebook_dir:
+                  notebook_dir = self.format_string(self.notebook_dir)
+                  args += ["--user-data-dir", _quote_safe(notebook_dir)]
+
+              # if self.debug:
+              #     args += ["-vvv"]
+
+              args.extend(self.args)
+              return args
+
+          def get_env(self):
+              env = super().get_env()
+              user_options_env = self.user_options.get("env", {})
+              env.update(user_options_env)
+              return env        
+      # Use the configured spawner
+      c.JupyterHub.spawner_class = CodeSpaceKubeSpawner
+
+    code_settings.py: |
+      # The working dir is by default set to
+      # /home/coder in the VSCode image
+      c.CodeSpaceKubeSpawner.working_dir = "/home/coder"
+      # By default, the cmd includes the call to "jupyterhub-singleserver"
+      # However, the docker image already comes with the correct
+      # VSCode command to call, so we just set it to an empty string here
+      c.CodeSpaceKubeSpawner.cmd = ""    
+          
+      # Dynamically Get the set_resource capacity from the user options or set default values
+      def set_resource(spawner):
+          # user_storage_capacity = spawner.storage_capacity
+          # user_pvc_name = spawner.pvc_name
+
+          spawner.storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")       
+          spawner.mem_guarantee = spawner.user_options.get("mem_guarantee", "256M")       
+          spawner.mem_limit = spawner.user_options.get("mem_limit", "4G")       
+          spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
+          spawner.cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.2) 
+          spawner.extra_containers = spawner.user_options.get("extra_containers",[])
+          # expand_pvc_command = f'kubectl patch pvc {user_pvc_name} -p \'{{"spec":{{"resources":{{"requests":{{"storage":"{user_storage_capacity}"}}}}}}}}\''
+          # os.system(expand_pvc_command)           
+
+      c.CodeSpaceKubeSpawner.pre_spawn_hook = set_resource     
+
+      c.CodeSpaceKubeSpawner.extra_container_config = {
+            'livenessProbe': {
+              'httpGet': {
+                'path': '/healthz',
+                'port': 'notebook-port',
+                'scheme': 'HTTP'
+              },
+              'initialDelaySeconds': 30,
+              'periodSeconds': 60,
+              'timeoutSeconds': 5,
+              'successThreshold': 1,
+              'failureThreshold': 10
+            }
+          }        
+
+  #   livenessProbe:
+  #     httpGet:
+  #       path: /healthz
+  #       port: http
+  #       scheme: HTTP    
+  #     initialDelaySeconds: 90
+  #     periodSeconds: 10
+  #     failureThreshold: 5
+  #     successThreshold: 1
+  #     timeoutSeconds: 3
+  extraFiles: {}
+  extraEnv: {}
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  image:
+    name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-hub
+    tag: "3.2.1"
+    pullPolicy:
+    pullSecrets: []
+  resources: {}
+  podSecurityContext:
+    fsGroup: 1000
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+  lifecycle: {}
+  loadRoles: {}
+  services: {}
+  pdb:
+    enabled: false
+    maxUnavailable:
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+    ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: i3-monitoring
+#This n/w policy is for connecting code-server database using pgadmin
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tools
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: pgadmin4    
+      ports:
+        - protocol: TCP
+          port: 8081
+    egress: []
+    egressAllowRules:
+      cloudMetadataServer: true
+      dnsPortsCloudMetadataServer: true
+      dnsPortsKubeSystemNamespace: true
+      dnsPortsPrivateIPs: true
+      nonPrivateIPs: true
+      privateIPs: true
+    interNamespaceAccessLabels: ignore
+    allowedIngressPorts: []
+  allowNamedServers: true
+  namedServerLimitPerUser:
+  authenticatePrometheus: false
+  redirectToServer:
+  shutdownOnLogout:
+  templatePaths: []
+  templateVars: {}
+  livenessProbe:
+    # The livenessProbe's aim to give JupyterHub sufficient time to startup but
+    # be able to restart if it becomes unresponsive for ~5 min.
+    enabled: true
+    initialDelaySeconds: 300
+    periodSeconds: 10
+    failureThreshold: 30
+    timeoutSeconds: 3
+  readinessProbe:
+    # The readinessProbe's aim is to provide a successful startup indication,
+    # but following that never become unready before its livenessProbe fail and
+    # restarts it if needed. To become unready following startup serves no
+    # purpose as there are no other pod to fallback to in our non-HA deployment.
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 2
+    failureThreshold: 1000
+    timeoutSeconds: 1
+  existingSecret:
+  serviceAccount:
+    create: true
+    name:
+    annotations: {}
+  extraPodSpec: {}
+
+rbac:
+  create: true
+
+# proxy relates to the proxy pod, the proxy-public service, and the autohttps
+# pod and proxy-http service.
+proxy:
+  secretToken: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#secretToken>
+  annotations: {}
+  deploymentStrategy:
+    ## type: Recreate
+    ## - JupyterHub's interaction with the CHP proxy becomes a lot more robust
+    ##   with this configuration. To understand this, consider that JupyterHub
+    ##   during startup will interact a lot with the k8s service to reach a
+    ##   ready proxy pod. If the hub pod during a helm upgrade is restarting
+    ##   directly while the proxy pod is making a rolling upgrade, the hub pod
+    ##   could end up running a sequence of interactions with the old proxy pod
+    ##   and finishing up the sequence of interactions with the new proxy pod.
+    ##   As CHP proxy pods carry individual state this is very error prone. One
+    ##   outcome when not using Recreate as a strategy has been that user pods
+    ##   have been deleted by the hub pod because it considered them unreachable
+    ##   as it only configured the old proxy pod but not the new before trying
+    ##   to reach them.
+    type: Recreate
+    ## rollingUpdate:
+    ## - WARNING:
+    ##   This is required to be set explicitly blank! Without it being
+    ##   explicitly blank, k8s will let eventual old values under rollingUpdate
+    ##   remain and then the Deployment becomes invalid and a helm upgrade would
+    ##   fail with an error like this:
+    ##
+    ##     UPGRADE FAILED
+    ##     Error: Deployment.apps "proxy" is invalid: spec.strategy.rollingUpdate: Forbidden: may not be specified when strategy `type` is 'Recreate'
+    ##     Error: UPGRADE FAILED: Deployment.apps "proxy" is invalid: spec.strategy.rollingUpdate: Forbidden: may not be specified when strategy `type` is 'Recreate'
+    rollingUpdate:
+  # service relates to the proxy-public service
+  service:
+    type: ClusterIP
+    labels: {}
+    annotations: {}
+    nodePorts:
+      http:
+      https:
+    disableHttpPort: false
+    extraPorts: []
+    loadBalancerIP:
+    loadBalancerSourceRanges: []
+  # chp relates to the proxy pod, which is responsible for routing traffic based
+  # on dynamic configuration sent from JupyterHub to CHP's REST API.
+  chp:
+    revisionHistoryLimit:
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    image:
+      name: registry-emea.app.corpintra.net/publicquay/jupyterhub/configurable-http-proxy
+      # tag is automatically bumped to new patch versions by the
+      # watch-dependencies.yaml workflow.
+      #
+      tag: "4.6.1" # https://github.com/jupyterhub/configurable-http-proxy/tags
+      pullPolicy:
+      pullSecrets: []
+    extraCommandLineFlags:
+    - "--no-include-prefix"
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      failureThreshold: 30
+      timeoutSeconds: 3
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 0
+      periodSeconds: 2
+      failureThreshold: 1000
+      timeoutSeconds: 1
+    resources: {}
+    defaultTarget:
+    errorTarget:
+    extraEnv: {}
+    nodeSelector: {}
+    tolerations: []
+    networkPolicy:
+      enabled: true
+      ingress: []
+      egress: []
+      egressAllowRules:
+        cloudMetadataServer: true
+        dnsPortsCloudMetadataServer: true
+        dnsPortsKubeSystemNamespace: true
+        dnsPortsPrivateIPs: true
+        nonPrivateIPs: true
+        privateIPs: true
+      interNamespaceAccessLabels: ignore
+      allowedIngressPorts: [http, https]
+    pdb:
+      enabled: false
+      maxUnavailable:
+      minAvailable: 1
+    extraPodSpec: {}
+  # traefik relates to the autohttps pod, which is responsible for TLS
+  # termination when proxy.https.type=letsencrypt.
+  traefik:
+    revisionHistoryLimit:
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    image:
+      name: traefik
+      # tag is automatically bumped to new patch versions by the
+      # watch-dependencies.yaml workflow.
+      #
+      tag: "v2.10.5" # ref: https://hub.docker.com/_/traefik?tab=tags
+      pullPolicy:
+      pullSecrets: []
+    hsts:
+      includeSubdomains: false
+      preload: false
+      maxAge: 15724800 # About 6 months
+    resources: {}
+    labels: {}
+    extraInitContainers: []
+    extraEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+    extraStaticConfig: {}
+    extraDynamicConfig: {}
+    nodeSelector: {}
+    tolerations: []
+    extraPorts: []
+    networkPolicy:
+      enabled: true
+      ingress: []
+      egress: []
+      egressAllowRules:
+        cloudMetadataServer: true
+        dnsPortsCloudMetadataServer: true
+        dnsPortsKubeSystemNamespace: true
+        dnsPortsPrivateIPs: true
+        nonPrivateIPs: true
+        privateIPs: true
+      interNamespaceAccessLabels: ignore
+      allowedIngressPorts: [http, https]
+    pdb:
+      enabled: false
+      maxUnavailable:
+      minAvailable: 1
+    serviceAccount:
+      create: true
+      name:
+      annotations: {}
+    extraPodSpec: {}
+  secretSync:
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    image:
+      name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-secret-sync
+      tag: "3.2.1"
+      pullPolicy:
+      pullSecrets: []
+    resources: {}
+  labels: {}
+  https:
+    enabled: false
+    type: secret
+    #type: letsencrypt, manual, offload, secret
+    letsencrypt:
+      contactEmail:
+      # Specify custom server here (https://acme-staging-v02.api.letsencrypt.org/directory) to hit staging LE
+      acmeServer: https://acme-v02.api.letsencrypt.org/directory
+    manual:
+      key:
+      cert:
+    secret:
+      name: cs-tls-secret
+      key: tls.key
+      crt: tls.crt
+    hosts: 
+      - code-spaces.dna.app.corpintra.net
+
+# singleuser relates to the configuration of KubeSpawner which runs in the hub
+# pod, and its spawning of user pods such as jupyter-myusername.
+singleuser:
+  podNameTemplate: "{servername}"
+  extraTolerations: []
+  nodeSelector: {}
+  extraNodeAffinity:
+    required: []
+    preferred: []
+  extraPodAffinity:
+    required: []
+    preferred: []
+  extraPodAntiAffinity:
+    required: []
+    preferred: []
+  networkTools:
+    image:
+      name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-network-tools
+      tag: "3.2.1"
+      pullPolicy:
+      pullSecrets: []
+    resources: {}
+  cloudMetadata:
+    # block set to true will append a privileged initContainer using the
+    # iptables to block the sensitive metadata server at the provided ip.
+    blockWithIptables: false
+    ip: 169.254.169.254
+  networkPolicy:
+    enabled: true
+    ingress: []
+    egress: 
+      - {}   
+    egressAllowRules:
+      cloudMetadataServer: false
+      dnsPortsCloudMetadataServer: true
+      dnsPortsKubeSystemNamespace: true
+      dnsPortsPrivateIPs: true
+      nonPrivateIPs: true
+      privateIPs: false
+    interNamespaceAccessLabels: ignore
+    allowedIngressPorts: []
+  events: true
+  extraAnnotations: {}
+  extraLabels:
+    hub.jupyter.org/network-access-hub: "true"
+  extraFiles:
+    .bashrc:
+      mountPath: /tmp/.bashrc
+      mode: 0777
+      stringData: |
+          ## Cleanup
+          export CS_MINIO_ENDPOINT=""
+          export CS_MINIO_KEY=""
+          export CS_MINIO_SECRET=""
+          export PATH=$PATH:$HOME/bin:/home/coder/.local/bin
+    init.sh:
+      mountPath: /home/coder/entrypoint.d/init.sh
+      mode: 0777
+      stringData: |
+          #!/bin/bash
+          set -e
+
+          if [ -d "/home/coder/app" ]; then
+              echo "Directory is already present"
+          else
+              mkdir -p /home/coder/app
+              echo "Cloning the workspace"
+              git config --global credential.helper cache
+              git config --global user.email "$SHORTID"
+              git config --global user.name "$SHORTID"
+              git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app 
+              
+              # Copy .bashrc
+              cp /tmp/.bashrc /home/coder/
+              chmod +x /home/coder/.bashrc
+
+              
+              # Install SDK and extensions
+              TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
+              mkdir -pv $TEMP_DIR
+              cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+              cd $TEMP_DIR
+              chmod +x pkg-install.sh
+              ./pkg-install.sh
+             
+              # Copy extentions
+              mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
+              mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
+              mc alias remove myminio
+
+              #Install Default Plugins
+              code-server --install-extension rangav.vscode-thunder-client
+              code-server --install-extension PKief.material-icon-theme
+              code-server --install-extension GitHub.vscode-pull-request-github
+              code-server --install-extension /home/coder/extension/GitHub.copilot-*.vsix
+              code-server --install-extension /home/coder/extension/mbos-studio-marketplace-*.vsix
+              code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
+              
+          fi 
+
+  extraEnv: 
+    HTTPS_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
+    HTTP_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
+    ftp_proxy : http://security-proxy.emea.svc.corpintra.net:3128/
+    http_proxy : http://security-proxy.emea.svc.corpintra.net:3128/
+    https_proxy : http://security-proxy.emea.svc.corpintra.net:3128/
+    NO_PROXY : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+    no_proxy : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+    ENTRYPOINTD : /home/coder/entrypoint.d    
+    CS_MINIO_ENDPOINT: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
+    CS_MINIO_KEY: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_key>
+    CS_MINIO_SECRET: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
+  lifecycleHooks: {}
+    # postStart:
+    #   exec:
+    #     command:
+    #       - /bin/sh
+    #       - -c
+    #       - |
+    #         echo 'postStart hook started'
+    #         mc alias set minio $MINIO_ENDPOINT $MINIO_KEY $MINIO_SECRET
+    #         mkdir -p /home/coder/entrypoint.d
+    #         mc cp minio/code-server/react/build/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/
+    #         chmod +x /home/coder/entrypoint.d/pkg-install.sh
+    #         ./home/coder/entrypoint.d/pkg-install.sh
+    #         mc alias remove minio
+    #         echo 'postStart hook succeeded'
+
+  initContainers: []     
+  extraContainers: []
+  allowPrivilegeEscalation: false
+  uid: 1000
+  fsGid: 1000
+  serviceAccountName:
+  storage:
+    type: dynamic
+    extraLabels: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+    static:
+      pvcName:
+      subPath: "{username}"
+    capacity: 1Gi
+    homeMountPath: /home/coder
+    dynamic:
+      storageClass: cinder
+      pvcNameTemplate: "{servername}"
+      volumeNameTemplate: "{servername}"
+      storageAccessModes: [ReadWriteOnce]
+  image:
+    name: registry-emea.app.corpintra.net/dnaplatform/cs-generic
+    tag: "4.91.0"
+    pullPolicy:
+    pullSecrets: 
+      - name: imagepullsecret
+  startTimeout: 900
+  cpu:
+    limit:
+    guarantee:
+  memory:
+    limit:
+    guarantee: 1G
+  extraResource:
+    limits: {}
+    guarantees: {}
+  cmd: jupyterhub-singleuser
+  defaultUrl: 
+  extraPodConfig: {}
+  profileList:
+    - display_name: "Default environment"
+      slug: "default"
+      description: "Default environment for development"
+      default: true
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-template:4.91.0
+        start_timeout: 900
+        http_timeout: 900
+    - display_name: "React"
+      slug: "react"
+      description: "Development environment for React  web Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./react/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                    cp -vr ./react/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh  
+                  fi      
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN     
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH    
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000         
+    - display_name: "Spring Boot"
+      slug: "springboot"
+      description: "Development environment for Spring Boot Rest API Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./springboot/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./springboot/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN    
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000               
+    - display_name: "Angular"
+      slug: "angular"
+      description: "Development environment for Angular Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./angular/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./angular/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH        
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000 
+    - display_name: "Generic with git clone"
+      slug: "generic"
+      description: "Generic development envirnoment with git cloning option"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./generic/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./generic/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH       
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000 
+    - display_name: "Python"
+      slug: "py-fastapi"
+      description: "Development environment for Python fastapi Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./py-fastapi/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./py-fastapi/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH         
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000 
+    - display_name: "Micronaut"
+      slug: "micronaut"
+      description: "Development environment for Micronaut Rest API Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./micronaut/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./micronaut/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000     
+    - display_name: "Quarkus"
+      slug: "quarkus"
+      description: "Development environment for Quarkus Rest API Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./quarkus/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./quarkus/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000        
+    - display_name: "Dash"
+      slug: "dash"
+      description: "Development environment for Dash Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./dash/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./dash/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+    - display_name: "Streamlit"
+      slug: "streamlit"
+      description: "Development environment for Streamlit Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./streamlit/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./streamlit/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+    - display_name: "Vuejs"
+      slug: "vuejs"
+      description: "Development environment for Vuejs Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./vuejs/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./vuejs/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+    - display_name: "Expressjs"
+      slug: "expressjs"
+      description: "Development environment for Expressjs Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./expressjs/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./expressjs/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+    - display_name: "Nestjs"
+      slug: "nestjs"
+      description: "Development environment for Nestjs Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./nestjs/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./nestjs/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000                                                        
+    - display_name: "BAT Frontend"
+      slug: "bat-frontend"
+      description: "Development environment for BAT frontend"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                    echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./bat-frontend/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/     
+                    cp -vr ./bat-frontend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi       
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000        
+    - display_name: "BAT Backend"
+      slug: "bat-backend"
+      description: "Development environment for BAT backend"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                    echo "Directory is already present"
+                  else              
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./bat-backend/entrypoint.d/* /home/coder/entrypoint.d/     
+                    cp -vr ./bat-backend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension
+                    echo "Copying keycloak realms.."
+                    mkdir -p /opt/keycloak/data/import && mv /home/coder/entrypoint.d/keycloak-bat-realm.json /opt/keycloak/data/import  
+                    mv /home/coder/entrypoint.d/keycloak-qilin-realm.json /opt/keycloak/data/import
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                    echo "Copying init db script"
+                    mkdir -p /docker-entrypoint-initdb.d && mv /home/coder/entrypoint.d/init-db.sql /docker-entrypoint-initdb.d
+                    echo "Copy done"
+                    echo "Exiting init container.."
+                  fi                
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+              - name: "{servername}"
+                mountPath: /opt/keycloak/data/import
+              - name: "{servername}"
+                mountPath: docker-entrypoint-initdb.d
+            securityContext:
+              runAsUser: 1000
+        extra_containers:
+          # Port : 3000
+          - name: keyclock
+            image: registry-emea.app.corpintra.net/publicquay/keycloak/keycloak:21.1.1
+            args:
+              - start-dev
+              - '--import-realm'
+              - '--http-port'
+              - '3000'
+            env:
+              - name: KEYCLOAK_ADMIN
+                value: 'admin'
+              - name: KEYCLOAK_ADMIN_PASSWORD
+                value: 'admin'
+              - name: KEYCLOAK_IMPORT
+                value: /opt/keycloak/data/import/keycloak-bat-realm.json,/opt/keycloak/data/import/keycloak-qilin-realm.json
+              - name: KC_HOSTNAME_STRICT
+                value: 'true'
+              - name: KC_HOSTNAME_URL
+                value: 'https://code-spaces.dna.app.corpintra.net/user/{username}/{servername}/proxy/3000/'
+              - name: KC_HOSTNAME_ADMIN_URL
+                value: 'https://code-spaces.dna.app.corpintra.net/user/{username}/{servername}/proxy/3000/'
+              - name: DB_ADDR
+                value: 'localhost'
+              - name: DB_PORT
+                value: '5432'
+              - name: DB_DATABASE
+                value: 'keycloak'
+              - name: DB_USER
+                value: 'keycloak'
+              - name: DB_PASSWORD
+                value: 'keycloak'
+              - name: DB_VENDOR
+                value: 'postgres' 
+            ports:
+              - containerPort: 3000
+                protocol: TCP    
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /opt/keycloak/data/import/            
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+
+          # Port : 5432
+          - name: db
+            image: registry-emea.app.corpintra.net/dockerhub/postgres:15
+            env:
+              - name: POSTGRES_USER
+                value: bat
+              - name: POSTGRES_PASSWORD
+                value: bat
+              - name: POSTGRES_DB
+                value: bat
+              - name: PGDATA
+                value: '/postgresql/data/pgdata'
+            ports:
+              - containerPort: 5432
+                protocol: TCP  
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /postgresql/data
+              - name: "{servername}"
+                mountPath: /docker-entrypoint-initdb.d
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+
+          # Port : 5672
+          - name: rabbitmq
+            image: registry-emea.app.corpintra.net/dockerhub/rabbitmq:3.7-management
+            env:
+              - name: RABBITMQ_DEFAULT_USER
+                value: admin
+              - name: RABBITMQ_DEFAULT_PASS
+                value: admin
+            ports:
+              - containerPort: 5672
+                protocol: TCP  
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /var/lib/rabbitmq/mnesia      
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+
+          # Port Console : 9090, Port API : 9000 
+          - name: minio
+            image: registry-emea.app.corpintra.net/publicquay/minio/minio
+            args:
+              - server
+              - '/minio/data'
+              - '--console-address'
+              - ':9000'
+              - '--address'
+              - ':9001'          
+            env:
+              - name: MINIO_ROOT_USER
+                value: minio
+              - name: MINIO_ROOT_PASSWORD
+                value: miniopass
+              - name: MINIO_DEFAULT_BUCKETS
+                value: bat
+              - name: MINIO_BROWSER_REDIRECT_URL
+                value: 'https://code-spaces.dna.app.corpintra.net/user/{username}/{servername}/proxy/9000'
+            ports:
+              - containerPort: 9000
+                protocol: TCP
+              - containerPort: 9001
+                protocol: TCP   
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /minio/data      
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+    - display_name: "Qilin Frontend"
+      slug: "qilin-frontend"
+      description: "Development environment for Qilin frontend"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                    echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./qilin-frontend/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/     
+                    cp -vr ./qilin-frontend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi       
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000                      
+    - display_name: "Qilin Backend"
+      slug: "qilin-backend"
+      description: "Development environment for Qilin backend"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                    echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./qilin-backend/entrypoint.d/* /home/coder/entrypoint.d/     
+                    cp -vr ./qilin-backend/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi       
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH     
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+    - display_name: "Template"
+      slug: "template"
+      description: "Development environment using default template"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-template:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+    - display_name: "Spring Boot with Maven "
+      slug: "springbootwithmaven"
+      description: "Development environment for Spring Boot with Maven Rest API Applications"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                  cd /tmp/recipes
+                  git checkout $GIT_BRANCH
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  cp -vr ./springbootwithmaven/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                  cp -vr ./springbootwithmaven/.bashrc /home/coder/          
+                  cp -vr ./tools/extension/. /home/coder/extension          
+                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH      
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+        extra_containers:
+          # Port : 5432
+          - name: db
+            image: registry-emea.app.corpintra.net/dockerhub/postgres:15
+            env:
+              - name: POSTGRES_USER
+                value: postgres
+              - name: POSTGRES_PASSWORD
+                value: postgres
+              - name: POSTGRES_DB
+                value: postgres
+              - name: PGDATA
+                value: '/postgresql/data/pgdata'
+            ports:
+              - containerPort: 5432
+                protocol: TCP  
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /postgresql/data
+              # - name: "{servername}"
+              #   mountPath: /docker-entrypoint-initdb.d
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+    - display_name: "c4s-vbom"
+      slug: "c4s-vbom"
+      description: "Development environment for c4s-vbom"
+      kubespawner_override:
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+        start_timeout: 360
+        http_timeout: 360
+        init_containers:
+          - name: copy-pkg-install-sh 
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.91.0
+            command:
+              - sh
+              - '-c'
+              - |
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./c4s-vbom/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                    cp -vr ./c4s-vbom/.bashrc /home/coder/
+                    cp -vr ./tools/extension/. /home/coder/extension
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh
+                  fi           
+            env:
+              - name: GH_PAT_TOKEN 
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GH_PAT_TOKEN
+              - name: GIT_BRANCH
+                valueFrom:
+                  secretKeyRef:
+                    name: gh-pat
+                    key: GIT_BRANCH      
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /home/coder
+            securityContext:
+              runAsUser: 1000
+        extra_containers:
+          # Port : 5432
+          - name: db
+            image: registry-emea.app.corpintra.net/dockerhub/postgres:15
+            env:
+              - name: POSTGRES_USER
+                value: postgres
+              - name: POSTGRES_PASSWORD
+                value: postgres
+              - name: POSTGRES_DB
+                value: postgres
+              - name: PGDATA
+                value: '/postgresql/data/pgdata'
+            ports:
+              - containerPort: 5432
+                protocol: TCP  
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /postgresql/data
+              # - name: "{servername}"
+              #   mountPath: /docker-entrypoint-initdb.d
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+          # Port : 29092
+          - name: kafka
+            image: registry-emea.app.corpintra.net/dockerhub/bitnami/kafka:3.3
+            env:
+             - name: KAFKA_CFG_BROKER_ID
+               value: "1"
+             - name: KAFKA_CFG_LISTENERS
+               value: "PLAINTEXT://:9092"
+             - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+               value: "localhost:2181"
+             - name: KAFKA_CFG_LOG_DIRS
+               value: "/opt/bitnami/kafka/data"
+             - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+               value: "true"
+             - name: KAFKA_CFG_DELETE_TOPIC_ENABLE
+               value: "true"
+             - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+               value: 'PLAINTEXT:PLAINTEXT'
+             - name: KAFKA_CFG_ADVERTISED_LISTENERS
+               value: 'PLAINTEXT://localhost:9092'
+             - name: KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR
+               value: '1'
+             - name: KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR
+               value: '1'
+             - name: KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+               value: '1'
+            ports:
+              - containerPort: 29092
+                protocol: TCP 
+            # volumeMounts:
+            #   - name: "{servername}"
+            #     mountPath: /opt/bitnami/kafka/data
+            imagePullPolicy: IfNotPresent
+          # Port : 2181               
+          - name: zookeper
+            image: registry-emea.app.corpintra.net/dockerhub/bitnami/zookeeper:3.9
+            env:
+             - name: ZOO_PORT_NUMBER
+               value: '2181'
+             - name: ZOO_TICK_TIME
+               value: '2000'
+             - name: ZOO_SYNC_LIMIT
+               value: "5"
+             - name: ALLOW_ANONYMOUS_LOGIN
+               value: 'yes'
+             - name: ZOO_ENABLE_AUTH 
+               value: 'no'
+            ports:
+              - containerPort: 2181
+                protocol: TCP              
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /bitnami/zookeeper
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+          # Port 6379
+          - name: redis
+            image: registry-emea.app.corpintra.net/dockerhub/redis:7.0.15-alpine
+            ports:
+              - containerPort: 6379
+                protocol: TCP              
+            volumeMounts:
+              - name: "{servername}"
+                mountPath: /data
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsUser: 1000
+
+# scheduling relates to the user-scheduler pods and user-placeholder pods.
+scheduling:
+  userScheduler:
+    enabled: true
+    revisionHistoryLimit:
+    replicas: 2
+    logLevel: 4
+    # plugins are configured on the user-scheduler to make us score how we
+    # schedule user pods in a way to help us schedule on the most busy node. By
+    # doing this, we help scale down more effectively. It isn't obvious how to
+    # enable/disable scoring plugins, and configure them, to accomplish this.
+    #
+    # plugins ref: https://kubernetes.io/docs/reference/scheduling/config/#scheduling-plugins-1
+    # migration ref: https://kubernetes.io/docs/reference/scheduling/config/#scheduler-configuration-migrations
+    #
+    plugins:
+      score:
+        # These scoring plugins are enabled by default according to
+        # https://kubernetes.io/docs/reference/scheduling/config/#scheduling-plugins
+        # 2022-02-22.
+        #
+        # Enabled with high priority:
+        # - NodeAffinity
+        # - InterPodAffinity
+        # - NodeResourcesFit
+        # - ImageLocality
+        # Remains enabled with low default priority:
+        # - TaintToleration
+        # - PodTopologySpread
+        # - VolumeBinding
+        # Disabled for scoring:
+        # - NodeResourcesBalancedAllocation
+        #
+        disabled:
+          # We disable these plugins (with regards to scoring) to not interfere
+          # or complicate our use of NodeResourcesFit.
+          - name: NodeResourcesBalancedAllocation
+          # Disable plugins to be allowed to enable them again with a different
+          # weight and avoid an error.
+          - name: NodeAffinity
+          - name: InterPodAffinity
+          - name: NodeResourcesFit
+          - name: ImageLocality
+        enabled:
+          - name: NodeAffinity
+            weight: 14631
+          - name: InterPodAffinity
+            weight: 1331
+          - name: NodeResourcesFit
+            weight: 121
+          - name: ImageLocality
+            weight: 11
+    pluginConfig:
+      # Here we declare that we should optimize pods to fit based on a
+      # MostAllocated strategy instead of the default LeastAllocated.
+      - name: NodeResourcesFit
+        args:
+          scoringStrategy:
+            resources:
+              - name: cpu
+                weight: 1
+              - name: memory
+                weight: 1
+            type: MostAllocated
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    image:
+      # IMPORTANT: Bumping the minor version of this binary should go hand in
+      #            hand with an inspection of the user-scheduelrs RBAC resources
+      #            that we have forked in
+      #            templates/scheduling/user-scheduler/rbac.yaml.
+      #
+      #            Debugging advice:
+      #
+      #            - Is configuration of kube-scheduler broken in
+      #              templates/scheduling/user-scheduler/configmap.yaml?
+      #
+      #            - Is the kube-scheduler binary's compatibility to work
+      #              against a k8s api-server that is too new or too old?
+      #
+      #            - You can update the GitHub workflow that runs tests to
+      #              include "deploy/user-scheduler" in the k8s namespace report
+      #              and reduce the user-scheduler deployments replicas to 1 in
+      #              dev-config.yaml to get relevant logs from the user-scheduler
+      #              pods. Inspect the "Kubernetes namespace report" action!
+      #
+      #            - Typical failures are that kube-scheduler fails to search for
+      #              resources via its "informers", and won't start trying to
+      #              schedule pods before they succeed which may require
+      #              additional RBAC permissions or that the k8s api-server is
+      #              aware of the resources.
+      #
+      #            - If "successfully acquired lease" can be seen in the logs, it
+      #              is a good sign kube-scheduler is ready to schedule pods.
+      #
+      name: registry-emea.app.corpintra.net/k8scache/kube-scheduler
+      # tag is automatically bumped to new patch versions by the
+      # watch-dependencies.yaml workflow. The minor version is pinned in the
+      # workflow, and should be updated there if a minor version bump is done
+      # here. We aim to stay around 1 minor version behind the latest k8s
+      # version.
+      #
+      tag: "v1.26.11" # ref: https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG
+      pullPolicy:
+      pullSecrets: []
+    nodeSelector: {}
+    tolerations: []
+    labels: {}
+    annotations: {}
+    pdb:
+      enabled: true
+      maxUnavailable: 1
+      minAvailable:
+    resources: {}
+    serviceAccount:
+      create: true
+      name:
+      annotations: {}
+    extraPodSpec: {}
+  podPriority:
+    enabled: false
+    globalDefault: false
+    defaultPriority: 0
+    imagePullerPriority: -5
+    userPlaceholderPriority: -10
+  userPlaceholder:
+    enabled: true
+    image:
+      name: registry-emea.app.corpintra.net/k8scache/pause
+      # tag is automatically bumped to new patch versions by the
+      # watch-dependencies.yaml workflow.
+      #
+      # If you update this, also update prePuller.pause.image.tag
+      #
+      tag: "3.9"
+      pullPolicy:
+      pullSecrets: []
+    revisionHistoryLimit:
+    replicas: 0
+    labels: {}
+    annotations: {}
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    resources: {}
+  corePods:
+    tolerations:
+      - key: hub.jupyter.org/dedicated
+        operator: Equal
+        value: core
+        effect: NoSchedule
+      - key: hub.jupyter.org_dedicated
+        operator: Equal
+        value: core
+        effect: NoSchedule
+    nodeAffinity:
+      matchNodePurpose: prefer
+  userPods:
+    tolerations:
+      - key: hub.jupyter.org/dedicated
+        operator: Equal
+        value: user
+        effect: NoSchedule
+      - key: hub.jupyter.org_dedicated
+        operator: Equal
+        value: user
+        effect: NoSchedule
+    nodeAffinity:
+      matchNodePurpose: prefer
+
+# prePuller relates to the hook|continuous-image-puller DaemonsSets
+prePuller:
+  revisionHistoryLimit:
+  labels: {}
+  annotations: {}
+  resources: {}
+  containerSecurityContext:
+    runAsUser: 65534 # nobody user
+    runAsGroup: 65534 # nobody group
+    allowPrivilegeEscalation: false
+  extraTolerations: []
+  # hook relates to the hook-image-awaiter Job and hook-image-puller DaemonSet
+  hook:
+    enabled: true
+    pullOnlyOnChanges: true
+    # image and the configuration below relates to the hook-image-awaiter Job
+    image:
+      name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-image-awaiter
+      tag: "3.2.1"
+      pullPolicy:
+      pullSecrets: []
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    podSchedulingWaitDuration: 10
+    nodeSelector: {}
+    tolerations: []
+    resources: {}
+    serviceAccount:
+      create: true
+      name:
+      annotations: {}
+  continuous:
+    enabled: true
+  pullProfileListImages: false
+  extraImages: {}
+  pause:
+    containerSecurityContext:
+      runAsUser: 65534 # nobody user
+      runAsGroup: 65534 # nobody group
+      allowPrivilegeEscalation: false
+    image:
+      name: registry-emea.app.corpintra.net/k8scache/pause
+      # tag is automatically bumped to new patch versions by the
+      # watch-dependencies.yaml workflow.
+      #
+      # If you update this, also update scheduling.userPlaceholder.image.tag
+      #
+      tag: "3.9"
+      pullPolicy:
+      pullSecrets: []
+
+ingress:
+  enabled: true
+  annotations: 
+    cert-manager.io/cluster-issuer: daimler-acme
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: code-server-redirect-dna-cs@kubernetescrd, default-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+  ingressClassName:
+  pathSuffix: hub
+  pathType: Prefix
+  hosts:
+    - code-spaces.dna.app.corpintra.net
+  tls:
+    - hosts:
+        - code-spaces.dna.app.corpintra.net
+      secretName: cs-tls-secret  
+
+# cull relates to the jupyterhub-idle-culler service, responsible for evicting
+# inactive singleuser pods.
+#
+# The configuration below, except for enabled, corresponds to command-line flags
+# for jupyterhub-idle-culler as documented here:
+# https://github.com/jupyterhub/jupyterhub-idle-culler#as-a-standalone-script
+#
+cull:
+  enabled: true
+  users: false # --cull-users
+  adminUsers: true # --cull-admin-users
+  removeNamedServers: false # --remove-named-servers
+  timeout: 1800 # --timeout
+  every: 0 # --cull-every
+  concurrency: 10 # --concurrency
+  maxAge: 0 # --max-age
+
+debug:
+  enabled: true
+global:
+  safeToShowValues: false
