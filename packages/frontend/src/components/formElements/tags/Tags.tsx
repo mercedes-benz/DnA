@@ -246,7 +246,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if (!this.props.disableOnBlurAdd) {
+    if (!this.props.disableOnBlurAdd && !this.props.disableSelfTagAdd) {
       if (target.value) {
         this.updateChips(target.value);
       }
