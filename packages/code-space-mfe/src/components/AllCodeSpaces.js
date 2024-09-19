@@ -265,6 +265,7 @@ const AllCodeSpaces = (props) => {
                             <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
                             <span>Video Tutorials</span>
                         </button>
+                                          
                     </div>
                 </div>
                 {loading ? (

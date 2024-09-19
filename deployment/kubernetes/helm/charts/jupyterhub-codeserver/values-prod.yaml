@@ -190,7 +190,7 @@ hub:
               'successThreshold': 1,
               'failureThreshold': 10
             }
-          }        
+          }
 
   #   livenessProbe:
   #     httpGet:
@@ -245,7 +245,7 @@ hub:
               app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
-          port: 8081
+          port: 8081  
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -546,7 +546,6 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
-
               
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
@@ -1166,7 +1165,7 @@ singleuser:
               - |
                   if [ -d "/home/coder/app" ]; then
                     echo "Directory is already present"
-                  else              
+                  else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
                     git checkout $GIT_BRANCH
@@ -1355,7 +1354,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH   
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
