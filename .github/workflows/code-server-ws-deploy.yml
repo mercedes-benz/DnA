@@ -103,6 +103,7 @@ jobs:
 
     - name: Import Secrets from vault
       uses: hashicorp/vault-action@v3.0.0
+      id: import-secrets
       with:
         url: https://hcvault.app.corpintra.net
         method: userpass
@@ -115,6 +116,10 @@ jobs:
     - name: Step following 'Import Secrets'
       run: |
         echo "${{ env.ER }}"
+        touch secrets.json
+        echo '${{ toJson(steps.import-secrets.outputs) }}' >> secrets.json        
+        cat secrets.json   
+
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
