@@ -2302,7 +2302,6 @@ import com.daimler.data.util.ConstantsUtility;
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 try
 		 {
-			 log.info("inside try....");
 			 CodeServerWorkspace workspace = entity.getData();
 			 String repoName = "";
 			 String repoNameWithOrg = "";
@@ -2311,14 +2310,12 @@ import com.daimler.data.util.ConstantsUtility;
 			 if (workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public") || workspace
 					 .getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")) {
 				 repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
-				 log.info("repoName>>>>"+repoName);
 			 }
 			 String pathCheckout = "";
 			 if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
 					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 							 .startsWith("private")) {
 				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
-				 log.info("repoNameWithOrg>>>>"+repoNameWithOrg);
 			 } else {
 				 repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg==null || repoNameWithOrg.isEmpty() || repoNameWithOrg.isBlank()){
@@ -2326,14 +2323,14 @@ import com.daimler.data.util.ConstantsUtility;
 					 String url[] = repoNameWithOrg.split(",");
 					 repoNameWithOrg = url[0];
 					 pathCheckout = url[1];
-					 log.info("pathCheckout>>>>"+pathCheckout);	
 				 }else{
-					 String url[] = repoNameWithOrg.split(",");
-					 repoNameWithOrg = url[0];
-					 pathCheckout = url[1];
-					 log.info("pathcheckout value >>>>"+pathCheckout); 
+					pathCheckout="";
+					if(repoNameWithOrg.contains(",")) {
+						String url[] = repoNameWithOrg.split(",");
+						repoNameWithOrg = url[0];
+						pathCheckout = url[1];
+					}
 				 }
-				 log.info("pathCheckout>>>>"+pathCheckout);
 			 }
 				 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 				 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -2356,6 +2353,21 @@ import com.daimler.data.util.ConstantsUtility;
 				 } else {
 					 ownerWorkbenchCreateInputsDto.setType("default");
 				 }
+				 List<String> extraContainers = new ArrayList<>();
+				 List<String> additionalServices =  workspace.getProjectDetails().getRecipeDetails().getAdditionalServices();
+				 if (additionalServices != null) {
+					for (String additionalService : additionalServices) {
+						String additionalServiceEnv = additionalServiceRepo.findByServiceName(additionalService);
+						if(!additionalServiceEnv.isEmpty()) {
+							StringBuffer addStringBuffer =  new StringBuffer();
+							addStringBuffer.append(additionalServiceEnv);
+							addStringBuffer.deleteCharAt(0);
+							addStringBuffer.deleteCharAt(addStringBuffer.length()-1);
+							extraContainers.add(addStringBuffer.toString());
+						}
+					}
+				 }
+				 ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
 				 ownerWorkbenchCreateInputsDto.setWsid(workspace.getWorkspaceId());
 				 ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 				 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
@@ -2401,6 +2413,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 catch(Exception e)
 		 {
+			log.error(e.getMessage(),e);
 			 MessageDescription errMsg = new MessageDescription(
 					 "Failed with updating resource value");
 			 errors.add(errMsg);
