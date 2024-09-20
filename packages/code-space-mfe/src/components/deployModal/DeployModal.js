@@ -634,7 +634,6 @@ const DeployModal = (props) => {
                           disableSelfTagAdd={true}
                           suggestionPopupHeight={150}
                           showAllTagsOnFocus={true}
-                          disablePlaceHolder={true}
                         />
                       </div>)}
                     </div>
