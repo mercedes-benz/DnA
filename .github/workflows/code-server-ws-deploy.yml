@@ -1,0 +1,326 @@
+# Author: PALANSA
+# This is the Data Product Service build & deploy workflow
+
+name: CS Apps Deploy/Undeploy
+
+# Build is triggered either if run manually or when push happens to development branch
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      environment:
+        description: 'Target environment'
+        type: environment
+        default: 'Development'
+        required: true
+      shortid:
+        description: "Short ID"
+        required: true
+      wsid:
+        description: "Workspace ID"   
+        default: 'default'   
+      repo:
+        description: "Github repo(org/repo name)"         
+      branch:
+        description: "Branch to deploy it"  
+        default: "main"         
+      action:
+        description: "Action"
+        type: choice
+        default: deploy
+        required: true  
+        options: 
+          - deploy
+          - undeploy
+          - restart
+      type:
+        description: "Workspace type" 
+        required: true  
+      target_env:
+        description: "Target Environment to deploy WS App" 
+        type: choice
+        required: true  
+        options: 
+          - 'int'
+          - 'prod' 
+      projectName:    
+        description: 'Name of the project'
+        required: true
+      valutInjectorEnable:
+        description: "valutInjectorEnable"  
+        type: boolean
+        default: false  
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot  
+  RUNNER_ALLOW_RUNASROOT: 1
+
+jobs:
+
+  deploy:
+    name: 'Build workspace application'
+    if: ${{ github.event.inputs.action == 'deploy'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [os-large-amd64-linux]
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+        
+    - name: Check user repo
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ github.event.inputs.repo }}
+        token: ${{ secrets.PID_PAT }}
+        ref: ${{ github.event.inputs.branch }}
+        path: workspace-repo
+        github-server-url: "https://git.i.mercedes-benz.com/"      
+
+    - name: Copy Deployment files from minio & login into registry
+      run: |
+        if [ -d "workspace-repo/deploy" ]; then
+          echo "Deploy folder is already present"
+        else
+          if [ -d "$HOME/minio-binaries/mc" ]; then
+          echo "Minio already present"
+          else
+            curl https://dl.min.io/client/mc/release/linux-amd64/mc \
+              --create-dirs \
+              -o $HOME/minio-binaries/mc
+            chmod +x $HOME/minio-binaries/mc
+            export PATH=$PATH:$HOME/minio-binaries/
+          fi
+          mc --insecure alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_KEY }} ${{ secrets.MINIO_SECRET }}
+          mc --insecure cp --recursive myminio/code-server/${{ github.event.inputs.type }}/deploy ./workspace-repo/
+          mc alias remove myminio
+        fi        
+
+    - name: Use .npmrc
+      uses: bduff9/use-npmrc@v2.0.0
+      with:
+        dot-npmrc: ${{ secrets.DOT_NPMRC }}
+        working-directory: ./workspace-repo
+
+    - name: Import build secrets from vault
+      uses: hashicorp/vault-action@v3.0.0
+      if: ${{ github.event.inputs.valutInjectorEnable == 'true' }}
+      with:
+        url: https://hcvault.app.corpintra.net
+        method: userpass
+        username: ${{ secrets.VAULT_USERNAME }}
+        password: ${{ secrets.VAULT_PASSWORD }}
+        namespace: fmas/codespace/prod
+        ignoreNotFound: true
+        secrets: |
+            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
+        
+    - name: Build application
+      working-directory: ./workspace-repo/deploy
+      run: | 
+       build_args=$(env | grep '^BUILD_BUILD_' | awk -F= '{sub(/^BUILD_/, "", $1); print "--build-arg " $1 "=" $2}' | xargs)
+       docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} \
+        --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
+        --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
+        --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
+        --build-arg INDEX_URL=https://${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}@artifacts.i.mercedes-benz.com/artifactory/api/pypi/pypi-opensource-virtual/simple \
+        $build_args \
+        -f build.Dockerfile --no-cache ../
+      env:
+        no_proxy: "artifacts.i.mercedes-benz.com"     
+    
+    - name: Publish application containers to registry
+      run: |
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}        
+    - name: Deploy App
+      uses: vimeda/helm@v1.7.0
+      with:
+        release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
+        namespace: 'codespaces-apps'
+        chart: 'workspace-repo/deploy/helm'
+        values: |
+          fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
+          namespace: codespaces-apps
+          image:
+            repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps
+            tag: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
+          imagePullSecrets: 
+            - name: imagepullsecret
+          vaultInjector:
+            enable: ${{ github.event.inputs.valutInjectorEnable }}
+            path: kv/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}
+            root_path: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api    
+            root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
+            authpath: ${{ vars.VAULT_AUTH_PATH }}
+            namespace: ${{ vars.VAULT_NAMESPACE }}
+      env:
+        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'       
+
+  upload-logs-to-opensearch:
+    name: "Upload Logs to Opensearch" 
+    runs-on: [os-medium-amd64-linux]
+    environment: ${{ github.event.inputs.environment }}
+    needs: deploy
+    if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') }}
+    steps:    
+      - name: Upload GitHub Action workflows logs to opensearch
+        uses: sathishkumar-p/upload-github-workflow-logs-to-opensearch@v5
+        with:
+          github_token: "${{ secrets.PID_PAT }}"
+          github_org: "DNA"
+          github_repository: "NeuDnAPlatform"
+          github_run_id: "${{ github.run_id }}"
+          github_host_api: "https://git.i.mercedes-benz.com/api/v3"
+          opensearch_username: "${{ secrets.OPENSEARCH_USERNAME }}"
+          opensearch_password: "${{ secrets.OPENSEARCH_PASSWORD }}"
+          opensearch_host: "${{ vars.OPENSEARCH_HOST }}"
+          opensearch_index: "ci-cd"  
+
+  statusUpdateDeploy:
+    name: Update Status Deploy
+    needs: deploy
+    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'deploy' }}
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.deploy.result }}'
+      wsid: '${{ github.event.inputs.wsid }}'
+      shortid: '${{ github.event.inputs.shortid }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+      target_env: ${{ github.event.inputs.target_env }}
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+  undeploy:
+    name: 'Delete Code Server Workspace'
+    if: ${{ github.event.inputs.action == 'undeploy'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [os-medium-amd64-linux]
+
+    steps:
+      - name: 'Delete Code Server Apps'
+        uses: 'vimeda/helm@v1.7.0'
+        with:
+          task: 'remove'
+          chart: 'workspace-application-0.1.0'
+          release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
+          namespace: 'codespaces-apps'
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'             
+
+  statusUpdateUndeploy:
+    name: Update Status Undeploy
+    needs: undeploy
+    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'undeploy' }}    
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.undeploy.result }}'
+      wsid: '${{ github.event.inputs.wsid }}'
+      shortid: '${{ github.event.inputs.shortid }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+      target_env: ${{ github.event.inputs.target_env }}
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+  restart:
+    name: 'Restart Code Server Workspace'
+    if: ${{ github.event.inputs.action == 'restart'}}
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: [os-medium-amd64-linux]
+
+    steps:
+        
+      - uses: actions-hub/kubectl@v1.30.3
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG_BASE64 }}
+        with:
+          args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=codespaces-apps
+
+  statusUpdateRestart:
+    name: Update Status restart
+    needs: restart
+    if: ${{ !cancelled() && (success() || failure())  && github.event.inputs.action == 'restart' }}    
+    uses: ./.github/workflows/cs-status-update.yml
+    with:
+      status: '${{ needs.restart.result }}'
+      wsid: '${{ github.event.inputs.wsid }}'
+      shortid: '${{ github.event.inputs.shortid }}'
+      action: ${{ github.event.inputs.action }}
+      environment: ${{ github.event.inputs.environment }}
+      target_env: ${{ github.event.inputs.target_env }}
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
+
+  sonar-qube-gradle:
+    name: Sonar Qube Scan Gradle
+    needs: deploy
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' }}
+    runs-on: [ os-medium-amd64-linux ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Check user repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.inputs.repo }}
+          token: ${{ secrets.PID_PAT }}
+          ref: ${{ github.event.inputs.branch }}
+          path: workspace-repo
+          github-server-url: "https://git.i.mercedes-benz.com/"           
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 7.4.1      
+          cache-overwrite-existing: true   
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Build and analyze
+        working-directory: ./workspace-repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        # run: ls && chmod +x gradlew && ./gradlew build sonarqube --info
+        run: gradle build sonarqube --info
+
+  sonar-qube-js:
+    name: Sonar Qube Scan Javascript
+    needs: deploy
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' }}
+    runs-on: [ os-medium-amd64-linux ]
+    steps:
+      - name: Check user repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.inputs.repo }}
+          token: ${{ secrets.PID_PAT }}
+          ref: ${{ github.event.inputs.branch }}
+          github-server-url: "https://git.i.mercedes-benz.com/"    
+          fetch-depth: 0       
+
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
