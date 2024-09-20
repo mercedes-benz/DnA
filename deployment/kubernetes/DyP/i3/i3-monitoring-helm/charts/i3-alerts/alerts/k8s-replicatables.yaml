@@ -1,0 +1,77 @@
+groups:
+  - name: Services
+    rules:
+      - alert: DeploymentReplicasUnavailable
+        expr: kube_deployment_status_replicas_unavailable{namespace!~"(kube|caas)-system"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          kubernetes_source: deployment/{{$labels.deployment}}
+        annotations:
+          summary: "Deployment {{$labels.deployment}} has unavailable repliacas"
+          description: "Deployment `{{$labels.deployment}}` in namespace `{{$labels.namespace}}` has unavailable replicas since more than five minutes."
+
+      - alert: StatefulSetReplicasUnavailable
+        expr: kube_statefulset_status_replicas{namespace!~"(kube|caas)-system"} < kube_statefulset_replicas{namespace!~"(kube|caas)-system"}
+        for: 5m
+        labels:
+          severity: critical
+          kubernetes_source: statefulset/{{$labels.statefulset}}
+        annotations:
+          summary: "StatefulSet {{$labels.statefulset}} has unavailable repliacas"
+          description: "StatefulSet `{{$labels.statefulset}}` in namespace `{{$labels.namespace}}` has unavailable replicas since more than five minutes."
+
+      - alert: DeploymentGenerationMismatch
+        expr: kube_deployment_status_observed_generation{namespace!~"(kube|caas)-system"} != kube_deployment_metadata_generation{namespace!~"(kube|caas)-system"}
+        for: 15m
+        labels:
+          severity: warning
+          kubernetes_source: deployment/{{$labels.deployment}}
+        annotations:
+          description: Observed deployment generation does not match expected one for
+            deployment {{$labels.namespace}}/{{$labels.deployment}}
+          summary: Deployment is outdated
+
+      - alert: DeploymentReplicasNotUpdated
+        expr: ((kube_deployment_status_replicas_updated{namespace!~"(kube|caas)-system"} != kube_deployment_spec_replicas{namespace!~"(kube|caas)-system"})
+          or (kube_deployment_status_replicas_available{namespace!~"(kube|caas)-system"} != kube_deployment_spec_replicas{namespace!~"(kube|caas)-system"}))
+          unless (kube_deployment_spec_paused{namespace!~"(kube|caas)-system"} == 1)
+        for: 15m
+        labels:
+          severity: warning
+          kubernetes_source: deployment/{{$labels.deployment}}
+        annotations:
+          description: Replicas are not updated and available for deployment {{$labels.namespace}}/{{$labels.deployment}}
+          summary: Deployment replicas are outdated
+
+      - alert: DaemonSetRolloutStuck
+        expr: kube_daemonset_status_number_ready{namespace!~"(kube|caas)-system"} / kube_daemonset_status_desired_number_scheduled{namespace!~"(kube|caas)-system"} * 100 < 100
+        for: 15m
+        labels:
+          severity: warning
+          kubernetes_source: daemonset/{{$labels.daemonset}}
+        annotations:
+          description: Only {{$value}}% of desired pods scheduled and ready for daemon
+            set {{$labels.namespace}}/{{$labels.daemonset}}
+          summary: DaemonSet is missing pods
+
+      - alert: K8SDaemonSetsNotScheduled
+        expr: kube_daemonset_status_desired_number_scheduled{namespace!~"(kube|caas)-system"} - kube_daemonset_status_current_number_scheduled{namespace!~"(kube|caas)-system"} > 0
+        for: 10m
+        labels:
+          severity: warning
+          kubernetes_source: daemonset/{{$labels.daemonset}}
+        annotations:
+          description: A number of daemonsets are not scheduled.
+          summary: Daemonsets are not scheduled correctly
+
+      - alert: DaemonSetsMissScheduled
+        expr: kube_daemonset_status_number_misscheduled{namespace!~"(kube|caas)-system"} > 0
+        for: 10m
+        labels:
+          severity: warning
+          kubernetes_source: daemonset/{{$labels.daemonset}}
+        annotations:
+          description: A number of daemonsets are running where they are not supposed
+            to run.
+          summary: Daemonsets are not scheduled correctly
