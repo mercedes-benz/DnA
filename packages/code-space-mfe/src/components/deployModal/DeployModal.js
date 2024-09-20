@@ -63,7 +63,9 @@ const DeployModal = (props) => {
   const [ignorePath, setIgnorePath] = useState([]);
   // const [ignorePathError, setIgnorePathError] = useState(false);
   const [redirectUri, setRedirectUri] = useState('');
-  const scope = ['openid', 'autorization_group', 'entitlement_group', 'scoped_entitlement', 'email', 'profile', 'organizational_data'];
+  const scopes = [{id:'1', name:'openid'}, {id:'2', name:'autorization_group'}, {id:'3', name:'entitlement_group'}, {id:'4', name:'scoped_entitlement'}, {id:'5', name:'email'}, {id:'6', name:'profile'}, {id:'7', name:'phone'}, {id:'8', name:'offline_access'}, {id:'9', name:'group_type'}];
+  const [scope, setScope] = useState(['openid', 'offline_access']);
+  const fixedScope = ['openid', 'offline_access'];
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -151,6 +153,10 @@ const DeployModal = (props) => {
 
   const onIgnorePathChange = (selectedTags) => {
     setIgnorePath(selectedTags);
+  };
+
+  const onScopeChnage = (selectedTags) => {
+    setScope(selectedTags);
   };
 
   const onDeployEnvironmentChange = (evnt) => {
@@ -248,7 +254,7 @@ const DeployModal = (props) => {
         clientSecret: clientSecret,
         redirectUri: props.isUIRecipe ? redirectUri : '',
         ignorePaths: props.isUIRecipe ? ignorePath.join(',') : '',
-        scope: props.isUIRecipe ? scope.join(' ') : '',
+        scope: (props.isUIRecipe && secureWithIAMSelected) ? scope.join(' ') : '',
         isApiRecipe: props.enableSecureWithIAM
       };
       ProgressIndicator.show();
@@ -393,37 +399,40 @@ const DeployModal = (props) => {
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
-                        <div className={classNames(Styles.flexLayout)}>
-                          <TextBox
-                            type="text"
-                            controlId={'Client ID'}
-                            labelId={'clientIdLabel'}
-                            label={'Client ID'}
-                            placeholder={'Client ID as per IAM used with Alice'}
-                            value={clientId}
-                            errorText={clientIdError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientId(e.currentTarget.value);
-                              setClientIdError('');
-                            }}
-                          />
-                          <TextBox
-                            type="text"
-                            controlId={'Client Secret'}
-                            labelId={'clientSecretLabel'}
-                            label={'Client Secret'}
-                            placeholder={'Client Secret as per IAM used with Alice'}
-                            value={clientSecret}
-                            errorText={clientSecretError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientSecret(e.currentTarget.value);
-                              setClientSecretError('');
-                            }}
-                          />
+                        <div className={classNames(props.isUIRecipe ? Styles.wrapper : '')}>
+                          {props.isUIRecipe && (<span className="label"><p>Authorization Code Flow</p></span>)}
+                          <div className={classNames(Styles.flexLayout)}>
+                            <TextBox
+                              type="text"
+                              controlId={'Client ID'}
+                              labelId={'clientIdLabel'}
+                              label={'Client ID'}
+                              placeholder={'Client ID as per IAM used with Alice'}
+                              value={clientId}
+                              errorText={clientIdError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientId(e.currentTarget.value);
+                                setClientIdError('');
+                              }}
+                            />
+                            <TextBox
+                              type="text"
+                              controlId={'Client Secret'}
+                              labelId={'clientSecretLabel'}
+                              label={'Client Secret'}
+                              placeholder={'Client Secret as per IAM used with Alice'}
+                              value={clientSecret}
+                              errorText={clientSecretError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientSecret(e.currentTarget.value);
+                                setClientSecretError('');
+                              }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className={classNames(Styles.actionWrapper)}>
@@ -448,27 +457,28 @@ const DeployModal = (props) => {
                               setRedirectUri(e.currentTarget.value);
                             }}
                           />
-                          <div className={classNames('input-field-group')}>
-                            <label className="input-label">Enabled scope</label>
-                            <br />
-                            {scope.map((chip) => {
-                              return (
-                                <>
-                                  <label className="chips">{chip}</label>&nbsp;&nbsp;
-                                </>
-                              );
-                            })}
-                          </div>
+                          <Tags
+                            title={'Ignore Path'}
+                            max={100}
+                            chips={ignorePath}
+                            placeholder={'Type root path here....'}
+                            tags={ignorePaths}
+                            setTags={onIgnorePathChange}
+                            isMandatory={false}
+                            isIgnorePath={true}
+                            showAllTagsOnFocus={true}
+                          />
                         </div>
                         <Tags
-                          title={'Ignore Path'}
+                          title={'Scope'}
                           max={100}
-                          chips={ignorePath}
-                          placeholder={'Type root path here....'}
-                          tags={ignorePaths}
-                          setTags={onIgnorePathChange}
+                          chips={scope}
+                          fixedChips={fixedScope}
+                          tags={scopes}
+                          setTags={onScopeChnage}
                           isMandatory={false}
-                          isIgnorePath={true}
+                          disableSelfTagAdd={true}
+                          suggestionPopupHeight={150}
                           showAllTagsOnFocus={true}
                         />
                       </div>)}
@@ -543,37 +553,40 @@ const DeployModal = (props) => {
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
-                        <div className={classNames(Styles.flexLayout)}>
-                          <TextBox
-                            type="text"
-                            controlId={'Client ID'}
-                            labelId={'clientIdLabel'}
-                            label={'Client ID'}
-                            placeholder={'Client ID as per IAM used with Alice'}
-                            value={clientId}
-                            errorText={clientIdError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientId(e.currentTarget.value);
-                              setClientIdError('');
-                            }}
-                          />
-                          <TextBox
-                            type="text"
-                            controlId={'Client Secret'}
-                            labelId={'clientSecretLabel'}
-                            label={'Client Secret'}
-                            placeholder={'Client Secret as per IAM used with Alice'}
-                            value={clientSecret}
-                            errorText={clientSecretError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientSecret(e.currentTarget.value);
-                              setClientSecretError('');
-                            }}
-                          />
+                        <div className={classNames(props.isUIRecipe ? Styles.wrapper : '')}>
+                          {props.isUIRecipe && (<span className="label"><p>Authorization Code Flow</p></span>)}
+                          <div className={classNames(Styles.flexLayout)}>
+                            <TextBox
+                              type="text"
+                              controlId={'Client ID'}
+                              labelId={'clientIdLabel'}
+                              label={'Client ID'}
+                              placeholder={'Client ID as per IAM used with Alice'}
+                              value={clientId}
+                              errorText={clientIdError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientId(e.currentTarget.value);
+                                setClientIdError('');
+                              }}
+                            />
+                            <TextBox
+                              type="text"
+                              controlId={'Client Secret'}
+                              labelId={'clientSecretLabel'}
+                              label={'Client Secret'}
+                              placeholder={'Client Secret as per IAM used with Alice'}
+                              value={clientSecret}
+                              errorText={clientSecretError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientSecret(e.currentTarget.value);
+                                setClientSecretError('');
+                              }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className={classNames(Styles.actionWrapper)}>
@@ -598,28 +611,30 @@ const DeployModal = (props) => {
                               setRedirectUri(e.currentTarget.value);
                             }}
                           />
-                          <div className={classNames('input-field-group')}>
-                            <label className="input-label">Enabled scope</label>
-                            <br />
-                            {scope.map((chip) => {
-                              return (
-                                <>
-                                  <label className="chips">{chip}</label>&nbsp;&nbsp;
-                                </>
-                              );
-                            })}
-                          </div>
+                          <Tags
+                            title={'Ignore Path'}
+                            max={100}
+                            chips={ignorePath}
+                            placeholder={'Type root path here....'}
+                            tags={ignorePaths}
+                            setTags={onIgnorePathChange}
+                            isMandatory={false}
+                            isIgnorePath={true}
+                            showAllTagsOnFocus={true}
+                          />
                         </div>
                         <Tags
-                          title={'Ignore Path'}
+                          title={'Scope'}
                           max={100}
-                          chips={ignorePath}
-                          placeholder={'Type root path here....'}
-                          tags={ignorePaths}
-                          setTags={onIgnorePathChange}
+                          chips={scope}
+                          fixedChips={fixedScope}
+                          tags={scopes}
+                          setTags={onScopeChnage}
                           isMandatory={false}
-                          isIgnorePath={true}
+                          disableSelfTagAdd={true}
+                          suggestionPopupHeight={150}
                           showAllTagsOnFocus={true}
+                          disablePlaceHolder={true}
                         />
                       </div>)}
                     </div>
