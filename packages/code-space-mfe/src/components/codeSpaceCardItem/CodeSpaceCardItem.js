@@ -303,16 +303,16 @@ const CodeSpaceCardItem = (props) => {
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
-  const isAPIRecipe =
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  // const isAPIRecipe =
+  //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const isIAMRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
@@ -433,7 +433,7 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     <li>
                       <button
-                        className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowStagingActions(!showStagingActions);
                         }}
@@ -446,7 +446,7 @@ const CodeSpaceCardItem = (props) => {
                           </span>
                         </div>
                         <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}>
-                          {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
                             <>
                               <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
@@ -462,7 +462,7 @@ const CodeSpaceCardItem = (props) => {
                             [Branch - {intDeploymentDetails?.lastDeployedBranch}]
                           </li>
                         )}
-                        {isAPIRecipe && isOwner && (
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
                           <li>
                             <span
                               onClick={() => {
@@ -535,7 +535,7 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     <li>
                       <button
-                        className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowProdActions(!showProdActions);
                         }}
@@ -548,7 +548,7 @@ const CodeSpaceCardItem = (props) => {
                           </span>
                         </div>
                         <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
-                          {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
                             <>
                               <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
@@ -564,7 +564,7 @@ const CodeSpaceCardItem = (props) => {
                             [Branch - {prodDeploymentDetails?.lastDeployedBranch}]
                           </li>
                         )}
-                        {isAPIRecipe && isOwner && (
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
                           <li>
                             <span
                               onClick={() => {

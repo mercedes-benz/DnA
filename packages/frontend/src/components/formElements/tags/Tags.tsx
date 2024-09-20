@@ -24,7 +24,7 @@ export interface ITagsFieldProps {
   isDataSource?: boolean;
   placeholder?: string;
   showAllTagsOnFocus?: boolean;
-  disableSelfTagAdd?: boolean
+  disableSelfTagAdd?: boolean;
 }
 
 export interface ITagsFiledState {
