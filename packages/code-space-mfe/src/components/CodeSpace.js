@@ -172,15 +172,15 @@ const CodeSpace = (props) => {
   // const recipes = recipesMaster;
   
 
-  const isAPIRecipe =
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
+  // const isAPIRecipe =
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
   const isIAMRecipe =
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
@@ -759,7 +759,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -780,7 +780,7 @@ const CodeSpace = (props) => {
                                 ref={stagingWrapperRef}
                                 className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}
                               >
-                                {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -794,7 +794,7 @@ const CodeSpace = (props) => {
                               {intDeploymentDetails?.lastDeployedBranch && (
                                 <li style={{ color: 'var(--color-orange)' }}>[Branch - {codeDeployedBranch}]</li>
                               )}
-                              {isAPIRecipe && isOwner && (
+                              {projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
                                 <li>
                                   <span
                                     onClick={() => {
@@ -877,7 +877,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -898,7 +898,7 @@ const CodeSpace = (props) => {
                                 ref={prodWrapperRef}
                                 className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')}
                               >
-                                {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -912,7 +912,7 @@ const CodeSpace = (props) => {
                               {prodDeploymentDetails?.lastDeployedBranch && (
                                 <li style={{ color: 'var(--color-orange)' }}>[Branch - {prodCodeDeployedBranch}]</li>
                               )}
-                              {isAPIRecipe && isOwner && (
+                              {projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
                                 <li>
                                   <span
                                     onClick={() => {
