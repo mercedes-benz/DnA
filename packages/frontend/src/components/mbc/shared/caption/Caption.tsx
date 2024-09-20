@@ -9,12 +9,13 @@ export interface ICaptionProps {
   title: string;
   disableTitle?: boolean;
   children?: React.ReactNode;
+  onBackClick?: () => void;
 }
 
-const Caption:React.FC<ICaptionProps> = ({ title, disableTitle, children }) => {
+const Caption:React.FC<ICaptionProps> = ({ title, disableTitle, children, onBackClick }) => {
   const history = useHistory();
   const goback = () => {
-    history.goBack();
+    onBackClick ? onBackClick() : history.goBack();
   };
   return (
     <div className={Styles.caption}>
