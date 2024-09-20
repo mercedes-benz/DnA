@@ -926,7 +926,7 @@ const CreateBucket = ({ user }) => {
                             </strong>
                             {` base URL to read the contents from your bucket.`}
                           </p>
-                          <p>Write access for the bucket will be still restricted.</p>
+                          <p>Please make sure that you do not store any confidential data in this bucket as it is publicly accessable.</p>
                         </div>
                       </div>
                     </div>

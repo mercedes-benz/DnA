@@ -118,7 +118,7 @@ export const BucketList = (props) => {
         You can use &nbsp;
         <strong>{Envs.BUCKET_PUBLIC_ACCESS_BASEURL + currentBucketName}</strong>
         &nbsp;as the base URL to read the contents from the bucket.
-        Write access for the bucket will still be restricted.
+        Please make sure that you do not store any confidential data in this bucket as it is publicly accessable.
       </h5>
     </div>
   );
@@ -336,6 +336,7 @@ export const BucketList = (props) => {
                         Bucket Name
                       </label>
                     </div>
+                    <div className={classNames(Styles.accessCol)}></div>
                     <div className={Styles.bucketTitleCol}>
                       <label
                         className={
@@ -403,6 +404,9 @@ export const BucketList = (props) => {
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
                               <Link to={`/explorer/${item.bucketName}`}>{item.bucketName}</Link>
                             </div>
+                            <div className={classNames(Styles.accessCol)}>
+                              {hasPublicAccess && <span onClick={() => { setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
+                            </div>
                             <div className={Styles.bucketTitleCol}>
                               {displayPermission(item?.permission)}
                               {isOwner && ` (Owner)`}
@@ -457,7 +461,6 @@ export const BucketList = (props) => {
 
                             <div className={Styles.projectListAction}>
                               <div className={Styles.actionBtnGrp}>
-                                {hasPublicAccess && <span onClick={() => { setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
                                 {(hasWriteAccess && !item.bucketName.startsWith('dna-datalake')) && (
                                   <>
                                     <button
