@@ -165,7 +165,16 @@ public class GitClient {
 				log.info("completed adding user {}  as collaborator to git repo {} initated by user , with status {} ", username, gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
 			}
-		} catch (Exception e) {
+		
+		} catch (HttpClientErrorException e) {
+            // Catch specific 422 error
+            if (e.getStatusCode().value() == 422) {
+                log.error("Caught 422 Unprocessable Entity error: " + e.getResponseBodyAsString());
+				return HttpStatus.UNPROCESSABLE_ENTITY;
+            } else {
+                log.error("Caught HTTP client error: " + e.getStatusCode());
+            }
+        }catch (Exception e) {
 			log.error("Error occured while adding collaborator {} to git repo {} with exception {}", username, gitOrgName, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
