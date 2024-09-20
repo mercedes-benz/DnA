@@ -2369,7 +2369,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 
 		}
-		return null;
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	@Override
