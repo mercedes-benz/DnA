@@ -23,6 +23,7 @@ export interface ITagsFieldProps {
   removeTag?: (index: number) => void;
   isDataSource?: boolean;
   placeholder?: string;
+  showAllTagsOnFocus?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -235,6 +236,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldFocus = () => {
     this.setState({ isFocused: true });
+    this.props.showAllTagsOnFocus && this.setState({
+      filteredTags: [...this.props.tags],
+    });
   };
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {

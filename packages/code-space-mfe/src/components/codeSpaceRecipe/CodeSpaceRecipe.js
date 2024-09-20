@@ -471,7 +471,7 @@ const CodeSpaceRecipe = (props) => {
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'}>
+            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} onBackClick={() => history.push('/')}>
               <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>
             </Caption>
             <div className={classNames(Styles.wrapper)}>
@@ -540,6 +540,7 @@ const CodeSpaceRecipe = (props) => {
                           required={true}
                           maxLength={200}
                           onChange={onGitUrlChange}
+                          onBlur={errorObj?.gitUrl?.length ? undefined : verifyRequest}
                         />
                         {(!enableCreate &&
                           <button className={classNames('btn btn-tertiary', Styles.verifyButton, errorObj?.gitUrl?.length > 0 && Styles.giturlerror)} type="button" onClick={verifyRequest}>
@@ -559,8 +560,6 @@ const CodeSpaceRecipe = (props) => {
                         <div id="HardwareBox" className='custom-select'>
                           <select
                             id="HardewareField"
-                            required={true}
-                            required-error={errorObj.hardware}
                             value={hardware}
                             onChange={onHardwareChange}>
                             <option value={'small'}>DiskSpace - 5GB CPU - 0.5 RAM - 2GB</option>
@@ -590,6 +589,7 @@ const CodeSpaceRecipe = (props) => {
                         }}
                         isMandatory={true}
                         showMissingEntryError={isSoftwareMissing}
+                        showAllTagsOnFocus={true}
                       />
                       <div className={classNames(Styles.request)} >
                         <a href={Envs.CODESPACE_SOFTWARE_REQUEST_TEMPLATE} target="_blank" rel="noopener noreferrer">
