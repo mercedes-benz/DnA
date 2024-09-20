@@ -405,7 +405,7 @@ export const BucketList = (props) => {
                               <Link to={`/explorer/${item.bucketName}`}>{item.bucketName}</Link>
                             </div>
                             <div className={classNames(Styles.accessCol)}>
-                              {hasPublicAccess && <span onClick={() => { setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
+                              {hasPublicAccess && <span onClick={(e) => { e.stopPropagation; setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {displayPermission(item?.permission)}
