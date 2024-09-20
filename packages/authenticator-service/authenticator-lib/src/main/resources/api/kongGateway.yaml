@@ -738,6 +738,10 @@ definitions:
         type: string  
       recovery_page_path:
         type: string  
+      filters:
+        type: string
+      ignore_auth_filters:
+        type: string
       claims_to_verify:
         type: string  
       key_claim_name:
