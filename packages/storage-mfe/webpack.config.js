@@ -20,8 +20,7 @@ const base = {
     historyApiFallback: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
-    },
-   
+    },   
   },
   module: {
     rules: [
