@@ -20,7 +20,7 @@ const base = {
     historyApiFallback: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
-    },
+    },   
   },
   module: {
     rules: [
@@ -97,7 +97,13 @@ const base = {
           },
         ],
         include: [path.resolve(__dirname, path.join('.', 'public'))],
-      }
+      },
+      {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false,
+        },
+      },
     ],
   },
   plugins: [
