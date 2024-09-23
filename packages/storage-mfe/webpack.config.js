@@ -21,11 +21,7 @@ const base = {
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
-  },
-  resolve: { 
-    alias: { 
-      'process/browser': require.resolve('process/browser') 
-    } 
+   
   },
   module: {
     rules: [
@@ -102,7 +98,13 @@ const base = {
           },
         ],
         include: [path.resolve(__dirname, path.join('.', 'public'))],
-      }
+      },
+      {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false,
+        },
+      },
     ],
   },
   plugins: [
