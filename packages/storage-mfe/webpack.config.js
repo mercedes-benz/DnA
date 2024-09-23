@@ -22,6 +22,11 @@ const base = {
       'Access-Control-Allow-Origin': '*',
     },
   },
+  resolve: { 
+    alias: { 
+      'process/browser': require.resolve('process/browser') 
+    } 
+  },
   module: {
     rules: [
       {
