@@ -370,6 +370,8 @@ public class FabricWorkspaceClient {
 				response = getUserResponse.getBody();
 				return response;
 			}
+		}}catch(HttpClientErrorException e){
+			log.error("Http Error occured: {}",e);
 		}catch(Exception e) {
 			log.error("Failed to get users and groups of workspace {} with exception {} ",workspaceGroupId, e);
 			return null;
