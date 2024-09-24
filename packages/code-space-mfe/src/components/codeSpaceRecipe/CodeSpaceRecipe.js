@@ -87,7 +87,7 @@ const CodeSpaceRecipe = (props) => {
           setIsPublic(recipe?.isPublic);
           setGitRepoLoc(recipe?.gitRepoLoc);
           setDeployPath(recipe?.deployPath);
-          setSelectedAdditionalServices(recipe?.additionalServices);
+          setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.additionalProperties?.name)));
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         })
@@ -102,7 +102,7 @@ const CodeSpaceRecipe = (props) => {
           }
         });
     }
-  }, [recipeId]);
+  }, [recipeId, additionalServices]);
 
   useEffect(() => {
     CodeSpaceApiClient.getSoftwareLov()
