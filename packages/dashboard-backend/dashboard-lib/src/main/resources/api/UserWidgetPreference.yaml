@@ -215,11 +215,7 @@ definitions:
       departments:
         type: array
         items:
-          type: string
-      processOwners:
-        type: array
-        items:
-          type: string   
+          type: string  
           
   UserWidgetPrefDivisionVO:
     type: object
