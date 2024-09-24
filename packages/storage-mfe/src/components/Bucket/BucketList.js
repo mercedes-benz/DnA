@@ -114,10 +114,10 @@ export const BucketList = (props) => {
   const publicAccessModelContent = (
     <div className={classNames(Styles.accessContent)}>
       <h5>
-      public access for the bucket {currentBucketName} is enabled which makes the bucket publicly accessable without any authentication.
+      public access for the bucket {currentBucketName} is enabled which makes the bucket publicly accessable without any authentication.<br/>
         You can use &nbsp;
         <strong>{Envs.BUCKET_PUBLIC_ACCESS_BASEURL + currentBucketName}</strong>
-        &nbsp;as the base URL to read the contents from the bucket.
+        &nbsp;as the base URL to read the contents from the bucket.<br/>
         Please make sure that you do not store any confidential data in this bucket as it is publicly accessable.
       </h5>
     </div>
@@ -538,19 +538,14 @@ export const BucketList = (props) => {
           maxWidth: '65%'
         }}
       />
-      <Modal
+      <ConfirmModal
         title=""
         show={showAccessModel}
         showAcceptButton={false}
-        showCancelButton={false}
+        showCancelButton={true}
+        cancelButtonTitle="OK"
         content={publicAccessModelContent}
         onCancel={() => {setShowAccessModel(false); setCurrentBucketName('');}}
-        modalStyle={{
-          padding: '50px 90px 35px',
-          minWidth: 'unset',
-          width: '65%',
-          maxWidth: '65%'
-        }}
       />
       
       {connect?.modal && (
