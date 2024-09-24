@@ -313,9 +313,6 @@ public class BaseStorageService implements StorageService {
 					MinioGenericResponse minioObjectResponse = dnaMinioClient.setBucketPublicDownloadUsingMc(bucketVo.getBucketName(), bucketVo.isEnablePublicAccess());
 					if(minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)){
 						LOGGER.info("Successfully set public download accsess to the storage bucket");
-						MessageDescription msg = new MessageDescription("Failed to update the public access status of storage buckets");
-						warnings.add(msg);
-						responseVO.setWarnings(warnings);
 					}else{
 						bucketVo.setEnablePublicAccess(false);
 						LOGGER.info("Failed to set public download accsess to the storage bucket");
