@@ -1,0 +1,159 @@
+#
+# IMPORTANT NOTE
+#
+# This chart inherits from our common library chart. You can check the default values/options here:
+# https://github.com/bjw-s/helm-charts/blob/a081de5/charts/library/common/values.yaml
+#
+
+global:
+  fullnameOverride: "paperless-ngx"
+fullnameOverride: "paperless-ngx"
+image:
+  # -- Image repository
+  repository: registry-emea.app.corpintra.net/ghcrcache/paperless-ngx/paperless-ngx
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image tag
+  tag: 2.11.2
+
+# -- Environment variables [[ref]](https://docs.paperless-ngx.com/configuration/)
+# @default -- See [values.yaml](./values.yaml)
+env:
+  # -- Set the container timezone
+  TZ: UTC
+  PAPERLESS_SECRET_KEY: "<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
+  PAPERLESS_ADMIN_USER: "admin"
+  PAPERLESS_ADMIN_PASSWORD: "<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
+  PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
+  PAPERLESS_APP_TITLE: "DnA-Hosted paperless-ngx"
+  PAPERLESS_EMAIL_HOST: "mailhost.emea.svc.corpintra.net"
+  PAPERLESS_EMAIL_HOST_USER: "dna@mb.com"
+  PAPERLESS_REDIRECT_LOGIN_TO_SSO: "True"
+  PAPERLESS_SOCIALACCOUNT_PROVIDERS: '<path:kv/data/dna/kubernetesSecret/paperless-ngx#PAPERLESS_SOCIALACCOUNT_PROVIDERS>'
+
+service:
+  # -- Configures service settings for the chart.
+  # @default -- See [values.yaml](./values.yaml)
+  main:
+    ports:
+      http:
+        port: 8000
+
+ingress:
+  # -- Enable and configure ingress settings for the chart under this key.
+  # @default -- See [values.yaml](./values.yaml)
+  main:
+    enabled: true
+    annotations: 
+      cert-manager.io/cluster-issuer: daimler-acme
+      kubernetes.io/ingress.class: traefik
+      traefik.frontend.rule.type: PathPrefix
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+    hosts:
+      - host: paperless-ngx.dna.app.corpintra.net
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: 
+    - secretName: paperless-ngx-dna-tls
+      hosts:
+        - paperless-ngx.dna.app.corpintra.net
+
+
+persistence:
+  # -- Configure data volume settings for the chart under this key.
+  # @default -- See [values.yaml](./values.yaml)
+  data:
+    enabled: true
+    retain: true
+    mountPath: /usr/src/paperless/data
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 2Gi
+  # -- Configure media volume settings for the chart under this key.
+  # @default -- See [values.yaml](./values.yaml)
+  media:
+    enabled: true
+    retain: true
+    mountPath: /usr/src/paperless/media
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 16Gi
+  # -- Configure export volume settings for the chart under this key.
+  # @default -- See [values.yaml](./values.yaml)
+  export:
+    enabled: true
+    retain: true
+    mountPath: /usr/src/paperless/export
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 2Gi
+  # -- Configure consume volume settings for the chart under this key.
+  # @default -- See [values.yaml](./values.yaml)
+  consume:
+    enabled: true
+    retain: true
+    mountPath: /usr/src/paperless/consume
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+# -- Enable and configure postgresql database subchart under this key.
+#    If enabled, the app's db envs will be set for you.
+#    [[ref]](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
+# @default -- See [values.yaml](./values.yaml)
+postgresql:
+  enabled: false
+  auth:
+    database: paperless
+    postgresPassword: changeme
+  primary:
+    persistence:
+      enabled: false
+      # storageClass: ""
+      # size: 8Gi
+
+# -- Enable and configure mariadb database subchart under this key.
+#    If enabled, the app's db envs will be set for you.
+#    [[ref]](https://github.com/bitnami/charts/tree/main/bitnami/mariadb)
+# @default -- See [values.yaml](./values.yaml)
+mariadb:
+  enabled: false
+  auth:
+    database: paperless
+    username: paperless
+    password: changeme
+    rootPassword: changeme
+  primary:
+    persistence:
+      enabled: false
+      # storageClass: ""
+      # size: 8Gi
+
+# -- Enable and configure redis subchart under this key.
+#    If enabled, the app's Redis env will be set for you.
+#    [[ref]](https://github.com/bitnami/charts/tree/main/bitnami/redis)
+# @default -- See [values.yaml](./values.yaml)
+redis:
+  enabled: true
+  image:
+    registry: registry-emea.app.corpintra.net
+    repository: bitnamicache/bitnami/redis  
+  networkPolicy:
+    ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources
+    ##
+    enabled: true    
+  auth:
+    enabled: true
+    username: ""
+    # Use an existing secret for redis auth. Do this if you're using Argo to manage your instance or otherwise using helm template under the hood
+    #     The secret name can vary, but the password key must be redis-password.
+    # existingSecret: paperless-redis
+    # existingSecretPasswordKey: redis-password
+  master:
+    persistence:
+      enabled: false
+  replica:
+    replicaCount: 0

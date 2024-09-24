@@ -99,6 +99,24 @@ public class BaseRecipeService implements RecipeService{
 		
 		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
 		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		savedEntity = saveEntity(isoFormat, entity, savedEntity);
+		return recipeAssembler.toVo(savedEntity);
+	}
+
+	@Override
+	@Transactional
+	public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
+		CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findByRecipeName(recipeRequestVO.getRecipeName());
+		recipeEntity.setData(entity.getData());
+		savedEntity = saveEntity(isoFormat, recipeEntity, savedEntity);
+		return recipeAssembler.toVo(savedEntity);
+	}
+
+	private CodeServerRecipeNsql saveEntity(SimpleDateFormat isoFormat, CodeServerRecipeNsql entity,
+			CodeServerRecipeNsql savedEntity) {
 		try {
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
 			entity.getData().setCreatedOn(now);
@@ -106,7 +124,7 @@ public class BaseRecipeService implements RecipeService{
 		} catch (Exception e) {
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
-		return recipeAssembler.toVo(savedEntity);
+		return savedEntity;
 	}
 
 	@Override

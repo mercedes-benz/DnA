@@ -59,6 +59,13 @@ const DeployModal = (props) => {
   const [changeSelected, setChangeSelected] = useState(false);
   const [disableIntIAM, setDisableIntIAM] = useState(true);
   const [disableProdIAM, setDisableProdIAM] = useState(true);
+  const ignorePaths = [{id:'1',name:'favicon.ico'},{id:'2',name:'manifest.json'},{id:'3',name:'apple-app-site-association'}];
+  const [ignorePath, setIgnorePath] = useState([]);
+  // const [ignorePathError, setIgnorePathError] = useState(false);
+  const [redirectUri, setRedirectUri] = useState('');
+  const scopes = [{id:'1', name:'openid'}, {id:'2', name:'autorization_group'}, {id:'3', name:'entitlement_group'}, {id:'4', name:'scoped_entitlement'}, {id:'5', name:'email'}, {id:'6', name:'profile'}, {id:'7', name:'phone'}, {id:'8', name:'offline_access'}, {id:'9', name:'group_type'}];
+  const [scope, setScope] = useState(['openid', 'offline_access']);
+  const fixedScope = ['openid', 'offline_access'];
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -144,6 +151,14 @@ const DeployModal = (props) => {
     setAcceptContinueCodingOnDeployment(e.target.checked);
   };
 
+  const onIgnorePathChange = (selectedTags) => {
+    setIgnorePath(selectedTags);
+  };
+
+  const onScopeChnage = (selectedTags) => {
+    setScope(selectedTags);
+  };
+
   const onDeployEnvironmentChange = (evnt) => {
     setClientId('');
     setClientIdError('');
@@ -225,6 +240,9 @@ const DeployModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
+    if (ignorePath.length !== 0 && ignorePath.some(item => item.includes('/') || item.includes(' '))) {
+      formValid = false;
+    }
     if (formValid) {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
@@ -234,6 +252,10 @@ const DeployModal = (props) => {
         // valutInjectorEnable: vaultEnabled,
         clientID: clientId,
         clientSecret: clientSecret,
+        redirectUri: props.isUIRecipe ? redirectUri : '',
+        ignorePaths: props.isUIRecipe ? ignorePath.join(',') : '',
+        scope: (props.isUIRecipe && secureWithIAMSelected) ? scope.join(' ') : '',
+        isApiRecipe: props.enableSecureWithIAM
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -336,7 +358,7 @@ const DeployModal = (props) => {
               </div>
             </div>
           </div>
-          {props.enableSecureWithIAM && (
+          {(props.enableSecureWithIAM || props.isUIRecipe) && (
             <>
               {deployEnvironment === 'staging' && (
                 <>
@@ -354,7 +376,7 @@ const DeployModal = (props) => {
                       </span>
                       <span className="label">
                         Secure with your own IAM Credentials{' '}
-                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        {(isOwner && !props.isUIRecipe) && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -365,49 +387,52 @@ const DeployModal = (props) => {
                         </span>)}
                       </span>
                     </label>
-                    <span>
+                    {!props.isUIRecipe && (<span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
                         className={classNames(disableIntIAM && secureWithIAMSelected ? '' : 'hide')}
                       >
                         <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization Configuration and therefore no authorization checks would happen.
                       </p>
-                    </span>
+                    </span>)}
                   </div>
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
-                        <div className={classNames(Styles.flexLayout)}>
-                          <TextBox
-                            type="text"
-                            controlId={'Client ID'}
-                            labelId={'clientIdLabel'}
-                            label={'Client ID'}
-                            placeholder={'Client ID as per IAM used with Alice'}
-                            value={clientId}
-                            errorText={clientIdError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientId(e.currentTarget.value);
-                              setClientIdError('');
-                            }}
-                          />
-                          <TextBox
-                            type="text"
-                            controlId={'Client Secret'}
-                            labelId={'clientSecretLabel'}
-                            label={'Client Secret'}
-                            placeholder={'Client Secret as per IAM used with Alice'}
-                            value={clientSecret}
-                            errorText={clientSecretError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientSecret(e.currentTarget.value);
-                              setClientSecretError('');
-                            }}
-                          />
+                        <div className={classNames(props.isUIRecipe ? Styles.wrapper : '')}>
+                          {props.isUIRecipe && (<span className="label"><p>Authorization Code Flow</p></span>)}
+                          <div className={classNames(Styles.flexLayout)}>
+                            <TextBox
+                              type="text"
+                              controlId={'Client ID'}
+                              labelId={'clientIdLabel'}
+                              label={'Client ID'}
+                              placeholder={'Client ID as per IAM used with Alice'}
+                              value={clientId}
+                              errorText={clientIdError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientId(e.currentTarget.value);
+                                setClientIdError('');
+                              }}
+                            />
+                            <TextBox
+                              type="text"
+                              controlId={'Client Secret'}
+                              labelId={'clientSecretLabel'}
+                              label={'Client Secret'}
+                              placeholder={'Client Secret as per IAM used with Alice'}
+                              value={clientSecret}
+                              errorText={clientSecretError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientSecret(e.currentTarget.value);
+                                setClientSecretError('');
+                              }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className={classNames(Styles.actionWrapper)}>
@@ -419,6 +444,44 @@ const DeployModal = (props) => {
                           </button>
                         </div>
                       )}
+                      {props.isUIRecipe && (<div>
+                        <div className={classNames(Styles.flexLayout)}>
+                          <TextBox
+                            type="text"
+                            label={'Redirect Uri'}
+                            placeholder={`eg: /${props.codeSpaceData.workspaceId}/cd`}
+                            value={redirectUri}
+                            required={false}
+                            maxLength={500}
+                            onChange={(e) => {
+                              setRedirectUri(e.currentTarget.value);
+                            }}
+                          />
+                          <Tags
+                            title={'Ignore Path'}
+                            max={100}
+                            chips={ignorePath}
+                            placeholder={'Type root path here....'}
+                            tags={ignorePaths}
+                            setTags={onIgnorePathChange}
+                            isMandatory={false}
+                            isIgnorePath={true}
+                            showAllTagsOnFocus={true}
+                          />
+                        </div>
+                        <Tags
+                          title={'Scope'}
+                          max={100}
+                          chips={scope}
+                          fixedChips={fixedScope}
+                          tags={scopes}
+                          setTags={onScopeChnage}
+                          isMandatory={false}
+                          disableSelfTagAdd={true}
+                          suggestionPopupHeight={150}
+                          showAllTagsOnFocus={true}
+                        />
+                      </div>)}
                     </div>
                   )}
                   {/* {secureWithIAMSelected && (
@@ -467,7 +530,7 @@ const DeployModal = (props) => {
                       </span>
                       <span className="label">
                         Secure with your own IAM Credentials{' '}
-                        {isOwner && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                        {(isOwner && !props.isUIRecipe) && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                           <a target="_blank" rel="noreferrer">
                             {CODE_SPACE_TITLE} (
                             {projectDetails?.publishedSecuirtyConfig?.status ||
@@ -478,49 +541,52 @@ const DeployModal = (props) => {
                         </span>)}
                       </span>
                     </label>
-                    <span>
+                    {!props.isUIRecipe && (<span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
                         className={classNames(disableProdIAM && secureWithIAMSelected ? '' : 'hide')}
                       >
                         <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization Configuration and therefore no authorization checks would happen.
                       </p>
-                    </span>
+                    </span>)}
                   </div>
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
-                        <div className={classNames(Styles.flexLayout)}>
-                          <TextBox
-                            type="text"
-                            controlId={'Client ID'}
-                            labelId={'clientIdLabel'}
-                            label={'Client ID'}
-                            placeholder={'Client ID as per IAM used with Alice'}
-                            value={clientId}
-                            errorText={clientIdError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientId(e.currentTarget.value);
-                              setClientIdError('');
-                            }}
-                          />
-                          <TextBox
-                            type="text"
-                            controlId={'Client Secret'}
-                            labelId={'clientSecretLabel'}
-                            label={'Client Secret'}
-                            placeholder={'Client Secret as per IAM used with Alice'}
-                            value={clientSecret}
-                            errorText={clientSecretError}
-                            required={true}
-                            maxLength={200}
-                            onChange={(e) => {
-                              setClientSecret(e.currentTarget.value);
-                              setClientSecretError('');
-                            }}
-                          />
+                        <div className={classNames(props.isUIRecipe ? Styles.wrapper : '')}>
+                          {props.isUIRecipe && (<span className="label"><p>Authorization Code Flow</p></span>)}
+                          <div className={classNames(Styles.flexLayout)}>
+                            <TextBox
+                              type="text"
+                              controlId={'Client ID'}
+                              labelId={'clientIdLabel'}
+                              label={'Client ID'}
+                              placeholder={'Client ID as per IAM used with Alice'}
+                              value={clientId}
+                              errorText={clientIdError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientId(e.currentTarget.value);
+                                setClientIdError('');
+                              }}
+                            />
+                            <TextBox
+                              type="text"
+                              controlId={'Client Secret'}
+                              labelId={'clientSecretLabel'}
+                              label={'Client Secret'}
+                              placeholder={'Client Secret as per IAM used with Alice'}
+                              value={clientSecret}
+                              errorText={clientSecretError}
+                              required={true}
+                              maxLength={200}
+                              onChange={(e) => {
+                                setClientSecret(e.currentTarget.value);
+                                setClientSecretError('');
+                              }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className={classNames(Styles.actionWrapper)}>
@@ -532,6 +598,44 @@ const DeployModal = (props) => {
                           </button>
                         </div>
                       )}
+                      {props.isUIRecipe && (<div>
+                        <div className={classNames(Styles.flexLayout)}>
+                          <TextBox
+                            type="text"
+                            label={'Redirect Uri'}
+                            placeholder={`eg: /${props.codeSpaceData.workspaceId}/cd`}
+                            value={redirectUri}
+                            required={false}
+                            maxLength={200}
+                            onChange={(e) => {
+                              setRedirectUri(e.currentTarget.value);
+                            }}
+                          />
+                          <Tags
+                            title={'Ignore Path'}
+                            max={100}
+                            chips={ignorePath}
+                            placeholder={'Type root path here....'}
+                            tags={ignorePaths}
+                            setTags={onIgnorePathChange}
+                            isMandatory={false}
+                            isIgnorePath={true}
+                            showAllTagsOnFocus={true}
+                          />
+                        </div>
+                        <Tags
+                          title={'Scope'}
+                          max={100}
+                          chips={scope}
+                          fixedChips={fixedScope}
+                          tags={scopes}
+                          setTags={onScopeChnage}
+                          isMandatory={false}
+                          disableSelfTagAdd={true}
+                          suggestionPopupHeight={150}
+                          showAllTagsOnFocus={true}
+                        />
+                      </div>)}
                     </div>
                   )}
                   {/* {secureWithIAMSelected && (
@@ -584,6 +688,7 @@ const DeployModal = (props) => {
         </div>
       }
       scrollableContent={false}
+      scrollableBox={true}
       onCancel={() => props.setShowCodeDeployModal(false)}
     />
   );

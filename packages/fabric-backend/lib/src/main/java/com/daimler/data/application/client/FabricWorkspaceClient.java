@@ -23,12 +23,21 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.fabric.AddDatasourceUserDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.AddUserDto;
+import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
+import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.DatasourceResponseDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
+import com.daimler.data.dto.fabric.LakehouseCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseResponseDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
@@ -91,6 +100,26 @@ public class FabricWorkspaceClient {
 	
 	@Value("${fabricWorkspaces.uri.addUserUrl}")
 	private String addUserUrl;
+		
+    private static String WORKSPACED_IDENTIFIER = "id";
+    private static String GATEWAY_IDENTIFIER = "id";
+    private static String CONNECTION_IDENTIFIER = "connectionid";
+    private static String LAKEHOUSE_IDENTIFIER = "lakehouseid";
+    
+	@Value("${fabricWorkspaces.uri.lakehouseUrl}")
+	private String lakehouseUrl;
+	
+	@Value("${fabricWorkspaces.uri.datasourceUrl}")
+	private String datasourceUrl;
+	
+	@Value("${fabricWorkspaces.uri.datasourceUserUrl}")
+	private String datasourceUserUrl;
+	
+	@Value("${fabricWorkspaces.uri.shortcutUrl}")
+	private String shortcutUrl;
+	
+	@Value("${fabricWorkspaces.gateway.id}")
+	private String gatewayId;
 	
 	@Autowired
 	HttpServletRequest httpRequest;
@@ -182,6 +211,294 @@ public class FabricWorkspaceClient {
 			microsoftGroupDetailDto = null;
 		}
 		return microsoftGroupDetailDto;
+	}
+	
+
+	public DatasourceResponseDto createDatasource(CreateDatasourceRequestDto createRequest) {
+		DatasourceResponseDto responseDto = new DatasourceResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				responseDto.setErrorCode("500");
+				responseDto.setMessage("Failed to login using service principal, please try later.");
+				return responseDto;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<CreateDatasourceRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
+			String url = datasourceUrl;
+			url = url.replace(GATEWAY_IDENTIFIER, gatewayId);
+			ResponseEntity<DatasourceResponseDto> response = restTemplate.exchange(url, HttpMethod.POST,
+					requestEntity, DatasourceResponseDto.class);
+			if (response!=null && response.hasBody()) {
+				responseDto = response.getBody();
+			}
+		}catch(HttpClientErrorException.Conflict e) {
+			log.error("Failed to create datasource connection with displayName {} with conflict error {} ", createRequest.getDatasourcename(), e.getMessage());
+		}catch(Exception e) {
+			responseDto.setErrorCode("500");
+			responseDto.setMessage(e.getMessage());
+			log.error("Failed to create datasource connection with displayName {} with error {} ", createRequest.getDatasourcename(), e.getMessage());
+		}
+		return responseDto;
+	}
+	
+	public GenericMessage addUserToDatasource(String datasourceConnectionId, String emailAddress) {
+		GenericMessage response = new GenericMessage();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				response.setSuccess("FAILED");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errorMessage = new MessageDescription("Failed to login using service principal, please try later.");
+				errors.add(errorMessage);
+				response.setErrors(errors);
+				response.setWarnings(new ArrayList<>());
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+			AddDatasourceUserDto addUserDto = new AddDatasourceUserDto();
+			addUserDto.setEmailAddress(emailAddress);
+			addUserDto.setDatasourceAccessRight("Read");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<AddDatasourceUserDto> requestEntity = new HttpEntity<>(addUserDto,headers);
+			String url = datasourceUrl;
+			url = url.replace(GATEWAY_IDENTIFIER, gatewayId);
+			url = url + "/" + datasourceConnectionId + "/users";
+			ResponseEntity<String> addUserResponse = proxyRestTemplate.exchange(url, HttpMethod.POST,
+					requestEntity, String.class);
+			if (addUserResponse!=null && addUserResponse.getStatusCode().is2xxSuccessful()) {
+				response.setSuccess("SUCCESS");
+				response.setErrors(new ArrayList<>());
+				response.setWarnings(new ArrayList<>());
+				return response;
+			}
+		}catch(Exception e) {
+			response.setSuccess("FAILED");
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription errorMessage = new MessageDescription("Failed to add user to datasource connection with exception, please try again or contact Admin.");
+			errors.add(errorMessage);
+			response.setErrors(errors);
+			response.setWarnings(new ArrayList<>());
+			log.error("Failed to add user {} to datasourceConnection {} with exception ", emailAddress, datasourceConnectionId, e.getMessage());
+			return response;
+		}
+		return null;
+	}
+	
+	public ErrorResponseDto deleteDatasource(String datasourceConnectionId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("500");
+				errorResponse.setMessage("Failed to login using service principal, please try later.");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String url = datasourceUrl;
+			url = url.replace(GATEWAY_IDENTIFIER, gatewayId);
+			url = url + "/" + datasourceConnectionId;
+			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
+					requestEntity, ErrorResponseDto.class);
+			if (response !=null && response.getStatusCode().is2xxSuccessful()) {
+				errorResponse = null;
+			}
+		}catch(Exception e) {
+			errorResponse.setMessage("Failed to delete datasource connection with error : " + e.getMessage());
+			log.error("Failed to delete datasource connection details for id {} with {} exception ", datasourceConnectionId, e.getMessage());
+		}
+		return errorResponse;
+	}
+	
+	public LakehouseS3ShortcutResponseDto createShortcut(String workspaceId, String lakehouseId, LakehouseS3ShortcutDto createRequest) {
+		LakehouseS3ShortcutResponseDto responseDto = new LakehouseS3ShortcutResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				responseDto.setErrorCode("500");
+				responseDto.setMessage("Failed to login using service principal, please try later.");
+				return responseDto;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<LakehouseS3ShortcutDto> requestEntity = new HttpEntity<>(createRequest,headers);
+			String url = shortcutUrl;
+			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replace(LAKEHOUSE_IDENTIFIER, lakehouseId);
+			ResponseEntity<LakehouseS3ShortcutResponseDto> response = proxyRestTemplate.exchange(url, HttpMethod.POST,
+					requestEntity, LakehouseS3ShortcutResponseDto.class);
+			if (response!=null && response.hasBody()) {
+				responseDto = response.getBody();
+			}
+		}catch(HttpClientErrorException.Conflict e) {
+			log.error("Failed to create lakehouse shortcut with displayName {}  for lakehouse {} and workspace {} with conflict error {} ", createRequest.getName(), lakehouseId, workspaceId, e.getMessage());
+		}catch(Exception e) {
+			responseDto.setErrorCode("500");
+			responseDto.setMessage(e.getMessage());
+			log.error("Failed to create lakehouse shortcut with displayName {} for lakehouse {} and workspace {} with error {} ", createRequest.getName(), lakehouseId, workspaceId, e.getMessage());
+		}
+		return responseDto;
+	}
+	
+	public ErrorResponseDto deleteShortcut(String workspaceId, String lakehouseId, String shortcutId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("500");
+				errorResponse.setMessage("Failed to login using service principal, please try later.");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String url = shortcutUrl;
+			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replace(LAKEHOUSE_IDENTIFIER, lakehouseId);
+			url = url + "/" + shortcutId;
+			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
+					requestEntity, ErrorResponseDto.class);
+			if (response !=null && response.getStatusCode().is2xxSuccessful()) {
+				errorResponse = null;
+			}
+		}catch(Exception e) {
+			errorResponse.setMessage("Failed to delete lakehouse shortcut with error : " + e.getMessage());
+			log.error("Failed to delete shortcut {} for lakehouse {} for workspace id {} with {} exception ",shortcutId, lakehouseId, workspaceId, e.getMessage());
+		}
+		return errorResponse;
+	}
+	
+	public LakehouseS3ShortcutCollectionDto listLakehouseshortcuts(String workspaceId, String lakehouseId) {
+		LakehouseS3ShortcutCollectionDto collection = new LakehouseS3ShortcutCollectionDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return collection;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String url = shortcutUrl;
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replace(LAKEHOUSE_IDENTIFIER, lakehouseId);
+			ResponseEntity<LakehouseS3ShortcutCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
+					requestEntity, LakehouseS3ShortcutCollectionDto.class);
+			if (response !=null && response.hasBody()) {
+				collection = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get lakehouse shortcuts with {} exception ", e.getMessage());
+		}
+		return collection;
+	}
+	
+	public LakehouseResponseDto createLakehouse(String workspaceId, CreateLakehouseDto createRequest) {
+		LakehouseResponseDto responseDto = new LakehouseResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				responseDto.setErrorCode("500");
+				responseDto.setMessage("Failed to login using service principal, please try later.");
+				return responseDto;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<CreateLakehouseDto> requestEntity = new HttpEntity<>(createRequest,headers);
+			String url = lakehouseUrl;
+			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			ResponseEntity<LakehouseResponseDto> response = proxyRestTemplate.exchange(url, HttpMethod.POST,
+					requestEntity, LakehouseResponseDto.class);
+			if (response!=null && response.hasBody()) {
+				responseDto = response.getBody();
+			}
+		}catch(HttpClientErrorException.Conflict e) {
+			log.error("Failed to create lakehouse with displayName {} with conflict error {} ", createRequest.getDisplayName(), e.getMessage());
+		}catch(Exception e) {
+			responseDto.setErrorCode("500");
+			responseDto.setMessage(e.getMessage());
+			log.error("Failed to create lakehouse with displayName {} with error {} ", createRequest.getDisplayName(), e.getMessage());
+		}
+		return responseDto;
+	}
+	
+	public LakehouseCollectionDto listLakehouses(String workspaceId) {
+		LakehouseCollectionDto collection = new LakehouseCollectionDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return collection;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String url = lakehouseUrl;
+			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			ResponseEntity<LakehouseCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
+					requestEntity, LakehouseCollectionDto.class);
+			if (response !=null && response.hasBody()) {
+				collection = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get workspace lakehouses with {} exception ", e.getMessage());
+		}
+		return collection;
+	}
+	
+	public ErrorResponseDto deleteLakehouse(String workspaceId, String lakehouseId) {
+		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				errorResponse.setErrorCode("500");
+				errorResponse.setMessage("Failed to login using service principal, please try later.");
+				return errorResponse;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String url = lakehouseUrl;
+			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url + "/" + lakehouseId;
+			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
+					requestEntity, ErrorResponseDto.class);
+			if (response !=null && response.getStatusCode().is2xxSuccessful()) {
+				errorResponse = null;
+			}
+		}catch(Exception e) {
+			errorResponse.setMessage("Failed to delete lakehouse with error : " + e.getMessage());
+			log.error("Failed to delete lakehouse {} for workspace id {} with {} exception ",lakehouseId, workspaceId, e.getMessage());
+		}
+		return errorResponse;
 	}
 	
 	public WorkspaceDetailDto createWorkspace(CreateWorkspaceDto createRequest) {
