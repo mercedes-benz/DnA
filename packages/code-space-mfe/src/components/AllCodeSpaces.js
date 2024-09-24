@@ -18,6 +18,7 @@ import { IconGear } from 'dna-container/IconGear';
 import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
+import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -38,7 +39,8 @@ const AllCodeSpaces = (props) => {
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
-        [onDeployCodeSpace, setOnDeployCodeSpace] = useState();
+        [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
+        [showTutorialsModel, setShowTutorialsModel] = useState(false);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -107,7 +109,7 @@ const AllCodeSpaces = (props) => {
     const onShowSecurityConfigRequest = () => {
        history.push(`manageRecipes`);
     };
-
+    
     const isCodeSpaceCreationSuccess = (status, codeSpaceData) => {
         if (showNewCodeSpaceModal) {
             setShowNewCodeSpaceModal(!status);
@@ -245,6 +247,7 @@ const AllCodeSpaces = (props) => {
                                 </button>
                             </>
                         ) : null}
+
                         <button
                             className={classNames('btn btn-primary', Styles.configIcon)}
                             type="button"
@@ -260,6 +263,15 @@ const AllCodeSpaces = (props) => {
                         >
                             <i className={'icon mbc-icon plus'} />
                             <span>&nbsp;Add New Recipe</span>
+                        </button>
+
+                        <button
+                            className={classNames('btn btn-primary', Styles.tutorials)}
+                            tooltip-data="code space video tutorials"
+                            onClick={() => { setShowTutorialsModel(true) }}
+                        >
+                            <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
+                            <span>Video Tutorials</span>
                         </button>
                     </div>
                 </div>
@@ -396,6 +408,14 @@ const AllCodeSpaces = (props) => {
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
                     }
+                    isUIRecipe={
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
@@ -413,6 +433,22 @@ const AllCodeSpaces = (props) => {
                             </button>
                         </>
                     }
+                />
+            )}
+            {showTutorialsModel && (
+                <Modal
+                    title={''}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="80%"
+                    buttonAlignment="right"
+                    show={showTutorialsModel}
+                    content={
+                        <CodeSpaceTutorials />
+                    }
+                    scrollableContent={true}
+                    onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
         </div>

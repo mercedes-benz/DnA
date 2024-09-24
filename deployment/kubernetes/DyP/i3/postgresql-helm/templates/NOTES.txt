@@ -1,0 +1,9 @@
+Postgres Database was deployed or updated on tenant.
+
+  # of replicas: {{ .Values.replicaCount }}
+  service name:  {{ include "postgres.fullname" . }}
+  service port:  {{ .Values.service.port }}
+  database name: {{ .Values.DBName }}
+  database user: {{ .Values.dbusers.dbadm.username }}
+  jdbc url:      jdbc:postgresql://{{ include "postgres.fullname" . }}:{{ .Values.service.port }}/{{ .Values.DBName }}?sslfactory=org.postgresql.ssl.NonValidatingFactory
+
