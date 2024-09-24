@@ -371,7 +371,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users";
-			ResponseEntity<FabricGroupsCollectionDto> getUserResponse = restTemplate.exchange(getUserToGroupUrl, HttpMethod.GET,
+			ResponseEntity<FabricGroupsCollectionDto> getUserResponse = proxyRestTemplate.exchange(getUserToGroupUrl, HttpMethod.GET,
 					requestEntity, FabricGroupsCollectionDto.class);
 			log.info(" getWorkspaceDetails log {}",getUserResponse);
 			if (getUserResponse!=null && getUserResponse.getStatusCode().is2xxSuccessful()) {
