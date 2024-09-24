@@ -469,8 +469,10 @@ const CreateBucket = ({ user }) => {
   };
 
   const handleDataClassification = (e) => {
+    if (!e.target.value === dataClassification) {
+      setEnablePublicAccess(false);
+    }
     setDataClassification(e.target.value);
-    setEnablePublicAccess(false);
   };
 
   const onTypeOfProjectChange = (e) => {
