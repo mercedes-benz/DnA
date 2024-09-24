@@ -1,0 +1,86 @@
+replicaCount: 1
+namespace: fabric
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
+  pullPolicy: IfNotPresent
+  tag: '437'
+envs: {}
+imagePullSecrets:
+  - name: imagepullsecret
+nameOverride: ''
+fullnameOverride: fabric-be
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ''
+podAnnotations:
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/role: dna
+  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/namespace: fmas/staging
+  vault.hashicorp.com/agent-pre-populate-only: 'true'
+  vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-truststore.jks: |
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.TRUSTSTORE }}
+    {{- end }}
+  vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-keystore.p12: |
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.KEYSTORE }}
+    {{- end }}      
+  vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/fabricService
+  vault.hashicorp.com/agent-inject-template-envvar: |
+    {{- with secret "kv/dna/kubernetesSecret/fabricService" -}}
+      {{- range $k, $v := .Data.data }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}
+    {{- end }}
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- range $k, $v := .Data.data }}
+      {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}        
+      {{- end }}      
+    {{- end }}      
+podSecurityContext:
+  runAsUser: 1000
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 9292
+ingress:
+  enabled: false
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: api.workspaces.test.dna.app.corpintra.net
+      paths:
+        - path: /api
+          pathType: Prefix
+        - path: /swagger-ui.html
+          pathType: Prefix
+        - path: /swagger-resources
+          pathType: Prefix
+        - path: /v2/api-docs
+          pathType: Prefix
+        - path: /webjars
+          pathType: Prefix
+  tls: null
+resources: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity: {}
+vaultInjector:
+  enable: true
+  jarName: lib*.jar

@@ -34,10 +34,10 @@ import FilterWrapper from './FilterWrapper';
 import Tags from 'components/formElements/tags/Tags';
 const classNames = cn.bind(Styles);
 
-interface IMember {
-  id: string;
-  name: string;
-}
+// interface IMember {
+//   id: string;
+//   name: string;
+// }
 
 type ReportsFilterType = {
   userId: string;
@@ -79,7 +79,7 @@ const ReportsFilter = ({
   const [subDivisions, setSubDivisions] = useState<ISubDivisionSolution[]>([]);
   const [departments, setDepartments] = useState<IDepartment[]>([]);
   const [arts, setArts] = useState<IART[]>([]);
-  const [processOwners, setProcessOwners] = useState<ITeams[]>([]);
+  //const [processOwners, setProcessOwners] = useState<ITeams[]>([]);
   const [productOwners, setProductOwners] = useState<ITeams[]>([]);
   const [tagValues, setTagValues] = useState<ITag[]>([]);
   const [queryParams, setQueryParams] = useState<IReportFilterParams>({
@@ -88,7 +88,7 @@ const ReportsFilter = ({
     subDivision: [],
     departments: [],
     productOwners: [],
-    processOwners: [],
+   // processOwners: [],
     tag: [],
   });
 
@@ -97,7 +97,7 @@ const ReportsFilter = ({
   const [productOwnerFilterValues,
     // setProductOwnerFilterValues
   ] = useState([]);
-  const [processOwnerFilterValues, setProcessOwnerFilterValues] = useState([]);
+ // const [processOwnerFilterValues, setProcessOwnerFilterValues] = useState([]);
   const [divisionFilterValues, setDivisionFilterValues] = useState([]);
   const [subDivisionFilterValues, setSubDivisionFilterValues] = useState([]);
   const [departmentFilterValues, setDepartmentFilterValues] = useState([]);
@@ -131,14 +131,14 @@ const ReportsFilter = ({
             sessionStorage.getItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES),
           ) as IFilterParams;
           const arts: IART[] = response[0].data;
-          const processOwners: ITeams[] = response[3].records;
+          //const processOwners: ITeams[] = response[3].records;
           // const producatOwners: ITeams[] = response[4].records;
           const divisions = response[1];
           const divisionsToPass =
             portfolioFilterValues.current && portfolioFilterValues.current.division?.length > 0
               ? divisions?.filter((element: any) => portfolioFilterValues.current.division.includes(element.id))
               : divisions;
-          const allTags = response[4].data;
+          const allTags = response[3].data;
           getAllTags(allTags);
           ApiClient.getSubDivisionsData(divisionsToPass).then((subDivisionsList) => {
             const departments: IDepartment[] = response[2].data;
@@ -146,9 +146,9 @@ const ReportsFilter = ({
             let newQueryParams = queryParams;
             if (portfolioFilterValues.current) {
               newQueryParams = portfolioFilterValues.current;
-              newQueryParams.processOwners = processOwners
-                ?.filter((item: any) => portfolioFilterValues.current.processOwners.includes(item.shortId))
-                ?.map((item) => item.shortId) as any || [];
+              // newQueryParams.processOwners = processOwners
+              //   ?.filter((item: any) => portfolioFilterValues.current.processOwners.includes(item.shortId))
+              //   ?.map((item) => item.shortId) as any || [];
               if (!newQueryParams.tag) {
                 newQueryParams.tag = [];
               }
@@ -183,7 +183,7 @@ const ReportsFilter = ({
             setDivisions(divisions);
             setSubDivisions(subDivisions);
             setDepartments(departments);
-            setProcessOwners(processOwners);
+           // setProcessOwners(processOwners);
             setProductOwners(productOwners);
             setArts(arts);
             setTagValues(allTags);
@@ -225,9 +225,9 @@ const ReportsFilter = ({
               ?.filter((item: any) => filterPreferences.departments.includes(item.name))
               ?.map((item) => item.name) as any || [];
             queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => art.name);
-            queryParams.processOwners = processOwners
-              ?.filter((item: any) => filterPreferences.processOwners.includes(item.shortId))
-              ?.map((item) => item.shortId) as any || [];
+            // queryParams.processOwners = processOwners
+            //   ?.filter((item: any) => filterPreferences.processOwners.includes(item.shortId))
+            //   ?.map((item) => item.shortId) as any || [];
             // queryParams.productOwners = filterPreferences.productOwners as any;
             // populate subDivision dropdown values
             /*if (!portfolioFilterValues.current) {*/
@@ -277,10 +277,9 @@ const ReportsFilter = ({
         divisions,
         subDivisions,
         departments,
-        processOwners,
         productOwners,
       });
-  }, [arts, divisions, subDivisions, departments, processOwners, productOwners]);
+  }, [arts, divisions, subDivisions, departments, productOwners]);
 
   useEffect(() => {
     typeof getValuesFromFilter === 'function' &&
@@ -289,11 +288,11 @@ const ReportsFilter = ({
         divisions,
         subDivisions,
         departments,
-        processOwners,
+       // processOwners,
         productOwners,
         tagFilterValues
       });
-  }, [arts, divisions, subDivisions, departments, processOwners, productOwners, tagFilterValues]);
+  }, [arts, divisions, subDivisions, departments, productOwners, tagFilterValues]);
 
 
   const setPortfolioFilterValuesInSession = (queryParams: IReportFilterParams) => {
@@ -440,24 +439,24 @@ const ReportsFilter = ({
   //   setProductOwnerFilterValues(selectedValues);
   // };
 
-  const onProcessOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
-    const selectedValues: IMember[] = [];
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const ids: string[] = [];
+  // const onProcessOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
+  //   const selectedValues: IMember[] = [];
+  //   const selectedOptions = e.currentTarget.selectedOptions;
+  //   const ids: string[] = [];
 
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        const processOwner: IMember = { id: '0', name: null };
-        processOwner.id = option.value;
-        processOwner.name = option.textContent;
-        selectedValues.push(processOwner);
-        ids.push(option.value);
-      });
-    }
+  //   if (selectedOptions.length) {
+  //     Array.from(selectedOptions).forEach((option) => {
+  //       const processOwner: IMember = { id: '0', name: null };
+  //       processOwner.id = option.value;
+  //       processOwner.name = option.textContent;
+  //       selectedValues.push(processOwner);
+  //       ids.push(option.value);
+  //     });
+  //   }
 
-    focusedItems['processOwners'] && applyFilter('processOwners', ids);
-    setProcessOwnerFilterValues(selectedValues);
-  };
+  //   focusedItems['processOwners'] && applyFilter('processOwners', ids);
+  //   setProcessOwnerFilterValues(selectedValues);
+  // };
 
   const getReportsByQueryParams = (filterQueryParams: IReportFilterParams) => {
     const queryParams: IReportFilterParams = { ...filterQueryParams };
@@ -523,7 +522,7 @@ const ReportsFilter = ({
       arts: arts?.filter((item) => artFilterValues?.map((art: IART) => art.name).indexOf(item.name) > -1),
       departments: departmentFilterValues?.map((department) => department.name),
       productOwners: productOwnerFilterValues?.map((productOwner) => productOwner.id),
-      processOwners: processOwnerFilterValues?.map((processOwner) => processOwner.id),
+      //processOwners: processOwnerFilterValues?.map((processOwner) => processOwner.id),
       tags: tagFilterValues?.map((tag) => tag.name),
     };
 
@@ -755,7 +754,7 @@ const ReportsFilter = ({
           </div>
         </div>
       </div>
-      <div>
+      {/* <div>
         <div
           id="processOwnerContainer"
           className={`input-field-group ${processOwners?.length ? '' : 'disabled'}`}
@@ -781,7 +780,7 @@ const ReportsFilter = ({
             </select>
           </div>
         </div>
-      </div>
+      </div> */}
       <div>
         <div>
           <Tags
