@@ -17,6 +17,7 @@ const getDNAInjectedEnv = (key) => {
 // we have to make sure that the string value of process.env is placed here.
 export const Envs = {
   POWER_PLATFORM_API_BASEURL: getInjectedEnv('POWER_PLATFORM_API_BASEURL') || process.env.POWER_PLATFORM_API_BASEURL,
+  CONTAINER_APP_URL: getInjectedEnv('CONTAINER_APP_URL') || process.env.CONTAINER_APP_URL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
   REPORTS_API_BASEURL: getDNAInjectedEnv('REPORTS_API_BASEURL') || process.env.REPORTS_API_BASEURL,
   STORAGE_API_BASEURL: getDNAInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
