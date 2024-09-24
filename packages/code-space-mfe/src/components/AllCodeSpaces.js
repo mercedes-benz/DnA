@@ -253,6 +253,14 @@ const AllCodeSpaces = (props) => {
                             <IconGear size={'14'} />
                             <span>&nbsp;Manage Recipes</span>
                         </button>
+                        <button
+                            className={classNames('btn btn-primary', Styles.newRecipe)}
+                            type="button"
+                            onClick={() => { history.push('/codespaceRecipes') }}
+                        >
+                            <i className={'icon mbc-icon plus'} />
+                            <span>&nbsp;Add New Recipe</span>
+                        </button>
                     </div>
                 </div>
                 {loading ? (
