@@ -119,7 +119,7 @@ public class FabricWorkspaceClient {
 			ObjectMapper objectMapper = new ObjectMapper();
 			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
 					FabricOAuthResponse.class);
-			log.info("getToken log {}",response);
+			log.info("getToken log {}",introspectionResponse);
 			log.debug("Introspection Response:" + introspectionResponse);
 			log.info("Successfully fetch oidc token post login for powerbi");
 			return introspectionResponse.getAccess_token();
