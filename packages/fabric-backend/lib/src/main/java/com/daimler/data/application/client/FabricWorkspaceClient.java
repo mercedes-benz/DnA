@@ -343,7 +343,7 @@ public class FabricWorkspaceClient {
 			errors.add(errorMessage);
 			response.setErrors(errors);
 			response.setWarnings(new ArrayList<>());
-			log.error("Failed to add user {} to workspace {} with exception ", emailAddress, groupId, e.getMessage());
+			log.error("Failed to add user {} to workspace {} with exception {}", emailAddress, groupId, e.getMessage());
 			return response;
 		}
 		return null;
@@ -371,7 +371,7 @@ public class FabricWorkspaceClient {
 				return response;
 			}
 		}catch(Exception e) {
-			log.error("Failed to get users and groups of workspace {} with exception ",workspaceGroupId, e.getMessage());
+			log.error("Failed to get users and groups of workspace {} with exception {} ",workspaceGroupId, e.getMessage());
 			return null;
 		}
 		return null;
@@ -413,7 +413,7 @@ public class FabricWorkspaceClient {
 			errors.add(errorMessage);
 			response.setErrors(errors);
 			response.setWarnings(new ArrayList<>());
-			log.error("Failed to remove user/group {} from workspace {} with exception ", identifier, workspaceGroupId, e.getMessage());
+			log.error("Failed to remove user/group {} from workspace {} with exception {}", identifier, workspaceGroupId, e.getMessage());
 			return response;
 		}
 		return null;
@@ -455,7 +455,7 @@ public class FabricWorkspaceClient {
 			errors.add(errorMessage);
 			response.setErrors(errors);
 			response.setWarnings(new ArrayList<>());
-			log.error("Failed to add group {} to workspace {} with exception ", addGroupDto.getDisplayName(), workspaceGroupId, e.getMessage());
+			log.error("Failed to add group {} to workspace {} with exception {}", addGroupDto.getDisplayName(), workspaceGroupId, e.getMessage());
 			return response;
 		}
 		return null;
