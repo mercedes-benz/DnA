@@ -371,7 +371,7 @@ public class FabricWorkspaceClient {
 				return response;
 			}
 		}catch(Exception e) {
-			log.error("Failed to get users and groups of workspace {} with exception {} ",workspaceGroupId, e.getMessage());
+			log.error("Failed to get users and groups of workspace {} with exception {} ",workspaceGroupId, e);
 			return null;
 		}
 		return null;
