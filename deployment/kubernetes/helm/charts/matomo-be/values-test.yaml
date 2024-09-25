@@ -4,7 +4,7 @@ secret: []
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-backend
   pullPolicy: IfNotPresent
-  tag: 594eca917284a21082256320d6a16aaa3e14f209
+  tag: '137'
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: matomo-be
@@ -56,8 +56,8 @@ vaultInjector:
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/namespace: fmas/staging
-    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
-    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
     vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/matomoService

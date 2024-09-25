@@ -4,9 +4,9 @@ imagePullSecret:
   name: imagepullsecret
 backend:
   replicas: 1
-  image: 
+  image:
     repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
-    tag: 0c0d256ea33470734d7bc213c3d434212860ad14
+    tag: '137'
   imagePullPolicy: Always
   dbUrl: jdbc:postgresql://airflow-db.airflow.svc.cluster.local:64000/airflow
   secret:

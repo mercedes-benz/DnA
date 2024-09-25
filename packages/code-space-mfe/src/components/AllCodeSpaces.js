@@ -256,6 +256,14 @@ const AllCodeSpaces = (props) => {
                             <IconGear size={'14'} />
                             <span>&nbsp;Manage Recipes</span>
                         </button>
+                        <button
+                            className={classNames('btn btn-primary', Styles.newRecipe)}
+                            type="button"
+                            onClick={() => { history.push('/codespaceRecipes') }}
+                        >
+                            <i className={'icon mbc-icon plus'} />
+                            <span>&nbsp;Add New Recipe</span>
+                        </button>
 
                         <button
                             className={classNames('btn btn-primary', Styles.tutorials)}
@@ -399,6 +407,14 @@ const AllCodeSpaces = (props) => {
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    }
+                    isUIRecipe={
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
