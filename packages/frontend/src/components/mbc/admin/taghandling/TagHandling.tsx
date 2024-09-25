@@ -667,9 +667,9 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
 
   protected setTags = (arr: string[]) => {
     const tagToBeUpdatedLocal = this.state.tagToBeUpdatedLocal;
-    const prevData = this.state.results.find((item: any) => item.id === tagToBeUpdatedLocal.id);
+    const prevData = this.state.results?.find((item: any) => item.id === tagToBeUpdatedLocal.id);
     tagToBeUpdatedLocal.subdivisions = arr.map((item: string) => {
-      const matchingSubdivision = prevData.subdivisions.find((sub) => sub.name === item);
+      const matchingSubdivision = prevData?.subdivisions?.find((sub) => sub.name === item);
       return { id: matchingSubdivision ? matchingSubdivision.id : '', name: item };
     });    
     this.setState({ tagToBeUpdatedLocal });
