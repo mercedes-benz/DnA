@@ -515,7 +515,7 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     meta.helm.sh/release-name: matomo
     meta.helm.sh/release-namespace: matomo
     traefik.frontend.rule.type: PathPrefix
