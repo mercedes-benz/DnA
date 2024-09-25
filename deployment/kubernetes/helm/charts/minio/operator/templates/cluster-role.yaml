@@ -22,9 +22,7 @@ rules:
       - ""
     resources:
       - namespaces
-      - nodes
     verbs:
-      - create
       - get
       - watch
       - list
@@ -38,12 +36,12 @@ rules:
     verbs:
       - get
       - watch
+      - patch
       - create
       - list
       - delete
       - deletecollection
       - update
-      - patch
   - apiGroups:
       - ""
     resources:
@@ -57,36 +55,10 @@ rules:
       - delete
       - deletecollection
   - apiGroups:
-      - ""
-    resources:
-      - serviceaccounts
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - rbac.authorization.k8s.io
-    resources:
-      - roles
-      - rolebindings
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
       - apps
     resources:
       - statefulsets
       - deployments
-      - deployments/finalizers
     verbs:
       - get
       - create
@@ -118,25 +90,17 @@ rules:
       - create
       - get
       - delete
-      - list
   - apiGroups:
       - certificates.k8s.io
     resourceNames:
       - kubernetes.io/legacy-unknown
       - kubernetes.io/kube-apiserver-client
       - kubernetes.io/kubelet-serving
-      - beta.eks.amazonaws.com/app-serving
     resources:
       - signers
     verbs:
       - approve
       - sign
-  - apiGroups:
-      - authentication.k8s.io
-    resources:
-      - tokenreviews
-    verbs:
-      - create
   - apiGroups:
       - minio.min.io
     resources:
@@ -145,7 +109,6 @@ rules:
       - "*"
   - apiGroups:
       - min.io
-      - sts.min.io
     resources:
       - "*"
     verbs:
@@ -153,9 +116,11 @@ rules:
   - apiGroups:
       - monitoring.coreos.com
     resources:
-      - prometheuses
+      - servicemonitors
     verbs:
-      - '*'
+      - get
+      - create
+      - list
   - apiGroups:
       - "coordination.k8s.io"
     resources:
