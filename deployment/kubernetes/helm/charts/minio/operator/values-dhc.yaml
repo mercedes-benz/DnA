@@ -80,7 +80,7 @@ operator:
   #
   sidecarImage: 
        repository: registry-emea.app.corpintra.net/quaycache/minio/operator-sidecar
-       tag: v6.0.3
+       tag: v6.0.2
        pullPolicy: IfNotPresent  
   ###
   #
