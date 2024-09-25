@@ -52,7 +52,7 @@ operator:
   #      pullPolicy: IfNotPresent
   #
   image:
-    repository: registry-emea.app.corpintra.net/quaycache/quay.io/minio/operator
+    repository: registry-emea.app.corpintra.net/quaycache/minio/operator
     tag: v6.0.3
     pullPolicy: IfNotPresent
   ###
