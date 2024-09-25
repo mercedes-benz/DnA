@@ -19,7 +19,7 @@ const classNames = cn.bind(Styles);
 const CodeSpaceRecipe = (props) => {
   const { id: recipeId } = useParams();
 
-  const edit = recipeId ? true : false;
+  const edit = recipeId && recipeId !== 'codespace' && recipeId !== 'manageRecipe' ? true : false;
   const requiredError = '*Missing entry';
   const repeatedError = '*Recipe name already exists';
   const history = useHistory();
@@ -71,7 +71,7 @@ const CodeSpaceRecipe = (props) => {
   }, []);
   
   useEffect(() => {
-    if(recipeId !== undefined) {
+    if(edit) {
       ProgressIndicator.show();
       CodeSpaceApiClient.getCodeSpaceRecipe(recipeId)
         .then((res) => {
@@ -102,7 +102,7 @@ const CodeSpaceRecipe = (props) => {
           }
         });
     }
-  }, [recipeId, additionalServices]);
+  }, [edit, recipeId, additionalServices]);
 
   useEffect(() => {
     CodeSpaceApiClient.getSoftwareLov()
@@ -466,12 +466,17 @@ const CodeSpaceRecipe = (props) => {
     return isValid;
   };
 
+  const handleBackClick = () => {
+    recipeId === 'codespace' && history.push('/');
+    (recipeId === 'manageRecipe' || recipeId !== 'codespace')  && history.push('/manageRecipes');
+  }
+
   return (
     <div>
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} onBackClick={() => history.push('/')}>
+            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} onBackClick={handleBackClick}>
               <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>
             </Caption>
             <div className={classNames(Styles.wrapper)}>
