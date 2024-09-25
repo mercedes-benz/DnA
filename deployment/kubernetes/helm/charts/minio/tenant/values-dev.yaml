@@ -101,7 +101,7 @@ tenant:
       volumesPerServer: 4
       ###
       # The capacity per volume requested per MinIO Tenant Pod.
-      size: 2Gi
+      size: 4Gi
       ###
       # The `storageClass <https://kubernetes.io/docs/concepts/storage/storage-classes/>`__ to associate with volumes generated for this pool.
       #
