@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "dna-db-restore"
+fullnameOverride: "dna-db"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -244,12 +244,12 @@ service:
 persistence:
   enabled: true
   size: <path:kv/data/dna/kubernetesSecret/dnadbrestore#size>
-  # storageClass: cinder
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -301,7 +301,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
@@ -331,9 +331,9 @@ backup:
   ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
   tempPgdataVolume:
     ## recommended
-    enabled: true
+    enabled: false
     size: 4Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
   file:
     name: dnadb-backup
     # label: test
@@ -470,6 +470,8 @@ affinity: {}
 antiAffinity:
   enabled: true
 
+podDisruptionBudget:
+  enabled: false
 
 terminationGracePeriodSeconds: 300
 
