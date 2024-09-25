@@ -2,6 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: minio-operator-role
+  labels: {{- include "minio-operator.labels" . | nindent 4 }}
 rules:
   - apiGroups:
       - "apiextensions.k8s.io"
@@ -22,7 +23,9 @@ rules:
       - ""
     resources:
       - namespaces
+      - nodes
     verbs:
+      - create
       - get
       - watch
       - list
@@ -36,12 +39,12 @@ rules:
     verbs:
       - get
       - watch
-      - patch
       - create
       - list
       - delete
       - deletecollection
       - update
+      - patch
   - apiGroups:
       - ""
     resources:
@@ -55,10 +58,36 @@ rules:
       - delete
       - deletecollection
   - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
       - apps
     resources:
       - statefulsets
       - deployments
+      - deployments/finalizers
     verbs:
       - get
       - create
@@ -90,19 +119,29 @@ rules:
       - create
       - get
       - delete
+      - list
   - apiGroups:
       - certificates.k8s.io
     resourceNames:
       - kubernetes.io/legacy-unknown
       - kubernetes.io/kube-apiserver-client
       - kubernetes.io/kubelet-serving
+      - beta.eks.amazonaws.com/app-serving
     resources:
       - signers
     verbs:
       - approve
       - sign
   - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
       - minio.min.io
+      - sts.min.io
+      - job.min.io
     resources:
       - "*"
     verbs:
@@ -116,11 +155,9 @@ rules:
   - apiGroups:
       - monitoring.coreos.com
     resources:
-      - servicemonitors
+      - prometheuses
     verbs:
-      - get
-      - create
-      - list
+      - '*'
   - apiGroups:
       - "coordination.k8s.io"
     resources:
@@ -129,3 +166,15 @@ rules:
       - get
       - update
       - create
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - deletecollection
