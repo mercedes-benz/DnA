@@ -332,7 +332,7 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 20Gi
+    size: 4Gi
     # storageClass: cinder
   file:
     name: dnadb-backup
