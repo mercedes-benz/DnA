@@ -16,7 +16,7 @@ image:
 fullnameOverride: "dna-db"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
