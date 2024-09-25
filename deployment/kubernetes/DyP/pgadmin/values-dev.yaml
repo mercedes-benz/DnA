@@ -102,7 +102,7 @@ networkPolicy:
       - from:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: traefikv2
+                app.kubernetes.io/name: traefik
             namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: ingress  
