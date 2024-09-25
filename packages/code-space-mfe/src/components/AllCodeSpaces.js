@@ -256,7 +256,7 @@ const AllCodeSpaces = (props) => {
                         <button
                             className={classNames('btn btn-primary', Styles.newRecipe)}
                             type="button"
-                            onClick={() => { history.push('/codespaceRecipes') }}
+                            onClick={() => { history.push('/codespaceRecipes/codespace') }}
                         >
                             <i className={'icon mbc-icon plus'} />
                             <span>&nbsp;Add New Recipe</span>

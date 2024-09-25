@@ -90,6 +90,8 @@ const ManageRecipes = () => {
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesInner);
           setRecipes(res?.data?.data);
+        } else {
+          setRecipes([]);
         }
       })
       .catch((err) => {
@@ -178,7 +180,7 @@ const ManageRecipes = () => {
             <button
               className={classNames('btn btn-primary', Styles.btnOutline)}
               type="button"
-              onClick={() => history.push('/codespaceRecipes')}
+              onClick={() => history.push('/codespaceRecipes/manageRecipe')}
             >
               <i className="icon mbc-icon plus" />
               <span>Add New Recipe</span>
