@@ -19,7 +19,7 @@ const Caption:React.FC<ICaptionProps> = ({ title, disableTitle, children, onBack
   };
   return (
     <div className={Styles.caption}>
-      <button className={classNames('btn btn-text back arrow', history.length === 1 ? 'hidden' : '')} type="submit" onClick={goback}>Back</button><br/>
+      <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>Back</button><br/>
       { disableTitle ? '' : <h3>{title}</h3> }
       {children && children}
     </div>
