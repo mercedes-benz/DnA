@@ -13,10 +13,10 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "dna-db"
+fullnameOverride: "dna-restore"
 ## PostgreSQL replica count
 ##
-replicaCount: 2
+replicaCount: 1
 
 printEnv: true
 
