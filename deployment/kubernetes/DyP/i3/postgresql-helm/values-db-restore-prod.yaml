@@ -365,7 +365,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: restore-dnadb-backup-2024-09-25_00-01-10.tar.zst
+  recoveryFile: dnadb-backup-restore-2024-09-24_00-01-13.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
