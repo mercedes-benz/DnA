@@ -25,7 +25,7 @@ jobs:
           
   select-service:
     name: 'Detect changes in the service files'
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     outputs:
       code-server: ${{ steps.filter.outputs.code-server }}    
       chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}
@@ -146,12 +146,12 @@ jobs:
               - 'packages/power-platform-mfe/**'
               - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'     
 
-      - name: Delete HEAD branche
-        if: ${{ github.ref_name == 'main' }}      
-        uses: dawidd6/action-delete-branch@v3.1.0
-        with:
-          github_token: ${{ secrets.PID_PAT }}
-          branches: ${{ github.head_ref }}                                               
+      # - name: Delete HEAD branche
+      #   if: ${{ github.ref_name == 'main' }}      
+      #   uses: dawidd6/action-delete-branch@v3.1.0
+      #   with:
+      #     github_token: ${{ secrets.PID_PAT }}
+      #     branches: ${{ github.head_ref }}                                               
                 
 
   code-server:

@@ -30,7 +30,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true  && github.ref_name == 'dev' ) || ( github.event_name == 'push' && github.ref_name == 'dev' ) || github.event.inputs.environment == 'Development' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     environment:
       name: Development
       url: https://pipeline.dev.dna.app.corpintra.net/
@@ -68,7 +68,7 @@ jobs:
   staging:
     name: 'Deploy to staging'
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || github.event.inputs.environment == 'Staging' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     needs: build
     environment:
       name: Staging
@@ -108,7 +108,7 @@ jobs:
     name: 'Deploy to Production'
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' }}
     needs: build
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     environment:
       name: Production
       url:  https://pipeline.dna.app.corpintra.net/
@@ -146,7 +146,7 @@ jobs:
   build:
     name: 'Build App'
     if: github.event_name == 'push' || github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:

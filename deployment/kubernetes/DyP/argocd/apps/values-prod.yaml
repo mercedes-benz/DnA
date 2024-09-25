@@ -35,6 +35,8 @@ repositories:
   #   url: https://git.i.mercedes-benz.com/DNA/dna-codeserver-backend.git    
   - name: dna-kong
     url: https://git.i.mercedes-benz.com/DNA/dna-kong.git  
+  - name: prompt-craft
+    url: https://git.i.mercedes-benz.com/DNA/prompt-craft.git
   # - name: matomo-mfe
   #   url: https://git.i.mercedes-benz.com/DNA/dna-matomo-frontend.git  
   # - name: dataentry-backend

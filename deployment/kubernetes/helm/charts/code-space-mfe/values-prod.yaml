@@ -5,12 +5,12 @@ configJs: |
     API_BASEURL: "https://dna.app.corpintra.net/api",
     CODE_SPACE_API_BASEURL: "",
   };
-replicaCount: 1
+replicaCount: 2
 codeserverbackend: http://code-server-backend.code-server.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: 1.2.5
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''

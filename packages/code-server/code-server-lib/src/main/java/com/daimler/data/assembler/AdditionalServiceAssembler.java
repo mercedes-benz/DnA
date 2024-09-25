@@ -94,7 +94,7 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
         
         }
         catch(Exception e){
-            e.printStackTrace();
+            log.error("Exception in Assembler ",e);
         }
 		return additionalServiceLovVo;
     }

@@ -15,9 +15,9 @@ ingress:
 app:
   backend:
     replicaCount: 2
-    image: 
+    image:
       repository: registry-emea.app.corpintra.net/dnaplatform/dna-backend
-      tag: 3.4.4
+      tag: 3.4.5
     secrets:
       name: app-secrets
       notebookSecretToken: null

@@ -236,7 +236,14 @@ hub:
               app.kubernetes.io/name: prometheus
           namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: i3-monitoring  
+              kubernetes.io/metadata.name: i3-monitoring
+#This n/w policy is for connecting code-server database using pgadmin
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tools
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
           port: 8081  
@@ -542,7 +549,10 @@ singleuser:
               chmod +x /home/coder/.bashrc
 
               # Install SDK and extensions
-              cd /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/
+              TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
+              mkdir -pv $TEMP_DIR
+              cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+              cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
 
@@ -635,6 +645,7 @@ singleuser:
       default: true
       kubespawner_override:
         image: registry-emea.app.corpintra.net/dnaplatform/cs-template:4.91.0
+        image_pull_policy: Always
         start_timeout: 900
         http_timeout: 900
     - display_name: "React"
@@ -1397,6 +1408,7 @@ singleuser:
       description: "Development environment using default template"
       kubespawner_override:
         image: registry-emea.app.corpintra.net/dnaplatform/cs-template:4.91.0
+        image_pull_policy: Always
         start_timeout: 360
         http_timeout: 360
     - display_name: "Spring Boot with Maven "

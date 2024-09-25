@@ -26,7 +26,7 @@ env:
 jobs:
   gitsync:
     name: "Git Sync"
-    runs-on: [ road-runner, medium ]
+    runs-on: [os-medium-amd64-linux ]
     steps:
 
       - name: Check Source Branch
@@ -45,12 +45,12 @@ jobs:
           source_repo: "$PUBLIC_SRC_REPO"
           source_branch: "${{ github.event.inputs.publicBranch }}"
           destination_repo: "https://${{ secrets.PID_PAT }}@$DEST_REPO"
-          destination_branch: "${{ github.event.inputs.publicBranch }}"
+          destination_branch: "${{ github.event.inputs.publicBranch }}-${{ github.event.inputs.privateBranch }}"
 
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          ref: '${{ github.event.inputs.publicBranch }}'  
+          ref: '${{ github.event.inputs.publicBranch }}-${{ github.event.inputs.privateBranch }}'  
           fetch-depth: 0  
 
       - name: Get Head Commit Message
@@ -63,7 +63,7 @@ jobs:
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.publicBranch }}
+          head: ${{ github.event.inputs.publicBranch }}-${{ github.event.inputs.privateBranch }}
           base: ${{ github.event.inputs.privateBranch }}
           labels: "public,${{ github.event.inputs.privateBranch }},${{ github.event.inputs.publicBranch }}"
           reviewers: ${{ github.event.inputs.reviewers }}
