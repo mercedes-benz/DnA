@@ -78,7 +78,10 @@ operator:
   #      digest: a11947a230b80fb1b0bffa97173147a505d4f1207958f722e348d11ab9e972c1
   #      pullPolicy: IfNotPresent
   #
-  sidecarImage: {}
+  sidecarImage: 
+       repository: registry-emea.app.corpintra.net/quaycache/minio/operator-sidecar
+       tag: v6.0.3
+       pullPolicy: IfNotPresent  
   ###
   #
   # An array of Kubernetes secrets to use for pulling images from a private ``image.repository``.
