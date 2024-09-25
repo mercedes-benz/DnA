@@ -88,6 +88,7 @@ const CodeSpaceRecipe = (props) => {
           setGitRepoLoc(recipe?.gitRepoLoc);
           setDeployPath(recipe?.deployPath);
           setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.additionalProperties?.name)));
+          setEnableCreate(true);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         })
@@ -483,7 +484,7 @@ const CodeSpaceRecipe = (props) => {
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
                 <div className={classNames(Styles.formWrapper)}>
                   <div className={classNames(Styles.flex)}>
-                    <div className={classNames(Styles.col2, recipeId && Styles.disabledSection)}>
+                    <div className={classNames(Styles.col2, edit && Styles.disabledSection)}>
                       <TextBox
                         type="text"
                         controlId={'recipeNameInput'}
@@ -533,7 +534,7 @@ const CodeSpaceRecipe = (props) => {
                       </div>
                     </div>
                     <div className={classNames(Styles.col2)}>
-                      <div className={classNames(Styles.inputLabel, 'input-label')}>
+                      <div className={classNames(Styles.inputLabel, 'input-label', edit && Styles.disabledSection)}>
                         <TextBox
                           type="text"
                           controlId={'gitUrlInput'}
