@@ -357,11 +357,11 @@ restore:
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: true
+      enabled: false
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
   recoveryFile: fccockpit-backup-2024-09-26_00-01-14-restore.tar.zst
