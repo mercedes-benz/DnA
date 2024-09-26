@@ -1,5 +1,5 @@
 appName: clamav
-namespace: clamav
+namespace: prod-dna-clamav
 securityContext:
   runasUser: 100
 app:

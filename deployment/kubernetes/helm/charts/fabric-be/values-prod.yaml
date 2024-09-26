@@ -1,5 +1,5 @@
 replicaCount: 2
-namespace: fabric
+namespace: prod-dna-fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
   pullPolicy: IfNotPresent

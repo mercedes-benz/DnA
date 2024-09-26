@@ -13,7 +13,7 @@ deployment:
           protocol: TCP
   daemonset: false
   hostNetwork: false
-namespace: kong
+namespace: test-dna-kong
 env:
   database: postgres
   pg_port: '64000'

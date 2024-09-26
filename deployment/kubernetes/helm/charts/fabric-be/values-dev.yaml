@@ -1,5 +1,5 @@
 replicaCount: 1
-namespace: fabric
+namespace: dev-dna-fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
   pullPolicy: IfNotPresent
@@ -17,7 +17,7 @@ podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
   vault.hashicorp.com/role: dna
   vault.hashicorp.com/tls-skip-verify: 'true'
-  vault.hashicorp.com/namespace: fmas/dev
+  vault.hashicorp.com/namespace: DnAPlatform/dev
   vault.hashicorp.com/agent-pre-populate-only: 'true'
   vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
   vault.hashicorp.com/agent-inject-template-truststore.jks: |

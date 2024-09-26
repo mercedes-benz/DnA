@@ -3,7 +3,7 @@ image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-be
   pullPolicy: IfNotPresent
   tag: '104'
-namespace: data-product
+namespace: dev-dna-data-product
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: data-product-be
@@ -53,7 +53,7 @@ podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
   vault.hashicorp.com/role: dna
   vault.hashicorp.com/tls-skip-verify: 'true'
-  vault.hashicorp.com/namespace: fmas/dev
+  vault.hashicorp.com/namespace: DnAPlatform/dev
   vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
   vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
   vault.hashicorp.com/template-static-secret-render-interval: 10s

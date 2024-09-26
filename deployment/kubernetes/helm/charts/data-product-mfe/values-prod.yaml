@@ -1,4 +1,4 @@
-namespace: data-product
+namespace: prod-dna-data-product
 configJs: |
   window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
     CONTAINER_APP_URL: "https://dna.app.corpintra.net",

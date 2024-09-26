@@ -20,7 +20,7 @@ global:
   redis:
     password: ""
 
-namespace: "redis"
+namespace: "prod-dna-redis"
 ## @section Common parameters
 ##
 

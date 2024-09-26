@@ -1,5 +1,5 @@
 appName: notebooks
-namespace: notebooks
+namespace: prod-dna-notebooks
 app:
   jupyter:
     config:

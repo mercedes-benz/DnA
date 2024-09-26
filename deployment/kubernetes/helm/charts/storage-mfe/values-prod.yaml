@@ -1,4 +1,4 @@
-namespace: storage
+namespace: prod-dna-storage
 configJs: |
   window["STORAGE_INJECTED_ENVIRONMENT"]={
       CONTAINER_APP_URL: "",

@@ -8,7 +8,7 @@ image:
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: matomo-be
-namespace: matomo
+namespace: prod-dna-matomo
 serviceAccount:
   create: false
   annotations: {}

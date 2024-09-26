@@ -1,4 +1,4 @@
-namespace: trino
+namespace: test-dna-trino
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-backend
   tag: '81'
@@ -89,7 +89,7 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/staging
+    vault.hashicorp.com/namespace: DnAPlatform/staging
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s

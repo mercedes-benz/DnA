@@ -11,7 +11,7 @@ image:
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-mfe
-namespace: dss
+namespace: prod-dna-dss
 serviceAccount:
   create: false
   annotations: {}

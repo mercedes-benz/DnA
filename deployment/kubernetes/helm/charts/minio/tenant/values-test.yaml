@@ -10,7 +10,7 @@ secrets:
 ## MinIO Tenant Definition
 tenant:
   # Tenant name
-  name: minio
+  name: test-dna-minio
   ## Registry location and Tag to download MinIO Server image
   image:
     repository: registry-emea.app.corpintra.net/dnaplatform/minio/minio

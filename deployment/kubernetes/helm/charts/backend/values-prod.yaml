@@ -1,4 +1,4 @@
-namespace: dna
+namespace: prod-dna
 imagePullSecrets: null
 ingress:
   enabled: false

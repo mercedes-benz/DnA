@@ -1,4 +1,4 @@
-namespace: code-server
+namespace: prod-dna-code-server
 configJs: |
   window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
     CONTAINER_APP_URL: "https://dna.app.corpintra.net",

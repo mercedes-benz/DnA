@@ -1,4 +1,4 @@
-namespace: trino
+namespace: prod-dna-trino
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-backend
   tag: 1.3.0
