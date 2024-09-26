@@ -330,7 +330,7 @@ backup:
   ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
   tempPgdataVolume:
     ## recommended
-    enabled: true
+    enabled: false
     size: 10Gi
     # storageClass: cinder
   file:
