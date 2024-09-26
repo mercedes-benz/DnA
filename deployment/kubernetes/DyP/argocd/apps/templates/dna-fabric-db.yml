@@ -24,9 +24,9 @@ spec:
       env:
         - name: HELM_ARGS
           {{- if ne .Values.env "prod" }}          
-          value: -f values-fabric-db-dev.yaml
+          value: -f values-fabric-db-dev.yaml --set namespace={{ .Values.env }}-dna-fabric
           {{ else }}
-          value: -f values-fabric-db-{{ .Values.env }}.yaml
+          value: -f values-fabric-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-fabric
           {{- end }}             
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}

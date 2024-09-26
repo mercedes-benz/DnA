@@ -24,9 +24,9 @@ spec:
       env:
         - name: HELM_ARGS
           {{- if ne .Values.env "prod" }}          
-          value: -f values-dss-dev-db.yaml
+          value: -f values-dss-dev-db.yaml --set namespace={{ .Values.env }}-dna-dss
           {{ else }}
-          value: -f values-dss-{{ .Values.env }}-db.yaml
+          value: -f values-dss-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-dna-dss
           {{- end }}             
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}

@@ -24,9 +24,9 @@ spec:
       env:
         - name: HELM_ARGS
           {{- if ne .Values.env "prod" }}          
-          value: -f values-formbricks-db-dev.yaml
+          value: -f values-formbricks-db-dev.yaml --set namespace={{ .Values.env }}-dna-formbricks
           {{ else }}
-          value: -f values-formbricks-db-{{ .Values.env }}.yaml
+          value: -f values-formbricks-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-formbricks
           {{- end }}          
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
