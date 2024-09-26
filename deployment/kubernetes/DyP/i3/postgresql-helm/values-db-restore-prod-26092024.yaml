@@ -1,4 +1,4 @@
-namespace: db-restore
+namespace: db-restore-02
 annotations:
   argocdvault: "kv/data/dna/kubernetesSecret/dnadbrestore"
 ## I³ PostgreSQL image version
