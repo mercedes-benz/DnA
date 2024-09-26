@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-  fullnameOverride: "fccockpit-db-restore"
+  fullnameOverride: "fcdb"
 ## PostgreSQL replica count
 ##
 replicaCount: 3
