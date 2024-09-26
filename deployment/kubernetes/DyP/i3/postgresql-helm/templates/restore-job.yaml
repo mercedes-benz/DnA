@@ -3,7 +3,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fccockpit-restore
+  name: {{ include "postgres.fullname" . }}-restore
   namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ include "postgres.name" . }}
