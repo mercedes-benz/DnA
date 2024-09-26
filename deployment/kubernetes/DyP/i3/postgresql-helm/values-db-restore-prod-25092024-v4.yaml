@@ -409,7 +409,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: false
+  enabled: true
 
 pgmonitoring:
   enabled: true
