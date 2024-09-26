@@ -1,4 +1,4 @@
-namespace: testingrestorednadb-02
+namespace: dna-db-restore
 annotations:
   argocdvault: "kv/data/dna/kubernetesSecret/dnadbrestore"
 ## I³ PostgreSQL image version
@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "testingrestorednadb-02"
+fullnameOverride: "dna-25092024"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
