@@ -24,9 +24,9 @@ spec:
       env:
         - name: HELM_ARGS
           {{- if ne .Values.env "prod" }}          
-          value: -f values-kong-dev-db.yaml --set namespace {{ .Values.env }}-dna-kong
+          value: -f values-kong-dev-db.yaml --set namespace={{ .Values.env }}-dna-kong
           {{ else }}
-          value: -f values-kong-{{ .Values.env }}-db.yaml --set namespace {{ .Values.env }}-dna-kong
+          value: -f values-kong-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-dna-kong
           {{- end }}                    
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
