@@ -16,7 +16,7 @@ image:
 fullnameOverride: "fcdb"
 ## PostgreSQL replica count
 ##
-replicaCount: 3
+replicaCount: 1
 
 printEnv: true
 
