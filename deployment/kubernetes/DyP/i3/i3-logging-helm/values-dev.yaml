@@ -851,7 +851,7 @@ opensearch:
   persistence:
     enableInitChown: false
     size: <path:kv/data/dna/kubernetesSecret/logger#size>
-    storageClass: <path:kv/data/dna/kubernetesSecret/logger#storageClass>
+    storageClass: dhc-gp3
   replicas: 1
   singleNode: true
   opensearchJavaOpts: "-Xmx2048M -Xms2048M"
