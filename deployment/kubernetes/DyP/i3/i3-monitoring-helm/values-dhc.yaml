@@ -748,7 +748,7 @@ prometheus:
         - <path:kv/data/dna/kubernetesSecret/monitoring#pushgateway.domain>
       annotations:
         traefik.frontend.rule.type: PathPrefix
-        kubernetes.io/ingress.class: traefik
+        kubernetes.io/ingress.class: ingress-traefik
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -783,7 +783,7 @@ grafana:
        - <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
