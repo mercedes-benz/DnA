@@ -143,13 +143,7 @@ tenant:
       #
       # These settings can control the minimum and maximum resources requested for each pod.
       # If no worker nodes can meet the specified requests, the Operator may fail to deploy.
-      resources: 
-        limits:
-          cpu: 2000m
-          memory: 1000Mi
-        requests:
-          cpu: 1500m
-          memory: 700Mi         
+      resources: {}       
       ###
       # The Kubernetes `SecurityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__ to use for deploying Tenant resources.
       #
@@ -237,13 +231,7 @@ tenant:
       #
       # These settings can control the minimum and maximum resources requested for each pod.
       # If no worker nodes can meet the specified requests, the Operator may fail to deploy.
-      resources: 
-        limits:
-          cpu: 2000m
-          memory: 1000Mi
-        requests:
-          cpu: 1500m
-          memory: 700Mi         
+      resources: {}        
       ###
       # The Kubernetes `SecurityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__ to use for deploying Tenant resources.
       #
