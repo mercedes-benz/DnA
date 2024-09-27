@@ -1,4 +1,4 @@
-namespace: matomo
+namespace: prod-dna-matomo
 configJs: |
   window["MATOMO_INJECTED_ENVIRONMENT"]={
     ENABLE_MATOMO_SERVICE=true,

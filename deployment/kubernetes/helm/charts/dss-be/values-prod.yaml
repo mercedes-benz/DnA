@@ -8,7 +8,7 @@ image:
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-be
-namespace: dss
+namespace: prod-dna-dss
 serviceAccount:
   create: false
   annotations: {}

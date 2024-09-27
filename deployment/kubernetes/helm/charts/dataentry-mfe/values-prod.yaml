@@ -1,4 +1,4 @@
-namespace: dataentry
+namespace: prod-dna-dataentry
 configJs: |
   window["dataentry_INJECTED_ENVIRONMENT"]={
     ENABLE_dataentry_SERVICE=true,

@@ -1,4 +1,4 @@
-namespace: dashboard
+namespace: prod-dna-dashboard
 replicas: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dashboard-backend

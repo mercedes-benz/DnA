@@ -24,7 +24,11 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-matomo-be-db-prod.yaml                  
+          {{- if ne .Values.env "prod" }}
+          value: -f values-matomo-be-db-prod.yaml --set namespace={{ .Values.env }}-dna-matomo
+          {{ else }}
+          value: -f values-matomo-be-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-matomo
+          {{- end }}                          
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:

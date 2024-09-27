@@ -1,5 +1,5 @@
 appName: trino
-namespace: trino
+namespace: test-dna-trino
 accessRules:
   endpoint: http://trino-backend-service.trino.svc.cluster.local:7575/service/access
 cert:

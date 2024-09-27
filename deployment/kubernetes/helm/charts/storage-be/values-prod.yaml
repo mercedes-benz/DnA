@@ -1,4 +1,4 @@
-namespace: storage
+namespace: prod-dna-storage
 envs:
   - name: MAX_FILE_SIZE
     value: 3000MB

@@ -1,5 +1,5 @@
 appName: airflow
-namespace: airflow
+namespace: prod-dna-airflow
 imagePullSecret:
   name: imagepullsecret
 backend:

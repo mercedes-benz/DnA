@@ -1,4 +1,4 @@
-namespace: dna
+namespace: test-dna
 imagePullSecrets: null
 ingress:
   enabled: false
@@ -88,9 +88,9 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/staging
-    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
-    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+    vault.hashicorp.com/namespace: DnAPlatform/staging
+    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
+    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka

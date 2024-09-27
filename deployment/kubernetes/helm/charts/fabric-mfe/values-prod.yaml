@@ -1,4 +1,4 @@
-namespace: fabric
+namespace: prod-dna-fabric
 configJs: |
   window["fabric_INJECTED_ENVIRONMENT"]={
     ENABLE_fabric_SERVICE=true,

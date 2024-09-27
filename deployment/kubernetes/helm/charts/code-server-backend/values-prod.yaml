@@ -1,5 +1,5 @@
 replicaCount: 2
-namespace: code-server
+namespace: prod-dna-code-server
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always

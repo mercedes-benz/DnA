@@ -1,5 +1,5 @@
 replicaCount: 1
-namespace: code-server
+namespace: dev-dna-code-server
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
@@ -20,7 +20,7 @@ podAnnotations:
   vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
   vault.hashicorp.com/template-static-secret-render-interval: 10s
   vault.hashicorp.com/agent-pre-populate-only: 'false'
-  vault.hashicorp.com/namespace: fmas/dev
+  vault.hashicorp.com/namespace: DnAPlatform/dev
   vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
   vault.hashicorp.com/agent-inject-template-truststore.jks: |
     {{- with secret "kv/dna/kubernetesSecret/kafka" -}}

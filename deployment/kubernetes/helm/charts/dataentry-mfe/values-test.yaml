@@ -1,4 +1,4 @@
-namespace: dataentry
+namespace: test-dna-dataentry
 configJs: |
   window["dataentry_INJECTED_ENVIRONMENT"]={
     ENABLE_dataentry_SERVICE=true,
@@ -51,7 +51,7 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: dna
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/staging
+    vault.hashicorp.com/namespace: DnAPlatform/staging
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/dataentryMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js

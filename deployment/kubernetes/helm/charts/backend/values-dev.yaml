@@ -1,4 +1,4 @@
-namespace: dna
+namespace: dev-dna
 imagePullSecrets: null
 ingress:
   enabled: false

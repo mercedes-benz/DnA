@@ -24,9 +24,9 @@ spec:
       env:
         - name: HELM_ARGS
           {{- if ne .Values.env "prod" }}          
-          value: -f values-hive-db-dev.yaml
+          value: -f values-hive-db-dev.yaml --set namespace={{ .Values.env }}-dna-trino
           {{ else }}
-          value: -f values-hive-db-{{ .Values.env }}.yaml
+          value: -f values-hive-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-trino
           {{- end }}             
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}

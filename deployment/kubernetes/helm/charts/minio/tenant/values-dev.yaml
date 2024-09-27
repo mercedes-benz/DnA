@@ -4,7 +4,7 @@ tenant:
   # The Tenant name
   #
   # Change this to match your preferred MinIO Tenant name.
-  name: minio
+  name: dev-dna-minio
   ###
   # Specify the Operator container image to use for the deployment.
   # ``image.tag`` 

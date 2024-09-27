@@ -1,5 +1,5 @@
 replicaCount: 2
-namespace: kong
+namespace: prod-dna-kong
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/authenticator-service
   pullPolicy: IfNotPresent
