@@ -212,7 +212,8 @@ tenant:
     # This is used by MinIO to verify TLS connections from clients using those CAs
     # If you omit this and have clients using TLS certificates minted by an external CA, those connections may fail with warnings around certificate verification.
     # See `Operator CRD: TenantSpec <https://min.io/docs/minio/kubernetes/upstream/reference/operator-crd.html#tenantspec>`__.
-    externalCaCertSecret: [ ]
+    externalCaCertSecret: 
+      - name: crop-cacert   
     ###
     # Specify an array of Kubernetes secrets, where each entry corresponds to a secret contains the TLS private key and public certificate pair.
     #
@@ -541,3 +542,12 @@ extraResources:
               port: 9090                            
       policyTypes:
         - Ingress
+ - |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: crop-cacert
+      namespace: {{ .Release.Namespace }}
+    data:
+      public.crt: <path:kv/data/dna/kubernetesSecret/infra#croppem | base64encode>
+    type: Opaque
