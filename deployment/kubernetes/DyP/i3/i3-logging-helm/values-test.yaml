@@ -840,7 +840,7 @@ opensearch:
   opensearchJavaOpts: "-Xmx2048M -Xms2048M"
 
 jaeger:
-  enabled: true
+  enabled: false
   networkPolicy:
     enabled: true
   fullnameOverride: "jaeger"
