@@ -22,7 +22,7 @@ env:
 jobs: 
   css:
     name: 'CSS Image Scan'
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     steps:
 
     - name: Login Registry

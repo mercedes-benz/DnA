@@ -594,7 +594,7 @@ extraIngress:
       secretName: api-fabric-tls
 konga:
   enabled: true
-  namespace: kong
+  namespace: prod-dna-kong
   ingress:
     enabled: true
     annotations:

@@ -23,7 +23,7 @@ spec:
       releaseName: {{ .Values.env }}-ingress-internet
       skipCrds: false
       valueFiles:
-        - values-{{ .Values.env }}.yaml    
+        - values-internet-{{ .Values.env }}.yaml    
   project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:

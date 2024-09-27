@@ -3,7 +3,7 @@ namespace: dev-dna-code-server
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
-  tag: '128'
+  tag: '441'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -55,7 +55,7 @@ ingress:
   enabled: false
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

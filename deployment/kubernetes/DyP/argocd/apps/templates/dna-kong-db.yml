@@ -27,7 +27,7 @@ spec:
           value: -f values-kong-dev-db.yaml --set namespace={{ .Values.env }}-dna-kong
           {{ else }}
           value: -f values-kong-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-dna-kong
-          {{- end }}             
+          {{- end }}                    
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:

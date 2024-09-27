@@ -4,7 +4,7 @@ app:
   backend:
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: '126'
+      tag: '242'
     replicaCount: 1
     secrets:
       name: naas-app-secrets
@@ -51,7 +51,7 @@ ingress:
   host: naas.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

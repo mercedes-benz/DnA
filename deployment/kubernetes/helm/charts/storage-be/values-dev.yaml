@@ -129,7 +129,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
   pullPolicy: IfNotPresent
-  tag: '104'
+  tag: '435'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -144,7 +144,7 @@ ingress:
   enabled: false
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

@@ -99,6 +99,24 @@ public class BaseRecipeService implements RecipeService{
 		
 		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
 		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		savedEntity = saveEntity(isoFormat, entity, savedEntity);
+		return recipeAssembler.toVo(savedEntity);
+	}
+
+	@Override
+	@Transactional
+	public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
+		CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findByRecipeName(recipeRequestVO.getRecipeName());
+		recipeEntity.setData(entity.getData());
+		savedEntity = saveEntity(isoFormat, recipeEntity, savedEntity);
+		return recipeAssembler.toVo(savedEntity);
+	}
+
+	private CodeServerRecipeNsql saveEntity(SimpleDateFormat isoFormat, CodeServerRecipeNsql entity,
+			CodeServerRecipeNsql savedEntity) {
 		try {
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
 			entity.getData().setCreatedOn(now);
@@ -106,7 +124,7 @@ public class BaseRecipeService implements RecipeService{
 		} catch (Exception e) {
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
-		return recipeAssembler.toVo(savedEntity);
+		return savedEntity;
 	}
 
 	@Override
@@ -140,6 +158,9 @@ public class BaseRecipeService implements RecipeService{
 				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
 				fileContent.append(additionalProperties);
 			}
+			if(fileContent.toString().contains("dotnet")){
+				fileContent.append("\ncode-server --install-extension ms-dotnettools.vscode-dotnet-runtime\ncode-server --install-extension aliasadidev.nugetpackagemanagergui");
+			}
 			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
 			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
 			if( encodedFileContent != null) {
@@ -159,7 +180,13 @@ public class BaseRecipeService implements RecipeService{
 			return responseMessage;
 		} catch(Exception e) {
 			log.error(e.getMessage());
-			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+			if(e.getMessage().contains("pull request")){
+				responseMessage = getMessageDescrption("Conflict in Git while creating Software File","FAILED");
+			} else {
+				responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+
+			}
+			responseMessage.setSuccess("FAILED");
 		}
 		return responseMessage;
 	}
@@ -261,8 +288,7 @@ public class BaseRecipeService implements RecipeService{
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
-			log.info("failed while fetching additional properties",e.getMessage());
+			log.error("failed while fetching additional properties",e);
 		}
 		return additionalServiceLovVo ;
 	}

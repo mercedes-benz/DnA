@@ -3,7 +3,7 @@ namespace: test-dna-code-server
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
-  tag: '129'
+  tag: '151'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''

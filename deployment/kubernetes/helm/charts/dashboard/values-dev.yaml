@@ -1,7 +1,7 @@
 namespace: dev-dna-dashboard
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dashboard-backend
-  tag: '104'
+  tag: '384'
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
@@ -27,7 +27,7 @@ ingress:
   host: report.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

@@ -61,7 +61,7 @@ jobs:
     name: 'Build workspace application'
     if: ${{ github.event.inputs.action == 'deploy'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, large]
+    runs-on: [os-large-amd64-linux]
     steps:
 
     - name: Check out repository code
@@ -100,15 +100,30 @@ jobs:
       with:
         dot-npmrc: ${{ secrets.DOT_NPMRC }}
         working-directory: ./workspace-repo
+
+    - name: Import build secrets from vault
+      uses: hashicorp/vault-action@v3.0.0
+      if: ${{ github.event.inputs.valutInjectorEnable == 'true' }}
+      with:
+        url: https://hcvault.app.corpintra.net
+        method: userpass
+        username: ${{ secrets.VAULT_USERNAME }}
+        password: ${{ secrets.VAULT_PASSWORD }}
+        namespace: ${{ vars.VAULT_NAMESPACE }}
+        ignoreNotFound: true
+        secrets: |
+            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
       run: | 
+       build_args=$(env | grep '^BUILD_BUILD_' | awk -F= '{sub(/^BUILD_/, "", $1); print "--build-arg " $1 "=" $2}' | xargs)
        docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} \
         --build-arg ROOT_PATH=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api \
         --build-arg ROOT_PATH_NON_API=/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/ \
         --build-arg OBFUSKATOR_ARTIFACTORY_PASSWORD=${{ secrets.OBFUSKATOR_ARTIFACTORY_PASSWORD }} \
         --build-arg INDEX_URL=https://${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}@artifacts.i.mercedes-benz.com/artifactory/api/pypi/pypi-opensource-virtual/simple \
+        $build_args \
         -f build.Dockerfile --no-cache ../
       env:
         no_proxy: "artifacts.i.mercedes-benz.com"     
@@ -121,11 +136,11 @@ jobs:
       uses: vimeda/helm@v1.7.0
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
-        namespace: 'codespaces-apps'
+        namespace: '${{ vars.K8S_NAMESPACE }}'
         chart: 'workspace-repo/deploy/helm'
         values: |
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
-          namespace: codespaces-apps
+          namespace: ${{ vars.K8S_NAMESPACE }}
           image:
             repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps
             tag: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
@@ -143,7 +158,7 @@ jobs:
 
   upload-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: deploy
     if: ${{ !cancelled() && (success() || failure() || needs.deploy.result == 'skipped') }}
@@ -182,7 +197,7 @@ jobs:
     name: 'Delete Code Server Workspace'
     if: ${{ github.event.inputs.action == 'undeploy'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
 
     steps:
       - name: 'Delete Code Server Apps'
@@ -191,7 +206,7 @@ jobs:
           task: 'remove'
           chart: 'workspace-application-0.1.0'
           release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
-          namespace: 'codespaces-apps'
+          namespace: '${{ vars.K8S_NAMESPACE }}'
         env:
           KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'             
 
@@ -216,7 +231,7 @@ jobs:
     name: 'Restart Code Server Workspace'
     if: ${{ github.event.inputs.action == 'restart'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
 
     steps:
         
@@ -247,7 +262,7 @@ jobs:
     name: Sonar Qube Scan Gradle
     needs: deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -294,7 +309,7 @@ jobs:
     name: Sonar Qube Scan Javascript
     needs: deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' }}
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
     steps:
       - name: Check user repo
         uses: actions/checkout@v3

@@ -11,7 +11,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-mfe
   pullPolicy: IfNotPresent
-  tag: '112'
+  tag: '242'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -26,7 +26,7 @@ ingress:
   enabled: true
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

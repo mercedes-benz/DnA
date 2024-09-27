@@ -108,7 +108,7 @@ admin:
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
@@ -169,7 +169,7 @@ proxy:
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
@@ -381,7 +381,7 @@ manager:
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
@@ -614,12 +614,12 @@ extraIngress:
       secretName: kong-dna
 konga:
   enabled: true
-  namespace: kong
+  namespace: dev-dna-kong
   ingress:
     enabled: true
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme

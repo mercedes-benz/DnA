@@ -1029,6 +1029,15 @@ tempo-distributed:
         enabled: true        
     opencensus:
       enabled: false
+  storage:
+    trace:
+      s3:
+        endpoint: <path:kv/data/dna/kubernetesSecret/monitoring#s3.host>
+        bucket: <path:kv/data/dna/kubernetesSecret/monitoring#traces_bucket>
+        insecure: true
+        access_key: <path:kv/data/dna/kubernetesSecret/monitoring#access_key>
+        secret_key: <path:kv/data/dna/kubernetesSecret/monitoring#secret_key>
+        forcepathstyle: true
   extraObjects: 
     -   apiVersion: networking.k8s.io/v1
         kind: NetworkPolicy

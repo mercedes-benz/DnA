@@ -23,7 +23,7 @@ spec:
       releaseName: {{ .Values.env }}-ingress-intranet
       skipCrds: false
       valueFiles:
-        - values-{{ .Values.env }}.yaml    
+        - values-intranet-{{ .Values.env }}.yaml    
   project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
