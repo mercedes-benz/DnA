@@ -36,7 +36,7 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
           id="dropdownMenuButton"
           onClick={this.props.onPreviousClick}
         >
-          Previous
+           Previous
         </button>
         {this.props.displayByPage ? (
           this.props.startWithFive ? (
