@@ -21,7 +21,7 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
     super(props);
     this.state = {
       selectedPageNumber: this.props.startWithFive
-        ? parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.FIVE_MAX_ITEMS_PER_PAGE), 10) || 5
+        ? parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE), 10) || 5
         : parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
     };
   }
@@ -141,7 +141,7 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
   }
   protected fetchData = (val: number) => () => {
     this.props.startWithFive
-      ? sessionStorage.setItem(SESSION_STORAGE_KEYS.FIVE_MAX_ITEMS_PER_PAGE, val.toString())
+      ? sessionStorage.setItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE, val.toString())
       : sessionStorage.setItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE, val.toString());
     this.props.onViewByNumbers(val);
     this.setState({
