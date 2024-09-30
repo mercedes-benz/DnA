@@ -535,6 +535,25 @@ singleuser:
 
           if [ -d "/home/coder/app" ]; then
               echo "Directory is already present"
+              if [ -d "$HOME/.sdkman" ]; then
+                  echo "SDKMAN! is already installed."
+              else
+                  echo "Installing SDKMAN for $SHORTID on Workspace $HOSTNAME"
+                  curl -s --insecure "https://get.sdkman.io" | bash
+                  if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
+                      chmod +x $HOME/.sdkman/bin/sdkman-init.sh
+                      source "$HOME/.sdkman/bin/sdkman-init.sh"
+                      echo "SDKMAN! installed."
+                  else
+                      echo "SDKMAN! installation failed."
+                  fi
+              fi            
+              # Install OpenJDK (defaulting to version 17)
+                source "$HOME/.sdkman/bin/sdkman-init.sh"
+                sdk install java 17-open
+                echo "Setting java version 17 as default"
+                sdk default java 17-open
+                sdk flush
           else
               mkdir -p /home/coder/app
               echo "Cloning the workspace"
