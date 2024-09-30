@@ -1,7 +1,7 @@
 kind: Application
 apiVersion: argoproj.io/v1alpha1
 metadata:
-  name: dev-bat-root-app
+  name: dev-bat-argocd-root-app
   namespace: argocd
 spec:
   project: 'bat-development'
@@ -12,9 +12,9 @@ spec:
     plugin:
       name: argocd-vault-plugin-helm
   destination:
-    name: 'bat-development-c82p085'
+    name: 'in-cluster'
     namespace: argocd
   syncPolicy:
     automated:
       prune: true
-      selfHeal: false
+      selfHeal: true

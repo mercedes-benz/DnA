@@ -22,3 +22,11 @@ annotations:
 repositories:
   - name: dna-kong
     url: https://git.i.mercedes-benz.com/DNA/dna-kong.git
+    
+  ### Adding BAT Project repos
+  - name: bat-helm-charts
+    url: https://git.i.mercedes-benz.com/BAT/bat-helm-charts.git
+  - name: bat-infra
+    url: https://git.i.mercedes-benz.com/BAT/bat-infra.git
+  - name: i3-postgresql
+    url: https://git.i.mercedes-benz.com/i3/i3-postgresql.git
