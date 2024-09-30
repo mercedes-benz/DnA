@@ -32,6 +32,7 @@ export enum SESSION_STORAGE_KEYS {
   DATAPRODUCT_FILTER_VALUE = 'dataproductFilterValues',
   REPORT_FILTER_VALUES = 'reportFilterValues',
   PAGINATION_MAX_ITEMS_PER_PAGE = 'paginationMaxItemsPerPage',
+  FIVE_MAX_ITEMS_PER_PAGE = 'fiveMaxItemsPerPage',
   APPREDIRECT_URL = 'appredirect_url',
   LISTVIEW_MODE_ENABLE = 'listViewModeEnable',
   SOLUTION_SORT_VALUES = 'sortingInfo',
