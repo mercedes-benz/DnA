@@ -4,7 +4,7 @@ secret: []
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dss-backend
   pullPolicy: IfNotPresent
-  tag: '104'
+  tag: '471'
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-be
