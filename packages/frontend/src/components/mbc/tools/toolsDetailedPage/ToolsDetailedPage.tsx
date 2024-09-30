@@ -5,7 +5,7 @@ import { getParams } from '../../../../router/RouterUtils';
 import { ToolsPageImagesInfo } from 'globals/constants';
 import ToolsDetailedPageElements from './toolDetaliedPageInfo.json';
 import { history } from '../../../../router/History';
-
+import { markdownParser } from '../../../../utils/MarkdownParser';
 export interface IData {
   id?: string;
   name?: string;
@@ -85,7 +85,7 @@ const AccessSteps = (props: any) => {
             </label>
             <div className="expansion-panel-content">
               <div className={Styles.expansionnPanelContent}>
-                <h5>{item.info}</h5>
+                <h5  dangerouslySetInnerHTML={{ __html: markdownParser(item.info) }}/>
               </div>
             </div>
           </div>
@@ -179,22 +179,24 @@ const ToolsDetailedPage = (IData: any) => {
                     )
                   )}
                   <h4>Connected To</h4>
-                  {pageDetails.toolPipeLine?.connectedTO && (
-                    pageDetails.toolPipeLine.connectedTO.map((value: any, key: any) => {
-                      return (
-                        <div className={Styles.connectedToList} key={key}>
-                          {/* <button
+                  <div className={Styles.connectionWrapper}>
+                    {pageDetails.toolPipeLine?.connectedTO && (
+                      pageDetails.toolPipeLine.connectedTO.map((value: any, key: any) => {
+                        return (
+                          <div className={Styles.connectedToList} key={key}>
+                            {/* <button
                           className={Styles.connectButton}
                           type="button"
                         > */}
-                          <i className={`icon mbc-icon ${value.icon}`} />
-                          <h5>{value.title}</h5>
-                          {/* </button> */}
+                            <i className={`icon mbc-icon ${value.icon}`} />
+                            <h5>{value.title}</h5>
+                            {/* </button> */}
 
-                        </div>
-                      )
-                    })
-                  )}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
