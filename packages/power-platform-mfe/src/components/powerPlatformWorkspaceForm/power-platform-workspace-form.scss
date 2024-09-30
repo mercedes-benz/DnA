@@ -36,6 +36,10 @@
   margin-left: -10px;
   .termsOfUseText {
     color: #c0c8d0;
+    span {
+      color: #00adef;
+      cursor: pointer;
+    }
     sup {
       float: right;
       top: -12px;
