@@ -102,7 +102,7 @@ const DNACard = (props: IDNACardProps) => {
           {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
         </div>
         <div className={Styles.cardFooterSection}>
-          {props.isDetailedPage ? (
+          {(props.isDetailedPage && !props.isDisabled)? (
             <button
               className={classNames('btn btn-primary', Styles.viewDetailedPage)}
               type="button"
