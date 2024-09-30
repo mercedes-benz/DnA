@@ -7,8 +7,8 @@ spec:
   project: 'bat-development'
   source:
     repoURL: 'https://git.i.mercedes-benz.com/BAT/bat-infra.git'
-    targetRevision: 'infra/aws-migration'
-    path: c52p219-dev/apps/mppl
+    targetRevision: 'aws/migration'
+    path: c52p219-dev/apps
     plugin:
       name: argocd-vault-plugin-helm
   destination:
