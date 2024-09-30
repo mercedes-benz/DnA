@@ -9,14 +9,14 @@ on:
         type: environment
         required: true
         default: 'Development'      
-    service:
-      description: "Service"
-      type: choice
-      default: code-server
-      required: true  
-      options: 
-        - chronos-be
-        - code-server   
+      service:
+        description: "Service"
+        type: choice
+        default: code-server
+        required: true  
+        options: 
+          - chronos-be
+          - code-server   
 
   pull_request:
     types:
