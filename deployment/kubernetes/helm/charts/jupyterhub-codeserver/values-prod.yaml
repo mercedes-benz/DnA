@@ -190,7 +190,7 @@ hub:
               'successThreshold': 1,
               'failureThreshold': 10
             }
-          }        
+          }
 
   #   livenessProbe:
   #     httpGet:
@@ -245,7 +245,7 @@ hub:
               app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
-          port: 8081
+          port: 8081  
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -535,6 +535,24 @@ singleuser:
 
           if [ -d "/home/coder/app" ]; then
               echo "Directory is already present"
+              if [ -d "$HOME/.sdkman" ]; then
+                  echo "SDKMAN! is already installed."
+              else
+                  echo "Installing SDKMAN for $SHORTID on Workspace $HOSTNAME"
+                  curl -s --insecure "https://get.sdkman.io" | bash
+                  if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
+                      chmod +x $HOME/.sdkman/bin/sdkman-init.sh
+                      source "$HOME/.sdkman/bin/sdkman-init.sh"
+                      echo "SDKMAN! installed."
+                      # Install OpenJDK (defaulting to version 17)
+                      sdk install java 17-open
+                      echo "Setting java version 17 as default"
+                      sdk default java 17-open
+                      sdk flush
+                  else
+                      echo "SDKMAN! installation failed."
+                  fi
+              fi            
           else
               mkdir -p /home/coder/app
               echo "Cloning the workspace"
@@ -546,7 +564,6 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
-
               
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
@@ -1166,7 +1183,7 @@ singleuser:
               - |
                   if [ -d "/home/coder/app" ]; then
                     echo "Directory is already present"
-                  else              
+                  else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
                     git checkout $GIT_BRANCH
@@ -1355,7 +1372,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH   
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
