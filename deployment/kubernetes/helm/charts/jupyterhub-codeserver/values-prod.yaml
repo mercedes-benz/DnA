@@ -545,7 +545,6 @@ singleuser:
                       source "$HOME/.sdkman/bin/sdkman-init.sh"
                       echo "SDKMAN! installed."
                       # Install OpenJDK (defaulting to version 17)
-                      source "$HOME/.sdkman/bin/sdkman-init.sh"
                       sdk install java 17-open
                       echo "Setting java version 17 as default"
                       sdk default java 17-open
