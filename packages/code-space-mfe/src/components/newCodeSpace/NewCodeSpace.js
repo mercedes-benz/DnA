@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
 // @ts-ignore
@@ -22,7 +23,6 @@ import { Envs } from '../../Utility/envs';
 // import { recipesMaster } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
-import { Link } from 'react-router-dom';
 import Tags from 'dna-container/Tags';
 
 const classNames = cn.bind(Styles);
@@ -47,6 +47,8 @@ const classNames = cn.bind(Styles);
 // }
 
 const NewCodeSpace = (props) => {
+  const history = useHistory();
+  
   const onBoadingMode = props.onBoardingCodeSpace !== undefined;
   const onEditingMode = props.onEditingCodeSpace !== undefined;
   const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
@@ -1327,15 +1329,13 @@ const NewCodeSpace = (props) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-                <Link to="/codespaceRecipes" target='_blank'>
                 <div>
-                  <button className={classNames(Styles.addNewItemButton)} >
+                  <button className={classNames(Styles.addNewItemButton)} onClick={() => history.push('/codespaceRecipes/codespace')}>
                     <i className="icon mbc-icon plus" />
                     &nbsp;
                     <span>Add new code space recipe</span>
                   </button>
                 </div>
-                </Link>
               </div>
               <div>
                 <div id="environmentContainer" className={classNames('input-field-group include-error')}>
