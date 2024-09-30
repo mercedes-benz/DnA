@@ -32,7 +32,7 @@ const DeployAuditLogsModal = (props) => {
   const [paginatedRecords, setPaginatedRecords] = useState([]);
   const [deployPaginatedRecords, setDeployPaginatedRecords] = useState([]);
   const [actionPaginatedRecords, setActionPaginatedRecords] = useState([]);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.FIVE_MAX_ITEMS_PER_PAGE), 10) || 5);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE), 10) || 5);
 
   useEffect(() => {
     setTotalNumberOfPages(Math.ceil(auditLogs.length / maxItemsPerPage));
