@@ -4,6 +4,7 @@ import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'dna-container/SelectBox';
 import TextBox from 'dna-container/TextBox';
 import Caption from 'dna-container/Caption';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import { Envs } from '../../Utility/envs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
@@ -27,6 +28,7 @@ const CodeSpaceRecipe = (props) => {
   const [notificationMsg, setNotificationMsg] = useState(false);
   const [softwares, setSoftwares] = useState([]);
   const [enableCreate, setEnableCreate] = useState(false);
+  const [showUpdateRecipeModal, setShowUpdateRecipeModal] = useState(false);
 
   const [recipeName, setRecipeName] = useState('');
   const [isPublic, setIsPublic] = useState(false);
@@ -472,6 +474,13 @@ const CodeSpaceRecipe = (props) => {
     (recipeId === 'manageRecipe' || recipeId !== 'codespace')  && history.push('/manageRecipes');
   }
 
+  const updateRecipeContent = (
+    <div>
+      {/* <h3>Are you sure you want to update this recipe?</h3> */}
+      <h5>If you update the recipe, users will need to create<br />new codespaces to apply the changes, as existing codespaces will not be updated.</h5>
+    </div>
+  );
+
   return (
     <div>
       <div>
@@ -499,7 +508,7 @@ const CodeSpaceRecipe = (props) => {
                       />
                     </div>
                     <div className={(Styles.col2)}>
-                      <div className={classNames('input-field-group include-error')}>
+                      <div className={classNames('input-field-group include-error', edit && Styles.disabledSection)}>
                         <label className={classNames(Styles.inputLabel, Styles.m5, 'input-label')}>
                           Recipe Visibility <sup>*</sup>
                         </label>
@@ -709,7 +718,7 @@ const CodeSpaceRecipe = (props) => {
                 </div>
 
                 <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={edit ? onUpdateRecipe : onCreateRecipe}>
+                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe}>
                     {edit ? 'Update Recipe' : 'Create Recipe'}
                   </button>
                 </div>
@@ -754,6 +763,19 @@ const CodeSpaceRecipe = (props) => {
                 </div>
               </div>
             }
+          />
+        }
+        {showUpdateRecipeModal &&
+          <ConfirmModal
+            title={''}
+            acceptButtonTitle="Yes"
+            cancelButtonTitle="No"
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={showUpdateRecipeModal}
+            content={updateRecipeContent}
+            onCancel={() => setShowUpdateRecipeModal(false)}
+            onAccept={onUpdateRecipe}
           />
         }
       </div>
