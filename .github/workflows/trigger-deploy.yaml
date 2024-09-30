@@ -9,6 +9,14 @@ on:
         type: environment
         required: true
         default: 'Development'      
+    service:
+      description: "Service"
+      type: choice
+      default: code-server
+      required: true  
+      options: 
+        - chronos-be
+        - code-server   
 
   pull_request:
     types:
@@ -67,6 +75,7 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: dorny/paths-filter@v3.0.2
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: filter
         with:
           filters: |
@@ -144,20 +153,13 @@ jobs:
               - 'deployment/dockerfiles/fabric/fabric-mfe.Dockerfile' 
             power-platform-mfe:
               - 'packages/power-platform-mfe/**'
-              - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'     
-
-      # - name: Delete HEAD branche
-      #   if: ${{ github.ref_name == 'main' }}      
-      #   uses: dawidd6/action-delete-branch@v3.1.0
-      #   with:
-      #     github_token: ${{ secrets.PID_PAT }}
-      #     branches: ${{ github.head_ref }}                                               
+              - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'                                                
                 
 
   code-server:
         name: Code Server Backend
         needs: select-service
-        if: needs.select-service.outputs.code-server == 'true'
+        if: ${{ needs.select-service.outputs.code-server == 'true' ||  github.event.inputs.service == 'code-server' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/code-server-be'
@@ -174,7 +176,7 @@ jobs:
   chronos-be:
         name: Chronos Backend
         needs: select-service
-        if: needs.select-service.outputs.chronos-be == 'true'
+        if: ${{  needs.select-service.outputs.chronos-be == 'true'  ||  github.event.inputs.service == 'chronos-be' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/chronos-be'
