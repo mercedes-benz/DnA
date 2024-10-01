@@ -827,12 +827,12 @@ singleuser:
       slug: "py-fastapi"
       description: "Development environment for Python fastapi Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.91.0
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.91.0
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
