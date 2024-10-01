@@ -898,7 +898,7 @@ const CodeSpaceCardItem = (props) => {
                 {!createInProgress && !creationFailed && !serverFailed && (
                   <span
                     onClick={() => onStartStopCodeSpace(codeSpace)}
-                    // tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
+                    tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
                     className={classNames(
                       Styles.statusIndicator,
                       Styles.wsStartStop,
