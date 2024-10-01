@@ -12,7 +12,7 @@ on:
       service:
         description: "Service"
         type: choice
-        default: code-server
+        default: dna-frontend
         required: true  
         options: 
           - airflow-backend
