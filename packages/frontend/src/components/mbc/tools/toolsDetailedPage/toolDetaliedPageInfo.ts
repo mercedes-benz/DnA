@@ -1,5 +1,6 @@
 import { Envs } from "globals/Envs";
 
+
 export const ToolsDetailedPageElements = [
   {
     "id": "dataikuDSS",
@@ -186,7 +187,7 @@ export const ToolsDetailedPageElements = [
         "icon": "tem",
         "name": "Costs",
         "description" : "Get familiar with the costs",
-        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 6.70 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
+        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 5.25 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
       }
     ],
     "classification" : "Confidential",
@@ -303,7 +304,7 @@ export const ToolsDetailedPageElements = [
         "icon": "tem",
         "name": "Costs",
         "description" : "Get familiar with the costs",
-        "info":["Microsoft Fabric infrastructure and storage: Pay-as-you-use "," Microsoft Fabric operation costs: 4.500 EUR per year (tentative) ","Power BI Desktop RS: cost-free (IT-Shop)"," Azure PowerBI Free licence (viewer): cost-free (IT-Shop) ", "Azure Power BI Pro licence (developer): 6.70 EUR user/month (IT-Shop)"]
+        "info":["Microsoft Fabric infrastructure and storage: Pay-as-you-use "," Microsoft Fabric operation costs ","Power BI Desktop RS: cost-free (IT-Shop)"," Azure PowerBI Free licence (viewer): cost-free (IT-Shop) ", "Azure Power BI Pro licence (developer): 5.25 EUR user/month (IT-Shop)"]
       }
     ],
     "classification" : "Confidential",
