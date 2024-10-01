@@ -68,8 +68,20 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
           }
 
           return (
-            <React.Fragment key={index}> 
-              {dsBadge.startsWith('DNA-DataProduct') ? <a href ={Envs.APP_URL+'/#/data/dataproduct/summary/'+dsId} target='_blank' rel="noreferrer"> {chip.dataSource} </a>:chip.dataSource}{' '}
+            <React.Fragment key={index}>
+              {dsBadge.startsWith('DNA-DataProduct') ? (
+                <a href={Envs.APP_URL + '/#/data/dataproduct/summary/' + dsId} target="_blank" rel="noreferrer">
+                  {' '}
+                  {chip.dataSource}{' '}
+                </a>
+              ) : dsBadge.startsWith('CDC') ? (
+                <a href={Envs.CDC_DATABASE_URL + dsId} target="_blank" rel="noreferrer">
+                  {' '}
+                  {chip.dataSource}{' '}
+                </a>
+              ) : (
+                chip.dataSource
+              )}{' '}
               <span className={Styles.badge}>
                 {dsBadge}
                 {chip.weightage !== 0 && ' / '}
