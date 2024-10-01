@@ -3,7 +3,7 @@ import Styles from './ToolsDetailedPage.scss'
 import Breadcrumb from './breadcrumb/BreadCrumb'
 import { getParams } from '../../../../router/RouterUtils';
 import { ToolsPageImagesInfo } from 'globals/constants';
-import ToolsDetailedPageElements from './toolDetaliedPageInfo.json';
+import {ToolsDetailedPageElements} from './toolDetaliedPageInfo';
 import { history } from '../../../../router/History';
 import { markdownParser } from '../../../../utils/MarkdownParser';
 export interface IData {
