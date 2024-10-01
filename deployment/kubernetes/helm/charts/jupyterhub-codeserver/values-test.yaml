@@ -544,10 +544,12 @@ singleuser:
                       chmod +x $HOME/.sdkman/bin/sdkman-init.sh
                       source "$HOME/.sdkman/bin/sdkman-init.sh"
                       echo "SDKMAN! installed."
-                    # Install OpenJDK (defaulting to version 17)
+                      # Install OpenJDK (defaulting to version 17)
                       sdk install java 17-open
                       echo "Setting java version 17 as default"
                       sdk default java 17-open
+                      echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> ~/.bashrc
+                      echo '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"' >> ~/.bashrc
                       sdk flush
                   else
                       echo "SDKMAN! installation failed."
