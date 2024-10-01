@@ -245,7 +245,7 @@ hub:
               app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
-          port: 8081
+          port: 8081  
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -566,7 +566,6 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
-
               
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"

@@ -18,6 +18,16 @@ RUN sudo apt-get update \
  libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev wget build-essential libreadline-dev \
  make llvm libncurses5-dev xz-utils liblzma-dev python3-openssl iputils-ping telnet netcat-traditional dnsutils traceroute tcpdump
 
+# Manually download and add the Microsoft repository key
+RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+
+# Add Microsoft's repository
+RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
+
+# Update and install the ODBC Driver for SQL Server
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev \
+    && apt-get clean
+
 #Install Minio Client
 WORKDIR /usr/local/bin/
 RUN sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc
