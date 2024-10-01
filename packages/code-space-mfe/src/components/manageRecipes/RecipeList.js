@@ -6,7 +6,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import Modal from 'dna-container/Modal';
-// import { history } from '../../store';
+import { history } from '../../store';
 
 const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -36,10 +36,10 @@ const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
     return ramValue.toString();
   };
 
-  // const handleEditRecipe = (e) => {
-  //   e.stopPropagation();
-  //   history.push(`/codespaceRecipes/${recipe?.recipeName}`);
-  // }
+  const handleEditRecipe = (e) => {
+    e.stopPropagation();
+    history.push(`/codespaceRecipes/${recipe?.recipeName}`);
+  }
 
   const handleDeleteRecipe = (e) => {
     e.stopPropagation();
@@ -84,9 +84,9 @@ const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
         </td>
         <td className={classNames('wrap-text', Styles.actionColumn)}>
           <div>
-          {/* <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
+            <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
               <i className='icon edit'></i>
-            </button> */}
+            </button>
             <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleDeleteRecipe}>
               <i className='icon delete'></i>
             </button>

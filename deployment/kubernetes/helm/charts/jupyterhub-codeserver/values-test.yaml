@@ -699,12 +699,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN
+                    key: GH_PAT_TOKEN     
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH
+                    key: GIT_BRANCH    
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -737,7 +737,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN
+                    key: GH_PAT_TOKEN    
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
