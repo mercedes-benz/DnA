@@ -276,7 +276,7 @@ const DeployModal = (props) => {
             after the deployment.
           </p>
           <div className={Styles.flexLayout}>
-          <div>
+            <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
                 <label className="input-label">Deploy Environment</label>
                 <div>
