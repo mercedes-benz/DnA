@@ -60,7 +60,7 @@ artifact_base_url = 'https://registry-emea.app.corpintra.net/api/v2.0/projects/d
 # Iterate over each name and make the second API call
 for name in names:
     artifact_page = 1
-    while name == 'dna-frontend':
+    while True:
         artifact_url = f'{artifact_base_url}/{name}/artifacts?sort=push_time&page={artifact_page}&page_size={page_size}&with_tag=true&with_label=false&with_scan_overview=false&with_sbom_overview=false&with_signature=false&with_immutable_status=false&with_accessory=false'
         
         # Make the GET request with basic authentication
