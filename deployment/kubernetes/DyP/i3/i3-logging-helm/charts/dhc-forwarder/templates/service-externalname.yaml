@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    {{- include "dhc-forwarder.labels" . | nindent 4 }}
+  name: user-fluentd
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: {{ .Values.loggingService }}.{{ .Release.Namespace }}.svc.cluster.local
+  ports:
+  - port: 24284

@@ -14,6 +14,7 @@ import { CODE_SPACE_TITLE } from '../../Utility/constants';
 // import { Envs } from '../../Utility/envs';
 import { trackEvent } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
+import Tags from 'dna-container/Tags';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -44,9 +45,10 @@ import TextBox from 'dna-container/TextBox';
 const DeployModal = (props) => {
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState(true);
   const [branches, setBranches] = useState([]);
-  const [branchValue, setBranchValue] = useState('main');
+  const [branchValue, setBranchValue] = useState(['main']);
+  const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
-  const [vaultEnabled, setVaultEnabled] = useState(false);
+  // const [vaultEnabled, setVaultEnabled] = useState(false);
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   // const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
   // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
@@ -61,8 +63,11 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
+  const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
+  const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
 
   useEffect(() => {
+    intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
     setClientId('');
     setClientIdError('');
     setClientSecret('');
@@ -75,7 +80,11 @@ const DeployModal = (props) => {
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeDeployModal(true);
-        setBranches(res.data);
+        let branches = res?.data;
+        branches.forEach(element => {
+          element.id = element.name;
+        });
+        setBranches(branches);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
         setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
@@ -84,17 +93,22 @@ const DeployModal = (props) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
-    setVault();
+    // setVault();
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    setVault();
+    if(deployEnvironment === 'staging'){
+      intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
+    }
+    else{
+      prodDeployLogs.length && setBranchValue([prodDeployLogs[(prodDeployLogs.length)-1]?.branch]);
+    }
   }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
     let entitlements;
-    ProgressIndicator.show();
+    // ProgressIndicator.show();
     CodeSpaceApiClient.getPublishedConfig(id, env).then((res) => {
       appId = res.data.appID || '';
       entitlements = res.data.entitlements || [];
@@ -106,8 +120,9 @@ const DeployModal = (props) => {
     });
   };
 
-  const onBranchChange = (e) => {
-    setBranchValue(e.currentTarget.value);
+  const onBranchChange = (selectedTags) => {
+    setBranchValue(selectedTags);
+    setIsBranchValueMissing(false);
   };
 
   const onChangeSecureWithIAM = (e) => {
@@ -143,27 +158,27 @@ const DeployModal = (props) => {
   //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
   // };
 
-  const setVault = () => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.read_secret(
-      projectDetails?.projectName.toLowerCase(),
-      deployEnvironment === 'staging' ? 'int' : 'prod',
-    )
-      .then((response) => {
-        ProgressIndicator.hide();
-        Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-      })
-      .catch(() => {
-        ProgressIndicator.hide();
-        // if (err?.response?.data?.errors?.length > 0) {
-        //   err?.response?.data?.errors.forEach((err: any) => {
-        //     Notification.show(err?.message || 'Something went wrong.', 'alert');
-        //   });
-        // } else {
-        //   Notification.show(err?.message || 'Something went wrong.', 'alert');
-        // }
-      });
-  };
+  // const setVault = () => {
+  //   ProgressIndicator.show();
+  //   CodeSpaceApiClient.read_secret(
+  //     projectDetails?.projectName.toLowerCase(),
+  //     deployEnvironment === 'staging' ? 'int' : 'prod',
+  //   )
+  //     .then((response) => {
+  //       ProgressIndicator.hide();
+  //       Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+  //     })
+  //     .catch(() => {
+  //       ProgressIndicator.hide();
+  //       // if (err?.response?.data?.errors?.length > 0) {
+  //       //   err?.response?.data?.errors.forEach((err: any) => {
+  //       //     Notification.show(err?.message || 'Something went wrong.', 'alert');
+  //       //   });
+  //       // } else {
+  //       //   Notification.show(err?.message || 'Something went wrong.', 'alert');
+  //       // }
+  //     });
+  // };
 
   const onAcceptCodeDeploy = () => {
     // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
@@ -195,13 +210,17 @@ const DeployModal = (props) => {
       formValid = false;
       setClientSecretError('*Missing Entry');
     }
+    if(branchValue.length === 0){
+      formValid = false;
+      setIsBranchValueMissing(true);
+    }
     if (formValid) {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
         // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
         targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-        branch: branchValue,
-        valutInjectorEnable: vaultEnabled,
+        branch: branchValue[0],
+        // valutInjectorEnable: vaultEnabled,
         clientID: clientId,
         clientSecret: clientSecret,
       };
@@ -258,22 +277,6 @@ const DeployModal = (props) => {
           </p>
           <div className={Styles.flexLayout}>
             <div>
-              <div id="branchContainer" className="input-field-group">
-                <label id="branchLabel" className="input-label" htmlFor="branchSelect">
-                  Code Branch to Deploy
-                </label>
-                <div id="branch" className="custom-select">
-                  <select id="branchSelect" onChange={onBranchChange} value={branchValue}>
-                    {branches.map((obj) => (
-                      <option key={obj.name} id={obj.name + '-branch'} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
                 <label className="input-label">Deploy Environment</label>
                 <div>
@@ -305,6 +308,21 @@ const DeployModal = (props) => {
                   </label>
                 </div>
               </div>
+            </div>
+            <div>
+                <Tags
+                  title={'Code Branch to Deploy'}
+                  max={1}
+                  chips={branchValue}
+                  placeholder={'Type here...'}
+                  tags={branches}
+                  setTags={onBranchChange}
+                  isMandatory={true}
+                  showMissingEntryError={isBranchValueMissing}
+                  showAllTagsOnFocus={true}
+                  disableSelfTagAdd={true}
+                  suggestionPopupHeight={150}
+                />
             </div>
           </div>
           {props.enableSecureWithIAM && (

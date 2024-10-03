@@ -21,6 +21,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
@@ -34,6 +36,7 @@ import com.daimler.data.dto.fabric.GlobalRoleAssignerPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleApproverPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +71,9 @@ public class AuthoriserClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private UserStore userStore;
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -284,6 +290,39 @@ public class AuthoriserClient {
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
     }
+	
+	public HttpStatus removeEntitlementFromRole(String entitlementId, String roleId){
+        
+        try {
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			String uri = authoriserBaseUrl+"/roles/"+roleId+"/applications/"+applicationId+"/entitlements/"+entitlementId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Entitlement :{} removed from Role {} Successfully",entitlementId,roleId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(HttpClientErrorException.Conflict e) {
+			log.error("Failed to remove Entitlement from Role with conflict error {} ", e.getMessage());
+			return HttpStatus.CONFLICT;
+		}catch(Exception e) {
+			log.error("Failed to remove Entitlement from Role with error {} ", e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 
 	public EntiltlemetGroupDto getEntitlementGroup(){
 		EntiltlemetGroupDto entitlementGroup = new EntiltlemetGroupDto();
@@ -411,6 +450,30 @@ public class AuthoriserClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to Assign Role Approver Privileges to user :{} with error {} ",userId ,e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
+
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
+		try {
+			UserInfo userInfo = this.userStore.getUserInfo();
+			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+userInfo.getAuthToken());
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Successfully requested role {} for user {}",roleId,userId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(Exception e) {
+			log.error("Failed to request role {} to user :{} with error {} ",roleId,userId ,e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}

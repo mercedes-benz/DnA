@@ -49,4 +49,8 @@ public class ConstantsUtility {
 	public static final String GROUPSEARCH_URL_PREFIX = "https://graph.microsoft.com/v1.0/groups?$filter=startsWith(displayName,'";
 	public static final String GROUPSEARCH_URL_SUFFIX = "')";
 	
+	public static final String GROUPPRINCIPAL_GROUP_TYPE = "Group";
+	public static final String GROUPPRINCIPAL_USER_TYPE = "User";
+	public static final String GROUPPRINCIPAL_APP_TYPE = "App";
+	
 }
