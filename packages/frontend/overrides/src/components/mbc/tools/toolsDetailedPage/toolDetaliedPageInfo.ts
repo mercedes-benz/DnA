@@ -317,7 +317,7 @@ export const ToolsDetailedPageElements = [
       },
       {
         "id": "Step 3",
-        "info" : " Open Microsoft Fabric (https://app.fabric.microsoft.com/home)"
+        "info" : " Open Microsoft Fabric (**[https://app.fabric.microsoft.com/home](https://app.fabric.microsoft.com/home)**)"
       }
     ]
   },
