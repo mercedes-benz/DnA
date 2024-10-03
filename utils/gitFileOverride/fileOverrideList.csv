@@ -29,7 +29,7 @@ SourcePath;DestinationPath
 ./packages/frontend/overrides/public/azure-blob-scan/*;./packages/frontend/public/azure-blob-scan/
 ./packages/frontend/overrides/src/globals/constants.ts;./packages/frontend/src/globals/
 ./packages/frontend/overrides/src/assets/images/home-background.png;./packages/frontend/src/assets/images/
-./packages/frontend/overrides/src/components/mbc/tools/toolsDetailedPage/toolDetaliedPageInfo.json;./packages/frontend/src/components/mbc/tools/toolsDetailedPage/
+./packages/frontend/overrides/src/components/mbc/tools/toolsDetailedPage/toolDetaliedPageInfo.ts;./packages/frontend/src/components/mbc/tools/toolsDetailedPage/
 ./packages/frontend/overrides/src/components/mbc/tools/toolsDetailedPage/SubscriptionCard/SubscriptionInfo.json;./packages/frontend/src/components/mbc/tools/toolsDetailedPage/SubscriptionCard/
 ./packages/frontend/overrides/src/assets/templates/default.ejs;./packages/frontend/src/assets/templates/
 ./packages/frontend/overrides/src/assets/templates/multi.ejs;./packages/frontend/src/assets/templates/
