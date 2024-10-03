@@ -600,7 +600,7 @@ extraObjects:
               - "kustomize build . | argocd-vault-plugin generate -"
           lockRepo: false
 
-      avp.yaml: |
+      avp-helm.yaml: |
         ---
         apiVersion: argoproj.io/v1alpha1
         kind: ConfigManagementPlugin
@@ -627,6 +627,28 @@ extraObjects:
                 helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE ${ARGOCD_ENV_HELM_ARGS} . |
                 argocd-vault-plugin generate --verbose-sensitive-output -
           lockRepo: false
+
+      avp.yaml: |
+        ---
+        apiVersion: argoproj.io/v1alpha1
+        kind: ConfigManagementPlugin
+        metadata:
+          name: argocd-vault-plugin
+        spec:
+          allowConcurrency: true
+          # Note: this command is run _before_ any Helm templating is done, therefore the logic is to check
+          # if this looks like a Helm chart
+          discover:
+            find:
+              command:
+                - sh
+                - "-c"
+                - "find . -name '*.yaml' | xargs -I {} grep \"<path\\|avp\\.kubernetes\\.io\" {} | grep ."
+          generate:
+            command:
+              - argocd-vault-plugin
+              - generate
+              - "."
   # - apiVersion: secrets-store.csi.x-k8s.io/v1
   #   kind: SecretProviderClass
   #   metadata:
@@ -2522,6 +2544,40 @@ repoServer:
   ## Ref: https://argo-cd.readthedocs.io/en/stable/user-guide/config-management-plugins/
   ## Note: Supports use of custom Helm templates
   extraContainers: 
+    - command:
+      - /var/run/argocd/argocd-cmp-server
+      image: registry-emea.app.corpintra.net/publicquay/argoproj/argocd:v2.11.4
+      name: avp-helm
+      env:
+        - name: AVP_AUTH_TYPE
+          value: "k8s"
+        - name: AVP_K8S_ROLE
+          value: "dna"
+        - name: AVP_TYPE
+          value: "vault"
+        - name: VAULT_ADDR
+          value: "https://vault-int.app.corpintra.net"    
+        - name: VAULT_NAMESPACE
+          value: "DnAPlatform/dev"    
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      volumeMounts:
+      - mountPath: /var/run/argocd
+        name: var-files
+      - mountPath: /home/argocd/cmp-server/plugins
+        name: plugins
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+        name: cmp-plugin
+        subPath: avp-helm.yaml
+      - mountPath: /usr/local/bin/argocd-vault-plugin
+        name: custom-tools
+        subPath: argocd-vault-plugin
+
     - command:
       - /var/run/argocd/argocd-cmp-server
       image: registry-emea.app.corpintra.net/publicquay/argoproj/argocd:v2.11.4
