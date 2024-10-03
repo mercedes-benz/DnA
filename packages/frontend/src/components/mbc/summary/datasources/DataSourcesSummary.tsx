@@ -46,9 +46,11 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
           const lastIndex: boolean = index === this.props.datasources.dataSources.length - 1;
 
           let dsBadge: any = Envs.DNA_APPNAME_HEADER;
+          let dsId = '';
           if (this.props.dsList.length > 0) {
             const dataSource = this.props.dsList.filter((ds: any) => ds.name === chip.dataSource);
             if (dataSource.length === 1) {
+              dsId = dataSource[0]?.externalRefId !== null ? dataSource[0]?.externalRefId : '';
               if (dataSource[0].source !== null && dataSource[0].dataType !== null) {
                 if (dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
                   if (dataSource[0].dataType === 'Not set') {
@@ -67,7 +69,19 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
 
           return (
             <React.Fragment key={index}>
-              {chip.dataSource}{' '}
+              {dsBadge.startsWith('DNA-DataProduct') ? (
+                <a href={Envs.APP_URL + '/#/data/dataproduct/summary/' + dsId} target="_blank" rel="noreferrer">
+                  {' '}
+                  {chip.dataSource}{' '}
+                </a>
+              ) : dsBadge.startsWith('CDC') ? (
+                <a href={Envs.CDC_DATABASE_URL + dsId} target="_blank" rel="noreferrer">
+                  {' '}
+                  {chip.dataSource}{' '}
+                </a>
+              ) : (
+                chip.dataSource
+              )}{' '}
               <span className={Styles.badge}>
                 {dsBadge}
                 {chip.weightage !== 0 && ' / '}
