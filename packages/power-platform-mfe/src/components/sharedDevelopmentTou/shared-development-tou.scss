@@ -23,27 +23,21 @@
   > .col {
     width: 100%;
   }
-  > .col2 {
-    width: calc(50% - 7px);
-  }
-  > .col3 {
-    width: calc(33.33% - 7px);
-  }
 }
-.termsOfUseContent {
-  display: flex;
-  align-items: center;
-  margin-left: -10px;
-  .termsOfUseText {
-    color: #c0c8d0;
-    span {
-      color: #00adef;
-      cursor: pointer;
-    }
-    sup {
-      float: right;
-      top: -12px;
-      right: -8px;
-    }
+.touContent {
+  margin-top: 35px;
+  margin-bottom: 35px;
+  height: 50vh;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
   }
 }

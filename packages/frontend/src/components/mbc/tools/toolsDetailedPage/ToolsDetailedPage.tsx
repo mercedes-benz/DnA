@@ -45,36 +45,46 @@ const InfoTile = (props: any) => {
   const item = { ...props.item };
   return (
     <div className={Styles.infoTile}>
-      {item.name !== 'classification' ? (<div className={Styles.serviceInfo}>
-        <i className={`icon mbc-icon ${item.icon}`} />
-        <div className={Styles.infoDescription}>
-          <h3>{item.name}</h3>
-          <h5>{item.description}</h5>
-          {item.links && (<div className={Styles.infoLinks}>
-            {item.links.map((item: any, key: any) => {
-              return <a href={item.link} target="_blank" rel="noreferrer" key={key}>
-                {item.title}
-              </a>
-            })}
-          </div>)}
-          {item.info && (<div className={Styles.infoContent}>
-            {item.info.map((item: any, key: any) => {
-              return (<h3 key={key}>
-                {item}
-              </h3>)
-            })}
-          </div>)}
-        </div>
-      </div>) : <>
-
+      {item.name !== 'classification' ? (
         <div className={Styles.serviceInfo}>
-          <h3>classification</h3>
-          <div className={Styles.classIcon}>
-            <i className={`icon mbc-icon sec`} />
-            <h4>{item.type}</h4>
+          <i className={`icon mbc-icon ${item.icon}`} />
+          <div className={Styles.infoDescription}>
+            <h3>{item.name}</h3>
+            <h5>{item.description}</h5>
+            {item.info && (
+              <div className={Styles.infoContent}>
+                {item.info.map((item: any, key: any) => {
+                  return (<p key={key}>
+                    {item}
+                  </p>)
+                })}
+              </div>)
+            }
+            {item.links && (
+              <div className={Styles.infoLinks}>
+                {item.links.map((item: any, key: any) => {
+                  return <a href={item.link} target="_blank" rel="noreferrer" key={key}>
+                    {item.title}
+                  </a>
+                })}
+              </div>)
+            }
+            {item.moreBtn && (
+              <div className={Styles.moreBtn}>
+                <button onClick={() => history.push('/powerplatform/tou')}>More</button>
+              </div>
+            )}
           </div>
-        </div>
-      </>
+        </div>) : 
+        <>
+          <div className={Styles.serviceInfo}>
+            <h3>classification</h3>
+            <div className={Styles.classIcon}>
+              <i className={`icon mbc-icon sec`} />
+              <h4>{item.type}</h4>
+            </div>
+          </div>
+        </>
       }
     </div>
   )
@@ -167,7 +177,10 @@ const ToolsDetailedPage = (IData: any) => {
           </div>
           <div className={Styles.contentSection}>
             {pageDetails?.hasSubcription && (
-              <SubscriptionCard />
+              <>
+                <SubscriptionCard />
+                <p className={Styles.note}><sup>*</sup>Please be advised that the licensing cost may incur additional expenses.</p>
+              </>
             )}
           </div>
           {pageDetails.useCases && (
@@ -262,7 +275,7 @@ const ToolsDetailedPage = (IData: any) => {
       </div>
       <div className={Styles.stickyPanel}>
         <div className={Styles.navButton}>
-          <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>{pageDetails.id === 'powerPlatform' ? 'Default Environment' : 'Open in browser'}</button>
+          <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>Open in browser</button>
         </div>
       </div>
     </div>
