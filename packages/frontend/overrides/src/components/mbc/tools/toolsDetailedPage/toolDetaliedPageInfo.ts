@@ -1,5 +1,3 @@
-import { Envs } from "../../../../../../src/globals/Envs";
-
 
 export const ToolsDetailedPageElements = [
   {
@@ -339,23 +337,23 @@ export const ToolsDetailedPageElements = [
         "links": [
           {
             "title": "PL-900: Microsoft Power Platform Fundamentals (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/pl-900-microsoft-power-platform-fundamentals-r/`
+            "link": `https://mercedes-benz.udemy.com/course/pl-900-microsoft-power-platform-fundamentals-r/`
           },
           {
             "title": "Power Apps - Complete Guide to Microsoft PowerApps",
-            "link": `${Envs.UDEMY_URL}course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
+            "link": `https://mercedes-benz.udemy.com/course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
           },
           {
             "title": "Build Solutions with Power Apps, Power Automate & SharePoint (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/build-solutions-with-power-platform/`
+            "link": `https://mercedes-benz.udemy.com/course/build-solutions-with-power-platform/`
           },
           {
             "title": "PL-200: The follow-up Power Platform course to the PL-100 (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/pl-200-microsoft-power-platform-functional-consultant-course/`
+            "link": `https://mercedes-benz.udemy.com/course/pl-200-microsoft-power-platform-functional-consultant-course/`
           },
           {
             "title": "Microsoft Power Automate for Power Apps developers (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/microsoft-power-automate-for-power-apps-developers/`
+            "link": `https://mercedes-benz.udemy.com/course/microsoft-power-automate-for-power-apps-developers/`
           }
         ]
       },
@@ -366,11 +364,11 @@ export const ToolsDetailedPageElements = [
         "links": [
           {
             "title": "Contact Email",
-            "link": `${Envs.POWER_PLATFORM_SUPPORT_EMAIL}`
+            "link": "mailto:luisa.hahn@mercedes-benz.com"
           },
           {
             "title": "Social Intranet Page",
-            "link": `${Envs.POWER_PLATFORM_SOCIAL_INTRANET_URL}`
+            "link": "https://social.cloud.corpintra.net/groups/msbiss"
           },
         ]
       },
