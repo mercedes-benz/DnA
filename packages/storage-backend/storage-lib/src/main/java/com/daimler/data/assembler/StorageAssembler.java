@@ -163,7 +163,7 @@ public class StorageAssembler {
 			storage.setTermsOfUse(vo.isTermsOfUse() != null ? vo.isTermsOfUse() : Boolean.FALSE);
 			storage.setClassificationType(
 					StringUtils.hasText(vo.getClassificationType()) ? vo.getClassificationType() : "Internal");
-
+			storage.setEnablePublicAccess(vo.isEnablePublicAccess());
 			// created by
 			if (Objects.nonNull(vo.getCreatedBy())) {
 				UserInfo userDetails = new UserInfo();

@@ -38,6 +38,7 @@ hub:
       admin_users:
         - palansa
         - ghosdeb
+        - vimhask
       auto_login: true
       allowed_users:
         - ramyrao
@@ -147,9 +148,7 @@ hub:
               env = super().get_env()
               user_options_env = self.user_options.get("env", {})
               env.update(user_options_env)
-              return env                                   
-
-
+              return env        
       # Use the configured spawner
       c.JupyterHub.spawner_class = CodeSpaceKubeSpawner
 
@@ -171,7 +170,8 @@ hub:
           spawner.mem_guarantee = spawner.user_options.get("mem_guarantee", "256M")       
           spawner.mem_limit = spawner.user_options.get("mem_limit", "4G")       
           spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
-          spawner.cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.2)      
+          spawner.cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.2) 
+          spawner.extra_containers = spawner.user_options.get("extra_containers",[])
           # expand_pvc_command = f'kubectl patch pvc {user_pvc_name} -p \'{{"spec":{{"resources":{{"requests":{{"storage":"{user_storage_capacity}"}}}}}}}}\''
           # os.system(expand_pvc_command)           
 
@@ -188,10 +188,10 @@ hub:
               'periodSeconds': 60,
               'timeoutSeconds': 5,
               'successThreshold': 1,
-              'failureThreshold': 5
+              'failureThreshold': 10
             }
-          }
-            
+          }        
+
   #   livenessProbe:
   #     httpGet:
   #       path: /healthz
@@ -258,7 +258,7 @@ hub:
     allowedIngressPorts: []
   allowNamedServers: true
   namedServerLimitPerUser:
-  authenticatePrometheus:
+  authenticatePrometheus: false
   redirectToServer:
   shutdownOnLogout:
   templatePaths: []
@@ -532,8 +532,29 @@ singleuser:
       stringData: |
           #!/bin/bash
           set -e
+
           if [ -d "/home/coder/app" ]; then
               echo "Directory is already present"
+              if [ -d "$HOME/.sdkman" ]; then
+                  echo "SDKMAN! is already installed."
+              else
+                  echo "Installing SDKMAN for $SHORTID on Workspace $HOSTNAME"
+                  curl -s --insecure "https://get.sdkman.io" | bash
+                  if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
+                      chmod +x $HOME/.sdkman/bin/sdkman-init.sh
+                      source "$HOME/.sdkman/bin/sdkman-init.sh"
+                      echo "SDKMAN! installed."
+                      # Install OpenJDK (defaulting to version 17)
+                      sdk install java 17-open
+                      echo "Setting java version 17 as default"
+                      sdk default java 17-open
+                      echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> ~/.bashrc
+                      echo '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"' >> ~/.bashrc
+                      sdk flush
+                  else
+                      echo "SDKMAN! installation failed."
+                  fi
+              fi            
           else
               mkdir -p /home/coder/app
               echo "Cloning the workspace"
@@ -545,6 +566,7 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
+
               
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
@@ -553,12 +575,12 @@ singleuser:
               cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
-              
+             
               # Copy extentions
               mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
               mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
               mc alias remove myminio
-              
+
               #Install Default Plugins
               code-server --install-extension rangav.vscode-thunder-client
               code-server --install-extension PKief.material-icon-theme
@@ -568,6 +590,7 @@ singleuser:
               code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
               
           fi 
+
   extraEnv: 
     HTTPS_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
     HTTP_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
@@ -576,7 +599,10 @@ singleuser:
     https_proxy : http://security-proxy.emea.svc.corpintra.net:3128/
     NO_PROXY : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     no_proxy : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
-    ENTRYPOINTD : /home/coder/entrypoint.d      
+    ENTRYPOINTD : /home/coder/entrypoint.d    
+    CS_MINIO_ENDPOINT: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
+    CS_MINIO_KEY: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_key>
+    CS_MINIO_SECRET: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
   lifecycleHooks: {}
     # postStart:
     #   exec:
@@ -593,37 +619,7 @@ singleuser:
     #         mc alias remove minio
     #         echo 'postStart hook succeeded'
 
-  initContainers:
-    - name: copy-pkg-install-sh 
-      image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-      command:
-        - sh
-        - '-c'
-        - |
-            git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-            cd /tmp/recipes
-            git checkout $GIT_BRANCH
-            mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-            cp -vr ./template/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
-            cp -vr ./template/.bashrc /home/coder/          
-            cp -vr ./tools/extension/. /home/coder/extension          
-            chmod +x /home/coder/entrypoint.d/pkg-install.sh        
-      env:
-        - name: GH_PAT_TOKEN 
-          valueFrom:
-            secretKeyRef:
-              name: gh-pat
-              key: GH_PAT_TOKEN
-        - name: GIT_BRANCH
-          valueFrom:
-            secretKeyRef:
-              name: gh-pat
-              key: GIT_BRANCH
-      volumeMounts:
-        - name: "{servername}"
-          mountPath: /home/coder
-      securityContext:
-        runAsUser: 1000      
+  initContainers: []     
   extraContainers: []
   allowPrivilegeEscalation: false
   uid: 1000
@@ -645,12 +641,12 @@ singleuser:
       volumeNameTemplate: "{servername}"
       storageAccessModes: [ReadWriteOnce]
   image:
-    name: registry-emea.app.corpintra.net/dnaplatform/cs-generic
-    tag: "4.23.1"
+    name: registry-emea.app.corpintra.net/dnaplatform/cs-default
+    tag: "4.91.0"
     pullPolicy:
     pullSecrets: 
       - name: imagepullsecret
-  startTimeout: 360
+  startTimeout: 900
   cpu:
     limit:
     guarantee:
@@ -669,42 +665,46 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 360
-        http_timeout: 360
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 900
+        http_timeout: 900
     - display_name: "React"
       slug: "react"
       description: "Development environment for React  web Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
               - |
-                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-                  cd /tmp/recipes
-                  git checkout $GIT_BRANCH
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-                  cp -vr ./react/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
-                  cp -vr ./react/.bashrc /home/coder/          
-                  cp -vr ./tools/extension/. /home/coder/extension          
-                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
+                  if [ -d "/home/coder/app" ]; then
+                      echo "Directory is already present"
+                  else
+                    git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
+                    cd /tmp/recipes
+                    git checkout $GIT_BRANCH
+                    mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                    cp -vr ./react/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
+                    cp -vr ./react/.bashrc /home/coder/          
+                    cp -vr ./tools/extension/. /home/coder/extension          
+                    chmod +x /home/coder/entrypoint.d/pkg-install.sh  
+                  fi      
             env:
               - name: GH_PAT_TOKEN 
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN
+                    key: GH_PAT_TOKEN     
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH
+                    key: GIT_BRANCH    
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -714,12 +714,12 @@ singleuser:
       slug: "springboot"
       description: "Development environment for Spring Boot Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -737,12 +737,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN
+                    key: GH_PAT_TOKEN    
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH        
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -752,12 +752,12 @@ singleuser:
       slug: "angular"
       description: "Development environment for Angular Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -790,12 +790,12 @@ singleuser:
       slug: "generic"
       description: "Generic development envirnoment with git cloning option"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -828,12 +828,12 @@ singleuser:
       slug: "py-fastapi"
       description: "Development environment for Python fastapi Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-py-fastapi:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -866,12 +866,12 @@ singleuser:
       slug: "micronaut"
       description: "Development environment for Micronaut Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -904,12 +904,12 @@ singleuser:
       slug: "quarkus"
       description: "Development environment for Quarkus Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -917,7 +917,7 @@ singleuser:
                   git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                   cd /tmp/recipes
                   git checkout $GIT_BRANCH
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
+                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
                   cp -vr ./quarkus/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
                   cp -vr ./quarkus/.bashrc /home/coder/          
                   cp -vr ./tools/extension/. /home/coder/extension          
@@ -942,12 +942,12 @@ singleuser:
       slug: "dash"
       description: "Development environment for Dash Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -975,17 +975,17 @@ singleuser:
               - name: "{servername}"
                 mountPath: /home/coder
             securityContext:
-              runAsUser: 1000                                                             
+              runAsUser: 1000
     - display_name: "Streamlit"
       slug: "streamlit"
       description: "Development environment for Streamlit Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -1018,12 +1018,12 @@ singleuser:
       slug: "vuejs"
       description: "Development environment for Vuejs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -1056,12 +1056,12 @@ singleuser:
       slug: "expressjs"
       description: "Development environment for Expressjs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -1094,12 +1094,12 @@ singleuser:
       slug: "nestjs"
       description: "Development environment for Nestjs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -1132,18 +1132,18 @@ singleuser:
       slug: "bat-frontend"
       description: "Development environment for BAT frontend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
               - |
                   if [ -d "/home/coder/app" ]; then
-                      echo "Directory is already present"
+                    echo "Directory is already present"
                   else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
@@ -1174,18 +1174,18 @@ singleuser:
       slug: "bat-backend"
       description: "Development environment for BAT backend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
               - |
                   if [ -d "/home/coder/app" ]; then
-                      echo "Directory is already present"
+                    echo "Directory is already present"
                   else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
@@ -1343,18 +1343,18 @@ singleuser:
       slug: "qilin-frontend"
       description: "Development environment for Qilin frontend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
               - |
                   if [ -d "/home/coder/app" ]; then
-                      echo "Directory is already present"
+                    echo "Directory is already present"
                   else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
@@ -1385,18 +1385,18 @@ singleuser:
       slug: "qilin-backend"
       description: "Development environment for Qilin backend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-        start_timeout: 180
-        http_timeout: 180
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
+        start_timeout: 360
+        http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
               - |
                   if [ -d "/home/coder/app" ]; then
-                      echo "Directory is already present"
+                    echo "Directory is already present"
                   else
                     git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
                     cd /tmp/recipes
@@ -1427,50 +1427,19 @@ singleuser:
       slug: "template"
       description: "Development environment using default template"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
-        init_containers:
-          - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
-            command:
-              - sh
-              - '-c'
-              - |
-                  git clone https://$GH_PAT_TOKEN@git.i.mercedes-benz.com/DNA/recipes /tmp/recipes
-                  cd /tmp/recipes
-                  git checkout $GIT_BRANCH
-                  mkdir -p /home/coder/entrypoint.d && mkdir -p /home/coder/extension
-                  cp -vr ./template/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/               
-                  cp -vr ./template/.bashrc /home/coder/          
-                  cp -vr ./tools/extension/. /home/coder/extension          
-                  chmod +x /home/coder/entrypoint.d/pkg-install.sh        
-            env:
-              - name: GH_PAT_TOKEN 
-                valueFrom:
-                  secretKeyRef:
-                    name: gh-pat
-                    key: GH_PAT_TOKEN
-              - name: GIT_BRANCH
-                valueFrom:
-                  secretKeyRef:
-                    name: gh-pat
-                    key: GIT_BRANCH      
-            volumeMounts:
-              - name: "{servername}"
-                mountPath: /home/coder
-            securityContext:
-              runAsUser: 1000
     - display_name: "Spring Boot with Maven "
       slug: "springbootwithmaven"
       description: "Development environment for Spring Boot with Maven Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -1505,11 +1474,11 @@ singleuser:
             image: registry-emea.app.corpintra.net/dockerhub/postgres:15
             env:
               - name: POSTGRES_USER
-                value: db
+                value: postgres
               - name: POSTGRES_PASSWORD
-                value: db
+                value: postgres
               - name: POSTGRES_DB
-                value: db
+                value: postgres
               - name: PGDATA
                 value: '/postgresql/data/pgdata'
             ports:
@@ -1527,12 +1496,12 @@ singleuser:
       slug: "c4s-vbom"
       description: "Development environment for c4s-vbom"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-generic:4.23.1
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.91.0
             command:
               - sh
               - '-c'
@@ -1657,6 +1626,7 @@ singleuser:
             imagePullPolicy: IfNotPresent
             securityContext:
               runAsUser: 1000
+
 # scheduling relates to the user-scheduler pods and user-placeholder pods.
 scheduling:
   userScheduler:
