@@ -527,8 +527,8 @@ tracing:
 
 # -- Global command arguments to be passed to all traefik's pods
 globalArguments:
-- "--global.checknewversion"
-- "--global.sendanonymoususage"
+- "--global.checknewversion=false"
+- "--global.sendanonymoususage=false"
 - '--providers.kubernetescrd.allowCrossNamespace=true'
 - '--providers.kubernetesingress.ingressendpoint.publishedservice=ingress-intranet/ingress-intranet'
 - '--api.dashboard=true'
