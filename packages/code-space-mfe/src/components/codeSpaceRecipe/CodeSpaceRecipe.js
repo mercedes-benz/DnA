@@ -86,10 +86,13 @@ const CodeSpaceRecipe = (props) => {
           setRecipeName(recipe?.recipeName);
           setGitUrl(recipe?.repodetails);
           setSoftware(recipe?.software);
+          recipe?.maxCpu === '0.5' && setHardware('small');
+          recipe?.maxCpu === '1' && setHardware('medium');
+          recipe?.maxCpu === '1.5' && setHardware('large');
           setIsPublic(recipe?.isPublic);
           setGitRepoLoc(recipe?.gitRepoLoc);
           setDeployPath(recipe?.deployPath);
-          setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.additionalProperties?.name)));
+          setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.serviceName)));
           setEnableCreate(true);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
@@ -576,7 +579,8 @@ const CodeSpaceRecipe = (props) => {
                           <select
                             id="HardewareField"
                             value={hardware}
-                            onChange={onHardwareChange}>
+                            onChange={onHardwareChange}
+                            >
                             <option value={'small'}>DiskSpace - 5GB CPU - 0.5 RAM - 2GB</option>
                             <option value={'medium'}>DiskSpace - 10GB CPU - 1 RAM - 3GB</option>
                             <option value={'large'}>DiskSpace - 15GB CPU - 1.5 RAM - 4GB</option>
@@ -606,7 +610,7 @@ const CodeSpaceRecipe = (props) => {
                         showMissingEntryError={isSoftwareMissing}
                         showAllTagsOnFocus={true}
                       />
-                      <div className={classNames(Styles.request)} >
+                      <div className={classNames(Styles.request, Styles.requestSoft)} >
                         <a href={Envs.CODESPACE_SOFTWARE_REQUEST_TEMPLATE} target="_blank" rel="noopener noreferrer">
                           Request new Software
                         </a>
