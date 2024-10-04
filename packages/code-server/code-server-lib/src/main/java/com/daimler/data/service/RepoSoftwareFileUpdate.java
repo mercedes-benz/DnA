@@ -132,7 +132,7 @@ public class RepoSoftwareFileUpdate {
                                                     + projectDetails.getProjectName()+"/";
                                             softwares.add("NODE-20.14.0");
                                             softwares.add("YARN-1.22.22");
-                                            softwares.add("ANGULAR-16.2.4");
+                                            softwares.add("ANGULAR-15.2.7");
 
                                             this.addSoftwareFileToGit(gitUrl, softwares);
                                             break;
