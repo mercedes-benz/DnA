@@ -360,7 +360,7 @@ export const ToolsDetailedPageElements = [
       {
         "icon": "profile",
         "name": "support",
-        "info": ["Feel free to reach out for more information and personal support by team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
+        "info": ["Feel free to reach out for more information and personal support by our team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
         "links": [
           {
             "title": "Contact Email",
@@ -389,7 +389,7 @@ export const ToolsDetailedPageElements = [
         "name": "Terms Of Service",
         "isInfoIcon": "true",
         "moreBtn": true,
-        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by [Your Company Name]. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
+        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by Finance Solutions Team. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
       }
     ]
   }
