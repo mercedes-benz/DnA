@@ -1,0 +1,54 @@
+groups:
+  - name: Services
+    rules:
+      - alert: PodCannotBeScraped
+        expr: up{job="kubernetes-pods", namespace!~"(kube|caas)-system"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          kubernetes_source: pod/{{$labels.kubernetes_pod_name}}
+          namespace: "{{$labels.kubernetes_namespace}}"
+        annotations:
+          summary: "Pod `{{$labels.kubernetes_pod_name}}` cannot be scraped by Prometheus"
+          description: "Pod `{{$labels.kubernetes_pod_name}}` in namespace `{{$labels.kubernetes_namespace}}` has been unreachable for more than 5 minutes."
+          resolution: "Check prometheus scrape annotations and network policies."
+      - alert: InstanceCannotBeScraped
+        expr: up{job!="kubernetes-pods", namespace!~"(kube|caas)-system"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          kubernetes_source: "{{$labels.instance}}"
+          namespace: "{{$labels.kubernetes_namespace}}"
+        annotations:
+          summary: "Instance {{$labels.instance}} cannot be scraped by Prometheus"
+          description: "{{$labels.instance}} of job {{$labels.job}} has been unreachable for more than 5 minutes."
+          resolution: "Check prometheus scrape annotations and network policies."
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{condition="true", namespace!~"(kube|caas)-system"} == 0 UNLESS ON(pod, namespace) kube_pod_status_phase{phase="Succeeded", namespace!~"(kube|caas)-system"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          kubernetes_source: pod/{{$labels.pod}}
+        annotations:
+          summary: "Pod {{$labels.pod}} not ready"
+          description: "Pod `{{$labels.pod}}` in namespace `{{$labels.namespace}}` is not ready since more than five minutes."
+      - alert: PodFailed
+        expr: kube_pod_status_phase{phase="Failed", namespace!~"(kube|caas)-system"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          kubernetes_source: pod/{{$labels.pod}}
+        annotations:
+          summary: "Pod {{$labels.pod}} failed"
+          description: "Pod `{{$labels.pod}}` in namespace `{{$labels.namespace}}` is in status failed for more than five minutes."
+
+      - alert: PodFrequentlyRestarting
+        expr: rate(kube_pod_container_status_restarts_total{namespace!~"(kube|caas)-system"}[15m]) * 60 * 5 > 0
+        for: 1h
+        labels:
+          severity: warning
+          kubernetes_source: pod/{{$labels.pod}}
+        annotations:
+          description: Pod `{{$labels.pod}}` in namespace `{{$labels.namespace}}` was restarted {{ printf "%.2f" $value }}
+            times / 5m within the last hour
+          summary: Pod is restarting frequently
