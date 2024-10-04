@@ -3,6 +3,8 @@ apiVersion: argoproj.io/v1alpha1
 metadata:
   name: dev-bat-argocd-root-app
   namespace: argocd
+  labels:
+    name: dev-bat-argocd-root-app
 spec:
   project: 'bat-development'
   source:
