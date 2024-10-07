@@ -16,7 +16,7 @@ spec:
     namespace: i3-kafka
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/i3/kafka-ui
+    path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-ui
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
