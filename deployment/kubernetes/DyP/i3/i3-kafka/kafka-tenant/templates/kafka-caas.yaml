@@ -17,15 +17,17 @@ spec:
   kafka:
     # version: 2.4.0
     replicas: 3
-    listeners:
-      - name: tls
-        port: 9093
+    authorization:
+      type: simple  
+      superUsers:
+        - CN=dna-user           
+    listeners:     
+      - name: plain
+        port: 9092
         type: internal
         tls: true
         authentication:
-          type: tls
-    authorization:
-      type: simple
+          type: tls        
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
