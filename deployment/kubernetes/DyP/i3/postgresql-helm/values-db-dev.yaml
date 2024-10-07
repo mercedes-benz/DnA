@@ -301,7 +301,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-gp3-retain
+      storageClass: dhc-gp3
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
