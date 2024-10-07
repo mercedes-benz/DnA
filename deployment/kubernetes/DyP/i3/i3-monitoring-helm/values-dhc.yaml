@@ -980,7 +980,7 @@ i3-dashboards:
 prom2teams:
   enabled: true
   image:
-    repository: registry-emea.app.corpintra.net/dnaplatform/idealista/prom2teams
+    repository: registry-emea.app.corpintra.net/dockerhub/idealista/prom2teams
     tag: 4.2.1
     pullPolicy: IfNotPresent
   prom2teams:
