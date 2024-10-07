@@ -309,7 +309,7 @@ logs:
     format:
     # By default, the level is set to ERROR.
     # -- Alternative logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO.
-    level: DEBUG
+    level: INFO
   access:
     # -- To enable access logs
     enabled: false
