@@ -13,7 +13,7 @@ metadata:
     project: c-svc
 spec:
   destination:
-    namespace: dev-dna-i3-kafka
+    namespace: i3-kafka
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-ui
