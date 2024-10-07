@@ -21,7 +21,7 @@ deployment:
   # -- Deployment or DaemonSet
   kind: Deployment
   # -- Number of pods of the deployment (only applies when kind == Deployment)
-  replicas: 1
+  replicas: 2
   # -- Number of old history to retain to allow rollback (If not set, default Kubernetes value is set to 10)
   # revisionHistoryLimit: 1
   # -- Amount of time (in seconds) before Kubernetes will send the SIGKILL signal if Traefik does not shut down
