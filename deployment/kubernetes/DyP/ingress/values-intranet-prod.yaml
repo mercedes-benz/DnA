@@ -1,7 +1,7 @@
 # Default values for Traefik
 # This is a YAML-formatted file.
 # Declare variables to be passed into templates
-fullnameOverride: "ingress-intranet"
+fullnameOverride: "prod-ingress-intranet"
 image:
   # -- Traefik image host registry
   registry: registry-emea.app.corpintra.net
@@ -530,10 +530,10 @@ globalArguments:
 - "--global.checknewversion=false"
 - "--global.sendanonymoususage=false"
 - '--providers.kubernetescrd.allowCrossNamespace=true'
-- '--providers.kubernetesingress.ingressendpoint.publishedservice=ingress-intranet/ingress-intranet'
+- '--providers.kubernetesingress.ingressendpoint.publishedservice=prod-ingress-intranet/prod-ingress-intranet'
 - '--api.dashboard=true'
-- '--providers.kubernetesingress.ingressclass=ingress-intranet'
-- '--providers.kubernetescrd.ingressclass=ingress-intranet'
+- '--providers.kubernetesingress.ingressclass=prod-ingress-intranet'
+- '--providers.kubernetescrd.ingressclass=prod-ingress-intranet'
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
@@ -892,9 +892,9 @@ extraObjects:
     kind: NetworkPolicy
     metadata:
       labels:
-        app.kubernetes.io/name: ingress-intranet
+        app.kubernetes.io/name: prod-ingress-intranet
       name: traefik
-      namespace: ingress-intranet
+      namespace: prod-ingress-intranet
     spec:
       ingress:
       - ports:
@@ -904,7 +904,7 @@ extraObjects:
           protocol: TCP
       podSelector:
         matchLabels:
-          app.kubernetes.io/name: ingress-intranet
+          app.kubernetes.io/name: prod-ingress-intranet
       policyTypes:
       - Ingress  
 
@@ -913,7 +913,7 @@ extraObjects:
 namespaceOverride:
 
 ## -- This field override the default app.kubernetes.io/instance label for all Objects.
-instanceLabelOverride: "ingress-intranet"
+instanceLabelOverride: "prod-ingress-intranet"
 
 # Traefik Hub configuration. See https://doc.traefik.io/traefik-hub/
 hub:

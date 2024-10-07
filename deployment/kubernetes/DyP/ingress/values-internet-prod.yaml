@@ -1,7 +1,7 @@
 # Default values for Traefik
 # This is a YAML-formatted file.
 # Declare variables to be passed into templates
-fullnameOverride: "ingress-internet"
+fullnameOverride: "prod-ingress-internet"
 image:
   # -- Traefik image host registry
   registry: registry-emea.app.corpintra.net
@@ -530,10 +530,10 @@ globalArguments:
 - "--global.checknewversion=false"
 - "--global.sendanonymoususage=false"
 - '--providers.kubernetescrd.allowCrossNamespace=true'
-- '--providers.kubernetesingress.ingressendpoint.publishedservice=ingress-internet/ingress-internet'
+- '--providers.kubernetesingress.ingressendpoint.publishedservice=prod-ingress-internet/prod-ingress-internet'
 - '--api.dashboard=true'
-- '--providers.kubernetesingress.ingressclass=ingress-internet'
-- '--providers.kubernetescrd.ingressclass=ingress-internet'
+- '--providers.kubernetesingress.ingressclass=prod-ingress-internet'
+- '--providers.kubernetescrd.ingressclass=prod-ingress-internet'
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
@@ -892,9 +892,9 @@ extraObjects:
     kind: NetworkPolicy
     metadata:
       labels:
-        app.kubernetes.io/name: ingress-internet
+        app.kubernetes.io/name: prod-ingress-internet
       name: traefik
-      namespace: ingress-internet
+      namespace: prod-ingress-internet
     spec:
       ingress:
       - ports:
@@ -904,7 +904,7 @@ extraObjects:
           protocol: TCP
       podSelector:
         matchLabels:
-          app.kubernetes.io/name: ingress-internet
+          app.kubernetes.io/name: prod-ingress-internet
       policyTypes:
       - Ingress  
 
@@ -913,7 +913,7 @@ extraObjects:
 namespaceOverride:
 
 ## -- This field override the default app.kubernetes.io/instance label for all Objects.
-instanceLabelOverride: "ingress-internet"
+instanceLabelOverride: "prod-ingress-internet"
 
 # Traefik Hub configuration. See https://doc.traefik.io/traefik-hub/
 hub:
