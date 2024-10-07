@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-db
+  name: dna-db-restore
   namespace: {{ .Values.namespace }}
   labels:
     name: db
