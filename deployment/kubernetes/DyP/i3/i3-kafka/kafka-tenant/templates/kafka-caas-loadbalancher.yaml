@@ -1,157 +1,157 @@
-{{- if eq .Values.env "dev" }}
-apiVersion: v1
-kind: Service
-metadata:
-  name: broker01
-spec:
-  type: LoadBalancer
-  loadBalancerIP: <broker01_advertisedhost>
-  loadBalancerSourceRanges:
-  - 53.0.0.0/8
-  selector:
-    statefulset.kubernetes.io/pod-name: my-cluster-kafka-0
-    strimzi.io/cluster: my-cluster
-    strimzi.io/kind: Kafka
-    strimzi.io/name: my-cluster-kafka
-  ports:
-  - name: https
-    port: 8001
-    targetPort: tcp-external
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: broker02
-spec:
-  type: LoadBalancer
-  loadBalancerIP: <broker02_advertisedhost>
-  loadBalancerSourceRanges:
-  - 53.0.0.0/8
-  selector:
-    statefulset.kubernetes.io/pod-name: my-cluster-kafka-1
-    strimzi.io/cluster: my-cluster
-    strimzi.io/kind: Kafka
-    strimzi.io/name: my-cluster-kafka
-  ports:
-  - name: https
-    port: 8002
-    targetPort: tcp-external
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: broker03
-spec:
-  type: LoadBalancer
-  loadBalancerIP: <broker03_advertisedhost>
-  loadBalancerSourceRanges:
-  - 53.0.0.0/8
-  selector:
-    statefulset.kubernetes.io/pod-name: my-cluster-kafka-2
-    strimzi.io/cluster: my-cluster
-    strimzi.io/kind: Kafka
-    strimzi.io/name: my-cluster-kafka
-  ports:
-  - name: https
-    port: 8003
-    targetPort: tcp-external
----
-apiVersion: kafka.strimzi.io/v1beta2
-kind: Kafka
-metadata:
-  name: my-cluster
-spec:
-  kafkaExporter:
-    template:
-      pod:
-        metadata:
-          annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "9404"
-            prometheus.io/path: "/metrics"
-        securityContext:
-          runAsUser: 1001
-          fsGroup: 1001
-  kafka:
-    replicas: 3
-    authorization:
-      type: simple    
-      superUsers:
-        - CN=dna-user      
-    listeners:
-      # plain: {}
-      # tls:
-      #   authentication:
-      #     type: tls    
-      - name: external
-        type: nodeport
-        port: 9094
-        tls: true
-        authentication:
-          type: tls
-        configuration:
-          brokers:
-            - broker: 0
-              advertisedHost: <broker01_advertisedhost>
-              advertisedPort: 8001
-            - broker: 1
-              advertisedHost: <broker02_advertisedhost>
-              advertisedPort: 8002
-            - broker: 2
-              advertisedHost: <broker03_advertisedhost>
-              advertisedPort: 8003
-    config:
-      offsets.topic.replication.factor: 3
-      transaction.state.log.replication.factor: 3
-      transaction.state.log.min.isr: 2
-      log.message.format.version: "2.6"
-      auto.create.topics.enable: "true"
-      default.replication.factor: 3
-    storage:
-      type: persistent-claim
-      size: {{ .Values.persistence.kafka }}
-      class: {{ .Values.persistence.kafkaStorageClass }}
-      deleteClaim: false
-    metricsConfig:
-      type: jmxPrometheusExporter
-      valueFrom:
-        configMapKeyRef:
-          name: kafka-metrics
-          key: kafka-metrics-config.yml
-    template:
-      pod:
-        metadata:
-          annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "9404"
-            prometheus.io/path: "/metrics"
-        securityContext:
-          runAsUser: 1001
-          fsGroup: 1001
-  zookeeper:
-    replicas: 3
-    storage:
-      type: persistent-claim
-      size: {{ .Values.persistence.zookeeper }}
-      class: {{ .Values.persistence.zookeeperStorageClass }}
-      deleteClaim: false
-    metricsConfig:
-      type: jmxPrometheusExporter
-      valueFrom:
-        configMapKeyRef:
-          name: kafka-metrics
-          key: zookeeper-metrics-config.yml
-    template:
-      pod:
-        metadata:
-          annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "9404"
-            prometheus.io/path: "/metrics"
-        securityContext:
-          runAsUser: 1001
-          fsGroup: 1001
-  entityOperator:
-    topicOperator: {}
-    userOperator: {}
-{{- end -}}
+# {{- if eq .Values.env "dev" }}
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: broker01
+# spec:
+#   type: LoadBalancer
+#   loadBalancerIP: <broker01_advertisedhost>
+#   loadBalancerSourceRanges:
+#   - 53.0.0.0/8
+#   selector:
+#     statefulset.kubernetes.io/pod-name: my-cluster-kafka-0
+#     strimzi.io/cluster: my-cluster
+#     strimzi.io/kind: Kafka
+#     strimzi.io/name: my-cluster-kafka
+#   ports:
+#   - name: https
+#     port: 8001
+#     targetPort: tcp-external
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: broker02
+# spec:
+#   type: LoadBalancer
+#   loadBalancerIP: <broker02_advertisedhost>
+#   loadBalancerSourceRanges:
+#   - 53.0.0.0/8
+#   selector:
+#     statefulset.kubernetes.io/pod-name: my-cluster-kafka-1
+#     strimzi.io/cluster: my-cluster
+#     strimzi.io/kind: Kafka
+#     strimzi.io/name: my-cluster-kafka
+#   ports:
+#   - name: https
+#     port: 8002
+#     targetPort: tcp-external
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: broker03
+# spec:
+#   type: LoadBalancer
+#   loadBalancerIP: <broker03_advertisedhost>
+#   loadBalancerSourceRanges:
+#   - 53.0.0.0/8
+#   selector:
+#     statefulset.kubernetes.io/pod-name: my-cluster-kafka-2
+#     strimzi.io/cluster: my-cluster
+#     strimzi.io/kind: Kafka
+#     strimzi.io/name: my-cluster-kafka
+#   ports:
+#   - name: https
+#     port: 8003
+#     targetPort: tcp-external
+# ---
+# apiVersion: kafka.strimzi.io/v1beta2
+# kind: Kafka
+# metadata:
+#   name: my-cluster
+# spec:
+#   kafkaExporter:
+#     template:
+#       pod:
+#         metadata:
+#           annotations:
+#             prometheus.io/scrape: "true"
+#             prometheus.io/port: "9404"
+#             prometheus.io/path: "/metrics"
+#         securityContext:
+#           runAsUser: 1001
+#           fsGroup: 1001
+#   kafka:
+#     replicas: 3
+#     authorization:
+#       type: simple    
+#       superUsers:
+#         - CN=dna-user      
+#     listeners:
+#       # plain: {}
+#       # tls:
+#       #   authentication:
+#       #     type: tls    
+#       - name: external
+#         type: nodeport
+#         port: 9094
+#         tls: true
+#         authentication:
+#           type: tls
+#         configuration:
+#           brokers:
+#             - broker: 0
+#               advertisedHost: <broker01_advertisedhost>
+#               advertisedPort: 8001
+#             - broker: 1
+#               advertisedHost: <broker02_advertisedhost>
+#               advertisedPort: 8002
+#             - broker: 2
+#               advertisedHost: <broker03_advertisedhost>
+#               advertisedPort: 8003
+#     config:
+#       offsets.topic.replication.factor: 3
+#       transaction.state.log.replication.factor: 3
+#       transaction.state.log.min.isr: 2
+#       log.message.format.version: "2.6"
+#       auto.create.topics.enable: "true"
+#       default.replication.factor: 3
+#     storage:
+#       type: persistent-claim
+#       size: {{ .Values.persistence.kafka }}
+#       class: {{ .Values.persistence.kafkaStorageClass }}
+#       deleteClaim: false
+#     metricsConfig:
+#       type: jmxPrometheusExporter
+#       valueFrom:
+#         configMapKeyRef:
+#           name: kafka-metrics
+#           key: kafka-metrics-config.yml
+#     template:
+#       pod:
+#         metadata:
+#           annotations:
+#             prometheus.io/scrape: "true"
+#             prometheus.io/port: "9404"
+#             prometheus.io/path: "/metrics"
+#         securityContext:
+#           runAsUser: 1001
+#           fsGroup: 1001
+#   zookeeper:
+#     replicas: 3
+#     storage:
+#       type: persistent-claim
+#       size: {{ .Values.persistence.zookeeper }}
+#       class: {{ .Values.persistence.zookeeperStorageClass }}
+#       deleteClaim: false
+#     metricsConfig:
+#       type: jmxPrometheusExporter
+#       valueFrom:
+#         configMapKeyRef:
+#           name: kafka-metrics
+#           key: zookeeper-metrics-config.yml
+#     template:
+#       pod:
+#         metadata:
+#           annotations:
+#             prometheus.io/scrape: "true"
+#             prometheus.io/port: "9404"
+#             prometheus.io/path: "/metrics"
+#         securityContext:
+#           runAsUser: 1001
+#           fsGroup: 1001
+#   entityOperator:
+#     topicOperator: {}
+#     userOperator: {}
+# {{- end -}}
