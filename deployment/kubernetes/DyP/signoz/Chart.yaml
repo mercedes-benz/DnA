@@ -1,0 +1,36 @@
+apiVersion: v2
+appVersion: 0.55.0
+dependencies:
+- condition: clickhouse.enabled
+  name: clickhouse
+  repository: https://charts.signoz.io
+  version: 24.1.7
+- condition: signoz-otel-gateway.enabled
+  name: signoz-otel-gateway
+  repository: https://charts.signoz.io
+  version: 0.0.1
+description: SigNoz Observability Platform Helm Chart
+home: https://signoz.io/
+icon: https://signoz.io/img/SigNozLogo-orange.svg
+keywords:
+- SigNoz
+- opentelemetry
+- apm
+- monitoring
+- distributed tracing
+- distributed logging
+maintainers:
+- email: hello@signoz.io
+  name: SigNoz
+  url: https://signoz.io
+- email: prashant@signoz.io
+  name: prashant-shahi
+  url: https://prashantshahi.dev
+name: signoz
+sources:
+- https://github.com/signoz/charts
+- https://github.com/signoz/signoz
+- https://github.com/signoz/alertmanager
+- https://github.com/signoz/signoz-otel-collector
+type: application
+version: 0.53.1
