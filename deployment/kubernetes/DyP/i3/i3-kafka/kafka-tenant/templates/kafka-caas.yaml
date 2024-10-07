@@ -17,36 +17,25 @@ spec:
   kafka:
     # version: 2.4.0
     replicas: 3
-    authorization:
-      type: simple  
-      superUsers:
-        - CN=dna-user           
     listeners:
-      # plain: {}
-      # tls:
-      #   authentication:
-      #     type: tls      
-      - name: plain
-        port: 9092
+      - name: tls
+        port: 9093
         type: internal
         tls: true
         authentication:
-          type: tls        
-    #   - name: tls
-    #     port: 9093
-    #     type: internal
-    #     tls: true
-    #     authentication:
-    #       type: tls
-    # authorization:
-    #   type: simple
+          type: tls
+    authorization:
+      type: simple
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
-#      log.message.format.version: "2.6"
-      auto.create.topics.enable: "true"
       default.replication.factor: 3
+      min.insync.replicas: 2
+      auto.create.topics.enable: "true"
+      inter.broker.protocol.version: "3.6"
+      # Can be ignored if inter.broker.protocol.version is set to 3.0 or higher -> to avoid unnecessary rolling updates
+      #log.message.format.version: "3.6"
     storage:
       type: persistent-claim
       size: {{ .Values.persistence.kafka }}

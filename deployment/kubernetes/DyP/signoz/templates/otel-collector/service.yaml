@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "otelCollector.fullname" . }}
+  labels:
+    {{- include "otelCollector.labels" . | nindent 4 }}
+{{- with .Values.otelCollector }}
+    {{- if .service.labels }}
+      {{- toYaml .service.labels | nindent 4 }}
+    {{- end}}
+{{- if .service.annotations }}
+  annotations:
+    {{- toYaml .service.annotations | nindent 4 }}
+{{- end }}
+spec:
+  type: {{ .service.type }}
+  ports:
+    {{- include "otelCollector.portsConfig" . | indent 4 -}}
+{{- end }}
+  selector:
+    {{- include "otelCollector.selectorLabels" . | nindent 4 }}

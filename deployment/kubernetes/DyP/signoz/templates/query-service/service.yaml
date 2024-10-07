@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "queryService.fullname" . }}
+  labels:
+    {{- include "queryService.labels" . | nindent 4 }}
+{{- with .Values.queryService.service }}
+{{- if .labels }}
+    {{- toYaml .labels | nindent 4 }}
+{{- end }}
+{{- if .annotations }}
+  annotations:
+    {{- toYaml .annotations | nindent 4 }}
+{{- end }}
+spec:
+  type: {{ .type }}
+  ports:
+    - name: http
+      port: {{ .port }}
+      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
+      protocol: TCP
+      targetPort: http
+      {{- if (and (eq .type "NodePort") .nodePort) }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+    - name: http-internal
+      port: {{ .internalPort }}
+      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
+      protocol: TCP
+      targetPort: http-internal
+      {{- if (and (eq .type "NodePort") .internalNodePort) }}
+      nodePort: {{ .internalNodePort }}
+      {{- end }}
+    - name: opamp-internal
+      port: {{ .opampPort }}
+      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
+      protocol: TCP
+      targetPort: opamp-internal
+      {{- if eq .type "NodePort" }}
+      nodePort: ""
+      {{- end }}
+{{- end }}
+  selector:
+    {{- include "queryService.selectorLabels" . | nindent 4 }}

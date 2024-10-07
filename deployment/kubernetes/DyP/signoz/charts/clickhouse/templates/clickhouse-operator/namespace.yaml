@@ -1,0 +1,6 @@
+{{- if and .Values.namespace (ne .Values.namespace .Release.Namespace) }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "clickhouse.namespace" . }}
+{{- end }}
