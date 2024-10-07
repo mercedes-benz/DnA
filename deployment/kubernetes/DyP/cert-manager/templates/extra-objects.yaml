@@ -22,6 +22,12 @@ spec:
     - http01:
         ingress:
           ingressClassName: ingress-traefik
+    # Adding this for BAT project
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -37,6 +43,12 @@ spec:
     - http01:
         ingress:
           class: traefik-internet
+    # Adding this for BAT project
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -51,4 +63,10 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: traefik-internet        
+          class: traefik-internet
+    # Adding this for BAT project
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'
