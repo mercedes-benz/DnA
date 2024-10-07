@@ -913,7 +913,7 @@ extraObjects:
 namespaceOverride:
 
 ## -- This field override the default app.kubernetes.io/instance label for all Objects.
-instanceLabelOverride:
+instanceLabelOverride: "test-ingress-intranet"
 
 # Traefik Hub configuration. See https://doc.traefik.io/traefik-hub/
 hub:
