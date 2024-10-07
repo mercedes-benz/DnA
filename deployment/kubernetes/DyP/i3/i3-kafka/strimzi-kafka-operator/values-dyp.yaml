@@ -93,6 +93,8 @@ resources:
     memory: 512Mi
 # If you set `watchNamespaces` to the same value as ``.Release.Namespace` (e.g. `helm ... --namespace $NAMESPACE`),
 # the chart will fail because duplicate RoleBindings will be attempted to be created in the same namespace
-watchNamespaces: []
+watchNamespaces: 
+  - i3-kafka
+  - dev-dna-i3-kafka
 # Overwrite default log level to get more detailed output
 loglevel: DEBUG
