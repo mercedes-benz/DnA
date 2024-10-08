@@ -22,10 +22,10 @@ spec:
     - http01:
         ingress:
           ingressClassName: ingress-traefik
+    # Adding this for BAT project
     - http01:
         ingress:
           ingressClassName: dev-ingress-intranet
-    # Adding this for BAT project
           ingressTemplate:
             metadata:
               annotations:
