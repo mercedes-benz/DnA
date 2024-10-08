@@ -2624,7 +2624,7 @@ import com.daimler.data.util.ConstantsUtility;
 				deployJobInputDto.setAction("restart");
 				deployJobInputDto.setBranch("main");
 				deployJobInputDto
-						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+						.setEnvironment(codeServerEnvValue);
 				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
