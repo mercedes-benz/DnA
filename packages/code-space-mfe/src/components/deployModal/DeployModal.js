@@ -12,7 +12,7 @@ import Modal from 'dna-container/Modal';
 // import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from '../../Utility/constants';
 // import { Envs } from '../../Utility/envs';
-import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
+import { trackEvent } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 
@@ -70,27 +70,11 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
-
-  useEffect(() => {
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
-  let lastDeployedBranch = 'main';
-  if(intDeployLogs.length || prodDeployLogs.length){
-    const intLastDeployedTime = new Date(
-      regionalDateAndTimeConversionSolution(
-        intDeployLogs[(intDeployLogs.length)-1]?.triggeredOn || 0
-      ),
-    ).getTime();
-  
-    const prodLastDeployedTime = new Date(
-      regionalDateAndTimeConversionSolution(
-        prodDeployLogs[(prodDeployLogs.length)-1]?.triggeredOn || 0
-      ),
-    ).getTime();
-  
-    lastDeployedBranch = intLastDeployedTime > prodLastDeployedTime ? intDeployLogs[(intDeployLogs.length)-1]?.branch : prodDeployLogs[(prodDeployLogs.length)-1]?.branch ;
-    setBranchValue([lastDeployedBranch]);
-  }
+
+  useEffect(() => {
+    intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
     setClientId('');
     setClientIdError('');
     setClientSecret('');
@@ -119,9 +103,14 @@ const DeployModal = (props) => {
     // setVault();
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
-  // useEffect(() => {
-  //   setVault();
-  // }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if(deployEnvironment === 'staging'){
+      intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
+    }
+    else{
+      prodDeployLogs.length && setBranchValue([prodDeployLogs[(prodDeployLogs.length)-1]?.branch]);
+    }
+  }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
@@ -310,21 +299,6 @@ const DeployModal = (props) => {
           </p>
           <div className={Styles.flexLayout}>
             <div>
-                <Tags
-                  title={'Code Branch to Deploy'}
-                  max={1}
-                  chips={branchValue}
-                  placeholder={'Type here...'}
-                  tags={branches}
-                  setTags={onBranchChange}
-                  isMandatory={true}
-                  showMissingEntryError={isBranchValueMissing}
-                  showAllTagsOnFocus={true}
-                  disableSelfTagAdd={true}
-                  suggestionPopupHeight={150}
-                />
-            </div>
-            <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
                 <label className="input-label">Deploy Environment</label>
                 <div>
@@ -356,6 +330,21 @@ const DeployModal = (props) => {
                   </label>
                 </div>
               </div>
+            </div>
+            <div>
+                <Tags
+                  title={'Code Branch to Deploy'}
+                  max={1}
+                  chips={branchValue}
+                  placeholder={'Type here...'}
+                  tags={branches}
+                  setTags={onBranchChange}
+                  isMandatory={true}
+                  showMissingEntryError={isBranchValueMissing}
+                  showAllTagsOnFocus={true}
+                  disableSelfTagAdd={true}
+                  suggestionPopupHeight={150}
+                />
             </div>
           </div>
           {(props.enableSecureWithIAM || props.isUIRecipe) && (
