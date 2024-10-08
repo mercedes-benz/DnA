@@ -83,4 +83,4 @@ tolerations: []
 affinity: {}
 vaultInjector:
   enable: true
-  jarName: lib*.jar
+  jarName: powerplatform-lib*
