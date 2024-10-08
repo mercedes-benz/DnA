@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import Styles from './power-platform-workspaces.scss';
+import { useParams, useHistory } from 'react-router-dom';
+import Styles from './power-platform-environments.scss';
 // dna-container
 import Caption from 'dna-container/Caption';
 import Modal from 'dna-container/Modal';
@@ -11,16 +11,17 @@ import { getQueryParameterByName } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
-import PowerPlatformWorkspaceForm from '../../components/powerPlatformWorkspaceForm/PowerPlatformWorkspaceForm';
-import PowerPlatformWorkspaceCard from '../../components/powerPlatformWorkspaceCard/PowerPlatformWorkspaceCard';
-import PowerPlatformWorkspaceTable from '../../components/powerPlatformWorkspacetTable/PowerPlatformWorkspaceTable';
+import PowerPlatformEnvironmentForm from '../../components/powerPlatformEnvironmentForm/PowerPlatformEnvironmentForm';
+import PowerPlatformEnvironmentCard from '../../components/powerPlatformEnvironmentCard/PowerPlatformEnvironmentCard';
+import PowerPlatformEnvironmentTable from '../../components/powerPlatformEnvironmentTable/PowerPlatformEnvironmentTable';
 import SharedDevelopmentTou from '../../components/sharedDevelopmentTou/SharedDevelopmentTou';
 import { powerPlatformApi } from '../../apis/power-platform.api';
 import { useDispatch } from 'react-redux';
 import { getLovs } from '../../redux/lovsSlice';
 import { Envs } from '../../utilities/envs';
 
-const PowerPlatformWorkspaces = ({user}) => {
+const PowerPlatformEnvironments = ({user}) => {
+  const history = useHistory();
   const dispatch = useDispatch();
   
   const { account } = useParams();
@@ -33,11 +34,11 @@ const PowerPlatformWorkspaces = ({user}) => {
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
-  const [projects, setProjects] = useState([]);
-  const [createProject, setCreateProject] = useState(account === 'shared' ? true : false);
+  const [environments, setEnvironments] = useState([]);
+  const [createAccount, setCreateAccount] = useState(account === 'shared' ? true : false);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
-  const [editProject, setEditProject]  = useState(false);
+  const [, setEditEnvironment]  = useState(false);
   const [showTou, setShowTou] = useState(account === 'tou' ? true : false);
 
   // Pagination 
@@ -73,48 +74,48 @@ const PowerPlatformWorkspaces = ({user}) => {
   }, []);
 
   useEffect(() => {
-    getProjects();
+    getEnvironments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
   // delete project
-  const deleteProjectContent = (
+  const deleteEnvironmentContent = (
     <div>
       <h3>Are you sure you want to delete {selectedItem.name}? </h3>
-      <h5>It will delete the project.</h5>
+      <h5>It will delete the environment.</h5>
     </div>
   );
 
-  const deleteProjectClose = () => {
+  const deleteEnvironmentClose = () => {
     setDeleteModal(false);
   };
 
-  const deleteProjectAccept = () => {
-    ProgressIndicator.show();
-    powerPlatformApi
-      .deletePowerPlatformWorkspace(selectedItem.id)
-      .then(() => {
-        getProjects();
-        Notification.show(`Power Platform Account ${selectedItem.name} deleted successfully.`);
-      })
-      .catch((e) => {
-        Notification.show(
-          e.response.data.errors?.length
-            ? e.response.data.errors[0].message
-            : 'Error while deleting power platform account. Try again later!',
-          'alert',
-        );
-        ProgressIndicator.hide();
-      });
+  const deleteEnvironmentAccept = () => {
+    // ProgressIndicator.show();
+    // powerPlatformApi
+    //   .deletePowerPlatformWorkspace(selectedItem.id)
+    //   .then(() => {
+    //     getEnvironments();
+    //     Notification.show(`Power Platform Account ${selectedItem.name} deleted successfully.`);
+    //   })
+    //   .catch((e) => {
+    //     Notification.show(
+    //       e.response.data.errors?.lengthv
+    //         ? e.response.data.errors[0].message
+    //         : 'Error while deleting power platform account. Try again later!',
+    //       'alert',
+    //     );
+    //     ProgressIndicator.hide();
+    //   });
     setDeleteModal(false);
   };
 
-  const getProjects = () => {      
+  const getEnvironments = () => {      
       ProgressIndicator.show();
       powerPlatformApi
-        .getPowerPlatformWorkspaces(currentPageOffset, maxItemsPerPage)
+        .getPowerPlatformEnvironments(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setProjects(res?.data?.records);
+          setEnvironments(res?.data?.records);
           const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -168,68 +169,20 @@ const PowerPlatformWorkspaces = ({user}) => {
             </div>
           </div>
         </Caption>
-        {listViewMode && (
-          <>
-            {projects && projects?.length ? (
-              <div className={Styles.createNewArea}>
-                <button className={projects === null ? Styles.btnHide : 'btn btn-secondary'} type="button" onClick={() => setCreateProject(true)}>
-                  <span className={Styles.addCircle}>
-                    <i className="icon mbc-icon plus" />
-                  </span>
-                  <span>Create new Power Platform Workspace</span>
-                </button>
-              </div>
-            ) : null}
-          </>
-        )}
-        {projects?.length > 0 && (
+        {environments?.length > 0 && (
           <div className={classNames(listViewMode ? Styles.listContainer : '')}>
             {cardViewMode &&
               <div className={classNames(Styles.projectsContainer)}>
-                {/* <div className={Styles.createNewCard} onClick={() => setCreateProject(true)}>
-                  <div className={Styles.addicon}> &nbsp; </div>
-                  <label className={Styles.addlabel}>Create new Power Platform Workspace</label>
-                </div> */}
-                {projects.map((project) => 
-                  <PowerPlatformWorkspaceCard
-                    key={project.id}
-                    project={project}
-                    onEditProject={(project) => { 
-                      setSelectedItem(project);
-                      setEditProject(true);}
+                {environments.map((environment) => 
+                  <PowerPlatformEnvironmentCard
+                    key={environment.id}
+                    environment={environment}
+                    onEditProject={(environment) => { 
+                      setSelectedItem(environment);
+                      setEditEnvironment(true);}
                     }
-                    onDeleteProject={(project) => {
-                      setSelectedItem(project);
-                      setDeleteModal(true);
-                    }}
-                  />
-                )}
-                <h2 className={Styles.sectionTitle}>Shared Development Account Environments</h2>
-                {projects.map((project) => 
-                  <PowerPlatformWorkspaceCard
-                    key={project.id}
-                    project={project}
-                    onEditProject={(project) => { 
-                      setSelectedItem(project);
-                      setEditProject(true);}
-                    }
-                    onDeleteProject={(project) => {
-                      setSelectedItem(project);
-                      setDeleteModal(true);
-                    }}
-                  />
-                )}
-                <h2 className={Styles.sectionTitle}>Full Development Account Environments</h2>
-                {projects.map((project) => 
-                  <PowerPlatformWorkspaceCard
-                    key={project.id}
-                    project={project}
-                    onEditProject={(project) => { 
-                      setSelectedItem(project);
-                      setEditProject(true);}
-                    }
-                    onDeleteProject={(project) => {
-                      setSelectedItem(project);
+                    onDeleteProject={(environment) => {
+                      setSelectedItem(environment);
                       setDeleteModal(true);
                     }}
                   />
@@ -242,34 +195,34 @@ const PowerPlatformWorkspaces = ({user}) => {
                   <div className={Styles.col1}>
                     <span>Name</span>
                   </div>
+                  <div className={Styles.col2}>
+                    <span>State</span>
+                  </div>
                   <div className={Styles.col3}>
-                    <span>Created On</span>
+                    <span>Requested On</span>
                   </div>
                   <div className={Styles.col4}>
-                    <span>Data Classification</span>
-                  </div>
-                  <div className={Styles.col5}>
-                    <span>Action</span>
+                    <span>Environment Owner</span>
                   </div>
                 </div>
-                {projects?.map((project) => 
-                  <PowerPlatformWorkspaceTable
-                    key={project.id}
+                {environments?.map((environment) => 
+                  <PowerPlatformEnvironmentTable
+                    key={environment.id}
                     user={user}
-                    project={project}
-                    onEditProject={(project) => { 
-                      setSelectedItem(project);
-                      setEditProject(true);}
+                    environment={environment}
+                    onEditProject={(environment) => { 
+                      setSelectedItem(environment);
+                      setEditEnvironment(true);}
                     }
-                    onDeleteProject={(project) => {
-                      setSelectedItem(project);
+                    onDeleteProject={(environment) => {
+                      setSelectedItem(environment);
                       setDeleteModal(true);
                     }}
                   />
                 )}
               </div>
             }
-            {projects?.length && (
+            {environments?.length && (
               <Pagination
                 totalPages={totalNumberOfPages}
                 pageNumber={currentPageNumber}
@@ -282,18 +235,18 @@ const PowerPlatformWorkspaces = ({user}) => {
           </div>
         )}
       </div>
-      { createProject &&
+      { createAccount &&
         <Modal
           title={'Order Power Platform Account'}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'800px'}
+          modalWidth={'1100px'}
           buttonAlignment="right"
-          show={createProject}
-          content={<PowerPlatformWorkspaceForm edit={false} onSave={() => {setCreateProject(false); getProjects();}} />}
+          show={createAccount}
+          content={<PowerPlatformEnvironmentForm user={user} edit={false} onCreateAccount={() => history.push('/')} />}
           scrollableContent={true}
-          onCancel={() => setCreateProject(false)}
+          onCancel={() => { history.push('/'); setCreateAccount(false) }}
         />
       }
       <ConfirmModal
@@ -303,24 +256,10 @@ const PowerPlatformWorkspaces = ({user}) => {
         showAcceptButton={true}
         showCancelButton={true}
         show={showDeleteModal}
-        content={deleteProjectContent}
-        onCancel={deleteProjectClose}
-        onAccept={deleteProjectAccept}
+        content={deleteEnvironmentContent}
+        onCancel={deleteEnvironmentClose}
+        onAccept={deleteEnvironmentAccept}
       />
-      { editProject &&
-        <Modal
-          title={'Edit Data Entry Project'}
-          hiddenTitle={true}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'800px'}
-          buttonAlignment="right"
-          show={editProject}
-          content={<PowerPlatformWorkspaceForm edit={true} project={selectedItem} onSave={() => {setEditProject(false); getProjects(); }} />}
-          scrollableContent={true}
-          onCancel={() => setEditProject(false)}
-        />
-      }
       { showTou &&
         <Modal
           title={'Terms of Use'}
@@ -338,4 +277,4 @@ const PowerPlatformWorkspaces = ({user}) => {
     </>
   );
 };
-export default PowerPlatformWorkspaces;
+export default PowerPlatformEnvironments;

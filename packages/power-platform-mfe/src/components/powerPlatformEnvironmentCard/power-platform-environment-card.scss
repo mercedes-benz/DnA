@@ -82,9 +82,6 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-    div:first-child {
-      margin: 7px 0px;
-    }
   }
   .btnGrp {
     display: flex;
@@ -101,6 +98,43 @@
         &:hover {
         background-color: transparent;
         color: #00adef;
+      }
+    }
+  }
+  .statusContainer {
+    margin-left: 20px;
+    margin-top: -5px;
+    .statusItem {
+      height: 40px;
+      display: flex;
+      .requestStatus {
+        margin-bottom: 0;
+        color: #FFEB3B;
+      }
+      button {
+        background: unset;
+        border: unset;
+        color: #99a5b3;
+        outline: 0;
+        padding: 0;
+  
+        > div + span {
+          padding-left: 26px;
+        }
+  
+        span {
+          display: inline-block;
+        }
+
+        .requested {
+          color: #FFEB3B;
+        }
+        .approved {
+          color: #00adef;
+        }
+        .rejected {
+          color: #e94d47;
+        }
       }
     }
   }

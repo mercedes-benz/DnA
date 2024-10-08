@@ -1,22 +1,23 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { useHistory } from "react-router-dom";
 import { useSelector } from 'react-redux';
 // styles
-import Styles from './power-platform-workspace-form.scss';
+import Styles from './power-platform-environment-form.scss';
 // import from DNA Container
 import Tags from 'dna-container/Tags';
 import Modal from 'dna-container/Modal';
+import AddUser from 'dna-container/AddUser';
+import SelectBox from 'dna-container/SelectBox';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Tooltip from '../../../../chronos-mfe/src/common/modules/uilab/js/src/tooltip';
 import SharedDevelopmentTou from '../sharedDevelopmentTou/SharedDevelopmentTou';
 // Api
 import { powerPlatformApi } from '../../apis/power-platform.api';
 
-const PowerPlatformWorkspaceForm = () => {
-  let history = useHistory();
+const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
 
   const { departments } = useSelector(state => state.lovs);
   
@@ -25,16 +26,18 @@ const PowerPlatformWorkspaceForm = () => {
   const methods = useForm({ 
     defaultValues: {
       name: '',
-      environmentOwnerName: '',
-      environmentOwnerUserId: '',
-      deputyEnvironmentOwnerName: '',
-      deputyEnvironmentOwnerUserId: '',
+      subscriptionType: '',
+      environment: 'shared-dev',
+      envOwnerName: '',
+      envOwnerId: '',
+      dyEnvOwnerName: '',
+      dyEnvOwnerId: '',
       department: [],
       billingContact: '',
       billingPlant: '',
-      billingCostCenter: '',
+      billingCostCentre: '',
       customRequirements: '',
-      isImmediate: 'false',
+      prodEnvAvailability: 'later',
       termsOfUse: false,
     }
   });
@@ -47,34 +50,95 @@ const PowerPlatformWorkspaceForm = () => {
     formState: { errors },
   } = methods;
 
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    return Tooltip.clear();
+    //eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    SelectBox.defaultSetup(true);
+  }, []);
+
+  const [userLincenses, setUserLicenses] = useState([]);
+
   const handleTouAccept = () => {
     setShowTou(false);
     setValue('termsOfUse', true);
   }
 
+  const getDevelopers = (developer) => {
+    const userLicenseData = {
+      userDetails: {
+        id: developer.shortId,
+        userId: developer.shortId,
+        firstName: developer.firstName,
+        lastName: developer.lastName,
+      },
+      license: ''
+    };
+
+    let duplicateMember = false;
+    duplicateMember = userLincenses?.filter((license) => license.userId === developer.userId)?.length ? true : false;
+
+    const isCreator = user?.id === developer?.userId;
+
+    if (duplicateMember) {
+        Notification.show('User License already added.', 'warning');
+    } else if (isCreator) {
+        Notification.show(
+            `${developer.givenName} ${developer.surName} is a creator. Creator can't be added to user lincense.`,
+            'warning',
+        );
+    } else {
+        userLincenses?.push(userLicenseData);
+        setUserLicenses([...userLincenses]);
+    }
+  }
+
+  const onUserLicenseClick = (value, userId) => {
+    const updatedUserLincenses = userLincenses.map(userLicense => {
+      if (userLicense?.userDetails?.userId === userId) {
+        return Object.assign({}, userLicense, { license: value });
+      }
+      return userLicense;
+    });
+    setUserLicenses(updatedUserLincenses);
+  };
+
+  const onUserLicenseDelete = (userId) => {
+    return () => {
+      const updatedUserLicenses = userLincenses.filter((userLicense) => {
+        return userLicense?.userDetails?.userId !== userId;
+      });
+      setUserLicenses(updatedUserLicenses);
+    };
+  };
+
   const formValues = (values) => {
     return {
       name: values?.name,
-      environmentOwnerName: values?.environmentOwnerName,
-      environmentOwnerUserId: values?.environmentOwnerUserId,
-      deputyEnvironmentOwnerName: values?.deputyEnvironmentOwnerName,
-      deputyEnvironmentOwnerUserId: values?.deputyEnvironmentOwnerUserId,
+      envOwnerName: values?.envOwnerName,
+      envOwnerId: values?.envOwnerId,
+      dyEnvOwnerName: values?.dyEnvOwnerName,
+      dyEnvOwnerId: values?.dyEnvOwnerId,
       department: values?.department,
       billingContact: values?.billingContact,
       billingPlant: values?.billingPlant,
-      billingCostCenter: values?.billingCostCenter,
+      billingCostCentre: values?.billingCostCentre,
       customRequirements: values?.customRequirements,
-      isImmediate: values?.isImmediate,
-      termsOfUse: values?.termsOfUse ? true : false,
+      prodEnvAvailability: values?.prodEnvAvailability,
+      developers: userLincenses
     }
   }
 
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = formValues(values);
-    powerPlatformApi.createPowerPlatformWorkspace(data).then((res) => {
+    powerPlatformApi.createPowerPlatformEnvironment(data).then(() => {
       ProgressIndicator.hide();
-      history.push(`/project/${res.data.data.id}`);
+      // history.push(`/project/${res.data.data.id}`);
+      onCreateAccount();
       Notification.show('Shared Developer Account created successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
@@ -94,7 +158,7 @@ const PowerPlatformWorkspaceForm = () => {
             <p>Enter following information to start!</p>
           </div>
           <div className={Styles.flex}>
-            <div className={Styles.col}>
+            <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
                 <label className={'input-label'}>
                   Name of Project <sup>*</sup>
@@ -114,34 +178,48 @@ const PowerPlatformWorkspaceForm = () => {
             <div className={Styles.col2}>
               <div className={classNames('input-field-group')}>
                 <label className={'input-label'}>
+                  Environment <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select {...register('environment')}>
+                    <option value={'shared-dev'}>Shared Development</option>
+                    <option value={'shared-int'}>Shared Integration</option>
+                    <option value={'dedicated-prod'}>Dedicated Production</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <label className={'input-label'}>
                   Environment Owner Name
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="environmentOwnerName"
+                  id="envOwnerName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('environmentOwnerName')}
+                  {...register('envOwnerName')}
                 />
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group include-error', errors?.environmentOwnerUserId ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.envOwnerId ? 'error' : '')}>
                 <label className={'input-label'}>
                   Environment Owner User ID <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="environmentOwnerUserId"
+                  id="envOwnerId"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('environmentOwnerUserId', {required: '*Missing entry'})}
+                  {...register('envOwnerId', {required: '*Missing entry'})}
                 />
-                <span className={'error-message'}>{errors?.environmentOwnerUserId?.message}</span>
+                <span className={'error-message'}>{errors?.envOwnerId?.message}</span>
               </div>
             </div>
             <div className={Styles.col2}>
@@ -152,11 +230,11 @@ const PowerPlatformWorkspaceForm = () => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="deputyEnvironmentOwnerName"
+                  id="dyEnvOwnerName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('deputyEnvironmentOwnerName')}
+                  {...register('dyEnvOwnerName')}
                 />
               </div>
             </div>
@@ -168,11 +246,11 @@ const PowerPlatformWorkspaceForm = () => {
                 <input
                   type="text"
                   className={'input-field'}
-                  id="deputyEnvironmentOwnerUserId"
+                  id="dyEnvOwnerId"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('deputyEnvironmentOwnerUserId')}
+                  {...register('dyEnvOwnerId')}
                 />
               </div>
             </div>
@@ -231,27 +309,27 @@ const PowerPlatformWorkspaceForm = () => {
                   id="billingPlant"
                   placeholder="Example 020"
                   autoComplete="off"
-                  maxLength={3}
-                  {...register('billingPlant', { required: '*Missing entry', pattern: /^\d{3}$/ })}
+                  maxLength={256}
+                  {...register('billingPlant', { required: '*Missing entry' })}
                 />                
-                <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && 'Please enter 3 digit billing plant code'}</span>
+                {/* <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && 'Please enter 3 digit billing plant code'}</span> */}
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group include-error', errors?.billingCostCenter ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.billingCostCentre ? 'error' : '')}>
                 <label className={'input-label'}>
                   Billing Cost Center <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="billingCostCenter"
+                  id="billingCostCentre"
                   placeholder="Example 000-1234"
                   autoComplete="off"
-                  maxLength={9}
-                  {...register('billingCostCenter', { required: '*Missing entry', pattern: /^\d{3}-\d{4}$/ })}
+                  maxLength={256}
+                  {...register('billingCostCentre', { required: '*Missing entry' })}
                 />
-                <span className={'error-message'}>{errors?.billingCostCenter?.message}{errors.billingCostCenter?.type === 'pattern' && 'Please enter valid billing cost center code'}</span>
+                {/* <span className={'error-message'}>{errors?.billingCostCentre?.message}{errors.billingCostCentre?.type === 'pattern' && 'Please enter valid billing cost center code'}</span> */}
               </div>
             </div>
             <div className={Styles.col}>
@@ -270,7 +348,7 @@ const PowerPlatformWorkspaceForm = () => {
               </div>
             </div>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error', errors?.isImmediate?.message ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.prodEnvAvailability?.message ? 'error' : '')}>
                 <label className={'input-label'}>
                   Do you want the PROD environment immediately or later? <sup>*</sup>
                 </label>
@@ -280,8 +358,8 @@ const PowerPlatformWorkspaceForm = () => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value={'true'}
-                        {...register('isImmediate', {
+                        value={'immediate'}
+                        {...register('prodEnvAvailability', {
                           required: '*Missing entry'
                         })}
                       />
@@ -293,8 +371,8 @@ const PowerPlatformWorkspaceForm = () => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value={'false'}
-                        {...register('isImmediate', {
+                        value={'later'}
+                        {...register('prodEnvAvailability', {
                           required: '*Missing entry'
                         })}
                       />
@@ -302,9 +380,94 @@ const PowerPlatformWorkspaceForm = () => {
                     <span className="label">Later</span>
                   </label>
                 </div>
-                <span className={classNames('error-message', errors?.isImmediate?.message ? '' : 'hide')}>
-                  {errors?.isImmediate?.message}
+                <span className={classNames('error-message', errors?.prodEnvAvailability?.message ? '' : 'hide')}>
+                  {errors?.prodEnvAvailability?.message}
                 </span>
+              </div>
+            </div>
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group include-error')}>
+                <AddUser getCollabarators={getDevelopers} isRequired={false} isUserprivilegeSearch={false} title={'User Licenses to Add'} />
+              </div>
+              {userLincenses?.length === 0 &&
+                <div className={Styles.noLincense}>
+                  <p>No User License Selected</p>
+                </div>
+              }
+              <div>
+                {userLincenses?.length > 0 && (
+                  <>
+                    <div className={Styles.colHeader}>
+                        <div className={Styles.column1}>User ID</div>
+                        <div className={Styles.column2}>Name</div>
+                        <div className={Styles.column3}>License</div>
+                        <div className={Styles.column4}></div>
+                    </div>
+                    <div>
+                        {userLincenses?.map((userLicense) => {
+                          return (
+                              <div key={userLicense?.userDetails?.userId} className={Styles.userRow}>
+                                  <div className={Styles.column1}>
+                                    <p>{userLicense?.userDetails?.userId}</p>
+                                  </div>
+                                  <div className={Styles.column2}>
+                                    <p>{userLicense?.userDetails?.firstName + ' ' + userLicense?.userDetails?.lastName}</p>
+                                  </div>
+                                  <div className={classNames(Styles.column3, Styles.lincenseContainer)}>
+                                    <div className={classNames(Styles.licenseRadio)}>
+                                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="radio"
+                                            className="ff-only"
+                                            name={userLicense?.userDetails?.userId}
+                                            value="Power-Virtual-Agent-User"
+                                            onChange={() => onUserLicenseClick("Power-Virtual-Agent-User", userLicense?.userId)}
+                                          />
+                                        </span>
+                                        <span>Power Virtual Agent User</span>
+                                      </label>
+                                    </div>
+                                    <div className={classNames(Styles.licenseRadio)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="radio"
+                                            className="ff-only"
+                                            name={userLicense?.userDetails?.userId}
+                                            value="Power-Automate-Premium"
+                                            onChange={() => onUserLicenseClick('Power-Automate-Premium', userLicense?.userDetails?.userId)}
+                                          />
+                                        </span>
+                                        <span>Power Automate Premium</span>
+                                      </label>
+                                    </div>
+                                    <div className={classNames(Styles.licenseRadio)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="radio"
+                                            className="ff-only"
+                                            name={userLicense?.userDetails?.userId}
+                                            value="Power-Apps-Premium-User"
+                                            onChange={() => onUserLicenseClick('Power-Apps-Premium-User', userLicense?.userDetails?.userId)}
+                                          />
+                                        </span>
+                                        <span>Power Apps Premium User</span>
+                                      </label>
+                                    </div>
+                                  </div>
+                                  <div className={Styles.column4}>
+                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(userLicense?.userDetails?.userId)}>
+                                      <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
+                                    </div>
+                                  </div>
+                              </div>
+                          );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className={Styles.col}>
@@ -373,4 +536,4 @@ const PowerPlatformWorkspaceForm = () => {
   );
 }
 
-export default PowerPlatformWorkspaceForm;
+export default PowerPlatformEnvironmentForm;
