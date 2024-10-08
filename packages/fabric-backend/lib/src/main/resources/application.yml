@@ -2,10 +2,9 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.1.1
+    version: 1.1.6
   profile:
     active: production
-
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
