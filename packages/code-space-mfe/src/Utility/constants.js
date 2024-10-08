@@ -20,6 +20,7 @@ export const HTTP_METHOD = {
   
   export const SESSION_STORAGE_KEYS = {
     PAGINATION_MAX_ITEMS_PER_PAGE : 'paginationMaxItemsPerPage',
+    AUDIT_LOGS_MAX_ITEMS_PER_PAGE : 'auditLogsMaxItemsPerPage',
     JWT: 'jwt',
   }
   
@@ -62,4 +63,4 @@ export const HTTP_METHOD = {
   
   export const CODE_SPACE_STATUS = ['DRAFT', 'PUBLISHED']; 
   export const CODE_SPACE_DISABLE_DNA_PROTECT = ['PUBLISHED', 'ACCEPTED', 'REQUESTED'];
-  export const CODE_SPACE_TITLE = 'Securtity Configuration'; 
+  export const CODE_SPACE_TITLE = 'Security Configuration'; 
