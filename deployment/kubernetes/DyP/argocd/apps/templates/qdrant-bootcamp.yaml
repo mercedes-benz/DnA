@@ -21,7 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: --namespace bootcamp -f values-dev-bootcamp.yaml
+          value: --namespace bootcamp -f values-{{ .Values.env }}-bootcamp.yaml
   project: dna
   syncPolicy:
     automated:
