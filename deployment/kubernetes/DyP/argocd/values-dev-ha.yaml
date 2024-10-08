@@ -194,6 +194,8 @@ configs:
     ## Ref: https://argo-cd.readthedocs.io/en/stable/user-guide/status-badge/
     statusbadge.enabled: false
 
+    timeout.reconciliation.jitter: 60s
+
     # Dex configuration
     # dex.config: |
     #   connectors:
@@ -740,8 +742,6 @@ controller:
   env: 
       - name: WORKQUEUE_BUCKET_SIZE
         value: "500"
-      - name: ARGOCD_RECONCILIATION_JITTER
-        value: "60"
       - name: ARGO_CD_UPDATE_CLUSTER_INFO_TIMEOUT
         value: "60" # In seconds
       - name: ARGOCD_CLUSTER_CACHE_LIST_PAGE_SIZE
