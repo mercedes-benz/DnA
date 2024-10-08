@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
-import Styles from './power-platform-workspace.scss';
+import Styles from './power-platform-environment.scss';
 import Caption from 'dna-container/Caption';
 // utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';

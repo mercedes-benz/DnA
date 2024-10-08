@@ -1,30 +1,14 @@
 import { server, hostServer, reportsServer, storageServer } from '../server/api';
 
-const getPowerPlatformWorkspaces = (offset, limit) => {
-  return server.get(`/power-platform-workspaces?limit=${limit}&offset=${offset}`, {
+const getPowerPlatformEnvironments = (offset, limit) => {
+  return server.get(`/powerapps?limit=${limit}&offset=${offset}`, {
     data: {},
   });
 };
 
-const createPowerPlatformWorkspace = (data) => {
-  return server.post(`/power-platform-workspaces`, {
+const createPowerPlatformEnvironment = (data) => {
+  return server.post(`/powerapps`, {
     data,
-  });
-};
-
-const getPowerPlatformWorkspace = (id) => {
-  return server.get(`/power-platform-workspaces/${id}`, {
-    data: {},
-  });
-};
-
-const updatePowerPlatformWorkspace = (id, data) => {
-  return server.put(`/power-platform-workspaces/${id}`, data);
-};
-
-const deletePowerPlatformWorkspace = (id) => {
-  return server.delete(`/power-platform-workspaces/${id}`, {
-    data: {},
   });
 };
 
@@ -47,11 +31,8 @@ const getSubDivisions = (id) => {
 }
 
 export const powerPlatformApi = {
-  getPowerPlatformWorkspaces,
-  getPowerPlatformWorkspace,
-  createPowerPlatformWorkspace,
-  updatePowerPlatformWorkspace,
-  deletePowerPlatformWorkspace,
+  getPowerPlatformEnvironments,
+  createPowerPlatformEnvironment,
   getLovData,
   getSubDivisions,
 };
