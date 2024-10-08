@@ -18,6 +18,7 @@ import { IconGear } from 'dna-container/IconGear';
 import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
+import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -38,7 +39,8 @@ const AllCodeSpaces = (props) => {
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
-        [onDeployCodeSpace, setOnDeployCodeSpace] = useState();
+        [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
+        [showTutorialsModel, setShowTutorialsModel] = useState(false);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -107,7 +109,7 @@ const AllCodeSpaces = (props) => {
     const onShowSecurityConfigRequest = () => {
        history.push(`manageRecipes`);
     };
-
+    
     const isCodeSpaceCreationSuccess = (status, codeSpaceData) => {
         if (showNewCodeSpaceModal) {
             setShowNewCodeSpaceModal(!status);
@@ -156,10 +158,10 @@ const AllCodeSpaces = (props) => {
     const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
-        setLoading(true);
+        serverStarted ? setLoading(true) : ProgressIndicator.show();
         CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
             .then((res) => {
-                setLoading(false);
+                serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 if (res.data.success === 'SUCCESS') {
                     Notification.show(
                         'Your Codespace for project ' +
@@ -179,7 +181,7 @@ const AllCodeSpaces = (props) => {
                 }
             })
             .catch((err) => {
-                setLoading(false);
+                serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 Notification.show(
                     'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
                     'alert',
@@ -256,6 +258,15 @@ const AllCodeSpaces = (props) => {
                         >
                             <IconGear size={'14'} />
                             <span>&nbsp;Manage Recipes</span>
+                        </button>
+
+                        <button
+                            className={classNames('btn btn-primary', Styles.tutorials)}
+                            tooltip-data="code space video tutorials"
+                            onClick={() => { setShowTutorialsModel(true) }}
+                        >
+                            <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
+                            <span>Video Tutorials</span>
                         </button>
                     </div>
                 </div>
@@ -409,6 +420,22 @@ const AllCodeSpaces = (props) => {
                             </button>
                         </>
                     }
+                />
+            )}
+            {showTutorialsModel && (
+                <Modal
+                    title={''}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="80%"
+                    buttonAlignment="right"
+                    show={showTutorialsModel}
+                    content={
+                        <CodeSpaceTutorials />
+                    }
+                    scrollableContent={true}
+                    onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
         </div>

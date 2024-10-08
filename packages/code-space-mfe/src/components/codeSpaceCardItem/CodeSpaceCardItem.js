@@ -72,7 +72,7 @@ const CodeSpaceCardItem = (props) => {
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
 
-  const [showStagingActions, setShowStagingActions] = useState(true);
+  const [showStagingActions, setShowStagingActions] = useState(false);
   const [showProdActions, setShowProdActions] = useState(false);
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
@@ -278,13 +278,13 @@ const CodeSpaceCardItem = (props) => {
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? intDeploymentDetails?.lastDeployedOn
         : intDeploymentDetails?.deploymentAuditLogs &&
             intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
@@ -292,27 +292,27 @@ const CodeSpaceCardItem = (props) => {
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? prodDeploymentDetails?.lastDeployedOn
         : prodDeploymentDetails?.deploymentAuditLogs &&
             prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
-  const isAPIRecipe =
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  // const isAPIRecipe =
+  //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const isIAMRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
@@ -433,22 +433,20 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     <li>
                       <button
-                        className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowStagingActions(!showStagingActions);
                         }}
                       >
                         <div>
                           <strong>Staging:</strong>{' '}
-                          {intDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${intDeploymentDetails?.lastDeployedBranch}]`
-                            : 'No Deployment'}
+                          {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
                           <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                             (DORA Metrics)
                           </span>
                         </div>
                         <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}>
-                          {((isAPIRecipe && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
                             <>
                               <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
@@ -459,7 +457,12 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     {showStagingActions && (
                       <>
-                        {isAPIRecipe && isOwner && (
+                        {intDeploymentDetails?.lastDeployedBranch && (
+                          <li style={{ color: 'var(--color-orange)' }}>
+                            [Branch - {intDeploymentDetails?.lastDeployedBranch}]
+                          </li>
+                        )}
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
                           <li>
                             <span
                               onClick={() => {
@@ -532,22 +535,20 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     <li>
                       <button
-                        className={classNames('btn btn-primary', Styles.btnOutline, !((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowProdActions(!showProdActions);
                         }}
                       >
                         <div>
                           <strong>Production:</strong>{' '}
-                          {prodDeploymentDetails?.lastDeployedBranch
-                            ? `[Branch - ${prodDeploymentDetails?.lastDeployedBranch}]`
-                            : 'No Deployment'}
+                          {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
                           <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                             (DORA Metrics)
                           </span>
                         </div>
                         <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
-                          {((isAPIRecipe && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
                             <>
                               <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
@@ -558,73 +559,80 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     {showProdActions &&(
                       <>
-                       {isAPIRecipe && isOwner && (
-                      <li>
-                        <span
-                          onClick={() => {
-                            setShowVaultManagementModal(true);
-                            setIsStaging(false);
-                          }}
-                        >
-                          Environment variables config
-                        </span>
-                      </li>
-                    )}
-                    {prodDeploymentDetails?.gitjobRunID && (
-                      <li>
-                        <a
-                          target="_blank"
-                          href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
-                          rel="noreferrer"
-                        >
-                          Build &amp; Deploy Logs{' '}
-                          {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {prodDeployed && (
-                      <li>
-                        <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                          Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {prodDeploymentDetails?.lastDeploymentStatus && (
-                      <li>
-                        <a
-                          target="_blank"
-                          href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
-                          rel="noreferrer"
-                        >
-                          Application Logs <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {prodDeploymentDetails?.deploymentAuditLogs && (
-                      <li>
-                        <span
-                          onClick={() => {
-                            setShowAuditLogsModal(true);
-                            setIsStaging(false);
-                            setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
-                          }}
-                        >
-                          Deploy & Action Audit Logs
-                        </span>
-                      </li>
-                    )}
-                    {prodDeployed && (
-                      <li>
-                        <span
-                          onClick={() => {setEnv("prod"); setShowRestartModal(true);}}
-                        >
-                          Restart Deployed Application
-                        </span>
-                      </li>
-                    )}
-
+                        {prodDeploymentDetails?.lastDeployedBranch && (
+                          <li style={{ color: 'var(--color-orange)' }}>
+                            [Branch - {prodDeploymentDetails?.lastDeployedBranch}]
+                          </li>
+                        )}
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowVaultManagementModal(true);
+                                setIsStaging(false);
+                              }}
+                            >
+                              Environment variables config
+                            </span>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.gitjobRunID && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                              rel="noreferrer"
+                            >
+                              Build &amp; Deploy Logs{' '}
+                              {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeployed && (
+                          <li>
+                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.lastDeploymentStatus && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                              rel="noreferrer"
+                            >
+                              Application Logs <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(false);
+                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deploy & Action Audit Logs
+                            </span>
+                          </li>
+                        )}
+                        {prodDeployed && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setEnv('prod');
+                                setShowRestartModal(true);
+                              }}
+                            >
+                              Restart Deployed Application
+                            </span>
+                          </li>
+                        )}
                       </>
                     )}
                   </ul>
