@@ -11,7 +11,7 @@ metadata:
     name: service
 spec:
   destination:
-    namespace: qdrant
+    namespace: bootcamp
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/qdrant
