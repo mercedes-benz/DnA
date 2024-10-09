@@ -5,43 +5,30 @@
   color: #99a5b3;
   border-bottom: 1px solid #383f49;
   cursor: pointer;
-  div {
-      &:last-child {
-        text-align: right;
-      }
-      button {
-          color: #acb8c4;
-          margin: 0 4px;
-          &:hover {
-              color: #00adef;
-          }
-      }
-  }
   .col1 {
-    min-width: 50%;
+    min-width: 30%;
   }
   .col2 {
-    min-width: 20%;
+    min-width: 15%;
   }
   .col3 {
-    min-width: 20%;
+    min-width: 15%;
   }
   .col4 {
-    min-width: 20%;
+    min-width: 40%;
   }
   .col5 {
     min-width: 10%;
     text-align: right;
   }
-  .projectLink{
+  .requested {
+    color: #FFEB3B;
+  }
+  .approved {
     color: #00adef;
-    background: none;
-    border: none;
-    padding: unset;
-    font-size: 12px;
-    &:hover {
-      text-decoration: underline;
-    }
+  }
+  .rejected {
+    color: #e94d47;
   }
   .bucketTitleCol {
       flex: 1;
