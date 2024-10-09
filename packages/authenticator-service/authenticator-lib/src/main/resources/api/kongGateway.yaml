@@ -505,9 +505,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error" 
-<<<<<<< Updated upstream
-          
-=======
 
  /kong/services/{serviceName}/functionplugin:
     post:
@@ -549,7 +546,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"          
->>>>>>> Stashed changes
 # path to get service 
 #  supported http methods GET    
  # /kong/services/{serviceName}:
