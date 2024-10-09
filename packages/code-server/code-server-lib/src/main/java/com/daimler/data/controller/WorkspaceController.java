@@ -1792,7 +1792,7 @@ import org.springframework.beans.factory.annotation.Value;
  
 	 }
 
-	 @Override
+	@Override
 	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigDetailVO.class, tags = {
 			"code-server", })
     @ApiResponses(value = {
@@ -1845,6 +1845,26 @@ import org.springframework.beans.factory.annotation.Value;
 		
 	}
    
+	@Override
+	@ApiOperation(value = "Get how to use codespace instructions from Readme file in git", nickname = "getReadme", notes = "Get how to use codespace instructions from Readme file in git ", response = CodeSpaceReadmeVo.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns readme file from the repo of the codespace", response = CodeSpaceReadmeVo.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/readme",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    ResponseEntity<CodeSpaceReadmeVo> getReadme(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id) {
+		
+		
+		return null;
+	}
+
    	@Override
 	@ApiOperation(value = "Get all workspace security configurations which are in requested and accepted state, waiting for processing.", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
 		"code-server", })
