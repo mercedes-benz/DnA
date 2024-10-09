@@ -32,7 +32,7 @@ export const VideoJS = (props) => {
     }
     //Remove picture in piture option
     playerRef.current.controlBar.removeChild(playerRef.current.controlBar.getChild('PictureInPictureToggle'));
-  }, [options, videoRef]);
+  }, [options, videoRef]);// eslint-disable-line react-hooks/exhaustive-deps
 
   // Dispose the Video.js player when the functional component unmounts
   useEffect(() => {

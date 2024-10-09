@@ -249,6 +249,8 @@ public class KongClientImpl implements KongClient {
 				attachPluginConfigRequestDto.setRedirect_uri(attachPluginConfigVO.getRedirectUri());
 				attachPluginConfigRequestDto.setRevoke_tokens_on_logout(attachPluginConfigVO.getRevokeTokensOnLogout());
 				attachPluginConfigRequestDto.setRecovery_page_path(attachPluginConfigVO.getRecoveryPagePath());
+				attachPluginConfigRequestDto.setFilters(attachPluginConfigVO.getFilters());
+				attachPluginConfigRequestDto.setIgnore_auth_filters(attachPluginConfigVO.getIgnoreAuthFilters());
 				requestWrapper.setConfig(attachPluginConfigRequestDto);
 				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
 						requestWrapper, headers);
@@ -600,6 +602,7 @@ public class KongClientImpl implements KongClient {
 			apiAuthoriserPluginConfigRequestDto.setUserinfoIntrospectionUri(apiAuthoriserPluginConfigVO.getUserinfoIntrospectionUri());
 			apiAuthoriserPluginConfigRequestDto.setLogType(apiAuthoriserPluginConfigVO.getLogType());
 			apiAuthoriserPluginConfigRequestDto.setEnv(apiAuthoriserPluginConfigVO.getEnv());
+			apiAuthoriserPluginConfigRequestDto.setProjectName(apiAuthoriserPluginConfigVO.getProjectName());
 			requestWrapper.setName(attachApiAuthoriserPluginVO.getName());
 			requestWrapper.setConfig(apiAuthoriserPluginConfigRequestDto);
 						
