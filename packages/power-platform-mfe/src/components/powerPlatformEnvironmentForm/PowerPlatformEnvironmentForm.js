@@ -12,7 +12,7 @@ import SelectBox from 'dna-container/SelectBox';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import Tooltip from '../../../../chronos-mfe/src/common/modules/uilab/js/src/tooltip';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import SharedDevelopmentTou from '../sharedDevelopmentTou/SharedDevelopmentTou';
 // Api
 import { powerPlatformApi } from '../../apis/power-platform.api';
