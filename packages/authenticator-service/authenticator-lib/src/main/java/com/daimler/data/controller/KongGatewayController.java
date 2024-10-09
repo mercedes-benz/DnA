@@ -448,8 +448,6 @@ public class KongGatewayController implements KongApi{
 		
 	}
 
-<<<<<<< Updated upstream
-=======
 	@Override
 	@ApiOperation(value = "Attach functionPlugin to service.", nickname = "attachFunctionPlugin", notes = "Attach functionPlugin to service.", response = GenericMessage.class, tags={ "kong", })
     @ApiResponses(value = { 
@@ -525,7 +523,6 @@ public class KongGatewayController implements KongApi{
 		}
 	}
 
->>>>>>> Stashed changes
 //	@Override
 //	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
 //		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);

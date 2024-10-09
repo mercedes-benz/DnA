@@ -64,12 +64,8 @@ public interface KongClient {
 	public Map<String,String> getPluginIds(String serviceName, String pluginName);
 	
 	public GenericMessage deleteService(String serviceName);
-<<<<<<< Updated upstream
-	
-=======
 
 	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName);
 
 	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
->>>>>>> Stashed changes
 }

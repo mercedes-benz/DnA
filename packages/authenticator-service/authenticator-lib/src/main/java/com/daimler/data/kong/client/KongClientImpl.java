@@ -745,8 +745,6 @@ public class KongClientImpl implements KongClient {
 		}
 		return pluginIdMap;
 	}
-<<<<<<< Updated upstream
-=======
 
 	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName){
 
@@ -877,7 +875,6 @@ public class KongClientImpl implements KongClient {
 		return message;
 	}
 
->>>>>>> Stashed changes
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
 //		
