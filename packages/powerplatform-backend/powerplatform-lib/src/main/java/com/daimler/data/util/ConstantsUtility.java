@@ -29,28 +29,8 @@ package com.daimler.data.util;
 
 public class ConstantsUtility {
 
-	public static final String PENDING_STATE = "PENDING";
-	public static final String CREATED_STATE = "CREATED";
-	public static final String ASSIGNED_STATE = "ASSIGNED";
-	public static final String FAILED_STATE = "FAILED";
-	
-	public static final String COMPLETED_STATE = "COMPLETED";
-	public static final String INPROGRESS_STATE = "IN_PROGRESS";
-	
-	public static final String ENTITLEMENT_TYPE = "ENTITLEMENT";
-	
-	public static final String PERMISSION_CONTRIBUTOR = "Contributor";
-	public static final String PERMISSION_ADMIN = "Admin";
-	public static final String PERMISSION_MEMBER = "Member";
-	public static final String PERMISSION_VIEWER = "Viewer";
-	
-	public static final String DATACLASSIFICATION_CONFIDENTIAL = "CONFIDENTIAL";
-	
-	public static final String GROUPSEARCH_URL_PREFIX = "https://graph.microsoft.com/v1.0/groups?$filter=startsWith(displayName,'";
-	public static final String GROUPSEARCH_URL_SUFFIX = "')";
-	
-	public static final String GROUPPRINCIPAL_GROUP_TYPE = "Group";
-	public static final String GROUPPRINCIPAL_USER_TYPE = "User";
-	public static final String GROUPPRINCIPAL_APP_TYPE = "App";
+	public static final String REQUESTED_STATE = "REQUESTED";
+	public static final String APPROVED_STATE = "APPROVED";
+	public static final String REJECTED_STATE = "REJECTED";
 	
 }
