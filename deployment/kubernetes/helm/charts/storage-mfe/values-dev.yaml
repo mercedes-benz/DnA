@@ -15,7 +15,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-mfe
   pullPolicy: Always
-  tag: '465'
+  tag: '536'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
