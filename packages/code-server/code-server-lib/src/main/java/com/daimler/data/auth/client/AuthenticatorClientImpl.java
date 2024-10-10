@@ -155,7 +155,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.authoriserDiscovery}")
 	private String authDiscovery;
 	
+	@Value("${kong.preFunctionBackendValue}")
+	private String preFunctionBackendValue;
 
+	@Value("${kong.preFunctionFrontendValue}")
+	private String preFunctionFrontendValue;
+	
+	@Value("${kong.postFunctionFrontendValue}")
+	private String postFunctionFrontendValue;
 
 
 	@Autowired
@@ -170,9 +177,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String JWTISSUER_PLUGIN = "jwtissuer";
 	private static final String APP_AUTHORISER_PLUGIN = "appauthoriser";
 	private static final String API_AUTHORISER_PLUGIN = "apiauthoriser";
+	private static final String PRE_FUNCTION_PLUGIN ="pre-function";
+	private static final String POST_FUNCTION_PLUGIN ="post-function";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
+	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -307,7 +317,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -514,7 +524,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										//deleteing jwy issuer plugin if any
+										//deleteing jwt issuer plugin if any
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -559,8 +569,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
-										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
 										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 
 										//request for attaching APIAUTHORISER plugin to service
 										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
@@ -591,8 +601,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
 											apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
 	
-											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
 											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 										}
 									}
 								}
@@ -607,12 +617,110 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							//deleteing jwy issuer plugin if any
+							//deleteing jwt issuer plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
-						// }
+					}else{
+
+						//for non api recipes
+						if(intSecureIAM || prodSecureIAM){
+							if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
+								if(!clientID.isEmpty() && !clientSecret.isEmpty()){
+
+									//deleting OIDC  plugin if already available
+									GenericMessage deletePluginResponse = new GenericMessage();
+									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+									LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+									//request for attaching ODIC plugin to authorize service with new client id and secret
+									AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
+									AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
+									AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
+
+									attachOIDCPluginVO.setName(OIDC_PLUGIN);
+
+									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
+									//String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+
+									if("int".equalsIgnoreCase(env)){
+										attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
+										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
+									}
+									if("prod".equalsIgnoreCase(env)){
+										String prodDiscovery = authDiscovery.replace("-int","");
+										String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
+										String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
+
+										attachOIDCPluginConfigVO.setDiscovery(prodDiscovery);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
+										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
+									}
+									attachOIDCPluginConfigVO.setBearer_only("no");
+									attachOIDCPluginConfigVO.setClient_id(clientID);
+									attachOIDCPluginConfigVO.setClient_secret(clientSecret);
+									attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
+									attachOIDCPluginConfigVO.setLogout_path(logoutPath);
+									attachOIDCPluginConfigVO.setRealm(realm);
+									attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser);
+									attachOIDCPluginConfigVO.setRevoke_tokens_on_logout("no");
+									attachOIDCPluginConfigVO.setResponse_type(responseType);
+									attachOIDCPluginConfigVO.setScope(scope);
+									attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
+									attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
+									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+									attachOIDCPluginConfigVO.setFilters(ignorePaths);
+									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
+
+									attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
+									
+									//attaching pre and post function for frontend recipes
+									AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
+									AttachFunctionPluginRequestVO postFunctionRequestVO = new AttachFunctionPluginRequestVO();
+
+									AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
+									AttachFunctionPluginVO postFunctionPluginVO = new AttachFunctionPluginVO();
+
+									AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
+									AttachFunctionPluginConfigVO postFunctionConfigVO = new AttachFunctionPluginConfigVO();
+
+									List<String> preFunctionValue =  new ArrayList<>();
+									preFunctionValue.add(preFunctionFrontendValue);
+									preFunctionConfigVO.setAccess(preFunctionValue);
+
+									List<String> postFunctionValue =  new ArrayList<>();
+									preFunctionValue.add(postFunctionFrontendValue);
+									postFunctionConfigVO.setAccess(postFunctionValue);
+
+									preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+									preFunctionPluginVO.setConfig(preFunctionConfigVO);
+
+									postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
+									postFunctionPluginVO.setConfig(postFunctionConfigVO);
+
+									preFunctionRequestVO.setData(preFunctionPluginVO);
+									postFunctionRequestVO.setData(postFunctionPluginVO);
+
+									attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+									attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+
+								}
+							}
+						}
+						else{
+							GenericMessage deletePluginResponse = new GenericMessage();
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+						}
 					}
 					
 				}
@@ -937,6 +1045,47 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		response.setErrors(errors);
 		return response;
 	
+	}
+
+	@Override
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
+
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
+
+			HttpEntity<AttachFunctionPluginRequestVO> entity = new HttpEntity<AttachFunctionPluginRequestVO>(attachFunctionPluginRequestVO,headers);			
+			ResponseEntity<String> attachFunctionPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachFunctionPluginResponse != null && attachFunctionPluginResponse.getStatusCode()!=null) {
+				if(attachFunctionPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachFunctionPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachFunctionPluginRequestVO.getData().getName(), serviceName,  attachFunctionPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachFunctionPluginResponse.getBody() + " Response Code is : " + attachFunctionPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to Add Function Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachFunctionPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 
 }

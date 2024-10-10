@@ -36,6 +36,7 @@ import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.daimler.data.dto.kongGateway.AttachFunctionPluginVO;
 
 public interface KongClient {
 
@@ -66,4 +67,7 @@ public interface KongClient {
 	public GenericMessage deleteService(String serviceName);
 
 	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
+  
+	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName);
+
 }
