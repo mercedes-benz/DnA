@@ -31,7 +31,8 @@ const SubscriptionCard = (ISubscriptionData: any) => {
     if(url.length > 0){
       window.open(url)
     } else {
-      history.push('/powerplatform/shared');
+      localStorage.setItem('modal', 'shared');
+      history.push('/powerplatform');
     }
   }
 
