@@ -236,18 +236,21 @@ const AllCodeSpaces = (props) => {
                         </small>
                     </div>
                     <div className={classNames(Styles.listHeader)}>
-                        {codeSpaces?.length ? (
-                            <>
-                                <button
-                                    className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-icon-circle'}
-                                    tooltip-data="Refresh"
-                                    onClick={getCodeSpacesData}
-                                >
-                                    <i className="icon mbc-icon refresh" />
-                                </button>
-                            </>
-                        ) : null}
-
+                        <button
+                            className={'btn btn-primary'}
+                            tooltip-data="Refresh"
+                            onClick={getCodeSpacesData}
+                        >
+                            <i className="icon mbc-icon refresh" />
+                        </button>
+                        <button
+                            className={classNames('btn btn-primary', Styles.newRecipe)}
+                            type="button"
+                            onClick={() => { history.push('/codespaceRecipes/codespace') }}
+                        >
+                            <i className={'icon mbc-icon plus'} />
+                            <span>&nbsp;Add New Recipe</span>
+                        </button>
                         <button
                             className={classNames('btn btn-primary', Styles.configIcon)}
                             type="button"
@@ -265,6 +268,7 @@ const AllCodeSpaces = (props) => {
                             <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
                             <span>Video Tutorials</span>
                         </button>
+                                          
                     </div>
                 </div>
                 {loading ? (
