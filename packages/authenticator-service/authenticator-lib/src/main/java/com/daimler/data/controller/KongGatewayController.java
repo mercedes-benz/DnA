@@ -448,6 +448,41 @@ public class KongGatewayController implements KongApi{
 		
 	}
 
+	@Override
+	@ApiOperation(value = "update status of a  plugin.", nickname = "upatePluginStatus", notes = "update status plugin", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/plugins/{pluginName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> upatePluginStatus(String serviceName, String pluginName, Boolean enable){
+		GenericMessage response = new GenericMessage();		
+		try {
+			if(Objects.nonNull(serviceName) && Objects.nonNull(pluginName) && Objects.nonNull(enable)) {
+				response = kongClient.updatePluginStatus(serviceName, pluginName,enable);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Kong plugin {} updated the status successfully", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			else {
+				LOGGER.info("Kong plugin {} update status  failed", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+							
+		}catch(Exception e) {
+			LOGGER.error("Failed to update status of Kong plugin {} with exception {} ", pluginName,e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 //	@Override
 //	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
 //		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
