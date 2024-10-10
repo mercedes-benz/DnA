@@ -68,4 +68,5 @@ public interface KongClient {
 
 	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName);
 	
+	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
 }
