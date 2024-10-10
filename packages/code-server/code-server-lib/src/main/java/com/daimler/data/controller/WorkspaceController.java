@@ -79,6 +79,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailCollectionVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
@@ -1859,10 +1860,18 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    ResponseEntity<CodeSpaceReadmeVo> getReadme(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id) {
-		
-		
-		return null;
+	public ResponseEntity<CodeSpaceReadmeVo> getReadme(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id) {
+		CodeSpaceReadmeVo codeSpaceReadmeVo = new CodeSpaceReadmeVo();
+		try {
+			codeSpaceReadmeVo = service.getCodeSpaceReadmeFile(id);
+			if (codeSpaceReadmeVo != null && codeSpaceReadmeVo.getFile()!=null) {
+				return new ResponseEntity<>(codeSpaceReadmeVo, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
    	@Override
