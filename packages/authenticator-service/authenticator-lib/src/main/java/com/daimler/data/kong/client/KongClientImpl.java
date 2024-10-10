@@ -750,7 +750,8 @@ public class KongClientImpl implements KongClient {
 		return pluginIdMap;
 	}
 
-	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName){
+  @Override
+  public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName){
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
@@ -768,7 +769,7 @@ public class KongClientImpl implements KongClient {
 			functionPluginConfigRequestDto.setAccess(functionPluginConfigVO.getAccess());
 			requestWrapper.setName(attachFunctionPluginVO.getName());
 			requestWrapper.setConfig(functionPluginConfigRequestDto);
-						
+
 			HttpEntity<AttachFunctionPluginWrapperDto> functionPluginRequest = new HttpEntity<AttachFunctionPluginWrapperDto>(requestWrapper, headers);
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, functionPluginRequest, String.class);
 			if (response != null && response.hasBody()) {
@@ -806,8 +807,78 @@ public class KongClientImpl implements KongClient {
 		}
 		return message;
 	}
+  
+  @Override
+	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable){
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
 
+		try {
+			Map<String,String>pluginIdMap = getPluginIds(serviceName,pluginName);
+			if(!pluginIdMap.isEmpty()){
+				String PluginIdToUpdate = pluginIdMap.get(pluginName);
+				if(PluginIdToUpdate!=null){
+					String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins/" + PluginIdToUpdate;
+					HttpHeaders headers = new HttpHeaders();
+					headers.set("Accept", "application/json");
+					headers.set("Content-Type", "application/x-www-form-urlencoded");
 
+					MultiValueMap<String, Boolean> body = new LinkedMultiValueMap<>();
+        			body.add("enabled", enable);
+					HttpEntity<MultiValueMap<String, Boolean>> requestEntity = new HttpEntity<>(body, headers);
+					ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.PATCH, requestEntity, String.class);
+					if (response != null) {
+						HttpStatus statusCode = response.getStatusCode();
+						if (statusCode.is2xxSuccessful()) {
+							message.setSuccess("Success");		
+							message.setErrors(errors);
+							message.setWarnings(warnings);
+							LOGGER.info("Kong plugin:{} for the service {} updated successfully", pluginName, serviceName);
+							return message;
+						}
+
+					}
+				}
+				LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+			}
+			else{
+				LOGGER.error("plugin {} does not exist", pluginName);
+				messageDescription.setMessage("plugin does not exist");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("plugin {} does not exist", pluginName);
+			messageDescription.setMessage("plugin does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception: {} occured while updating plugin: {} details", ex.getMessage(), pluginName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while updating plugin: {} details", e.getMessage(), pluginName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+
+		return message;
+	}
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
 //		
