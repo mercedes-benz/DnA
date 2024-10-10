@@ -1,9 +1,13 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Styles from './power-platform-environment-table.scss';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 const PowerPlatformEnvironmentTable = ({ environment }) => {
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, []);
 
   return (
     <div className={Styles.projectRow}>
@@ -14,8 +18,8 @@ const PowerPlatformEnvironmentTable = ({ environment }) => {
       </div>
       <div className={Styles.col2}>
         {environment?.state === 'REQUESTED' && <div className={Styles.requested}><i className={classNames('icon mbc-icon check circle')}></i> <span>Requested</span></div>}
-        {environment?.state === 'APPROVED' && <div className={Styles.approved}><i className={classNames('icon mbc-icon check circle')}></i> <span>Approved</span></div>}
-        {environment?.state === 'REJECTED' && <div className={Styles.rejected}><i className={classNames('icon mbc-icon close circle')}></i> <span>Rejected</span></div>}
+        {environment?.state === 'APPROVED' && <div className={Styles.approved}><i className={classNames('icon mbc-icon check circle')} tooltip-data={environment?.comments}></i> <span>Approved</span></div>}
+        {environment?.state === 'REJECTED' && <div className={Styles.rejected}><i className={classNames('icon mbc-icon close circle')} tooltip-data={environment?.comments}></i> <span>Rejected</span></div>}
       </div>
       <div className={Styles.col3}>
         {environment?.requestedOn ? regionalDateAndTimeConversionSolution(environment?.requestedOn) : 'N/A'}
