@@ -249,6 +249,8 @@ public class KongClientImpl implements KongClient {
 				attachPluginConfigRequestDto.setRedirect_uri(attachPluginConfigVO.getRedirectUri());
 				attachPluginConfigRequestDto.setRevoke_tokens_on_logout(attachPluginConfigVO.getRevokeTokensOnLogout());
 				attachPluginConfigRequestDto.setRecovery_page_path(attachPluginConfigVO.getRecoveryPagePath());
+				attachPluginConfigRequestDto.setFilters(attachPluginConfigVO.getFilters());
+				attachPluginConfigRequestDto.setIgnore_auth_filters(attachPluginConfigVO.getIgnoreAuthFilters());
 				requestWrapper.setConfig(attachPluginConfigRequestDto);
 				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
 						requestWrapper, headers);
@@ -600,6 +602,7 @@ public class KongClientImpl implements KongClient {
 			apiAuthoriserPluginConfigRequestDto.setUserinfoIntrospectionUri(apiAuthoriserPluginConfigVO.getUserinfoIntrospectionUri());
 			apiAuthoriserPluginConfigRequestDto.setLogType(apiAuthoriserPluginConfigVO.getLogType());
 			apiAuthoriserPluginConfigRequestDto.setEnv(apiAuthoriserPluginConfigVO.getEnv());
+			apiAuthoriserPluginConfigRequestDto.setProjectName(apiAuthoriserPluginConfigVO.getProjectName());
 			requestWrapper.setName(attachApiAuthoriserPluginVO.getName());
 			requestWrapper.setConfig(apiAuthoriserPluginConfigRequestDto);
 						
@@ -745,6 +748,80 @@ public class KongClientImpl implements KongClient {
 		}
 		return pluginIdMap;
 	}
+	
+
+	@Override
+	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable){
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		
+		try {
+			Map<String,String>pluginIdMap = getPluginIds(serviceName,pluginName);
+			if(!pluginIdMap.isEmpty()){
+				String PluginIdToUpdate = pluginIdMap.get(pluginName);
+				if(PluginIdToUpdate!=null){
+					String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins/" + PluginIdToUpdate;
+					HttpHeaders headers = new HttpHeaders();
+					headers.set("Accept", "application/json");
+					headers.set("Content-Type", "application/x-www-form-urlencoded");
+
+					MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        			body.add("enabled", enable);
+					HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
+					ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.PATCH, entity, String.class);
+					if (response != null) {
+						HttpStatus statusCode = response.getStatusCode();
+						if (statusCode.is2xxSuccessful()) {
+							message.setSuccess("Success");		
+							message.setErrors(errors);
+							message.setWarnings(warnings);
+							LOGGER.info("Kong plugin:{} for the service {} updated successfully", pluginName, serviceName);
+							return message;
+						}
+						
+					}
+				}
+				LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+			}
+			else{
+				LOGGER.error("plugin {} does not exist", pluginName);
+				messageDescription.setMessage("plugin does not exist");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("plugin {} does not exist", pluginName);
+			messageDescription.setMessage("plugin does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception: {} occured while updating plugin: {} details", ex.getMessage(), pluginName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while updating plugin: {} details", e.getMessage(), pluginName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+	
+		return message;
+	}
+
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
 //		
