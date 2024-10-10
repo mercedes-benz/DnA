@@ -454,7 +454,6 @@ public class KongGatewayController implements KongApi{
 	@ApiOperation(value = "Attach functionPlugin to service.", nickname = "attachFunctionPlugin", notes = "Attach functionPlugin to service.", response = GenericMessage.class, tags={ "kong", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
-        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
         @ApiResponse(code = 403, message = "Request is not authorized."),
@@ -489,10 +488,11 @@ public class KongGatewayController implements KongApi{
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-   @Override
-   @ApiOperation(value = "update status of a  plugin.", nickname = "upatePluginStatus", notes = "update status plugin", response = GenericMessage.class, tags={ "kong", })
+	}
+  
+  @Override
+	@ApiOperation(value = "update status of a  plugin.", nickname = "upatePluginStatus", notes = "update status plugin", response = GenericMessage.class, tags={ "kong", })
     @ApiResponses(value = { 
-       @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
         @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -518,13 +518,12 @@ public class KongGatewayController implements KongApi{
 				LOGGER.info("Kong plugin {} update status  failed", pluginName);
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-							
+
 		}catch(Exception e) {
 			LOGGER.error("Failed to update status of Kong plugin {} with exception {} ", pluginName,e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-  
 //	@Override
 //	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
 //		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
