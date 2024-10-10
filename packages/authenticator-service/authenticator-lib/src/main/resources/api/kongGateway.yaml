@@ -967,7 +967,9 @@ definitions:
       enableUserinfoIntrospection: 
         type : boolean     
       env:
-        type : string     
+        type : string  
+      projectName:
+        type : string
 
  AttachFunctionPluginRequestVO:
     type: object

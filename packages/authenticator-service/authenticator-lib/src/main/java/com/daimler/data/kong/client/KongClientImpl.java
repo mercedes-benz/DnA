@@ -604,6 +604,7 @@ public class KongClientImpl implements KongClient {
 			apiAuthoriserPluginConfigRequestDto.setUserinfoIntrospectionUri(apiAuthoriserPluginConfigVO.getUserinfoIntrospectionUri());
 			apiAuthoriserPluginConfigRequestDto.setLogType(apiAuthoriserPluginConfigVO.getLogType());
 			apiAuthoriserPluginConfigRequestDto.setEnv(apiAuthoriserPluginConfigVO.getEnv());
+			apiAuthoriserPluginConfigRequestDto.setProjectName(apiAuthoriserPluginConfigVO.getProjectName());
 			requestWrapper.setName(attachApiAuthoriserPluginVO.getName());
 			requestWrapper.setConfig(apiAuthoriserPluginConfigRequestDto);
 						
@@ -807,14 +808,14 @@ public class KongClientImpl implements KongClient {
 		}
 		return message;
 	}
-  
+
   @Override
 	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable){
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-
+		
 		try {
 			Map<String,String>pluginIdMap = getPluginIds(serviceName,pluginName);
 			if(!pluginIdMap.isEmpty()){
@@ -876,7 +877,7 @@ public class KongClientImpl implements KongClient {
 			errors.add(messageDescription);
 			message.setErrors(errors);
 		}
-
+          
 		return message;
 	}
 //	@Override

@@ -323,6 +323,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
 		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
+		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
 		if("prod".equalsIgnoreCase(env)){
@@ -596,6 +597,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											apiAuthoriserPluginConfigVO.setLogType(logType);
 											apiAuthoriserPluginConfigVO.setPoolID(poolID);
 											apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+											apiAuthoriserPluginConfigVO.setProjectName(projectName);
 	
 											apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
 											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
@@ -711,7 +713,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
 									attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
-
+                  
 								}
 							}
 						}
