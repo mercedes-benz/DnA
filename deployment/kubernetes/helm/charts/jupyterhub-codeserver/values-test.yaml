@@ -117,6 +117,9 @@ hub:
               # Set App Name
               args += ["--app-name", "DnACodeSpace"]
 
+              # Set non root domain
+              args += ["--abs-proxy-base-path", f"/user/{username}/{servername}"]
+
               # set port and ip if given
               ip = "0.0.0.0"
               if self.ip:
