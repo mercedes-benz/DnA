@@ -239,9 +239,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldFocus = () => {
     this.setState({ isFocused: true });
-    this.props.showAllTagsOnFocus && this.setState({
-      filteredTags: [...this.props.tags],
-    });
+    if(this.props.showAllTagsOnFocus){
+      this.setState({filteredTags: this.props.tags})
+    }
   };
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
