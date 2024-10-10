@@ -180,7 +180,7 @@ jobs:
               - 'packages/power-platform-mfe/**'
               - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'
             power-platform-be:
-              - 'packages/power-platform-be/**'
+              - 'packages/powerplatform-backend/**'
               - 'deployment/dockerfiles/power-platform/power-platform-be.Dockerfile'                                                  
                 
 
@@ -621,8 +621,8 @@ jobs:
           IS_OVERRIDE_REQUIRED: true
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           IS_REACT_APP: false
-          CODE_FOLDER: 'packages/power-platform-be'
-          APP_VERSION_FILE_PATH: 'packages/power-platform-be/lib/src/main/resources/application.yml'
+          CODE_FOLDER: 'packages/powerplatform-backend'
+          APP_VERSION_FILE_PATH: 'packages/powerplatform-backend/lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/power-platform-be'
           YML_IMAGE_TAG_PATH: 'image.tag'                        
         secrets: inherit
