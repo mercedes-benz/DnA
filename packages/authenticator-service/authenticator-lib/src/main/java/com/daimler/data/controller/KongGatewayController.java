@@ -471,7 +471,7 @@ public class KongGatewayController implements KongApi{
 		AttachFunctionPluginVO attachFunctionPluginVO = attachFunctionPluginRequestVO.getData();
 		try {
 			if(Objects.nonNull(attachFunctionPluginVO) && Objects.nonNull(serviceName)) {
-				//response = kongClient.attachApiAuthoriserPluginToService(attachFunctionPluginVO, serviceName);
+				response = kongClient.attachFunctionPluginToService(attachFunctionPluginVO, serviceName);
 			}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
 				LOGGER.info("Plugin: {} attached successfully to the service {}", attachFunctionPluginVO.getName(),serviceName);
