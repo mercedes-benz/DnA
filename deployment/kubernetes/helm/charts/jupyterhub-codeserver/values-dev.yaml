@@ -100,8 +100,7 @@ hub:
   labels: {}
   annotations: {}
   command: []
-  args: 
-   - "--abs-proxy-base-path ser/{username}/{servername}"
+  args: []
   extraConfig: 
     code_spawner.py: |
       from kubespawner.spawner import KubeSpawner
