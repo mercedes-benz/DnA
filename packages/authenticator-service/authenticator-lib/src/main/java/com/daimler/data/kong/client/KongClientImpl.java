@@ -764,9 +764,9 @@ public class KongClientImpl implements KongClient {
 					headers.set("Accept", "application/json");
 					headers.set("Content-Type", "application/x-www-form-urlencoded");
 
-					JSONObject jsonObject = new JSONObject();
-					jsonObject.put("enabled", enable);
-					HttpEntity entity = new HttpEntity<>(jsonObject,headers);
+					MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        			body.add("enabled", enable);
+					HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
 					ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.PATCH, entity, String.class);
 					if (response != null) {
 						HttpStatus statusCode = response.getStatusCode();
