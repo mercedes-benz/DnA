@@ -100,7 +100,8 @@ hub:
   labels: {}
   annotations: {}
   command: []
-  args: []
+  args: 
+   - "--abs-proxy-base-path ser/{username}/{servername}"
   extraConfig: 
     code_spawner.py: |
       from kubespawner.spawner import KubeSpawner
@@ -119,8 +120,6 @@ hub:
 
               # Set non root domain
               # args += ["--abs-proxy-base-path", f"/user/{self.user.name}/{self.server.name}"]
-              print("Log"+spawner.user.name)
-              print(spawner)
 
               # set port and ip if given
               ip = "0.0.0.0"
