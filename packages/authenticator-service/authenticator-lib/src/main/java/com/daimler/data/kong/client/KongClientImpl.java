@@ -808,7 +808,7 @@ public class KongClientImpl implements KongClient {
 		}
 		return message;
 	}
-      
+
   @Override
 	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable){
 		GenericMessage message = new GenericMessage();
@@ -839,7 +839,7 @@ public class KongClientImpl implements KongClient {
 							LOGGER.info("Kong plugin:{} for the service {} updated successfully", pluginName, serviceName);
 							return message;
 						}
-						
+
 					}
 				}
 				LOGGER.error("plugin {} does not exist", pluginName);
@@ -877,7 +877,7 @@ public class KongClientImpl implements KongClient {
 			errors.add(messageDescription);
 			message.setErrors(errors);
 		}
-	
+          
 		return message;
 	}
 //	@Override
