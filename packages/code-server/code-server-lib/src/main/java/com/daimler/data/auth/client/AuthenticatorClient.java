@@ -24,4 +24,6 @@ public interface AuthenticatorClient {
 
 	public GenericMessage deletePlugin(String serviceName, String pluginName);
 
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName);
+
 }
