@@ -1,5 +1,5 @@
 # Author : Sathishkumar
-FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.91.0
+FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.92.2
 COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
 USER root
 
