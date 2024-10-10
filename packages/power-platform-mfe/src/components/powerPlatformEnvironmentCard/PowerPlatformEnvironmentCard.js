@@ -45,7 +45,7 @@ const PowerPlatformEnvironmentCard = ({ environment }) => {
         <>
           <div className={Styles.statusContainer}>
             <div className={Styles.statusItem}>
-              <button onClick={() => console.log('show modal')}>
+              <button tooltip-data={(environment?.state === 'APPROVED' || environment?.state === 'REJECTED') && environment?.comments}>
                 {environment?.state === 'REQUESTED' && <div className={Styles.requested}><i className={classNames('icon mbc-icon check circle')}></i> <span>Requested</span></div>}
                 {environment?.state === 'APPROVED' && <div className={Styles.approved}><i className={classNames('icon mbc-icon check circle')}></i> <span>Approved</span></div>}
                 {environment?.state === 'REJECTED' && <div className={Styles.rejected}><i className={classNames('icon mbc-icon close circle')}></i> <span>Rejected</span></div>}

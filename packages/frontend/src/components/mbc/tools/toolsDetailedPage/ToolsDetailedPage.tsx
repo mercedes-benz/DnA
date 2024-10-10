@@ -70,7 +70,7 @@ const InfoTile = (props: any) => {
             }
             {item.moreBtn && (
               <div className={Styles.moreBtn}>
-                <button onClick={() => history.push('/powerplatform/tou')}>More</button>
+                <button onClick={() => {localStorage.setItem('modal', 'tou'); history.push('/powerplatform')}}>More</button>
               </div>
             )}
           </div>

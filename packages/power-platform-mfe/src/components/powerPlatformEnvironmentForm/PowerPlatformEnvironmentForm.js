@@ -17,7 +17,7 @@ import SharedDevelopmentTou from '../sharedDevelopmentTou/SharedDevelopmentTou';
 // Api
 import { powerPlatformApi } from '../../apis/power-platform.api';
 
-const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
+const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
 
   const { departments } = useSelector(state => state.lovs);
   
@@ -63,6 +63,7 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
   const [userLincenses, setUserLicenses] = useState([]);
 
   const handleTouAccept = () => {
+    localStorage.setItem('modal', '');
     setShowTou(false);
     setValue('termsOfUse', true);
   }
@@ -75,11 +76,11 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
         firstName: developer.firstName,
         lastName: developer.lastName,
       },
-      license: ''
+      license: 'Power-Apps-Premium-User'
     };
 
     let duplicateMember = false;
-    duplicateMember = userLincenses?.filter((license) => license.userId === developer.userId)?.length ? true : false;
+    duplicateMember = userLincenses?.filter((license) => license.userDetails.userId === developer.shortId)?.length ? true : false;
 
     const isCreator = user?.id === developer?.userId;
 
@@ -132,13 +133,13 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
     }
   }
 
-  const handleCreateProject = (values) => {
+  const handleOrderAccount = (values) => {
     ProgressIndicator.show();
     const data = formValues(values);
     powerPlatformApi.createPowerPlatformEnvironment(data).then(() => {
       ProgressIndicator.hide();
       // history.push(`/project/${res.data.data.id}`);
-      onCreateAccount();
+      onOrderAccount();
       Notification.show('Shared Developer Account created successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
@@ -422,7 +423,7 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
                                             className="ff-only"
                                             name={userLicense?.userDetails?.userId}
                                             value="Power-Virtual-Agent-User"
-                                            onChange={() => onUserLicenseClick("Power-Virtual-Agent-User", userLicense?.userId)}
+                                            onChange={() => onUserLicenseClick("Power-Virtual-Agent-User", userLicense?.userDetails?.userId)}
                                           />
                                         </span>
                                         <span>Power Virtual Agent User</span>
@@ -450,6 +451,7 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
                                             className="ff-only"
                                             name={userLicense?.userDetails?.userId}
                                             value="Power-Apps-Premium-User"
+                                            defaultChecked={true}
                                             onChange={() => onUserLicenseClick('Power-Apps-Premium-User', userLicense?.userDetails?.userId)}
                                           />
                                         </span>
@@ -510,7 +512,7 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                handleCreateProject(values);
+                handleOrderAccount(values);
               })}
             >
               Order Account
@@ -529,7 +531,7 @@ const PowerPlatformEnvironmentForm = ({ user, onCreateAccount }) => {
           show={showTou}
           content={<SharedDevelopmentTou onAccept={handleTouAccept} />}
           scrollableContent={true}
-          onCancel={() => setShowTou(false)}
+          onCancel={() => { localStorage.setItem('modal', ''); setShowTou(false); }}
         />
       }
     </>

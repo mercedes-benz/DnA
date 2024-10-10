@@ -21,11 +21,6 @@ export const protectedRoutes = [
     path: '/',
   },
   {
-    component: PowerPlatformEnvironments,
-    exact: true,
-    path: '/:account',
-  },
-  {
     component: PowerPlatformEnvironment,
     exact: true,
     path: '/workspace/:id',
