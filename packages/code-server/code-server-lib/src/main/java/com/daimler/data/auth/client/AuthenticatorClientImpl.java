@@ -155,7 +155,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.authoriserDiscovery}")
 	private String authDiscovery;
 	
+	@Value("${kong.preFunctionBackendValue}")
+	private String preFunctionBackendValue;
 
+	@Value("${kong.preFunctionFrontendValue}")
+	private String preFunctionFrontendValue;
+	
+	@Value("${kong.postFunctionFrontendValue}")
+	private String postFunctionFrontendValue;
 
 
 	@Autowired
@@ -170,9 +177,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String JWTISSUER_PLUGIN = "jwtissuer";
 	private static final String APP_AUTHORISER_PLUGIN = "appauthoriser";
 	private static final String API_AUTHORISER_PLUGIN = "apiauthoriser";
+	private static final String PRE_FUNCTION_PLUGIN ="pre-function";
+	private static final String POST_FUNCTION_PLUGIN ="post-function";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
+	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -612,7 +622,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
-						// }
 					}else{
 
 						//for non api recipes
@@ -670,6 +679,39 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 									attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
+									
+									//attaching pre and post function for frontend recipes
+									AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
+									AttachFunctionPluginRequestVO postFunctionRequestVO = new AttachFunctionPluginRequestVO();
+
+									AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
+									AttachFunctionPluginVO postFunctionPluginVO = new AttachFunctionPluginVO();
+
+									AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
+									AttachFunctionPluginConfigVO postFunctionConfigVO = new AttachFunctionPluginConfigVO();
+
+									List<String> preFunctionValue =  new ArrayList<>();
+									preFunctionValue.add(preFunctionFrontendValue);
+									preFunctionConfigVO.setAccess(preFunctionValue);
+
+									List<String> postFunctionValue =  new ArrayList<>();
+									preFunctionValue.add(postFunctionFrontendValue);
+									postFunctionConfigVO.setAccess(postFunctionValue);
+
+									preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+									preFunctionPluginVO.setConfig(preFunctionConfigVO);
+
+									postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
+									postFunctionPluginVO.setConfig(postFunctionConfigVO);
+
+									preFunctionRequestVO.setData(preFunctionPluginVO);
+									postFunctionRequestVO.setData(postFunctionPluginVO);
+
+									attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+									attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+
 								}
 							}
 						}
@@ -1003,6 +1045,47 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		response.setErrors(errors);
 		return response;
 	
+	}
+
+	@Override
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
+
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
+
+			HttpEntity<AttachFunctionPluginRequestVO> entity = new HttpEntity<AttachFunctionPluginRequestVO>(attachFunctionPluginRequestVO,headers);			
+			ResponseEntity<String> attachFunctionPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachFunctionPluginResponse != null && attachFunctionPluginResponse.getStatusCode()!=null) {
+				if(attachFunctionPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachFunctionPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachFunctionPluginRequestVO.getData().getName(), serviceName,  attachFunctionPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachFunctionPluginResponse.getBody() + " Response Code is : " + attachFunctionPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to Add Function Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachFunctionPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 
 }
