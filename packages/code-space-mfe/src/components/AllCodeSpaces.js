@@ -158,10 +158,10 @@ const AllCodeSpaces = (props) => {
     const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
-        setLoading(true);
+        serverStarted ? setLoading(true) : ProgressIndicator.show();
         CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
             .then((res) => {
-                setLoading(false);
+                serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 if (res.data.success === 'SUCCESS') {
                     Notification.show(
                         'Your Codespace for project ' +
@@ -181,7 +181,7 @@ const AllCodeSpaces = (props) => {
                 }
             })
             .catch((err) => {
-                setLoading(false);
+                serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 Notification.show(
                     'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
                     'alert',
