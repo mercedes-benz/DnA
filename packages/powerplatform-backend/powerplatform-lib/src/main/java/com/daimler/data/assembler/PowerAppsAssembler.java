@@ -9,7 +9,7 @@ import com.daimler.data.dto.powerapps.PowerAppVO;
 public class PowerAppsAssembler implements GenericAssembler<PowerAppVO, PowerAppNsql> {
 
 	@Override
-	public PowerAppVO toVo(PowerAppNsql e) {
+	public PowerAppVO toVo(PowerAppNsql entity) {
 		// TODO Auto-generated method stub
 		return null;
 	}

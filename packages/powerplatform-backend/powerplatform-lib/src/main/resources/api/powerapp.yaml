@@ -86,7 +86,7 @@ paths:
           type: integer
         - name: sortBy
           in: query
-          description: Sort workspaces by a given variable like name, createdOn
+          description: Sort workspaces by a given variable like name, requestedOn, state
           required: false
           type: string
           enum: [name, createdOn]
@@ -126,7 +126,7 @@ paths:
           description: "Request Body that contains data required for creating a new workspace"
           required: true
           schema:
-            $ref: "#/definitions/PowerAppCreateRequestVO"    
+            $ref: "#/definitions/PowerAppCreateRequestWrapperVO"    
       responses:
         201:
           description: "Returns message of succes or failure "
@@ -303,13 +303,52 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/PowerAppVO"
-  
+
   PowerAppCreateRequestVO:
     description: "Object to hold request to create new power platform subscription request"
     type: object
     properties:
+      name:
+        type: string
+        description: "Name of the Power platform app"
+        maxLength: 100
+      subscriptionType:
+        type: string
+      envOwnerName:
+        type: string
+      envOwnerId:
+        type: string
+      dyEnvOwnerName:
+        type: string
+      dyEnvOwnerid:
+        type: string
+      department:
+        type: string
+      environment:
+        type: string
+        enum: ["shared-dev","shared-int","dedicated-prodConfidential"]
+      prodEnvAvailability:
+        type: string
+        enum: ["Immediate","Later"]
+      billingContact:
+        type: string
+      billingPlant:
+        type: string
+      billingCostCentre:
+        type: string
+      customRequirements:
+        type: string
+      developers:
+        type: array
+        items:
+         $ref: "#/definitions/DeveloperVO"
+          
+  PowerAppCreateRequestWrapperVO:
+    description: "Object to hold request to create new power platform subscription request"
+    type: object
+    properties:
       data:
-        $ref: "#/definitions/PowerAppVO"
+        $ref: "#/definitions/PowerAppCreateRequestVO"
   
   PowerAppResponseVO:
     description: "Response object for power app operations"
@@ -317,7 +356,7 @@ definitions:
     properties:
       data:
         $ref: "#/definitions/PowerAppVO"
-      responses:
+      response:
         $ref: "#/definitions/GenericMessage"
       
   DeveloperVO:

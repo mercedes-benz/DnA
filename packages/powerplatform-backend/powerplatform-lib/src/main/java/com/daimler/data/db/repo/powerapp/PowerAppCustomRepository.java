@@ -25,12 +25,19 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.powerapp;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
 import com.daimler.data.db.entities.PowerAppNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface PowerAppRepository extends JpaRepository<PowerAppNsql, String> {
+public interface PowerAppCustomRepository extends CommonDataRepository<PowerAppNsql, String> {
+
+	List<PowerAppNsql> getAll(String userId, int offset, int limit);
+
+	long getTotalCount(String userId);
+
+	PowerAppNsql findbyUniqueLiteral(String name);
 
 }

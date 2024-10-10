@@ -25,13 +25,18 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.powerapp;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
@@ -50,7 +55,8 @@ public class PowerAppCustomRepositoryImpl extends CommonDataRepositoryImpl<Power
 	@Override
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = " select count(*) from powerapp_nsql where  (lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user +"') ";
+		String getCountStmt = " select count(*) from powerapp_nsql where  ((lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user +
+				"') or (lower(jsonb_extract_path_text(data,'developers')) similar to '%"+ user + "%'))";
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
@@ -59,7 +65,8 @@ public class PowerAppCustomRepositoryImpl extends CommonDataRepositoryImpl<Power
 	@Override
 	public List<PowerAppNsql> getAll(String userId, int offset, int limit){
 		String user = userId.toLowerCase();
-		String getAllStmt = " select cast(id as text), cast(data as text) from powerapp_nsql where  (lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user +"')";
+		String getAllStmt = " select cast(id as text), cast(data as text) from powerapp_nsql where  ((lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user +
+				"') or (lower(jsonb_extract_path_text(data,'developers')) similar to '%"+ user + "%'))";
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
 		if (offset >= 0)
@@ -83,4 +90,25 @@ public class PowerAppCustomRepositoryImpl extends CommonDataRepositoryImpl<Power
 		return convertedResults;
 	}
 
+	@Override
+	public PowerAppNsql findbyUniqueLiteral(String name) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<PowerAppNsql> cq = cb.createQuery(PowerAppNsql.class);
+		Root<PowerAppNsql> root = cq.from(PowerAppNsql.class);
+		CriteriaQuery<PowerAppNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("name"))),
+				name.toLowerCase());
+		Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("state"))),
+				"REJECTED".toLowerCase());
+		Predicate consolidatedCondition = cb.and(con1,con2);
+		cq.where(consolidatedCondition);
+		TypedQuery<PowerAppNsql> byNameQuery = em.createQuery(byName);
+		List<PowerAppNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+	}
 }
