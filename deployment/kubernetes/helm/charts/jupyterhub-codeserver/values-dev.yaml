@@ -118,7 +118,8 @@ hub:
               args += ["--app-name", "DnACodeSpace"]
 
               # Set non root domain
-              args += ["--abs-proxy-base-path", f"/user/{self.user.name}/{self.server.name}"]
+              # args += ["--abs-proxy-base-path", f"/user/{self.user.name}/{self.server.name}"]
+              printf(self)
 
               # set port and ip if given
               ip = "0.0.0.0"
