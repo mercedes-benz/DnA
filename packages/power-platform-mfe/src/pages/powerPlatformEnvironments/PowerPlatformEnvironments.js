@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
 import Styles from './power-platform-environments.scss';
 // dna-container
 import Caption from 'dna-container/Caption';
@@ -21,10 +20,15 @@ import { getLovs } from '../../redux/lovsSlice';
 import { Envs } from '../../utilities/envs';
 
 const PowerPlatformEnvironments = ({user}) => {
-  const history = useHistory();
   const dispatch = useDispatch();
-  
-  const { account } = useParams();
+
+  const [isSharedModal, setIsSharedModal] = useState(false);
+  const [isTouModal, setIsTouModal] = useState(false);
+
+  useEffect(() => {
+    setIsSharedModal(localStorage.getItem('modal') === 'shared' ? true : false);
+    setIsTouModal(localStorage.getItem('modal') === 'tou' ? true : false);
+  }, []);
 
   useEffect(() => {
     dispatch(getLovs());
@@ -35,11 +39,19 @@ const PowerPlatformEnvironments = ({user}) => {
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
   const [environments, setEnvironments] = useState([]);
-  const [createAccount, setCreateAccount] = useState(account === 'shared' ? true : false);
+  const [orderAccount, setOrderAccount] = useState(isSharedModal);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [, setEditEnvironment]  = useState(false);
-  const [showTou, setShowTou] = useState(account === 'tou' ? true : false);
+  const [showTou, setShowTou] = useState(isTouModal);
+
+  useEffect(() => {
+    setOrderAccount(isSharedModal);
+  }, [isSharedModal]);
+
+  useEffect(() => {
+    setShowTou(isTouModal);
+  }, [isTouModal]);
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -235,7 +247,7 @@ const PowerPlatformEnvironments = ({user}) => {
           </div>
         )}
       </div>
-      { createAccount &&
+      { orderAccount &&
         <Modal
           title={'Order Power Platform Account'}
           hiddenTitle={true}
@@ -243,10 +255,10 @@ const PowerPlatformEnvironments = ({user}) => {
           showCancelButton={false}
           modalWidth={'1100px'}
           buttonAlignment="right"
-          show={createAccount}
-          content={<PowerPlatformEnvironmentForm user={user} edit={false} onCreateAccount={() => history.push('/')} />}
+          show={orderAccount}
+          content={<PowerPlatformEnvironmentForm user={user} onOrderAccount={() => { localStorage.setItem('modal', ''); setOrderAccount(false) }} />}
           scrollableContent={true}
-          onCancel={() => { history.push('/'); setCreateAccount(false) }}
+          onCancel={() => { localStorage.setItem('modal', ''); setOrderAccount(false) }}
         />
       }
       <ConfirmModal
@@ -271,7 +283,7 @@ const PowerPlatformEnvironments = ({user}) => {
           show={showTou}
           content={<SharedDevelopmentTou hideAccept={true} />}
           scrollableContent={true}
-          onCancel={() => setShowTou(false)}
+          onCancel={() => {localStorage.setItem('modal', ''); setShowTou(false)}}
         />
       }
     </>
