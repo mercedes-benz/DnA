@@ -117,6 +117,9 @@ hub:
               # Set App Name
               args += ["--app-name", "DnACodeSpace"]
 
+              # Set non root domain
+              args += ["--abs-proxy-base-path", f"/user/{username}/{servername}"]
+
               # set port and ip if given
               ip = "0.0.0.0"
               if self.ip:
@@ -534,27 +537,7 @@ singleuser:
           set -e
 
           if [ -d "/home/coder/app" ]; then
-              echo "Directory is already present"
-              if [ -d "$HOME/.sdkman" ]; then
-                  echo "SDKMAN! is already installed."
-              else
-                  echo "Installing SDKMAN for $SHORTID on Workspace $HOSTNAME"
-                  curl -s --insecure "https://get.sdkman.io" | bash
-                  if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
-                      chmod +x $HOME/.sdkman/bin/sdkman-init.sh
-                      source "$HOME/.sdkman/bin/sdkman-init.sh"
-                      echo "SDKMAN! installed."
-                      # Install OpenJDK (defaulting to version 17)
-                      sdk install java 17-open
-                      echo "Setting java version 17 as default"
-                      sdk default java 17-open
-                      echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> ~/.bashrc
-                      echo '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"' >> ~/.bashrc
-                      sdk flush
-                  else
-                      echo "SDKMAN! installation failed."
-                  fi
-              fi            
+              echo "Directory is already present"           
           else
               mkdir -p /home/coder/app
               echo "Cloning the workspace"
@@ -640,7 +623,7 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.92.2"
+    tag: "4.93.1"
     pullPolicy:
     pullSecrets: 
       - name: imagepullsecret
@@ -663,7 +646,7 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         image_pull_policy: Always
         start_timeout: 900
         http_timeout: 900
@@ -671,12 +654,12 @@ singleuser:
       slug: "react"
       description: "Development environment for React  web Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -713,12 +696,12 @@ singleuser:
       slug: "springboot"
       description: "Development environment for Spring Boot Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -751,12 +734,12 @@ singleuser:
       slug: "angular"
       description: "Development environment for Angular Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -789,12 +772,12 @@ singleuser:
       slug: "generic"
       description: "Generic development envirnoment with git cloning option"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -827,12 +810,12 @@ singleuser:
       slug: "py-fastapi"
       description: "Development environment for Python fastapi Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -865,12 +848,12 @@ singleuser:
       slug: "micronaut"
       description: "Development environment for Micronaut Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -903,12 +886,12 @@ singleuser:
       slug: "quarkus"
       description: "Development environment for Quarkus Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -941,12 +924,12 @@ singleuser:
       slug: "dash"
       description: "Development environment for Dash Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -979,12 +962,12 @@ singleuser:
       slug: "streamlit"
       description: "Development environment for Streamlit Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1017,12 +1000,12 @@ singleuser:
       slug: "vuejs"
       description: "Development environment for Vuejs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1055,12 +1038,12 @@ singleuser:
       slug: "expressjs"
       description: "Development environment for Expressjs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1093,12 +1076,12 @@ singleuser:
       slug: "nestjs"
       description: "Development environment for Nestjs Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1131,12 +1114,12 @@ singleuser:
       slug: "bat-frontend"
       description: "Development environment for BAT frontend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1173,12 +1156,12 @@ singleuser:
       slug: "bat-backend"
       description: "Development environment for BAT backend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1342,12 +1325,12 @@ singleuser:
       slug: "qilin-frontend"
       description: "Development environment for Qilin frontend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1384,12 +1367,12 @@ singleuser:
       slug: "qilin-backend"
       description: "Development environment for Qilin backend"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1426,7 +1409,7 @@ singleuser:
       slug: "template"
       description: "Development environment using default template"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         image_pull_policy: Always
         start_timeout: 360
         http_timeout: 360
@@ -1434,12 +1417,12 @@ singleuser:
       slug: "springbootwithmaven"
       description: "Development environment for Spring Boot with Maven Rest API Applications"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
@@ -1496,12 +1479,12 @@ singleuser:
       slug: "c4s-vbom"
       description: "Development environment for c4s-vbom"
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
         start_timeout: 360
         http_timeout: 360
         init_containers:
           - name: copy-pkg-install-sh 
-            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.92.2
+            image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
             command:
               - sh
               - '-c'
