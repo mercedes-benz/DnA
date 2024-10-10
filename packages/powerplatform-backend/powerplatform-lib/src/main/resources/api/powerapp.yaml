@@ -246,10 +246,10 @@ definitions:
         type: string
       environment:
         type: string
-        enum: ["shared-dev","shared-int","dedicated-prodConfidential"]
+        #enum: ["shared-dev","shared-int","dedicated-prodConfidential"]
       prodEnvAvailability:
         type: string
-        enum: ["Immediate","Later"]
+        #enum: ["Immediate","Later"]
       billingContact:
         type: string
       billingPlant:
@@ -272,7 +272,7 @@ definitions:
         format: date
       state:
         type: string
-        enum: ["Requested","Approved","Rejected"]
+        #enum: ["Requested","Approved","Rejected"]
       comments:
         type: string
       url:

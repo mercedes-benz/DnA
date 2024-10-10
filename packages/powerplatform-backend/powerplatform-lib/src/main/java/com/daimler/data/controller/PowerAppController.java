@@ -2,6 +2,7 @@ package com.daimler.data.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.powerapps.PowerappsApi;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.PowerAppsAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.powerapps.CreatedByVO;
@@ -30,6 +32,7 @@ import com.daimler.data.dto.powerapps.PowerAppResponseVO;
 import com.daimler.data.dto.powerapps.PowerAppUpdateRequestVO;
 import com.daimler.data.dto.powerapps.PowerAppVO;
 import com.daimler.data.service.powerapp.PowerAppService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,6 +50,9 @@ public class PowerAppController implements PowerappsApi
 	@Autowired
 	private PowerAppService service;
 
+	@Autowired
+	private PowerAppsAssembler assembler;
+	
 	@Autowired
 	private UserStore userStore;
 	
@@ -72,8 +78,8 @@ public class PowerAppController implements PowerappsApi
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<PowerAppResponseVO> create(@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO){
+		PowerAppResponseVO responseVO = new PowerAppResponseVO();
 		if(powerAppCreateVO!= null) {
-			PowerAppResponseVO responseVO = new PowerAppResponseVO();
 			PowerAppCreateRequestVO projectCreateVO = powerAppCreateVO.getData();
 			String name = projectCreateVO.getName();
 			PowerAppVO existingApp = service.findbyUniqueLiteral(name);
@@ -105,9 +111,34 @@ public class PowerAppController implements PowerappsApi
 			}
 			CreatedByVO requestUser = this.userStore.getVO();
 			List<MessageDescription> errors = new ArrayList<>();
-			//proceed
+			PowerAppVO vo = new PowerAppVO();
+			vo = assembler.toVo(projectCreateVO);
+			vo.setRequestedBy(requestUser);
+			vo.setRequestedOn(new Date());
+			vo.setState(ConstantsUtility.REQUESTED_STATE);
+			try {
+				PowerAppVO createdVO = service.create(vo);
+				if (createdVO != null && createdVO.getId() != null) {
+					GenericMessage successResponse = new GenericMessage();
+					successResponse.setSuccess("SUCCESS");
+					successResponse.setErrors(null);
+					successResponse.setWarnings(null);
+					responseVO.setData(createdVO);
+					responseVO.setResponse(successResponse);
+					log.info("Power app Project {} created successfully by requestor {} ", name, requestUser.getId());
+					return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
+				}
+			}catch(Exception e) {
+				log.error("Failed to create powerapp {} requestedBy {} with exception {}",projectCreateVO.getName(),requestUser.getId(),e.getMessage());
+				MessageDescription invalidMsg = new MessageDescription("Failed to create power app request with unknown error. Please try again.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess(HttpStatus.INTERNAL_SERVER_ERROR.name());
+				errorMessage.addWarnings(invalidMsg);
+				responseVO.setData(vo);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}else {
-			PowerAppResponseVO responseVO = new PowerAppResponseVO();
 			MessageDescription invalidMsg = new MessageDescription("Bad request, please fill all required fields and retry.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -116,7 +147,13 @@ public class PowerAppController implements PowerappsApi
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
-		return null;
+		MessageDescription invalidMsg = new MessageDescription("Failed to create power app request with unknown error. Please try again.");
+		GenericMessage errorMessage = new GenericMessage();
+		errorMessage.setSuccess(HttpStatus.INTERNAL_SERVER_ERROR.name());
+		errorMessage.addWarnings(invalidMsg);
+		responseVO.setData(null);
+		responseVO.setResponse(errorMessage);
+		return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 
