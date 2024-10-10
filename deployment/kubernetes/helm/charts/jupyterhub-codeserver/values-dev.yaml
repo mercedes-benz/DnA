@@ -100,8 +100,7 @@ hub:
   labels: {}
   annotations: {}
   command: []
-  args:
-    - "-vvv"
+  args: []
   extraConfig: 
     code_spawner.py: |
       from kubespawner.spawner import KubeSpawner
