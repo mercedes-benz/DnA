@@ -119,7 +119,15 @@ hub:
 
               # Set non root domain
               # args += ["--abs-proxy-base-path", f"/user/{self.user.name}/{self.server.name}"]
-
+              # Get the username
+              username = self.user.name
+              
+              # Get the server name
+              servername = self.name
+              
+              # Print or log the username and server name
+              print(f"Starting server for user: {username}, server name: {servername}")
+              
               # set port and ip if given
               ip = "0.0.0.0"
               if self.ip:
