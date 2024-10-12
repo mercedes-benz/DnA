@@ -38,6 +38,9 @@ public class RepoSoftwareFileUpdate {
     @Value("${codeServer.git.orgname}")
     private String orgName;
 
+    @Value("${codeserver.recipe.software.filename}")
+	private String gitFileName;
+
     @Autowired
     private GitClient gitClient;
 
@@ -349,7 +352,7 @@ public class RepoSoftwareFileUpdate {
             gitUrl = gitHubUrl.replace("/" + repoOwner, "");
             gitUrl = gitUrl.replace("/" + repoName, "");
             log.info("repo creation for url "+gitHubUrl);
-            JSONObject jsonResponse = gitClient.getSoftwareFileFromGit(repoName, repoOwner, gitUrl);
+            JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName);
             if (jsonResponse != null && jsonResponse.has("name") && jsonResponse.has("content")) {
                 softwareFileName = jsonResponse.getString("name");
                 SHA = jsonResponse.has("sha") ? jsonResponse.getString("sha") : null;
