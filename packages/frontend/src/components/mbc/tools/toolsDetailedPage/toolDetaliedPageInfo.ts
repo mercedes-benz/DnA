@@ -13,66 +13,53 @@ export const ToolsDetailedPageElements = [
         "description": "eg: bring your excel files into a common format"
       },
       {
-        "icon": "dataAnalysis",
-        "title": "Data Analysis",
-        "description": "Identify patterns in your data through exploration and visualization"
-      },
-      {
         "icon": "machineLearning",
         "title": "Machine Learning",
         "description": "Build predictive Models with your data and share the results with others"
       }
     ],
     "toolPipeLine": {
-      "description": ["Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."],
+      "description": ["With Dataiku you can ingest large amounts of data, clean it up and prepare it for large-scale analyses and ML use cases. You can automate the preparation process by scheduling it or triggering it through events. Dataiku is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are clean, join, transform and enrich datasets for analytics and ML use cases."],
       "connectedTO": [
         {
-          "title": "SAC",
+          "title": "SAP ERPs",
           "icon": "sac",
           "url": "url"
+        },
+        {
+          "title": "Cloud Data Sources",
+          "icon": "afo",
+          "url": "url"
+        },
+        {
+          "title": "On-prem Data Sources",
+          "icon": "data",
+          "url": "url"
         }
+
       ]
     },
     "info": [
       {
         "icon": "doc",
         "name": "Documentation",
-        "description": "Explore all documented information about Dataiku",
+        "description": "Explore all documented information",
         "links": [
           {
-            "title": "GitHub",
-            "link": "https://github.com"
+            "title": "Dataiku SI Page",
+            "link": "YOUR_URL"
           },
           {
-            "title": "confluence",
-            "link": "Link"
+            "title": "Get onboarded",
+            "link": "YOUR_URL"
           },
           {
-            "title": "wiki",
-            "link": "link"
+            "title": "Usefull links ",
+            "link": "YOUR_URL"
           },
           {
-            "title": "Dataiku S1 Page",
-            "link": "link"
-          }
-        ]
-      },
-      {
-        "icon": "tem",
-        "name": "Templates",
-        "description": "Download templates created in-line with our company standards to get started in an instant",
-        "links": [
-          {
-            "title": "Dataiku Template(S1 Page)",
-            "link": "link"
-          },
-          {
-            "title": "How to import templates",
-            "link": "link"
-          },
-          {
-            "title": "Give FeedBack",
-            "link": "link"
+            "title": "Terms of Use (cloud)",
+            "link": "YOUR_URL"
           }
         ]
       },
@@ -82,37 +69,35 @@ export const ToolsDetailedPageElements = [
         "description": "Get tailor-made trainings from experts to master this tool with ease",
         "links": [
           {
-            "title": "Dataiku Trainings Overview (S1 Page)",
-            "link": "link"
+            "title": "Dataiku Academy",
+            "link": "https://academy.dataiku.com/"
           },
           {
-            "title": "Linkedin Learing Playlist",
-            "link": "link"
-          },
-          {
-            "title": "Udemy Playlist",
-            "link": "link"
-          },
-          {
-            "title": "Helpful Links",
-            "link": "link"
+            "title": "Try it out on our free training environment",
+            "link": "YOUR_URL"
           }
         ]
+      },
+      {
+        "icon": "tem",
+        "name": "Costs",
+        "description": " Get familiar with the costs.",
+        "info":["Dataiku reader: cost-free​" ,"Dataiku visual designer: 2700 EUR user/year​","Dataiku designer: 5100 EUR user/year"]
       }
     ],
     "classification": "Confidential",
     "accessSteps": [
       {
         "id": "Step 1",
-        "info": "yet to be given"
+        "info": "If you are not onboarded already follow: **[YOUR_URL](YOUR_URL)**"
       },
       {
         "id": "Step 2",
-        "info": "yet to be given"
+        "info": "Create new Dataiku project (on-prem or cloud) via your application **[YOUR_URL](YOUR_URL)** "
       },
       {
         "id": "Step 3",
-        "info": "yet to be given"
+        "info": "Open Dataiku project via link in your application"
       }
     ]
   },
@@ -199,7 +184,7 @@ export const ToolsDetailedPageElements = [
         "icon": "tem",
         "name": "Costs",
         "description" : "Get familiar with the costs",
-        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 6.70 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
+        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 5.25 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
       }
     ],
     "classification" : "Confidential",
@@ -316,7 +301,7 @@ export const ToolsDetailedPageElements = [
         "icon": "tem",
         "name": "Costs",
         "description" : "Get familiar with the costs",
-        "info":["Microsoft Fabric infrastructure and storage: Pay-as-you-use "," Microsoft Fabric operation costs: 4.500 EUR per year (tentative) ","Power BI Desktop RS: cost-free (IT-Shop)"," Azure PowerBI Free licence (viewer): cost-free (IT-Shop) ", "Azure Power BI Pro licence (developer): 6.70 EUR user/month (IT-Shop)"]
+        "info":["Microsoft Fabric infrastructure and storage: Pay-as-you-use "," Microsoft Fabric operation costs ","Power BI Desktop RS: cost-free (IT-Shop)"," Azure PowerBI Free licence (viewer): cost-free (IT-Shop) ", "Azure Power BI Pro licence (developer): 5.25 EUR user/month (IT-Shop)"]
       }
     ],
     "classification" : "Confidential",
@@ -341,7 +326,7 @@ export const ToolsDetailedPageElements = [
     "description": "Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.",
     "tags":  ["No / Low Code"],
     "isExternalLink": false,
-    "url": "/powerPlatform",
+    "url": "/powerplatform",
     "hasSubcription": true,
     "info": [
       {
@@ -350,54 +335,60 @@ export const ToolsDetailedPageElements = [
         "description": "Get tailor-made trainings from experts to master this tool with ease",
         "links": [
           {
-            "title": "Power Platform Learning ",
-            "link": "YOUR_URL"
+            "title": "PL-900: Microsoft Power Platform Fundamentals (udemy.com)",
+            "link": `UDEMY_URL/course/pl-900-microsoft-power-platform-fundamentals-r/`
           },
           {
-            "title": "Power Platform Tutorial",
-            "link": "https://microsoftlearning.github.io/mslearn-fabric/Instructions/Labs/05-dataflows-gen2.html"
+            "title": "Power Apps - Complete Guide to Microsoft PowerApps",
+            "link": `UDEMY_URL/course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
           },
           {
-            "title": "Udemy Learn Power Platform ",
-            "link": "https://community.fabric.microsoft.com/t5/custom/page/page-id/CareerHubPage?ocid=fabric24_careerhub_fabric_updateblog_clphttp://"
+            "title": "Build Solutions with Power Apps, Power Automate & SharePoint (udemy.com)",
+            "link": `UDEMY_URL/course/build-solutions-with-power-platform/`
           },
           {
-            "title": "Microsoft Learn Power Platform",
-            "link": "https://learn.microsoft.com/en-us/training/browse/?products=power-bi"
+            "title": "PL-200: The follow-up Power Platform course to the PL-100 (udemy.com)",
+            "link": `UDEMY_URL/course/pl-200-microsoft-power-platform-functional-consultant-course/`
           },
           {
-            "title": "Get started with Power Platform (80 min)",
-            "link": "https://learn.microsoft.com/de-de/training/modules/get-started-with-power-bi/"
-          },
-
-          {
-            "title": "Create Dashboards (40 min)",
-            "link": "https://learn.microsoft.com/de-de/training/modules/create-dashboards-power-bi/"
+            "title": "Microsoft Power Automate for Power Apps developers (udemy.com)",
+            "link": `UDEMY_URL/course/microsoft-power-automate-for-power-apps-developers/`
           }
         ]
       },
       {
         "icon": "profile",
         "name": "support",
-        "info": ["Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem"]
+        "info": ["Feel free to reach out for more information and personal support by our team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
+        "links": [
+          {
+            "title": "Contact Email",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "Social Intranet Page",
+            "link": "YOUR_URL"
+          },
+        ]
       },
       {
         "icon": "tem",
         "name": "classification",
-        "type" : "Secret Data"
+        "type" : "Confidential"
       },
       {
         "icon": "tem",
         "name": "Costs",
         "isInfoIcon": "true",
         "description" : "Get familiar with the costs",
-        "info":["Lorem ipsum dolor sit amet: 0.2 FTE / MONTH","Lorem ipsum dolor sit amet: 0.4 FTE / MONTH","Lorem ipsum dolor sit amet: 0.6 FTE / MONTH"]
+        "info":["Default Environment: Free", "Citizen Developer Account: starting at 125€ per month", "Shared Development Account: starting 200€ per month", "Full Development Account: starting 526€ per month"]
       },
       {
         "icon": "doc",
         "name": "Terms Of Service",
         "isInfoIcon": "true",
-        "info":["Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem"]
+        "moreBtn": true,
+        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by Team. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
       }
     ]
   }
