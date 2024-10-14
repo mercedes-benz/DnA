@@ -255,7 +255,7 @@ definitions:
         type: string
       dyEnvOwnerName:
         type: string
-      dyEnvOwnerid:
+      dyEnvOwnerId:
         type: string
       department:
         type: string
