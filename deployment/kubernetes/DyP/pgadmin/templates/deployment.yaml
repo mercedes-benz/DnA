@@ -1,0 +1,263 @@
+{{- $fullName := include "pgadmin.fullname" . -}}
+apiVersion: {{ template "deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "pgadmin.namespaceName" . }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+{{- if .Values.annotations }}
+  annotations:
+  {{- if .Values.annotations }}
+    {{- .Values.annotations | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "pgadmin.selectorLabels" . | nindent 6 }}
+{{- if .Values.strategy }}
+  strategy:
+    {{- .Values.strategy | toYaml | nindent 4 }}
+{{- end }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "pgadmin.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- with (merge .Values.podLabels .Values.commonLabels) }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    {{- if or (not .Values.existingSecret) .Values.podAnnotations .Values.templatedPodAnnotations }}
+      annotations:
+      {{- if .Values.podAnnotations }}
+        {{- .Values.podAnnotations | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.templatedPodAnnotations }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+      {{- if not .Values.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/auth-secret.yaml") . | sha256sum }}
+      {{- end }}
+    {{- end }}
+
+    spec:
+    {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ default $fullName .Values.serviceAccount.name }}
+    {{- end }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+    {{- if or (.Values.VolumePermissions.enabled) .Values.extraInitContainers }}
+      initContainers:
+      {{- if .Values.VolumePermissions.enabled }}
+        - name: init-chmod-data
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/chown", "-R", "5050:5050", "/var/lib/pgadmin"]
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+              subPath: {{ .Values.persistentVolume.subPath | default "" }}
+          securityContext:
+            runAsUser: 0
+          resources:
+            {{- .Values.init.resources | toYaml | nindent 12 }}
+      {{- end }}
+      {{- with .Values.extraInitContainers }}
+        {{ tpl . $ | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+        {{- end }}
+        {{- if .Values.command }}
+          command:
+            {{- toYaml .Values.command | nindent 12 }}
+        {{- end }}
+        {{- if .Values.args }}
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+        {{- end }}
+          ports:
+            - name: {{ .Values.service.portName }}
+              containerPort: {{ .Values.containerPorts.http }}
+              protocol: TCP
+        {{- if .Values.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.service.portName }}
+              {{- if .Values.env.contextPath }}
+              path: "{{ .Values.env.contextPath }}/misc/ping"
+              {{- else }}
+              path: /misc/ping
+              {{- end }}
+              {{- if or (eq (.Values.service.portName | lower) "http") (eq (.Values.service.portName | lower) "https") }}
+              scheme: {{ upper .Values.service.portName }}
+              {{- end }}
+            {{- .Values.livenessProbe | toYaml | nindent 12 }}
+        {{- end }}
+        {{- if .Values.startupProbe }}
+          startupProbe:
+            httpGet:
+              port: {{ .Values.service.portName }}
+              {{- if .Values.env.contextPath }}
+              path: "{{ .Values.env.contextPath }}/misc/ping"
+              {{- else }}
+              path: /misc/ping
+              {{- end }}
+              {{- if or (eq (.Values.service.portName | lower) "http") (eq (.Values.service.portName | lower) "https") }}
+              scheme: {{ upper .Values.service.portName }}
+              {{- end }}
+            {{- .Values.startupProbe | toYaml | nindent 12 }}
+        {{- end }}
+        {{- if .Values.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.service.portName }}
+              {{- if .Values.env.contextPath }}
+              path: "{{ .Values.env.contextPath }}/misc/ping"
+              {{- else }}
+              path: /misc/ping
+              {{- end }}
+              {{- if or (eq (.Values.service.portName | lower) "http") (eq (.Values.service.portName | lower) "https") }}
+              scheme: {{ upper .Values.service.portName }}
+              {{- end }}
+            {{- .Values.readinessProbe | toYaml | nindent 12 }}
+        {{- end }}
+          env:
+          {{- with .Values.envVarsExtra }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+            - name: PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION
+              value: {{ .Values.env.enhanced_cookie_protection | quote }}
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: {{ .Values.env.email }}
+          {{- if .Values.env.pgpassfile }}
+            - name: PGPASSFILE
+              value: {{ .Values.env.pgpassfile }}
+          {{- end }}
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+          {{- if not .Values.existingSecret }}
+                  name: {{ $fullName }}
+                  key: password
+          {{- else }}
+                  name: {{ .Values.existingSecret }}
+                  key: {{ .Values.secretKeys.pgadminPasswordKey }}
+          {{- end }}
+          {{- if .Values.env.contextPath }}
+            - name: SCRIPT_NAME
+              value: {{ .Values.env.contextPath }}
+          {{- end }}
+          {{- if .Values.serverDefinitions.enabled }}
+            - name: PGADMIN_SERVER_JSON_FILE
+              value: /pgadmin4/servers.json
+          {{- end }}
+          {{- range .Values.env.variables }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+          {{- end }}
+          {{- if or .Values.envVarsFromConfigMaps .Values.envVarsFromSecrets }}
+          envFrom:
+            {{- range .Values.envVarsFromConfigMaps }}
+            - configMapRef:
+                name: {{ . | quote }}
+            {{- end }}
+            {{- range .Values.envVarsFromSecrets }}
+            - secretRef:
+                name: {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+              subPath: {{ .Values.persistentVolume.subPath | default "" }}
+          {{- if .Values.serverDefinitions.enabled }}
+            - name: definitions
+              mountPath: /pgadmin4/servers.json
+              subPath: servers.json
+          {{- end }}
+          {{- range .Values.extraConfigmapMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath | default "" }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- range .Values.extraSecretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath | default "" }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- if .Values.extraVolumeMounts }}
+            {{- .Values.extraVolumeMounts | toYaml | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- .Values.resources | toYaml | nindent 12 }}
+    {{- with .Values.extraContainers }}
+      {{ tpl . $ | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: pgadmin-data
+        {{- if .Values.persistentVolume.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{- else }}{{ $fullName }}{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+      {{- range .Values.extraConfigmapMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ tpl (.configMap) $ }}
+            defaultMode: {{ .defaultMode | default 256 }}
+      {{- end }}
+      {{- range .Values.extraSecretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ tpl (.secret) $ }}
+            defaultMode: {{ .defaultMode | default 256 }}
+      {{- end }}
+      {{- if .Values.extraVolumes }}
+        {{- .Values.extraVolumes | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serverDefinitions.enabled }}
+        - name: definitions
+          {{- if eq .Values.serverDefinitions.resourceType "Secret" }}
+          secret:
+            secretName: {{ $fullName }}-server-definitions
+          {{- else }}
+          configMap:
+            name: {{ $fullName }}-server-definitions
+          {{- end }}
+            items:
+            - key: servers.json
+              path: servers.json
+      {{- end }}
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- .Values.imagePullSecrets | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- .Values.nodeSelector | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if .Values.securityContext }}
+      securityContext:
+        {{- .Values.securityContext | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if .Values.affinity }}
+      affinity:
+        {{- .Values.affinity | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if .Values.tolerations }}
+      tolerations:
+        {{- .Values.tolerations | toYaml | nindent 8 }}
+    {{- end }}
