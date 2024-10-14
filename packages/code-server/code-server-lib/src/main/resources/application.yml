@@ -94,6 +94,7 @@ codeServer:
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
   run.init: ${RUN_INIT_POST_CONSTRUCT:YOUR_INIT_POST_CONSTRUCT_BOOLEAN}
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
+  codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

@@ -49,6 +49,8 @@ public interface WorkspaceService {
 
 	Integer getCount(String userId);
 
+	CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception;
+
 	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat);
 
 	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat);
