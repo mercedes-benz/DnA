@@ -36,6 +36,7 @@ export const ToolsDetailedPageElements = [
           "icon": "data",
           "url": "url"
         }
+
       ]
     },
     "info": [

@@ -3,10 +3,11 @@ import Styles from './ToolsDetailedPage.scss'
 import Breadcrumb from './breadcrumb/BreadCrumb'
 import { getParams } from '../../../../router/RouterUtils';
 import { ToolsPageImagesInfo } from 'globals/constants';
-import {ToolsDetailedPageElements} from './toolDetaliedPageInfo';
+
+import { ToolsDetailedPageElements } from './toolDetaliedPageInfo';
 import { history } from '../../../../router/History';
 import { markdownParser } from '../../../../utils/MarkdownParser';
-import SubscriptionCard from './SubscriptionCard/SubscriptionCard';
+import SubscriptionCard from './SubscriptionCard/SubscriptionCard'
 
 export interface IData {
   id?: string;
