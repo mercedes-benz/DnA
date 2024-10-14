@@ -195,45 +195,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-#   put:
-#      tags:
-#        - "powerapps"
-#      summary: "Update existing power app subscription details ."
-#      description: "Updates an existing power app subscription."
-#      operationId: "update"
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          description: "Power app subscription ID to be updated"
-#          required: true
-#          type: "string"
-#        - name: "powerappUpdateRequestVO"
-#          in: "body"
-#          description: "Request Body that contains data required for updating an existing workspace"
-#          required: true
-#          schema:
-#            $ref: "#/definitions/PowerAppUpdateRequestVO"
-#      responses:
-#        200:
-#          description: "Updated successfully"
-#          schema:
-#            $ref: "#/definitions/PowerAppResponseVO"
-#        404:
-#          description: "No workspace found to update"
-#          schema:
-#            $ref: "#/definitions/GenericMessage"
-#        400:
-#          description: "Bad Request"
-#          schema:
-#            $ref: "#/definitions/GenericMessage"
-#        401:
-#          description: "Request does not have sufficient credentials."
-#        403:
-#          description: "Request is not authorized."
-#        405:
-#          description: "Method not allowed"
-#        500:
-#          description: "Internal error"
 
 definitions:
           
@@ -255,7 +216,7 @@ definitions:
         type: string
       dyEnvOwnerName:
         type: string
-      dyEnvOwnerid:
+      dyEnvOwnerId:
         type: string
       department:
         type: string
@@ -335,16 +296,16 @@ definitions:
         type: string
       dyEnvOwnerName:
         type: string
-      dyEnvOwnerid:
+      dyEnvOwnerId:
         type: string
       department:
         type: string
       environment:
         type: string
-        enum: ["shared-dev","shared-int","dedicated-prodConfidential"]
+        enum: ["SHARED-DEVELOPMENT","SHARED-INTEGRATION","DEDICATED-PRODUCTION"]
       prodEnvAvailability:
         type: string
-        enum: ["Immediate","Later"]
+        enum: ["IMMEDIATE","LATER"]
       billingContact:
         type: string
       billingPlant:
