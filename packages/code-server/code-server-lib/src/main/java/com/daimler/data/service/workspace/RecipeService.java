@@ -14,6 +14,8 @@ public interface RecipeService {
     List<RecipeVO> getAllRecipes(int offset, int limit,String id);
 
 	RecipeVO createRecipe(RecipeVO recipeRequestVO);
+	
+	RecipeVO updateRecipe(RecipeVO recipeRequestVO);
 
 	RecipeVO getByRecipeName(String recipeName);
 	
