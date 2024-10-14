@@ -249,16 +249,21 @@
         font-size: var(--font-size-icon-medium);
       }
 
-      .connectedToList {
-        i {
-          font-size: 25px;
-        }
-
-        h5 {
-          margin-top: 7px;
-          font-family: var(--font-family);
-          font-size: 12px;
-        }
+      .connectionWrapper{
+        display: flex;
+        
+        .connectedToList {
+          i {
+            font-size: 23px;
+          }
+  
+          h5 {
+            margin-top: 7px;
+            font-family: var(--font-family);
+            font-size: 12px;
+            max-width: 10px;
+          }
+        }  
       }
     }
   }
@@ -323,9 +328,10 @@
     color: #a5a5a8;
     padding: 30px;
     padding-top: 55px !important;
+    height: 100%;
 
     h4 {
-      margin-top: 20px;
+      margin-bottom: 20px;
       font-size: 15px;
       color: #D9DFE4;
       font-family: var(--font-family-bold);
@@ -349,7 +355,7 @@
     padding-left: 24px !important;
     width: calc(66% - 9.5px);
     margin: 6.5px 0 6.5px;
-    height: 300px;
+    min-height: 300px;
     border-radius: 7px;
 
     .serviceInfo {
