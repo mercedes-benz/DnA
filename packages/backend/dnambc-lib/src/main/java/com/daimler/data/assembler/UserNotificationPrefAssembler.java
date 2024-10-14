@@ -87,6 +87,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreference dataEntryNotificationPrefJson = data.getDataEntryNotificationPref();
 				NotificationPreferenceVO dataEntryNotificationPrefVO = this.toNotificationPrefVO(dataEntryNotificationPrefJson);
 				vo.setDataEntryNotificationPref(dataEntryNotificationPrefVO);
+				
+				NotificationPreference powerPlatformNotificationPrefJson = data.getPowerPlatformNotificationPref();
+				NotificationPreferenceVO powerPlatformNotificationPrefVO = this.toNotificationPrefVO(powerPlatformNotificationPrefJson);
+				vo.setPowerPlatformNotificationPref(powerPlatformNotificationPrefVO);
 
 				NotificationPreference useCaseOwnerNotificationPrefJson = data.getUseCaseOwnerNotificationPref();
 				NotificationPreferenceVO useCaseOwnerNotificationPrefVO = this.toNotificationPrefVO(useCaseOwnerNotificationPrefJson);
@@ -151,6 +155,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setDataEntryNotificationPref(dataEntryNotificationPreference);
 			NotificationPreference useCaseOwnerPreference = this.toNotificationPrefJson(vo.getUseCaseOwnerNotificationPref());
 			userNotificationPreferenceJsonb.setUseCaseOwnerNotificationPref(useCaseOwnerPreference);
+			NotificationPreference powerPlatformNotificationPref = this.toNotificationPrefJson(vo.getPowerPlatformNotificationPref());
+			userNotificationPreferenceJsonb.setPowerPlatformNotificationPref(powerPlatformNotificationPref);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);
