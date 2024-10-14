@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,9 +29,10 @@ import com.daimler.data.dto.powerapps.CreatedByVO;
 import com.daimler.data.dto.powerapps.DeveloperVO;
 import com.daimler.data.dto.powerapps.PowerAppCollectionVO;
 import com.daimler.data.dto.powerapps.PowerAppCreateRequestVO;
+import com.daimler.data.dto.powerapps.PowerAppCreateRequestVO.EnvironmentEnum;
+import com.daimler.data.dto.powerapps.PowerAppCreateRequestVO.ProdEnvAvailabilityEnum;
 import com.daimler.data.dto.powerapps.PowerAppCreateRequestWrapperVO;
 import com.daimler.data.dto.powerapps.PowerAppResponseVO;
-import com.daimler.data.dto.powerapps.PowerAppUpdateRequestVO;
 import com.daimler.data.dto.powerapps.PowerAppVO;
 import com.daimler.data.service.powerapp.PowerAppService;
 import com.daimler.data.util.ConstantsUtility;
@@ -40,6 +43,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @Api(value = "Power Apps APIs")
@@ -56,11 +60,20 @@ public class PowerAppController implements PowerappsApi
 	@Autowired
 	private UserStore userStore;
 	
+	@Autowired
+	HttpServletRequest httpRequest;
+	
 	@Value("${powerapps.defaults.environment}")
 	private String defaultEnvironment;
 	
 	@Value("${powerapps.defaults.productionAvailability}")
 	private String prodAvailabilityDefault;
+	
+	@Value("${powerapps.defaults.developerlicense}")
+	private String developerlicenseDefault;
+	
+	@Value("${powerapps.defaults.powerBiApproverToken}")
+	private String powerBiApproverToken;
 	
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
 	
@@ -77,7 +90,10 @@ public class PowerAppController implements PowerappsApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<PowerAppResponseVO> create(@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO){
+    public ResponseEntity<PowerAppResponseVO> create( 
+    		@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO,
+    		@ApiParam(value = "Authorization" ) @RequestHeader(value="Authorization", required=false) String authorization
+    		){
 		PowerAppResponseVO responseVO = new PowerAppResponseVO();
 		if(powerAppCreateVO!= null) {
 			PowerAppCreateRequestVO projectCreateVO = powerAppCreateVO.getData();
@@ -106,17 +122,95 @@ public class PowerAppController implements PowerappsApi
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 			}
-			if(projectCreateVO.getEnvironment() == null || "".equalsIgnoreCase(projectCreateVO.getEnvironment().name())){
-				projectCreateVO.setEnvironment(null);
-			}
+			List<DeveloperVO>  validatedDevelopersList = new ArrayList<>();
 			CreatedByVO requestUser = this.userStore.getVO();
+			if(projectCreateVO.getDevelopers()!=null && !projectCreateVO.getDevelopers().isEmpty()) {
+				List<String> tempDeveloperIds  = new ArrayList<String>();
+				for(DeveloperVO tempDeveloper : projectCreateVO.getDevelopers()) {
+					if(tempDeveloper.getUserDetails().getId()==null || tempDeveloper.getUserDetails().getId().equalsIgnoreCase("")) {
+						log.error("Invalid developers details passed in collab list for power app {} create request.", projectCreateVO.getName());
+						MessageDescription mandatoryFieldsError = new MessageDescription("Bad Request, Please recheck developers details.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+						errorMessage.addErrors(mandatoryFieldsError);
+						responseVO.setData(null);
+						responseVO.setResponse(errorMessage);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					}else {
+						if(tempDeveloper.getUserDetails().getId().equalsIgnoreCase(requestUser.getId())) {
+							log.info("Requestor {} details passed in developers collab list for power app {} create request . Ignoring record and proceeding", requestUser.getId(), projectCreateVO.getName());
+						}else {
+							if(tempDeveloperIds.contains(tempDeveloper.getUserDetails().getId())) {
+								log.info("Developer {} record already added in collab list for power app {} create request . Ignoring duplicate record and proceeding", tempDeveloper.getUserDetails().getId(), projectCreateVO.getName());
+							}else {
+								DeveloperVO tempDeveloperVO = new DeveloperVO();
+								tempDeveloperVO.setUserDetails(tempDeveloper.getUserDetails());
+								if(tempDeveloper.getLicense()==null || "".equalsIgnoreCase(tempDeveloper.getLicense())) {
+									tempDeveloperVO.setLicense(developerlicenseDefault);
+								}else {
+									if(!(tempDeveloper.getLicense().equalsIgnoreCase(ConstantsUtility.POWERAPPLICENSE_VIRTUALAGENT)
+											|| tempDeveloper.getLicense().equalsIgnoreCase(ConstantsUtility.POWERAPPLICENSE_AUTOPREMIUM)
+											|| tempDeveloper.getLicense().equalsIgnoreCase(ConstantsUtility.POWERAPPLICENSE_PREMIUMUSER))) {
+										log.error("Invalid Developer license details {} for developer {} during power app {} create request.",tempDeveloper.getLicense(),tempDeveloper.getUserDetails().getId(), projectCreateVO.getName());
+										MessageDescription mandatoryFieldsError = new MessageDescription("Bad Request, Invalid developer licenses details.");
+										GenericMessage errorMessage = new GenericMessage();
+										errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+										errorMessage.addErrors(mandatoryFieldsError);
+										responseVO.setData(null);
+										responseVO.setResponse(errorMessage);
+										return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+									}
+									else {
+										tempDeveloperVO.setLicense(tempDeveloper.getLicense());
+									}
+								}
+								validatedDevelopersList.add(tempDeveloperVO);
+								tempDeveloperIds.add(tempDeveloper.getUserDetails().getId());
+							}
+						}
+					}
+				}
+				projectCreateVO.setDevelopers(validatedDevelopersList);
+			}
+		    
+			if(projectCreateVO.getEnvironment() == null || "".equalsIgnoreCase(projectCreateVO.getEnvironment().name())){
+				projectCreateVO.setEnvironment(EnvironmentEnum.fromValue(defaultEnvironment));
+			}else {
+				if(!(projectCreateVO.getEnvironment().toString().equalsIgnoreCase(ConstantsUtility.ENV_DEDICATED_PRODCONFIDENTIAL)
+						|| projectCreateVO.getEnvironment().toString().equalsIgnoreCase(ConstantsUtility.ENV_SHARED_DEV)
+						|| projectCreateVO.getEnvironment().toString().equalsIgnoreCase(ConstantsUtility.ENV_SHARED_INT))) {
+					log.error("Invalid Environment details {} passed power app {} create request.",projectCreateVO.getEnvironment().toString(), projectCreateVO.getName());
+					MessageDescription mandatoryFieldsError = new MessageDescription("Bad Request, Invalid Environment details.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+					errorMessage.addErrors(mandatoryFieldsError);
+					responseVO.setData(null);
+					responseVO.setResponse(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
+			if(projectCreateVO.getProdEnvAvailability()== null || "".equalsIgnoreCase(projectCreateVO.getProdEnvAvailability().name())){
+				projectCreateVO.setProdEnvAvailability(ProdEnvAvailabilityEnum.fromValue(prodAvailabilityDefault));
+			}else {
+				if(!(projectCreateVO.getProdEnvAvailability().toString().equalsIgnoreCase(ConstantsUtility.IMMEDIATE_PROD_ENV_AVAIL)
+						|| projectCreateVO.getProdEnvAvailability().toString().equalsIgnoreCase(ConstantsUtility.LATER_PROD_ENV_AVAIL))) {
+					log.error("Invalid Production environment availability details {} passed power app {} create request.",projectCreateVO.getProdEnvAvailability().toString(), projectCreateVO.getName());
+					MessageDescription mandatoryFieldsError = new MessageDescription("Bad Request, Invalid Production availability details.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+					errorMessage.addErrors(mandatoryFieldsError);
+					responseVO.setData(null);
+					responseVO.setResponse(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
 			List<MessageDescription> errors = new ArrayList<>();
 			PowerAppVO vo = new PowerAppVO();
 			vo = assembler.toVo(projectCreateVO);
 			vo.setRequestedBy(requestUser);
 			vo.setRequestedOn(new Date());
 			vo.setState(ConstantsUtility.REQUESTED_STATE);
-			try {
+			vo.setSubscriptionType(ConstantsUtility.SHARED_DEVELOPMENT_ACCOUNT);			try {
 				PowerAppVO createdVO = service.create(vo);
 				if (createdVO != null && createdVO.getId() != null) {
 					GenericMessage successResponse = new GenericMessage();
@@ -129,6 +223,7 @@ public class PowerAppController implements PowerappsApi
 					return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 				}
 			}catch(Exception e) {
+
 				log.error("Failed to create powerapp {} requestedBy {} with exception {}",projectCreateVO.getName(),requestUser.getId(),e.getMessage());
 				MessageDescription invalidMsg = new MessageDescription("Failed to create power app request with unknown error. Please try again.");
 				GenericMessage errorMessage = new GenericMessage();
@@ -172,7 +267,8 @@ public class PowerAppController implements PowerappsApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<PowerAppCollectionVO> getAll(@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    public ResponseEntity<PowerAppCollectionVO> getAll(@ApiParam(value = "Authorization" ) @RequestHeader(value="Authorization", required=false) String authorization,
+    		@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
     		@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
     		@ApiParam(value = "Sort workspaces by a given variable like name, requestedOn, state", allowableValues = "name, requestedOn, state") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
     		@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
@@ -211,7 +307,8 @@ public class PowerAppController implements PowerappsApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<PowerAppVO> getById(@ApiParam(value = "Power platform subscription ID to be fetched",required=true) @PathVariable("id") String id){
+    public ResponseEntity<PowerAppVO> getById(@ApiParam(value = "Power platform subscription ID to be fetched",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "Authorization" ) @RequestHeader(value="Authorization", required=false) String authorization){
 		PowerAppVO existingApp = service.getById(id);
 		if(existingApp==null || !id.equalsIgnoreCase(existingApp.getId())) {
 			log.warn("No app found with id {}, failed to fetch saved inputs for given power app request id", id);
@@ -235,22 +332,5 @@ public class PowerAppController implements PowerappsApi
 		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
-	@Override
-    @ApiOperation(value = "Update existing power app subscription details .", nickname = "update", notes = "Updates an existing power app subscription.", response = PowerAppResponseVO.class, tags={ "powerapps", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Updated successfully", response = PowerAppResponseVO.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "No workspace found to update", response = GenericMessage.class),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/powerapps/{id}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.PUT)
-    public ResponseEntity<PowerAppResponseVO> update(@ApiParam(value = "Power app subscription ID to be updated",required=true) @PathVariable("id") String id,@ApiParam(value = "Request Body that contains data required for updating an existing workspace" ,required=true )  @Valid @RequestBody PowerAppUpdateRequestVO powerappUpdateRequestVO){
-		return null;
-	}
     
 }
