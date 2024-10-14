@@ -38,6 +38,9 @@ public class RepoSoftwareFileUpdate {
     @Value("${codeServer.git.orgname}")
     private String orgName;
 
+    @Value("${codeserver.recipe.software.filename}")
+	private String gitFileName;
+
     @Autowired
     private GitClient gitClient;
 
