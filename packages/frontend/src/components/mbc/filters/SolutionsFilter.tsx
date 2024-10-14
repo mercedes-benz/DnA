@@ -14,6 +14,8 @@ import {
   IFilterPreferences,
   IUserPreference,
   IDataVolume,
+  IUserInfo,
+  IRole,
 } from 'globals/types';
 // @ts-ignore
 import Button from '../../../assets/modules/uilab/js/src/button';
@@ -25,11 +27,12 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../services/ApiClient';
-import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import { SESSION_STORAGE_KEYS, USER_ROLE} from 'globals/constants';
 import Tags from 'components/formElements/tags/Tags';
 import { getDivisionsQueryValue, trackEvent, isSolutionFilterApplied } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
 import { getPath } from '../../../router/RouterUtils';
+import Modal from 'components/formElements/modal/Modal';
 
 import Styles from './Filter.scss';
 import FilterWrapper from './FilterWrapper';
@@ -37,6 +40,7 @@ const classNames = cn.bind(Styles);
 
 type SolutionsFilterType = {
   isGenAI?: boolean;
+  user?: IUserInfo;
   userId: string;
   getSolutions?: Function;
   getFilterQueryParams?: Function;
@@ -64,6 +68,7 @@ type SolutionsFilterType = {
 
 const SolutionsFilter = ({
   isGenAI,
+  user,
   userId,
   getSolutions,
   getFilterQueryParams,
@@ -88,6 +93,10 @@ const SolutionsFilter = ({
   const [divisions, setDivisions] = useState<IDivisionFilterPreference[]>([]);
   const [subDivisions, setSubDivisions] = useState<ISubDivisionSolution[]>([]);
   const [tagValues, setTagValues] = useState<ITag[]>([]);
+  // const [myDivisions, setMyDivisions] = useState(false);
+  const [emailBody, setEmailBody] = useState('');
+  const [emailBodyError, setEmailBodyError] = useState('');
+  const [showMailingModal, setShowMailingModal] = useState(false);
   const currentYear = new Date().getFullYear();
   const defaultStartYear = currentYear - 2 + '';
   const defaultEndYear =currentYear + 1 + '';
@@ -138,6 +147,8 @@ const SolutionsFilter = ({
 
   const [years ,setYears] = useState([]);
   const [isDvRangeValid, setisDvRangeValid]= useState(true);
+
+  const isDivisionAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.DIVISIONADMIN) !== undefined;
 
   useEffect(() => {
     onsetTags(setSelectedTags);
@@ -851,7 +862,81 @@ const SolutionsFilter = ({
 
   const subDivisionsOfSelectedDivision: ISubDivisionSolution[] = getSubDivisionsOfSelectedDivision();
 
+  const requiredError = "*Missing entry";
+
+  const notifyUseCaseOwners = () =>{ 
+    genAIPage && queryParams.tag.push('#GenAI');
+    const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
+    const emailText = '<p>'+emailBody.replace(/\n/g,"<br/>")+'</p>'
+    const notifyData = {
+      data: {
+        location: queryParams.location,
+        division: divisionIds,
+        phase: queryParams.phase,
+        status: queryParams.status,
+        useCaseType: queryParams.useCaseType.join(','),
+        tags: queryParams.tag,
+        emailText: emailText,
+      },
+    };
+    ProgressIndicator.show();
+    ApiClient.notifyUseCaseOwners(notifyData)
+    .then((res: any) => {
+      if (res.success === 'SUCCESS'){
+        Notification.show("Email sent successfully");
+        ProgressIndicator.hide();
+      }
+      else{
+        Notification.show("Error while sending email. Please try again later.");
+        ProgressIndicator.hide();
+      }
+    })
+    .catch((err: Error) => {
+      ProgressIndicator.hide();
+      Notification.show('Error in deleting code space. Please try again later.\n' + err.message, 'alert');
+    });
+    setShowMailingModal(false); 
+    setEmailBody('');
+  };
+
+  const onMailBodyChange = (e: React.FormEvent<HTMLTextAreaElement>) =>{
+    setEmailBody(e.currentTarget.value);
+    setEmailBodyError(e.currentTarget.value.length !== 0 ? '' : requiredError)
+  };
+
+  const mailingContent = (
+    <div className={Styles.modalContent}>
+      <div
+        className={classNames('input-field-group include-error area', emailBodyError.length ? 'error' : '')}
+      >
+        <label id="description" className="input-label" htmlFor="description">
+          Enter mail body <i className="icon mbc-icon alert circle" tooltip-data="Mail will be recieved by all the use case owners of the filtered Solutions. Please ensure you have selected the right filters." />
+        </label>
+        <textarea
+          id="description"
+          className="input-field-area"
+          // type="text"
+          // defaultValue={''}
+          value={emailBody}
+          required={true}
+          required-error={requiredError}
+          onChange={onMailBodyChange}
+          rows={50}
+        />
+        <span className={classNames('error-message', emailBodyError.length ? '' : 'hide')}>
+          {emailBodyError}
+        </span>
+      </div>
+      <div>
+        <button className={classNames('btn btn-primary', Styles.saveSettingsBtn )} tooltip-data="Email Use Case Owners" onClick={emailBody.length !== 0 ? notifyUseCaseOwners : () => setEmailBodyError(requiredError)}>
+          Send
+        </button>
+      </div>
+    </div>
+  );
+
   return (
+    <>
     <FilterWrapper openFilters={openFilters}>
       <div>
         <div id="phaseContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'phase')}>
@@ -1029,6 +1114,33 @@ const SolutionsFilter = ({
         </div>
       </div>
     </FilterWrapper>
+    {isDivisionAdmin && !isPortfolioPage && (
+      <FilterWrapper openFilters={openFilters} divisionAdminSection={true}>
+        <p>Please note that you are the division admin of the divisions <span>{user?.divisionAdmins?.toString()}</span>. Ensure you have the right divisions set in your filter in order to notify the use case owners of your divisions.</p>
+        <div className={classNames(Styles.actionWrapper)}>
+        <button className={classNames('btn btn-primary', Styles.saveSettingsBtn )} tooltip-data="Email Use Case Owners" onClick={() => setShowMailingModal(true)}>
+          Email Use Case Owners
+        </button>
+        </div>
+      </FilterWrapper>
+    )}
+    <Modal
+      title={'Email Content'}
+      hiddenTitle={false}
+      showAcceptButton={false}
+      showCancelButton={false}
+      // acceptButtonTitle="Send"
+      // onAccept={sendEmail}
+      modalWidth="800px"
+      // modalStyle={{ minHeight: '86%' }}
+      buttonAlignment="right"
+      show={showMailingModal}
+      content={mailingContent}
+      scrollableContent={true}
+      onCancel={() => setShowMailingModal(false)}
+    />
+     
+    </>
   );
 };
 

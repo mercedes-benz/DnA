@@ -50,5 +50,4 @@ public class InternalCustomer implements Serializable {
 	private String legalEntity;
 	private String accessToSensibleData;
 	private String comment;
-	private TeamMember processOwner;
 }

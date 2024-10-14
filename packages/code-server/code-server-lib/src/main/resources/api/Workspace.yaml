@@ -1005,6 +1005,45 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/restart:        
+    post:
+      tags:
+        - "code-server"
+      summary: "Restart deployed workspace Project for a given Id."
+      description: "restart deployed workspace Project for a given identifier."
+      operationId: "restartWorkspaceProject"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: environment variable to select the target environment
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
           
 definitions:
 
@@ -1081,8 +1120,8 @@ definitions:
 #        description: "Date of last deployment"  
       status:
         type: string
-        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED"]
-        description: "Status of workspace job action create/delete/deploy request"
+        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED"]
+        description: "Status of workspace job action create/delete/deploy/restart request"
       targetEnvironment:
         type: string
       branch:
@@ -1181,8 +1220,8 @@ definitions:
         type: boolean
       technicalUserDetailsForIAMLogin:
         type: string
-      valutInjectorEnable:  # Corrected property name
-        type: boolean
+      # valutInjectorEnable:  # Corrected property name
+      #   type: boolean
         default: false  # This should now work as expected
       clientID:
         type: string
@@ -1229,7 +1268,7 @@ definitions:
         description: "id generated for particular recipe"
       recipeId:
         type: string
-        enum: [default,springboot,springbootwithmaven,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-fabric-mfe,public-dna-fabric-backend,public-dna-dataentry-mfe,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
+        enum: [default,template,springboot,springbootwithmaven,vuejs,py-fastapi,react,angular,gradle,quarkus,dash,expressjs,streamlit,nestjs,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-fabric-mfe,public-dna-fabric-backend,public-dna-dataentry-mfe,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice" 
       recipeName:
         type: string
@@ -1262,7 +1301,11 @@ definitions:
       software:
         type: array
         items:
-          type: string 
+          type: string
+      additionalServices:
+        type: array
+        items:
+          type: string  
       toDeployType:
         type: string
       recipeType:
@@ -1271,6 +1314,8 @@ definitions:
         type: string
       gitRepoLoc:
         type: string
+      isDeployEnabled:
+        type: boolean
       required:
         -recipeId
         -recipeName
@@ -1643,6 +1688,9 @@ definitions:
       branch:
         type: string
         description: "branch one which codespace is deployed"
+      commitId:
+        type: string
+        description: "commit id one which codespace is deployed"
 
   CodespaceSecurityConfigDetailVO:
     type: object  

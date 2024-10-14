@@ -29,11 +29,13 @@ const dataCatalogUrl = Envs.DATA_CATALOG_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
+const odinUrl = Envs.ODIN_URL; 
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
+const genAILLMPromptUrl = Envs.GENAI_LLM_PROMPT_ENG_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
@@ -200,10 +202,10 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableFabricService,
     isMoreServicesCard:false,
-    upperTag: 'FC Private Preview',
+    upperTag: 'FC PoC',
     isSmallCard: false,
     isMediumCard: true,
-    isDetailedPage: true,
+    isDetailedPage: false,
     svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
@@ -235,7 +237,7 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableDataikuWorkspace,
-    isDetailedPage: true,
+    isDetailedPage: false,
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
@@ -271,7 +273,7 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !powerBIUrl?.startsWith('http'),
-    isDetailedPage: true,
+    isDetailedPage: false,
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
@@ -525,6 +527,23 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'spire',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'ODIN',
+    name: 'ODIN',
+    description: 'ODIN is a centralized platform that provides easy access to all your Power BI reports in one place. This eliminates the need to switch between different tools and helps you sort through your reports with ease. With ODIN, you can quickly find the report you need, without the struggle of searching through multiple platforms',
+    tags: ['Data Engineering'],
+    url: odinUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !odinUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'dataPreparation',
     isDnAInternalTool: false,
   },
 ];
@@ -785,5 +804,16 @@ export const GenAILandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-direct-chat',
+  }, 
+  {
+    name: 'Prompt Craft LLM Engineering',
+    description: 'Prompt Craft is a fully functional LLM Engineering solution that leverages OpenSource and enables Prompt Engineers to build enterprise grade GenAI Applications.',
+    url: genAILLMPromptUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled:  !genAILLMPromptUrl?.startsWith('http') ,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'genai-solutions',
   }
 ];

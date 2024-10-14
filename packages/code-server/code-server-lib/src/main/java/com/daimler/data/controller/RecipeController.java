@@ -39,7 +39,11 @@ import com.daimler.data.dto.workspace.recipe.InitializeRecipeLovVo;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.dto.workspace.recipe.AdditionalPropertiesVO;
+import com.daimler.data.dto.workspace.recipe.AdditionalServiceCollectionVo;
+import com.daimler.data.dto.workspace.recipe.AdditionalServiceLovVo;
 import com.daimler.data.dto.workspace.recipe.GitHubVo;
+import com.daimler.data.dto.workspace.recipe.InitializeAdditionalServiceLovVo;
 
 @RestController
 @Api(value = "Recipe API", tags = { "code-server-recipe" })
@@ -76,6 +80,7 @@ public class RecipeController implements CodeServerRecipeApi {
 		recipeRequestVO.setCreatedBy(currentUserVO);
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
+		recipeRequestVO.setIsDeployEnabled(false);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
@@ -94,17 +99,64 @@ public class RecipeController implements CodeServerRecipeApi {
 				log.info("The creation of a recipe failed due to an unspecified recipe name. "+recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 			} else {
-				responseMessage.setData(null);
+				responseMessage.setData(softwareMessage.getErrors());
 				responseMessage.setSuccess("FAILED");
-				log.info("The software creation process failed in the Git repository for the recipe."+recipeName);
+				log.info("The software creation process failed for create in the Git repository for the recipe."+recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 			}
 		} else {
-			responseMessage.setData(null);
+			responseMessage.setData("Recipe name already exist. Kindly give a unique name");
 			responseMessage.setSuccess("CONFLICT");
 			log.info("workspace {} already exists for User {} with name: {} ", recipeName);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Update recipe details for a given recipe name.", nickname = "updateRecipeByName", notes = "Update recipe details for a recipe name.", response = InitializeRecipeVo.class, tags={ "code-server-recipe", })
+	@ApiResponses(value = { 
+		@ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeRecipeVo.class),
+		@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 405, message = "Method not allowed"),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/recipeDetails/{recipeName}",
+		produces = { "application/json" }, 
+		consumes = { "application/json" },
+		method = RequestMethod.PUT)
+	public ResponseEntity<InitializeRecipeVo> updateRecipeByName(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody RecipeVO recipeRequestVO){
+		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		recipeRequestVO.setCreatedBy(currentUserVO);
+		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
+		//RecipeVO vo = service.getByRecipeName(recipeName);
+		recipeRequestVO.setIsDeployEnabled(false);
+		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
+		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
+		if(name!=null) {
+			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
+			if(softwareMessage.getSuccess().equals("SUCCESS")) {
+				RecipeVO recipeVO = service.updateRecipe(recipeRequestVO);
+				if (Objects.nonNull(recipeVO)) {
+					responseMessage.setData(recipeVO);
+					responseMessage.setSuccess("SUCCESS");
+					log.info("The recipe has been updated successfully with the name: "+recipeName);
+					return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+				}
+				responseMessage.setData(null);
+				responseMessage.setSuccess("FAILED");
+				log.info("The update of a recipe failed for recipe name. "+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+			} else {
+				responseMessage.setData(softwareMessage.getErrors());
+				responseMessage.setSuccess("FAILED");
+				log.info("The software creation process failed for update in the Git repository for the recipe."+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+			}
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	@Override
@@ -223,11 +275,41 @@ public class RecipeController implements CodeServerRecipeApi {
 		} else {
 				vo.setData(null);
 				vo.setSuccess("FAILED");
-				log.info("Failed to fetch all software deatils ");
+				log.info("Failed to fetch all software details ");
 				return new ResponseEntity<>(vo, HttpStatus.NO_CONTENT);
 		}
 	}
 
+	@ApiOperation(value = "Get all Additional Services details in recipe", nickname = "getAllAdditionalServiceLov", notes = "Get all Additional Service details for recipe in codespace", response = InitializeAdditionalServiceLovVo.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = InitializeAdditionalServiceLovVo.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request.", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/additionalServiceLov",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<InitializeAdditionalServiceLovVo> getAllAdditionalServiceLov() {
+		InitializeAdditionalServiceLovVo vo = new InitializeAdditionalServiceLovVo();
+		List<AdditionalServiceLovVo> allServices = service.getAllAdditionalServiceLov();
+
+		if(Objects.nonNull(allServices))
+		{
+			vo.setData(allServices);
+			vo.setSuccess("SUCCESS");
+			return new ResponseEntity<>(vo, HttpStatus.OK);
+		} else {
+			vo.setData(null);
+			vo.setSuccess("FAILED");
+			log.info("Failed to fetch Additional Service details ");
+			return new ResponseEntity<>(vo, HttpStatus.NO_CONTENT);
+		}
+	}
+	
 	@ApiOperation(value = "Get all lov of recipes ", nickname = "getAllrecipeLov", notes = "Get all recipes in codespace", response = InitializeRecipeLovVo.class, tags={ "code-server-recipe", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = InitializeRecipeLovVo.class),
@@ -456,5 +538,4 @@ public class RecipeController implements CodeServerRecipeApi {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericMessage("Recipe not found."));
 			}
 		}
-		
 }

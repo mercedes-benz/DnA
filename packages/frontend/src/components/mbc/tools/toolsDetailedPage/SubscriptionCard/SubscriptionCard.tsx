@@ -1,10 +1,9 @@
 import cn from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
 import Styles from './SubscriptionCard.scss';
 import IconNameRenderer from 'components/icons/IconNameRenderer';
 import { getParams } from '../../../../../router/RouterUtils';
-import { SubscriptionDetails } from './SubscriptionInfo';
+import SubscriptionDetails from './SubscriptionInfo.json';
 const classNames = cn.bind(Styles);
 
 export interface ISubscriptionData {
@@ -14,7 +13,6 @@ export interface ISubscriptionData {
 }
 
 const SubscriptionCard = (ISubscriptionData: any) => {
-  const history = useHistory();
   const [pageDetails, setPageDetails] = useState(ISubscriptionData);
 
   useEffect(() => {
@@ -28,13 +26,12 @@ const SubscriptionCard = (ISubscriptionData: any) => {
   }, []);
 
   const onOderClick = (url : any) =>{
-    if(url.length > 0){
+    if(url){
       window.open(url)
-    } else {
-      localStorage.setItem('modal', 'shared');
-      history.push('/powerplatform');
     }
   }
+
+
 
   return (
     <div className={classNames(Styles.wrapper)}>
@@ -53,8 +50,9 @@ const SubscriptionCard = (ISubscriptionData: any) => {
                 <IconNameRenderer name={item.icon} />
               </div>
               <div className={classNames(Styles.infoSection)}>
-                <span>{item.info.text}</span>
-                <pre>{item.info.cost}</pre>
+                <span>- {item.info.feature}</span>
+                <span>- <b>Classification:</b> {item.info.classification}</span>
+                <span>- <b>Costs:</b> {item.info.cost}</span>
               </div>
               <div className={Styles.actionWrapper}>
               <button className={classNames("btn btn-primary", Styles.Btn)} onClick={() => onOderClick(item.link)} type="button">
