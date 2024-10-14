@@ -154,6 +154,11 @@ const PowerPlatformEnvironments = ({user}) => {
                 <i className="icon mbc-icon info" /> <span>Show Power Platform Details Page</span>
               </button>
             </div>
+            <div className={Styles.btnContainer}>
+              <button className="btn btn-primary" onClick={getEnvironments} tooltip-data="Refresh">
+                <i className="icon mbc-icon refresh"></i>
+              </button>
+            </div>
             <div tooltip-data="Card View">
               <span
                 className={cardViewMode ? Styles.iconActive : Styles.iconInactive}
@@ -181,6 +186,19 @@ const PowerPlatformEnvironments = ({user}) => {
             </div>
           </div>
         </Caption>
+        {environments?.length === 0 && 
+          <div className={Styles.noAccounts}>
+            <h5>You don&apos;t have any Power Platform Account at this time.</h5>
+            <p>Please order one.</p>
+            <button
+              className={classNames('btn btn-tertiary')}
+              type="button"
+              onClick={() => window.open(`${Envs.CONTAINER_APP_URL}/#/toolDetails/powerPlatform`)}
+            >
+              <span>Click to Order</span>
+            </button>
+          </div>
+        }
         {environments?.length > 0 && (
           <div className={classNames(listViewMode ? Styles.listContainer : '')}>
             {cardViewMode &&

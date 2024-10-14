@@ -27,7 +27,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
     defaultValues: {
       name: '',
       subscriptionType: '',
-      environment: 'shared-dev',
+      environment: 'SHARED-DEVELOPMENT',
       envOwnerName: '',
       envOwnerId: '',
       dyEnvOwnerName: '',
@@ -37,7 +37,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
       billingPlant: '',
       billingCostCentre: '',
       customRequirements: '',
-      prodEnvAvailability: 'later',
+      prodEnvAvailability: 'LATER',
       termsOfUse: false,
     }
   });
@@ -78,7 +78,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
         mobileNumber: developer?.mobileNumber,
         email: developer?.email,
       },
-      license: 'Power-Apps-Premium-User'
+      license: 'POWER-APPS-PREMIUM-USER'
     };
 
     let duplicateMember = false;
@@ -125,7 +125,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
       envOwnerId: values?.envOwnerId,
       dyEnvOwnerName: values?.dyEnvOwnerName,
       dyEnvOwnerId: values?.dyEnvOwnerId,
-      department: values?.department,
+      department: values?.department[0],
       billingContact: values?.billingContact,
       billingPlant: values?.billingPlant,
       billingCostCentre: values?.billingCostCentre,
@@ -186,9 +186,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                 </label>
                 <div className={classNames('custom-select')}>
                   <select {...register('environment')}>
-                    <option value={'shared-dev'}>Shared Development</option>
-                    <option value={'shared-int'}>Shared Integration</option>
-                    <option value={'dedicated-prod'}>Dedicated Production</option>
+                    <option value={'SHARED-DEVELOPMENT'}>Shared Development</option>
+                    <option value={'SHARED-INTEGRATION'}>Shared Integration</option>
+                    <option value={'DEDICATED-PRODUCTION'}>Dedicated Production</option>
                   </select>
                 </div>
               </div>
@@ -362,7 +362,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value={'immediate'}
+                        value={'IMMEDIATE'}
                         {...register('prodEnvAvailability', {
                           required: '*Missing entry'
                         })}
@@ -375,7 +375,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value={'later'}
+                        value={'LATER'}
                         {...register('prodEnvAvailability', {
                           required: '*Missing entry'
                         })}
@@ -425,8 +425,8 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                             type="radio"
                                             className="ff-only"
                                             name={userLicense?.userDetails?.id}
-                                            value="Power-Virtual-Agent-User"
-                                            onChange={() => onUserLicenseClick("Power-Virtual-Agent-User", userLicense?.userDetails?.id)}
+                                            value="POWER-VIRTUAL-AGENT-USER"
+                                            onChange={() => onUserLicenseClick("POWER-VIRTUAL-AGENT-USER", userLicense?.userDetails?.id)}
                                           />
                                         </span>
                                         <span>Power Virtual Agent User</span>
@@ -439,8 +439,8 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                             type="radio"
                                             className="ff-only"
                                             name={userLicense?.userDetails?.id}
-                                            value="Power-Automate-Premium"
-                                            onChange={() => onUserLicenseClick('Power-Automate-Premium', userLicense?.userDetails?.id)}
+                                            value="POWER-AUTOMATE-PREMIUM"
+                                            onChange={() => onUserLicenseClick('POWER-AUTOMATE-PREMIUM', userLicense?.userDetails?.id)}
                                           />
                                         </span>
                                         <span>Power Automate Premium</span>
@@ -453,9 +453,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                             type="radio"
                                             className="ff-only"
                                             name={userLicense?.userDetails?.id}
-                                            value="Power-Apps-Premium-User"
+                                            value="POWER-APPS-PREMIUM-USER"
                                             defaultChecked={true}
-                                            onChange={() => onUserLicenseClick('Power-Apps-Premium-User', userLicense?.userDetails?.id)}
+                                            onChange={() => onUserLicenseClick('POWER-APPS-PREMIUM-USER', userLicense?.userDetails?.id)}
                                           />
                                         </span>
                                         <span>Power Apps Premium User</span>
