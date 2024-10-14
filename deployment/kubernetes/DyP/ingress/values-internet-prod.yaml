@@ -904,7 +904,7 @@ extraObjects:
           protocol: TCP
       podSelector:
         matchLabels:
-          app.kubernetes.io/name: prod-ingress-internet
+          app.kubernetes.io/name: traefik
       policyTypes:
       - Ingress  
 
