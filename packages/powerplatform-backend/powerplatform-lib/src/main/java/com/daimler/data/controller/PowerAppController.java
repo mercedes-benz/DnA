@@ -290,6 +290,7 @@ public class PowerAppController implements PowerappsApi
 			collection.setTotalCount(count.intValue());
 			responseCode = HttpStatus.OK;
 		}
+		log.info("sending power app details for response {} ",responseCode.name());
 	return new ResponseEntity<>(collection, responseCode);
     }
 
@@ -326,6 +327,7 @@ public class PowerAppController implements PowerappsApi
 				log.warn("User not part of requested power platform application with id {} and name {}, Not authorized to use other projects",id,existingApp.getName());
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}else {
+				log.info("sending power app details for id {} and name {}",id,existingApp.getName());
 				return new ResponseEntity<>(existingApp, HttpStatus.OK);
 			}
 		}

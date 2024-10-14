@@ -22,7 +22,7 @@ public class PowerAppDetails implements Serializable{
 	private String envOwnerName;
 	private String envOwnerId;
 	private String dyEnvOwnerName;
-	private String dyEnvOwnerid;
+	private String dyEnvOwnerId;
 	private String department;
 	private String environment;
 	private String prodEnvAvailability;
