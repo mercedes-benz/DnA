@@ -40,7 +40,7 @@ public class RepoSoftwareFileUpdate {
 
     @Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
-
+  
     @Autowired
     private GitClient gitClient;
 
