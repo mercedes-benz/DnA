@@ -33,4 +33,17 @@ public class ConstantsUtility {
 	public static final String APPROVED_STATE = "APPROVED";
 	public static final String REJECTED_STATE = "REJECTED";
 	
+	public static final String ENV_SHARED_DEV = "SHARED-DEV";
+	public static final String ENV_SHARED_INT = "SHARED-INT";
+	public static final String ENV_DEDICATED_PRODCONFIDENTIAL = "DEDICATED-PRODCONFIDENTIAL";
+	
+	public static final String IMMEDIATE_PROD_ENV_AVAIL = "IMMEDIATE";
+	public static final String LATER_PROD_ENV_AVAIL = "LATER";
+	
+	public static final String POWERAPPLICENSE_VIRTUALAGENT = "POWER-VIRTUAL-AGENT-USER";
+	public static final String POWERAPPLICENSE_AUTOPREMIUM = "POWER-AUTOMATE-PREMIUM";
+	public static final String POWERAPPLICENSE_PREMIUMUSER = "POWER-APPS-PREMIUM-USER";
+	
+	public static final String SHARED_DEVELOPMENT_ACCOUNT = "SHARED_DEVELOPMENT_ACCOUNT";
+	
 }

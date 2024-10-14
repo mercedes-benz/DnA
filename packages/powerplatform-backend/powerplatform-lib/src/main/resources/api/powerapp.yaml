@@ -73,7 +73,12 @@ paths:
       summary: "Get all power platform subscriptions for the user."
       description: "Get all platform subscriptions. This endpoints will be used to get all valid available platform subscription records."
       operationId: "getAll"
-      parameters:            
+      parameters:  
+        - name: Authorization
+          in: header
+          description: Authorization
+          required: false
+          type: string
         - name: offset
           in: query
           description: page number from which listing of workspaces should start. Offset. Example 2
@@ -121,6 +126,11 @@ paths:
       description: "Creates a new power app subscription request"
       operationId: "create"
       parameters:
+        - name: Authorization
+          in: header
+          description: Authorization
+          required: false
+          type: string
         - name: "powerAppCreateVO"
           in: "body"
           description: "Request Body that contains data required for creating a new workspace"
@@ -158,6 +168,11 @@ paths:
       description: " This endpoints will get power app subscription details for a given identifier."
       operationId: "getById"
       parameters:
+        - name: Authorization
+          in: header
+          description: Authorization
+          required: false
+          type: string
         - name: "id"
           in: "path"
           description: "Power platform subscription ID to be fetched"
@@ -180,45 +195,45 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-   put:
-      tags:
-        - "powerapps"
-      summary: "Update existing power app subscription details ."
-      description: "Updates an existing power app subscription."
-      operationId: "update"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Power app subscription ID to be updated"
-          required: true
-          type: "string"
-        - name: "powerappUpdateRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for updating an existing workspace"
-          required: true
-          schema:
-            $ref: "#/definitions/PowerAppUpdateRequestVO"
-      responses:
-        200:
-          description: "Updated successfully"
-          schema:
-            $ref: "#/definitions/PowerAppResponseVO"
-        404:
-          description: "No workspace found to update"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+#   put:
+#      tags:
+#        - "powerapps"
+#      summary: "Update existing power app subscription details ."
+#      description: "Updates an existing power app subscription."
+#      operationId: "update"
+#      parameters:
+#        - name: "id"
+#          in: "path"
+#          description: "Power app subscription ID to be updated"
+#          required: true
+#          type: "string"
+#        - name: "powerappUpdateRequestVO"
+#          in: "body"
+#          description: "Request Body that contains data required for updating an existing workspace"
+#          required: true
+#          schema:
+#            $ref: "#/definitions/PowerAppUpdateRequestVO"
+#      responses:
+#        200:
+#          description: "Updated successfully"
+#          schema:
+#            $ref: "#/definitions/PowerAppResponseVO"
+#        404:
+#          description: "No workspace found to update"
+#          schema:
+#            $ref: "#/definitions/GenericMessage"
+#        400:
+#          description: "Bad Request"
+#          schema:
+#            $ref: "#/definitions/GenericMessage"
+#        401:
+#          description: "Request does not have sufficient credentials."
+#        403:
+#          description: "Request is not authorized."
+#        405:
+#          description: "Method not allowed"
+#        500:
+#          description: "Internal error"
 
 definitions:
           

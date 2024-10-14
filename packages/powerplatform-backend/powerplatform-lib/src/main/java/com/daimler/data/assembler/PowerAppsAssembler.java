@@ -44,7 +44,7 @@ public class PowerAppsAssembler implements GenericAssembler<PowerAppVO, PowerApp
 	public DeveloperVO toDeveloperVO(Developer developer) {
 		DeveloperVO vo = new DeveloperVO();
 		if(developer!=null) {
-			vo.setLicense(developer.getLicense());
+			vo.setLicense(developer.getLicense().toUpperCase());
 			CreatedByVO userVO = new CreatedByVO();
 			if(developer.getUserDetails()!=null) {
 				userVO = this.toCreatedByVO(developer.getUserDetails());
@@ -65,7 +65,7 @@ public class PowerAppsAssembler implements GenericAssembler<PowerAppVO, PowerApp
 	public Developer toDeveloper(DeveloperVO developerVO) {
 		Developer developer = new Developer();
 		if(developerVO!=null) {
-			developer.setLicense(developerVO.getLicense());
+			developer.setLicense(developerVO.getLicense().toUpperCase());
 			UserDetails user = new UserDetails();
 			if(developerVO.getUserDetails()!=null) {
 				user = this.toUserDetails(developerVO.getUserDetails());
@@ -113,8 +113,8 @@ public class PowerAppsAssembler implements GenericAssembler<PowerAppVO, PowerApp
 			vo.setDyEnvOwnerid(createRequest.getDyEnvOwnerid());
 			vo.setDyEnvOwnerName(createRequest.getDyEnvOwnerName());
 			vo.setDepartment(createRequest.getDepartment());
-			vo.setEnvironment(createRequest.getEnvironment().name());
-			vo.setProdEnvAvailability(createRequest.getProdEnvAvailability().name());
+			vo.setEnvironment(createRequest.getEnvironment().toString().toUpperCase());
+			vo.setProdEnvAvailability(createRequest.getProdEnvAvailability().toString().toUpperCase());
 			vo.setBillingContact(createRequest.getBillingContact());
 			vo.setBillingPlant(createRequest.getBillingPlant());
 			vo.setBillingCostCentre(createRequest.getBillingCostCentre());
