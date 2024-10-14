@@ -17,7 +17,7 @@ app:
     replicaCount: 1
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/dna-backend
-      tag: '328'
+      tag: '575'
     secrets:
       name: app-secrets
       notebookSecretToken: null
