@@ -587,7 +587,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											apiAuthoriserPluginConfigVO.setLogType(logType);
 											apiAuthoriserPluginConfigVO.setPoolID(poolID);
 											apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
-											apiAuthoriserPluginConfigVO.setProjectName(projectName);
+											apiAuthoriserPluginConfigVO.setProjectName(projectName.toLowerCase());
 	
 											apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
 											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
