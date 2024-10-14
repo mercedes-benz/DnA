@@ -10,7 +10,7 @@ const PowerPlatformEnvironmentCard = ({ environment }) => {
   
   useEffect(() => {
     Tooltip.defaultSetup();
-  }, []);
+  }, [environment]);
 
   return (
     <div className={classNames(Styles.projectCard)}>

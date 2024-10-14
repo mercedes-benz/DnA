@@ -319,3 +319,33 @@
     }
   }
 }
+.btnContainer {
+  margin-right: 10px;
+  border-right: 1px solid #252a33;
+  padding-right: 10px;
+
+  > button {
+    background: unset;
+    border: 0;
+    padding: 0;
+    line-height: unset;
+    height: auto;
+    margin-top: -2px;
+    color: #d9dfe4;
+
+    &:hover {
+      background-color: unset !important;
+      color: #00adef;
+    }
+  }
+}
+.noAccounts {
+  align-items: center;
+  background-color: #252a33;
+  display: flex;
+  flex-direction: column;
+  height: 450px;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
