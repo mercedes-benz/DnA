@@ -274,7 +274,7 @@ const PowerPlatformEnvironments = ({user}) => {
           modalWidth={'1100px'}
           buttonAlignment="right"
           show={orderAccount}
-          content={<PowerPlatformEnvironmentForm user={user} onOrderAccount={() => { localStorage.setItem('modal', ''); setOrderAccount(false) }} />}
+          content={<PowerPlatformEnvironmentForm user={user} onOrderAccount={() => { localStorage.setItem('modal', ''); setOrderAccount(false); getEnvironments() }} />}
           scrollableContent={true}
           onCancel={() => { localStorage.setItem('modal', ''); setOrderAccount(false) }}
         />
