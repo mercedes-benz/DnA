@@ -71,18 +71,20 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
   const getDevelopers = (developer) => {
     const userLicenseData = {
       userDetails: {
-        id: developer.shortId,
-        userId: developer.shortId,
-        firstName: developer.firstName,
-        lastName: developer.lastName,
+        id: developer?.shortId,
+        firstName: developer?.firstName,
+        lastName: developer?.lastName,
+        department: developer?.department,
+        mobileNumber: developer?.mobileNumber,
+        email: developer?.email,
       },
       license: 'Power-Apps-Premium-User'
     };
 
     let duplicateMember = false;
-    duplicateMember = userLincenses?.filter((license) => license.userDetails.userId === developer.shortId)?.length ? true : false;
+    duplicateMember = userLincenses?.filter((license) => license.userDetails.id === developer.shortId)?.length ? true : false;
 
-    const isCreator = user?.id === developer?.userId;
+    const isCreator = user?.id === developer?.id;
 
     if (duplicateMember) {
         Notification.show('User License already added.', 'warning');
@@ -99,7 +101,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
 
   const onUserLicenseClick = (value, userId) => {
     const updatedUserLincenses = userLincenses.map(userLicense => {
-      if (userLicense?.userDetails?.userId === userId) {
+      if (userLicense?.userDetails?.id === userId) {
         return Object.assign({}, userLicense, { license: value });
       }
       return userLicense;
@@ -110,7 +112,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
   const onUserLicenseDelete = (userId) => {
     return () => {
       const updatedUserLicenses = userLincenses.filter((userLicense) => {
-        return userLicense?.userDetails?.userId !== userId;
+        return userLicense?.userDetails?.id !== userId;
       });
       setUserLicenses(updatedUserLicenses);
     };
@@ -129,7 +131,8 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
       billingCostCentre: values?.billingCostCentre,
       customRequirements: values?.customRequirements,
       prodEnvAvailability: values?.prodEnvAvailability,
-      developers: userLincenses
+      developers: userLincenses,
+      subscriptionType: '',
     }
   }
 
@@ -138,7 +141,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
     const data = formValues(values);
     powerPlatformApi.createPowerPlatformEnvironment(data).then(() => {
       ProgressIndicator.hide();
-      // history.push(`/project/${res.data.data.id}`);
+      // history.push(`/project/${res.dat,a.data.id}`);
       onOrderAccount();
       Notification.show('Shared Developer Account created successfully created');
     }).catch(error => {
@@ -407,9 +410,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                     <div>
                         {userLincenses?.map((userLicense) => {
                           return (
-                              <div key={userLicense?.userDetails?.userId} className={Styles.userRow}>
+                              <div key={userLicense?.userDetails?.id} className={Styles.userRow}>
                                   <div className={Styles.column1}>
-                                    <p>{userLicense?.userDetails?.userId}</p>
+                                    <p>{userLicense?.userDetails?.id}</p>
                                   </div>
                                   <div className={Styles.column2}>
                                     <p>{userLicense?.userDetails?.firstName + ' ' + userLicense?.userDetails?.lastName}</p>
@@ -421,9 +424,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                           <input
                                             type="radio"
                                             className="ff-only"
-                                            name={userLicense?.userDetails?.userId}
+                                            name={userLicense?.userDetails?.id}
                                             value="Power-Virtual-Agent-User"
-                                            onChange={() => onUserLicenseClick("Power-Virtual-Agent-User", userLicense?.userDetails?.userId)}
+                                            onChange={() => onUserLicenseClick("Power-Virtual-Agent-User", userLicense?.userDetails?.id)}
                                           />
                                         </span>
                                         <span>Power Virtual Agent User</span>
@@ -435,9 +438,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                           <input
                                             type="radio"
                                             className="ff-only"
-                                            name={userLicense?.userDetails?.userId}
+                                            name={userLicense?.userDetails?.id}
                                             value="Power-Automate-Premium"
-                                            onChange={() => onUserLicenseClick('Power-Automate-Premium', userLicense?.userDetails?.userId)}
+                                            onChange={() => onUserLicenseClick('Power-Automate-Premium', userLicense?.userDetails?.id)}
                                           />
                                         </span>
                                         <span>Power Automate Premium</span>
@@ -449,10 +452,10 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                           <input
                                             type="radio"
                                             className="ff-only"
-                                            name={userLicense?.userDetails?.userId}
+                                            name={userLicense?.userDetails?.id}
                                             value="Power-Apps-Premium-User"
                                             defaultChecked={true}
-                                            onChange={() => onUserLicenseClick('Power-Apps-Premium-User', userLicense?.userDetails?.userId)}
+                                            onChange={() => onUserLicenseClick('Power-Apps-Premium-User', userLicense?.userDetails?.id)}
                                           />
                                         </span>
                                         <span>Power Apps Premium User</span>
@@ -460,7 +463,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                                     </div>
                                   </div>
                                   <div className={Styles.column4}>
-                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(userLicense?.userDetails?.userId)}>
+                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(userLicense?.userDetails?.id)}>
                                       <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
                                     </div>
                                   </div>
