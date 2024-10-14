@@ -1,6 +1,6 @@
 {
   "name": "dna-web",
-  "version": "3.6.1",
+  "version": "3.9.8",
   "description": "Web Frontend for DnA@MBC based on Digital Design System(UILab)",
   "license": "MIT",
   "author": {
@@ -134,7 +134,7 @@
     "eslint": "^7.28.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-react": "^7.29.2",
+    "eslint-plugin-react": "^7.35.2",
     "eslint-webpack-plugin": "^2.5.4",
     "expose-loader": "^3.0.0",
     "fast-text-encoding": "^1.0.0",
