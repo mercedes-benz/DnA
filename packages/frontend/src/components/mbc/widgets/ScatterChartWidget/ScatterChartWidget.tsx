@@ -1,3 +1,4 @@
+//@ts-ignore
 import * as React from 'react';
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
 import { IScatterChartDataItem } from 'globals/types';
