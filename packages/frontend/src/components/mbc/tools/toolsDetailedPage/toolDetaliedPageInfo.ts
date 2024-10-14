@@ -393,3 +393,4 @@ export const ToolsDetailedPageElements = [
     ]
   }
 ]
+
