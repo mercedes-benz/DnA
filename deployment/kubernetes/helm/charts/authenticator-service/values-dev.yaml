@@ -1,0 +1,65 @@
+replicaCount: 1
+namespace: kong
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/authenticator-service
+  pullPolicy: IfNotPresent
+  tag: '569'
+envs: {}
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: authenticator-service
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ''
+podAnnotations:
+  vault.hashicorp.com/namespace: fmas/dev
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/role: dna
+  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+  vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+  vault.hashicorp.com/template-static-secret-render-interval: 10s
+  vault.hashicorp.com/agent-pre-populate-only: 'false'
+  vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/authenticatorService
+  vault.hashicorp.com/agent-inject-template-envvar: |
+    {{- with secret "kv/dna/kubernetesSecret/authenticatorService" -}}
+      {{- range $k, $v := .Data.data }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}
+    {{- end }}
+podSecurityContext:
+  runAsUser: 1000
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: false
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+  hosts:
+    - host: api.auth.dev.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.auth.dev.dna.app.corpintra.net
+      secretName: auth-service-tls
+resources: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity: {}
+vaultInjector:
+  enable: true
+  jarName: authenticator-lib*.jar

@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.2.4
+    version: 1.2.6
   profile:
     active: production
 
@@ -94,6 +94,7 @@ codeServer:
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
   run.init: ${RUN_INIT_POST_CONSTRUCT:YOUR_INIT_POST_CONSTRUCT_BOOLEAN}
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
+  codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -170,6 +171,9 @@ kong:
    authoriserRedirectAfterLogoutUri: ${AUTHORISER_REDIRECT_AFTER_LOGOUT_URI:XXXX}
    authoriserDiscovery: ${AUTHORISER_DISCOVERY:XXXX}
    authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
+   preFunctionBackendValue: ${PRE_FUNCTION_BACKEND_VALUE:XXXX}
+   postFunctionFrontendValue: ${POST_FUNCTION_FRONTEND_VALUE:XXXX}
+   preFunctionFrontendValue: ${PRE_FUNCTION_FRONTEND_VALUE:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
