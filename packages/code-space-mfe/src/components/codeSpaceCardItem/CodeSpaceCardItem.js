@@ -278,13 +278,13 @@ const CodeSpaceCardItem = (props) => {
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? intDeploymentDetails?.lastDeployedOn
         : intDeploymentDetails?.deploymentAuditLogs &&
             intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
@@ -292,13 +292,13 @@ const CodeSpaceCardItem = (props) => {
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? prodDeploymentDetails?.lastDeployedOn
         : prodDeploymentDetails?.deploymentAuditLogs &&
             prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
