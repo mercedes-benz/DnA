@@ -95,6 +95,16 @@
         margin-right: 20px;
         outline: 0;
         padding: 0;
+        height: unset;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 10px;
+        span {
+          font-size: var(--font-size-default);
+          display: inline-block;
+          height: 12px;
+        }
         &:hover {
         background-color: transparent;
         color: #00adef;
@@ -137,5 +147,18 @@
         }
       }
     }
+  }
+}
+.accessLink {
+  color: #00adef;
+  background: unset;
+  border: unset;
+  height: unset;
+  padding: 0;
+  font-size: var(--font-size-default);
+  margin-top: -5px;
+
+  &:hover {
+    background: unset;
   }
 }
