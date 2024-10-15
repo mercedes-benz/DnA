@@ -1,0 +1,359 @@
+# -----------------------------------------------------------------------------
+# Kong parameters
+# -----------------------------------------------------------------------------
+
+# Specify Kong configuration
+# This chart takes all entries defined under `.env` and transforms them into into `KONG_*`
+# environment variables for Kong containers.
+env:
+  database: "postgres"
+  pg_host: "dev-db.dev-apisap.svc.cluster.local"
+  pg_port: "64000"  
+  pg_ssl: "off"
+  pg_ssl_verify: "off"
+  pg_user:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.user
+        name: kongdev-db-setting
+  pg_password:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.password
+        name: kongdev-db-setting
+  pg_database:
+    valueFrom:
+      secretKeyRef:
+        key: postgres.db
+        name: kongdev-db-setting 
+  pg_schema: "public"       
+  admin_api_uri: http://localhost:8001
+  admin_gui_url: http://localhost:8002
+  # admin_listen: 0.0.0.0:8001
+  # admin_gui-listen: 0.0.0.0:8002  
+  plugins: "bundled,oneapi,pathfinder,oauth2saml"
+  log_level: "debug"   # info, debug
+  NGINX_PROXY_PROXY_SSL_TRUSTED_CERTIFICATE: /etc/kong/tls.crt
+  # upstream_keepalive_idle_timeout: 120
+#  oneapi_environment: "testing" # optional
+  oneapi_gateway_key:
+   valueFrom:
+    secretKeyRef:
+      key: ONEAPI_GATEWAY_KEY
+      name: kong-gateway-secret
+  oneapi_gateway_secret:
+   valueFrom:
+    secretKeyRef:
+      key: ONEAPI_GATEWAY_SECRET
+      name: kong-gateway-secret
+  oneapi_https_proxy: "http://security-proxy.emea.svc.corpintra.net:3128" 
+  oneapi_no_proxy: "sso-int.daimler.com,sso.daimler.com,corpintra.net,corpshared.net,127.0.0.0/8,53.0.0.0/8,cluster.local,sso.mercedes-benz.com,sso-int.mercedes-benz.com"
+  headers: "off"  
+  
+  pluginserver_names: js
+  pluginserver_js_socket: /usr/local/kong/js_pluginserver.sock
+  pluginserver_js_start_cmd: /usr/bin/kong-js-pluginserver -v --plugins-directory /usr/local/kong/js-plugins
+  pluginserver_js_query_cmd: /usr/bin/kong-js-pluginserver --plugins-directory /usr/local/kong/js-plugins --dump-all-plugins
+  # pluginserver_names: js
+  # pluginserver_js_socket: /usr/local/kong/js_pluginserver.sock
+  # pluginserver_js_start_cmd: /usr/local/bin/kong-js-pluginserver -v --plugins-directory /usr/local/kong/js-plugins
+  # pluginserver_js_query_cmd: /usr/local/bin/kong-js-pluginserver --plugins-directory /usr/local/kong/js-plugins --dump-all-plugins
+ 
+
+deployment:
+  
+  sidecarContainers:
+  - name: simple-rp
+    image: registry-emea.app.corpintra.net/dnaplatform/kong-reverse-proxy:2
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 8080
+    env:
+    - name: HTTPS_PROXY
+      value: "http://security-proxy.emea.svc.corpintra.net:3128"
+    - name: NO_PROXY
+      value: 53.0.0.0/8,10.0.0.0/8,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com  
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 150Mi
+        cpu: 200m
+    livenessProbe:
+      httpGet:
+        path: /alive
+        port: 8080
+        httpHeaders:
+        - name: x-alive
+          value: healthcheck
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+  userDefinedVolumes:
+  - name: sap-certificate
+    secret:
+      secretName: global-sap-saml
+  - name: pathfinder-config
+    configMap: 
+      name: pathfinder-config 
+      defaultMode: 420 
+  - name: pathfinder-secret 
+    secret:
+      secretName: pathfinder-secret  
+
+  # - name: kong-log-file
+  #   persistentVolumeClaim:
+  #     claimName: kong-log-file-pvc
+       
+            
+  userDefinedVolumeMounts:
+  - mountPath: /usr/local/kong/js-plugins/oauth2saml/certs/cert.pem
+    subPath: cert.pem
+    name: sap-certificate
+  - mountPath: /usr/local/kong/js-plugins/oauth2saml/certs/key.pem
+    subPath: key.pem
+    name: sap-certificate
+  - mountPath: /usr/local/kong/js-plugins/oauth2saml/certs/ca-root.pem
+    subPath: ca-root.pem
+    name: sap-certificate
+
+  - mountPath: /etc/kong/tls.crt
+    subPath: tls.crt
+    name: sap-certificate
+      
+  - mountPath: /usr/local/kong/js-plugins/pathfinder/certs/cert.pem
+    subPath: cert.pem
+    name: sap-certificate
+  - mountPath: /usr/local/kong/js-plugins/pathfinder/certs/key.pem
+    subPath: key.pem
+    name: sap-certificate
+  - mountPath: /usr/local/kong/js-plugins/pathfinder/certs/ca-root.pem
+    subPath: ca-root.pem
+    name: sap-certificate     
+
+  - mountPath: /usr/local/kong/js-plugins/pathfinder/pathfinder-secret.yaml
+    subPath: pathfinder-secret.yaml
+    name: pathfinder-secret
+  - mountPath: /usr/local/kong/js-plugins/pathfinder/pathfinder-config.yaml
+    subPath: pathfinder-config.yaml
+    name: pathfinder-config    
+
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/kong/oneapi-custom-pathfinder 
+  tag: 1.9.2
+  pullPolicy: Always
+  pullSecrets:
+  - harbor-secret  
+# Specify Kong proxy service configuration
+proxy:
+  # Enable creating a Kubernetes service for the proxy
+  enabled: true
+  type: ClusterIP
+  
+  
+  # If you want to specify annotations for the proxy service, uncomment the following
+  # line, add additional or adjust as needed, and remove the curly braces after 'annotations:'.
+  annotations: {}
+  #  service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+
+  http:
+    # Enable plaintext HTTP listen for the proxy
+    enabled: true
+
+  tls:
+    # Enable HTTPS listen for the proxy
+    enabled: false
+
+## Ingress route to create routes and middleware for trafeik on DHCaas
+  ingressRoute:
+    # Enable/disable exposure using ingress.
+    enabled: false
+    # Ingress hostname
+    hostname: apisap-aws.app.corpintra.net
+    # Ingress path.
+    pathPrefix: /
+    certificateIssuer: mercedes-benz-acme
+
+  # Kong proxy ingress settings.
+  # Note: You need this only if you are using another Ingress Controller
+  # to expose Kong outside the k8s cluster.
+  ingress:
+    # Enable/disable exposure using ingress.
+    enabled: true
+    ingressClassName:
+    # Ingress hostname
+    # TLS secret name.
+    tls: apisap-dev-tls
+    # Ingress hostname
+    hostname: apisap-aws.app.corpintra.net
+    annotations:     
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+      kubernetes.io/ingress.class: traefik
+      traefik.frontend.rule.type: PathPrefix
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+    path: /
+    # Each path in an Ingress is required to have a corresponding path type. (ImplementationSpecific/Exact/Prefix)
+    pathType: Prefix
+
+    
+    
+# Kong's configuration for DB-less mode
+# Note: Use this section only if you are deploying Kong in DB-less mode
+# and not as an Ingress Controller.
+dblessConfig:
+  # Either Kong's configuration is managed from an existing ConfigMap (with Key: kong.yml)
+  # configMap: ""
+  # # Or the configuration is passed in full-text below
+  # config: |
+  #   _format_version: "2.1"
+
+  #   services:
+  #   - name: carla_currencykong
+  #     url: https://sbiss4-dev.app.corpintra.net/sap/opu/odata/sap/C_CVTCUR_CURRENCY_001_SRV/
+  #     plugins:
+  #     - name: oneapi
+  #       config:
+  #         api_version_shortname: carla_currencykong-v1
+  #         environment: development
+  #         authentication:
+  #           authentication_type: oauth
+  #           oauth:
+  #              introspection_uri: https://sso-int.mercedes-benz.com/as/introspect.oauth2
+  #              client_id: 7e28c1ea-f61a-4277-89c3-4fd2e6f9463c
+  #              client_secret: a3aa30f8-972a-4a30-b0c8-6396cf9bb8ba
+  #              use_https_proxy: false
+  #     # - name: post-function
+  #     #   config:
+  #     #     access:
+  #     #      - |
+  #     #        if kong.ctx.shared.oneapi.introspection then
+  #     #          kong.log.info("+++ SUB +++ ", kong.ctx.shared.oneapi.introspection.sub)
+  #     #          kong.log.info("+++ CLIENT_ID +++", kong.ctx.shared.oneapi.introspection.client_id)
+  #     #        end 
+
+  #     - name: oauth2saml
+  #       config:
+  #          use_prefix: true
+  #          sap_client_id: BW_ONEAPI
+  #          sap_client_secret: E4C@2022!02#08
+  #          saml_bearer_cert: /certs/cert.pem
+  #          saml_bearer_key: /certs/key.pem
+  #          saml_bearer_issuer: ONEAPI
+  #          saml_bearer_audiences: SBISSE4AServiceProvider
+  #          saml_bearer_recipient: https://sbiss4-dev.app.corpintra.net/sap/bc/sec/oauth2/token?sap-client=010
+  #          sap_cacertPath: /certs/ca-root.pem
+  #          sap_scope: ZC_CVTCUR_CURRENCY_001_SRV_0001
+            
+
+  #         # analytics:
+  #         #   enabled: true
+  #         # upstream_auth:
+  #         #   basic_auth:
+  #         #     username: NTQ_API
+  #         #     password: Daimler@6567                   
+  #     # - name: rate-limiting
+  #     #   config:
+  #     #     minute: 60
+  #     #     policy: local
+  #     # - name: cors
+  #     #   config:
+  #     #     origins:
+  #     #     - https://developer.corpinter.net
+  #     #     - https://mercedes-benz.com
+  #     #     methods:
+  #     #     - GET
+  #     #     - POST
+  #     #     - DELETE
+  #     #     - PUT
+  #     #     headers:
+  #     #     - Accept
+  #     #     - Content-Type
+  #     #     - Accept-Encoding
+  #     #     - Accept-Language
+  #     #     - Host
+  #     #     - Pragma
+  #     #     - Origin
+  #     #     - Referrer
+  #     #     - User-Agent
+  #     #     - Cache-Control
+  #     #     - Authorization
+  #     #     - x-api-key
+  #     #     credentials: true
+  #     #     max_age: 3628800
+  #     #     preflight_continue: false                              
+  #     routes:
+  #     - name: carla_currencykong-v1
+  #       paths:
+  #       - /
+  #       protocols:
+  #       - http
+  #       - https 
+# -----------------------------------------------------------------------------
+# Ingress Controller parameters
+# -----------------------------------------------------------------------------
+
+# Kong Ingress Controller's primary purpose is to satisfy Ingress resources
+# created in k8s.  It uses CRDs for more fine grained control over routing and
+# for Kong specific configuration.
+ingressController:
+  enabled: false
+
+# If you want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 400Mi
+    cpu: 400m
+
+# Proxy container lifecycle hooks
+# Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "/bin/sleep 15 && kong quit"]
+
+# Kong pod count.
+# It has no effect when autoscaling.enabled is set to true
+replicaCount: 2
+
+# Annotation to be added to Kong pods
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/metrics"
+  prometheus.io/port: "8100"
+
+# Kong Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: "50%"
+
+securityContext:
+  runAsUser: 1000
+extraResources:
+ - |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: global-sap-saml
+      namespace: {{ .Release.Namespace }}
+    data:
+      ca-root.pem: <path:kv/data/dna/kubernetesSecret/infraAPISAP#ca-root | base64encode>
+      cert.pem: <path:kv/data/dna/kubernetesSecret/infraAPISAP#cert | base64encode>
+      key.pem: <path:kv/data/dna/kubernetesSecret/infraAPISAP#key | base64encode>
+      tls.crt: <path:kv/data/dna/kubernetesSecret/infraAPISAP#tls | base64encode>
+    type: Opaque
+ - |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: kong-gateway-secret
+      namespace: {{ .Release.Namespace }}
+    data:
+      ONEAPI_GATEWAY_KEY: <path:kv/data/dna/kubernetesSecret/infraAPISAP#oneapi_key | base64encode>
+      ONEAPI_GATEWAY_SECRET: <path:kv/data/dna/kubernetesSecret/infraAPISAP#oneapi_secret | base64encode>
+    type: Opaque   
