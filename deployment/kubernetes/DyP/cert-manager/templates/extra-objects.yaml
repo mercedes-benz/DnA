@@ -22,6 +22,10 @@ spec:
     - http01:
         ingress:
           ingressClassName: ingress-traefik
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'          
     # Adding this for BAT project
     - http01:
         ingress:
