@@ -5,7 +5,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-db
+  name: {{ .Values.env }}-db-apisap
   namespace: {{ .Values.namespace }}
   labels:
     name: db
