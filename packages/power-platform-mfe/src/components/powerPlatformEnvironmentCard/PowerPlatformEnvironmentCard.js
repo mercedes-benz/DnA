@@ -5,7 +5,7 @@ import Styles from './power-platform-environment-card.scss';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
-const PowerPlatformEnvironmentCard = ({ environment }) => {
+const PowerPlatformEnvironmentCard = ({ environment, onMoreInfoClick }) => {
   // const history = useHistory();
   
   useEffect(() => {
@@ -16,10 +16,7 @@ const PowerPlatformEnvironmentCard = ({ environment }) => {
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
         <div className={classNames(Styles.cardHeadInfo)}>
-          <div
-            className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-            // onClick={() => {history.push(`/workspace/${environment.id}`)}}
-          >
+          <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}>
             {environment.name}
           </div>
         </div>
@@ -27,6 +24,16 @@ const PowerPlatformEnvironmentCard = ({ environment }) => {
       <hr />
       <div className={Styles.cardBodySection}>
         <div>
+          {(environment?.state === 'APPROVED' && environment?.url.length > 0) &&
+            <div>
+              <div>Environment URL</div>
+              <div>
+                <button className={classNames('btn btn-primary', Styles.accessLink)} onClick={() => window.open(environment?.url)}>
+                  Access Link <i className={classNames('icon mbc-icon new-tab')}></i>
+                </button>
+              </div>
+            </div>
+          }
           <div>
             <div>Requested on</div>
             <div>{environment?.requestedOn ? regionalDateAndTimeConversionSolution(environment?.requestedOn) : 'N/A'}</div>
@@ -37,7 +44,7 @@ const PowerPlatformEnvironmentCard = ({ environment }) => {
           </div>
           <div>
             <div>Environment Owner</div>
-            <div>{environment?.envOwnerId} - {environment?.envOwnerName}</div>
+            <div>{environment?.envOwnerId} {environment?.envOwnerName.length > 0 ? ' - ' + environment?.envOwnerName : ''}</div>
           </div>
         </div>
       </div>
@@ -52,25 +59,16 @@ const PowerPlatformEnvironmentCard = ({ environment }) => {
               </button>
             </div>
           </div>
-          {/* <div className={Styles.btnGrp}>
+          <div className={Styles.btnGrp}>
             <button
               className={'btn btn-primary'}
               type="button"
-              onClick={() => onEditProject(environment)}
+              onClick={() => onMoreInfoClick(environment)}
             >
-              <i className="icon mbc-icon edit"></i>
-              <span>Edit</span>
+              <i className="icon mbc-icon info"></i>
+              <span>More Info</span>
             </button>
-            
-            <button
-              className={'btn btn-primary'}
-              type="button"
-              onClick={() => onDeleteProject(environment)}
-            >
-              <i className="icon delete"></i>
-              <span>Delete</span>
-            </button>
-          </div> */}
+          </div>
         </>
       </div>
     </div>

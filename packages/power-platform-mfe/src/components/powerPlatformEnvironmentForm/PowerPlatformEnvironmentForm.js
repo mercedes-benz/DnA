@@ -120,16 +120,16 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
 
   const formValues = (values) => {
     return {
-      name: values?.name,
-      envOwnerName: values?.envOwnerName,
-      envOwnerId: values?.envOwnerId,
-      dyEnvOwnerName: values?.dyEnvOwnerName,
-      dyEnvOwnerId: values?.dyEnvOwnerId,
+      name: values?.name?.trim(),
+      envOwnerName: values?.envOwnerName?.trim(),
+      envOwnerId: values?.envOwnerId?.trim(),
+      dyEnvOwnerName: values?.dyEnvOwnerName?.trim(),
+      dyEnvOwnerId: values?.dyEnvOwnerId?.trim(),
       department: values?.department[0],
-      billingContact: values?.billingContact,
-      billingPlant: values?.billingPlant,
-      billingCostCentre: values?.billingCostCentre,
-      customRequirements: values?.customRequirements,
+      billingContact: values?.billingContact?.trim(),
+      billingPlant: values?.billingPlant?.trim(),
+      billingCostCentre: values?.billingCostCentre?.trim(),
+      customRequirements: values?.customRequirements?.trim(),
       prodEnvAvailability: values?.prodEnvAvailability,
       developers: userLincenses,
       subscriptionType: '',
@@ -173,10 +173,10 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   id="name"
                   placeholder="Type here"
                   autoComplete="off"
-                  maxLength={256}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d -]+$/ })}
+                  maxLength={100}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!^\s+$)[\d -]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names must contain characters only - is allowed. Admin monitoring name is not allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names must contain characters only, - is allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col2}>
@@ -314,8 +314,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   placeholder="Example 020"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('billingPlant', { required: '*Missing entry' })}
-                />                
+                  {...register('billingPlant', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, })}
+                />   
+                <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                 {/* <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && 'Please enter 3 digit billing plant code'}</span> */}
               </div>
             </div>
@@ -331,8 +332,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   placeholder="Example 000-1234"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('billingCostCentre', { required: '*Missing entry' })}
+                  {...register('billingCostCentre', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, })}
                 />
+                <span className={'error-message'}>{errors?.billingCostCentre?.message}{errors.billingCostCentre?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                 {/* <span className={'error-message'}>{errors?.billingCostCentre?.message}{errors.billingCostCentre?.type === 'pattern' && 'Please enter valid billing cost center code'}</span> */}
               </div>
             </div>
