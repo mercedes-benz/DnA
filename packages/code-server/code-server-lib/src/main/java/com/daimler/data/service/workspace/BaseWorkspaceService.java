@@ -41,7 +41,8 @@
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
- 
+
+ import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -81,7 +82,8 @@
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
- import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
+import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.dto.workspace.ResourceVO;
@@ -115,6 +117,9 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.git.orguri}")
 	 private String gitOrgUri;
  
+	 @Value("${codeServer.git.orgname}")
+	 private String orgName;
+ 
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
  
@@ -123,6 +128,9 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
+
+	 @Value("${codeServer.codespace.filename}")
+	 private String codespaceFileName;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1264,6 +1272,43 @@ import com.daimler.data.util.ConstantsUtility;
 	 }
  
 	 @Override
+	 public CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception {
+		String gitUrl = null;
+		String repoName = null;
+		String readmeFileContent = null;
+		String repoOwner = null;
+		byte[] file = null;
+		CodeSpaceReadmeVo codeSpaceReadmeVo =  new CodeSpaceReadmeVo();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+		String gitHubUrl= entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+		String projectName = entity.getData().getProjectDetails().getProjectName();
+		if(gitHubUrl == null || gitHubUrl.isEmpty()) {
+			gitHubUrl = "https://" + gitOrgUri + orgName + "/"+projectName+"/";
+		}
+		if(gitHubUrl.contains(".git")) {
+			gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+		}
+		String[] codespaceSplitValues = gitHubUrl.split("/");
+		int length = codespaceSplitValues.length;
+		repoName = codespaceSplitValues[length-1];
+		repoOwner = codespaceSplitValues[length-2];
+		gitUrl = gitHubUrl.replace("/"+repoOwner, "");
+		gitUrl = gitUrl.replace("/"+repoName, "");
+		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName);
+		if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+			readmeFileContent =  jsonResponse.getString("content");
+			log.info("Retrieving a software's SHA was successfull from Git.");
+			if(readmeFileContent!=null){
+				file = readmeFileContent.getBytes();
+				codeSpaceReadmeVo.setFile(file);
+			}
+			
+		}
+		return codeSpaceReadmeVo;
+	 }
+
+
+	 @Override
 	 public List<CodeServerWorkspaceVO> getAll(String userId, int offset, int limit) {
 		 List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findAll(userId, limit, offset);
 		 entities.forEach(entity -> {
@@ -1300,7 +1345,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1396,28 +1441,29 @@ import com.daimler.data.util.ConstantsUtility;
 					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails);
 					 //calling kong to create service, route and plugins
-					 boolean apiRecipe = false;
+					//  boolean apiRecipe = false;
 					 String serviceName = projectName;
-					 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					 String reactRecipeId = RecipeIdEnum.REACT.toString();
-					 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					 String dashRecipeId = RecipeIdEnum.DASH.toString();
-					 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+					//  String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					//  String reactRecipeId = RecipeIdEnum.REACT.toString();
+					//  String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					//  String dashRecipeId = RecipeIdEnum.DASH.toString();
+					//  String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					//  String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					//  String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
-					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 } else {
-						 apiRecipe = true;
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 }
-					 status = "SUCCESS";
+					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  } else {
+					// 	 apiRecipe = true;
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  }
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope);
+					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 errors.addAll(jobResponse.getErrors());

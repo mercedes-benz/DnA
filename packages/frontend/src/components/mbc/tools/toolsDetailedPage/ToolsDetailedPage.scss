@@ -75,6 +75,10 @@
   h4 {
     color: #c8c9cb;
   }
+
+  .note {
+    color: #00adef;
+  }
 }
 
 .navButton {
@@ -149,29 +153,36 @@
     padding: 24px;
     width: calc(33% - 9.5px);
     margin: 6.5px 0 6.5px;
-    height: 350px;
+    min-height: 350px;
     margin-right: 12px;
     border-radius: 7px;
 
     .serviceInfo {
-      font-size: 40px;
-      margin-bottom: 20px;
+      height: 100%;
+
+      i {
+        font-size: 40px;
+        margin-bottom: 10px;
+        display: block;
+        height: 58px;
+      }
 
       h3 {
         font-size: 15px;
-        font-family: var(--font-family-bold);
+        font-family: var(--font-family-roboto-medium);
         margin-bottom: 10px;
         color: #D9DFE4;
+        text-transform: capitalize;
       }
 
       h5 {
-        font-size: 11px;
-        font-family: var(--font-family-medium);
         color: #99A5B3;
-        min-width: 100px;
+        font-size: var(--font-size-small);
+        margin-bottom: 15px;
+        line-height: 1.5;
         max-width: 300px;
+        min-width: 100px;
         padding-bottom: 0px;
-        margin-bottom: 20px;
       }
 
       .infoLinks {
@@ -183,8 +194,16 @@
         }
       }
 
+      .moreBtn button {
+        background-color: initial;
+        border: 0;
+        color: #00adef;
+        padding: 0;
+        outline: 0;
+      }
+
       .infoContent {
-        h3 {
+        p {
           font-size: var(--font-size-default);
           display: block;
           margin-bottom: 8px;
@@ -230,16 +249,21 @@
         font-size: var(--font-size-icon-medium);
       }
 
-      .connectedToList {
-        i {
-          font-size: 25px;
-        }
-
-        h5 {
-          margin-top: 7px;
-          font-family: var(--font-family);
-          font-size: 12px;
-        }
+      .connectionWrapper{
+        display: flex;
+        
+        .connectedToList {
+          i {
+            font-size: 23px;
+          }
+  
+          h5 {
+            margin-top: 7px;
+            font-family: var(--font-family);
+            font-size: 12px;
+            max-width: 10px;
+          }
+        }  
       }
     }
   }
@@ -256,7 +280,22 @@
 
     h3 {
       color: #C0C8D0;
-      ;
+      font-size: var(--font-size-icon-medium);
+      font-family: var(--font-family-bold);
+    }
+  }
+
+  .classification {
+    justify-content: space-between;
+    padding: 24px;
+    width: calc(33% - 9.5px);
+    margin: 7px 0 6.5px;
+    height: 300px;
+    margin-right: 12px;
+    border-radius: 7px;
+
+    h3 {
+      color: #C0C8D0;
       font-size: var(--font-size-icon-medium);
       font-family: var(--font-family-bold);
     }
@@ -280,6 +319,26 @@
     }
   }
 
+  .classIcon{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #a5a5a8;
+    padding: 30px;
+    padding-top: 55px !important;
+    height: 100%;
+
+    h4 {
+      margin-bottom: 20px;
+      font-size: 15px;
+      color: #D9DFE4;
+      font-family: var(--font-family-bold);
+    }
+
+  }
+
   h3 {
     font-size: 11px;
     font-family: var(--font-family-medium);
@@ -296,7 +355,7 @@
     padding-left: 24px !important;
     width: calc(66% - 9.5px);
     margin: 6.5px 0 6.5px;
-    height: 300px;
+    min-height: 300px;
     border-radius: 7px;
 
     .serviceInfo {
@@ -324,6 +383,12 @@
         padding-bottom: 0px;
         margin: 0;
         color: #b5b6b8;
+      }
+      
+      h2{
+        color: #C0C8D0;
+        font-size: var(--font-size-icon-medium);
+        font-family: var(--font-family-bold);
       }
     }
 

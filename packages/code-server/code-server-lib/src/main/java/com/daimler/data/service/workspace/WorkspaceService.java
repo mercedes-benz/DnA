@@ -49,6 +49,8 @@ public interface WorkspaceService {
 
 	Integer getCount(String userId);
 
+	CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception;
+
 	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat);
 
 	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat);
@@ -59,7 +61,7 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String clientID, String clientSecret);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
