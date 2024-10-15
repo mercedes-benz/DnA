@@ -29,7 +29,7 @@ spec:
                 traefik.ingress.kubernetes.io/router.tls: 'false'          
     - http01:
         ingress:
-          ingressClassName: dev-ingress-intranet
+          ingressClassName: {{ .Values.env }}-ingress-intranet
           ingressTemplate:
             metadata:
               annotations:
@@ -49,7 +49,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: traefik-internet
+          class: {{ .Values.env }}-ingress-internet
     # Adding this for BAT project
           ingressTemplate:
             metadata:
@@ -70,7 +70,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: traefik-internet
+          class: {{ .Values.env }}-ingress-internet
     # Adding this for BAT project
           ingressTemplate:
             metadata:

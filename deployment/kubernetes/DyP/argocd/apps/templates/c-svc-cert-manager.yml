@@ -23,7 +23,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-dhc.yaml -n cert-manager  
+          value: -f values-dhc.yaml -n cert-manager --set env={{ .Values.env }}
   project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
