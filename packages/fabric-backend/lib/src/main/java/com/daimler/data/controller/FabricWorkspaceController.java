@@ -1,5 +1,7 @@
 package com.daimler.data.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.fabricWorkspace.FabricWorkspacesApi;
+import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -26,11 +29,13 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
-public class FabricWorkspaceController implements FabricWorkspacesApi
+public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 {
 	@Autowired
 	private FabricWorkspaceService service;
@@ -172,6 +177,37 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		}
     }
 
+	@Override
+	@ApiOperation(value = "List of values for available workspaces", nickname = "getWorkspacesLov", notes = "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = FabricWorkspacesCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/lov/fabric-workspaces",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricWorkspacesCollectionVO> getWorkspacesLov(@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    		@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+    		@ApiParam(value = "Sort workspaces by a given variable like name, createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+    		@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
+		FabricWorkspacesCollectionVO collection = new FabricWorkspacesCollectionVO();
+		int defaultLimit = 15;
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0) {
+			limit = defaultLimit;
+		}
+		collection = service.getAllLov(limit, offset);
+		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+		return new ResponseEntity<>(collection, responseCode);
+	}
+
+	
     @Override
     @ApiOperation(value = "Get all workspaces for the user.", nickname = "getAll", notes = "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
@@ -200,12 +236,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		UserInfo userInfo = this.userStore.getUserInfo();
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			System.out.println(mapper.writeValueAsString(userInfo));
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
 		String user = requestUser.getId();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
@@ -351,5 +381,75 @@ public class FabricWorkspaceController implements FabricWorkspacesApi
 			}
 		}
 	}
+
+	@Override
+	@ApiOperation(value = "request a  fabric workspace role for a user.", nickname = "requestRole", notes = "request a  fabric workspace role for a user.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/rolerequest",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> requestRole(@ApiParam(value = "",required=true) @PathVariable("id") String id,@ApiParam(value = "Request Body that contains data required for requesting a workspace role" ,required=true )  @Valid @RequestBody FabricWorkspaceRoleRequestVO roleRequestVO){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		try{
+
+			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
+				errors.add(new MessageDescription("Failed to request roles for the user, Atleast one Role Id should be there. Bad Request "));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Failed to request roles for the user, Atleast one Role Id should be there. Bad Request");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			if(roleRequestVO.getData().getReason().length()<20){
+				errors.add(new MessageDescription("Failed to request roles for the user, Reason should be atleast of 20 characters. Bad Request "));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Failed to request roles for the user, Reason should be atleast of 20 characters. Bad Request");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			for(RolesVO role : roleList){
+
+				LocalDate validFrom = LocalDate.parse(role.getValidFrom(), formatter);
+            	LocalDate validTo = LocalDate.parse(role.getValidTo(), formatter);
+				if(validTo.isBefore(validFrom)){
+					errors.add(new MessageDescription("Failed to request roles for the user, validTo date must be after validFrom date. Bad Request "));
+					response.setErrors(errors);
+					response.setWarnings(warnings);
+					response.setSuccess("FAILED");
+					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+				response = service.requestRoles(roleRequestVO,userInfo.getId());
+				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
+				return new ResponseEntity<>(response, HttpStatus.OK);
+
+			}
+
+
+		}catch(Exception e){
+			errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Failed to request role  for user {}, Fabric workspace {} with exception {} ",id,userInfo.getId(),e.getMessage());
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		
+	}
+
     
 }
