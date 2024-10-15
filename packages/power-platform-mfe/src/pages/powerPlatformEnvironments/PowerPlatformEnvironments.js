@@ -18,6 +18,7 @@ import { powerPlatformApi } from '../../apis/power-platform.api';
 import { useDispatch } from 'react-redux';
 import { getLovs } from '../../redux/lovsSlice';
 import { Envs } from '../../utilities/envs';
+import ViewEnvironmentDetails from '../../components/viewEnvironmentDetails/ViewEnvironmentDetails';
 
 const PowerPlatformEnvironments = ({user}) => {
   const dispatch = useDispatch();
@@ -42,7 +43,7 @@ const PowerPlatformEnvironments = ({user}) => {
   const [orderAccount, setOrderAccount] = useState(isSharedModal);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
-  const [, setEditEnvironment]  = useState(false);
+  const [showDetailsModal, setShowDetailsModal]  = useState(false);
   const [showTou, setShowTou] = useState(isTouModal);
 
   useEffect(() => {
@@ -127,10 +128,12 @@ const PowerPlatformEnvironments = ({user}) => {
       powerPlatformApi
         .getPowerPlatformEnvironments(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          setEnvironments(res?.data?.records);
-          const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
-          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
-          setTotalNumberOfPages(totalNumberOfPagesTemp);
+          if(res?.data?.status !== 204) {
+            setEnvironments(res?.data?.records);
+            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+            setTotalNumberOfPages(totalNumberOfPagesTemp);
+          }
           ProgressIndicator.hide();
         })
         .catch((e) => {
@@ -207,9 +210,9 @@ const PowerPlatformEnvironments = ({user}) => {
                   <PowerPlatformEnvironmentCard
                     key={environment.id}
                     environment={environment}
-                    onEditProject={(environment) => { 
+                    onMoreInfoClick={(environment) => { 
                       setSelectedItem(environment);
-                      setEditEnvironment(true);}
+                      setShowDetailsModal(true);}
                     }
                     onDeleteProject={(environment) => {
                       setSelectedItem(environment);
@@ -240,9 +243,9 @@ const PowerPlatformEnvironments = ({user}) => {
                     key={environment.id}
                     user={user}
                     environment={environment}
-                    onEditProject={(environment) => { 
+                    onMoreInfoClick={(environment) => { 
                       setSelectedItem(environment);
-                      setEditEnvironment(true);}
+                      setShowDetailsModal(true);}
                     }
                     onDeleteProject={(environment) => {
                       setSelectedItem(environment);
@@ -277,6 +280,20 @@ const PowerPlatformEnvironments = ({user}) => {
           content={<PowerPlatformEnvironmentForm user={user} onOrderAccount={() => { localStorage.setItem('modal', ''); setOrderAccount(false); getEnvironments() }} />}
           scrollableContent={true}
           onCancel={() => { localStorage.setItem('modal', ''); setOrderAccount(false) }}
+        />
+      }
+      { showDetailsModal &&
+        <Modal
+          title={'Power Platform Account Details'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'1100px'}
+          buttonAlignment="right"
+          show={showDetailsModal}
+          content={<ViewEnvironmentDetails environment={selectedItem} />}
+          scrollableContent={true}
+          onCancel={() => { setShowDetailsModal(false) }}
         />
       }
       <ConfirmModal
