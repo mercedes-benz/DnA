@@ -8,9 +8,9 @@ metadata:
   name: {{ .Values.env }}-apisap-kong
   namespace: {{ .Values.namespace }}
   labels:
-    name: gateway
+    name: apisap-kong-gw
     env: {{ .Values.env }}
-    project: {{ .Values.env }}-apisap
+    project: {{ .Values.env }}-apisap    
 spec:
   destination:
     namespace: {{ .Values.env }}-apisap
@@ -24,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-apisap-{{ .Values.env }}.yaml -n {{ .Values.env }}-apisap
-  project: {{ .Values.env }}-dna
+  project: {{ .Values.env }}-apisap
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
