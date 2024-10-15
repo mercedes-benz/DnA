@@ -53,6 +53,8 @@ public interface WorkspaceService {
 
 	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat);
 
+	InitializeWorkspaceResponseVO initiateWorkspacewithAdminPat(CodeServerWorkspaceVO vo, String pat);
+
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
