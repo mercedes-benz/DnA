@@ -1,5 +1,5 @@
 
-env: ""     # dev,test and prod
+env: "dev"     # dev,test and prod
 
 global:
   leaderElection:
