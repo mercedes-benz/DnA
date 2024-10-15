@@ -56,7 +56,7 @@ export const ToolsDetailedPageElements = [
           },
           {
             "title": "Usefull links ",
-            "link": "https://social.cloud.corpintra.net/login.jspa?referer=%252Fdocs%252FDOC-475442"
+            "link": "https://social.cloud.corpintra.net/docs/DOC-475442"
           },
           {
             "title": "Terms of Use (cloud)",
@@ -75,7 +75,7 @@ export const ToolsDetailedPageElements = [
           },
           {
             "title": "Try it out on our free training environment",
-            "link": "https://social.cloud.corpintra.net/login.jspa?referer=%252Fdocs%252FDOC-478024"
+            "link": "https://social.cloud.corpintra.net/docs/DOC-478024"
           }
         ]
       },
