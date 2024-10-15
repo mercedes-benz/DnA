@@ -144,7 +144,7 @@ image:
   tag: 1.9.2
   pullPolicy: Always
   pullSecrets:
-  - harbor-secret  
+  - imagepullsecret  
 # Specify Kong proxy service configuration
 proxy:
   # Enable creating a Kubernetes service for the proxy
