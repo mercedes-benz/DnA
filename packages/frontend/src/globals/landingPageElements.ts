@@ -206,7 +206,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     isDetailedPage: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'fabric',
     isDnAInternalTool: true,
   },
   {
@@ -312,7 +312,7 @@ export const ToolsLandingPageElements = [
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'powerPlatform',
     isDnAInternalTool: false,
   },
   {
