@@ -1,0 +1,96 @@
+#
+# values.yaml
+#
+# Add config_local.py file to set OAuth2 configuration
+# For details check documentation
+# https://www.pgadmin.org/docs/pgadmin4/latest/oauth2.html
+
+extraConfigmapMounts:
+  - name: config-local
+    configMap: pgadmin4-config
+    subPath: config_local.py
+    mountPath: "/pgadmin4/config_local.py"
+    readOnly: true
+
+envVarsFromSecrets:
+  - pgadmin4-oauth2-secret
+
+#
+# secrets.yaml
+#
+# OAuth2 client id and secret value is sensitive information
+# Store it securely in a secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgadmin4-oauth2-secret
+type: Opaque
+stringData:
+  OAUTH2_CLIENT_ID: xxxxxxxxxxxxxxxxxxxxxxx
+  OAUTH2_CLIENT_SECRET: xxxxxxxxxxxxxxxxxxxx
+
+#
+# configmaps.yaml
+#
+# To setup Google OAuth
+## https://support.google.com/googleapi/answer/6158849?hl=en#
+# To setup Github OAuth
+## https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
+# To setup Microsoft Azure AD OAuth
+## https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app
+# redirect|callback URI to set:
+## https://pgadmin4.example.com/oauth2/authorize
+# logout URL (required for Microsoft OAuth)
+## https://pgadmin4.example.com/oauth2/logout
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgadmin4-config
+data:
+  config_local.py: |-
+    import os
+    
+    MASTER_PASSWORD_REQUIRED = True
+    AUTHENTICATION_SOURCES = ['oauth2', 'internal']
+    OAUTH2_AUTO_CREATE_USER = True
+    OAUTH2_CONFIG = [
+      {
+          'OAUTH2_NAME': 'google',
+          'OAUTH2_DISPLAY_NAME': 'Google',
+          'OAUTH2_CLIENT_ID': os.environ['OAUTH2_CLIENT_ID'],
+          'OAUTH2_CLIENT_SECRET': os.environ['OAUTH2_CLIENT_SECRET'],
+          'OAUTH2_TOKEN_URL': 'https://www.googleapis.com/oauth2/v3/token',
+          'OAUTH2_AUTHORIZATION_URL': 'https://accounts.google.com/o/oauth2/v2/auth',
+          'OAUTH2_API_BASE_URL': 'https://www.googleapis.com/oauth2/v3/',
+          'OAUTH2_USERINFO_ENDPOINT': 'userinfo',
+          'OAUTH2_ICON': 'fa-google',
+          'OAUTH2_BUTTON_COLOR': '#0000ff',
+      },
+      {
+          'OAUTH2_NAME': 'github',
+          'OAUTH2_DISPLAY_NAME': 'Github',
+          'OAUTH2_CLIENT_ID': os.environ['OAUTH2_CLIENT_ID'],
+          'OAUTH2_CLIENT_SECRET': os.environ['OAUTH2_CLIENT_SECRET'],
+          'OAUTH2_TOKEN_URL': 'https://github.com/login/oauth/access_token',
+          'OAUTH2_AUTHORIZATION_URL': 'https://github.com/login/oauth/authorize',
+          'OAUTH2_API_BASE_URL': 'https://api.github.com/',
+          'OAUTH2_USERINFO_ENDPOINT': 'user',
+          'OAUTH2_ICON': 'fa-github',
+          'OAUTH2_BUTTON_COLOR': '#0000ff',
+      },
+      {
+        'OAUTH2_NAME': 'microsoft',
+        'OAUTH2_DISPLAY_NAME': 'Microsoft',
+        'OAUTH2_CLIENT_ID': os.environ['OAUTH2_CLIENT_ID'],
+        'OAUTH2_CLIENT_SECRET': os.environ['OAUTH2_CLIENT_SECRET'],
+        'OAUTH2_TOKEN_URL': 'https://login.microsoftonline.com/{YOUR_TENANT_ID}/oauth2/v2.0/token',
+        'OAUTH2_AUTHORIZATION_URL': 'https://login.microsoftonline.com/{YOUR_TENANT_ID}/oauth2/v2.0/authorize',
+        'OAUTH2_API_BASE_URL': 'https://graph.microsoft.com/v1.0/',
+        'OAUTH2_USERINFO_ENDPOINT': 'me',
+        'OAUTH2_SCOPE': 'User.Read',
+        'OAUTH2_ICON': 'fa-microsoft',
+        'OAUTH2_BUTTON_COLOR': '#0000ff',
+      }
+    ]

@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: paperless-ngx
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: paperless-ngx
+      app.kubernetes.io/name: paperless-ngx
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8000
+  policyTypes:
+    - Ingress
