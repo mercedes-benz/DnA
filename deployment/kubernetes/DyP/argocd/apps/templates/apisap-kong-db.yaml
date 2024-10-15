@@ -28,7 +28,7 @@ spec:
           {{ else }}
           value: -f values-apisap-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-apisap
           {{- end }}                    
-  project: {{ .Values.env }}-dna
+  project: {{ .Values.env }}-apisap
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
