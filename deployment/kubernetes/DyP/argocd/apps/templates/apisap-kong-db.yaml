@@ -10,7 +10,7 @@ metadata:
   labels:
     name: db
     env: {{ .Values.env }}
-    project: {{ .Values.env }}-apisap
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: {{ .Values.env }}-apisap
@@ -28,7 +28,7 @@ spec:
           {{ else }}
           value: -f values-apisap-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-apisap
           {{- end }}                    
-  project: {{ .Values.env }}-apisap
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

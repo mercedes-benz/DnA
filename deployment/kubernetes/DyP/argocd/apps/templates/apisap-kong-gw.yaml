@@ -10,7 +10,7 @@ metadata:
   labels:
     name: apisap-kong-gw
     env: {{ .Values.env }}
-    project: {{ .Values.env }}-apisap    
+    project: {{ .Values.env }}-dna    
 spec:
   destination:
     namespace: {{ .Values.env }}-apisap
@@ -24,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-apisap-{{ .Values.env }}.yaml -n {{ .Values.env }}-apisap
-  project: {{ .Values.env }}-apisap
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
