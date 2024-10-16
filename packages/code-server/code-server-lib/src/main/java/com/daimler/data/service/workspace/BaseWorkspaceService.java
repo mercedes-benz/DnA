@@ -41,7 +41,8 @@
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
- 
+
+ import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -81,7 +82,8 @@
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
- import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
+import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.dto.workspace.ResourceVO;
@@ -115,6 +117,9 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.git.orguri}")
 	 private String gitOrgUri;
  
+	 @Value("${codeServer.git.orgname}")
+	 private String orgName;
+ 
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
  
@@ -123,6 +128,9 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
+   
+	 @Value("${codeServer.codespace.filename}")
+	 private String codespaceFileName;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1263,6 +1271,43 @@ import com.daimler.data.util.ConstantsUtility;
 		 return workspaceAssembler.toVo(entity);
 	 }
  
+	 @Override
+	 public CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception {
+		String gitUrl = null;
+		String repoName = null;
+		String readmeFileContent = null;
+		String repoOwner = null;
+		byte[] file = null;
+		CodeSpaceReadmeVo codeSpaceReadmeVo =  new CodeSpaceReadmeVo();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+		String gitHubUrl= entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+		String projectName = entity.getData().getProjectDetails().getProjectName();
+		if(gitHubUrl == null || gitHubUrl.isEmpty()) {
+			gitHubUrl = "https://" + gitOrgUri + orgName + "/"+projectName+"/";
+		}
+		if(gitHubUrl.contains(".git")) {
+			gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+		}
+		String[] codespaceSplitValues = gitHubUrl.split("/");
+		int length = codespaceSplitValues.length;
+		repoName = codespaceSplitValues[length-1];
+		repoOwner = codespaceSplitValues[length-2];
+		gitUrl = gitHubUrl.replace("/"+repoOwner, "");
+		gitUrl = gitUrl.replace("/"+repoName, "");
+		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName);
+		if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+			readmeFileContent =  jsonResponse.getString("content");
+			log.info("Retrieving a software's SHA was successfull from Git.");
+			if(readmeFileContent!=null){
+				file = readmeFileContent.getBytes();
+				codeSpaceReadmeVo.setFile(file);
+			}
+			
+		}
+		return codeSpaceReadmeVo;
+	 }
+
+
 	 @Override
 	 public List<CodeServerWorkspaceVO> getAll(String userId, int offset, int limit) {
 		 List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findAll(userId, limit, offset);
