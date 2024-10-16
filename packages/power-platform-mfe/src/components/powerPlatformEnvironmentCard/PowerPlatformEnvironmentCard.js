@@ -24,7 +24,7 @@ const PowerPlatformEnvironmentCard = ({ environment, onMoreInfoClick }) => {
       <hr />
       <div className={Styles.cardBodySection}>
         <div>
-          {(environment?.state === 'APPROVED' && environment?.url.length > 0) &&
+          {(environment?.state === 'APPROVED' && environment?.url?.length > 0) &&
             <div>
               <div>Environment URL</div>
               <div>
@@ -52,7 +52,7 @@ const PowerPlatformEnvironmentCard = ({ environment, onMoreInfoClick }) => {
         <>
           <div className={Styles.statusContainer}>
             <div className={Styles.statusItem}>
-              <button tooltip-data={(environment?.state === 'APPROVED' || environment?.state === 'REJECTED') && environment?.comments}>
+              <button tooltip-data={(environment?.state === 'APPROVED' || environment?.state === 'REJECTED') ? environment?.comments : undefined}>
                 {environment?.state === 'REQUESTED' && <div className={Styles.requested}><i className={classNames('icon mbc-icon check circle')}></i> <span>Requested</span></div>}
                 {environment?.state === 'APPROVED' && <div className={Styles.approved}><i className={classNames('icon mbc-icon check circle')}></i> <span>Approved</span></div>}
                 {environment?.state === 'REJECTED' && <div className={Styles.rejected}><i className={classNames('icon mbc-icon close circle')}></i> <span>Rejected</span></div>}
