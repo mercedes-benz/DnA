@@ -128,7 +128,7 @@ const PowerPlatformEnvironments = ({user}) => {
       powerPlatformApi
         .getPowerPlatformEnvironments(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          if(res?.data?.status !== 204) {
+          if(res?.status !== 204) {
             setEnvironments(res?.data?.records);
             const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
