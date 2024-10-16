@@ -241,7 +241,6 @@ public class PowerAppController implements PowerappsApi
 					return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 				}
 			}catch(Exception e) {
-				e.printStackTrace();
 				log.error("Failed to create powerapp {} requestedBy {} with exception {}",projectCreateVO.getName(),requestUser.getId(),e.getMessage());
 				MessageDescription invalidMsg = new MessageDescription("Failed to create power app request with unknown error. Please try again.");
 				GenericMessage errorMessage = new GenericMessage();
