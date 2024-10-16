@@ -11,14 +11,14 @@ const PowerPlatformEnvironmentTable = ({ environment, onMoreInfoClick }) => {
   }, [environment]);
 
   const handleOnLinkClick = () => {
-    (environment?.state === 'APPROVED' && environment?.url.length > 0) ? window.open(environment?.url) : undefined
+    (environment?.state === 'APPROVED' && environment?.url?.length > 0) ? window.open(environment?.url) : undefined
   }
 
   return (
     <div className={Styles.projectRow} onClick={() => onMoreInfoClick(environment)}>
       <div className={Styles.col1}>
-        <span className={(environment?.state === 'APPROVED' && environment?.url.length > 0) && Styles.link} onClick={handleOnLinkClick}>
-          {environment?.name} {(environment?.state === 'APPROVED' && environment?.url.length > 0) && <i className={classNames('icon mbc-icon new-tab')}></i>}
+        <span className={(environment?.state === 'APPROVED' && environment?.url?.length > 0) && Styles.link} onClick={handleOnLinkClick}>
+          {environment?.name} {(environment?.state === 'APPROVED' && environment?.url?.length > 0) && <i className={classNames('icon mbc-icon new-tab')}></i>}
         </span>
       </div>
       <div className={Styles.col2}>
@@ -30,7 +30,7 @@ const PowerPlatformEnvironmentTable = ({ environment, onMoreInfoClick }) => {
         {environment?.requestedOn ? regionalDateAndTimeConversionSolution(environment?.requestedOn) : 'N/A'}
       </div>
       <div className={Styles.col4}>
-        {environment?.envOwnerId} {environment?.envOwnerName.length > 0 ? ' - ' + environment?.envOwnerName : ''}
+        {environment?.envOwnerId} {environment?.envOwnerName?.length > 0 ? ' - ' + environment?.envOwnerName : ''}
       </div>
       {/* <div className={Styles.col5}>
         <div className={Styles.btnTblGrp}>
