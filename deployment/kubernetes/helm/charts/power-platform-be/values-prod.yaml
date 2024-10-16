@@ -3,7 +3,7 @@ namespace: power-platform
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/power-platform-be
   pullPolicy: IfNotPresent
-  tag: 1.1.6
+  tag: 1.0.1
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
@@ -59,7 +59,7 @@ ingress:
     cert-manager.io/cluster-issuer: daimler-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.power-platform.dna.app.corpintra.net 
+    - host: api.power-platform.dna.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix
