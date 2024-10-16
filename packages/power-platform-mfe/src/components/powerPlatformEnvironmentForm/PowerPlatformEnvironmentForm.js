@@ -85,7 +85,6 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
     duplicateMember = userLincenses?.filter((license) => license.userDetails.id === developer.shortId)?.length ? true : false;
 
     const isCreator = user?.id === developer?.id;
-
     if (duplicateMember) {
         Notification.show('User License already added.', 'warning');
     } else if (isCreator) {
