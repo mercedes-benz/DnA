@@ -131,6 +131,12 @@ import com.daimler.data.util.ConstantsUtility;
    
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
+
+	 @Value("${codeServer.run.collab.admin}")
+	 private boolean runCollabByAdmin;
+
+	 @Value("${codeServer.collab.adminbypass.projectname}")
+	 private String collabProjectName;	 
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1724,7 +1730,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
-					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					if(runCollabByAdmin && vo.getProjectDetails().getProjectName().equals(collabProjectName)){
+						gitUser = collabPid;
+						log.info("Admin for collab bypassed for project name "+collabProjectName);
+					} 
+					HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
