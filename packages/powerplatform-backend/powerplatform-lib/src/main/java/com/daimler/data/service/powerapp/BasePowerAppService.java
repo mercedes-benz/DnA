@@ -38,16 +38,16 @@ public class BasePowerAppService extends BaseCommonService<PowerAppVO, PowerAppN
 	}
 	
 	@Override
-	public List<PowerAppVO> getAll( int limit,  int offset, String user) {
-		List<PowerAppNsql> entities = customRepo.getAll(user, offset, limit);
+	public List<PowerAppVO> getAll( int limit,  int offset,String name, String state, String user, String sortBy, String sortOrder) {
+		List<PowerAppNsql> entities = customRepo.getAll(name, state, user, offset, limit, sortBy, sortOrder);
 		List<PowerAppVO> vos = new ArrayList<>();
 		vos = entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
 		return vos;
 	}
 
 	@Override
-	public Long getCount(String user) {
-		return customRepo.getTotalCount(user);
+	public Long getCount(String name, String state, String user) {
+		return customRepo.getTotalCount(name,state,user);
 	}
 	
 	@Override
