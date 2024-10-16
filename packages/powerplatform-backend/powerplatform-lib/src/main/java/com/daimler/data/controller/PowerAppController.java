@@ -95,9 +95,8 @@ public class PowerAppController implements PowerappsApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<PowerAppResponseVO> create(
-    		@ApiParam(value = "Authorization" ,required=true) @RequestHeader(value="Authorization", required=false) String authorization,
-    		@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO){
+    public ResponseEntity<PowerAppResponseVO> create(@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO,
+    		@ApiParam(value = "Authorization" ) @RequestHeader(value="Authorization", required=false) String authorization){
 		PowerAppResponseVO responseVO = new PowerAppResponseVO();
 		if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
