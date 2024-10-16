@@ -174,9 +174,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={100}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!^\s+$)[\d -]+$/ })}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z -]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names must contain characters only, - is allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment names must contain characters only, - is allowed. Only spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col2}>
@@ -221,9 +221,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('envOwnerId', {required: '*Missing entry'})}
+                  {...register('envOwnerId', {required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g})}
                 />
-                <span className={'error-message'}>{errors?.envOwnerId?.message}</span>
+                <span className={'error-message'}>{errors?.envOwnerId?.message}{errors.envOwnerId?.type === 'pattern' && `Spaces not allowed as field value.`}</span>
               </div>
             </div>
             <div className={Styles.col2}>
@@ -316,7 +316,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   maxLength={256}
                   {...register('billingPlant', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, })}
                 />   
-                <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
+                <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && `Spaces not allowed as field value.`}</span>
                 {/* <span className={'error-message'}>{errors?.billingPlant?.message}{errors.billingPlant?.type === 'pattern' && 'Please enter 3 digit billing plant code'}</span> */}
               </div>
             </div>
@@ -334,7 +334,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   maxLength={256}
                   {...register('billingCostCentre', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, })}
                 />
-                <span className={'error-message'}>{errors?.billingCostCentre?.message}{errors.billingCostCentre?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
+                <span className={'error-message'}>{errors?.billingCostCentre?.message}{errors.billingCostCentre?.type === 'pattern' && `Spaces not allowed as field value.`}</span>
                 {/* <span className={'error-message'}>{errors?.billingCostCentre?.message}{errors.billingCostCentre?.type === 'pattern' && 'Please enter valid billing cost center code'}</span> */}
               </div>
             </div>
@@ -499,7 +499,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                         ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
                     }}
                   >
-                    <div>Accept <span onClick={() => setShowTou(true)}>terms of use</span></div>
+                    <div>I accept the <span onClick={() => setShowTou(true)}>terms of use</span></div>
                     <sup>*</sup>
                   </div>
                 </div>

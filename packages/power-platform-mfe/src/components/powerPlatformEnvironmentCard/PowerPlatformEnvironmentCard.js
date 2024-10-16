@@ -16,7 +16,7 @@ const PowerPlatformEnvironmentCard = ({ environment, onMoreInfoClick }) => {
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
         <div className={classNames(Styles.cardHeadInfo)}>
-          <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}>
+          <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={() => onMoreInfoClick(environment)}>
             {environment.name}
           </div>
         </div>
