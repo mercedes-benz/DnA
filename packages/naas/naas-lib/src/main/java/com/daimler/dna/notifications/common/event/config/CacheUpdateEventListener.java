@@ -109,6 +109,8 @@ public class CacheUpdateEventListener {
 	private static String DATACOMPLIANCE_NOTIFICATION_KEY = "DataCompliance";
 	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
 	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
+	private static String USE_CASE_OWNER_NOTIFICATION_KEY = "UseCaseOwners";
+	private static String POWERPLATFORM_NOTIFICATION_KEY = "Power platform";
 	private static String AIRFLOW_NOTIFICATION_KEY = "Airflow";
 	
 	//@PostConstruct
@@ -213,6 +215,14 @@ public class CacheUpdateEventListener {
 								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
 									emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getPowerPlatformNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getUseCaseOwnerNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getUseCaseOwnerNotificationPref().isEnableEmailNotifications();
 								}
 								if(record.value().getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
