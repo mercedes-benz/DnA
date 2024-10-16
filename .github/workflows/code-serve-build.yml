@@ -1,0 +1,75 @@
+# Author: PALASAT
+# This is the Data Product Service build & deploy workflow
+
+name: CS Image Build
+
+# Build is triggered either if run manually or when push happens to development branch
+on:
+  workflow_dispatch:
+    inputs:   
+      type:
+        description: "Workspace type" 
+        default: "['default']"
+        required: true
+        type: string
+  # push:
+  #   branches:
+  #     - main
+  #   paths-ignore:
+  #     - 'tools/**'
+  #     - '.github/workflows/**'
+  # pull_request:
+  #   types:
+  #     - closed
+  #   branches:
+  #     - 'main'
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot  
+  RUNNER_ALLOW_RUNASROOT: 1
+  ### Imp: Also update the version in code-server-manager.yml in dna-codeserver-backend repo
+  ### If you are using jupyterhub, update the image version
+  IMAGE_CODE_SERVER: 4.92.2 # This is the version of the code-server image
+
+jobs:
+
+  build:
+    name: 'Build Code Server Image'
+    runs-on: [ os-large-amd64-linux ]
+    strategy:
+      matrix:
+        type: ${{ fromJson(github.event.inputs.type) }}
+
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: Create Corp Cert from gh secret
+      env:
+        CORP_CA_BASE64: ${{ secrets.CORP_CA_BASE64 }}
+      run: |
+        echo "$CORP_CA_BASE64" | base64 --decode > ./deployment/dockerfiles/codeServer/default/Corp-Root-CA-G2.crt
+
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        
+    - name: Build Code Server
+      working-directory: ./deployment/dockerfiles/codeServer/default
+      run: | 
+       docker build -t registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:$IMAGE_CODE_SERVER -f workspace.Dockerfile .
+
+
+    - name: Publish application containers to registry
+      run: |
+        docker push registry-emea.app.corpintra.net/dnaplatform/cs-${{ matrix.type }}:${{ env.IMAGE_CODE_SERVER }}
+          
+  # css-scan:
+  #   name: Container security scan
+  #   needs: build
+  #   uses: ./.github/workflows/consec.yaml
+  #   with:
+  #     FULL_IMAGE_NAME: '${{ env.IMAGE_NAME }}:${{ needs.build.outputs.date }}'
+  #   secrets: inherit 
