@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-powerplatform-service
-    version: 1.0.0
+    version: 1.0.1
   profiles:
     active: production
   flyway:
