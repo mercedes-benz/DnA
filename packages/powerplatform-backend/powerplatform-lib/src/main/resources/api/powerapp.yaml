@@ -79,28 +79,52 @@ paths:
           description: Authorization
           required: false
           type: string
+        - name: apikey
+          in: header
+          description: apikey
+          required: false
+          type: string
+        - name: appid
+          in: header
+          description: appid
+          required: false
+          type: string
+        - name: name
+          in: query
+          description: query filter to search similar power apps with the given searchTerm name
+          required: false
+          default: xxxxnamexxxx
+          type: string
+        - name: state
+          in: query
+          description: filter power apps based on the state - allowed values requested, approved, rejected
+          default: requested
+          required: false
+          type: string
         - name: offset
           in: query
           description: page number from which listing of workspaces should start. Offset. Example 2
           required: false
+          default: 0
           type: integer
         - name: limit
           in: query
           description: page size to limit the number of workspaces, Example 15
           required: false
           type: integer
+          default: 15
         - name: sortBy
           in: query
           description: Sort workspaces by a given variable like name, requestedOn, state
           required: false
           type: string
-          enum: [name, createdOn]
+          default: requestedOn
         - name: sortOrder
           in: query
           description: Sort solutions based on the given order, example asc,desc
           required: false
           type: string
-          enum: [asc,desc]
+          default: desc
       responses:
         201:
           description: "Returns message of success or failure"
@@ -129,7 +153,7 @@ paths:
         - name: Authorization
           in: header
           description: Authorization
-          required: false
+          required: true
           type: string
         - name: "powerAppCreateVO"
           in: "body"
@@ -173,6 +197,16 @@ paths:
           description: Authorization
           required: false
           type: string
+        - name: apikey
+          in: header
+          description: apikey
+          required: false
+          type: string
+        - name: appid
+          in: header
+          description: appid
+          required: false
+          type: string
         - name: "id"
           in: "path"
           description: "Power platform subscription ID to be fetched"
@@ -196,6 +230,62 @@ paths:
         500:
           description: "Internal error"
 
+  # Fetch FabricWorkspace by intent
+  #
+  #  Supported http methods PUT
+  #
+  # path example ../powerapps/{id}/state
+  /powerapps/{id}/state:
+   put:
+      tags:
+        - "powerapps"
+      summary: "Update existing power app subscription details ."
+      description: "Updates an existing power app subscription."
+      operationId: "update"
+      parameters:
+        - name: apikey
+          in: header
+          description: apikey
+          required: true
+          type: string
+        - name: appid
+          in: header
+          description: appid
+          required: true
+          type: string
+        - name: "id"
+          in: "path"
+          description: "Power app subscription ID to be updated"
+          required: true
+          type: "string"
+        - name: "powerappUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating an existing workspace"
+          required: true
+          schema:
+            $ref: "#/definitions/PowerAppUpdateRequestVO"
+      responses:
+        200:
+          description: "Updated successfully"
+          schema:
+            $ref: "#/definitions/PowerAppResponseVO"
+        404:
+          description: "No workspace found to update"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
 definitions:
           
   PowerAppVO:
@@ -253,17 +343,17 @@ definitions:
         type: string
       url:
         type: string
-       
+  
   PowerAppUpdateRequestVO:
     type: object
     properties:
       comments:
         type: string
         description: "Reason or comments from approver on state of the subscription request"
-        maxLength: 256
       state:
         type: string
-        enum: ["Rejected","Approved"]
+        description: "Allowed values : Approved, Rejected"
+        example: "Approved"
       url:
         type: string
         maxLength: 4000
@@ -286,8 +376,7 @@ definitions:
     properties:
       name:
         type: string
-        description: "Name of the Power platform app"
-        maxLength: 100
+        description: "Name of the Power platform app that you are requesting. Validations include lenght restriction to 100, whitespaces at beginning and end, only - allowed in special characters"
       subscriptionType:
         type: string
       envOwnerName:
@@ -302,10 +391,12 @@ definitions:
         type: string
       environment:
         type: string
-        enum: ["SHARED-DEVELOPMENT","SHARED-INTEGRATION","DEDICATED-PRODUCTION"]
+        description: "Allowed values are SHARED-DEVELOPMENT,SHARED-INTEGRATION,DEDICATED-PRODUCTION"
+        example: SHARED-DEVELOPMENT
       prodEnvAvailability:
         type: string
-        enum: ["IMMEDIATE","LATER"]
+        description: "Allowed values are IMMEDIATE,LATER"
+        example: LATER
       billingContact:
         type: string
       billingPlant:

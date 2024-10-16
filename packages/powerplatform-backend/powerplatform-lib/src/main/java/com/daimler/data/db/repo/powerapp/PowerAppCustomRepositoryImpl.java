@@ -53,20 +53,45 @@ public class PowerAppCustomRepositoryImpl extends CommonDataRepositoryImpl<Power
 		implements PowerAppCustomRepository {
 
 	@Override
-	public long getTotalCount(String userId) {
+	public long getTotalCount(String name, String state, String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = " select count(*) from powerapp_nsql where  ((lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user +
-				"') or (lower(jsonb_extract_path_text(data,'developers')) similar to '%"+ user + "%'))";
+		String getCountStmt = " select  count(*) from powerapp_nsql  where (id is not null) ";
+		String userPredicateString = " and ((lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user.toLowerCase() +
+				"') or (lower(jsonb_extract_path_text(data,'developers')) similar to '%"+ user.toLowerCase() + "%')) ";
+		if(userId!=null && !"".equalsIgnoreCase(userId.trim())) {
+			getCountStmt = getCountStmt + userPredicateString;
+		}
+		String namePredicate = " and (lower(jsonb_extract_path_text(data,'name')) like '%"+ name.trim().toLowerCase() + "%') ";
+		if(name!=null && !"".equalsIgnoreCase(name.trim())) {
+			getCountStmt = getCountStmt + namePredicate;
+		}
+		String statePredicate = " and (lower(jsonb_extract_path_text(data,'state')) like '%"+ state.trim().toLowerCase() + "%') ";
+		if(state!=null && !"".equalsIgnoreCase(state.trim())) {
+			getCountStmt = getCountStmt + statePredicate;
+		}
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 	
 	@Override
-	public List<PowerAppNsql> getAll(String userId, int offset, int limit){
+	public List<PowerAppNsql> getAll(String name, String state, String userId, int offset, int limit, String sortBy, String sortOrder){
 		String user = userId.toLowerCase();
-		String getAllStmt = " select cast(id as text), cast(data as text) from powerapp_nsql where  ((lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user +
-				"') or (lower(jsonb_extract_path_text(data,'developers')) similar to '%"+ user + "%'))";
+		String getAllStmt = " select cast(id as text), cast(data as text) from powerapp_nsql  where (id is not null) ";
+		String userPredicateString = " and ((lower(jsonb_extract_path_text(data,'requestedBy','id')) = '" + user.toLowerCase() +
+				"') or (lower(jsonb_extract_path_text(data,'developers')) similar to '%"+ user.toLowerCase() + "%')) ";
+		if(userId!=null && !"".equalsIgnoreCase(userId.trim())) {
+			getAllStmt = getAllStmt + userPredicateString;
+		}
+		String namePredicate = " and (lower(jsonb_extract_path_text(data,'name')) like '%"+ name.trim().toLowerCase() + "%') ";
+		if(name!=null && !"".equalsIgnoreCase(name.trim())) {
+			getAllStmt = getAllStmt + namePredicate;
+		}
+		String statePredicate = " and (lower(jsonb_extract_path_text(data,'state')) like '%"+ state.trim().toLowerCase() + "%') ";
+		if(state!=null && !"".equalsIgnoreCase(state.trim())) {
+			getAllStmt = getAllStmt + statePredicate;
+		}
+		getAllStmt = getAllStmt +  "  order by lower(jsonb_extract_path_text(data,'"+ sortBy +"')) " + sortOrder +" ";
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
 		if (offset >= 0)

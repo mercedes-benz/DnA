@@ -33,6 +33,9 @@ public class ConstantsUtility {
 	public static final String APPROVED_STATE = "APPROVED";
 	public static final String REJECTED_STATE = "REJECTED";
 	
+	public static final String SORTBY_REQUESTEDON = "REQUESTED";
+	public static final String SORTBY_NAME = "APPROVED";
+	public static final String SORTBY_STATE = "STATE";
 			
 	public static final String ENV_SHARED_DEV = "SHARED-DEVELOPMENT";
 	public static final String ENV_SHARED_INT = "SHARED-INTEGRATION";
