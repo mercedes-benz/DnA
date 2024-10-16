@@ -8,10 +8,11 @@ import com.daimler.data.service.common.CommonService;
 
 public interface PowerAppService extends CommonService<PowerAppVO, PowerAppNsql, String> {
 
-	Long getCount(String user);
-
-	List<PowerAppVO> getAll(int limit, int offset, String user);
-
 	PowerAppVO findbyUniqueLiteral(String name);
+
+	List<PowerAppVO> getAll(int limit, int offset, String name, String state, String user, String sortBy,
+			String sortOrder);
+
+	Long getCount(String name, String state, String user);
 
 }

@@ -44,6 +44,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -66,6 +67,12 @@ public class JWTAuthenticationFilter implements Filter {
 
 	private UserStore userStore;
 
+	@Value("${powerapps.defaults.powerBiApproverKey}")
+	private String powerBiApproverKey;
+	
+	@Value("${powerapps.defaults.powerBiApproverId}")
+	private String powerBiApproverId;
+	
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
@@ -76,6 +83,17 @@ public class JWTAuthenticationFilter implements Filter {
 		log.debug("Intercepting Request to store userinfo:" + requestUri);
 		String userinfo = httpRequest.getHeader("dna-request-userdetails");
 		if (!StringUtils.hasText(userinfo)) {
+			String apikey = httpRequest.getHeader("apikey");
+			String appid = httpRequest.getHeader("appid");
+			if (apikey != null && powerBiApproverKey.equals(apikey) && appid!=null && powerBiApproverId.equals(appid)) {
+				JSONObject userdetails = new JSONObject();
+				if (userdetails != null) {
+					userdetails.put("eMail", userdetails.get("email"));
+					userdetails.put("roles", new JSONArray());
+				}
+				setUserDetailsToStore(userdetails);
+				filterChain.doFilter(servletRequest, servletResponse);
+			}
 			log.error("Request UnAuthorized");
 			forbidResponse(servletResponse);
 			return;

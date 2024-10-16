@@ -64,7 +64,8 @@ powerapps:
     environment: ${POWERAPP_ENVIRONMENT_DEFAULT:XXXX}
     productionAvailability: ${POWERAPP_PRODUCTION_AVAIL_DEFAULT:XXXX}
     developerlicense: ${POWERAPP_DEVELOPERLICENSE_DEFAULT:XXXX}
-    powerBiApproverToken: ${POWERAPP_APPROVERTOKEN_DEFAULT:XXXX}
+    powerBiApproverKey: ${POWERAPP_APPROVERKEY_DEFAULT:XKEYX}
+    powerBiApproverId: ${POWERAPP_APPROVERID_DEFAULT:XIDX}
         
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}

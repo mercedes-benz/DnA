@@ -34,10 +34,11 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface PowerAppCustomRepository extends CommonDataRepository<PowerAppNsql, String> {
 
-	List<PowerAppNsql> getAll(String userId, int offset, int limit);
-
-	long getTotalCount(String userId);
-
 	PowerAppNsql findbyUniqueLiteral(String name);
+
+	List<PowerAppNsql> getAll(String name, String state, String userId, int offset, int limit, String sortBy,
+			String sortOrder);
+
+	long getTotalCount(String name, String state, String userId);
 
 }
