@@ -95,10 +95,13 @@ public class PowerAppController implements PowerappsApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<PowerAppResponseVO> create(
-    		@ApiParam(value = "Authorization" ,required=true) @RequestHeader(value="Authorization", required=true) String authorization,
-    		@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO){
+    public ResponseEntity<PowerAppResponseVO> create(@ApiParam(value = "Request Body that contains data required for creating a new workspace" ,required=true )  @Valid @RequestBody PowerAppCreateRequestWrapperVO powerAppCreateVO,
+    		@ApiParam(value = "Authorization" ) @RequestHeader(value="Authorization", required=false) String authorization){
 		PowerAppResponseVO responseVO = new PowerAppResponseVO();
+		if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+		CreatedByVO requestUser = this.userStore.getVO();
 		if(powerAppCreateVO!= null) {
 			PowerAppCreateRequestVO projectCreateVO = powerAppCreateVO.getData();
 			String name = projectCreateVO.getName();
@@ -139,7 +142,6 @@ public class PowerAppController implements PowerappsApi
 				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 			}
 			List<DeveloperVO>  validatedDevelopersList = new ArrayList<>();
-			CreatedByVO requestUser = this.userStore.getVO();
 			if(projectCreateVO.getDevelopers()!=null && !projectCreateVO.getDevelopers().isEmpty()) {
 				List<String> tempDeveloperIds  = new ArrayList<String>();
 				for(DeveloperVO tempDeveloper : projectCreateVO.getDevelopers()) {
@@ -285,18 +287,18 @@ public class PowerAppController implements PowerappsApi
         method = RequestMethod.GET)
     public ResponseEntity<PowerAppCollectionVO> getAll(@ApiParam(value = "Authorization" ) @RequestHeader(value="Authorization", required=false) String authorization,
     		@ApiParam(value = "apikey" ) @RequestHeader(value="apikey", required=false) String apikey,@ApiParam(value = "appid" ) @RequestHeader(value="appid", required=false) String appid,
-    		@ApiParam(value = "query filter to search similar power apps with the given searchTerm name", defaultValue = "name") @Valid @RequestParam(value = "name", required = false, defaultValue="name") String name,
-    		@ApiParam(value = "filter power apps based on the state - allowed values requested, approved, rejected", defaultValue = "requested") @Valid @RequestParam(value = "state", required = false, defaultValue="requested") String state,
-    		@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2", defaultValue = "0") @Valid @RequestParam(value = "offset", required = false, defaultValue="0") Integer offset,
-    		@ApiParam(value = "page size to limit the number of workspaces, Example 15", defaultValue = "15") @Valid @RequestParam(value = "limit", required = false, defaultValue="15") Integer limit,
+    		@ApiParam(value = "query filter to search similar power apps with the given searchTerm name") @Valid @RequestParam(value = "name", required = false) String name,
+    		@ApiParam(value = "filter power apps based on the state - allowed values requested, approved, rejected") @Valid @RequestParam(value = "state", required = false) String state,
+    		@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    		@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
     		@ApiParam(value = "Sort workspaces by a given variable like name, requestedOn, state", defaultValue = "requestedOn") @Valid @RequestParam(value = "sortBy", required = false, defaultValue="requestedOn") String sortBy,
     		@ApiParam(value = "Sort solutions based on the given order, example asc,desc", defaultValue = "desc") @Valid @RequestParam(value = "sortOrder", required = false, defaultValue="desc") String sortOrder){
 		PowerAppCollectionVO collection = new PowerAppCollectionVO();
 		int defaultLimit = 10;
 		if (offset == null || offset < 0)
 			offset = 0;
-		if (limit == null || limit < 0) {
-			limit = defaultLimit;
+		if (limit == null || limit == 0 || limit<0) {
+			limit = 0;
 		}
 		List<PowerAppVO> records =  new ArrayList<>();
 		String user = "";
@@ -304,7 +306,7 @@ public class PowerAppController implements PowerappsApi
 			log.info("System admin approver requesting all power apps");
 			user = "";
 		}else {
-			if(this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+			if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}
 			CreatedByVO requestUser = this.userStore.getVO();
@@ -318,7 +320,11 @@ public class PowerAppController implements PowerappsApi
 		}else {
 			sortOrder = "asc";
 		}
-		records = service.getAll(limit, offset, name, state, user, sortBy, sortOrder);
+		if(state!=null && "".equalsIgnoreCase(state.trim())
+				&& !(ConstantsUtility.APPROVED_STATE.equalsIgnoreCase(state) || ConstantsUtility.REJECTED_STATE.equalsIgnoreCase(state) || ConstantsUtility.REQUESTED_STATE.equalsIgnoreCase(state))){
+			state = "";
+		}
+			records = service.getAll(limit, offset, name, state, user, sortBy, sortOrder);
 		Long count = service.getCount(name, state, user);
 		HttpStatus responseCode = HttpStatus.NO_CONTENT;
 		if(records!=null && !records.isEmpty()) {
@@ -356,7 +362,7 @@ public class PowerAppController implements PowerappsApi
 			log.info("sending power app details for id {} and name {}, fetched by system admin",id,existingApp.getName());
 			return new ResponseEntity<>(existingApp, HttpStatus.OK);
 		}
-		if(this.userStore.getVO() == null || this.userStore.getVO().getId() == null) {
+		if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null) {
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
 			CreatedByVO requestUser = this.userStore.getVO();
@@ -398,14 +404,12 @@ public class PowerAppController implements PowerappsApi
     		@ApiParam(value = "Power app subscription ID to be updated",required=true) @PathVariable("id") String id,
     		@ApiParam(value = "Request Body that contains data required for updating an existing workspace" ,required=true )  @Valid @RequestBody PowerAppUpdateRequestVO powerappUpdateRequestVO){
 		PowerAppResponseVO responseVO = new PowerAppResponseVO();
-    	PowerAppVO existingApp = service.getById(id);
-		if(existingApp==null || !id.equalsIgnoreCase(existingApp.getId())) {
-			log.warn("No app found with id {}, failed to fetch saved inputs for given power app request id", id);
-			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-		}
-		String powerBiApproverKeyActual = httpRequest.getHeader("apikey");
-		String powerBiApproverIdActual = httpRequest.getHeader("apiid");
-		if(powerBiApproverKeyActual!=null && powerBiApproverKey.equals(powerBiApproverKeyActual) && powerBiApproverIdActual!=null && powerBiApproverId.equals(powerBiApproverIdActual)) {
+		if(apikey != null && powerBiApproverKey.equals(apikey) && appid!=null && powerBiApproverId.equals(appid)) {
+			PowerAppVO existingApp = service.getById(id);
+			if(existingApp==null || !id.equalsIgnoreCase(existingApp.getId())) {
+				log.warn("No app found with id {}, failed to fetch saved inputs for given power app request id", id);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
 			if(!(ConstantsUtility.APPROVED_STATE.equalsIgnoreCase(powerappUpdateRequestVO.getState()) || ConstantsUtility.REJECTED_STATE.equalsIgnoreCase(powerappUpdateRequestVO.getState()))){
 				MessageDescription invalidMsg = new MessageDescription("Invalid state, cannot updated Power App request. Bad Request");
 				GenericMessage errorMessage = new GenericMessage();
@@ -461,7 +465,7 @@ public class PowerAppController implements PowerappsApi
 				}
 			
 		}else {
-			log.error("Invalid token {} for updating the request for app {} ",powerBiApproverKey, existingApp.getId()+"-"+existingApp.getName());
+			log.error("Invalid token {} for updating the request for app {} ",powerBiApproverKey, id);
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
 	}

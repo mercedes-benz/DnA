@@ -93,26 +93,22 @@ paths:
           in: query
           description: query filter to search similar power apps with the given searchTerm name
           required: false
-          default: xxxxnamexxxx
           type: string
         - name: state
           in: query
           description: filter power apps based on the state - allowed values requested, approved, rejected
-          default: requested
           required: false
           type: string
         - name: offset
           in: query
           description: page number from which listing of workspaces should start. Offset. Example 2
           required: false
-          default: 0
           type: integer
         - name: limit
           in: query
           description: page size to limit the number of workspaces, Example 15
           required: false
           type: integer
-          default: 15
         - name: sortBy
           in: query
           description: Sort workspaces by a given variable like name, requestedOn, state
@@ -153,7 +149,7 @@ paths:
         - name: Authorization
           in: header
           description: Authorization
-          required: true
+          required: false
           type: string
         - name: "powerAppCreateVO"
           in: "body"
