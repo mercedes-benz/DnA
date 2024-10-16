@@ -86,17 +86,12 @@ public class JWTAuthenticationFilter implements Filter {
 			String apikey = httpRequest.getHeader("apikey");
 			String appid = httpRequest.getHeader("appid");
 			if (apikey != null && powerBiApproverKey.equals(apikey) && appid!=null && powerBiApproverId.equals(appid)) {
-				JSONObject userdetails = new JSONObject();
-				if (userdetails != null) {
-					userdetails.put("eMail", userdetails.get("email"));
-					userdetails.put("roles", new JSONArray());
-				}
-				setUserDetailsToStore(userdetails);
 				filterChain.doFilter(servletRequest, servletResponse);
+			}else {
+				log.error("Request UnAuthorized");
+				forbidResponse(servletResponse);
+				return;
 			}
-			log.error("Request UnAuthorized");
-			forbidResponse(servletResponse);
-			return;
 		} else if (StringUtils.hasText(userinfo)) {
 			try {
 				log.debug(
