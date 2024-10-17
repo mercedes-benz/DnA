@@ -622,7 +622,7 @@ jobs:
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           IS_REACT_APP: false
           CODE_FOLDER: 'packages/powerplatform-backend'
-          APP_VERSION_FILE_PATH: 'packages/powerplatform-backend/lib/src/main/resources/application.yml'
+          APP_VERSION_FILE_PATH: 'packages/powerplatform-backend/powerplatform-lib/src/main/resources/application.yml'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/power-platform-be'
           YML_IMAGE_TAG_PATH: 'image.tag'                        
         secrets: inherit
