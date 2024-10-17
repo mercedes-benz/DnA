@@ -36,13 +36,13 @@ const ViewEnvironmentDetails = ({ environment }) => {
         <div className={Styles.col3}>
           <div className={Styles.projectItem}>
             <p className={Styles.label}>Deputy Environment Owner Name</p>
-            <p className={Styles.value}>{environment?.dyEvnOwnerName?.length > 0 ? environment?.dyEvnOwnerName : 'N/A'}</p>
+            <p className={Styles.value}>{environment?.dyEnvOwnerName?.length > 0 ? environment?.dyEnvOwnerName : 'N/A'}</p>
           </div>
         </div>
         <div className={Styles.col3}>
           <div className={Styles.projectItem}>
             <p className={Styles.label}>Deputy Environment Owner User ID</p>
-            <p className={Styles.value}>{environment?.dyEvnOwnerId?.length > 0 ? environment?.dyEvnOwnerId : 'N/A'}</p>
+            <p className={Styles.value}>{environment?.dyEnvOwnerId?.length > 0 ? environment?.dyEnvOwnerId : 'N/A'}</p>
           </div>
         </div>
         <div className={Styles.col3}>
