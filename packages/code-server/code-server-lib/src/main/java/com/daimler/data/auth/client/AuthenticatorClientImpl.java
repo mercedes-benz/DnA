@@ -713,7 +713,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
 									attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
-                  
 								}
 							}
 						}

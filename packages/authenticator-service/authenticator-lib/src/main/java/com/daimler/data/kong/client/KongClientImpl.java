@@ -808,14 +808,13 @@ public class KongClientImpl implements KongClient {
 		}
 		return message;
 	}
-
+  
   @Override
 	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable){
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		
 		try {
 			Map<String,String>pluginIdMap = getPluginIds(serviceName,pluginName);
 			if(!pluginIdMap.isEmpty()){
@@ -877,7 +876,6 @@ public class KongClientImpl implements KongClient {
 			errors.add(messageDescription);
 			message.setErrors(errors);
 		}
-          
 		return message;
 	}
 //	@Override
