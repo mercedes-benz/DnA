@@ -175,7 +175,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={100}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z -]+$/ })}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
                 />
                 <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment names must contain characters only, - is allowed. Only spaces are not allowed.'}</span>
               </div>
