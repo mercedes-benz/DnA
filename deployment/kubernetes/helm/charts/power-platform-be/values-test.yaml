@@ -59,7 +59,7 @@ ingress:
     cert-manager.io/cluster-issuer: daimler-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.power-platform.test.dna.app.corpintra.net
+    - host: api.power-platform.test.dna.app.corpintra.net 
       paths:
         - path: /api
           pathType: Prefix
