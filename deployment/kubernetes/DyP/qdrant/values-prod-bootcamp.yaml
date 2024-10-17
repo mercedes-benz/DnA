@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 3
 
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/qdrant/qdrant
@@ -41,7 +41,7 @@ service:
       checksEnabled: false
 
 ingress:
-  enabled: false
+  enabled: true
   ingressClassName: ""
   additionalLabels: {}
   annotations: 
@@ -52,14 +52,14 @@ ingress:
     cert-manager.io/cluster-issuer: daimler-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
   hosts:
-    - host: ""
+    - host: dev.qdrant.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
           servicePort: 6333
   tls: 
     - hosts:
-       - qdrant.dna.app.corpintra.net
+       - dev.qdrant.dna.app.corpintra.net
       secretName: qdrant-tls
 
 livenessProbe:
