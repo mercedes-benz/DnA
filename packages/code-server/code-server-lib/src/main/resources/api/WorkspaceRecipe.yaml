@@ -226,6 +226,37 @@ paths:
         500:
           description: "Internal error"
 
+    put:
+      tags:
+        - "code-server-recipe"
+      summary: "Update recipe details for a given recipe name."
+      description: "Update recipe details for a recipe name."
+      operationId: "updateRecipeByName"
+      parameters:
+        - name: "recipeRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/RecipeVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/InitializeRecipeVo"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /recipeDetails/softwareLov:
     get:
       tags:
