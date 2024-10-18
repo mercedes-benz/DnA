@@ -42,7 +42,7 @@ spec:
       type: persistent-claim
       size: {{ .Values.persistence.kafka }}
       class: {{ .Values.persistence.kafkaStorageClass }}
-      deleteClaim: false
+      deleteClaim: true
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
@@ -65,7 +65,7 @@ spec:
       type: persistent-claim
       size: {{ .Values.persistence.zookeeper }}
       class: {{ .Values.persistence.zookeeperStorageClass }}
-      deleteClaim: false
+      deleteClaim: true
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
