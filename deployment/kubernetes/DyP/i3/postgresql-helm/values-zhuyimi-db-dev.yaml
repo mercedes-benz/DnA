@@ -335,7 +335,7 @@ backup:
     size: 1Gi
     # storageClass: dhc-gp3
   file:
-    name: dnadb-backup
+    name: yiming-db-backup
     # label: test
 
 ## PostgreSQL restore configuration
