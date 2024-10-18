@@ -87,10 +87,10 @@ global:
 
   # -- Toggle and define pod-level security context.
   # @default -- `{}` (See [values.yaml])
-  securityContext: {}
-  #  runAsUser: 999
-  #  runAsGroup: 999
-  #  fsGroup: 999
+  securityContext:
+   runAsUser: 999
+   runAsGroup: 999
+   fsGroup: 999
 
   # -- Mapping between IP and hostnames that will be injected as entries in the pod's hosts files
   hostAliases: []
@@ -270,7 +270,7 @@ configs:
 
     ## Repo-server properties
     # -- Limit on number of concurrent manifests generate requests. Any value less the 1 means no limit.
-    reposerver.parallelism.limit: 4
+    reposerver.parallelism.limit: 10
 
     ## ApplicationSet Properties
     # -- Modify how application is synced between the generator and the cluster. One of: `sync`, `create-only`, `create-update`, `create-delete`
@@ -651,6 +651,72 @@ extraObjects:
               - argocd-vault-plugin
               - generate
               - "."
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: pvc-argocd-repo-server-tmp
+      namespace: argocd
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: dhc-gp3
+
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-keyring
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 2Gi
+  #     storageClassName: dhc-gp3
+
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-workdir
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 2Gi
+  #     storageClassName: dhc-gp3
+
+
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-varfiles
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 2Gi
+  #     storageClassName: dhc-gp3
+      
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-plugins
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 2Gi
+  #     storageClassName: dhc-gp3
   # - apiVersion: secrets-store.csi.x-k8s.io/v1
   #   kind: SecretProviderClass
   #   metadata:
@@ -686,7 +752,7 @@ controller:
   # Additional replicas will cause sharding of managed clusters across number of replicas.
   ## With dynamic cluster distribution turned on, sharding of the clusters will gracefully
   ## rebalance if the number of replica's changes or one becomes unhealthy. (alpha)
-  replicas: 2
+  replicas: 3
 
   # -- Enable dynamic cluster distribution (alpha)
   # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/dynamic-cluster-distribution
@@ -1788,7 +1854,7 @@ server:
   name: server
 
   # -- The number of server pods to run
-  replicas: 2
+  replicas: 3
 
   ## Argo CD server Horizontal Pod Autoscaler
   autoscaling:
@@ -2454,12 +2520,12 @@ repoServer:
   name: repo-server
 
   # -- The number of repo server pods to run
-  replicas: 2
+  replicas: 1
 
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
     # -- Enable Horizontal Pod Autoscaler ([HPA]) for the repo server
-    enabled: true
+    enabled: false
     # -- Minimum number of replicas for the repo server [HPA]
     minReplicas: 2
     # -- Maximum number of replicas for the repo server [HPA]
@@ -2528,6 +2594,8 @@ repoServer:
         value: "3"
       - name: ARGOCD_EXEC_TIMEOUT
         value: "2m30s"  
+      - name: ARGOCD_HELM_ALLOW_CONCURRENCY
+        value: "true"
 
   # -- envFrom to pass to repo server
   # @default -- `[]` (See [values.yaml])
@@ -2564,6 +2632,7 @@ repoServer:
       securityContext:
         runAsNonRoot: true
         runAsUser: 999
+        fsGroup: 999
       volumeMounts:
       - mountPath: /var/run/argocd
         name: var-files
@@ -2696,16 +2765,16 @@ repoServer:
   #    emptyDir: {}
 
   # -- Volumes to be used in replacement of emptydir on default volumes
-  existingVolumes: {}
+  existingVolumes:
   #  gpgKeyring:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-keyring
   #  helmWorkingDir:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-workdir
-  #  tmp:
-  #    persistentVolumeClaim:
-  #      claimName: pvc-argocd-repo-server-tmp
+   tmp:
+     persistentVolumeClaim:
+       claimName: pvc-argocd-repo-server-tmp
   #  varFiles:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-varfiles
@@ -2733,13 +2802,13 @@ repoServer:
   podLabels: {}
 
   # -- Resource limits and requests for the repo server pods
-  resources: {}
-  #  limits:
-  #    cpu: 50m
-  #    memory: 128Mi
-  #  requests:
-  #    cpu: 10m
-  #    memory: 64Mi
+  resources: 
+   limits:
+     cpu: 3500m
+     memory: 5000Mi
+   requests:
+     cpu: 3000m
+     memory: 4000Mi
 
   # Repo server container ports
   containerPorts:
@@ -2943,7 +3012,7 @@ applicationSet:
   name: applicationset-controller
 
   # -- The number of ApplicationSet controller pods to run
-  replicas: 1
+  replicas: 3
 
   ## ApplicationSet controller Pod Disruption Budget
   ## Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
