@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: aws-yiming-db
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
+spec:
+  destination:
+    namespace: zhuyimi-code-server
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: migration/aws
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-zhuyimi-db-dev.yaml --set namespace=zhuyimi-code-server
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}
