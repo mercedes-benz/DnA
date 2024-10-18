@@ -364,7 +364,7 @@ export const ToolsDetailedPageElements = [
         "links": [
           {
             "title": "Contact Email",
-            "link": "mailto:luisa.hahn@mercedes-benz.com"
+            "link": "mailto:ada@mercedes-benz.com"
           },
           {
             "title": "Social Intranet Page",
@@ -394,3 +394,4 @@ export const ToolsDetailedPageElements = [
     ]
   }
 ]
+
