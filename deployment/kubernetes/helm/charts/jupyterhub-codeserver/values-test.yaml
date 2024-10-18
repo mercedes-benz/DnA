@@ -117,6 +117,9 @@ hub:
               # Set App Name
               args += ["--app-name", "DnACodeSpace"]
 
+              # Set non root domain
+              args += ["--abs-proxy-base-path", f"/user/{self.user.name}/{self.name}"]
+
               # set port and ip if given
               ip = "0.0.0.0"
               if self.ip:
@@ -679,12 +682,12 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN
+                    key: GH_PAT_TOKEN     
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH
+                    key: GIT_BRANCH    
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -717,7 +720,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN
+                    key: GH_PAT_TOKEN    
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
