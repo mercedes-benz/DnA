@@ -313,12 +313,12 @@ const PowerPlatformEnvironments = ({user}) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'800px'}
+          modalWidth={'1100px'}
           buttonAlignment="right"
           show={showTou}
-          content={<SharedDevelopmentTou hideAccept={true} />}
+          content={<SharedDevelopmentTou hideAccept={true} isEn={true} />}
           scrollableContent={true}
-          onCancel={() => {localStorage.setItem('modal', ''); setShowTou(false)}}
+          onCancel={() => {localStorage.setItem('modal', ''); setShowTou(false); window.location.href = `${Envs.CONTAINER_APP_URL}/#/toolDetails/powerPlatform`}}
         />
       }
     </>
