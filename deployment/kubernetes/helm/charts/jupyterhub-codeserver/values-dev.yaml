@@ -1,6 +1,6 @@
 # fullnameOverride and nameOverride distinguishes blank strings, null values,
 # and non-blank strings. For more details, see the configuration reference.
-fullnameOverride: "cs-hub"
+fullnameOverride: "cs"
 nameOverride:
 
 # enabled is ignored by the jupyterhub chart itself, but a chart depending on
