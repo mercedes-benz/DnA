@@ -1,0 +1,66 @@
+.projectRow {
+  display: flex;
+  align-items: center;
+  padding: 14px 0 14px 0;
+  color: #99a5b3;
+  border-bottom: 1px solid #383f49;
+  cursor: pointer;
+  .col1 {
+    min-width: 30%;
+    .link {
+      color: #00adef;
+      cursor: pointer;
+    }
+  }
+  .col2 {
+    min-width: 15%;
+  }
+  .col3 {
+    min-width: 15%;
+  }
+  .col4 {
+    min-width: 40%;
+  }
+  .col5 {
+    min-width: 10%;
+    text-align: right;
+  }
+  .requested {
+    color: #00adef;
+  }
+  .approved {
+    color: #0AE6AB;
+  }
+  .rejected {
+    color: #e94d47;
+  }
+  .bucketTitleCol {
+      flex: 1;
+      font-size: var(--font-size-default);
+      color: #99a5b3;
+      i {
+          font-size: var(--font-size-icon-small);
+          right: 0;
+      }
+      .actionBtn {
+          background-color: transparent;
+          border: 0;
+          padding: 0;
+          font-size: var(--font-size-smallest);
+          margin: 0;
+          i {
+              font-size: var(--font-size-icon-small);
+          }
+          &:hover {
+              color: #00adef;
+          }      
+      }
+  }
+  .bucketName {
+      min-width: 245px;
+      max-width: 245px;
+      a {
+          word-wrap: break-word;
+      } 
+  }
+}
