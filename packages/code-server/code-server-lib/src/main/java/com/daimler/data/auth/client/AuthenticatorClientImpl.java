@@ -1,9 +1,12 @@
 package com.daimler.data.auth.client;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.text.StringEscapeUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.application.client.GitClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -154,12 +158,28 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
  
 	@Value("${kong.authoriserDiscovery}")
 	private String authDiscovery;
-	
 
+	@Value("${kong.functionPluginGitUrl}")
+	private String functionPluginGitUrl;
+
+	@Value("${kong.functionPluginsFolderPath}")
+	private String functionPluginsFolderPath;
+	
+	@Value("${kong.preFunctionFrontendFileName}")
+	private String preFunctionFrontendFileName;
+
+	@Value("${kong.postFunctionFrontendFileName}")
+	private String postFunctionFrontendFileName;
+
+	@Value("${kong.preFunctionBackendFileName}")
+	private String preFunctionBackendFileName;
 
 
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Autowired
+	private GitClient gitClient;
 	
 	private static final String CREATE_SERVICE = "/api/kong/services";
 	private static final String CREATE_ROUTE = "/routes";
@@ -170,9 +190,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String JWTISSUER_PLUGIN = "jwtissuer";
 	private static final String APP_AUTHORISER_PLUGIN = "appauthoriser";
 	private static final String API_AUTHORISER_PLUGIN = "apiauthoriser";
+	private static final String PRE_FUNCTION_PLUGIN ="pre-function";
+	private static final String POST_FUNCTION_PLUGIN ="post-function";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
+	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -307,7 +330,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -457,6 +480,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachCorsPluginResponse = new GenericMessage();
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage changePluginStatusResponse = new GenericMessage();
 		try {	
 			boolean isServiceAlreadyCreated = false;
 			boolean isRouteAlreadyCreated = false;
@@ -515,7 +539,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										//deleteing jwy issuer plugin if any
+										//deleteing jwt issuer plugin if any
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -560,8 +584,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
-										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
 										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 
 										//request for attaching APIAUTHORISER plugin to service
 										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
@@ -593,8 +617,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
 											apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
 	
-											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
 											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 										}
 									}
 								}
@@ -609,12 +633,154 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							//deleteing jwy issuer plugin if any
+							//deleteing jwt issuer plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
-						// }
+					}else{
+
+						//for non api recipes
+						if(intSecureIAM || prodSecureIAM){
+							if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
+								if(!clientID.isEmpty() && !clientSecret.isEmpty()){
+									//deleting OIDC  plugin if already available
+									GenericMessage deletePluginResponse = new GenericMessage();
+									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+									LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+									//request for attaching ODIC plugin to authorize service with new client id and secret
+									AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
+									AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
+									AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
+
+									attachOIDCPluginVO.setName(OIDC_PLUGIN);
+
+									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
+									//String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+
+									if("int".equalsIgnoreCase(env)){
+										attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
+										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
+									}
+									if("prod".equalsIgnoreCase(env)){
+										String prodDiscovery = authDiscovery.replace("-int","");
+										String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
+										String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
+
+										attachOIDCPluginConfigVO.setDiscovery(prodDiscovery);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
+										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
+									}
+									attachOIDCPluginConfigVO.setBearer_only("no");
+									attachOIDCPluginConfigVO.setClient_id(clientID);
+									attachOIDCPluginConfigVO.setClient_secret(clientSecret);
+									attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
+									attachOIDCPluginConfigVO.setLogout_path(logoutPath);
+									attachOIDCPluginConfigVO.setRealm(realm);
+									attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser);
+									attachOIDCPluginConfigVO.setRevoke_tokens_on_logout("no");
+									attachOIDCPluginConfigVO.setResponse_type(responseType);
+									attachOIDCPluginConfigVO.setScope(scope);
+									attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
+									attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
+									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+									attachOIDCPluginConfigVO.setFilters(ignorePaths);
+									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
+
+									attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
+									
+									//attaching pre and post function for frontend recipes if already exsits will make the plugin status enable else adding new plugin
+									
+									AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
+									AttachFunctionPluginRequestVO postFunctionRequestVO = new AttachFunctionPluginRequestVO();
+
+									AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
+									AttachFunctionPluginVO postFunctionPluginVO = new AttachFunctionPluginVO();
+
+									AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
+									AttachFunctionPluginConfigVO postFunctionConfigVO = new AttachFunctionPluginConfigVO();
+
+									String[] codespaceSplitValues = functionPluginGitUrl.split("/");
+									int length = codespaceSplitValues.length;
+									String repoName = codespaceSplitValues[length - 1];
+									String repoOwner = codespaceSplitValues[length - 2];
+									String gitUrl = functionPluginGitUrl.replace("/" + repoOwner, "");
+            						gitUrl = gitUrl.replace("/" + repoName, "");
+
+
+									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
+									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									if(!changePluginStatusResponse.getErrors().isEmpty() && "plugin does not exist".equalsIgnoreCase(changePluginStatusResponse.getErrors().get(0).toString())){
+										try{
+											
+											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner,gitUrl, functionPluginsFolderPath,preFunctionFrontendFileName);
+											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+												
+												String content = jsonResponse.getString("content");
+												String preFunctionContent = base64DecodeAandMinifyString(content);
+
+												List<String> preFunctionValue =  new ArrayList<>();
+												preFunctionValue.add(preFunctionContent);
+												preFunctionConfigVO.setAccess(preFunctionValue);
+
+												preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+												preFunctionPluginVO.setConfig(preFunctionConfigVO);
+												preFunctionRequestVO.setData(preFunctionPluginVO);
+
+												attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+												LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+											}
+										}catch(Exception e) {
+											LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
+										}
+									}
+									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
+									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									if(!changePluginStatusResponse.getErrors().isEmpty() && "plugin does not exist".equalsIgnoreCase(changePluginStatusResponse.getErrors().get(0).toString())){
+										try{
+											
+											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner, gitUrl, functionPluginsFolderPath, postFunctionFrontendFileName);
+											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+
+												String content = jsonResponse.getString("content");
+												String postFunctionContent = base64DecodeAandMinifyString(content);
+
+												List<String> postFunctionValue =  new ArrayList<>();
+												postFunctionValue.add(postFunctionContent);
+												postFunctionConfigVO.setAccess(postFunctionValue);
+
+												postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
+												postFunctionPluginVO.setConfig(postFunctionConfigVO);
+												postFunctionRequestVO.setData(postFunctionPluginVO);
+
+												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+											}
+										}catch(Exception e) {
+											LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
+										}
+									}
+								}
+							}
+						}
+						else{
+							//deleting oidc plugin if any
+							GenericMessage deletePluginResponse = new GenericMessage();
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//change function plugin status to disable if any
+							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+						}
 					}
 					
 				}
@@ -798,6 +964,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	}
 
+	public String base64DecodeAandMinifyString(String encodedString){
+
+		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+		String decodedContent = new String(decodedBytes);
+		String escapedForJson = StringEscapeUtils.escapeJson(decodedContent);
+		// String minifiedContent = decodedContent.replaceAll("\\s+", "");
+		return escapedForJson;
+	}
+
 	@Override
 	public GenericMessage deletePlugin(String serviceName, String pluginName) {
 
@@ -940,5 +1115,105 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	
 	}
+
+	@Override
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
+
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
+
+			HttpEntity<AttachFunctionPluginRequestVO> entity = new HttpEntity<AttachFunctionPluginRequestVO>(attachFunctionPluginRequestVO,headers);			
+			ResponseEntity<String> attachFunctionPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachFunctionPluginResponse != null && attachFunctionPluginResponse.getStatusCode()!=null) {
+				if(attachFunctionPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachFunctionPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachFunctionPluginRequestVO.getData().getName(), serviceName,  attachFunctionPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachFunctionPluginResponse.getBody() + " Response Code is : " + attachFunctionPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to Add Function Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachFunctionPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
+
+	@Override
+	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean enablePlugin) {
+
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String changePluginStatusRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName+"/" + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName+"?enable="+enablePlugin;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(changePluginStatusRouteUri, HttpMethod.PATCH, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					message.setSuccess("Success");		
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					LOGGER.info("Kong plugin:{} for the service {} Status changed to {} successfully", pluginName, serviceName,enablePlugin);
+					return message;
+				}
+				if (response.getStatusCode().is5xxServerError()) {			
+					LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+					}
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+				LOGGER.error("plugin {} already available ", pluginName);
+				messageDescription.setMessage("plugin already exist");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+				}
+			LOGGER.error("Exception occured: {} while changing status of  plugin: {} details", ex.getMessage(),pluginName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured: {} while changing status of  plugin: {} details", e.getMessage(),pluginName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+		return message;
+	
+	}
+	
+	
 
 }
