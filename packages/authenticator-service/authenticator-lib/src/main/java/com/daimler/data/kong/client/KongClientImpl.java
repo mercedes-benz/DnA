@@ -845,7 +845,7 @@ public class KongClientImpl implements KongClient {
 			}
 			else{
 				LOGGER.error("plugin {} does not exist", pluginName);
-				messageDescription.setMessage("plugin does exist");
+				messageDescription.setMessage("plugin does not exist");
 				errors.add(messageDescription);
 				message.setErrors(errors);
 				return message;
@@ -854,7 +854,7 @@ public class KongClientImpl implements KongClient {
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
 			LOGGER.error("plugin {} does already exist", pluginName);
-			messageDescription.setMessage("plugin already not exist");
+			messageDescription.setMessage("plugin already exist");
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
