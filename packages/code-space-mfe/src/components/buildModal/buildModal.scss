@@ -1,0 +1,68 @@
+.BuildModal {
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px;
+  
+    > div {
+      width: calc(33% - 7px);  
+    }
+  
+    > div:last-child {
+      align-self: center;
+    }
+  }
+
+  .btnGrp {
+    // display: flex;
+    // justify-content: center;
+
+    .triggerBtn {
+      background: #00adef;
+    }
+
+  }
+
+  .wrapper {
+    background: #1C2026 !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+    padding: 20px 20px;
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+
+      >div {
+        width: auto;
+      }
+    }
+    .refreshBtn {
+      background: none;
+      border: none;
+      width:10px;
+    }
+
+  }
+
+  .codeSpaceBuildListviewContent {
+    background-color: #252a33;
+    padding-top: 15px;
+    // overflow-x:auto
+
+    .codeSpaceBuildMargininone {
+      // border: 1px solid;
+      // border-collapse: collapse;
+      // border-color:#383f49;
+      position: relative;
+      margin-top: 20px;
+
+      .deployBtn {
+        background: #00adef;
+        font-size: 12px;
+
+      }
+    }
+  }
+}

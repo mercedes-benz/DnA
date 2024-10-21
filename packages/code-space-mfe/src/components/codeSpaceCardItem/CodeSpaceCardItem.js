@@ -438,6 +438,15 @@ const CodeSpaceCardItem = (props) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowBuildModal(codeSpace);
+                        }}
+                      >
+                        Manage Build
+                      </span>
+                    </li>
                     <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                       <span
                         onClick={() => {
@@ -1095,8 +1104,8 @@ const CodeSpaceCardItem = (props) => {
                 {enableReadMe && (
                   <button className="btn btn-primary" onClick={() =>  getReadMeFile()}>
                     <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
-                  </button>
-                )}
+                    </button>
+                  )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>

@@ -19,6 +19,7 @@ import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
+import BuildModal from './buildModal/buildModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -35,11 +36,13 @@ const AllCodeSpaces = (props) => {
         // }),
         [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState(false),
         [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false),
+        [showBuildCodeSpaceModal, setShowBuildCodeSpaceModal] = useState(false),
         [isRetryRequest, setIsRetryRequest] = useState(false),
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
+        [onBuildCodeSpace, setOnBuildCodeSpace] = useState(),
         [showTutorialsModel, setShowTutorialsModel] = useState(false);
     const History = useHistory();
     const goback = () => {
@@ -153,6 +156,11 @@ const AllCodeSpaces = (props) => {
     const onCodeSpaceDeploy = (codeSpace) => {
         setOnDeployCodeSpace(codeSpace);
         setShowDeployCodeSpaceModal(true);
+    };
+
+    const onCodeSpaceBuild = (codeSpace) => {
+        setOnBuildCodeSpace(codeSpace);
+        setShowBuildCodeSpaceModal(true);
     };
 
     const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
@@ -313,6 +321,7 @@ const AllCodeSpaces = (props) => {
                                                         onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
+                                                        onShowBuildModal={onCodeSpaceBuild}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                     />
                                                 );
@@ -341,6 +350,7 @@ const AllCodeSpaces = (props) => {
                                                         onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
+                                                        onShowBuildModal={onCodeSpaceBuild}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                     />
                                                 );
@@ -407,6 +417,15 @@ const AllCodeSpaces = (props) => {
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
+                />
+            )}
+            {showBuildCodeSpaceModal && (
+                <BuildModal
+                    userInfo={props.user}
+                    codeSpaceData={onBuildCodeSpace}
+                    setShowCodeBuildModal={(isVisible) => setShowBuildCodeSpaceModal(isVisible)}
+                    // setCodeDeploying={() => getCodeSpacesData()}
+                    // setIsApiCallTakeTime={setIsApiCallTakeTime}
                 />
             )}
             {isApiCallTakeTime && (
