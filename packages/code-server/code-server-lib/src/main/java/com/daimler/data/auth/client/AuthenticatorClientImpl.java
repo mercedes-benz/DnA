@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,7 +195,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
-	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
+	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionplugin";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -716,9 +716,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
 									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-									if(!changePluginStatusResponse.getErrors().isEmpty() && "plugin does not exist".equalsIgnoreCase(changePluginStatusResponse.getErrors().get(0).toString())){
+									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
-											
 											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner,gitUrl, functionPluginsFolderPath,preFunctionFrontendFileName);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
@@ -743,7 +742,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									}
 									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
 									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-									if(!changePluginStatusResponse.getErrors().isEmpty() && "plugin does not exist".equalsIgnoreCase(changePluginStatusResponse.getErrors().get(0).toString())){
+									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
 											
 											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner, gitUrl, functionPluginsFolderPath, postFunctionFrontendFileName);
@@ -779,6 +778,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//change function plugin status to disable if any
 							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,false);
 							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 						}
 					}
@@ -966,11 +967,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	public String base64DecodeAandMinifyString(String encodedString){
 
+		encodedString = encodedString.replaceAll("\\s+", "");
 		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
-		String decodedContent = new String(decodedBytes);
-		String escapedForJson = StringEscapeUtils.escapeJson(decodedContent);
-		// String minifiedContent = decodedContent.replaceAll("\\s+", "");
-		return escapedForJson;
+        String decodedContent = new String(decodedBytes, StandardCharsets.UTF_8);
+		return decodedContent;
 	}
 
 	@Override
@@ -1181,8 +1181,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					return message;
 				}
 				if (response.getStatusCode().is5xxServerError()) {			
-					LOGGER.error("plugin {} does not exist", pluginName);
-					messageDescription.setMessage("plugin does not exist");
+					LOGGER.error("INTERNAL SERVER ERROR");
+					messageDescription.setMessage("INTERNAL SERVER ERROR");
 					errors.add(messageDescription);
 					message.setErrors(errors);
 					return message;
@@ -1196,7 +1196,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				errors.add(messageDescription);
 				message.setErrors(errors);
 				return message;
-				}
+			}
+			if (ex.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {			
+				LOGGER.error("plugin {} not exists ", pluginName);
+				messageDescription.setMessage("plugin not exist");
+				message.setSuccess("NOT_FOUND");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}
+			
 			LOGGER.error("Exception occured: {} while changing status of  plugin: {} details", ex.getMessage(),pluginName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
