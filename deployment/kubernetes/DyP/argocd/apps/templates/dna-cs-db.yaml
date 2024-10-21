@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-dna-jupyterhub-db
+  name: {{ .Values.env }}-dna-cs-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
@@ -24,11 +24,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS  
-          {{- if ne .Values.env "prod" }}       
-          value: -f values-jupyterhub-db-dev.yaml --set namespace={{ .Values.env }}-dna-cs
-          {{ else }}
-          value: -f values-jupyterhub-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs
-          {{- end }}
+          value: -f values-cs-db.yaml --set namespace={{ .Values.env }}-dna-cs
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
