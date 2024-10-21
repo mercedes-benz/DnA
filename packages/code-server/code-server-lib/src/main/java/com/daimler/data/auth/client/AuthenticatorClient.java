@@ -26,4 +26,6 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName);
 
+	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
+
 }
