@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -479,6 +480,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachCorsPluginResponse = new GenericMessage();
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
+		GenericMessage changePluginStatusResponse = new GenericMessage();
 		try {	
 			boolean isServiceAlreadyCreated = false;
 			boolean isRouteAlreadyCreated = false;
@@ -693,7 +695,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 									
-									//attaching pre and post function for frontend recipes
+									//attaching pre and post function for frontend recipes if already exsits will make the plugin status enable else adding new plugin
+									
 									AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
 									AttachFunctionPluginRequestVO postFunctionRequestVO = new AttachFunctionPluginRequestVO();
 
@@ -710,50 +713,59 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									String gitUrl = functionPluginGitUrl.replace("/" + repoOwner, "");
             						gitUrl = gitUrl.replace("/" + repoName, "");
 
-									try{
-										
-										JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner,gitUrl, functionPluginsFolderPath,preFunctionFrontendFileName);
-										if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
-											LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+
+									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
+									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									if(!changePluginStatusResponse.getErrors().isEmpty() && "plugin does not exist".equalsIgnoreCase(changePluginStatusResponse.getErrors().get(0).toString())){
+										try{
 											
-											String content = jsonResponse.getString("content");
-											String preFunctionContent = base64DecodeAandMinifyString(content);
+											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner,gitUrl, functionPluginsFolderPath,preFunctionFrontendFileName);
+											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+												
+												String content = jsonResponse.getString("content");
+												String preFunctionContent = base64DecodeAandMinifyString(content);
 
-											List<String> preFunctionValue =  new ArrayList<>();
-											preFunctionValue.add(preFunctionContent);
-											preFunctionConfigVO.setAccess(preFunctionValue);
+												List<String> preFunctionValue =  new ArrayList<>();
+												preFunctionValue.add(preFunctionContent);
+												preFunctionConfigVO.setAccess(preFunctionValue);
 
-											preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
-											preFunctionPluginVO.setConfig(preFunctionConfigVO);
+												preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+												preFunctionPluginVO.setConfig(preFunctionConfigVO);
 
-											attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
-											LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+												attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+												LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+											}
+										}catch(Exception e) {
+											LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
 										}
-									}catch(Exception e) {
-										LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
 									}
-									try{
-										
-										JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner, gitUrl, functionPluginsFolderPath, postFunctionFrontendFileName);
-										if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
-											LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
+									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									if(!changePluginStatusResponse.getErrors().isEmpty() && "plugin does not exist".equalsIgnoreCase(changePluginStatusResponse.getErrors().get(0).toString())){
+										try{
+											
+											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner, gitUrl, functionPluginsFolderPath, postFunctionFrontendFileName);
+											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 
-											String content = jsonResponse.getString("content");
-											String postFunctionContent = base64DecodeAandMinifyString(content);
+												String content = jsonResponse.getString("content");
+												String postFunctionContent = base64DecodeAandMinifyString(content);
 
-											List<String> postFunctionValue =  new ArrayList<>();
-											postFunctionValue.add(postFunctionContent);
-											postFunctionConfigVO.setAccess(postFunctionValue);
+												List<String> postFunctionValue =  new ArrayList<>();
+												postFunctionValue.add(postFunctionContent);
+												postFunctionConfigVO.setAccess(postFunctionValue);
 
-											postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
-											postFunctionPluginVO.setConfig(postFunctionConfigVO);
-											postFunctionRequestVO.setData(postFunctionPluginVO);
+												postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
+												postFunctionPluginVO.setConfig(postFunctionConfigVO);
+												postFunctionRequestVO.setData(postFunctionPluginVO);
 
-											attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
-											LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+											}
+										}catch(Exception e) {
+											LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
 										}
-									}catch(Exception e) {
-										LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
 									}
 								}
 							}
@@ -764,6 +776,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//change function plugin status to disable if any
+							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 						}
 					}
 					
@@ -952,8 +967,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
 		String decodedContent = new String(decodedBytes);
-		String minifiedContent = decodedContent.replaceAll("\\s+", "");
-		return minifiedContent;
+		String escapedForJson = StringEscapeUtils.escapeJson(decodedContent);
+		// String minifiedContent = decodedContent.replaceAll("\\s+", "");
+		return escapedForJson;
 	}
 
 	@Override
@@ -1163,16 +1179,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					LOGGER.info("Kong plugin:{} for the service {} Status changed to {} successfully", pluginName, serviceName,enablePlugin);
 					return message;
 				}
+				if (response.getStatusCode().is5xxServerError()) {			
+					LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+					}
 			}
 		}
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
-			LOGGER.error("plugin {} does not exist", pluginName);
-			messageDescription.setMessage("Route does not exist");
-			errors.add(messageDescription);
-			message.setErrors(errors);
-			return message;
-			}
+				LOGGER.error("plugin {} already available ", pluginName);
+				messageDescription.setMessage("plugin already exist");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+				}
 			LOGGER.error("Exception occured: {} while changing status of  plugin: {} details", ex.getMessage(),pluginName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
