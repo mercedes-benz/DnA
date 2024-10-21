@@ -1,6 +1,6 @@
 # fullnameOverride and nameOverride distinguishes blank strings, null values,
 # and non-blank strings. For more details, see the configuration reference.
-fullnameOverride: "cs-hub"
+fullnameOverride: "cs"
 nameOverride:
 
 # enabled is ignored by the jupyterhub chart itself, but a chart depending on
@@ -47,6 +47,7 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://test.dna.app.corpintra.net/#/codespaces
+      cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -85,7 +86,7 @@ hub:
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
   db:
-    type: sqlite-pvc
+    type: postgres
     upgrade:
     pvc:
       annotations: {}
@@ -94,9 +95,9 @@ hub:
         - ReadWriteOnce
       storage: 1Gi
       subPath:
-      storageClassName: cinder
-    url:
-    password:
+      storageClassName: dhc-gp3
+    url: postgresql+psycopg2://cs-db:64000/jupyterhub
+    password: <path:kv/data/dna/kubernetesSecret/cs#dbadm.password>
   labels: {}
   annotations: {}
   command: []
@@ -245,7 +246,7 @@ hub:
               app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
-          port: 8081
+          port: 8081  
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -616,13 +617,13 @@ singleuser:
     capacity: 1Gi
     homeMountPath: /home/coder
     dynamic:
-      storageClass: cinder
+      storageClass: dhc-gp3
       pvcNameTemplate: "{servername}"
       volumeNameTemplate: "{servername}"
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.91.0"
+    tag: "4.92.2"
     pullPolicy:
     pullSecrets: 
       - name: imagepullsecret

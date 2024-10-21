@@ -1,6 +1,6 @@
 # fullnameOverride and nameOverride distinguishes blank strings, null values,
 # and non-blank strings. For more details, see the configuration reference.
-fullnameOverride: "cs-hub"
+fullnameOverride: "cs"
 nameOverride:
 
 # enabled is ignored by the jupyterhub chart itself, but a chart depending on
@@ -47,6 +47,7 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dna.app.corpintra.net/#/codespaces
+      cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -85,18 +86,18 @@ hub:
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
   db:
-    type: sqlite-pvc
+    type: postgres
     upgrade:
     pvc:
       annotations: {}
       selector: {}
       accessModes:
         - ReadWriteOnce
-      storage: 20Gi
+      storage: 1Gi
       subPath:
-      storageClassName: cinder-retain
-    url:
-    password:
+      storageClassName: dhc-gp3
+    url: postgresql+psycopg2://cs-db:64000/jupyterhub
+    password: <path:kv/data/dna/kubernetesSecret/cs#dbadm.password>
   labels: {}
   annotations: {}
   command: []
@@ -190,7 +191,7 @@ hub:
               'successThreshold': 1,
               'failureThreshold': 10
             }
-          }
+          }        
 
   #   livenessProbe:
   #     httpGet:
@@ -546,7 +547,7 @@ singleuser:
               # Copy .bashrc
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
-              
+
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
               mkdir -pv $TEMP_DIR
@@ -554,7 +555,7 @@ singleuser:
               cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
-             
+
               # Copy extentions
               mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
               mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
@@ -567,9 +568,8 @@ singleuser:
               code-server --install-extension /home/coder/extension/GitHub.copilot-*.vsix
               code-server --install-extension /home/coder/extension/mbos-studio-marketplace-*.vsix
               code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
-              
-          fi 
 
+          fi        
   extraEnv: 
     HTTPS_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
     HTTP_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
@@ -615,13 +615,13 @@ singleuser:
     capacity: 1Gi
     homeMountPath: /home/coder
     dynamic:
-      storageClass: cinder
+      storageClass: dhc-gp3
       pvcNameTemplate: "{servername}"
       volumeNameTemplate: "{servername}"
       storageAccessModes: [ReadWriteOnce]
   image:
-    name: registry-emea.app.corpintra.net/dnaplatform/cs-generic
-    tag: "4.91.0"
+    name: registry-emea.app.corpintra.net/dnaplatform/cs-default
+    tag: "4.92.2"
     pullPolicy:
     pullSecrets: 
       - name: imagepullsecret

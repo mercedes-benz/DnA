@@ -46,7 +46,7 @@ hub:
       admin_access: true
       authenticator_class: generic-oauth
       redirect_to_server: false
-      default_url: https://dev.dna.app.corpintra.net/#/codespaces
+      default_url: https://dna-aws.app.corpintra.net/#/codespaces
       cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
@@ -97,7 +97,7 @@ hub:
       subPath:
       storageClassName: dhc-gp3
     url: postgresql+psycopg2://cs-db:64000/jupyterhub
-    password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#dbadm.password>
+    password: <path:kv/data/dna/kubernetesSecret/cs#dbadm.password>
   labels: {}
   annotations: {}
   command: []
