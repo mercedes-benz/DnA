@@ -259,7 +259,6 @@ const AllCodeSpaces = (props) => {
                             <IconGear size={'14'} />
                             <span>&nbsp;Manage Recipes</span>
                         </button>
-
                         <button
                             className={classNames('btn btn-primary', Styles.tutorials)}
                             tooltip-data="code space video tutorials"
