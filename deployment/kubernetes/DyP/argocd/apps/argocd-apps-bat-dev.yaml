@@ -9,7 +9,7 @@ spec:
   project: 'bat-development'
   source:
     repoURL: 'https://git.i.mercedes-benz.com/BAT/bat-infra.git'
-    targetRevision: 'infra/aws-migration'
+    targetRevision: 'master'
     path: c82p085-dev
     plugin:
       name: argocd-vault-plugin
