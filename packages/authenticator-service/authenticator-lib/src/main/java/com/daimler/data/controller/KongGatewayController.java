@@ -514,6 +514,10 @@ public class KongGatewayController implements KongApi{
 				LOGGER.info("Kong plugin {} updated the status successfully", pluginName);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getErrors()) && response.getSuccess().equalsIgnoreCase("NOT_FOUND")) {
+				LOGGER.info("Kong plugin {} updated the status successfully", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
 			else {
 				LOGGER.info("Kong plugin {} update status  failed", pluginName);
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
