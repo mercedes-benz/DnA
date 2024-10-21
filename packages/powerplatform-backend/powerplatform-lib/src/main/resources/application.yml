@@ -1,0 +1,103 @@
+spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
+  application:
+    name: dna-powerplatform-service
+    version: 1.0.1
+  profiles:
+    active: production
+
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}   
+        
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:64000/xxdbnamexx}
+    username: ${API_DB_USER:xxdbuserxx}
+    password: ${API_DB_PASS:xxdbpassxx}
+    driverClassName: org.postgresql.Driver
+    
+  kafka:
+    producer:
+    properties:
+      ssl:
+        truststore:
+          location: ${TRUSTSTORE_PATH:/XXXX/XXXX/truststore.jks}
+          password: ${TRUSTSTORE_PASSWORD:XXXX}
+          type: PKCS12
+        keystore:
+          location: ${KEYSTORE_PATH:/XXXX/XXXX/keystore.p12}
+          password: ${KEYSTORE_PASSWORD:XXXX}
+          type: PKCS12
+      security:
+          protocol: SSL  
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}  
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
+       
+server:
+  port: 9292
+
+powerapps:
+  defaults:
+    environment: ${POWERAPP_ENVIRONMENT_DEFAULT:XXXX}
+    productionAvailability: ${POWERAPP_PRODUCTION_AVAIL_DEFAULT:XXXX}
+    developerlicense: ${POWERAPP_DEVELOPERLICENSE_DEFAULT:XXXX}
+    powerBiApproverKey: ${POWERAPP_APPROVERKEY_DEFAULT:XKEYX}
+    powerBiApproverId: ${POWERAPP_APPROVERID_DEFAULT:XIDX}
+    
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+proxy: 
+  port: ${CUSTOMPROXY_PORT:1234}
+  host: ${CUSTOMPROXY_HOST:xxxx}
+  
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+          controller.ItsmmGameController: DEBUG
+    org.springframework.boot.autoconfigure.logging: INFO
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
