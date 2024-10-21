@@ -90,6 +90,8 @@ const ManageRecipes = () => {
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesInner);
           setRecipes(res?.data?.data);
+        } else {
+          setRecipes([]);
         }
       })
       .catch((err) => {
@@ -111,7 +113,6 @@ const ManageRecipes = () => {
       nextSortType: newSortType,
     };
     const convertToDateObj = (date) => {
-      // console.log(date);
       const parts = date.split(', ');
       const dateParts = parts[0].split('/');
       const timeParts = parts[1].split(':');
@@ -144,7 +145,6 @@ const ManageRecipes = () => {
         }
       });
     } else if (propName === 'createdOn') {
-      console.log(data);
       data = data.sort((a, b) => {
         const dateA = convertToDateObj(regionalDateAndTimeConversionSolution(a.createdOn)).getTime();
         const dateB = convertToDateObj(regionalDateAndTimeConversionSolution(b.createdOn)).getTime();
@@ -174,13 +174,13 @@ const ManageRecipes = () => {
   return (
     <div className={Styles.mainPanel}>
       <div className={Styles.wrapper}>
-        <Caption title="Manage Recipes" />
+        <Caption title="Manage Recipes" onBackClick={() => history.push('/')} />
         {!loading && recipes?.length > 0 &&
           <div className={Styles.actionBtns}>
             <button
               className={classNames('btn btn-primary', Styles.btnOutline)}
               type="button"
-              onClick={() => history.push('/codespaceRecipes')}
+              onClick={() => history.push('/codespaceRecipes/manageRecipe')}
             >
               <i className="icon mbc-icon plus" />
               <span>Add New Recipe</span>

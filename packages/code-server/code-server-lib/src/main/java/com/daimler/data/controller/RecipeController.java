@@ -101,7 +101,7 @@ public class RecipeController implements CodeServerRecipeApi {
 			} else {
 				responseMessage.setData(softwareMessage.getErrors());
 				responseMessage.setSuccess("FAILED");
-				log.info("The software creation process failed in the Git repository for the recipe."+recipeName);
+				log.info("The software creation process failed for create in the Git repository for the recipe."+recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 			}
 		} else {
@@ -110,6 +110,53 @@ public class RecipeController implements CodeServerRecipeApi {
 			log.info("workspace {} already exists for User {} with name: {} ", recipeName);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Update recipe details for a given recipe name.", nickname = "updateRecipeByName", notes = "Update recipe details for a recipe name.", response = InitializeRecipeVo.class, tags={ "code-server-recipe", })
+	@ApiResponses(value = { 
+		@ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeRecipeVo.class),
+		@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 405, message = "Method not allowed"),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/recipeDetails/{recipeName}",
+		produces = { "application/json" }, 
+		consumes = { "application/json" },
+		method = RequestMethod.PUT)
+	public ResponseEntity<InitializeRecipeVo> updateRecipeByName(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody RecipeVO recipeRequestVO){
+		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		recipeRequestVO.setCreatedBy(currentUserVO);
+		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
+		//RecipeVO vo = service.getByRecipeName(recipeName);
+		recipeRequestVO.setIsDeployEnabled(false);
+		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
+		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
+		if(name!=null) {
+			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
+			if(softwareMessage.getSuccess().equals("SUCCESS")) {
+				RecipeVO recipeVO = service.updateRecipe(recipeRequestVO);
+				if (Objects.nonNull(recipeVO)) {
+					responseMessage.setData(recipeVO);
+					responseMessage.setSuccess("SUCCESS");
+					log.info("The recipe has been updated successfully with the name: "+recipeName);
+					return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+				}
+				responseMessage.setData(null);
+				responseMessage.setSuccess("FAILED");
+				log.info("The update of a recipe failed for recipe name. "+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+			} else {
+				responseMessage.setData(softwareMessage.getErrors());
+				responseMessage.setSuccess("FAILED");
+				log.info("The software creation process failed for update in the Git repository for the recipe."+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+			}
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	@Override
@@ -490,5 +537,5 @@ public class RecipeController implements CodeServerRecipeApi {
 				// not found
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericMessage("Recipe not found."));
 			}
-		}	
+		}
 }
