@@ -787,7 +787,7 @@ public class KongClientImpl implements KongClient {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
 				LOGGER.info("Function plugin already attached to service: {}", serviceName);
 				message.setSuccess("Failure");
-				messageDescription.setMessage("Api Authoriser Plugin already attached to service");
+				messageDescription.setMessage("Function Plugin already attached to service");
 				errors.add(messageDescription);
 				message.setErrors(errors);
 				return message;
@@ -842,11 +842,6 @@ public class KongClientImpl implements KongClient {
 
 					}
 				}
-				LOGGER.error("plugin {} does not exist", pluginName);
-					messageDescription.setMessage("plugin does not exist");
-					errors.add(messageDescription);
-					message.setErrors(errors);
-					return message;
 			}
 			else{
 				LOGGER.error("plugin {} does not exist", pluginName);
@@ -858,12 +853,21 @@ public class KongClientImpl implements KongClient {
 		}
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
-			LOGGER.error("plugin {} does not exist", pluginName);
-			messageDescription.setMessage("plugin does not exist");
+			LOGGER.error("plugin {} does already exist", pluginName);
+			messageDescription.setMessage("plugin already exist");
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 			}
+			if (ex.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {	
+				LOGGER.error("plugin {} does not exist", pluginName);
+					messageDescription.setMessage("plugin does not exist");
+					message.setSuccess("NOT_FOUND");
+					errors.add(messageDescription);
+					message.setErrors(errors);
+					return message;
+			}
+
 			LOGGER.error("Exception: {} occured while updating plugin: {} details", ex.getMessage(), pluginName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
