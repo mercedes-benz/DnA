@@ -1165,12 +1165,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String chnagePluginStatusRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName+"?"+enablePlugin;
+			String changePluginStatusRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName+"/" + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName+"?enable="+enablePlugin;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(chnagePluginStatusRouteUri, HttpMethod.PATCH, entity, String.class);
+			ResponseEntity<String> response = restTemplate.exchange(changePluginStatusRouteUri, HttpMethod.PATCH, entity, String.class);
 			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode.is2xxSuccessful()) {
