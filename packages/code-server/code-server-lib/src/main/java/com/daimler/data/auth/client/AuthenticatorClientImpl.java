@@ -732,6 +732,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 												preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
 												preFunctionPluginVO.setConfig(preFunctionConfigVO);
+												preFunctionRequestVO.setData(preFunctionPluginVO);
 
 												attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 												LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
