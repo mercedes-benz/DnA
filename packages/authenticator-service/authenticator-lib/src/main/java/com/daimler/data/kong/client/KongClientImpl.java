@@ -851,6 +851,7 @@ public class KongClientImpl implements KongClient {
 			else{
 				LOGGER.error("plugin {} does not exist", pluginName);
 				messageDescription.setMessage("plugin does not exist");
+				message.setSuccess("NOT_FOUND");
 				errors.add(messageDescription);
 				message.setErrors(errors);
 				return message;
