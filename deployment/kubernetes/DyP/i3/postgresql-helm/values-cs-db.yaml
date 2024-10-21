@@ -16,7 +16,7 @@ image:
 fullnameOverride: "cs-db"
 ## PostgreSQL replica count
 ##
-replicaCount: <path:kv/data/dna/kubernetesSecret/csdb#replicaCount>
+replicaCount: <path:kv/data/dna/kubernetesSecret/csdb#replicaCount | jsonParse>
 
 printEnv: true
 
