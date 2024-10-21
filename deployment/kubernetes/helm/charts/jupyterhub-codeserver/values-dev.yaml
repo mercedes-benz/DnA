@@ -97,7 +97,7 @@ hub:
       subPath:
       storageClassName: dhc-gp3
     url: postgresql+psycopg2://cs-db:64000/jupyterhub
-    password: <path:kv/data/dna/kubernetesSecret/cs#dbadm.password>
+    password: <path:kv/data/dna/kubernetesSecret/csdb#dbadm.password>
   labels: {}
   annotations: {}
   command: []
