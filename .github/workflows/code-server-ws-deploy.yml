@@ -25,9 +25,7 @@ on:
         required: true  
         options: 
           - build
-          - build_push
           - deploy
-          - build_deploy
           - undeploy
           - restart
       target_env:
@@ -42,10 +40,10 @@ on:
         required: true
       appVersion:    
         description: 'App New Version'
-        default: false  
-      appCleanupVersion:    
-        description: 'App Cleanup Version'
-        default: false  
+        default: "v1"
+      wsid:    
+        description: 'Workspace ID'
+        required: true
       valutInjectorEnable:
         description: "valutInjectorEnable"  
         type: boolean
@@ -71,12 +69,12 @@ jobs:
         echo "target_env: ${{ github.event.inputs.target_env }}"
         echo "projectName: ${{ github.event.inputs.projectName }}"
         echo "appVersion: ${{ github.event.inputs.appVersion }}"
-        echo "appCleanupVersion: ${{ github.event.inputs.appCleanupVersion }}"
+        echo "wsid: ${{ github.event.inputs.wsid }}"
         echo "valutInjectorEnable: ${{ github.event.inputs.valutInjectorEnable }}"
   
   build_deploy:
     name: 'Build or Deploy workspace application'
-    if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' || github.event.inputs.action == 'deploy' }}
+    if: ${{ github.event.inputs.action == 'build' ||  github.event.inputs.action == 'deploy' }}
     environment: ${{ github.event.inputs.environment }}
     runs-on: [road-runner, large]
     steps:
@@ -91,14 +89,14 @@ jobs:
         github-server-url: "https://git.i.mercedes-benz.com/"             
 
     - name: Use .npmrc
-      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}      
+      if: ${{ github.event.inputs.action == 'build' }}      
       uses: bduff9/use-npmrc@v2.0.0
       with:
         dot-npmrc: ${{ secrets.DOT_NPMRC }}
         working-directory: ./workspace-repo
         
     - name: Build application
-      if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy'  }}      
+      if: ${{ github.event.inputs.action == 'build' }}      
       working-directory: ./workspace-repo/deploy
       run: | 
        docker build -t registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }} \
@@ -111,19 +109,14 @@ jobs:
         no_proxy: "artifacts.i.mercedes-benz.com"     
     
     - name: Publish application containers to registry
-      if: ${{ github.event.inputs.action == 'build_push' || github.event.inputs.action == 'build_deploy'  }}    
+      if: ${{ github.event.inputs.action == 'build' }}    
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
 
-    - name: Cleanup old version in registry
-      if: ${{ (github.event.inputs.action == 'build' || github.event.inputs.action == 'build_deploy' ) && github.event.inputs.action == ''  }}
-      run: |
-        # docker remove registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
-
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
-      if: ${{ github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build_deploy'  }}
+      if: ${{ github.event.inputs.action == 'deploy' }}
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
         namespace: 'codespaces-apps'
@@ -178,6 +171,7 @@ jobs:
       projectName: ${{ github.event.inputs.projectName }}
       target_env: ${{ github.event.inputs.target_env }}
       branch: ${{ github.event.inputs.branch }}
+      wsid: ${{ github.event.inputs.wsid }}
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
@@ -211,6 +205,7 @@ jobs:
       target_env: ${{ github.event.inputs.target_env }}
       projectName: ${{ github.event.inputs.projectName }}
       branch: ${{ github.event.inputs.branch }}
+      wsid: ${{ github.event.inputs.wsid }}
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}

@@ -19,7 +19,10 @@ on:
       target_env:
         type: string
       branch:
-        type: string        
+        type: string   
+      wsid:
+        required: true
+        type: string             
     secrets:
       PAT:
         required: true
@@ -48,11 +51,11 @@ jobs:
               echo "code=BUILD_FAILED" >> $GITHUB_OUTPUT
               ;;
 
-            deploy_success | build_deploy_success)
+            deploy_success)
               echo "code=DEPLOYED" >> $GITHUB_OUTPUT
               ;;
 
-            deploy_failure | deploy_skipped | build_deploy_failure | build_deploy_skipped)
+            deploy_failure | deploy_skipped)
               echo "code=DEPLOYMENT_FAILED" >> $GITHUB_OUTPUT
               ;;
 
@@ -86,7 +89,7 @@ jobs:
           url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.projectName }}'
           method: 'PUT'
           headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
-          data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}"}'
+          data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","wsid":"${{ inputs.wsid }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}"}'
           fail_fast: false
           verbose: true
         env:
