@@ -86,7 +86,7 @@ jobs:
         id: myRequest
         uses: CamiloGarciaLaRotta/watermelon-http-client@v1.7
         with:
-          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.projectName }}'
+          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.wsid }}'
           method: 'PUT'
           headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
           data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","wsid":"${{ inputs.wsid }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}"}'
