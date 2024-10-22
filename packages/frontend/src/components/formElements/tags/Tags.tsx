@@ -165,7 +165,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     });
 
     const missingEntryMessage = '*Missing entry';
-    const ignorePathError = `*path should not include '/' or white spaces`;
+    const ignorePathError = `*path should start with '/' and path should not end with '/' or include white spaces.`;
     const isMaxReached = this.props.max === this.state.chips.length;
 
     return (
@@ -370,7 +370,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         return;
       }
 
-      if(this.props.isIgnorePath && (value.includes('/')||value.includes(' '))){
+      if(this.props.isIgnorePath && (value.endsWith('/') || value.includes(' ') || !value.startsWith('/'))){
         this.setState({ignorePathError: true});
       }
 
@@ -419,7 +419,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           activeSuggestionIndex: -1,
         },
         () => {
-          if (this.props.isIgnorePath && !chips.some((item) => item.includes('/') || item.includes(' '))) {
+          if (this.props.isIgnorePath && !chips.some((item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))) {
             this.setState({ ignorePathError: false });
           }
         },
