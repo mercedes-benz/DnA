@@ -675,12 +675,13 @@ public class KongClientImpl implements KongClient {
 						}
 						
 					}
-				}
+				}else{
 				LOGGER.error("plugin {} does not exist", pluginName);
 					messageDescription.setMessage("plugin does not exist");
 					errors.add(messageDescription);
 					message.setErrors(errors);
 					return message;
+				}
 			}
 			else{
 				LOGGER.error("plugin {} does not exist", pluginName);
@@ -740,7 +741,7 @@ public class KongClientImpl implements KongClient {
 							}
 						}
 					}catch(Exception e){
-						LOGGER.debug("Exception occured during fetching plugin list");
+						LOGGER.info("Exception occured during fetching plugin list {}",e);
 					}
 				}
 			}
@@ -841,6 +842,13 @@ public class KongClientImpl implements KongClient {
 						}
 
 					}
+				}else{
+						LOGGER.info("plugin {} does not exist", pluginName);
+						messageDescription.setMessage("plugin does not exist");
+						message.setSuccess("NOT_FOUND");
+						errors.add(messageDescription);
+						message.setErrors(errors);
+						return message;
 				}
 			}
 			else{
