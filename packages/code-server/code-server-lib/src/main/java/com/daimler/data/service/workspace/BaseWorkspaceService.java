@@ -126,6 +126,9 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.workspace.url}")
 	 private String codespaceUrl;
 
+	 @Value("${codeServer.collab.pid}")
+	 private String collabPid;
+   
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
    
