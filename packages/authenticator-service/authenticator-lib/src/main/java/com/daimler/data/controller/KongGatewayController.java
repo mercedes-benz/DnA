@@ -510,18 +510,20 @@ public class KongGatewayController implements KongApi{
 			if(Objects.nonNull(serviceName) && Objects.nonNull(pluginName) && Objects.nonNull(enable)) {
 				response = kongClient.updatePluginStatus(serviceName, pluginName,enable);
 			}
+			else {
+				LOGGER.info("Kong plugin {} update status  failed", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
 				LOGGER.info("Kong plugin {} updated the status successfully", pluginName);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getErrors()) && response.getSuccess().equalsIgnoreCase("NOT_FOUND")) {
-				LOGGER.info("Kong plugin {} updated the status successfully", pluginName);
+				LOGGER.info("Kong plugin {} not exsits", pluginName);
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-			else {
-				LOGGER.info("Kong plugin {} update status  failed", pluginName);
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
+			LOGGER.info("Kong plugin {} update status  failed with error", pluginName);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 
 		}catch(Exception e) {
 			LOGGER.error("Failed to update status of Kong plugin {} with exception {} ", pluginName,e.getMessage());
