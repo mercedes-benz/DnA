@@ -59,7 +59,7 @@ const DeployModal = (props) => {
   const [changeSelected, setChangeSelected] = useState(false);
   const [disableIntIAM, setDisableIntIAM] = useState(true);
   const [disableProdIAM, setDisableProdIAM] = useState(true);
-  const ignorePaths = [{id:'1',name:'favicon.ico'},{id:'2',name:'manifest.json'},{id:'3',name:'apple-app-site-association'}];
+  const ignorePaths = [{id:'1',name:'/favicon.ico'},{id:'2',name:'/manifest.json'},{id:'3',name:'/obfuskator-api/int/api/docs'},{id:'4',name:'/docs'},{id:'5',name:'/obfuskator-api/int/api/openapi.json'},{id:'6',name:'/openapi.json'}];
   const [ignorePath, setIgnorePath] = useState([]);
   // const [ignorePathError, setIgnorePathError] = useState(false);
   const [redirectUri, setRedirectUri] = useState('');
@@ -229,7 +229,7 @@ const DeployModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    if (ignorePath.length !== 0 && ignorePath.some(item => item.includes('/') || item.includes(' '))) {
+    if (ignorePath.length !== 0 && ignorePath.some(item => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))) {
       formValid = false;
     }
     if (formValid) {
@@ -241,9 +241,9 @@ const DeployModal = (props) => {
         // valutInjectorEnable: vaultEnabled,
         clientID: clientId,
         clientSecret: clientSecret,
-        redirectUri: props.isUIRecipe ? redirectUri : '',
-        ignorePaths: props.isUIRecipe ? ignorePath.join(',') : '',
-        scope: (props.isUIRecipe && secureWithIAMSelected) ? scope.join(' ') : '',
+        redirectUri: redirectUri || '',
+        ignorePaths: ignorePath.join(',') || '',
+        scope: secureWithIAMSelected ? scope.join(' ') : '',
         isApiRecipe: props.enableSecureWithIAM
       };
       ProgressIndicator.show();
@@ -388,8 +388,8 @@ const DeployModal = (props) => {
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
-                        <div className={classNames(props.isUIRecipe ? Styles.wrapper : '')}>
-                          {props.isUIRecipe && (<span className="label"><p>Authorization Code Flow</p></span>)}
+                        <div className={classNames(Styles.wrapper)}>
+                          <span className="label"><p>Authorization Code Flow</p></span>
                           <div className={classNames(Styles.flexLayout)}>
                             <TextBox
                               type="text"
@@ -433,7 +433,7 @@ const DeployModal = (props) => {
                           </button>
                         </div>
                       )}
-                      {props.isUIRecipe && (<div>
+                      <div>
                         <div className={classNames(Styles.flexLayout)}>
                           <TextBox
                             type="text"
@@ -447,7 +447,7 @@ const DeployModal = (props) => {
                             }}
                           />
                           <Tags
-                            title={'Ignore Path'}
+                            title={'Ignore Paths'}
                             max={100}
                             chips={ignorePath}
                             placeholder={'Type root path here....'}
@@ -470,7 +470,7 @@ const DeployModal = (props) => {
                           suggestionPopupHeight={150}
                           showAllTagsOnFocus={true}
                         />
-                      </div>)}
+                      </div>
                     </div>
                   )}
                   {/* {secureWithIAMSelected && (
@@ -542,8 +542,8 @@ const DeployModal = (props) => {
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
-                        <div className={classNames(props.isUIRecipe ? Styles.wrapper : '')}>
-                          {props.isUIRecipe && (<span className="label"><p>Authorization Code Flow</p></span>)}
+                        <div className={classNames(Styles.wrapper)}>
+                          <span className="label"><p>Authorization Code Flow</p></span>
                           <div className={classNames(Styles.flexLayout)}>
                             <TextBox
                               type="text"
@@ -587,7 +587,7 @@ const DeployModal = (props) => {
                           </button>
                         </div>
                       )}
-                      {props.isUIRecipe && (<div>
+                      <div>
                         <div className={classNames(Styles.flexLayout)}>
                           <TextBox
                             type="text"
@@ -601,7 +601,7 @@ const DeployModal = (props) => {
                             }}
                           />
                           <Tags
-                            title={'Ignore Path'}
+                            title={'Ignore Paths'}
                             max={100}
                             chips={ignorePath}
                             placeholder={'Type root path here....'}
@@ -624,7 +624,7 @@ const DeployModal = (props) => {
                           suggestionPopupHeight={150}
                           showAllTagsOnFocus={true}
                         />
-                      </div>)}
+                      </div>
                     </div>
                   )}
                   {/* {secureWithIAMSelected && (
