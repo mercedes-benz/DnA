@@ -62,7 +62,9 @@ import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginConfigVORemove;
 import com.daimler.data.dto.kongGateway.AttachFunctionPluginVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -885,62 +887,64 @@ public class KongClientImpl implements KongClient {
 		return message;
 	}
 
-	// @Override
-	// public  GenericMessage attachRequestTransformerPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName){
-	// 	GenericMessage message = new GenericMessage();
-	// 	MessageDescription messageDescription = new MessageDescription();
-	// 	List<MessageDescription> errors = new ArrayList<>();
-	// 	List<MessageDescription> warnings = new ArrayList<>();
-	// 	try {			
-	// 		String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
-	// 		HttpHeaders headers = new HttpHeaders();
-	// 		headers.set("Accept", "application/json");
-	// 		headers.set("Content-Type", "application/json");
-	// 		AttachFunctionPluginWrapperDto requestWrapper = new AttachFunctionPluginWrapperDto();
-	// 		AttachFunctionPluginConfigVO functionPluginConfigVO = attachFunctionPluginVO.getConfig();
-	// 		AttachFunctionPluginConfigRequestDto functionPluginConfigRequestDto = new AttachFunctionPluginConfigRequestDto();
+	@Override
+	public  GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginVO attachRequestTransformerPluginVO, String serviceName){
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {			
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
 
-	// 		functionPluginConfigRequestDto.setAccess(functionPluginConfigVO.getAccess());
-	// 		requestWrapper.setName(attachFunctionPluginVO.getName());
-	// 		requestWrapper.setConfig(functionPluginConfigRequestDto);
+			AttachRequestTransformerPluginWrapperDto requestWrapper = new AttachRequestTransformerPluginWrapperDto();
+			AttachRequestTransformerPluginConfigRequestDto pluginConfigDto = new AttachRequestTransformerPluginConfigRequestDto();
+			RequestTransformerPluginRemoveConfigDto removeConfig = new RequestTransformerPluginRemoveConfigDto();
+			
+			removeConfig.setHeaders(attachRequestTransformerPluginVO.getConfig().getRemove().getHeaders());
+			pluginConfigDto.setRemove(removeConfig);
+			requestWrapper.setConfig(pluginConfigDto);
+			requestWrapper.setName(attachRequestTransformerPluginVO.getName());
 
-	// 		HttpEntity<AttachFunctionPluginWrapperDto> functionPluginRequest = new HttpEntity<AttachFunctionPluginWrapperDto>(requestWrapper, headers);
-	// 		ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, functionPluginRequest, String.class);
-	// 		if (response != null && response.hasBody()) {
-	// 			HttpStatus statusCode = response.getStatusCode();
-	// 			if (statusCode == HttpStatus.CREATED) {
-	// 				LOGGER.info("Function plugin attached successfully to service: {}", serviceName);					
-	// 				message.setSuccess("Success");
-	// 				message.setErrors(errors);
-	// 				message.setWarnings(warnings);
-	// 				return message;
-	// 			}
-	// 		}
-	// 	} catch (HttpClientErrorException ex) {
-	// 		if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
-	// 			LOGGER.info("Function plugin already attached to service: {}", serviceName);
-	// 			message.setSuccess("Failure");
-	// 			messageDescription.setMessage("Api Authoriser Plugin already attached to service");
-	// 			errors.add(messageDescription);
-	// 			message.setErrors(errors);
-	// 			return message;
-	// 		}	
-	// 		LOGGER.error("Error occured while attaching Function plugin to service: {}", ex.getMessage());
-	// 		message.setSuccess("Failure");
-	// 		messageDescription.setMessage(ex.getMessage());
-	// 		errors.add(messageDescription);
-	// 		message.setErrors(errors);
-	// 		return message;
-	// 	} catch (Exception e) {
-	// 		LOGGER.error("Error while attaching Function plugin to service: {}", e.getMessage());
-	// 		message.setSuccess("Failure");
-	// 		messageDescription.setMessage(e.getMessage());
-	// 		errors.add(messageDescription);
-	// 		message.setErrors(errors);
-	// 		return message;
-	// 	}
-	// 	return message;
-	// }
+			HttpEntity<AttachRequestTransformerPluginWrapperDto> pluginRequest = new HttpEntity<AttachRequestTransformerPluginWrapperDto>(requestWrapper, headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, pluginRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Function plugin attached successfully to service: {}", serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("Function plugin already attached to service: {}", serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("Api Authoriser Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching Function plugin to service: {}", ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching Function plugin to service: {}", e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
+	}
 //	@Override
 //	public CreateServiceResponseVO getServiceByName(String serviceName) {
 //		

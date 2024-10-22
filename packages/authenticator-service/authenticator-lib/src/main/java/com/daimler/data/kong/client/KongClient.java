@@ -37,6 +37,7 @@ import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.AttachFunctionPluginVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginVO;
 
 public interface KongClient {
 
@@ -69,5 +70,7 @@ public interface KongClient {
 	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
   
 	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName);
+
+	public  GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginVO attachRequestTransformerPluginVO, String serviceName);
 
 }

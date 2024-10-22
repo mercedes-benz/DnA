@@ -196,7 +196,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
-	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionplugin";
+	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
+	private static final String ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE = "/requestTransformerPlugin";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
