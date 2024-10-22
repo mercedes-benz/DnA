@@ -30,6 +30,8 @@ import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteRequestVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.CreateServiceRequestVO;
@@ -460,7 +462,7 @@ public class KongGatewayController implements KongApi{
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/kong/services/{serviceName}/functionplugin",
+    @RequestMapping(value = "/kong/services/{serviceName}/functionPlugin",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
@@ -527,6 +529,45 @@ public class KongGatewayController implements KongApi{
 
 		}catch(Exception e) {
 			LOGGER.error("Failed to update status of Kong plugin {} with exception {} ", pluginName,e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Attach requesttransformerplugin to service.", nickname = "attachRequestTransformnerPlugin", notes = "Attach requesttransformerplugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/requestTransformerPlugin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> attachRequestTransformerPlugin(@Valid  AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		AttachRequestTransformerPluginVO attachRequestTransformerPluginVO = attachRequestTransformerPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachRequestTransformerPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachRequestTransformerPluginToService(attachRequestTransformerPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachRequestTransformerPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching request transformer plugin {} to the service {} failed with error {}", attachRequestTransformerPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach request transformer plugin {} with exception {} ", attachRequestTransformerPluginVO.getName(),e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
