@@ -27,6 +27,7 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.util.CommonUtils;
 
 @Component
 public class AuthenticatorClientImpl  implements AuthenticatorClient{
@@ -706,19 +707,13 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
 									AttachFunctionPluginConfigVO postFunctionConfigVO = new AttachFunctionPluginConfigVO();
 
-									String[] codespaceSplitValues = functionPluginGitUrl.split("/");
-									int length = codespaceSplitValues.length;
-									String repoName = codespaceSplitValues[length - 1];
-									String repoOwner = codespaceSplitValues[length - 2];
-									String gitUrl = functionPluginGitUrl.replace("/" + repoOwner, "");
-            						gitUrl = gitUrl.replace("/" + repoName, "");
-
+									List<String>gitDetails = CommonUtils.getDetailsFromUrl(functionPluginGitUrl);
 
 									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
 									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
-											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner,gitUrl, functionPluginsFolderPath,preFunctionFrontendFileName);
+											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionFrontendFileName);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 												
@@ -745,7 +740,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
 											
-											JSONObject jsonResponse = gitClient.getFileContent(repoName, repoOwner, gitUrl, functionPluginsFolderPath, postFunctionFrontendFileName);
+											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 
@@ -1180,13 +1175,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					LOGGER.info("Kong plugin:{} for the service {} Status changed to {} successfully", pluginName, serviceName,enablePlugin);
 					return message;
 				}
-				if (response.getStatusCode().is5xxServerError()) {			
-					LOGGER.error("INTERNAL SERVER ERROR");
-					messageDescription.setMessage("INTERNAL SERVER ERROR");
-					errors.add(messageDescription);
-					message.setErrors(errors);
-					return message;
-					}
+
 			}
 		}
 		catch (HttpClientErrorException ex) {
@@ -1205,7 +1194,13 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				message.setErrors(errors);
 				return message;
 			}
-			
+			if (ex.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {			
+				LOGGER.error("INTERNAL SERVER ERROR");
+				messageDescription.setMessage("INTERNAL SERVER ERROR");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+				}
 			LOGGER.error("Exception occured: {} while changing status of  plugin: {} details", ex.getMessage(),pluginName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
@@ -1213,7 +1208,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error occured: {} while changing status of  plugin: {} details", e.getMessage(),pluginName);			
+			LOGGER.error("Error occured: {} while changing status of  plugin: {} details", e.getMessage(),pluginName);		
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
