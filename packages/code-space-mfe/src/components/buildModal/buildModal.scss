@@ -5,10 +5,11 @@
     margin: 10px;
   
     > div {
-      width: calc(33% - 7px);  
+      width: calc(37.5% - 7px); 
     }
   
     > div:last-child {
+      width: calc(25% - 7px);
       align-self: center;
     }
   }
