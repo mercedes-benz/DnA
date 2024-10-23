@@ -177,7 +177,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   maxLength={100}
                   {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment names must contain characters only, - is allowed. Only spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col2}>
