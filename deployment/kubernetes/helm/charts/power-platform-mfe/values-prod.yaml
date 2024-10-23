@@ -5,11 +5,11 @@ configJs: |
     POWER_PLATFORM_MFE_APP_URL="",
     POWER_PLATFORM_API_BASEURL=""
   };
-replicaCount: 1
+replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe
   pullPolicy: IfNotPresent
-  tag: 4f18f0544568064e99b59c7af8e2e7e8e03226d0
+  tag: 1.0.0
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
