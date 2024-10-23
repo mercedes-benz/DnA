@@ -178,6 +178,7 @@ kong:
    preFunctionFrontendFileName: ${PRE_FUNCTION_FRONTENDFILE_NAMEVALUE:XXXX}
    functionPluginGitUrl: ${FUNCTION_PLUGINS_GIT_URL:XXXX}
    functionPluginsFolderPath : ${FUNCTION_PLUGIN_FOLDER_PATH:XXXX}
+   requestTransformerPluginRemoveHeaders : ${REQUEST_TRANSFORMER_PLUGIN_REMOVE_HEADERS:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
