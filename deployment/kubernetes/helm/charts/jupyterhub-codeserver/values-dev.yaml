@@ -87,7 +87,7 @@ hub:
     type: Recreate
   db:
     type: postgres
-    upgrade:
+    upgrade: true
     pvc:
       annotations: {}
       selector: {}
