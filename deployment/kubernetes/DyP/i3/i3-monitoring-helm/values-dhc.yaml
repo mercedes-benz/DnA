@@ -894,7 +894,7 @@ grafana:
       - name: Alertmanager
         type: alertmanager
         access: proxy
-        url: "http://{{ .Release.Name }}-alertmanager"
+        url: "http://{{ .Release.Name }}-alertmanager:9093"
         jsonData:
           # Valid options for implementation include mimir, cortex and prometheus
           implementation: prometheus
@@ -917,11 +917,11 @@ grafana:
         editable: true
         jsonData:
           database: db
-          sslmode: 'disable' # disable/require/verify-ca/verify-full
+          sslmode: 'require' # disable/require/verify-ca/verify-full
           maxOpenConns: 10 # Grafana v5.4+
           maxIdleConns: 2 # Grafana v5.4+
           connMaxLifetime: 14400 # Grafana v5.4+
-          postgresVersion: 15
+          Version: 15   #DB version
           timescaledb: false
 
   # Extra mount for plugins
