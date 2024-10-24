@@ -405,13 +405,13 @@ public class GitClient {
 		
 	}
 
-	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName) throws Exception {
+	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName, String branch) throws Exception {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer "+ personalAccessToken );
-			String url = gitUrl+"/api/v3/repos/"+repoOwner+"/"+repoName+"/contents/"+folderPath+"/"+fileName;
+			String url = gitUrl+"/api/v3/repos/"+repoOwner+"/"+repoName+"/contents/"+folderPath+"/"+fileName+"?ref="+branch;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if(response != null && response.getStatusCode()!=null && response.getStatusCode() == (HttpStatus.OK)) {

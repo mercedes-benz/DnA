@@ -28,4 +28,6 @@ public interface AuthenticatorClient {
 
 	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
 
+	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName);
+
 }

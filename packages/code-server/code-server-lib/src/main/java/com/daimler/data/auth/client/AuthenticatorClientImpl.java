@@ -1,9 +1,13 @@
 package com.daimler.data.auth.client;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 
 import org.json.JSONObject;
@@ -175,6 +179,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.preFunctionBackendFileName}")
 	private String preFunctionBackendFileName;
 
+	@Value("${kong.requestTransformerPluginRemoveHeaders}")
+	private String removeHeaders;
+
+	@Value("${codeServer.env.ref}")
+	private String codeServerEnvRef;
+
+	@Value("${kong.accessTokenAsBearer}")
+	private String accessTokenAsBearer;
+
+	@Value("${kong.accessTokenHeaderName}")
+	private String accessTokenHeaderName;
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -193,6 +209,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String API_AUTHORISER_PLUGIN = "apiauthoriser";
 	private static final String PRE_FUNCTION_PLUGIN ="pre-function";
 	private static final String POST_FUNCTION_PLUGIN ="post-function";
+	private static final String REQUEST_TRANSFORMER_PLUGIN ="request-transformer";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
@@ -376,20 +393,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-			if(apiRecipe) {
-				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
-			}
-			else {
+			// if(apiRecipe) {
+			// 	currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
+			// 	if(env.equalsIgnoreCase("int"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
+			// 	if(env.equalsIgnoreCase("prod"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
+			// }
+			// else {
 				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
 				if(env.equalsIgnoreCase("int"))
 					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
 				if(env.equalsIgnoreCase("prod"))
 					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
-			}
+			// }
 //			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 //				paths.add("/" + serviceName + "/" + "int" + "/api");
 //			}
@@ -413,7 +430,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createRouteVO.setStripPath(true);
 		createRouteRequestVO.setData(createRouteVO);
 
-		//request for attaching plugin to service
+		//request for attaching oic plugin to service for workspaces
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachPluginConfigVO = new AttachPluginConfigVO();
@@ -474,7 +491,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
 		attachCorsPluginVO.setName(CORS_PLUGIN);
 		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
+
+		//request for attaching RequestTransformer Plugin to service
+
+		AttachRequestTransformerPluginRequestVO  attachRequestTransformerPluginRequestVO = new AttachRequestTransformerPluginRequestVO();
+		AttachRequestTransformerPluginConfigVO attachRequestTransformerPluginConfigVO = new AttachRequestTransformerPluginConfigVO();
+		AttachRequestTransformerPluginVO attachRequestTransformerPluginVO = new AttachRequestTransformerPluginVO();
+		RequestTransformerPluginRemoveConfigVO requestTransformerPluginRemoveConfigVO = new RequestTransformerPluginRemoveConfigVO ();
 		
+		List<String> removeHeadersList = Arrays.asList(removeHeaders.split("\\s*,\\s*"));
+
+		requestTransformerPluginRemoveConfigVO.setHeaders(removeHeadersList);
+		attachRequestTransformerPluginConfigVO.setRemove(requestTransformerPluginRemoveConfigVO);
+		attachRequestTransformerPluginVO.setConfig(attachRequestTransformerPluginConfigVO);
+		attachRequestTransformerPluginVO.setName(REQUEST_TRANSFORMER_PLUGIN);
+		attachRequestTransformerPluginRequestVO.setData(attachRequestTransformerPluginVO);
+
+		//========================================================
 		GenericMessage createServiceResponse = new GenericMessage();
 		GenericMessage createRouteResponse = new GenericMessage();
 		GenericMessage attachPluginResponse = new GenericMessage();
@@ -483,6 +516,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachAppAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage changePluginStatusResponse = new GenericMessage();
+		GenericMessage attachRequestTransformerPluginResponse = new GenericMessage();
+
 		try {	
 			boolean isServiceAlreadyCreated = false;
 			boolean isRouteAlreadyCreated = false;
@@ -545,7 +580,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										
+
+										//attaching request transformer plugin 
+										attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+										attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
+
 										//request for attaching ODIC plugin to authorize service with new client id and secret
 										AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
 										AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
@@ -576,20 +616,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
 										attachOIDCPluginConfigVO.setLogout_path(logoutPath);
 										attachOIDCPluginConfigVO.setRealm(realm);
-										attachOIDCPluginConfigVO.setRedirect_uri(authRedirectUri);
+										attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser.isBlank()?authRedirectUri:redirectUriFromUser);
 										attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
 										attachOIDCPluginConfigVO.setResponse_type(responseType);
-										attachOIDCPluginConfigVO.setScope(authoriserScope);
 										attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
 										attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
 										attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
-										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
-										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+										attachOIDCPluginConfigVO.setFilters(ignorePaths);
+										attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
+										attachOIDCPluginConfigVO.setScope(scope);
+										attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
+										attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
 
-										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
-
-										//request for attaching APIAUTHORISER plugin to service
+										//request for attaching APIAUTHORISER plugin to service only published the security config
 										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
 											
 											AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
@@ -621,7 +660,56 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
 											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
+
+											//adding scopes that user given and appending scopes required for Authorization, if enabled otherwise adding the scopes which user giving
+											String combinedScopes = getDistinctWords(scope,authoriserScope);
+											attachOIDCPluginConfigVO.setScope(combinedScopes);
 										}
+										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
+
+										//attaching pre function plugin for api recipes 
+										AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
+										AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
+										AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
+
+										List<String>gitDetails = CommonUtils.getDetailsFromUrl(functionPluginGitUrl);
+
+										changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
+										LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+										if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
+											try{
+												JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionBackendFileName,codeServerEnvRef);
+												if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+													LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+													
+													String content = jsonResponse.getString("content");
+													String preFunctionContent = base64DecodeAandMinifyString(content);
+
+													List<String> preFunctionValue =  new ArrayList<>();
+													preFunctionValue.add(preFunctionContent);
+													
+													if("prod".equalsIgnoreCase(env)){
+														preFunctionValue.clear();
+														String prodPreFunctionContent = preFunctionContent.replace("-int","");
+														preFunctionValue.add(prodPreFunctionContent);
+													}
+
+													preFunctionConfigVO.setAccess(preFunctionValue);
+													preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+													preFunctionPluginVO.setConfig(preFunctionConfigVO);
+													preFunctionRequestVO.setData(preFunctionPluginVO);
+
+													attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+													LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+												}
+											}catch(Exception e) {
+												LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
+											}
+										}
+
 									}
 								}
 							
@@ -637,8 +725,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing jwt issuer plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
-							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							LOGGER.info("kong deleting JWT issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//deleteing request transformer plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
+							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//change function plugin status to disable if any
+							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 						}
 					}else{
 
@@ -651,6 +746,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 									LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+									//attaching request transformer plugin 
+									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
 									//request for attaching ODIC plugin to authorize service with new client id and secret
 									AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
@@ -689,10 +789,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
 									attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
 									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
-									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
-									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 									attachOIDCPluginConfigVO.setFilters(ignorePaths);
 									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
+									attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
+									attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
+									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
 									attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
@@ -714,7 +816,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
-											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionFrontendFileName);
+											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionFrontendFileName,codeServerEnvRef);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 												
@@ -741,7 +843,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
 											
-											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName);
+											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 
@@ -772,6 +874,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+							//deleteing request transformer plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
+							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
 							//change function plugin status to disable if any
 							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
 							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
@@ -858,7 +966,25 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	
+	public String base64DecodeAandMinifyString(String encodedString){
+
+		encodedString = encodedString.replaceAll("\\s+", "");
+		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+        String decodedContent = new String(decodedBytes, StandardCharsets.UTF_8);
+		return decodedContent;
+	}
+
+	public  String getDistinctWords(String str1, String str2) {
+        // Split the strings into arrays of words
+        Set<String> set1 = new HashSet<>(Arrays.asList(str1.split("\\s+")));
+        Set<String> set2 = new HashSet<>(Arrays.asList(str2.split("\\s+")));
+
+		 // Combine both sets using union (set1 will now contain unique words from both sets)
+		 set1.addAll(set2);
+
+		 // Join distinct words back into a single string with space separation
+		 return set1.stream().collect(Collectors.joining(" "));
+    }
 
 
 	@Override
@@ -959,14 +1085,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		return message;
 	
-	}
-
-	public String base64DecodeAandMinifyString(String encodedString){
-
-		encodedString = encodedString.replaceAll("\\s+", "");
-		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
-        String decodedContent = new String(decodedBytes, StandardCharsets.UTF_8);
-		return decodedContent;
 	}
 
 	@Override
@@ -1217,6 +1335,47 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		return message;
 	
+	}
+
+	@Override
+	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName){
+
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE;
+
+			HttpEntity<AttachRequestTransformerPluginRequestVO> entity = new HttpEntity<AttachRequestTransformerPluginRequestVO>(attachRequestTransformerPluginRequestVO,headers);			
+			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachPluginResponse != null && attachPluginResponse.getStatusCode()!=null) {
+				if(attachPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachRequestTransformerPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachRequestTransformerPluginRequestVO.getData().getName(), serviceName,  attachPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachPluginResponse.getBody() + " Response Code is : " + attachPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to Add Function Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachRequestTransformerPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 	
 	
