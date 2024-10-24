@@ -913,7 +913,7 @@ grafana:
         secureJsonData:
           password: ""
           sslmode: 'require' # disable/require/verify-ca/verify-full
-          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
+#          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
         isDefault: false
         basic_auth: false
         orgId: 2
