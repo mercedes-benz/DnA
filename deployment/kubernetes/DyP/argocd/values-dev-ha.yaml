@@ -967,7 +967,7 @@ controller:
   ## Application controller metrics configuration
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     # -- Prometheus ServiceMonitor scrapeTimeout. If empty, Prometheus uses the global scrape timeout unless it is less than the target's scrape interval value in which the latter is used.
     scrapeTimeout: ""
     applicationLabels:
@@ -1072,7 +1072,7 @@ dex:
 
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     service:
       # -- Metrics service annotations
       annotations: {}
@@ -1618,7 +1618,7 @@ redis:
 
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
 
     # Redis metrics service configuration
     service:
@@ -2254,7 +2254,7 @@ server:
   ## Server metrics service configuration
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     service:
       # -- Metrics service type
       type: ClusterIP
@@ -2929,7 +2929,7 @@ repoServer:
   ## Repo server metrics service configuration
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     service:
       # -- Metrics service type
       type: ClusterIP
@@ -3086,7 +3086,7 @@ applicationSet:
   ## Metrics service configuration
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     service:
       # -- Metrics service type
       type: ClusterIP
@@ -3486,7 +3486,7 @@ notifications:
 
   metrics:
     # -- Enables prometheus metrics server
-    enabled: false
+    enabled: true
     # -- Metrics port
     port: 9001
     service:
