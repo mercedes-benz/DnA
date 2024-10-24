@@ -128,7 +128,6 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
-   
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
  
@@ -1345,7 +1344,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1441,28 +1440,29 @@ import com.daimler.data.util.ConstantsUtility;
 					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails);
 					 //calling kong to create service, route and plugins
-					 boolean apiRecipe = false;
+					//  boolean apiRecipe = false;
 					 String serviceName = projectName;
-					 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					 String reactRecipeId = RecipeIdEnum.REACT.toString();
-					 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					 String dashRecipeId = RecipeIdEnum.DASH.toString();
-					 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+					//  String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					//  String reactRecipeId = RecipeIdEnum.REACT.toString();
+					//  String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					//  String dashRecipeId = RecipeIdEnum.DASH.toString();
+					//  String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					//  String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					//  String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
-					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 } else {
-						 apiRecipe = true;
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 }
-					 status = "SUCCESS";
+					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  } else {
+					// 	 apiRecipe = true;
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  }
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope);
+					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 errors.addAll(jobResponse.getErrors());
@@ -2064,22 +2064,23 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
-				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
-				 }
-				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
-				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
-				 || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
-				 expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				 }
-				 if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
-				 }
-				 if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-					  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
-				 }
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+				//   deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
+				//  if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
+				//  }
+				//  if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
+				//  || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+				//  || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
+				//  expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+				//  }
+				//  if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
+				//  }
+				//  if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+				// 	  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
+				//  }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if ("int".equalsIgnoreCase(targetEnv)) {

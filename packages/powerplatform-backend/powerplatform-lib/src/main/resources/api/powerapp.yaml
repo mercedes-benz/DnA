@@ -1,0 +1,476 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : powerapp.yaml
+#  **
+#  ** Module     : Tools/Power Platform
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  boonbaluri
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Power Platform management service"
+host: "localhost:9292"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "powerapps"
+    description: "This service is used for power platform maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create a new solution and fetch all valid solution or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../powerapps
+  /powerapps:
+    get:
+      tags:
+        - "powerapps"
+      summary: "Get all power platform subscriptions for the user."
+      description: "Get all platform subscriptions. This endpoints will be used to get all valid available platform subscription records."
+      operationId: "getAll"
+      parameters:  
+        - name: Authorization
+          in: header
+          description: Authorization
+          required: false
+          type: string
+        - name: apikey
+          in: header
+          description: apikey
+          required: false
+          type: string
+        - name: appid
+          in: header
+          description: appid
+          required: false
+          type: string
+        - name: name
+          in: query
+          description: query filter to search similar power apps with the given searchTerm name
+          required: false
+          type: string
+        - name: state
+          in: query
+          description: filter power apps based on the state - allowed values requested, approved, rejected
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: page number from which listing of workspaces should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of workspaces, Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort workspaces by a given variable like name, requestedOn, state
+          required: false
+          type: string
+          default: requestedOn
+        - name: sortOrder
+          in: query
+          description: Sort solutions based on the given order, example asc,desc
+          required: false
+          type: string
+          default: desc
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/PowerAppCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    post:
+      tags:
+        - "powerapps"
+      summary: "Creates a new power app subscription request."
+      description: "Creates a new power app subscription request"
+      operationId: "create"
+      parameters:
+        - name: Authorization
+          in: header
+          description: Authorization
+          required: false
+          type: string
+        - name: "powerAppCreateVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new workspace"
+          required: true
+          schema:
+            $ref: "#/definitions/PowerAppCreateRequestWrapperVO"    
+      responses:
+        201:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/PowerAppResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # Fetch FabricWorkspace by intent
+  #
+  #  Supported http methods GET
+  #
+  # path example ../powerapps
+  /powerapps/{id}:
+   get:
+      tags:
+        - "powerapps"
+      summary: "Get power app subscription details for a given Id."
+      description: " This endpoints will get power app subscription details for a given identifier."
+      operationId: "getById"
+      parameters:
+        - name: Authorization
+          in: header
+          description: Authorization
+          required: false
+          type: string
+        - name: apikey
+          in: header
+          description: apikey
+          required: false
+          type: string
+        - name: appid
+          in: header
+          description: appid
+          required: false
+          type: string
+        - name: "id"
+          in: "path"
+          description: "Power platform subscription ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/PowerAppVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # Fetch FabricWorkspace by intent
+  #
+  #  Supported http methods PUT
+  #
+  # path example ../powerapps/{id}/state
+  /powerapps/{id}/state:
+   put:
+      tags:
+        - "powerapps"
+      summary: "Update existing power app subscription details ."
+      description: "Updates an existing power app subscription."
+      operationId: "update"
+      parameters:
+        - name: apikey
+          in: header
+          description: apikey
+          required: true
+          type: string
+        - name: appid
+          in: header
+          description: appid
+          required: true
+          type: string
+        - name: "id"
+          in: "path"
+          description: "Power app subscription ID to be updated"
+          required: true
+          type: "string"
+        - name: "powerappUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating an existing workspace"
+          required: true
+          schema:
+            $ref: "#/definitions/PowerAppUpdateRequestVO"
+      responses:
+        200:
+          description: "Updated successfully"
+          schema:
+            $ref: "#/definitions/PowerAppResponseVO"
+        404:
+          description: "No workspace found to update"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+definitions:
+          
+  PowerAppVO:
+    type: object
+    properties:
+      id: 
+        type: string
+        description: "ID for the power platform subscription"
+      name:
+        type: string
+        description: "Name of the Power platform app"
+        maxLength: 100
+      subscriptionType:
+        type: string
+      envOwnerName:
+        type: string
+      envOwnerId:
+        type: string
+      dyEnvOwnerName:
+        type: string
+      dyEnvOwnerId:
+        type: string
+      department:
+        type: string
+      environment:
+        type: string
+        #enum: ["shared-dev","shared-int","dedicated-prodConfidential"]
+      prodEnvAvailability:
+        type: string
+        #enum: ["Immediate","Later"]
+      billingContact:
+        type: string
+      billingPlant:
+        type: string
+      billingCostCentre:
+        type: string
+      customRequirements:
+        type: string
+      developers:
+        type: array
+        items:
+         $ref: "#/definitions/DeveloperVO"
+      requestedBy:
+        $ref: "#/definitions/CreatedByVO"
+      requestedOn:
+        type: string
+        format: date
+      updatedOn:
+        type: string
+        format: date
+      state:
+        type: string
+        #enum: ["Requested","Approved","Rejected"]
+      comments:
+        type: string
+      url:
+        type: string
+  
+  PowerAppUpdateRequestVO:
+    type: object
+    properties:
+      comments:
+        type: string
+        description: "Reason or comments from approver on state of the subscription request"
+      state:
+        type: string
+        description: "Allowed values : Approved, Rejected"
+        example: "Approved"
+      url:
+        type: string
+        maxLength: 4000
+      
+  PowerAppCollectionVO:
+    description: "Collection of power apps."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/PowerAppVO"
+
+  PowerAppCreateRequestVO:
+    description: "Object to hold request to create new power platform subscription request"
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the Power platform app that you are requesting. Validations include lenght restriction to 100, whitespaces at beginning and end, only - allowed in special characters"
+      subscriptionType:
+        type: string
+      envOwnerName:
+        type: string
+      envOwnerId:
+        type: string
+      dyEnvOwnerName:
+        type: string
+      dyEnvOwnerId:
+        type: string
+      department:
+        type: string
+      environment:
+        type: string
+        description: "Allowed values are SHARED-DEVELOPMENT,SHARED-INTEGRATION,DEDICATED-PRODUCTION"
+        example: SHARED-DEVELOPMENT
+      prodEnvAvailability:
+        type: string
+        description: "Allowed values are IMMEDIATE,LATER"
+        example: LATER
+      billingContact:
+        type: string
+      billingPlant:
+        type: string
+      billingCostCentre:
+        type: string
+      customRequirements:
+        type: string
+      developers:
+        type: array
+        items:
+         $ref: "#/definitions/DeveloperVO"
+          
+  PowerAppCreateRequestWrapperVO:
+    description: "Object to hold request to create new power platform subscription request"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/PowerAppCreateRequestVO"
+  
+  PowerAppResponseVO:
+    description: "Response object for power app operations"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/PowerAppVO"
+      response:
+        $ref: "#/definitions/GenericMessage"
+      
+  DeveloperVO:
+    description: "Developer details"
+    type: object
+    properties:
+      userDetails:
+        $ref: "#/definitions/CreatedByVO"
+      license:
+        type: string
+        
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+  
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "message of error or warning"
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+    

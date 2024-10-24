@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: notification-service
-    version: 3.1.11
+    version: 3.1.12
   profile: 
     active: production
   cache:
@@ -104,6 +104,7 @@ dna:
   user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
   user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
   notification.senderEmail: ${DNA_NOTIFICATION_SENDER_EMAIL:system@dna-naas}
+  notification.enableEmail: ${DNA_NOTIFICATION_ENABLE_EMAIL:false}
   
 #NAAS Authentication ends
 management.endpoints.web.exposure.include: loggers,health

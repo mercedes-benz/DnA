@@ -168,7 +168,9 @@ definitions:
     dataEntryNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO" 
     useCaseOwnerNotificationPref:
-      $ref: "#/definitions/NotificationPreferenceVO"                
+      $ref: "#/definitions/NotificationPreferenceVO" 
+    powerPlatformNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"      
   required:
      - userId
      - termsOfUse
@@ -181,6 +183,7 @@ definitions:
      - chronosNotificationPref
      - codespaceNotificationPref
      - useCaseOwnerNotificationPref
+     - powerPlatformNotificationPref
      
  NotificationPreferenceVO:
   type: object

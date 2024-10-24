@@ -1,0 +1,111 @@
+.mainPanel {
+  padding: 72px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+  }
+}
+.content {
+  background: #252a33;
+  margin: 15px 0;
+  padding: 25px 0;
+  position: relative;
+
+  h3,
+  .swagger,
+  span.description {
+    padding: 0 38px;
+  }
+
+  .contextMenu {
+    float: right;
+    margin: 5px 20px 0 0;
+    &.open .contextMenuTrigger {
+      z-index: 10;
+      position: relative;
+    }
+
+    .contextMenuTrigger {
+      padding: 12px 10px;
+      cursor: pointer;
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+}
+
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .apiId {
+    min-width: 380px;
+    display: inline-block;
+    margin-bottom: 15px;
+  }
+
+  .refreshedAppId {
+    min-width: 342px;
+    display: inline-block;
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+  }
+}
+.hide {
+  display: none;
+}
+.projectWrapper {
+  padding: 10px 0;
+}
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+      width: calc(50% - 30px);
+  }
+}
+.deleteForecastResult {
+  margin: 35px 0;
+  text-align: center;
+}
+.closeIcon {
+  border: 2px solid #d8d8d8;
+  width: 54px;
+  height: 54px;
+  line-height: 50px;
+  border-radius: 100%;
+  margin: 0 auto 24px;
+
+  i {
+    color: #e94d47;
+    font-size: 18px;
+    margin: 0;
+  }
+} 
+.deleteBtn {
+  margin-top: 40px;
+
+  button {
+    background-color: #383f49 !important;
+  }
+}
