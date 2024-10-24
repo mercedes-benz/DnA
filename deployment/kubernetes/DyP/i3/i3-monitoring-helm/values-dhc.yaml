@@ -908,7 +908,7 @@ grafana:
         type: postgres
         access: proxy
         #Authentication
-        url: "<path:bat/data/bat-dev/bat-postgres#hostname>:64000"
+        url: "<path:bat/data/bat-dev/bat-postgres#hostname>:443"
         user: grafana
         password: ""
         isDefault: false
