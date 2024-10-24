@@ -903,7 +903,7 @@ grafana:
         isDefault: false
         basic_auth: false
         orgId: 2
-        editable: true
+        editable: false
       - name: Postgres
         type: postgres
         access: proxy
