@@ -22,11 +22,6 @@ const base = {
       'Access-Control-Allow-Origin': '*',
     },   
   },
-  resolve: {
-    alias: {
-      process: "process/browser"
-    }
-  },
   module: {
     rules: [
       {
