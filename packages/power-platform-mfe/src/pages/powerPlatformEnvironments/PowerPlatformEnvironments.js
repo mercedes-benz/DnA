@@ -309,7 +309,7 @@ const PowerPlatformEnvironments = ({user}) => {
       />
       { showTou &&
         <Modal
-          title={'Terms of Use'}
+          title={'Terms of Use '}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
