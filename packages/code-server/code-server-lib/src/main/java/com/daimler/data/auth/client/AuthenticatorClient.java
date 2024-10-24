@@ -16,12 +16,18 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName);
 	
-	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret);
+	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope);
 	
 	public GenericMessage deleteService(String serviceName);
 	
 	public GenericMessage deleteRoute(String serviceName, String routeName);
 
 	public GenericMessage deletePlugin(String serviceName, String pluginName);
+
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName);
+
+	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
+
+	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName);
 
 }

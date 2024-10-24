@@ -1,0 +1,36 @@
+{{- if .Values.enabled }}
+{{- $resourceName := .Values.resourceName -}}
+{{- $namespace := .Release.Namespace -}}
+{{- $heritage := .Release.Service -}}
+{{- $release := .Release.Name -}}
+{{- $chart := printf "%s-%s" .Chart.Name .Chart.Version | trunc 63 | trimSuffix "-" | trimSuffix "." -}}
+{{- $files := .Files }}
+{{- $labels := .Values.labels -}}
+{{- $annotations := .Values.annotations -}}
+{{- range .Values.alerts }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $resourceName }}-alert-{{ .file | lower}}
+  namespace: {{ $namespace }}
+  labels:
+    name: {{ $resourceName }}
+    heritage: {{ $heritage }}
+    release: {{ $release }}
+    chart: {{ $chart }}
+{{- with $labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- with $annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+data:
+{{- $file := .file }}
+{{- $extension := .extension}}
+
+{{ (print $file "." $extension) | indent 2 }}: | 
+{{ ($files.Get .src) | indent 4 }}
+{{- end}}
+{{- end}}

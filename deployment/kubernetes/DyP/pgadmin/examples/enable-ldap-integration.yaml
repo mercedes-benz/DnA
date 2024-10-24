@@ -1,0 +1,55 @@
+#
+# values.yaml
+#
+---
+extraSecretMounts:
+  - name: pgadmin-secret-config
+    mountPath: /pgadmin4/config_local.py
+    subPath: config_local.py
+    readOnly: true
+    secret: pgadmin-conf
+env:
+  variables:
+  - name: PGADMIN_CONFIG_AUTHENTICATION_SOURCES
+    value: "['ldap', 'internal']"
+  - name: PGADMIN_CONFIG_LDAP_SERVER_URI
+    value: "'ldap://example:389'"
+  - name: PGADMIN_CONFIG_LDAP_AUTO_CREATE_USER
+    value: 'True'
+  - name: PGADMIN_CONFIG_LDAP_BIND_USER
+    value: "'cn=example,ou=Service Accounts,dc=example,dc=com'"
+  - name: PGADMIN_CONFIG_LDAP_SEARCH_BASE_DN
+    value: "'dc=example,dc=com'"
+  - name: PGADMIN_CONFIG_LDAP_BASE_DN
+    value: "'dc=example,dc=com'"
+  - name: PGADMIN_CONFIG_LDAP_SEARCH_FILTER
+    value: "'(objectclass=user)'"
+  - name: PGADMIN_CONFIG_LDAP_USERNAME_ATTRIBUTE
+    value: "'sAMAccountName'"
+  - name: PGADMIN_LISTEN_ADDRESS
+    value: "0.0.0.0"
+  - name: PGADMIN_LISTEN_PORT
+    value: "80"
+ingress:
+  enabled: true
+  hosts:
+    - host: pgadmin.example.test
+      paths: 
+        - path: "/"
+          pathType: ImplementationSpecific
+persistentVolume:
+  enabled: true
+  size: "10Gi"
+
+#
+# secrets.yaml
+#
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgadmin-conf
+type: Opaque
+stringData:
+  config_local.py: |
+    LDAP_BIND_PASSWORD = 'example'
