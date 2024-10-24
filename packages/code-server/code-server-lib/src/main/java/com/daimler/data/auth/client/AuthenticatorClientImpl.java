@@ -185,6 +185,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${codeServer.env.ref}")
 	private String codeServerEnvRef;
 
+	@Value("${kong.accessTokenAsBearer}")
+	private String accessTokenAsBearer;
+
+	@Value("${kong.accessTokenHeaderName}")
+	private String accessTokenHeaderName;
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -387,20 +393,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-			if(apiRecipe) {
-				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
-			}
-			else {
+			// if(apiRecipe) {
+			// 	currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
+			// 	if(env.equalsIgnoreCase("int"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
+			// 	if(env.equalsIgnoreCase("prod"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
+			// }
+			// else {
 				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
 				if(env.equalsIgnoreCase("int"))
 					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
 				if(env.equalsIgnoreCase("prod"))
 					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
-			}
+			// }
 //			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 //				paths.add("/" + serviceName + "/" + "int" + "/api");
 //			}
@@ -618,8 +624,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
 										attachOIDCPluginConfigVO.setFilters(ignorePaths);
 										attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
-										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginConfigVO.setScope(scope);
+										attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
+										attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
 
 										//request for attaching APIAUTHORISER plugin to service only published the security config
 										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
@@ -658,6 +665,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											String combinedScopes = getDistinctWords(scope,authoriserScope);
 											attachOIDCPluginConfigVO.setScope(combinedScopes);
 										}
+										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
@@ -781,10 +789,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
 									attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
 									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
-									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
-									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 									attachOIDCPluginConfigVO.setFilters(ignorePaths);
 									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
+									attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
+									attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
+									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
 									attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());

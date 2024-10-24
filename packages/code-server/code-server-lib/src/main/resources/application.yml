@@ -179,6 +179,8 @@ kong:
    functionPluginGitUrl: ${FUNCTION_PLUGINS_GIT_URL:XXXX}
    functionPluginsFolderPath : ${FUNCTION_PLUGIN_FOLDER_PATH:XXXX}
    requestTransformerPluginRemoveHeaders : ${REQUEST_TRANSFORMER_PLUGIN_REMOVE_HEADERS:XXXX}
+   accessTokenHeaderName :  ${ACCESS_TOKEN_HEADER_NAME:XXXX}
+   accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
