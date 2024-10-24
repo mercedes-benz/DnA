@@ -593,8 +593,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 										attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
-										String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
-										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+										String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
+										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/";
 
 										if("int".equalsIgnoreCase(env)){
 											attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
