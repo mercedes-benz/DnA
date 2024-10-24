@@ -903,16 +903,18 @@ grafana:
         isDefault: false
         basic_auth: false
         orgId: 2
+        editable: true
       - name: Postgres
         type: postgres
         access: proxy
         #Authentication
-        host: "<path:bat/data/bat-dev/bat-postgres#hostname>:64000"
+        url: "<path:bat/data/bat-dev/bat-postgres#hostname>:64000"
         user: grafana
         password: ""
         isDefault: false
         basic_auth: false
         orgId: 2
+        editable: true
         jsonData:
           database: db
           sslmode: 'disable' # disable/require/verify-ca/verify-full
