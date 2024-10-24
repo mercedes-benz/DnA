@@ -881,6 +881,4 @@ definitions:
         type : boolean     
       env:
         type : string     
-      projectName:
-        type : string
  

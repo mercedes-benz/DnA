@@ -76,12 +76,6 @@ const createBucket = (data) => {
       });
       ProgressIndicator.hide();
       Notification.show(`Bucket ${data.bucketName} created successfully.`);
-      if(res?.data?.warnings?.length){
-        Notification.show(
-          res?.data?.warnings?.length ? res?.data?.warnings[0].message : 'Something went wrong',
-          'warning',
-        );
-      }
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',
@@ -110,7 +104,7 @@ const updateBucket = (data) => {
     });
     ProgressIndicator.show();
     try {
-     const res = await bucketsApi.updateBucket(data);
+      await bucketsApi.updateBucket(data);
       dispatch({
         type: 'BUCKET_LOADING',
         payload: false,
@@ -118,12 +112,6 @@ const updateBucket = (data) => {
       ProgressIndicator.hide();
       Notification.show(`Bucket ${data.bucketName} updated successfully.`);
       history.push('/');
-      if(res?.data?.warnings?.length){
-        Notification.show(
-          res?.data?.warnings?.length ? res?.data?.warnings[0]?.message : 'Something went wrong ',
-          'warning',
-        );
-      }
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',

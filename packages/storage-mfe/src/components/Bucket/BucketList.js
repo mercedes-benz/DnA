@@ -33,8 +33,6 @@ export const BucketList = (props) => {
   const [nextSortOrder, setNextSortOrder] = useState('desc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('bucketName');
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [showAccessModel, setShowAccessModel] = useState(false);
-  const [currentBucketName, setCurrentBucketName] = useState(''); 
 
   const {pagination: { maxItemsPerPage, currentPageOffset }} = useSelector((state) => state.bucket);
 
@@ -111,18 +109,6 @@ export const BucketList = (props) => {
     </div>
   );
 
-  const publicAccessModelContent = (
-    <div className={classNames(Styles.accessContent)}>
-      <h5>
-      public access for the bucket {currentBucketName} is enabled which makes the bucket publicly accessible without any authentication.<br/>
-        You can use &nbsp;
-        <strong>{Envs.BUCKET_PUBLIC_ACCESS_BASEURL + currentBucketName}</strong>
-        &nbsp;as the base URL to read the contents from the bucket.<br/>
-        Please make sure that you do not store any confidential data in this bucket as it is publicly accessible.
-      </h5>
-    </div>
-  );
-
   const deleteBucketClose = () => {
     setDeleteModal(false);
   };
@@ -195,7 +181,6 @@ export const BucketList = (props) => {
             const hasWriteAccess = item?.permission?.write;
             const isOwner = props.user?.id === item.createdBy?.id;
             const collaborators = item.collaborators?.filter((val) => val.accesskey !== item?.createdBy.id);
-            const hasPublicAccess = item?.enablePublicAccess || false ;
             return (
               <div key={'card-' + index} className={classNames(Styles.storageCard)}>
                 <div className={Styles.cardHead}>
@@ -271,46 +256,46 @@ export const BucketList = (props) => {
                 </div>
                 <div className={Styles.cardFooter}>
                   <>
-                    <div>{hasPublicAccess && <span onClick={() => { setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator)}>Public</span>}</div>
-                      <div className={Styles.btnGrp}>
-                        {(hasWriteAccess && !item.bucketName.startsWith('dna-datalake')) && (
-                          <>
+                    <div></div>
+                    <div className={Styles.btnGrp}>
+                      {(hasWriteAccess && !item.bucketName.startsWith('dna-datalake')) && (
+                        <>
+                          <button
+                            className={'btn btn-primary'}
+                            type="button"
+                            onClick={() => {
+                              setSelectedItem(item);
+                              history.push(`/editBucket/${item.bucketName}`);
+                            }}
+                          >
+                            <i className="icon mbc-icon edit"></i>
+                            <span>Edit</span>
+                          </button>
+                          {isOwner && hasWriteAccess ? (
                             <button
                               className={'btn btn-primary'}
                               type="button"
                               onClick={() => {
                                 setSelectedItem(item);
-                                history.push(`/editBucket/${item.bucketName}`);
+                                setDeleteModal(true);
                               }}
                             >
-                              <i className="icon mbc-icon edit"></i>
-                              <span>Edit</span>
+                              <i className="icon delete"></i>
+                              <span>Delete</span>
                             </button>
-                            {isOwner && hasWriteAccess ? (
-                              <button
-                                className={'btn btn-primary'}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedItem(item);
-                                  setDeleteModal(true);
-                                }}
-                              >
-                                <i className="icon delete"></i>
-                                <span>Delete</span>
-                              </button>
-                            ) : null}
-                          </>
+                          ) : null}
+                        </>
                       ) }
-                        <button
-                          className={'btn btn-primary'}
-                          type="button"
-                          onClick={() => {
-                            dispatch(getConnectionInfo(item.bucketName, item.createdBy));
-                          }}
-                        >
-                          <i className="icon mbc-icon comparison"></i>
-                          <span>Connect</span>
-                        </button>
+                      <button
+                        className={'btn btn-primary'}
+                        type="button"
+                        onClick={() => {
+                          dispatch(getConnectionInfo(item.bucketName, item.createdBy));
+                        }}
+                      >
+                        <i className="icon mbc-icon comparison"></i>
+                        <span>Connect</span>
+                      </button>
                     </div>
                   </>
                 </div>
@@ -336,7 +321,6 @@ export const BucketList = (props) => {
                         Bucket Name
                       </label>
                     </div>
-                    <div className={classNames(Styles.accessCol)}></div>
                     <div className={Styles.bucketTitleCol}>
                       <label
                         className={
@@ -390,7 +374,6 @@ export const BucketList = (props) => {
                   const hasWriteAccess = item?.permission?.write;
                   const isOwner = props.user?.id === item.createdBy?.id;
                   const collaborators = item.collaborators?.filter((item) => item.accesskey !== props.user?.id);
-                  const hasPublicAccess = item?.enablePublicAccess || false ;
                   return (
                     <div
                       key={index}
@@ -403,9 +386,6 @@ export const BucketList = (props) => {
                           <div className={Styles.bucketTile}>
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
                               <Link to={`/explorer/${item.bucketName}`}>{item.bucketName}</Link>
-                            </div>
-                            <div className={classNames(Styles.accessCol)}>
-                              {hasPublicAccess && <span onClick={(e) => { e.preventDefault(); setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {displayPermission(item?.permission)}
@@ -537,15 +517,6 @@ export const BucketList = (props) => {
           width: '65%',
           maxWidth: '65%'
         }}
-      />
-      <ConfirmModal
-        title=""
-        show={showAccessModel}
-        showAcceptButton={false}
-        showCancelButton={true}
-        cancelButtonTitle="OK"
-        content={publicAccessModelContent}
-        onCancel={() => {setShowAccessModel(false); setCurrentBucketName('');}}
       />
       
       {connect?.modal && (

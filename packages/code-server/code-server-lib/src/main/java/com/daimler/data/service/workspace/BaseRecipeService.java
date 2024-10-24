@@ -12,7 +12,6 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -85,9 +84,6 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	private GitClient gitClient;
-
-	@Value("${codeserver.recipe.software.filename}")
-	private String gitFileName;
     
 	@Override
 	@Transactional
@@ -152,7 +148,7 @@ public class BaseRecipeService implements RecipeService{
 			repoOwner = codespaceSplitValues[length-2];
 			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
 			gitUrl = gitUrl.replace("/"+repoName, "");
-			JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName);
+			JSONObject jsonResponse = gitClient.getSoftwareFileFromGit(repoName, repoOwner, gitUrl);
 			if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 				softwareFileName  = jsonResponse.getString("name");
 				SHA =  jsonResponse.has("sha")? jsonResponse.getString("sha") : null;

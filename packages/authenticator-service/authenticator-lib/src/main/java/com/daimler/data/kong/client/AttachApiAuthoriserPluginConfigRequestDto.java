@@ -23,6 +23,5 @@ public class AttachApiAuthoriserPluginConfigRequestDto implements Serializable{
 	private String userinfoIntrospectionUri;
 	private Boolean enableUserinfoIntrospection;
 	private String env;
-	private String projectName;
 
 }

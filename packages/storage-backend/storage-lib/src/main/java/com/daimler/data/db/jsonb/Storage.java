@@ -47,7 +47,6 @@ public class Storage {
 	private Boolean piiData;
 	private Boolean termsOfUse;
 	private String classificationType;
-	private Boolean enablePublicAccess;
 	private Date createdDate;
 	private UserInfo createdBy;
 	private Date lastModifiedDate;

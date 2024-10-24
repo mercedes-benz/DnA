@@ -214,6 +214,5 @@ public interface DnaMinioClient {
 
 	McListBucketCollectionDto getAllBucketsUsingMC(String userId, boolean isAdmin);
 	MinioGenericResponse getBucketObjectsUsingMC(String userId, String bucketName, String prefix);
-	MinioGenericResponse setBucketPublicDownloadUsingMc(String bucketName, boolean isEnablePublicAccess);
-
+	
 }

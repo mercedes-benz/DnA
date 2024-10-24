@@ -101,13 +101,13 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public JSONObject readFileFromGit(String repoName, String repoOwner, String gitUrl, String fileName) throws Exception {
+	public JSONObject getSoftwareFileFromGit(String repoName, String repoOwner, String gitUrl) throws Exception {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer "+ personalAccessToken );
-			String url = gitUrl+"api/v3/repos/"+repoOwner+"/"+repoName+"/contents/.codespaces/"+gitFoldername+"/"+ fileName;
+			String url = gitUrl+"api/v3/repos/"+repoOwner+"/"+repoName+"/contents/.codespaces/"+gitFoldername+"/"+gitFileName;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if(response != null && response.getStatusCode()!=null && response.getStatusCode() == (HttpStatus.OK)) {

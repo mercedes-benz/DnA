@@ -13,12 +13,6 @@ const createCodeSpace = (data) => { //TESTED
     );
 };
 
-const getReadMeFile = (id) => { 
-    return server.get(`workspaces/${id}/readme`,{
-        data: {},
-    });
-};
-
 const editCodeSpace = (id, data) => { //tested
     return server.patch(`workspaces/${id}/datagovernance`, 
         data
@@ -302,7 +296,6 @@ export const CodeSpaceApiClient = {
     getCodeSpaceConfig,
     getPublishedConfig,
     getEntitlements,
-    getReadMeFile,
     getRoles,
     getRolesMappings,
     addCodeSpaceRequest,

@@ -600,7 +600,6 @@ public class KongClientImpl implements KongClient {
 			apiAuthoriserPluginConfigRequestDto.setUserinfoIntrospectionUri(apiAuthoriserPluginConfigVO.getUserinfoIntrospectionUri());
 			apiAuthoriserPluginConfigRequestDto.setLogType(apiAuthoriserPluginConfigVO.getLogType());
 			apiAuthoriserPluginConfigRequestDto.setEnv(apiAuthoriserPluginConfigVO.getEnv());
-			apiAuthoriserPluginConfigRequestDto.setProjectName(apiAuthoriserPluginConfigVO.getProjectName());
 			requestWrapper.setName(attachApiAuthoriserPluginVO.getName());
 			requestWrapper.setConfig(apiAuthoriserPluginConfigRequestDto);
 						
