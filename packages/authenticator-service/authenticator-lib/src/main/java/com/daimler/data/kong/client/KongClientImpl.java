@@ -255,6 +255,8 @@ public class KongClientImpl implements KongClient {
 				attachPluginConfigRequestDto.setRecovery_page_path(attachPluginConfigVO.getRecoveryPagePath());
 				attachPluginConfigRequestDto.setFilters(attachPluginConfigVO.getFilters());
 				attachPluginConfigRequestDto.setIgnore_auth_filters(attachPluginConfigVO.getIgnoreAuthFilters());
+				attachPluginConfigRequestDto.setAccess_token_as_bearer(attachPluginConfigVO.getAccessTokenAsBearer());
+				attachPluginConfigRequestDto.setAccess_token_header_name(attachPluginConfigVO.getAccessTokenHeaderName());
 				requestWrapper.setConfig(attachPluginConfigRequestDto);
 				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
 						requestWrapper, headers);
