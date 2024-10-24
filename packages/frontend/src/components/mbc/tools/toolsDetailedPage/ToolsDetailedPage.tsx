@@ -3,10 +3,9 @@ import Styles from './ToolsDetailedPage.scss'
 import Breadcrumb from './breadcrumb/BreadCrumb'
 import { getParams } from '../../../../router/RouterUtils';
 import { ToolsPageImagesInfo } from 'globals/constants';
-import { ToolsDetailedPageElements } from './toolDetaliedPageInfo';
+import ToolsDetailedPageElements from './toolDetaliedPageInfo.json';
 import { history } from '../../../../router/History';
-import { markdownParser } from '../../../../utils/MarkdownParser';
-import SubscriptionCard from './SubscriptionCard/SubscriptionCard'
+
 export interface IData {
   id?: string;
   name?: string;
@@ -224,16 +223,14 @@ const ToolsDetailedPage = (IData: any) => {
                             <h5>{value.title}</h5>
                             {/* </button> */}
 
-                          </div>
-                        )
-                      })
-                    )}
-                  </div>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
               </div>
             </div>
-          </div>)}
-
+          </div>
           <div className={Styles.contentSection}>
             <div className={Styles.portHeader}>
               {pageDetails.info && (pageDetails.info.map((item: any, key: any) =>
