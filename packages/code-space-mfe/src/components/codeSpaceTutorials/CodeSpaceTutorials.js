@@ -43,6 +43,12 @@ const CodeSpaceTutorials = () => {
       url: "code-space-tutorials/exampleCodespace-Python.mp4",
       description: "An example codespace that uses python fastAPI"
     },
+    {
+      id: '7',
+      title: "Collaboration in Codespaces",
+      url: "code-space-tutorials/Codespace Collaboration.mp4",
+      description: "Steps for a collaborator to onboard into a Codespace"
+    },
   ];
 
   const [selectedVideo, setSelectedVideo] = useState(codespaceTutorials[0]);

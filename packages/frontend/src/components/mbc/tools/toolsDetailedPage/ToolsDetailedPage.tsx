@@ -7,6 +7,7 @@ import { ToolsDetailedPageElements } from './toolDetaliedPageInfo';
 import { history } from '../../../../router/History';
 import { markdownParser } from '../../../../utils/MarkdownParser';
 import SubscriptionCard from './SubscriptionCard/SubscriptionCard'
+
 export interface IData {
   id?: string;
   name?: string;
