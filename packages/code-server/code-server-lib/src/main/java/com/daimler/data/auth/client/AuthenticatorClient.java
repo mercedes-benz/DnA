@@ -16,7 +16,7 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName);
 	
-	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope);
+	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, String oneApiVersionShortName);
 	
 	public GenericMessage deleteService(String serviceName);
 	
@@ -29,5 +29,7 @@ public interface AuthenticatorClient {
 	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
 
 	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName);
+
+	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName);
 
 }
