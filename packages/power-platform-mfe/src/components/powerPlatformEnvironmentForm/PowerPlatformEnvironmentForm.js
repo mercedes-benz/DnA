@@ -22,6 +22,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
   const { departments } = useSelector(state => state.lovs);
   
   const [showTou, setShowTou] = useState(false);
+  const [isEn, setIsEn] = useState(true);
   
   const methods = useForm({ 
     defaultValues: {
@@ -174,9 +175,9 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={100}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z -]+$/ })}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment names must contain characters only, - is allowed. Only spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col2}>
@@ -499,7 +500,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                         ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
                     }}
                   >
-                    <div>I accept the <span onClick={() => setShowTou(true)}>terms of use</span></div>
+                    <div>I accept the terms of use <span onClick={() => setShowTou(true)}>English</span> | <span onClick={() => { setIsEn(false); setShowTou(true) }}>German</span></div>
                     <sup>*</sup>
                   </div>
                 </div>
@@ -531,10 +532,10 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'800px'}
+          modalWidth={'1100px'}
           buttonAlignment="right"
           show={showTou}
-          content={<SharedDevelopmentTou onAccept={handleTouAccept} />}
+          content={<SharedDevelopmentTou onAccept={handleTouAccept} isEn={isEn} />}
           scrollableContent={true}
           onCancel={() => { localStorage.setItem('modal', ''); setShowTou(false); }}
         />
