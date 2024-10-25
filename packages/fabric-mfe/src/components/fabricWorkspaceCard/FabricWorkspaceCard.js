@@ -1,13 +1,18 @@
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Styles from './fabric-workspace-card.scss';
 import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
+import Spinner from '../spinner/Spinner';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
+const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
+  const isRequestedWorkspace = user?.id !== workspace?.createdBy?.id;
+  
   const isRequestedWorkspace = user?.id !== workspace?.createdBy?.id;
   
   useEffect(() => {
@@ -17,8 +22,29 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
   const handleOpenWorkspace = () => {
     history.push(`/workspace/${workspace?.id}`);
   }
+  }, [workspace]);
+
+  const handleOpenWorkspace = () => {
+    history.push(`/workspace/${workspace?.id}`);
+  }
 
   return (
+    <div className={classNames(Styles.projectCard)}>
+      <div className={Styles.cardHead}>
+        <div className={classNames(Styles.cardHeadInfo)}>
+          <div
+            className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
+            onClick={handleOpenWorkspace}
+          >
+            {workspace?.name}
+          </div>
+        </div>
+      </div>
+      <hr />
+      <div className={Styles.cardBodySection}>
+        <div>
+          <div>
+            <div>Workspace Link</div>
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
         <div className={classNames(Styles.cardHeadInfo)}>
@@ -93,6 +119,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           }
         </>
       </div>
+    </div>
     </div>
   );
 };

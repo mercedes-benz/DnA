@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.fabricWorkspace.FabricWorkspacesApi;
 import com.daimler.data.api.fabricWorkspace.LovsApi;
+import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -32,6 +33,9 @@ import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
@@ -49,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
+public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 {
 	@Autowired
@@ -584,6 +589,76 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			}
 		}
 	}
+
+	@Override
+	@ApiOperation(value = "request a  fabric workspace role for a user.", nickname = "requestRole", notes = "request a  fabric workspace role for a user.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/rolerequest",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> requestRole(@ApiParam(value = "",required=true) @PathVariable("id") String id,@ApiParam(value = "Request Body that contains data required for requesting a workspace role" ,required=true )  @Valid @RequestBody FabricWorkspaceRoleRequestVO roleRequestVO){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		try{
+
+			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
+				errors.add(new MessageDescription("Failed to request roles for the user, Atleast one Role Id should be there. Bad Request "));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Failed to request roles for the user, Atleast one Role Id should be there. Bad Request");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			if(roleRequestVO.getData().getReason().length()<20){
+				errors.add(new MessageDescription("Failed to request roles for the user, Reason should be atleast of 20 characters. Bad Request "));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Failed to request roles for the user, Reason should be atleast of 20 characters. Bad Request");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			for(RolesVO role : roleList){
+
+				LocalDate validFrom = LocalDate.parse(role.getValidFrom(), formatter);
+            	LocalDate validTo = LocalDate.parse(role.getValidTo(), formatter);
+				if(validTo.isBefore(validFrom)){
+					errors.add(new MessageDescription("Failed to request roles for the user, validTo date must be after validFrom date. Bad Request "));
+					response.setErrors(errors);
+					response.setWarnings(warnings);
+					response.setSuccess("FAILED");
+					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+				response = service.requestRoles(roleRequestVO,userInfo.getId());
+				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
+				return new ResponseEntity<>(response, HttpStatus.OK);
+
+			}
+
+
+		}catch(Exception e){
+			errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Failed to request role  for user {}, Fabric workspace {} with exception {} ",id,userInfo.getId(),e.getMessage());
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		
+	}
+
 
 	@Override
 	@ApiOperation(value = "request a  fabric workspace role for a user.", nickname = "requestRole", notes = "request a  fabric workspace role for a user.", response = GenericMessage.class, tags={ "fabric-workspaces", })
