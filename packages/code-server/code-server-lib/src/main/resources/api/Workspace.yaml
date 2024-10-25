@@ -1315,6 +1315,8 @@ definitions:
       isApiRecipe:
         type: boolean
         required: true
+      oneApiVersionShortName:
+        type: string
 
 
            
@@ -1343,6 +1345,8 @@ definitions:
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"
+      oneApiVersionShortName:
+        type: string
       deploymentAuditLogs:
         type: array
         items:
