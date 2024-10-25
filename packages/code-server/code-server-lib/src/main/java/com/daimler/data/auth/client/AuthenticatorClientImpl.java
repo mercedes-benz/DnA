@@ -209,12 +209,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String API_AUTHORISER_PLUGIN = "apiauthoriser";
 	private static final String PRE_FUNCTION_PLUGIN ="pre-function";
 	private static final String POST_FUNCTION_PLUGIN ="post-function";
+	private static final String ONE_API_PLUGIN ="oneapi";
 	private static final String REQUEST_TRANSFORMER_PLUGIN ="request-transformer";
 	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	private static final String ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE = "/apiAuthoriserPlugin";
 	private static final String ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE = "/appAuthoriserPlugin";
 	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	private static final String ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE = "/requestTransformerPlugin";
+	private static final String ATTACH_ONE_API_PLUGIN_TO_SERVICE = "/oneApiPlugin";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -349,7 +351,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -734,6 +736,34 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							//change function plugin status to disable if any
 							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
 							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+						}
+						if(Objects.nonNull(oneApiVersionShortName) && !oneApiVersionShortName.isBlank()){
+							if(("int".equalsIgnoreCase(env) && !intSecureIAM) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM) ){
+								
+								GenericMessage attachOneApiPluginResponse = new GenericMessage();
+								GenericMessage deletePluginResponse = new GenericMessage();
+
+								//delete oneapi plugin if any
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
+								LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+								//attaching oneapi plugin
+
+								AttachOneApiPluginRequestVO requestVO = new AttachOneApiPluginRequestVO();
+								AttachOneApiPluginVO pluginVO = new AttachOneApiPluginVO();
+								AttachOneApiPluginConfigVO configVO = new AttachOneApiPluginConfigVO();
+
+								configVO.setApi_version_shortname(oneApiVersionShortName);
+								pluginVO.setConfig(configVO);
+								pluginVO.setName(ONE_API_PLUGIN);
+								requestVO.setData(pluginVO);
+
+								attachOneApiPluginResponse = attachOneApiPluginToService(requestVO, serviceName.toLowerCase()+"-"+env);
+								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling to attach oneapi plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachOneApiPluginResponse.getSuccess());
+
+
+							}
 						}
 					}else{
 
@@ -1344,6 +1374,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
+		MessageDescription messageDescription = new MessageDescription();
+		String pluginName = attachRequestTransformerPluginRequestVO.getData().getName();
+
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -1365,11 +1398,109 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					warnings.add(warning);
 				}
 			}
+		}catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+				LOGGER.error("plugin {} already available ", pluginName);
+				messageDescription.setMessage("plugin already exist");
+				errors.add(messageDescription);
+				response.setErrors(errors);
+				return response;
+			}
+			if (ex.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {			
+				LOGGER.error("plugin {} not exists ", pluginName);
+				messageDescription.setMessage("plugin not exist");
+				response.setSuccess("NOT_FOUND");
+				errors.add(messageDescription);
+				response.setErrors(errors);
+				return response;
+			}
+			if (ex.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {			
+				LOGGER.error("INTERNAL SERVER ERROR");
+				messageDescription.setMessage("INTERNAL SERVER ERROR");
+				errors.add(messageDescription);
+				response.setErrors(errors);
+				return response;
+				}
+			LOGGER.error("Exception occured: {} while adding plugin: {} details", ex.getMessage(),attachRequestTransformerPluginRequestVO.getData().getName());			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			response.setErrors(errors);
+			return response;
 		}
 		catch(Exception e) {
-			LOGGER.error("Failed to Add Function Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			LOGGER.error("Failed to Add request transformer Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Error occured while calling Kong attach plugin: " + attachRequestTransformerPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
+
+	@Override
+	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName){
+
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		MessageDescription messageDescription = new MessageDescription();
+		String pluginName = attachOneApiPluginRequestVO.getData().getName();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_ONE_API_PLUGIN_TO_SERVICE;
+
+			HttpEntity<AttachOneApiPluginRequestVO> entity = new HttpEntity<AttachOneApiPluginRequestVO>(attachOneApiPluginRequestVO,headers);			
+			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachPluginResponse != null && attachPluginResponse.getStatusCode()!=null) {
+				if(attachPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachOneApiPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachOneApiPluginRequestVO.getData().getName(), serviceName,  attachPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachPluginResponse.getBody() + " Response Code is : " + attachPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+				LOGGER.error("plugin {} already available ", pluginName);
+				messageDescription.setMessage("plugin already exist");
+				errors.add(messageDescription);
+				response.setErrors(errors);
+				return response;
+			}
+			if (ex.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {			
+				LOGGER.error("plugin {} not exists ", pluginName);
+				messageDescription.setMessage("plugin not exist");
+				response.setSuccess("NOT_FOUND");
+				errors.add(messageDescription);
+				response.setErrors(errors);
+				return response;
+			}
+			if (ex.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {			
+				LOGGER.error("INTERNAL SERVER ERROR");
+				messageDescription.setMessage("INTERNAL SERVER ERROR");
+				errors.add(messageDescription);
+				response.setErrors(errors);
+				return response;
+				}
+			LOGGER.error("Exception occured: {} while adding plugin: {} details", ex.getMessage(),attachOneApiPluginRequestVO.getData().getName());			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			response.setErrors(errors);
+			return response;
+		}catch(Exception e) {
+			LOGGER.error("Failed to Add oneapi Plugin for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachOneApiPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
 			errors.add(error);
 		}
 		response.setSuccess(status);
