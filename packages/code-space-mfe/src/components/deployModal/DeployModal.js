@@ -59,13 +59,33 @@ const DeployModal = (props) => {
   const [changeSelected, setChangeSelected] = useState(false);
   const [disableIntIAM, setDisableIntIAM] = useState(true);
   const [disableProdIAM, setDisableProdIAM] = useState(true);
-  const ignorePaths = [{id:'1',name:'/favicon.ico'},{id:'2',name:'/manifest.json'},{id:'3',name:'/obfuskator-api/int/api/docs'},{id:'4',name:'/docs'},{id:'5',name:'/obfuskator-api/int/api/openapi.json'},{id:'6',name:'/openapi.json'}];
+  const ignorePaths = [
+    { id: '1', name: '/favicon.ico' },
+    { id: '2', name: '/manifest.json' },
+    { id: '3', name: '/obfuskator-api/int/api/docs' },
+    { id: '4', name: '/docs' },
+    { id: '5', name: '/obfuskator-api/int/api/openapi.json' },
+    { id: '6', name: '/openapi.json' },
+  ];
   const [ignorePath, setIgnorePath] = useState([]);
   // const [ignorePathError, setIgnorePathError] = useState(false);
   const [redirectUri, setRedirectUri] = useState('');
-  const scopes = [{id:'1', name:'openid'}, {id:'2', name:'autorization_group'}, {id:'3', name:'entitlement_group'}, {id:'4', name:'scoped_entitlement'}, {id:'5', name:'email'}, {id:'6', name:'profile'}, {id:'7', name:'phone'}, {id:'8', name:'offline_access'}, {id:'9', name:'group_type'}];
+  const scopes = [
+    { id: '1', name: 'openid' },
+    { id: '2', name: 'autorization_group' },
+    { id: '3', name: 'entitlement_group' },
+    { id: '4', name: 'scoped_entitlement' },
+    { id: '5', name: 'email' },
+    { id: '6', name: 'profile' },
+    { id: '7', name: 'phone' },
+    { id: '8', name: 'offline_access' },
+    { id: '9', name: 'group_type' },
+  ];
   const [scope, setScope] = useState(['openid', 'offline_access']);
   const fixedScope = ['openid', 'offline_access'];
+  const [oneApiSelected, setOneApiSelected] = useState(false);
+  const [oneApiVersionShortName, setOneApiVersionShortName] = useState('');
+  const [oneApiVersionShortNameError, setOneApiVersionShortNameError] = useState('');
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -79,6 +99,7 @@ const DeployModal = (props) => {
     setClientIdError('');
     setClientSecret('');
     setClientSecretError('');
+    setOneApiVersionShortNameError('');
     setChangeSelected(false);
     // setIAMTechnicalUserID('');
     getPublishedConfig(props?.codeSpaceData?.id, 'int');
@@ -94,6 +115,8 @@ const DeployModal = (props) => {
         setBranches(branches);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
         setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+        setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
+        setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -134,6 +157,12 @@ const DeployModal = (props) => {
 
   const onChangeSecureWithIAM = (e) => {
     setSecureWithIAMSelected(e.target.checked);
+    e.target.checked ? setOneApiSelected(false) : '';
+  };
+
+  const onChangeOpenApi = (e) => {
+    setOneApiSelected(e.target.checked);
+    e.target.checked ? setSecureWithIAMSelected(false) : '';
   };
 
   const onAcceptContinueCodingOnDeployment = (e) => {
@@ -153,16 +182,21 @@ const DeployModal = (props) => {
     setClientIdError('');
     setClientSecret('');
     setClientSecretError('');
+    setOneApiVersionShortNameError('');
     setChangeSelected(false);
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
     if (deployEnv === 'staging') {
       setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
       getPublishedConfig(props?.codeSpaceData?.id, 'int');
+      setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
+      setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
       // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     } else {
       setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
       getPublishedConfig(props?.codeSpaceData?.id, 'prod');
+      setOneApiSelected(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false);
+      setOneApiVersionShortName(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName || '');
       // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     }
   };
@@ -232,6 +266,10 @@ const DeployModal = (props) => {
     if (ignorePath.length !== 0 && ignorePath.some(item => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))) {
       formValid = false;
     }
+    if (oneApiSelected && oneApiVersionShortName?.length === 0) {
+      formValid = false;
+      setOneApiVersionShortNameError('*Missing Entry');
+    }
     if (formValid) {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
@@ -244,7 +282,8 @@ const DeployModal = (props) => {
         redirectUri: redirectUri || '',
         ignorePaths: ignorePath.join(',') || '',
         scope: secureWithIAMSelected ? scope.join(' ') : '',
-        isApiRecipe: props.enableSecureWithIAM
+        isApiRecipe: props.enableSecureWithIAM,
+        oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -288,7 +327,7 @@ const DeployModal = (props) => {
       cancelButtonTitle={'Cancel'}
       onAccept={onAcceptCodeDeploy}
       showCancelButton={true}
-      modalWidth="600px"
+      modalWidth="900px"
       buttonAlignment="center"
       show={true}
       content={
@@ -351,40 +390,69 @@ const DeployModal = (props) => {
             <>
               {deployEnvironment === 'staging' && (
                 <>
-                  <div>
-                    <label className="checkbox">
-                      <span className="wrapper">
-                        <input
-                          type="checkbox"
-                          className="ff-only"
-                          checked={secureWithIAMSelected}
-                          onChange={onChangeSecureWithIAM}
-                          // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                          // disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                        />
-                      </span>
-                      <span className="label">
-                        Secure with your own IAM Credentials{' '}
-                        {(isOwner && !props.isUIRecipe) && (<span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
-                          <a target="_blank" rel="noreferrer">
-                            {CODE_SPACE_TITLE} (
-                            {projectDetails?.publishedSecuirtyConfig?.status ||
-                              projectDetails?.securityConfig?.status ||
-                              'New'}
-                            )
-                          </a>
-                        </span>)}
-                      </span>
-                    </label>
-                    {!props.isUIRecipe && (<span>
+                  <div className={classNames(Styles.threeColumnFlexLayout)}>
+                    <div>
+                      <label className="checkbox">
+                        <span className="wrapper">
+                          <input
+                            type="checkbox"
+                            className="ff-only"
+                            checked={secureWithIAMSelected}
+                            onChange={onChangeSecureWithIAM}
+                            disabled={oneApiSelected}
+                            // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                            // disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                          />
+                        </span>
+                        <span className={classNames('label', oneApiSelected ? Styles.disableText : '')}>
+                          Secure with your own IAM Credentials{' '}
+                          {isOwner && !props.isUIRecipe && (
+                            <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                              <a target="_blank" rel="noreferrer">
+                                {CODE_SPACE_TITLE} (
+                                {projectDetails?.publishedSecuirtyConfig?.status ||
+                                  projectDetails?.securityConfig?.status ||
+                                  'New'}
+                                )
+                              </a>
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    </div>
+                    {props.enableSecureWithIAM && (
+                      <>
+                        <div>OR</div>
+                        <div>
+                          <label className="checkbox">
+                            <span className="wrapper">
+                              <input
+                                type="checkbox"
+                                className="ff-only"
+                                checked={oneApiSelected}
+                                onChange={onChangeOpenApi}
+                                disabled={secureWithIAMSelected}
+                                // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                                // disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                              />
+                            </span>
+                            <span className={classNames('label', secureWithIAMSelected ? Styles.disableText : '')}>Provision your api through oneAPI</span>
+                          </label>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {!props.isUIRecipe && (
+                    <span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
                         className={classNames(disableIntIAM && secureWithIAMSelected ? '' : 'hide')}
                       >
-                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization Configuration and therefore no authorization checks would happen.
+                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
+                        Configuration and therefore no authorization checks would happen.
                       </p>
-                    </span>)}
-                  </div>
+                    </span>
+                  )}
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
@@ -477,6 +545,24 @@ const DeployModal = (props) => {
                       )}
                     </div>
                   )}
+                  {oneApiSelected && (
+                    <div className={classNames(Styles.flexLayout)}>
+                      <TextBox
+                        type="text"
+                        label={'Api version shortname'}
+                        placeholder={'Client ID as per IAM used with Alice'}
+                        value={oneApiVersionShortName}
+                        errorText={oneApiVersionShortNameError}
+                        required={true}
+                        maxLength={200}
+                        onChange={(e) => {
+                          setOneApiVersionShortName(e.currentTarget.value);
+                          setOneApiVersionShortNameError('');
+                        }}
+                      />
+                      <div></div>
+                    </div>
+                  )}
                   {/* {secureWithIAMSelected && (
                 <div
                   className={classNames(
@@ -509,45 +595,68 @@ const DeployModal = (props) => {
               )}
               {deployEnvironment === 'production' && (
                 <>
-                  <div>
-                    <label className="checkbox">
-                      <span className="wrapper">
-                        <input
-                          type="checkbox"
-                          className="ff-only"
-                          checked={secureWithIAMSelected}
-                          onChange={onChangeSecureWithIAM}
-                          // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          // disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                        />
-                      </span>
-                      <span className="label">
-                        Secure with your own IAM Credentials{' '}
-                        {isOwner && !props.isUIRecipe && (
-                          <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
-                            <a target="_blank" rel="noreferrer">
-                              {CODE_SPACE_TITLE} (
-                              {projectDetails?.publishedSecuirtyConfig?.status ||
-                                projectDetails?.securityConfig?.status ||
-                                'New'}
-                              )
-                            </a>
-                          </span>
-                        )}
-                      </span>
-                    </label>
-                    {!props.isUIRecipe && (
-                      <span>
-                        <p
-                          style={{ color: 'var(--color-orange)' }}
-                          className={classNames(disableProdIAM && secureWithIAMSelected ? '' : 'hide')}
-                        >
-                          <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
-                          Configuration and therefore no authorization checks would happen.
-                        </p>
-                      </span>
+                  <div className={classNames(Styles.threeColumnFlexLayout)}>
+                    <div>
+                      <label className="checkbox">
+                        <span className="wrapper">
+                          <input
+                            type="checkbox"
+                            className="ff-only"
+                            checked={secureWithIAMSelected}
+                            onChange={onChangeSecureWithIAM}
+                            // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                            // disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                          />
+                        </span>
+                        <span className={classNames('label', oneApiSelected ? Styles.disableText : '')}>
+                          Secure with your own IAM Credentials{' '}
+                          {isOwner && !props.isUIRecipe && (
+                            <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
+                              <a target="_blank" rel="noreferrer">
+                                {CODE_SPACE_TITLE} (
+                                {projectDetails?.publishedSecuirtyConfig?.status ||
+                                  projectDetails?.securityConfig?.status ||
+                                  'New'}
+                                )
+                              </a>
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    </div>
+                    {props.enableSecureWithIAM && (
+                      <>
+                        <div>OR</div>
+                        <div>
+                          <label className="checkbox">
+                            <span className="wrapper">
+                              <input
+                                type="checkbox"
+                                className="ff-only"
+                                checked={oneApiSelected}
+                                onChange={onChangeOpenApi}
+                                disabled={secureWithIAMSelected}
+                                // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                                // disabled={disableIntIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                              />
+                            </span>
+                            <span className={classNames('label', secureWithIAMSelected ? Styles.disableText : '')}>Provision your api through oneAPI</span>
+                          </label>
+                        </div>
+                      </>
                     )}
                   </div>
+                  {!props.isUIRecipe && (
+                    <span>
+                      <p
+                        style={{ color: 'var(--color-orange)' }}
+                        className={classNames(disableProdIAM && secureWithIAMSelected ? '' : 'hide')}
+                      >
+                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
+                        Configuration and therefore no authorization checks would happen.
+                      </p>
+                    </span>
+                  )}
                   {secureWithIAMSelected && (
                     <div>
                       {!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
@@ -638,6 +747,24 @@ const DeployModal = (props) => {
                           </button>
                         </div>
                       )}
+                    </div>
+                  )}
+                  {oneApiSelected && (
+                    <div className={classNames(Styles.flexLayout)}>
+                      <TextBox
+                        type="text"
+                        label={'Api version shortname'}
+                        placeholder={'Client ID as per IAM used with Alice'}
+                        value={oneApiVersionShortName}
+                        errorText={oneApiVersionShortNameError}
+                        required={true}
+                        maxLength={200}
+                        onChange={(e) => {
+                          setOneApiVersionShortName(e.currentTarget.value);
+                          setOneApiVersionShortNameError('');
+                        }}
+                      />
+                      <div></div>
                     </div>
                   )}
                   {/* {secureWithIAMSelected && (
