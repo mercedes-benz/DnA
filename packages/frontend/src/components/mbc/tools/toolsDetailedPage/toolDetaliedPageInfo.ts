@@ -1,4 +1,3 @@
-
 export const ToolsDetailedPageElements = [
   {
     "id": "dataikuDSS",
@@ -320,6 +319,77 @@ export const ToolsDetailedPageElements = [
         "info" : " Open Microsoft Fabric (https://app.fabric.microsoft.com/home)"
       }
     ]
+  },
+  {
+    "id": "powerPlatform",
+    "name": "Power Platform",
+    "description": "Microsoft Power Platform is a low-code platform for building customized end-to-end business solutions. It consists of five product areas: Power Apps, Power Automate, Power BI, Copilot Studio, and Power Pages.",
+    "tags":  ["No / Low Code"],
+    "isExternalLink": false,
+    "url": "/powerplatform",
+    "hasSubcription": true,
+    "info": [
+      {
+        "icon": "trainings",
+        "name": "Trainings",
+        "description": "Get tailor-made trainings from experts to master this tool with ease",
+        "links": [
+          {
+            "title": "PL-900: Microsoft Power Platform Fundamentals (udemy.com)",
+            "link": `UDEMY_URL/course/pl-900-microsoft-power-platform-fundamentals-r/`
+          },
+          {
+            "title": "Power Apps - Complete Guide to Microsoft PowerApps",
+            "link": `UDEMY_URL/course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
+          },
+          {
+            "title": "Build Solutions with Power Apps, Power Automate & SharePoint (udemy.com)",
+            "link": `UDEMY_URL/course/build-solutions-with-power-platform/`
+          },
+          {
+            "title": "PL-200: The follow-up Power Platform course to the PL-100 (udemy.com)",
+            "link": `UDEMY_URL/course/pl-200-microsoft-power-platform-functional-consultant-course/`
+          },
+          {
+            "title": "Microsoft Power Automate for Power Apps developers (udemy.com)",
+            "link": `UDEMY_URL/course/microsoft-power-automate-for-power-apps-developers/`
+          }
+        ]
+      },
+      {
+        "icon": "profile",
+        "name": "support",
+        "info": ["Feel free to reach out for more information and personal support by our team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
+        "links": [
+          {
+            "title": "Contact Email",
+            "link": "YOUR_URL"
+          },
+          {
+            "title": "Social Intranet Page",
+            "link": "YOUR_URL"
+          },
+        ]
+      },
+      {
+        "icon": "tem",
+        "name": "classification",
+        "type" : "Confidential"
+      },
+      {
+        "icon": "tem",
+        "name": "Costs",
+        "isInfoIcon": "true",
+        "description" : "Get familiar with the costs",
+        "info":["Default Environment: Free", "Citizen Developer Account: starting at 125€ per month", "Shared Development Account: starting 200€ per month", "Full Development Account: starting 526€ per month"]
+      },
+      {
+        "icon": "doc",
+        "name": "Terms Of Service",
+        "isInfoIcon": "true",
+        "moreBtn": true,
+        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by Team. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
+      }
+    ]
   }
 ]
-
