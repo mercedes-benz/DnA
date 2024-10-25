@@ -60,6 +60,7 @@ import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
+import com.daimler.data.dto.kongGateway.AttachOneApiPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginConfigVORemove;
@@ -915,7 +916,7 @@ public class KongClientImpl implements KongClient {
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode == HttpStatus.CREATED) {
-					LOGGER.info("Function plugin attached successfully to service: {}", serviceName);					
+					LOGGER.info("request transformer plugin attached successfully to service: {}", serviceName);					
 					message.setSuccess("Success");
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -924,21 +925,79 @@ public class KongClientImpl implements KongClient {
 			}
 		} catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
-				LOGGER.info("Function plugin already attached to service: {}", serviceName);
+				LOGGER.info("request transformer plugin already attached to service: {}", serviceName);
 				message.setSuccess("Failure");
-				messageDescription.setMessage("Api Authoriser Plugin already attached to service");
+				messageDescription.setMessage("request transformer Plugin already attached to service");
 				errors.add(messageDescription);
 				message.setErrors(errors);
 				return message;
 			}	
-			LOGGER.error("Error occured while attaching Function plugin to service: {}", ex.getMessage());
+			LOGGER.error("Error occured while attaching request transformer plugin to service: {}", ex.getMessage());
 			message.setSuccess("Failure");
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		} catch (Exception e) {
-			LOGGER.error("Error while attaching Function plugin to service: {}", e.getMessage());
+			LOGGER.error("Error while attaching request transformer plugin to service: {}", e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
+	}
+
+	@Override
+	public  GenericMessage attachOneApiPluginToService(AttachOneApiPluginVO attachOneApiPluginVO, String serviceName){
+
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {			
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+
+			AttachOneApiPluginWrapperDto requestWrapper = new AttachOneApiPluginWrapperDto();
+			AttachOneApiPluginConfigRequestDto pluginConfigDto = new AttachOneApiPluginConfigRequestDto();
+			
+			pluginConfigDto.setApi_version_shortname(attachOneApiPluginVO.getConfig().getApiVersionShortname());
+			requestWrapper.setConfig(pluginConfigDto);
+			requestWrapper.setName(attachOneApiPluginVO.getName());
+
+			HttpEntity<AttachOneApiPluginWrapperDto> pluginRequest = new HttpEntity<AttachOneApiPluginWrapperDto>(requestWrapper, headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, pluginRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("one api plugin attached successfully to service: {}", serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("one api plugin already attached to service: {}", serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("one api Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching one api plugin to service: {}", ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching one api plugin to service: {}", e.getMessage());
 			message.setSuccess("Failure");
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
