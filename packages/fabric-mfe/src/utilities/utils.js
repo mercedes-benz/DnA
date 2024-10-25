@@ -37,7 +37,7 @@ export const generateNodesAndEdges = (data) => {
       name: role?.entitlements[1]?.displayName, 
       label: 'Entitlement', 
       type: FLOW_DIAGRAM_TYPES.ENTITLEMENT, 
-      state: role?.entitlements[1].state
+      state: role?.entitlements[1]?.state
     });
 
     // Create role node
@@ -172,7 +172,7 @@ export const getLayoutedElements = (data, nodes, edges) => {
   data.roles.forEach(role => {
     // Find the ROLE and ENTITLEMENT nodes for this group
     const roleNode = newNodes.find(node => node.data.type === FLOW_DIAGRAM_TYPES.ROLE && node.data.name === role.name);
-    const entitlementNode = newNodes.find(node => node.data.type === FLOW_DIAGRAM_TYPES.ENTITLEMENT && node.data.name.includes(role.name.split('_').pop()));
+    const entitlementNode = newNodes.find(node => node?.data?.type === FLOW_DIAGRAM_TYPES.ENTITLEMENT && node?.data?.name?.includes(role?.name?.split('_').pop()));
 
     // Collect the ids of ENTITLEMENT_ROLE nodes
     const entitlementRoleNodes = newNodes.filter(node =>

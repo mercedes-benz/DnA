@@ -108,10 +108,11 @@
     .statusItem {
       height: 40px;
       display: flex;
-      .requestStatus {
+      .completedStatus {
         margin-bottom: 0;
-        color: #FFEB3B;
+        color: #0ae6ab;
       }
+      
       button {
         background: unset;
         border: unset;
