@@ -214,7 +214,7 @@ fluent-bit:
           Suppress_Type_Name On
           Time_Key @flb-timestamp
           Replace_Dots On
-           kubernetes_cluster
+          Logstash_Prefix kubernetes_cluster
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>
 
@@ -236,8 +236,9 @@ fluent-bit:
           Name        loki
           Match       *
           Host        monitoring-loki.i3-monitoring
-          port        3100
-          labels      job=fluentbit
+          Port        3100
+          Labels      job=fluentbit
+          Line_format json
                 
 
 dhc-forwarder:
