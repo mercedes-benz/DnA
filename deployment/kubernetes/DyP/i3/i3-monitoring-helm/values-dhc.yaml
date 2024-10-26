@@ -1167,7 +1167,9 @@ loki-stack:
     persistence:
       enabled: true
       size: 10Gi
-      storageClassName: dhc-gp3                      
+      storageClassName: dhc-gp3       
+    networkPolicy:
+      enabled: true                     
   promtail:
     enabled: false      
   proxy:
