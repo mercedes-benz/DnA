@@ -1,0 +1,23 @@
+annotations:
+  artifacthub.io/links: |
+    - name: Chart Source
+      url: https://github.com/prometheus-community/helm-charts
+apiVersion: v2
+appVersion: v0.25.0
+description: The Alertmanager handles alerts sent by client applications such as the
+  Prometheus server.
+home: https://prometheus.io/
+icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
+keywords:
+- monitoring
+kubeVersion: '>=1.16.0-0'
+maintainers:
+- email: monotek23@gmail.com
+  name: monotek
+- email: naseem@transit.app
+  name: naseemkullah
+name: alertmanager
+sources:
+- https://github.com/prometheus/alertmanager
+type: application
+version: 0.24.1

@@ -289,3 +289,5 @@ prom2teams:
     # loglevel can be one of (DEBUG | INFO | WARNING | ERROR | CRITICAL)
     loglevel: INFO
     extraEnv: {}
+loki-stack:
+  enabled: false    

@@ -1147,4 +1147,34 @@ tempo-distributed:
                         - ingress
         policyTypes:
           - Ingress
-                    
+
+loki-stack:
+  enabled: true   
+  loki:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/grafana/loki  
+    config:
+      compactor:
+        compaction_interval: 10m
+        retention_delete_delay: 2h
+        retention_delete_worker_count: 150
+        retention_enabled: true
+        working_directory: /data/retention
+      limits_config:
+        retention_period: 72h
+    enabled: true
+    isDefault: true
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClassName: dhc-gp3                      
+  promtail:
+    image:
+      registry: registry-emea.app.corpintra.net/dockerhub  
+    config:
+      lokiAddress: http://{{ .Release.Name }}:3100/loki/api/v1/push
+    enabled: true      
+  proxy:
+    http_proxy: http://security-proxy.emea.svc.corpintra.net:3128
+    https_proxy: http://security-proxy.emea.svc.corpintra.net:3128
+    no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com
