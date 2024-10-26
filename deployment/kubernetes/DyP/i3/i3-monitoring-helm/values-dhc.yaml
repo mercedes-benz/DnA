@@ -1160,7 +1160,6 @@ loki-stack:
         retention_delete_worker_count: 150
         retention_enabled: true
         working_directory: /data/retention
-        consistency: LOCAL_ONE
       limits_config:
         retention_period: 72h
     enabled: true
