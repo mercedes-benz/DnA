@@ -1169,11 +1169,7 @@ loki-stack:
       size: 10Gi
       storageClassName: dhc-gp3                      
   promtail:
-    image:
-      registry: registry-emea.app.corpintra.net/dockerhub  
-    config:
-      lokiAddress: http://{{ .Release.Name }}:3100/loki/api/v1/push
-    enabled: true      
+    enabled: false      
   proxy:
     http_proxy: http://security-proxy.emea.svc.corpintra.net:3128
     https_proxy: http://security-proxy.emea.svc.corpintra.net:3128
