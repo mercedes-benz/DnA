@@ -1158,17 +1158,14 @@ loki:
     enabled: true         
   sidecar:
     image:
-      # -- The Docker registry and image for the k8s sidecar
       repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar     
   memcached:
     image:
-      # -- Memcached Docker image repository
       repository: registry-emea.app.corpintra.net/dockerhub/memcached      
   memcachedExporter:
-    # -- Whether memcached metrics should be exported
     enabled: true
     image:
-      repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter      
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   loki:
     # compactor:
     #   compaction_interval: 10m
@@ -1201,6 +1198,6 @@ loki:
         accessKeyId: <path:kv/data/dna/kubernetesSecret/monitoring#access_key>
         s3ForcePathStyle: true
         insecure: true
-        http_config: {}
-  singleBinary:
-    replicas: 3    
+        http_config: {}    
+    singleBinary:
+      replicas: 3    
