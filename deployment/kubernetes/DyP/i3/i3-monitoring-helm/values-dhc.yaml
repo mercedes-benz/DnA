@@ -1155,7 +1155,15 @@ loki:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
   networkPolicy:
-    enabled: true          
+    enabled: true         
+  sidecar:
+    image:
+      # -- The Docker registry and image for the k8s sidecar
+      repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar     
+  memcached:
+    image:
+      # -- Memcached Docker image repository
+      repository: registry-emea.app.corpintra.net/dockerhub/memcached      
   loki:
     # compactor:
     #   compaction_interval: 10m
