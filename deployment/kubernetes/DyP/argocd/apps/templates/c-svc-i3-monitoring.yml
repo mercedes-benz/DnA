@@ -6,24 +6,24 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: logger
+  name: i3-monitoring
   namespace: {{ .Values.namespace }}
   labels:
     name: service
     project: c-svc
 spec:
   destination:
-    namespace: i3-logging
+    namespace: i3-monitoring
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/i3/i3-logging-helm
+    path: deployment/kubernetes/DyP/i3/i3-monitoring-helm
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: --namespace i3-logging -f values-{{ .Values.env }}.yaml
+          value: --namespace i3-monitoring -f values-dhc.yaml
   project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
