@@ -234,37 +234,65 @@ fluent-bit:
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>  
 
         [OUTPUT]
-          Name        stdout
-          Match       *
-
-        [OUTPUT]
             Name loki
             Match *
             Host loki-write.i3-monitoring
             Port 3100
-
-
-      labelmap.json: |-
-        {
-          "kubernetes": {
-            "container_name": "container",
-            "host": "node",
-            "labels": {
-              "app": "app",
-              "release": "release"
-            },
-            "namespace_name": "namespace",
-            "pod_name": "instance"
-          },
-          "stream": "stream"
-        }
+            auto_kubernetes_labels on
 
       parsers.conf: |-
+        [PARSER]
+            Name   apache
+            Format regex
+            Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+            Time_Key time
+            Time_Format %d/%b/%Y:%H:%M:%S %z
+
+        [PARSER]
+            Name   apache2
+            Format regex
+            Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+            Time_Key time
+            Time_Format %d/%b/%Y:%H:%M:%S %z
+
+        [PARSER]
+            Name   apache_error
+            Format regex
+            Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
+
+        [PARSER]
+            Name   nginx
+            Format regex
+            Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+            Time_Key time
+            Time_Format %d/%b/%Y:%H:%M:%S %z
+
+        [PARSER]
+            Name   json
+            Format json
+            Time_Key time
+            Time_Format %d/%b/%Y:%H:%M:%S %z
+
         [PARSER]
             Name        docker
             Format      json
             Time_Key    time
             Time_Format %Y-%m-%dT%H:%M:%S.%L
+            Time_Keep   On
+
+        [PARSER]
+            Name cri
+            Format regex
+            Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
+            Time_Key    time
+            Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+        [PARSER]
+            Name        syslog
+            Format      regex
+            Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+            Time_Key    time
+            Time_Format %b %d %H:%M:%S    
                 
 
 dhc-forwarder:
