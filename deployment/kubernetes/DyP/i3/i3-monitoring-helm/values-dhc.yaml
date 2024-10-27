@@ -1151,6 +1151,7 @@ tempo-distributed:
 
 loki:
   enabled: true
+  auth_enabled: false
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
@@ -1167,6 +1168,7 @@ loki:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   loki:
+    auth_enabled: falses
     # compactor:
     #   compaction_interval: 10m
     #   retention_delete_delay: 2h
