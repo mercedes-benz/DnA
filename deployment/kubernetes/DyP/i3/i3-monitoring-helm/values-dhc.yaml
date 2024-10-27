@@ -1167,7 +1167,7 @@ loki:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   loki:
-    auth_enabled: falses
+    auth_enabled: false
     # compactor:
     #   compaction_interval: 10m
     #   retention_delete_delay: 2h
