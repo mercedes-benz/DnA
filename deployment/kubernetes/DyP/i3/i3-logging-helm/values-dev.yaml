@@ -247,8 +247,6 @@ fluent-bit:
             Match *
             Host monitoring-loki-gateway.i3-monitoring
             Port 3100
-            Remove_keys kubernetes,stream
-            Label_map_path /fluent-bit/etc/conf/labelmap.json
             Line_Format json
 
       labelmap.json: |-
