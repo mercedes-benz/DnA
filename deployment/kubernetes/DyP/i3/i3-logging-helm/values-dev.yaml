@@ -231,14 +231,6 @@ fluent-bit:
           Logstash_Prefix kong_kubernetes_cluster
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>      
-
-        [OUTPUT]
-          Name        loki
-          Match       *
-          Host        monitoring-loki.i3-monitoring
-          Port        3100
-          Labels      job=fluentbit
-          Line_format json
                 
 
 dhc-forwarder:

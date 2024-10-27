@@ -1149,7 +1149,7 @@ tempo-distributed:
           - Ingress
 
 loki-stack:
-  enabled: true   
+  enabled: false   
   loki:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/grafana/loki  
@@ -1166,7 +1166,7 @@ loki-stack:
     isDefault: true
     persistence:
       enabled: true
-      size: 12Gi
+      size: 5Gi
       storageClassName: dhc-gp3       
     networkPolicy:
       enabled: true        
