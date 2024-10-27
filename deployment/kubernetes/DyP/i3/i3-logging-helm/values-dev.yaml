@@ -52,7 +52,7 @@ fluent-bit:
       containerPort: 24284
 
   # Info is the default log level of fluent-bit. Please note, that on setting logLevel to "DEBUG", fluent-bit puts multiple logs per second to stdout, therefore creating high cpu usage
-  logLevel: info
+  logLevel: debug
 
   networkPolicy:
     enable: true
