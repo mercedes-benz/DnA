@@ -1164,6 +1164,11 @@ loki:
     image:
       # -- Memcached Docker image repository
       repository: registry-emea.app.corpintra.net/dockerhub/memcached      
+  memcachedExporter:
+    # -- Whether memcached metrics should be exported
+    enabled: true
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter      
   loki:
     # compactor:
     #   compaction_interval: 10m
