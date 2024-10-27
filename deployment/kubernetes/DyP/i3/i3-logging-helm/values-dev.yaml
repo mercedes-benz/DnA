@@ -69,7 +69,7 @@ fluent-bit:
           HTTP_Listen 0.0.0.0
           HTTP_Port {{ .Values.service.port }}
           Health_Check On
-          
+
       [SERVICE]
           HTTP_Server    On
           HTTP_Listen    0.0.0.0
@@ -242,18 +242,14 @@ fluent-bit:
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>  
 
         [OUTPUT]
-            Name grafana-loki
+            Name loki
             Match *
-            Url http://monitoring-loki.i3-monitoring:3100/api/prom/push
-            TenantID ""
-            BatchWait 1
-            BatchSize 1048576
-            Labels {job="fluent-bit"}
-            RemoveKeys kubernetes,stream
-            AutoKubernetesLabels false
-            LabelMapPath /fluent-bit/etc/labelmap.json
+            Host monitoring-loki.i3-monitoring
+            Port 3100
+            Uri /api/prom/push
+            Remove_keys kubernetes,stream
+            Label_map_path /fluent-bit/etc/labelmap.json
             LineFormat json
-            LogLevel warn
 
       labelmap.json: |-
         {
