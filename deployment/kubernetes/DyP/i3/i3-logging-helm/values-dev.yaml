@@ -121,6 +121,14 @@ fluent-bit:
           URI                    /metrics/job/fluent-bit
           log_response_payload   true
 
+      [OUTPUT]
+          Name loki
+          Match *
+          Host monitoring-loki-gateway.i3-monitoring
+          Port 80
+          auto_kubernetes_labels on
+          labels agent=fluent-bit
+
     # extra files, which are included in config above
     extraFiles:
       input_forward.conf: |
@@ -232,21 +240,6 @@ fluent-bit:
           Logstash_Prefix kong_kubernetes_cluster
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>  
-
-        [OUTPUT]
-            Name loki
-            Match *
-            Host monitoring-loki-gateway.i3-monitoring
-            Port 80
-            auto_kubernetes_labels on
-            labels agent=fluent-bit
-            label_map_path /fluent-bit/etc/conf/logmap.json
-      
-      logmap.json: |-
-        {
-        "service": "service_name",
-        "instance_id": "instance_id"
-        }
 
       parsers.conf: |-
         [PARSER]
