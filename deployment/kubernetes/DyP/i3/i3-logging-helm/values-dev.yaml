@@ -248,6 +248,8 @@ fluent-bit:
             Host monitoring-loki-gateway.i3-monitoring
             Port 3100
             Line_Format json
+            Labels job=fluentbit
+
 
       labelmap.json: |-
         {
