@@ -852,7 +852,7 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: 20Gi
+    size: 22Gi
     storageClass: dhc-gp3
   replicas: 1
   singleNode: true
