@@ -1149,7 +1149,7 @@ tempo-distributed:
           - Ingress
 
 loki-stack:
-  enabled: false   
+  enabled: true   
   loki:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/grafana/loki  
@@ -1171,7 +1171,11 @@ loki-stack:
     networkPolicy:
       enabled: true        
     extraArgs: 
-      log.level: debug                   
+      log.level: debug 
+  fluent-bit:
+    enabled: true       
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/grafana/fluent-bit-plugin-loki                     
   promtail:
     enabled: false      
   proxy:
