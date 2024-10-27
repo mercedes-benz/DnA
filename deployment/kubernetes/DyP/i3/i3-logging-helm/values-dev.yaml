@@ -239,6 +239,14 @@ fluent-bit:
             Host monitoring-loki-gateway.i3-monitoring
             Port 80
             auto_kubernetes_labels on
+            labels agent=fluent-bit
+            label_map_path /fluent-bit/etc/conf/logmap.json
+      
+      logmap.json: |-
+        {
+        "service": "service_name",
+        "instance_id": "instance_id"
+        }
 
       parsers.conf: |-
         [PARSER]
