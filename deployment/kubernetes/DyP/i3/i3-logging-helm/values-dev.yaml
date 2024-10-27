@@ -71,15 +71,6 @@ fluent-bit:
           HTTP_Port {{ .Values.service.port }}
           Health_Check On
 
-      [SERVICE]
-          HTTP_Server    On
-          HTTP_Listen    0.0.0.0
-          HTTP_PORT      {{ .Values.service.port }}
-          Flush          1
-          Daemon         Off
-          Log_Level      {{ .Values.logLevel }}
-          Parsers_File   parsers.conf          
-
     ## See documentation/INPUT.md
     ## https://docs.fluentbit.io/manual/pipeline/inputs
     inputs: |
@@ -243,11 +234,14 @@ fluent-bit:
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>  
 
         [OUTPUT]
+          Name        stdout
+          Match       *
+
+        [OUTPUT]
             Name loki
             Match *
-            Host monitoring-loki-gateway.i3-monitoring
-            Port 80
-            Labels job=fluentbit
+            Host loki-write.i3-monitoring
+            Port 3100
 
 
       labelmap.json: |-
