@@ -246,7 +246,7 @@ fluent-bit:
             Name loki
             Match *
             Host monitoring-loki-gateway.i3-monitoring
-            Port 3100
+            Port 80
             Labels job=fluentbit
 
 
