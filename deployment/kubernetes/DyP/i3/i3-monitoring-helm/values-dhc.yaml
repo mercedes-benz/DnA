@@ -44,7 +44,7 @@ prometheus:
       fsGroup: 65534
     persistentVolume:
      storageClass: dhc-gp3
-     size: 20Gi
+     size: 25Gi
     #podLabels for adding label for network policy
     retention: "30d"
     podLabels:
@@ -958,7 +958,7 @@ grafana:
     storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
-    size: 2Gi      
+    size: 3Gi      
 
   imageRenderer:
     deploymentStrategy: 
