@@ -914,7 +914,7 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: <path:kv/data/dna/kubernetesSecret/logger#size>
+    size: 20Gi
     storageClass: dhc-gp3
   replicas: 1
   singleNode: true
