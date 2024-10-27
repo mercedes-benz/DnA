@@ -326,7 +326,7 @@ opensearch-dashboards:
 
 
             OSD_VERSION=2.11.0
-            OSD_URL=http://kibanaserver:kibanaserver@localhost:5601
+            OSD_URL=http://kibanaserver:<path:kv/data/dna/kubernetesSecret/logger#password>@localhost:5601
             wait_time=5 
             max_wait_time=300
             start_time=$(date +%s)
@@ -467,7 +467,7 @@ opensearch-dashboards:
       opensearch.hosts: ["http://i3-logging-opensearch-master:9200"]
       opensearch.ssl.verificationMode: none
       opensearch.username: kibanaserver
-      opensearch.password: kibanaserver
+      opensearch.password: <path:kv/data/dna/kubernetesSecret/logger#password>
       opensearch.requestHeadersWhitelist: [authorization, securitytenant, Authorization]
 
       opensearch_security.multitenancy.enabled: true
