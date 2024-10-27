@@ -236,8 +236,8 @@ fluent-bit:
         [OUTPUT]
             Name loki
             Match *
-            Host loki-write.i3-monitoring
-            Port 3100
+            Host monitoring-loki-gateway.i3-monitoring
+            Port 80
             auto_kubernetes_labels on
 
       parsers.conf: |-
