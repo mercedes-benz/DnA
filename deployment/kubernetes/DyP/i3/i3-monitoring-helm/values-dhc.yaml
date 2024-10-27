@@ -1173,9 +1173,7 @@ loki-stack:
     extraArgs: 
       log.level: debug 
   fluent-bit:
-    enabled: true       
-    image:
-      repository: registry-emea.app.corpintra.net/dockerhub/grafana/fluent-bit-plugin-loki                     
+    enabled: false
   promtail:
     enabled: false      
   proxy:
