@@ -239,62 +239,7 @@ fluent-bit:
           Replace_Dots On
           Logstash_Prefix kong_kubernetes_cluster
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>  
-
-      parsers.conf: |-
-        [PARSER]
-            Name   apache
-            Format regex
-            Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-            Time_Key time
-            Time_Format %d/%b/%Y:%H:%M:%S %z
-
-        [PARSER]
-            Name   apache2
-            Format regex
-            Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-            Time_Key time
-            Time_Format %d/%b/%Y:%H:%M:%S %z
-
-        [PARSER]
-            Name   apache_error
-            Format regex
-            Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
-
-        [PARSER]
-            Name   nginx
-            Format regex
-            Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-            Time_Key time
-            Time_Format %d/%b/%Y:%H:%M:%S %z
-
-        [PARSER]
-            Name   json
-            Format json
-            Time_Key time
-            Time_Format %d/%b/%Y:%H:%M:%S %z
-
-        [PARSER]
-            Name        docker
-            Format      json
-            Time_Key    time
-            Time_Format %Y-%m-%dT%H:%M:%S.%L
-            Time_Keep   On
-
-        [PARSER]
-            Name cri
-            Format regex
-            Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
-            Time_Key    time
-            Time_Format %Y-%m-%dT%H:%M:%S.%L%z
-
-        [PARSER]
-            Name        syslog
-            Format      regex
-            Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
-            Time_Key    time
-            Time_Format %b %d %H:%M:%S    
-                
+          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>              
 
 dhc-forwarder:
   # Enable user-fluentd service in `default`
@@ -326,7 +271,7 @@ opensearch-dashboards:
 
 
             OSD_VERSION=2.11.0
-            OSD_URL=http://kibanaserver:<path:kv/data/dna/kubernetesSecret/logger#password>@localhost:5601
+            OSD_URL=http://admin:<path:kv/data/dna/kubernetesSecret/logger#password>@localhost:5601
             wait_time=5 
             max_wait_time=300
             start_time=$(date +%s)
@@ -466,7 +411,7 @@ opensearch-dashboards:
         quiet: true
       opensearch.hosts: ["http://i3-logging-opensearch-master:9200"]
       opensearch.ssl.verificationMode: none
-      opensearch.username: kibanaserver
+      opensearch.username: admin
       opensearch.password: <path:kv/data/dna/kubernetesSecret/logger#password>
       opensearch.requestHeadersWhitelist: [authorization, securitytenant, Authorization]
 
