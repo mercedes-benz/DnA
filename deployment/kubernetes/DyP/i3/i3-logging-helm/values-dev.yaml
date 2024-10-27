@@ -247,7 +247,6 @@ fluent-bit:
             Match *
             Host monitoring-loki.i3-monitoring
             Port 3100
-            Uri /api/prom/push
             Remove_keys kubernetes,stream
             Label_map_path /fluent-bit/etc/conf/labelmap.json
             Line_Format json
