@@ -121,14 +121,6 @@ fluent-bit:
           URI                    /metrics/job/fluent-bit
           log_response_payload   true
 
-      [OUTPUT]
-          Name loki
-          Match *
-          Host i3-monitoring-loki-gateway.i3-monitoring
-          Port 80
-          auto_kubernetes_labels on
-          labels agent=fluent-bit
-
     # extra files, which are included in config above
     extraFiles:
       input_forward.conf: |
@@ -239,7 +231,8 @@ fluent-bit:
           Replace_Dots On
           Logstash_Prefix kong_kubernetes_cluster
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>              
+          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>                
+                
 
 dhc-forwarder:
   # Enable user-fluentd service in `default`
@@ -271,7 +264,7 @@ opensearch-dashboards:
 
 
             OSD_VERSION=2.11.0
-            OSD_URL=http://admin:<path:kv/data/dna/kubernetesSecret/logger#password>@localhost:5601
+            OSD_URL=http://kibanaserver:kibanaserver@localhost:5601
             wait_time=5 
             max_wait_time=300
             start_time=$(date +%s)
@@ -411,8 +404,8 @@ opensearch-dashboards:
         quiet: true
       opensearch.hosts: ["http://i3-logging-opensearch-master:9200"]
       opensearch.ssl.verificationMode: none
-      opensearch.username: admin
-      opensearch.password: <path:kv/data/dna/kubernetesSecret/logger#password>
+      opensearch.username: kibanaserver
+      opensearch.password: kibanaserver
       opensearch.requestHeadersWhitelist: [authorization, securitytenant, Authorization]
 
       opensearch_security.multitenancy.enabled: true
@@ -659,7 +652,7 @@ opensearch:
             description: "Admin user"
 
           kibanaserver:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "$2y$12$iw9/ne84LT9qXkj2HMceGOstSOj23KhCWsMs5jmKCSNT.iuQY6m32"
             reserved: false
             backend_roles:
             - "admin"            
