@@ -40,7 +40,7 @@ dependencies:
     condition: tempo-distributed.enabled
     version: 1.11.0
     repository: file://charts/tempo-distributed         
-  - name: loki-stack
-    condition: loki-stack.enabled
-    version: 2.10.2
-    repository: file://charts/loki-stack      
+  - name: loki
+    condition: loki.enabled
+    version: 3.2.0
+    repository: file://charts/loki      

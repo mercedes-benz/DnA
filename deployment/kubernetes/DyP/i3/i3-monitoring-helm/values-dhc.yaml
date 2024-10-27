@@ -1148,31 +1148,20 @@ tempo-distributed:
         policyTypes:
           - Ingress
 
-loki-stack:
-  enabled: true   
-  loki:
+
+loki:
+  enabled: true
+  global:
     image:
-      repository: registry-emea.app.corpintra.net/dockerhub/grafana/loki  
-    config:
-      compactor:
-        compaction_interval: 10m
-        retention_delete_delay: 2h
-        retention_delete_worker_count: 150
-        retention_enabled: true
-        working_directory: /data/retention
-      limits_config:
-        retention_period: 72h
-    enabled: true
-    isDefault: true
-    persistence:
-      enabled: true
-      size: 5Gi
-      storageClassName: dhc-gp3       
-    networkPolicy:
-      enabled: true        
-    extraArgs: 
-      log.level: debug 
-  fluent-bit:
-    enabled: false
-  promtail:
-    enabled: false      
+      registry: registry-emea.app.corpintra.net/dockerhub  
+  loki:
+    compactor:
+      compaction_interval: 10m
+      retention_delete_delay: 2h
+      retention_delete_worker_count: 150
+      retention_enabled: true
+      working_directory: /data/retention
+    limits_config:
+      retention_period: 72h   
+  networkPolicy:
+    enabled: true             
