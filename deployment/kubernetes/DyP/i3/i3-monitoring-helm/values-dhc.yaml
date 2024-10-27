@@ -1151,7 +1151,6 @@ tempo-distributed:
 
 loki:
   enabled: true
-  auth_enabled: false
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
