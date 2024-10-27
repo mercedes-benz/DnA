@@ -124,7 +124,7 @@ fluent-bit:
       [OUTPUT]
           Name loki
           Match *
-          Host monitoring-loki-gateway.i3-monitoring
+          Host i3-monitoring-loki-gateway.i3-monitoring
           Port 80
           auto_kubernetes_labels on
           labels agent=fluent-bit
