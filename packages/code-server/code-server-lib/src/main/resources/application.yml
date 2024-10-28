@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.2.7
+    version: 1.2.9
   profile:
     active: production
 
@@ -93,7 +93,10 @@ codeServer:
   recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
   run.init: ${RUN_INIT_POST_CONSTRUCT:YOUR_INIT_POST_CONSTRUCT_BOOLEAN}
+  run.collab.admin: ${RUN_COLLAB_ADMIN:YOUR_COLLAB_BOOLEAN}
+  collab.pid: ${COLLAB_PID:YOUR_COLLAB_PID}
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
+  codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -170,6 +173,14 @@ kong:
    authoriserRedirectAfterLogoutUri: ${AUTHORISER_REDIRECT_AFTER_LOGOUT_URI:XXXX}
    authoriserDiscovery: ${AUTHORISER_DISCOVERY:XXXX}
    authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
+   preFunctionBackendFileName: ${PRE_FUNCTION_BACKEND_FILE_NAME:XXXX}
+   postFunctionFrontendFileName: ${POST_FUNCTION_FRONTEND_FILE_NAME:XXXX}
+   preFunctionFrontendFileName: ${PRE_FUNCTION_FRONTENDFILE_NAMEVALUE:XXXX}
+   functionPluginGitUrl: ${FUNCTION_PLUGINS_GIT_URL:XXXX}
+   functionPluginsFolderPath : ${FUNCTION_PLUGIN_FOLDER_PATH:XXXX}
+   requestTransformerPluginRemoveHeaders : ${REQUEST_TRANSFORMER_PLUGIN_REMOVE_HEADERS:XXXX}
+   accessTokenHeaderName :  ${ACCESS_TOKEN_HEADER_NAME:XXXX}
+   accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
