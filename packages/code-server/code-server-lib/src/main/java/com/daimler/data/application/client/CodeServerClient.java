@@ -236,7 +236,7 @@ public class CodeServerClient {
 				return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
 			}
 		}catch(Exception e){
-			LOGGER.error("error occured while creating user in hub :{} " e.getMessage())
+			LOGGER.error("error occured while creating user in hub :{} ", e.getMessage());
 		}
 		return false;
 	}
