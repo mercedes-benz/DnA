@@ -205,18 +205,9 @@
         outline: none;
         width: 200px;
         opacity: 1;
-        transition: opacity 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
-        visibility: visible;
       
         &::placeholder {
           color: #697582;
-        }
-      
-        &.hide {
-          opacity: 0;
-          visibility: hidden;
-          transition: visibility 0ms;
-          transition-delay: 100ms;
         }
       }
       .searchIcon{
