@@ -261,7 +261,17 @@ jobs:
   sonar-qube-gradle:
     name: Sonar Qube Scan Gradle
     needs: deploy
-    if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' }}
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' || 
+          github.event.inputs.projectName == 'ffclers-wbv-tts-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-jbb-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-ri-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-si-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-generic-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-supplier-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-supplier-jbb-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-ext-ri-be-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-ext-si-be-prd' }}
     runs-on: [ os-medium-amd64-linux ]
     steps:
       - uses: actions/checkout@v3
@@ -308,7 +318,14 @@ jobs:
   sonar-qube-js:
     name: Sonar Qube Scan Javascript
     needs: deploy
-    if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' }}
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' || 
+          github.event.inputs.projectName == 'ffclers-wbv-home-fe-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-tts-fe-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-jbb-fe-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-ri-fe-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-si-fe-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-supplier-fe-prd' || 
+          github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe-prd' }}
     runs-on: [ os-medium-amd64-linux ]
     steps:
       - name: Check user repo
