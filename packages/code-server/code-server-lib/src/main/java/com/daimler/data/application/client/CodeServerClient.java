@@ -176,8 +176,8 @@ public class CodeServerClient {
 				}
 			}else{
 				LOGGER.error(
-					"Error occurred while calling codeServer create for user {} and action {} with exception: {}",
-					userId, manageDto.getInputs().getAction(), e.getMessage());
+					"Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
+					userId, manageDto.getInputs().getAction());
 			}
 			
 		} catch (Exception e) {
