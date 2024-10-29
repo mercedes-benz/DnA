@@ -4,6 +4,7 @@ prometheus:
   fullnameOverride: "prometheus"
   # See values of upstream chart for details: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
   alertmanager:
+    fullnameOverride: "prometheus-alertmanager"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/alertmanager
     # Adjust securityContext for non-root
@@ -33,6 +34,7 @@ prometheus:
   prometheus-node-exporter:
     enabled: false
   server:
+    fullname: "prometheus-server"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
@@ -732,6 +734,7 @@ prometheus:
   ### END autoload all alert configmaps
   prometheus-pushgateway:
     enabled: true
+    fullnameOverride: "prometheus-pushgateway"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/pushgateway
     # Adjust securityContext for non-root
