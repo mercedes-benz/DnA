@@ -34,7 +34,7 @@ prometheus:
   prometheus-node-exporter:
     enabled: false
   server:
-    fullname: "prometheus-server"
+    fullnameOverride: "prometheus-server"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
