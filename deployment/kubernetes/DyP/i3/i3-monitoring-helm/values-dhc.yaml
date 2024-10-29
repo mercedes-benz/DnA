@@ -1,6 +1,7 @@
 # Adjust values of prometheus Chart to run in DHC CaaS
 prometheus:
   enabled: true
+  fullnameOverride: "prometheus"
   # See values of upstream chart for details: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
   alertmanager:
     image:
@@ -764,6 +765,7 @@ prometheus:
 # Adjust values of grafana Chart to run in DHC CaaS
 grafana:
   enabled: true
+  fullnameOverride: "grafana"
   # See values of upstream chart for details: https://github.com/grafana/helm-charts/tree/main/charts/grafana
   image:
     registry: registry-emea.app.corpintra.net
@@ -1034,6 +1036,7 @@ i3-dashboards:
   enabled: true
 prom2teams:
   enabled: true
+  fullnameOverride: "prom2teams"
   image:
     repository: registry-emea.app.corpintra.net/dockerhub/idealista/prom2teams
     tag: 4.2.1
@@ -1152,6 +1155,7 @@ tempo-distributed:
 
 loki:
   enabled: true
+  fullnameOverride: "loki"
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
