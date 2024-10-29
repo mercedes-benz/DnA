@@ -1176,7 +1176,8 @@ loki:
     #   retention_enabled: true
     #   working_directory: /data/retention
     limits_config:
-      retention_period: 72h            
+      retention_period: 72h   
+      max_streams_per_user: 100000         
     commonConfig:
       replication_factor: 3
     schemaConfig:
