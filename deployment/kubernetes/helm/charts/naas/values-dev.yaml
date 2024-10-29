@@ -4,7 +4,7 @@ app:
   backend:
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: '126'
+      tag: '613'
     replicaCount: 1
     secrets:
       name: naas-app-secrets
