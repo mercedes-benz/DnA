@@ -123,8 +123,7 @@ jobs:
         docker build \
           -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} \
           -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
-        if [ ${{github.ref_name}} == main ]
-        then
+        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
           docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:latest
         fi           
@@ -136,8 +135,7 @@ jobs:
     - name: Publish application containers to registry
       run: |
         docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}
-        if [ ${{github.ref_name}} == main ]
-        then
+        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
           docker push ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker push ${{ inputs.IMAGE_NAME }}:latest
         fi          
