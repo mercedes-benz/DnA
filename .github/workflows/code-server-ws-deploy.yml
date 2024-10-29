@@ -262,16 +262,26 @@ jobs:
     name: Sonar Qube Scan Gradle
     needs: deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-backend' || 
-          github.event.inputs.projectName == 'ffclers-wbv-tts-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-jbb-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-ri-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-si-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-generic-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-supplier-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-supplier-jbb-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-ext-ri-be-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-ext-si-be-prd' }}
+              github.event.inputs.projectName == 'ffclers-wbv-tts-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-jbb-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ri-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-si-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-generic-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-supplier-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-supplier-jbb-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-ri-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-si-be-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-tts-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-jbb-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ri-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-si-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-generic-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-supplier-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-supplier-jbb-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-ri-be' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-si-be' }}
     runs-on: [ os-medium-amd64-linux ]
     steps:
       - uses: actions/checkout@v3
@@ -319,13 +329,20 @@ jobs:
     name: Sonar Qube Scan Javascript
     needs: deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' || 
-          github.event.inputs.projectName == 'ffclers-wbv-home-fe-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-tts-fe-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-jbb-fe-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-ri-fe-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-si-fe-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-supplier-fe-prd' || 
-          github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe-prd' }}
+              github.event.inputs.projectName == 'ffclers-wbv-home-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-tts-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-jbb-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ri-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-si-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-supplier-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe-prd' || 
+              github.event.inputs.projectName == 'ffclers-wbv-home-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-tts-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-jbb-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ri-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-si-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-supplier-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe' }}
     runs-on: [ os-medium-amd64-linux ]
     steps:
       - name: Check user repo
