@@ -1208,6 +1208,7 @@ loki:
 
 fluent-bit:
   enabled: true     
+  fullnameOverride: "fluent-bit"
   # the labels are required by OpenSearch networkPolicy to enable access to OpenSearch
   labels:
     i3-logging-opensearch-master-transport-client: "true"
