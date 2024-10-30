@@ -44,3 +44,8 @@ dependencies:
     condition: loki.enabled
     version: 3.2.0
     repository: file://charts/loki      
+  - name: fluent-bit
+    condition: fluent-bit.enabled
+    version: 0.47.10
+    repository: file://charts/fluent-bit      
+

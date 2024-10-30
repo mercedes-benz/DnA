@@ -291,3 +291,5 @@ prom2teams:
     extraEnv: {}
 loki:
   enabled: false    
+fluent-bit:
+  enabled: false     
