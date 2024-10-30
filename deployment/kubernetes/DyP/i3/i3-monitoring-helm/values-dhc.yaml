@@ -1176,14 +1176,8 @@ loki:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   loki:
     auth_enabled: false
-    # compactor:
-    #   compaction_interval: 10m
-    #   retention_delete_delay: 2h
-    #   retention_delete_worker_count: 150
-    #   retention_enabled: true
-    #   working_directory: /data/retention
     limits_config:
-      retention_period: 72h   
+      retention_period: 48h   
       max_streams_per_user: 100000         
     commonConfig:
       replication_factor: 3
