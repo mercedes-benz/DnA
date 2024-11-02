@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: authdb
+DBName: kong
 
 ## Configure S3 properties if S3 storage will be used
 ##
