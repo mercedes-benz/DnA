@@ -145,7 +145,7 @@ walArchiving:
       storageClass: dhc-backup-nfs
   s3:
     ## Configuration for S3 storage
-    subfolder: postgresql-cluster
+    subfolder: dev-db-backups
     ## fill in the bucket name you have ordered!
     bucketName: <path:kv/data/dna/kubernetesSecret/dnadb#bucketName>
 
@@ -290,6 +290,7 @@ decryptBackupWal:
 backup:
   enabled: true
   successfulJobsHistoryLimit: "1"
+
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
   storage: s3
