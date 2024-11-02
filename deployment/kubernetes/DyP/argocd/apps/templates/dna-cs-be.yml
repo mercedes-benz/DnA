@@ -5,7 +5,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-dna-code-server-backend
+  name: {{ .Values.env }}-dna-codespace-backend
   namespace: {{ .Values.namespace }}
   labels:
     name: backend
@@ -13,14 +13,14 @@ metadata:
     project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: {{ .Values.env }}-dna-code-server
+    namespace: {{ .Values.env }}-dna-cs
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/code-server-backend
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: code-server-be
+      releaseName: cs-be
       valueFiles:
         - values-{{ .Values.env }}.yaml
   project: {{ .Values.env }}-dna
