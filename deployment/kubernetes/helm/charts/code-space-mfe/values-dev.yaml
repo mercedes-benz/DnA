@@ -1,8 +1,8 @@
 namespace: dev-dna-cs
 configJs: |
   window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
-    CONTAINER_APP_URL: "https://dev.dna.app.corpintra.net",
-    API_BASEURL: "https://dev.dna.app.corpintra.net/api",
+    CONTAINER_APP_URL: "https://dna-aws.app.corpintra.net",
+    API_BASEURL: "https://dna-aws.app.corpintra.net/api",
     CODE_SPACE_API_BASEURL: "",
   };
 replicaCount: 1
@@ -31,13 +31,13 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: cs.dev.dna.app.corpintra.net
+    - host: cs.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - cs.dev.dna.app.corpintra.net
+        - cs.dna-aws.app.corpintra.net
       secretName: code-space-tls-secret
 resources:
   limits:
