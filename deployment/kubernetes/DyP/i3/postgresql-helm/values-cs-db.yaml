@@ -342,9 +342,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: true
+  createRestoreJob: false
   ## whether to create the list backup job or not
-  createListBackupJob: true
+  createListBackupJob: false
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -368,7 +368,7 @@ restore:
   recoveryFile: jupyterhub-backup-2024-11-02_11-26-02.tar.zs
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -409,7 +409,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: false
+  enabled: true
 
 pgmonitoring:
   enabled: true
