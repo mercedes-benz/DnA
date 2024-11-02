@@ -82,9 +82,9 @@ spec:
       volumes:
         - name: {{ .Release.Name }}-configmap-ngnix
           configMap:
-            name: {{ .Release.Name }}-configmap 
+            name: {{ .Release.Name }}
         {{- if not .Values.vaultInjector.enable }}        
         - name: {{ .Release.Name }}-configmap-configjs
           configMap:
-            name: {{ .Release.Name }}-configmap  
+            name: {{ .Release.Name }}  
         {{- end }}                    
