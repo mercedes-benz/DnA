@@ -882,7 +882,7 @@ ingress:
     kubernetes.io/ingress.class: ingress-traefik
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: dev-dna-cs-redirect-dna-cs@kubernetescrd, default-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: dev-dna-cs-workspaces-redirect-dna-cs@kubernetescrd, default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
   ingressClassName:
   pathSuffix: hub
