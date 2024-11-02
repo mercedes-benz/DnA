@@ -245,7 +245,7 @@ service:
 persistence:
   enabled: true
   size: <path:kv/data/dna/kubernetesSecret/dnadb#size>
-  # storageClass: dhc-gp3
+  storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
