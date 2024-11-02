@@ -1,4 +1,4 @@
-namespace: prod-dna-dna
+namespace: prod-dna
 imagePullSecret:
   name: imagepullsecret
 ingress:

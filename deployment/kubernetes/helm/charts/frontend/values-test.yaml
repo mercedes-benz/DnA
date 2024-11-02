@@ -1,4 +1,4 @@
-namespace: test-dna-dna
+namespace: test-dna
 imagePullSecret:
   name: imagepullsecret
 ingress:

@@ -1,4 +1,4 @@
-namespace: dev-dna-dna
+namespace: dev-dna
 imagePullSecret:
   name: imagepullsecret
 ingress:
