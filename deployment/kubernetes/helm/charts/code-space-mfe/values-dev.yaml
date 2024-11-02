@@ -1,4 +1,4 @@
-namespace: dev-dna-cs
+namespace: dev-dna-cs-workspaces
 configJs: |
   window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
     CONTAINER_APP_URL: "https://dna-aws.app.corpintra.net",

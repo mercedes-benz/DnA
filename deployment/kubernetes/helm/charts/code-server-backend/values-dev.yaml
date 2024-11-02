@@ -1,5 +1,5 @@
 replicaCount: 1
-namespace: dev-dna-cs
+namespace: dev-dna-cs-workspaces
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
