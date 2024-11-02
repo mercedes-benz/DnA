@@ -365,7 +365,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: jupyterhub-backup-2024-11-02_11-26-02.tar.zs
+  recoveryFile: jupyterhub-backup-2024-11-02_11-26-02.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
