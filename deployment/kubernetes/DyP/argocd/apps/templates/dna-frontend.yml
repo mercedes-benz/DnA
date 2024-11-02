@@ -20,7 +20,7 @@ spec:
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: dna
+      releaseName: dna-frontend
       valueFiles:
         - values-{{ .Values.env }}.yaml
   project: {{ .Values.env }}-dna
