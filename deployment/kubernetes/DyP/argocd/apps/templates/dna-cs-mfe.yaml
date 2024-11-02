@@ -5,7 +5,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-dna-codespace-frontend
+  name: {{ .Values.env }}-dna-cs-frontend
   namespace: {{ .Values.namespace }}
   labels:
     name: frontend 
