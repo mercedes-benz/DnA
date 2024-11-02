@@ -13,7 +13,8 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-nameOverride: "postgresql"
+fullnameOverride: "dna-db"
+# nameOverride: "postgresql"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -409,7 +410,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: true
+  enabled: false
 
 pgmonitoring:
   enabled: true

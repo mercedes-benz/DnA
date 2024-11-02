@@ -1,4 +1,4 @@
-namespace: prod-dna-code-server
+namespace: prod-dna-cs
 configJs: |
   window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
     CONTAINER_APP_URL: "https://dna.app.corpintra.net",
@@ -14,7 +14,7 @@ image:
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
-fullnameOverride: codespace-mfe
+fullnameOverride: cs-mfe
 podSecurityContext:
   runAsUser: 1001
 containerPort: 4000

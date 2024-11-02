@@ -13,7 +13,7 @@ metadata:
     project: {{ .Values.env }}-dna 
 spec:
   destination:
-    namespace: {{ .Values.env }}-dna-cs
+    namespace: {{ .Values.env }}-dna-cs-workspaces
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/code-space-mfe

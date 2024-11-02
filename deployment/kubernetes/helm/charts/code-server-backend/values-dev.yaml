@@ -1,5 +1,5 @@
 replicaCount: 1
-namespace: dev-dna-code-server
+namespace: dev-dna-cs
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
@@ -7,7 +7,7 @@ image:
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
-fullnameOverride: code-server-backend
+fullnameOverride: cs-be
 serviceAccount:
   create: false
   annotations: {}

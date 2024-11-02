@@ -1,3 +1,4 @@
+{{- if ne .Values.env "prod" }}  
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,25 +6,25 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-dna-cs
+  name: {{ .Values.env }}-dna-cs-hub-db
   namespace: {{ .Values.namespace }}
   labels:
-    name: service
+    name: db
     env: {{ .Values.env }}
-    project: {{ .Values.env }}-dna  
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: {{ .Values.env }}-dna-cs
+    namespace: {{ .Values.env }}-dna-cs-workspaces
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/jupyterhub-codeserver
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
-        - name: HELM_ARGS
-          value: --namespace {{ .Values.env }}-dna-cs -f values-{{ .Values.env }}.yaml                     
+        - name: HELM_ARGS  
+          value: -f values-cs-db.yaml --set namespace={{ .Values.env }}-dna-cs-workspaces
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
@@ -33,4 +34,6 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}
+{{- end }} 
