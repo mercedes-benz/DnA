@@ -8,7 +8,7 @@ spec:
   {{- if typeIs "int" .Values.hub.revisionHistoryLimit }}
   revisionHistoryLimit: {{ .Values.hub.revisionHistoryLimit }}
   {{- end }}
-  replicas: {{ .Values.hub.replicas }}
+  replicas: 2
   selector:
     matchLabels:
       {{- include "jupyterhub.matchLabels" . | nindent 6 }}

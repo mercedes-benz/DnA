@@ -33,7 +33,6 @@ imagePullSecrets:
 # the proxy pod.
 hub:
   revisionHistoryLimit:
-  replicas: 2
   config:
     Authenticator:
       admin_users:
