@@ -3,7 +3,7 @@ namespace: dev-dna-kong
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/authenticator-service
   pullPolicy: IfNotPresent
-  tag: '399'
+  tag: '671'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
