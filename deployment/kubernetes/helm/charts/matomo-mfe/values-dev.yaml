@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-mfe
   pullPolicy: IfNotPresent
-  tag: '9e71e59f06fc27d30cb6724bbab79bb6897dd110'
+  tag: '1.0.1'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
