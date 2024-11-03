@@ -32,6 +32,7 @@ imagePullSecrets: []
 # the proxy pod.
 hub:
   revisionHistoryLimit:
+  replicas: 1
   config:
     JupyterHub:
       admin_access: true
