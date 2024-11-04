@@ -884,7 +884,7 @@ grafana:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: "http://prometheus-server.{{ .Release.NameSpace }}.svc.cluster.local"
+        url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
         isDefault: true
         basic_auth: false
 
@@ -892,7 +892,7 @@ grafana:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: "http://prometheus-server.{{ .Release.NameSpace }}.svc.cluster.local"
+        url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
         isDefault: true
         basic_auth: false
         orgId: 2
@@ -900,7 +900,7 @@ grafana:
       - name: Alertmanager
         type: alertmanager
         access: proxy
-        url: "http://alertmanager.{{ .Release.NameSpace }}.svc.cluster.local:9093"
+        url: "http://prometheus-alertmanager.{{ .Release.Namespace }}.svc.cluster.local:9093"
         jsonData:
           # Valid options for implementation include mimir, cortex and prometheus
           implementation: prometheus
