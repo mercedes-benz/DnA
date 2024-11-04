@@ -321,12 +321,12 @@ function Lakehouses({ workspace, lakehouses }) {
       <div className={Styles.lakehouseContainer}>
         <div className={Styles.header}>
           <h3>Lakehouses</h3>
-          <div className={Styles.btnContainer}>
+          {/* <div className={Styles.btnContainer}>
             <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => setShowCreateLakehouseModal(true)}>
               <i className="icon mbc-icon plus" />
               <span>Create Lakehouse</span>
             </button>
-          </div>
+          </div> */}
         </div>
         {lakehouses?.length === 0 &&
           <div className={Styles.noLakehouse}>
@@ -337,7 +337,10 @@ function Lakehouses({ workspace, lakehouses }) {
           {lakehouses?.length > 0 && lakehouses?.map((lakehouse) =>
             <div key={lakehouse?.id} className={Styles.lakehouse}>
               <h4>
-                <span>{lakehouse?.name} {lakehouse?.sensitivityLabel !== workspace?.dataClassification && <i className="icon mbc-icon info" tooltip-data={'Sensitivity label for lakehouse is not set or\nset higher than Workspace Data Classification. Please update.'} />}</span>
+                <span>
+                  {lakehouse?.name} 
+                  {/* {lakehouse?.sensitivityLabel !== workspace?.dataClassification && <i className="icon mbc-icon info" tooltip-data={'Sensitivity label for lakehouse is not set or\nset higher than Workspace Data Classification. Please update.'} />} */}
+                </span>
                 <button className={classNames('btn', Styles.deleteBtn)} onClick={() => setShowDeleteModal(true)}>
                   <i className="icon delete" />
                 </button>
@@ -388,7 +391,7 @@ function Lakehouses({ workspace, lakehouses }) {
           buttonAlignment="right"
           show={showCreateShortcutModal}
           content={<CreateShortcutModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
-          scrollableContent={true}
+          scrollableContent={false}
           onCancel={() => { setShowCreateShortcutModal(false) }}
         />
       }
