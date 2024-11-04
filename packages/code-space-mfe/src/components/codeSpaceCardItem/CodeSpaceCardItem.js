@@ -25,6 +25,8 @@ import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
 import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
+import { marked } from 'marked';
+import { Envs } from '../../Utility/envs';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -78,6 +80,9 @@ const CodeSpaceCardItem = (props) => {
   const prodWrapperRef = useRef(null);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
+  const [showReadMeModal, setShowReadMeModal] = useState(false);
+  const [readMeContent, setReadMeContent] = useState('');
+  const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
 
   useEffect(() => {
 
@@ -213,6 +218,28 @@ const CodeSpaceCardItem = (props) => {
     }
   };
 
+  const getReadMeFile = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getReadMeFile(codeSpace?.workspaceId)
+      .then((res) => {
+        ProgressIndicator.hide();
+        let htmlContent = '';
+        if(res.status === 200){
+          const base64Data = atob(res.data.file);
+          const decodedText = atob(base64Data);
+          htmlContent = marked(decodedText);
+          setReadMeContent(htmlContent);
+          setShowReadMeModal(true);
+        }else{
+          Notification.show('No content found', 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('something went wrong' + err.message, 'alert');
+      });
+  };
+
   const onRetryCreateClick = () => {
     props.onShowCodeSpaceOnBoard(codeSpace, true);
   };
@@ -278,13 +305,13 @@ const CodeSpaceCardItem = (props) => {
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? intDeploymentDetails?.lastDeployedOn
         : intDeploymentDetails?.deploymentAuditLogs &&
             intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
@@ -292,13 +319,13 @@ const CodeSpaceCardItem = (props) => {
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? prodDeploymentDetails?.lastDeployedOn
         : prodDeploymentDetails?.deploymentAuditLogs &&
             prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
@@ -1065,6 +1092,11 @@ const CodeSpaceCardItem = (props) => {
                       <IconGear size={'18'} />
                     </button>
                   )}
+                {enableReadMe && (
+                  <button className="btn btn-primary" onClick={() =>  getReadMeFile()}>
+                    <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
+                  </button>
+                )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
@@ -1122,6 +1154,21 @@ const CodeSpaceCardItem = (props) => {
         onCancel={deleteCodeSpaceClose}
         onAccept={deleteCodeSpaceAccept}
       />
+
+      {showReadMeModal && (
+        <Modal
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showReadMeModal}
+          content={ <div dangerouslySetInnerHTML={{ __html: readMeContent }} />}
+          scrollableContent={true}
+          onCancel={() => setShowReadMeModal(false)}
+          modalStyle={{
+            width: '90%',
+            maxHeight: '90%',
+          }}
+        />
+      )}
 
       {showDoraMetricsModal && (
         <Modal

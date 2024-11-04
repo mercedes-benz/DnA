@@ -334,7 +334,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				
 				LOGGER.info("finished reading response from mc list buckets");
-				
+								
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				LOGGER.debug("Policies data from minio to update cache is {} ", data);
 				McListBucketCollectionDto listBucketCollectionDto = mapper.readValue(data, McListBucketCollectionDto.class);
@@ -670,6 +670,52 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					minioObjectResponse.setObjects(objects);
 				}
 			}
+		return minioObjectResponse;
+	}
+	
+	@Override
+	public MinioGenericResponse setBucketPublicDownloadUsingMc(String bucketName, boolean isEnablePublicAccess) {
+		MinioGenericResponse minioObjectResponse = new MinioGenericResponse();
+		try{
+			boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+			ProcessBuilder firstBuilder = new ProcessBuilder();
+			String env = "storagebeminioclient";
+			String flag = "--insecure";
+			if(isEnablePublicAccess){
+				String firstCommand = "mc anonymous set download " + env + "/" + bucketName +" "+ flag; 
+				if (isWindows) {
+					firstBuilder = new ProcessBuilder("cmd.exe", "/c", firstCommand);
+				} else {
+					firstBuilder = new ProcessBuilder(storageMCcommandKey, "-c", firstCommand);
+				}
+				Process p = firstBuilder.start();
+				LOGGER.info("Started mc command to set public download access to contents of the bucket");
+				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				LOGGER.info("mc command to set public download access to the contents of bucket was executed and output is {}",r.readLine());
+				r.close();
+				p.destroy();
+			}else{
+				String firstCommand = "mc anonymous set none " + env + "/" + bucketName + " " + flag; 
+				if (isWindows) {
+					firstBuilder = new ProcessBuilder("cmd.exe", "/c", firstCommand);
+				} else {
+					firstBuilder = new ProcessBuilder(storageMCcommandKey, "-c", firstCommand);
+				}
+				Process p = firstBuilder.start();
+				LOGGER.info("Started mc command to set default access to contents of the bucket");
+				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				LOGGER.info("mc command to set default access to the contents of bucket was executed and output is {}",r.readLine());
+				r.close();
+				p.destroy();
+			}
+			minioObjectResponse.setHttpStatus(HttpStatus.OK);
+			minioObjectResponse.setStatus(ConstantsUtility.SUCCESS);
+
+		} catch(Exception e) {
+			LOGGER.error("Error in setting public download access to the bucket {} ",bucketName,e.getMessage());
+			minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
+			minioObjectResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		return minioObjectResponse;
 	}
 	
