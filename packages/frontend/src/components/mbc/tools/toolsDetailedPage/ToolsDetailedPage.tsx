@@ -3,8 +3,10 @@ import Styles from './ToolsDetailedPage.scss'
 import Breadcrumb from './breadcrumb/BreadCrumb'
 import { getParams } from '../../../../router/RouterUtils';
 import { ToolsPageImagesInfo } from 'globals/constants';
-import ToolsDetailedPageElements from './toolDetaliedPageInfo.json';
+import { ToolsDetailedPageElements } from './toolDetaliedPageInfo';
 import { history } from '../../../../router/History';
+import { markdownParser } from '../../../../utils/MarkdownParser';
+import SubscriptionCard from './SubscriptionCard/SubscriptionCard'
 
 export interface IData {
   id?: string;
@@ -43,27 +45,47 @@ const InfoTile = (props: any) => {
   const item = { ...props.item };
   return (
     <div className={Styles.infoTile}>
-      <div className={Styles.serviceInfo}>
-        <i className={`icon mbc-icon ${item.icon}`} />
-        <div className={Styles.infoDescription}>
-          <h3>{item.name}</h3>
-          <h5>{item.description}</h5>
-          {item.links && (<div className={Styles.infoLinks}>
-            {item.links.map((item: any, key: any) => {
-              return <a href={item.link} target="_blank" rel="noreferrer" key={key}>
-                {item.title}
-              </a>
-            })}
-          </div>)}
-          {item.info && (<div className={Styles.infoContent}>
-            {item.info.map((item: any, key: any) => {
-              return (<h3 key={key}>
-                {item}
-              </h3>)
-            })}
-          </div>)}
-        </div>
-      </div>
+      {item.name !== 'classification' ? (
+        <div className={Styles.serviceInfo}>
+          <i className={`icon mbc-icon ${item.icon}`} />
+          <div className={Styles.infoDescription}>
+            <h3>{item.name}</h3>
+            <h5>{item.description}</h5>
+            {item.info && (
+              <div className={Styles.infoContent}>
+                {item.info.map((item: any, key: any) => {
+                  return (<p key={key}>
+                    {item}
+                  </p>)
+                })}
+              </div>)
+            }
+            {item.links && (
+              <div className={Styles.infoLinks}>
+                {item.links.map((item: any, key: any) => {
+                  return <a href={item.link} target="_blank" rel="noreferrer" key={key}>
+                    {item.title}
+                  </a>
+                })}
+              </div>)
+            }
+            {item.moreBtn && (
+              <div className={Styles.moreBtn}>
+                <button onClick={() => {localStorage.setItem('modal', 'tou'); history.push('/powerplatform')}}>More</button>
+              </div>
+            )}
+          </div>
+        </div>) : 
+        <>
+          <div className={Styles.serviceInfo}>
+            <h3>classification</h3>
+            <div className={Styles.classIcon}>
+              <i className={`icon mbc-icon sec`} />
+              <h4>{item.type}</h4>
+            </div>
+          </div>
+        </>
+      }
     </div>
   )
 }
@@ -85,7 +107,7 @@ const AccessSteps = (props: any) => {
             </label>
             <div className="expansion-panel-content">
               <div className={Styles.expansionnPanelContent}>
-                <h5>{item.info}</h5>
+                <h5  dangerouslySetInnerHTML={{ __html: markdownParser(item.info) }}/>
               </div>
             </div>
           </div>
@@ -154,21 +176,32 @@ const ToolsDetailedPage = (IData: any) => {
             </div>
           </div>
           <div className={Styles.contentSection}>
-            <h4>Use Cases</h4>
-            <div className={Styles.portHeader}>
-              {pageDetails.useCases && (
-                pageDetails.useCases.map((item: any, key: any) =>
-                  <UseCaseTile item={item} key={key} />
-                )
-              )}
-            </div>
+            {pageDetails?.hasSubcription && (
+              <>
+                <SubscriptionCard />
+                <p className={Styles.note}><sup>*</sup>Please be advised that the licensing cost may incur additional expenses.</p>
+              </>
+            )}
           </div>
-          <div className={Styles.contentSection}>
+          {pageDetails.useCases && (
+            <div className={Styles.contentSection}>
+              <h4>Use Cases</h4>
+              <div className={Styles.portHeader}>
+                {pageDetails.useCases && (
+                  pageDetails.useCases.map((item: any, key: any) =>
+                    <UseCaseTile item={item} key={key} />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {pageDetails.toolPipeLine && (<div className={Styles.contentSection}>
             <h4>Tool Pipeline</h4>
             <div className={Styles.portHeader}>
               <div className={Styles.toolPipeLine}>
                 <div className={Styles.pipeLineWrapper}>
-                <img className={Styles.pipeLineImage} src={pipeLineImage}></img>
+                  <img className={Styles.pipeLineImage} src={pipeLineImage}></img>
                 </div>
                 <div className={Styles.pipeLineDescription}>
                   {pageDetails.toolPipeLine?.description && (
@@ -179,26 +212,29 @@ const ToolsDetailedPage = (IData: any) => {
                     )
                   )}
                   <h4>Connected To</h4>
-                  {pageDetails.toolPipeLine?.connectedTO && (
-                    pageDetails.toolPipeLine.connectedTO.map((value: any, key: any) => {
-                      return (
-                        <div className={Styles.connectedToList} key={key}>
-                          {/* <button
+                  <div className={Styles.connectionWrapper}>
+                    {pageDetails.toolPipeLine?.connectedTO && (
+                      pageDetails.toolPipeLine.connectedTO.map((value: any, key: any) => {
+                        return (
+                          <div className={Styles.connectedToList} key={key}>
+                            {/* <button
                           className={Styles.connectButton}
                           type="button"
                         > */}
-                          <i className={`icon mbc-icon ${value.icon}`} />
-                          <h5>{value.title}</h5>
-                          {/* </button> */}
+                            <i className={`icon mbc-icon ${value.icon}`} />
+                            <h5>{value.title}</h5>
+                            {/* </button> */}
 
-                        </div>
-                      )
-                    })
-                  )}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </div>)}
+
           <div className={Styles.contentSection}>
             <div className={Styles.portHeader}>
               {pageDetails.info && (pageDetails.info.map((item: any, key: any) =>
@@ -208,14 +244,14 @@ const ToolsDetailedPage = (IData: any) => {
           </div>
           <div className={Styles.contentSection}>
             <div className={Styles.portHeader}>
-              <div className={Styles.classificationSection}>
+              {pageDetails?.classification && (<div className={Styles.classificationSection}>
                 <h3>classification</h3>
                 <div className={Styles.classificationIcon}>
                   <i className={`icon mbc-icon sec`} />
                   <h4>{pageDetails.classification}</h4>
                 </div>
-              </div>
-              <div className={Styles.accessSection}>
+              </div>)}
+              {pageDetails?.accessSteps && (<div className={Styles.accessSection}>
                 <div className={Styles.serviceInfo}>
                   <div className={Styles.serviceIcon}>
                     <i className={`icon mbc-icon portfolio`} />
@@ -230,7 +266,7 @@ const ToolsDetailedPage = (IData: any) => {
                     )
                   )}
                 </div>
-              </div>
+              </div>)}
             </div>
           </div>
         </div>
@@ -239,7 +275,7 @@ const ToolsDetailedPage = (IData: any) => {
       </div>
       <div className={Styles.stickyPanel}>
         <div className={Styles.navButton}>
-          <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>Open in Browser</button>
+          <button className={'btn btn-tertiary'} onClick={() => pageDetails.isExternalLink ? window.open(pageDetails.url) : history.push(pageDetails.url)}>Open in browser</button>
         </div>
       </div>
     </div>
