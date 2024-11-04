@@ -76,8 +76,7 @@
     .addNewItemButton {
       background-color: transparent;
       outline: none;
-      margin-top: 13px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: #acb8c4;
       border: 0;
       padding: 0;
@@ -241,7 +240,7 @@
   }
 
 .cardBodySection {
-  padding: 20px 10px 20px 20px;
+  padding: 17px 10px 20px 20px;
 
   >div {
     display: flex;
@@ -260,7 +259,7 @@
       }
 
       >div:first-child {
-        flex: 0.75;
+        flex: 0.3;
         font-weight: bold;
         color: #697582;
         font-size: var(--font-size-small);
@@ -286,6 +285,10 @@
   border: 1px solid #E84D47 !important;
 
 }
+.chips{
+  margin-right: 10px;
+  padding: 6px 10px 6px 10px;
+}
 
 .recipeWrapper {
   border: 1px solid #383f49;
@@ -296,13 +299,13 @@
   justify-content: center;
 
   .leftPane {
-    width: calc(65% - 15px);
+    width: calc(45% - 15px);
     border-right: 2px solid #383f49;
 
     .recipeHeaderSec {
       height: 60px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       margin-right: 29px;
       margin-top: 10px;
 
@@ -315,6 +318,7 @@
       overflow: auto;
       overflow-x: hidden;
       margin-top: -9px;
+      padding-left: 10px;
 
       &::-webkit-scrollbar-thumb {
         background: #00adef;
@@ -341,7 +345,7 @@
           margin: 6.5px 0 6.5px;
           background: #282e39;
           border: 1px solid #383f49;
-          width: calc(33% - 15px);
+          width: calc(50% - 15px);
           margin: 0 15px 15px 0;
           cursor: pointer;
           min-height: 50px;
@@ -383,23 +387,75 @@
   }
 
   .rightPane {
-    width: calc(35% - 15px);
+    width: calc(55% - 15px);
+    align-items: center;
 
     .noRecipeSelected {
       justify-content: center;
     }
-
-    .selectedRecipeCard {
-      display: flex;
-      justify-content: space-between;
-      margin: 6.5px 0 6.5px;
-      margin-right: 12px;
-      background: #282e39;
-      border: 1px solid #383f49;
-      margin: 40px;
-      justify-content: center;
+    .selectedRecipeWrapper{
+      height: 280px;
+      overflow-y: auto;
+      &::-webkit-scrollbar-thumb {
+        background: #00adef;
+        border-radius: 10px;
+      }
+  
+      &::-webkit-scrollbar-track {
+        background: #293f55;
+      }
+  
+      &::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      .selectedRecipeCard {
+        margin: 6.5px 0 6.5px;
+        margin-right: 12px;
+        background: #282e39;
+        border: 1px solid #383f49;
+        margin: 40px;
+      }
+      .privateRecipeTag{
+        border: 1px solid #00adef;
+        padding: 3px 7px 3px 9px;
+        margin: 16px 23px 5px 10px;
+        align-items: center;
+        border-radius: 15px;
+        width: 60px;
+        height: 25px;
+        color: #00adef
+      }
+      .cardHeader{
+        display: flex;
+        justify-content: space-between;
+        height: 55px;;
+        
+        .cardTitle{
+          display: flex;
+          i{
+            margin-top: 18px;
+            color: #acb8c4;
+            font-size: 18px;
+            margin-right: 10px;
+            margin-left: 17px;
+          }
+          p{
+            font-size: 15px;
+            margin-top: 21px;
+          }
+        }
+      }
+      hr{
+        height: 1px;
+        margin: 0px;
+        width: 93%;
+        margin-left: auto;
+        margin-right: auto;
+      }
 
     }
+   
   }
 
 }
@@ -412,11 +468,11 @@
     background: none;
     border: none;
     border-bottom: 2px solid #383f49;
-    margin-right: 10px;
+    margin-left: 31px;
     height: 40px;
     color: #c0c8d0;
     outline: none;
-    width: 150px;
+    width: 444px;
     visibility: visible;
 
     &::placeholder {
@@ -429,5 +485,24 @@
     margin-left: -25px !important;
     margin-top: 11px !important;
     color: #acb8c4;
+  }
+}
+
+.recipeLable{
+  display: flex;
+  justify-content: space-between;
+  height: 27px;
+  lable{
+    margin-bottom: 0px !important;
+  }
+  button{
+    margin-right: 20px ;
+  }
+}
+.progressIndicator{
+  >div{
+    width: 40px;
+    border-width: 4px;
+    height: 40px;
   }
 }

@@ -65,6 +65,7 @@ const NewCodeSpace = (props) => {
   const [recipesMaster, setRecipeMaster] = useState([]);
   const [recipeSearchTerm, setRecipeSearchTerm] = useState('');
   const [filteredRecipe, setFilteredRecipe] = useState();
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
 
   const [recipeError, setRecipeError] = useState('');
@@ -117,6 +118,8 @@ const NewCodeSpace = (props) => {
 
   const [procedureID, setProcedureID] = useState(projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : '');
   const [procedureIDError, setProcedureIDError] = useState('');
+  const [showProgressIndicator, setShowProgressIndicator] = useState(false);
+
 
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef();
@@ -306,10 +309,23 @@ const NewCodeSpace = (props) => {
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
+  const getRecipeDetails = (recipeName) => {
+    setShowProgressIndicator(true);
+    CodeSpaceApiClient.getCodeSpaceRecipe(recipeName)
+    .then((res)=>{
+      setShowProgressIndicator(false);
+      setSelectedRecipe(res.data.data);
+    }).catch(()=>{
+      setShowProgressIndicator(false);
+      Notification.show('Failed to fetch recipe details', 'error');
+    })
+  };
+
   const onRecipeChange = (obj) => {
     const selectedOption = obj.id;
     const recipe = recipesMaster.find((item) => item.id === recipeValue);
     setRecipeValue(selectedOption);
+    getRecipeDetails(obj?.recipeName);
     const isUserDefinedRecipe = recipe?.aliasId === 'public-user-defined' || recipe?.aliasId === 'private-user-defined';
     setIsUserDefinedGithubRecipe(isUserDefinedRecipe);
     if (!isUserDefinedRecipe) {
@@ -1054,7 +1070,7 @@ const NewCodeSpace = (props) => {
                     </select>
                   </div>
                   <p
-                    style={{ color: 'var(--color-orange)' }}
+                    style={{ color: 'var(--color-orange)' , marginLeft:'-143px'}}
                     className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
                   >
                     <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
@@ -1346,9 +1362,15 @@ const NewCodeSpace = (props) => {
                 id="recipeContainer"
                 className={classNames('input-field-group include-error', recipeError.length ? 'error' : '', Styles.recipeContainer)}
               >
-                <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
-                  Select Code Recipe<sup>*</sup>
-                </label>
+                  <div className={classNames(Styles.recipeLable)}>
+                    <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
+                      Select Code Recipe<sup>*</sup>
+                    </label>
+                    <button className={classNames(Styles.addNewItemButton)} onClick={() => history.push('/codespaceRecipes/codespace')}>                      <i className="icon mbc-icon plus" />
+                      &nbsp;
+                      <span>Add new recipe</span>
+                    </button>
+                  </div>
                 <div className={classNames(Styles.recipeWrapper, recipeError.length ? Styles.recipeError : '')}>
                   <div className={classNames(Styles.leftPane)}>
                     <div className={classNames(Styles.recipeHeaderSec)}>
@@ -1377,54 +1399,79 @@ const NewCodeSpace = (props) => {
                             }}
                           />
                         </div>
-                      <div>
-                        <button className={classNames(Styles.addNewItemButton)} onClick={() => history.push('/codespaceRecipes/codespace')}>
-                          <i className="icon mbc-icon plus" />
-                          &nbsp;
-                          <span>Add new recipe</span>
-                        </button>
-                      </div>
                     </div>
                     <div className={classNames(Styles.recipeSection)}>
                       <div className={classNames(Styles.recipeTiles)}>
                         {filteredRecipe?.map((obj) => (
                           <div key={obj?.id} className={classNames(Styles.recipeTile, recipeValue === obj?.id ? Styles.selected : '')} onClick={() => onRecipeChange(obj)}>
                             <i className={classNames("icon mbc-icon ", recipeValue === obj?.id ? "check-mark" : "tools-mini", recipeValue === obj?.id ? Styles.iconSelected : '')}></i>
-                            <div className={classNames(Styles.recipeName)}><h5>{obj?.recipeName}</h5></div>
+                            <div className={classNames(Styles.recipeName)}><h5>{obj?.recipeName?.length > 60 ? obj?.recipeName.slice(0,57)+'...' : obj?.recipeName }</h5></div>
                           </div>
                         ))}
                       </div>
                     </div>
 
                   </div>
-                  <div className={classNames(Styles.rightPane)}>
-                    {recipeValue === '0' ?
-                      <div className={classNames(Styles.noRecipeSelected)}><p>No Recipe Selected </p></div>
-                      :
-                      <div className={classNames(Styles.selectedRecipeCard)}>
-                        <div className={classNames(Styles.cardBodySection)}>
-                          <div>
-                            <div>
-                              <div>Recipe Name</div>
-                              <div>{recipe?.recipeName}</div>
+                    <div className={classNames(Styles.rightPane)}>
+                      {selectedRecipe === null ?
+                        !showProgressIndicator ? <div className={classNames(Styles.noRecipeSelected)}><p>No Recipe Selected </p></div> : <div className={classNames('text-center', Styles.progressIndicator)}>
+                          <div className="progress infinite" />
+                        </div>
+                        :
+                        <div className={classNames(Styles.selectedRecipeWrapper)}>
+                          <div className={classNames(Styles.selectedRecipeCard)}>
+                            <div className={classNames(Styles.cardHeader)}>
+                              <div className={classNames(Styles.cardTitle)}>
+                                <i className={classNames("icon mbc-icon tools-mini")}></i>
+                                <p>
+                                  {selectedRecipe?.recipeName?.length > 60
+                                    ? selectedRecipe.recipeName.slice(0, 57) + "..."
+                                    : selectedRecipe.recipeName}
+                                </p>
+                              </div>
+                              {!selectedRecipe?.isPublic && <div className={classNames(Styles.privateRecipeTag)}>Private</div>}
                             </div>
-                            <div>
-                              <div>osName</div>
-                              <div>{recipe?.osName}</div>
-                            </div>
-                            <div>
-                              <div>maxRam</div>
-                              <div>{recipe?.maxRam + 'GB RAM'}</div>
-                            </div>
-                            <div>
-                              <div>maxCpu</div>
-                              <div>{recipe?.maxCpu + 'CPU'}</div>
+                            <hr/>
+                            <div className={classNames(Styles.cardBodySection)}>
+                              <div>
+                                <div>
+                                  <div>Hardware Config</div>
+                                  <div> {selectedRecipe?.oSName + ' , ' + selectedRecipe?.maxCpu + 'CPU , ' + (selectedRecipe?.maxRam / 1000) + 'GB RAM'}</div>
+                                </div>
+                                <div>
+                                  <div>Software Config</div>
+                                  <div>
+                                    {selectedRecipe?.software?.map((val) => {
+                                      return (
+                                        <label key={val} className={classNames('chips', Styles.chips)}>
+                                          {val}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                {selectedRecipe?.additionalServices[0]?.length > 0 && <div>
+                                  <div>Additional Services</div>
+                                  <div>
+                                    {selectedRecipe?.additionalServices?.map((val) => {
+                                      return (
+                                        <label key={val} className={classNames('chips', Styles.chips)}>
+                                          {val}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                </div>}
+                                <div>
+                                  <div>Created By</div>
+                                  <div>{selectedRecipe?.createdBy?.firstName + ' ' + selectedRecipe?.createdBy?.lastName}</div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    }
-                  </div>
+                      }
+                    </div>
 
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
@@ -1635,7 +1682,7 @@ const NewCodeSpace = (props) => {
                       </select>
                     </div>
                     <p
-                      style={{ color: 'var(--color-orange)' }}
+                      style={{ color: 'var(--color-orange)' , marginLeft:'-143px'}}
                       className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
                     >
                       <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
