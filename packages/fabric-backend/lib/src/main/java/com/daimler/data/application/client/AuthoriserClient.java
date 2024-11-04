@@ -2,6 +2,7 @@ package com.daimler.data.application.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,13 +78,16 @@ public class AuthoriserClient {
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-            map.add("client_id", authoriserClientID);
-            map.add("client_secret", authoriserClientSecret);
+            String basicAuthenticationHeader = Base64.getEncoder()
+                    .encodeToString(new StringBuffer(authoriserClientID).append(":").append(authoriserClientSecret).toString().getBytes());
+//            map.add("client_id", authoriserClientID);
+//            map.add("client_secret", authoriserClientSecret);
             map.add("grant_type", "client_credentials");
             map.add("scope", "openid authorization_group entitlement_group scoped_entitlement email profile");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+            headers.set("Authorization", "Basic " + basicAuthenticationHeader);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
             try {
                 ResponseEntity<String> response = proxyRestTemplate.postForEntity(ssoUri, request, String.class);
