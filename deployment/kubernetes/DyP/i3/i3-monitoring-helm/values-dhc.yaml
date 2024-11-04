@@ -947,17 +947,17 @@ grafana:
     - name: init-plugins
       mountPath: /grafana-plugins
 
-  plugins: 
-    - yesoreyeram-infinity-datasource
-  env: 
-    HTTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
-    NO_PROXY: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
-    HTTPS_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
-    http_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
-    no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
-    https_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
-    ftp_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
-    FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  # plugins: 
+  #   - yesoreyeram-infinity-datasource
+  # env: 
+  #   HTTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   NO_PROXY: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   HTTPS_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   http_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   https_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   ftp_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
   persistence:
     type: pvc
     enabled: true
