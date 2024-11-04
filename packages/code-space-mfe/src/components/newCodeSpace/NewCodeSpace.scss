@@ -410,11 +410,9 @@
         height: 5px;
       }
       .selectedRecipeCard {
-        margin: 6.5px 0 6.5px;
-        margin-right: 12px;
+        margin: 40px 12px 6.5px;
         background: #282e39;
         border: 1px solid #383f49;
-        margin: 40px;
       }
       .privateRecipeTag{
         border: 1px solid #00adef;
@@ -434,11 +432,9 @@
         .cardTitle{
           display: flex;
           i{
-            margin-top: 18px;
             color: #acb8c4;
             font-size: 18px;
-            margin-right: 10px;
-            margin-left: 17px;
+            margin: 18px 10px 0 17px;
           }
           p{
             font-size: 15px;
@@ -448,10 +444,8 @@
       }
       hr{
         height: 1px;
-        margin: 0px;
         width: 93%;
-        margin-left: auto;
-        margin-right: auto;
+        margin: 0 auto; 
       }
 
     }
