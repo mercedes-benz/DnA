@@ -7,12 +7,6 @@
     opacity: 0.5;
   }
   
-  border: 1px solid #383F49;
-  
-  &.disable {
-    opacity: 0.5;
-  }
-  
   .cardHead {
     display: flex;
     justify-content: space-between;
@@ -21,7 +15,6 @@
     position: relative;
     overflow: hidden;
     height: 75px;
-  
   
     .cardHeadInfo {
       width: 100%;
@@ -37,26 +30,16 @@
         width: 100%;
         text-align: left;
         cursor: pointer;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
       }
-  
-      &.disable {
-        pointer-events: none;
   
       &.disable {
         pointer-events: none;
       }
     }
   
-      &:hover .cardHeadTitle {
-        color: #00adef;
-      }
-  
-      &:hover .cardHeadTitle {
-        color: #00adef;
-      }
+    &:hover .cardHeadTitle {
+      color: #00adef;
+    }
   }
   hr {
     width: 90%;
@@ -64,10 +47,6 @@
     margin-right: auto;
   }
   .cardBodySection {
-      padding: 15px 20px 20px 20px;
-      margin-bottom: 30px;
-      min-height: 200px;
-      > div {
       padding: 15px 20px 20px 20px;
       margin-bottom: 30px;
       min-height: 200px;
@@ -84,10 +63,6 @@
           margin-bottom: 10px;
         }
         > div:first-child {
-          flex: 1;
-          font-weight: bold;
-          color: #697582;
-          font-size: var(--font-size-small);
           flex: 1;
           font-weight: bold;
           color: #697582;
