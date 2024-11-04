@@ -3,45 +3,24 @@ import React, { useState, useEffect } from 'react';
 import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'dna-container/SelectBox';
 import TextBox from 'dna-container/TextBox';
-// import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
-// import TeamMemberListItem from 'dna-container/TeamMemberListItem';
-// import IconAvatarNew from 'dna-container/IconAvatarNew';
+import Caption from 'dna-container/Caption';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import { Envs } from '../../Utility/envs';
-// import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import { Notification } from '../../common/modules/uilab/bundle/js/uilab.bundle';
 import { isValidGitUrl } from '../../Utility/utils';
 import { useHistory } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Tags from 'dna-container/Tags';
 import Modal from 'dna-container/Modal';
+import ServiceCard from '../serviceCard/ServiceCard';
 const classNames = cn.bind(Styles);
-// export interface ICreateRecipe {
-//   createdBy: IUserInfo;
-//   recipeName: string;
-//   recipeType: string;
-//   gitUrl: string;
-//   diskSpace: string;
-//   minCpu: string;
-//   maxCpu: string;
-//   minRam: string;
-//   maxRam: string;
-//   isPublic: boolean;
-//   users: ICodeCollaborator[];
-//   software: string[];
-//   plugins: string[];
-
-// }
-// export interface Isoftware {
-//   name: string;
-//   version: string;
-// }
-
-// export interface IUserInfoProps {
-//   user: IUserInfo;
-// }
 
 const CodeSpaceRecipe = (props) => {
+  const { id: recipeId } = useParams();
+
+  const edit = recipeId && recipeId !== 'codespace' && recipeId !== 'manageRecipe' ? true : false;
   const requiredError = '*Missing entry';
   const repeatedError = '*Recipe name already exists';
   const history = useHistory();
@@ -49,21 +28,22 @@ const CodeSpaceRecipe = (props) => {
   const [notificationMsg, setNotificationMsg] = useState(false);
   const [softwares, setSoftwares] = useState([]);
   const [enableCreate, setEnableCreate] = useState(false);
-  const [recipeName, setRecipeName] = useState('');
-  const recipeType = 'private';
-  const [gitUrl, setGitUrl] = useState('');
+  const [showUpdateRecipeModal, setShowUpdateRecipeModal] = useState(false);
 
-  const [gitPath, setGitPath] = useState('');
-  const [gitRepoLoc, setGitRepoLoc] = useState('');
-  const [deployPath, setDeployPath] = useState('');
-  const [diskSpace, setDiskSpace] = useState('');
-  const minCpu = '1';
-  const [maxCpu, setMaxCpu] = useState('');
-  const minRam = '1000';
-  const [maxRam, setMaxRam] = useState('');
+  const [recipeName, setRecipeName] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
+  const [gitUrl, setGitUrl] = useState('');
   const [hardware, setHardware] = useState('large');
   const [software, setSoftware] = useState([]);
-  const [isPublic, setIsPublic] = useState(false);
+  const [gitPath] = useState('');
+  const [gitRepoLoc, setGitRepoLoc] = useState('');
+  const [deployPath, setDeployPath] = useState('');
+  
+  const [diskSpace, setDiskSpace] = useState('');
+  const [minCpu, setMinCpu] = useState('0.5');
+  const [maxCpu, setMaxCpu] = useState('');
+  const [minRam, setMinRam] = useState('1000');
+  const [maxRam, setMaxRam] = useState('');
   const [isSoftwareMissing, setSoftwareMissing] = useState(false);
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
@@ -84,8 +64,53 @@ const CodeSpaceRecipe = (props) => {
   const gitHubUrl = {
     gitHubUrl: gitUrl
   };
-  useEffect(() => {
 
+  const [additionalServices, setAdditionalServices] = useState([]);
+  const [selectedAdditionalServices, setSelectedAdditionalServices] = useState([]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+  
+  useEffect(() => {
+    if(edit) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getCodeSpaceRecipe(recipeId)
+        .then((res) => {
+          const recipe = res.data.data;
+          setDiskSpace(recipe?.diskSpace);
+          setMaxCpu(recipe?.maxCpu);
+          setMinCpu(recipe?.minCpu);
+          setMinRam(recipe?.minRam);
+          setMaxRam(recipe?.maxRam);
+          setRecipeName(recipe?.recipeName);
+          setGitUrl(recipe?.repodetails);
+          setSoftware(recipe?.software);
+          recipe?.maxCpu === '0.5' && setHardware('small');
+          recipe?.maxCpu === '1' && setHardware('medium');
+          recipe?.maxCpu === '1.5' && setHardware('large');
+          setIsPublic(recipe?.isPublic);
+          setGitRepoLoc(recipe?.gitRepoLoc);
+          setDeployPath(recipe?.deployPath);
+          setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.serviceName)));
+          setEnableCreate(true);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          if (err?.response?.data?.errors?.length > 0) {
+            err?.response?.data?.errors.forEach((err) => {
+              Notification.show(err?.message || 'Something went wrong.', 'alert');
+            });
+          } else {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          }
+        });
+    }
+  }, [edit, recipeId, additionalServices]);
+
+  useEffect(() => {
     CodeSpaceApiClient.getSoftwareLov()
       .then((response) => {
         ProgressIndicator.hide();
@@ -111,6 +136,26 @@ const CodeSpaceRecipe = (props) => {
       });
   }, []);
 
+  useEffect(() => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getAdditionalServicesLov()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setAdditionalServices(response.data.data);
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+  }, []);
 
   const onRecipeNameChange = (e) => {
     const value = e.currentTarget.value;
@@ -123,12 +168,10 @@ const CodeSpaceRecipe = (props) => {
 
   const onGitUrlChange = (e) => {
     const githubUrlVal = e.currentTarget.value.trim();
-    setEnableCreate(false);
     setGitUrl(githubUrlVal);
+    setEnableCreate(false);
     const errorText = githubUrlVal.length
-      ? isValidGitUrl(githubUrlVal, isPublic)
-        ? ''
-        : `provide valid ${isPublic ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
+      ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
       : requiredError;
     setErrorObj((prevState) => ({
       ...prevState,
@@ -145,14 +188,28 @@ const CodeSpaceRecipe = (props) => {
     }));
   };
 
-  const onGitPathChange = (e) => {
-    const gitPath = e.currentTarget.value.trim();
-    setGitPath(gitPath);
-    setErrorObj((prevState) => ({
-      ...prevState,
-      gitPath: '',
-    }));
-  }
+  const onAdditionalServicesChange = (e) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        let temp = '';
+        temp = option.value;
+        selectedValues.push(temp);
+      });
+    }
+    const selectedAdditionalServices = additionalServices?.filter(service => selectedValues.includes(service.serviceName));
+    setSelectedAdditionalServices(selectedAdditionalServices);
+  };
+
+  // const onGitPathChange = (e) => {
+  //   const gitPath = e.currentTarget.value.trim();
+  //   setGitPath(gitPath);
+  //   setErrorObj((prevState) => ({
+  //     ...prevState,
+  //     gitPath: '',
+  //   }));
+  // }
 
   const onGitRepoLocChange = (e) => {
     const gitRepoLoc = e.currentTarget.value.trim();
@@ -215,6 +272,7 @@ const CodeSpaceRecipe = (props) => {
     const ramValue = parseInt(maxRam)*1000;
     return ramValue.toString();
   };
+  
   const verifyRequest = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.verifyGitUser(gitHubUrl)
@@ -228,7 +286,7 @@ const CodeSpaceRecipe = (props) => {
       })
       .catch((err) => {
         ProgressIndicator.hide();
-        Notification.show(err.message, 'alert');
+        Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
         if (err.message === 'Value or Item already exist!') {
           setErrorObj((prevState) => ({
             ...prevState,
@@ -237,7 +295,8 @@ const CodeSpaceRecipe = (props) => {
         }
       });
   };
-  const onRequest = () => {
+
+  const onCreateRecipe = () => {
     if (validateForm()) {
       const CreateNewRecipe = {
         createdBy: {
@@ -258,30 +317,85 @@ const CodeSpaceRecipe = (props) => {
         osname: 'Debian-OS-11',
         plugins: ['string'],
         recipeName: recipeName,
-        recipeType: recipeType,
+        recipeId: recipeName?.replace(/\s+/g, ''),
+        recipeType: isPublic ? 'public' : 'private',
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
         gitPath: gitPath,
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
+        additionalServices: selectedAdditionalServices.map(service => service?.serviceName),
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
         .then(() => {
           ProgressIndicator.hide();
-          history.push('/codespaces');
+          history.push('/manageRecipes');
           Notification.show('New Recipe Created successfully');
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show(err.message, 'alert');
+          if(err?.response?.status === 409) {
+            Notification.show(err?.response?.data?.data, 'alert');
+          }
+          if(err?.response?.status === 400) {
+            Notification.show(`Your git repo main branch is protected with repo lock. Kindly uncheck 'Do not allow bypassing the above settings' in branch protection rule settings and try again.`, 'warning');
+          }
+          if(err?.response?.status !== 409 && err?.response?.status !== 400) {
+            Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+          }
           if (err.message === 'Value or Item already exist!') {
             setErrorObj((prevState) => ({
               ...prevState,
               recipeName: repeatedError,
             }));
           }
+        });
+    }
+  };
+
+  const onUpdateRecipe = () => {
+    if (validateForm()) {
+      const data = {
+        createdBy: {
+          department: props.user.department,
+          email: props.user.email,
+          firstName: props.user.firstName,
+          gitUserName: props.user.id,
+          id: props.user.id,
+          lastName: props.user.lastName,
+          mobileNumber: props.user.mobileNumber,
+        },
+        diskSpace: diskSpace,
+        maxCpu: maxCpu,
+        minCpu: minCpu,
+        minRam: minRam,
+        maxRam: convertRam(),
+        oSName: 'Debian-OS-11',
+        osname: 'Debian-OS-11',
+        plugins: ['string'],
+        recipeName: recipeName,
+        recipeId: recipeName?.replace(/\s+/g, ''),
+        recipeType: isPublic ? 'public' : 'private',
+        repodetails: gitUrl,
+        software: software,
+        isPublic: isPublic,
+        gitPath: gitPath,
+        gitRepoLoc: gitRepoLoc,
+        deployPath: deployPath,
+        additionalServices: selectedAdditionalServices.map(service => service?.serviceName),
+      };
+      ProgressIndicator.show();
+      CodeSpaceApiClient.updateCodeSpaceRecipe(recipeId, data)
+        .then(() => {
+          ProgressIndicator.hide();
+          history.push('/manageRecipes');
+          Notification.show('Recipe Updated successfully');
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
         });
     }
   };
@@ -331,44 +445,58 @@ const CodeSpaceRecipe = (props) => {
         software: requiredError,
       }));
     }
-    if (isPublic) {
-      if (gitRepoLoc === '') {
-        isValid = false;
-        setErrorObj((prevState) => ({
-          ...prevState,
-          gitRepoLoc: requiredError,
-        }));
-      }
-      if (gitPath === '') {
-        isValid = false;
-        setErrorObj((prevState) => ({
-          ...prevState,
-          gitPath: requiredError,
-        }));
-      }
-      if (deployPath === '') {
-        isValid = false;
-        setErrorObj((prevState) => ({
-          ...prevState,
-          deployPath: requiredError,
-        }));
+    // if (isPublic) {
+    //   if (gitRepoLoc === '') {
+    //     isValid = false;
+    //     setErrorObj((prevState) => ({
+    //       ...prevState,
+    //       gitRepoLoc: requiredError,
+    //     }));
+    //   }
+    //   if (gitPath === '') {
+    //     isValid = false;
+    //     setErrorObj((prevState) => ({
+    //       ...prevState,
+    //       gitPath: requiredError,
+    //     }));
+    //   }
+    //   if (deployPath === '') {
+    //     isValid = false;
+    //     setErrorObj((prevState) => ({
+    //       ...prevState,
+    //       deployPath: requiredError,
+    //     }));
 
-      }
-    }
+    //   }
+    // }
     return isValid;
   };
+
+  const handleBackClick = () => {
+    recipeId === 'codespace' && history.push('/');
+    (recipeId === 'manageRecipe' || recipeId !== 'codespace')  && history.push('/manageRecipes');
+  }
+
+  const updateRecipeContent = (
+    <div>
+      {/* <h3>Are you sure you want to update this recipe?</h3> */}
+      <h5>If you update the recipe, users will need to create<br />new codespaces to apply the changes, as existing codespaces will not be updated.</h5>
+    </div>
+  );
 
   return (
     <div>
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <h3>Create New Recipe</h3>
+            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} onBackClick={handleBackClick}>
+              <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>
+            </Caption>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
                 <div className={classNames(Styles.formWrapper)}>
                   <div className={classNames(Styles.flex)}>
-                    <div className={(Styles.col2)}>
+                    <div className={classNames(Styles.col2, edit && Styles.disabledSection)}>
                       <TextBox
                         type="text"
                         controlId={'recipeNameInput'}
@@ -383,7 +511,7 @@ const CodeSpaceRecipe = (props) => {
                       />
                     </div>
                     <div className={(Styles.col2)}>
-                      <div className={classNames('input-field-group include-error')}>
+                      <div className={classNames('input-field-group include-error', edit && Styles.disabledSection)}>
                         <label className={classNames(Styles.inputLabel, Styles.m5, 'input-label')}>
                           Recipe Visibility <sup>*</sup>
                         </label>
@@ -417,35 +545,8 @@ const CodeSpaceRecipe = (props) => {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <Modal
-                        title="Public Visibility"
-                        show={notificationMsg}
-                        showAcceptButton={false}
-                        showCancelButton={false}
-                        acceptButtonTitle="Confirm"
-                        cancelButtonTitle="Cancel"
-                        buttonAlignment='right'
-                        scrollableContent={false}
-                        hideCloseButton={true}
-                        content={
-                          <div>
-                            <header>
-                              <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
-                            </header>
-                            <div>
-                              <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
-                            </div>
-                            <div className="btn-set footerRight">
-                              <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
-                              <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
-                            </div>
-                          </div>
-                        }
-                      />
-                    </div>
                     <div className={classNames(Styles.col2)}>
-                      <div className={classNames(Styles.inputLabel, 'input-label')}>
+                      <div className={classNames(Styles.inputLabel, 'input-label', edit && Styles.disabledSection)}>
                         <TextBox
                           type="text"
                           controlId={'gitUrlInput'}
@@ -457,19 +558,17 @@ const CodeSpaceRecipe = (props) => {
                           required={true}
                           maxLength={200}
                           onChange={onGitUrlChange}
+                          onBlur={errorObj?.gitUrl?.length ? undefined : verifyRequest}
                         />
                         {(!enableCreate &&
-                          <button className={classNames('btn btn-tertiary', Styles.verifyButton)} type="button" onClick={verifyRequest}>
+                          <button className={classNames('btn btn-tertiary', Styles.verifyButton, errorObj?.gitUrl?.length > 0 && Styles.giturlerror)} type="button" onClick={verifyRequest}>
                             <i className="icon mbc-icon alert circle"></i>Kindly add the PID6C39 as admin contributor in your gitHub repo and click here to verify.
                           </button>
                         )}
-                        <p
-                          style={{ color: 'var(--color-green)'}}
-                          className={classNames(enableCreate ? '' : ' hide')}
-                        >
-                          <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
-                        </p>
                       </div>
+                      <p className={classNames(Styles.giturlsuccess, enableCreate ? '' : ' hide')}>
+                        <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
+                      </p>
                     </div>
                     <div className={classNames(Styles.col2)}>
                       <div className={classNames('input-field-group include-error')}>
@@ -479,10 +578,9 @@ const CodeSpaceRecipe = (props) => {
                         <div id="HardwareBox" className='custom-select'>
                           <select
                             id="HardewareField"
-                            required={true}
-                            required-error={errorObj.hardware}
                             value={hardware}
-                            onChange={onHardwareChange}>
+                            onChange={onHardwareChange}
+                            >
                             <option value={'small'}>DiskSpace - 5GB CPU - 0.5 RAM - 2GB</option>
                             <option value={'medium'}>DiskSpace - 10GB CPU - 1 RAM - 3GB</option>
                             <option value={'large'}>DiskSpace - 15GB CPU - 1.5 RAM - 4GB</option>
@@ -510,23 +608,23 @@ const CodeSpaceRecipe = (props) => {
                         }}
                         isMandatory={true}
                         showMissingEntryError={isSoftwareMissing}
+                        showAllTagsOnFocus={true}
                       />
-                      <div className={classNames(Styles.request)} >
+                      <div className={classNames(Styles.request, Styles.requestSoft)} >
                         <a href={Envs.CODESPACE_SOFTWARE_REQUEST_TEMPLATE} target="_blank" rel="noopener noreferrer">
                           Request new Software
                         </a>
                       </div>
                     </div>
-
                   </div>
                 </div>
 
                 {isPublic && (
-                  <div>
-                    <h4 className={classNames(Styles.sectionHeader)}>CI/CD</h4>
+                  <div className={Styles.disabledSection}>
+                    <h4 className={classNames(Styles.sectionHeader)}>CI/CD (Coming Soon)</h4>
                     <div className={classNames(Styles.formWrapper, Styles.mT)}>
                       <div className={classNames(Styles.flex)}>
-                        <div className={classNames(Styles.col2)}>
+                        {/* <div className={classNames(Styles.col2)}>
                           <div className={classNames('input-field-group include-error')}>
                             <div>
                               <TextBox
@@ -543,7 +641,7 @@ const CodeSpaceRecipe = (props) => {
                               />
                             </div>
                           </div>
-                        </div>
+                        </div> */}
                         <div className={classNames(Styles.col2)}>
                           <div className={classNames('input-field-group include-error')}>
                             <div>
@@ -584,15 +682,106 @@ const CodeSpaceRecipe = (props) => {
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <h4 className={classNames(Styles.sectionHeader)}>Additional Services</h4>
+                  <div className={classNames(Styles.formWrapper, Styles.mT)}>
+                    <div className={classNames(Styles.flex)}>
+                      <div className={classNames(Styles.col2)}>
+                        <div className={classNames('input-field-group')}>
+                          {/* <label className="input-label" htmlFor="additionalServicesSelect">
+                            Select Additional Services
+                          </label> */}
+                          <div id="additionalServices" className="custom-select">
+                            <select
+                              id="additionalServicesSelect"
+                              multiple={true}
+                              required={false}
+                              onChange={onAdditionalServicesChange}
+                              value={selectedAdditionalServices?.map(service => service?.serviceName)}
+                            >
+                              {additionalServices?.map(service => 
+                                <option key={service?.serviceName} value={service?.serviceName}>{service?.serviceName} {service?.version}</option>
+                              )}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={classNames(Styles.formWrapper, Styles.mT)}>
+                  <div className={classNames(Styles.flex)}>
+                    {selectedAdditionalServices?.map(service => 
+                      <div key={service?.serviceName} className={classNames(Styles.col3)}>
+                        <ServiceCard service={service} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={onRequest}>
-                    Create Recipe
+                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe()}>
+                    {edit ? 'Update Recipe' : 'Create Recipe'}
                   </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        {notificationMsg && 
+          <Modal
+            title="Public Visibility"
+            hiddenTitle={true}
+            show={notificationMsg}
+            showAcceptButton={false}
+            showCancelButton={false}
+            acceptButtonTitle="Confirm"
+            cancelButtonTitle="Cancel"
+            buttonAlignment='right'
+            scrollableContent={false}
+            hideCloseButton={true}
+            content={
+              <div>
+                <header>
+                  <button className="modal-close-button" onClick={onNotificationMsgCancel}><i className="icon mbc-icon close thin"></i></button>
+                </header>
+                <div className={Styles.publicWarning}>
+                  <h4>Recipe Visibility</h4>
+                  <p>The Recipe will be visible to all users. Are you sure to make it Public?</p>
+                  <div>
+                    <p><i className="icon mbc-icon alert circle"></i> Please make sure to check <pre>&apos;Template repository&apos;</pre> setting. You can follow below steps:</p>
+                    <ol>
+                      <li>Open your recipe repository</li>
+                      <li>Once you&apos;re in the repository, look for the <pre>&apos;Settings&apos;</pre> tab at the top of the page and click on it.</li>
+                      <li>In the <pre>&apos;Settings&apos;</pre> menu, click on <pre>&apos;General&apos;</pre> section.</li>
+                      <li>In the <pre>&apos;General&apos;</pre> settings, you&apos;ll find an option labeled <pre>&apos;Template repository&apos;</pre>. Check the box next to it to enable this repository as a template.</li>
+                    </ol>
+                    <p>These steps will help you smoothly convert your repository into a template repository on GitHub and make your recipe template public.</p>
+                  </div>
+                </div>
+                <div className="btn-set footerRight">
+                  <button className="btn btn-primary" type="button" onClick={onNotificationMsgCancel}>Cancel</button>
+                  <button className="btn btn-tertiary" type="button" onClick={onNotificationMsgAccept}>Confirm</button>
+                </div>
+              </div>
+            }
+          />
+        }
+        {showUpdateRecipeModal &&
+          <ConfirmModal
+            title={''}
+            acceptButtonTitle="Yes"
+            cancelButtonTitle="No"
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={showUpdateRecipeModal}
+            content={updateRecipeContent}
+            onCancel={() => setShowUpdateRecipeModal(false)}
+            onAccept={onUpdateRecipe}
+          />
+        }
       </div>
     </div>
   );

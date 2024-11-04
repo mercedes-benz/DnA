@@ -71,6 +71,9 @@ public class KafkaCoreCampaignService {
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
 	
+	@Value("${dna.notification.enableEmail}")
+	private String enableEmail;
+	
 	@Value("${dna.ui.uri}")
 	private String dnaBaseUri;
 	
@@ -88,6 +91,9 @@ public class KafkaCoreCampaignService {
 	private static String AIRFLOW_NOTIFICATION_KEY = "Airflow";
 	private static String TRINO_DATALAKE_NOTIFICATION_KEY = "Datalake";
 	private static String DATAENTRY_NOTIFICATION_KEY = "Dataentry";
+	private static String USE_CASE_OWNER_NOTIFICATION_KEY = "UseCaseOwners";
+	private static String POWERPLATFORM_NOTIFICATION_KEY = "Power platform";
+	private static String SOLUTION_URI_PATH = "/#/summary/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -157,6 +163,14 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getDataEntryNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDataEntryNotificationPref().isEnableEmailNotifications();
 					}
+					if(message.getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getUseCaseOwnerNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getUseCaseOwnerNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getPowerPlatformNotificationPref().isEnableEmailNotifications();
+					}
 
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -200,6 +214,14 @@ public class KafkaCoreCampaignService {
 								}
 							
 						}
+					}
+					if(message.getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {		
+
+						String[] splitResourceId = message.getResourceId().split("@-@");
+						String solutionURL = dnaBaseUri + SOLUTION_URI_PATH + splitResourceId[0];
+						emailBody += "<br/> <br/> You are receiving this email because you are the use case owner of the solution " + "<a href=\"" + solutionURL +"\">"+ splitResourceId[1] +"</a>";
+						String notificationMessage = "Email Received from division admin regarding solution "+ "<a href=\"" + solutionURL +"\">"+ splitResourceId[1] +"</a>";
+						vo.setMessage(notificationMessage);
 					}					
 
 					if(appNotificationPreferenceFlag) {
@@ -210,7 +232,7 @@ public class KafkaCoreCampaignService {
 						LOGGER.info("Skipped message as per user preference, Details: user {}, eventType {}, uuid {} ", user,
 								message.getEventType(), message.getUuid());
 					}
-					if(emailNotificationPreferenceFlag) {
+					if(emailNotificationPreferenceFlag && (enableEmail!=null && "true".equalsIgnoreCase(enableEmail))) {
 						String userEmail = usersEmails.get(userListPivot);
 						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
 							String emailSubject = message.getEventType()+" Email Notification";

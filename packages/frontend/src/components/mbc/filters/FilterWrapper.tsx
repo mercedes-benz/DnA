@@ -6,6 +6,7 @@ const classNames = cn.bind(Styles);
 type SolutionsFilterType = {
   openFilters?: boolean;
   children?: any;
+  divisionAdminSection?: boolean;
 };
 
 /**
@@ -18,6 +19,7 @@ type SolutionsFilterType = {
 const FilterWrapper = ({
   openFilters,
   children,
+  divisionAdminSection,
 }: SolutionsFilterType) => {
 
 if(openFilters){
@@ -33,8 +35,8 @@ if(openFilters){
 
 
   return (
-    <div id='filterContainer' className={classNames(Styles.filterWrapper, openFilters ? Styles.filterOpen : Styles.filterClose)}>
-      <div id='filterContainerDiv' className={classNames(Styles.panelWrapper, openFilters ? 'open' : '')}>
+    <div id={divisionAdminSection ? 'divisionAdminFilterContainer' : 'filterContainer'} className={classNames(divisionAdminSection? Styles.divisionAdminFilterWrapper : Styles.filterWrapper, openFilters ? Styles.filterOpen : Styles.filterClose)}>
+      <div id={divisionAdminSection ? 'divisionAdminFilterContainerDiv' : 'filterContainerDiv'} className={classNames(Styles.panelWrapper, openFilters ? 'open' : '')}>
         <div className={Styles.panelContent}>
           {/* <h4>Filter</h4> */}
             <div className={Styles.filterPanel}>

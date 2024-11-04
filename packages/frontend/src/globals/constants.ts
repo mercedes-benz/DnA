@@ -32,6 +32,7 @@ export enum SESSION_STORAGE_KEYS {
   DATAPRODUCT_FILTER_VALUE = 'dataproductFilterValues',
   REPORT_FILTER_VALUES = 'reportFilterValues',
   PAGINATION_MAX_ITEMS_PER_PAGE = 'paginationMaxItemsPerPage',
+  AUDIT_LOGS_MAX_ITEMS_PER_PAGE = 'auditLogsMaxItemsPerPage',
   APPREDIRECT_URL = 'appredirect_url',
   LISTVIEW_MODE_ENABLE = 'listViewModeEnable',
   SOLUTION_SORT_VALUES = 'sortingInfo',
@@ -140,6 +141,16 @@ export const ToolsPageImagesInfo = {
     {
       id: 'powerBI',
       banner: 'banner.jpg',
+      toolPipeline:'toolPipeline.png'
+    },
+    {
+      id: 'fabric',
+      banner: 'banner.png',
+      toolPipeline:'toolPipeline.png'
+    },
+    {
+      id: 'powerPlatform',
+      banner: 'banner.png',
       toolPipeline:'toolPipeline.png'
     }
   ]

@@ -1,0 +1,107 @@
+.cardWrapper {
+    padding: 20px 40px 60px;
+    background-image: linear-gradient(14deg, #13171c, #252a33);
+    flex: 1 1 0px;
+    width: 100%;
+    margin: 0 15px 15px 0;
+    position: relative;
+    .cardIconSection {
+        text-align: center;
+        margin-top: 35px;
+        i {
+            height: 10px;
+            width: auto;
+            background: transparent;
+            line-height: 10px;
+            &::before {
+                font-size: 30px;
+            }
+        }
+    }
+    .cardDescriptonSection {
+        margin-top: 40px;
+        max-width: 200px;
+        .titleSection {
+            font-size: var(--font-size-headline);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            display: -webkit-box;
+            line-clamp: 1;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+        .descriptionSection {
+            color: #99a5b3;
+            margin-top: 15px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            display: -webkit-box;
+            line-clamp: 3;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+    }
+
+}
+
+.titleSection{
+    margin: 10px;
+    .title {
+        text-align: center;
+        margin-bottom: 5px; 
+        span{
+            font-family: var(--font-family-roboto-medium);
+            font-size: var(--font-size-sub-headline);
+            color: #D9DFE4;
+
+        }
+      }
+      .subTitle {
+        text-align: center;
+        padding-bottom: 0px;
+        margin: 0;
+        span{
+            font-family: var(--font-family-medium) !important;
+            font-size: 11px !important;
+            color: #99A5B3;
+        }
+      }
+}
+
+
+.textCenter {
+    text-align: center;
+    max-width: 165px;
+    margin: auto;
+}
+.wrapper{
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 50px;
+    margin-right: -15px;
+}
+.infoSection{
+    padding: 30px 35px;
+    span {
+        font-size: var(--font-size-default);
+        display: block;
+        margin-bottom: 8px;
+        color: #C0C8D0;
+        text-align: center;
+      }
+    pre {
+        text-align: center;
+    }
+}
+.actionWrapper{
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    button {
+        min-width: 150px;
+    }
+}

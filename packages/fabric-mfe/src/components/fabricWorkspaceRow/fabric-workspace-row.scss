@@ -32,6 +32,14 @@
       display: inline-block;
     }
   }
+  .completedStatus {
+    margin-bottom: 0;
+    color: #0ae6ab;
+
+    &:hover {
+      color: #0ae6ab;
+    }
+  }
   .col1 {
     min-width: 20%;
   }

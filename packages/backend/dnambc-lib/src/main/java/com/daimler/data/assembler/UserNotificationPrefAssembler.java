@@ -88,6 +88,22 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO dataEntryNotificationPrefVO = this.toNotificationPrefVO(dataEntryNotificationPrefJson);
 				vo.setDataEntryNotificationPref(dataEntryNotificationPrefVO);
 				
+				NotificationPreference powerPlatformNotificationPrefJson = data.getPowerPlatformNotificationPref();
+				NotificationPreferenceVO powerPlatformNotificationPrefVO = this.toNotificationPrefVO(powerPlatformNotificationPrefJson);
+				vo.setPowerPlatformNotificationPref(powerPlatformNotificationPrefVO);
+
+				NotificationPreference useCaseOwnerNotificationPrefJson = data.getUseCaseOwnerNotificationPref();
+				NotificationPreferenceVO useCaseOwnerNotificationPrefVO = this.toNotificationPrefVO(useCaseOwnerNotificationPrefJson);
+				if(useCaseOwnerNotificationPrefJson != null) {
+					useCaseOwnerNotificationPrefVO.setEnableAppNotifications(useCaseOwnerNotificationPrefJson.isEnableAppNotifications());
+					useCaseOwnerNotificationPrefVO.setEnableEmailNotifications(useCaseOwnerNotificationPrefJson.isEnableEmailNotifications());
+				}
+				else {
+					useCaseOwnerNotificationPrefVO.setEnableAppNotifications(true);
+					useCaseOwnerNotificationPrefVO.setEnableEmailNotifications(true);
+				}
+				vo.setUseCaseOwnerNotificationPref(useCaseOwnerNotificationPrefVO);
+				
 				vo.setUserId(data.getUserId());
 			}
 		}
@@ -137,6 +153,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setDataLakeNotificationPref(dataLakeNotificationPreference);
 			NotificationPreference dataEntryNotificationPreference = this.toNotificationPrefJson(vo.getDataEntryNotificationPref());
 			userNotificationPreferenceJsonb.setDataEntryNotificationPref(dataEntryNotificationPreference);
+			NotificationPreference useCaseOwnerPreference = this.toNotificationPrefJson(vo.getUseCaseOwnerNotificationPref());
+			userNotificationPreferenceJsonb.setUseCaseOwnerNotificationPref(useCaseOwnerPreference);
+			NotificationPreference powerPlatformNotificationPref = this.toNotificationPrefJson(vo.getPowerPlatformNotificationPref());
+			userNotificationPreferenceJsonb.setPowerPlatformNotificationPref(powerPlatformNotificationPref);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);

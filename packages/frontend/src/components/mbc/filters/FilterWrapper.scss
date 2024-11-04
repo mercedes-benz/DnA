@@ -22,6 +22,30 @@
     
 }
 
+.divisionAdminFilterWrapper {
+    background-color: #252a33;
+    margin-bottom: 15px;
+    z-index: 1;
+    position: relative;
+    .panelWrapper{
+        padding: 30px;
+        // .filterPanel {
+        //     display: flex;
+        //     flex-wrap: wrap;
+        //     & > div:not(:last-child){
+        //         width: 135px;
+        //         margin-right: 15px;
+        //     }
+        //     & > div:last-child {
+        //         display: flex;
+        //         align-items: flex-end;
+        //         padding-bottom: 15px;
+        //     }
+        // }
+    }
+    
+}
+
 
 .filterOpen {
     height: auto;

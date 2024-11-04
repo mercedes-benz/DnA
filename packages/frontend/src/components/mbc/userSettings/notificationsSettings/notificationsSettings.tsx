@@ -48,6 +48,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'solutionNotificationPref':
             temp.title = 'Configure Notifications for Solutions';
             break;
+          case 'useCaseOwnerNotificationPref':
+            temp.title = 'Configure Notifications for Use Case Owners';
+            break;
           case 'notebookNotificationPref':
             temp.title = 'Configure Notifications for Notebooks';
             break;
@@ -77,6 +80,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
             break;
           case 'dataEntryNotificationPref':
             temp.title = 'Configure Notification for Data Entry'
+            break;
+          case 'powerPlatformNotificationPref':
+            temp.title = 'Configure Notification for Power Platform'
             break;
         }
         tempArr.push(temp);
@@ -193,7 +199,16 @@ const NotificationsSettings = (props: INotificationSettings) => {
       ? 'Enabled Email Notification Successfully'
       : 'Disabled Email Notification Successfully';
     callToUpdatePreference(messageForNotification);
+  }
 
+  const onChangeEmailNotificationForPowerPlatform = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.powerPlatformNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
   }
 
   const callToUpdatePreference = (message: string) => {
@@ -248,6 +263,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
         break;
       case 'dataEntryNotificationPref':
         onChangeEmailNotificationForDataEntry(e);
+        break;
+      case 'powerPlatformNotificationPref':
+        onChangeEmailNotificationForPowerPlatform(e);
     }
   };
 
@@ -274,6 +292,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
                       <input
                         type="checkbox"
                         className="ff-only"
+                        disabled={item.moduleName==='useCaseOwnerNotificationPref'}
                         checked={item.enableEmailNotifications}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           callToCommonFunctionOnChange(item.module, e)

@@ -152,18 +152,19 @@ public class CodeServerClient {
 	}
 
     // create code server using jupyter hub for a user 
-	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName, String instructionSet) {
+	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		try {
-			boolean isUserCreated = isUserPresent(userId)
-					|| createUser(userId, manageDto.getInputs().getIsCollaborator());
-
+			boolean isUserCreated = isUserPresent(userId);
+			if(!isUserCreated){
+				isUserCreated = createUser(userId, manageDto.getInputs().getIsCollaborator());
+			}
 			if (isUserCreated) {
-				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName,instructionSet);
+				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName);
 				if (isCreateServerStatus) {
 					status = "SUCCESS";
 				} else {
@@ -173,7 +174,12 @@ public class CodeServerClient {
 					MessageDescription warning = new MessageDescription();
 					warnings.add(warning);
 				}
+			}else{
+				LOGGER.error(
+					"Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
+					userId, manageDto.getInputs().getAction());
 			}
+			
 		} catch (Exception e) {
 			LOGGER.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
@@ -216,17 +222,21 @@ public class CodeServerClient {
 }
 
 	private boolean createUser(String userId, String isCollaborator){
-		String userURI = jupyterUrl;
-		JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
-		List<String> userName = new ArrayList<>();
-		userName.add(userId);
-		userDto.setUsernames(userName);
-		userDto.setAdmin(false);
-		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders());
-        ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
-		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
-			LOGGER.info("User {} has registered sucessfully", userId);
-			return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
+		try{
+			String userURI = jupyterUrl;
+			JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
+			List<String> userName = new ArrayList<>();
+			userName.add(userId);
+			userDto.setUsernames(userName);
+			userDto.setAdmin(false);
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders());
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
+				LOGGER.info("User {} has registered sucessfully", userId);
+				return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
+			}
+		}catch(Exception e){
+			LOGGER.error("error occured while creating user in hub :{} ", e.getMessage());
 		}
 		return false;
 	}
@@ -240,35 +250,28 @@ public class CodeServerClient {
 	}
 
 	//to create server
-	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName, String instructionSet) {
+	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
-			String[] instructionsArray = instructionSet.trim().split("\\n");
-			String envInstructions = "";
-			for (String instruction : instructionsArray) {
-				String[] parts = instruction.split("=");
-				if (parts.length == 2) {
-					envInstructions += ", \"" + parts[0].trim() + "\": \"" + parts[1].trim() + "\"";
-				}
-			}
 			String requestJsonString = "{\"profile\": \"default\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 			+ "\", \"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase() + "\", \"isCollaborator\" : \"false\", "
-			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" + envInstructions + "}, "
+			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" +  "}, "
 			+ "\"storage_capacity\": \"" + manageDto.getInputs().getStorage_capacity()
 			+ "\", \"mem_guarantee\": \"" + manageDto.getInputs().getMem_guarantee()
 			+ "\", \"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\", \"cpu_limit\": "
 			+ manageDto.getInputs().getCpu_limit() + ", \"cpu_guarantee\": "
-			+ manageDto.getInputs().getCpu_guarantee() + "}";
+			+ manageDto.getInputs().getCpu_guarantee() + ",\"extra_containers\": "
+			+ manageDto.getInputs().getExtraContainers() + "}";
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
-			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
+				if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Completed creating Jupiter repo {} initiated by user with status {}", codespaceName,
 						manageWorkbenchResponse.getStatusCode());
 				return true;
 			}
 		} catch (Exception e) {
-			log.error("Error occurred while creating git repo server {} with exception: {}", codespaceName, e.getMessage());
+			log.error("Error occurred while intializing server {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
 	}

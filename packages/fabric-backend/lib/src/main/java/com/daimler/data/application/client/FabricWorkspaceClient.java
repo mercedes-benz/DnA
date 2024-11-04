@@ -148,6 +148,7 @@ public class FabricWorkspaceClient {
 			ObjectMapper objectMapper = new ObjectMapper();
 			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
 					FabricOAuthResponse.class);
+			log.debug("getToken log {}",introspectionResponse);
 			log.debug("Introspection Response:" + introspectionResponse);
 			log.info("Successfully fetch oidc token post login for powerbi");
 			return introspectionResponse.getAccess_token();
@@ -170,6 +171,7 @@ public class FabricWorkspaceClient {
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		try {
 			ResponseEntity<String> response = proxyRestTemplate.postForEntity(groupSearchloginUrl, request, String.class);
+			log.debug(" getTokenForGroupSearch log {}",response);
 			ObjectMapper objectMapper = new ObjectMapper();
 			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
 					FabricOAuthResponse.class);
@@ -199,6 +201,7 @@ public class FabricWorkspaceClient {
 			String groupSearchUrl = ConstantsUtility.GROUPSEARCH_URL_PREFIX + groupDisplayName + ConstantsUtility.GROUPSEARCH_URL_SUFFIX;
 			ResponseEntity<MicrosoftGroupDetailCollectionDto> response = proxyRestTemplate.exchange(groupSearchUrl , HttpMethod.GET,
 					requestEntity, MicrosoftGroupDetailCollectionDto.class);
+			log.debug(" searchGroup log {}",response);
 			if (response !=null && response.hasBody()) {
 				collection = response.getBody();
 				if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
@@ -518,6 +521,7 @@ public class FabricWorkspaceClient {
 			HttpEntity<CreateWorkspaceDto> requestEntity = new HttpEntity<>(createRequest,headers);
 			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspacesBaseUrl, HttpMethod.POST,
 					requestEntity, WorkspaceDetailDto.class);
+			log.debug(" createWorkspace log {}",response);
 			if (response!=null && response.hasBody()) {
 				workspaceDetailDto = response.getBody();
 			}
@@ -551,6 +555,7 @@ public class FabricWorkspaceClient {
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId;
 			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl , HttpMethod.GET,
 					requestEntity, WorkspaceDetailDto.class);
+			log.debug(" getWorkspaceDetails log {}",response);
 			if (response !=null && response.hasBody()) {
 				workspaceDetailDto = response.getBody();
 			}
@@ -589,6 +594,7 @@ public class FabricWorkspaceClient {
 			String workspacesUrl = workspacesBaseUrl;
 			ResponseEntity<WorkspacesCollectionDto> response = proxyRestTemplate.exchange(workspacesUrl , HttpMethod.GET,
 					requestEntity, WorkspacesCollectionDto.class);
+			log.debug(" getAllWorkspacesDetails log {}",response);
 			if (response !=null && response.hasBody()) {
 				collectionDto = response.getBody();
 			}
@@ -613,6 +619,7 @@ public class FabricWorkspaceClient {
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			ResponseEntity<WorkspacesCollectionDto> response = proxyRestTemplate.exchange(workspacesBaseUrl , HttpMethod.GET,
 					requestEntity, WorkspacesCollectionDto.class);
+			log.debug(" listWorkspaces log {}",response);
 			if (response !=null && response.hasBody()) {
 				collection = response.getBody();
 			}
@@ -647,6 +654,7 @@ public class FabricWorkspaceClient {
 			String addUserToGroupUrl = addUserUrl + "/" + groupId + "/users";
 			ResponseEntity<String> addUserResponse = proxyRestTemplate.exchange(addUserToGroupUrl, HttpMethod.POST,
 					requestEntity, String.class);
+			log.debug(" addUser log {}",addUserResponse);
 			if (addUserResponse!=null && addUserResponse.getStatusCode().is2xxSuccessful()) {
 				response.setSuccess("SUCCESS");
 				response.setErrors(new ArrayList<>());
@@ -660,7 +668,7 @@ public class FabricWorkspaceClient {
 			errors.add(errorMessage);
 			response.setErrors(errors);
 			response.setWarnings(new ArrayList<>());
-			log.error("Failed to add user {} to workspace {} with exception ", emailAddress, groupId, e.getMessage());
+			log.error("Failed to add user {} to workspace {} with exception {}", emailAddress, groupId, e.getMessage());
 			return response;
 		}
 		return null;
@@ -680,15 +688,18 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users";
-			ResponseEntity<FabricGroupsCollectionDto> getUserResponse = restTemplate.exchange(getUserToGroupUrl, HttpMethod.GET,
+			ResponseEntity<FabricGroupsCollectionDto> getUserResponse = proxyRestTemplate.exchange(getUserToGroupUrl, HttpMethod.GET,
 					requestEntity, FabricGroupsCollectionDto.class);
+			log.debug(" getWorkspaceDetails log {}",getUserResponse);
 			if (getUserResponse!=null && getUserResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Got users and groups of workspace {} successfully", workspaceGroupId);
 				response = getUserResponse.getBody();
 				return response;
 			}
+		}catch(HttpClientErrorException e){
+			log.error("Http Error occured: {}",e);
 		}catch(Exception e) {
-			log.error("Failed to get users and groups of workspace {} with exception ",workspaceGroupId, e.getMessage());
+			log.error("Failed to get users and groups of workspace {} with exception {} ",workspaceGroupId, e);
 			return null;
 		}
 		return null;
@@ -716,6 +727,7 @@ public class FabricWorkspaceClient {
 			String removeUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users/" + identifier;
 			ResponseEntity<Object> removeUserResponse = proxyRestTemplate.exchange(removeUserToGroupUrl, HttpMethod.DELETE,
 					requestEntity, Object.class);
+			log.debug(" removeUserGroup log {}",removeUserResponse);
 			if (removeUserResponse!=null && removeUserResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Removed user/group {} from workspace {} successfully ", identifier , workspaceGroupId);
 				response.setSuccess("SUCCESS");
@@ -730,7 +742,7 @@ public class FabricWorkspaceClient {
 			errors.add(errorMessage);
 			response.setErrors(errors);
 			response.setWarnings(new ArrayList<>());
-			log.error("Failed to remove user/group {} from workspace {} with exception ", identifier, workspaceGroupId, e.getMessage());
+			log.error("Failed to remove user/group {} from workspace {} with exception {}", identifier, workspaceGroupId, e.getMessage());
 			return response;
 		}
 		return null;
@@ -758,6 +770,7 @@ public class FabricWorkspaceClient {
 			String addUserToGroupUrl = addUserUrl + "/" + workspaceGroupId + "/users";
 			ResponseEntity<String> addUserResponse = proxyRestTemplate.exchange(addUserToGroupUrl, HttpMethod.POST,
 					requestEntity, String.class);
+			log.debug(" addGroup log {}",addUserResponse);
 			if (addUserResponse!=null && ( addUserResponse.getStatusCode().is2xxSuccessful() || addUserResponse.getStatusCode().is4xxClientError())) {
 				log.info("Added default group {} to workspace {} successfully ", addGroupDto.getDisplayName(), workspaceGroupId);
 				response.setSuccess("SUCCESS");
@@ -772,7 +785,7 @@ public class FabricWorkspaceClient {
 			errors.add(errorMessage);
 			response.setErrors(errors);
 			response.setWarnings(new ArrayList<>());
-			log.error("Failed to add group {} to workspace {} with exception ", addGroupDto.getDisplayName(), workspaceGroupId, e.getMessage());
+			log.error("Failed to add group {} to workspace {} with exception {}", addGroupDto.getDisplayName(), workspaceGroupId, e.getMessage());
 			return response;
 		}
 		return null;
@@ -796,6 +809,7 @@ public class FabricWorkspaceClient {
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId;
 			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl, HttpMethod.PATCH,
 					requestEntity, WorkspaceDetailDto.class);
+			log.debug(" updateWorkspace log {}",response);
 			if (response!=null && response.hasBody()) {
 				workspaceDetailDto = response.getBody();
 			}
@@ -824,6 +838,7 @@ public class FabricWorkspaceClient {
 			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/assignToCapacity";
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
 					requestEntity, ErrorResponseDto.class);
+			log.debug(" assignCapacity log {}",response);
 			if (response!=null && response.hasBody()) {
 				errorResponse = response.getBody();
 			}
@@ -853,6 +868,7 @@ public class FabricWorkspaceClient {
 			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/provisionIdentity";
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
 					requestEntity, ErrorResponseDto.class);
+			log.debug(" provisionWorkspace log {}",response);
 			log.info("Workspace {} provisioned successfully", workspaceId);
 			if (response!=null && response.hasBody()) {
 				errorResponse = response.getBody();
@@ -890,6 +906,7 @@ public class FabricWorkspaceClient {
 			String assignCapacityUrl = workspacesBaseUrl + "/" + workspaceId + "/unassignFromCapacity";
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(assignCapacityUrl, HttpMethod.POST,
 					requestEntity, ErrorResponseDto.class);
+			log.debug(" unassignCapacity log {}",response);
 			if (response!=null && response.hasBody()) {
 				errorResponse = response.getBody();
 			}
@@ -918,6 +935,7 @@ public class FabricWorkspaceClient {
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId;
 			ResponseEntity<WorkspaceDetailDto> response = proxyRestTemplate.exchange(workspaceUrl , HttpMethod.DELETE,
 					requestEntity, WorkspaceDetailDto.class);
+			log.debug(" deleteWorkspace log {}",response);
 			if (response !=null && response.getStatusCode().is2xxSuccessful()) {
 				errorResponse = null;
 			}

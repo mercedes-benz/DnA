@@ -849,26 +849,28 @@ const CreateOrEditProject = (props) => {
                 )}
             </div>
             {(projectGroup === 'eXtollo') && (
-                <div className={Styles.extolloTou}>
-                    <label className={classNames("checkbox", touErrorMessage.length ? "error" : '')}>
-                        <span className="wrapper">
-                            <input
-                                type="checkbox"
-                                className="ff-only"
-                                value={extolloTou}
-                                onChange={onExtolloTOuChange}
-                                checked = {extolloTou}
-                            />
-                        </span>
-                    </label>
-                    <span className={classNames("label",Styles.touLabel, touErrorMessage.length ? "error" : '')}>
+                <div  className={Styles.touWrapper}>
+                    <div className={Styles.extolloTou}>
+                        <label className={classNames("checkbox", touErrorMessage.length ? "error" : '')}>
+                            <span className="wrapper">
+                                <input
+                                    type="checkbox"
+                                    className="ff-only"
+                                    value={extolloTou}
+                                    onChange={onExtolloTOuChange}
+                                    checked={extolloTou}
+                                />
+                            </span>
+                        </label>
+                        <span className={classNames("label", Styles.touLabel, touErrorMessage.length ? "error" : '')}>
                             I here by declare that I agree to eXtollo{' '}
                             <span className={classNames(Styles.configLink)} onClick={onTouNavigate}>
                                 <a target="_blank" rel="noreferrer">
                                     terms of use
                                 </a>
                             </span>
-                    </span>
+                        </span>
+                    </div>
                     <span className={classNames(Styles.errorMsg, 'error-message', touErrorMessage.length ? '' : 'hide')}>
                         {touErrorMessage}
                     </span>

@@ -73,6 +73,7 @@ const CreateBucket = ({ user }) => {
 
   const [procedureID, setProcedureID] = useState('');
   const [procedureIDError, setProcedureIDError] = useState('');
+  const [enablePublicAccess, setEnablePublicAccess] = useState(false);
 
   const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
   const requiredError = '*Missing entry';
@@ -193,7 +194,7 @@ const CreateBucket = ({ user }) => {
             setArcherId(res?.data?.archerId || '');
             setProcedureID(res?.data?.procedureId || '');
             setEditAPIResponse(res?.data); // store to compare whether the values are changed
-
+            setEnablePublicAccess(res?.data?.enablePublicAccess || false);
             setTimeout(() => {
               SelectBox.defaultSetup();
             }, 200);
@@ -339,6 +340,7 @@ const CreateBucket = ({ user }) => {
         department: department[0],
         archerId: archerId,
         procedureId: procedureID,
+       enablePublicAccess: enablePublicAccess,
       };
       dispatch(bucketActions.createBucket(data));
     }
@@ -369,6 +371,7 @@ const CreateBucket = ({ user }) => {
         department: department[0],
         archerId: archerId,
         procedureId: procedureID,
+        enablePublicAccess: enablePublicAccess,
       };
       dispatch(bucketActions.updateBucket(data));
     }
@@ -466,6 +469,9 @@ const CreateBucket = ({ user }) => {
   };
 
   const handleDataClassification = (e) => {
+    if (!e.target.value === dataClassification) {
+      setEnablePublicAccess(false);
+    }
     setDataClassification(e.target.value);
   };
 
@@ -507,6 +513,10 @@ const CreateBucket = ({ user }) => {
   const handlePII = (e) => {
     setPII(e.target.value === 'true' ? true : false);
   };
+
+  const handleEnablePublic = (e) => {
+    setEnablePublicAccess(e.target.checked);
+  }
 
   const bucketNameRulesContent = (
     <div>
@@ -719,7 +729,7 @@ const CreateBucket = ({ user }) => {
                   Data Classification <sup>*</sup>
                 </label>
                 <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
-                  <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
+                  <select id="reportStatusField" onChange={(e)=>{handleDataClassification(e)}} value={dataClassification}>
                     {dataClassificationDropdown?.length
                       ? dataClassificationDropdown?.map((item) => (
                         <option
@@ -791,7 +801,7 @@ const CreateBucket = ({ user }) => {
                     defaultValue={division}
                     required={true}
                     required-error={requiredError}
-                    onChange={onDivisionChange}
+                    onChange={(e)=>{onDivisionChange(e)}}
                     value={division}
                   >
                     <option id="divisionOption" value={0}>
@@ -886,7 +896,46 @@ const CreateBucket = ({ user }) => {
               </div>
 
             </div>
-
+            {dataClassification === 'Public' && (
+              <div className={classNames('input-field-group include-error')}>
+                <div className={classNames(Styles.accessSection)}>
+                  <h3 className={classNames(Styles.title)}>Public Access</h3>
+                  <label className={classNames('checkbox', Styles.accessCheckBox)}>
+                    <span className="wrapper">
+                      <input
+                        name="enablePublicAccess"
+                        type="checkbox"
+                        className="ff-only"
+                        checked={enablePublicAccess}
+                        value={enablePublicAccess}
+                        onChange={handleEnablePublic}
+                      />
+                    </span>
+                    <span className="label">Enable public read access to the storage bucket</span>
+                  </label>
+                  {enablePublicAccess && (
+                    <div className={Styles.acccessInfoSection}>
+                      <div className={Styles.accessInfoCheckWrapper}>
+                        <div className={Styles.infoWrapper}>
+                          <i className={'icon mbc-icon info'} />
+                        </div>
+                        <div className={Styles.descriptionWrapper}>
+                          <p><>Enabling public access for the storage bucket will make the contents of your storage bucket publicly accessible without any authentication. </></p>
+                          <p>
+                            {`You can use `}
+                            <strong>
+                              {`${Envs.BUCKET_PUBLIC_ACCESS_BASEURL}${bucketName?.length ? bucketName : 'YOUR_BUCKET_NAME'}`}
+                            </strong>
+                            {` base URL to read the contents from your bucket.`}
+                          </p>
+                          <p>Please make sure that you do not store any confidential data in this bucket as it is publicly accessible.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             <div className={classNames('input-field-group include-error')}>
               <div className={Styles.bucketColContent}>
                 <div className={Styles.bucketColContentList}>

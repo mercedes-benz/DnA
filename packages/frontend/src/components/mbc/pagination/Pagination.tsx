@@ -9,6 +9,7 @@ export interface IPaginationProps {
   pageNumber: number;
   totalPages: number;
   displayByPage?: boolean;
+  startWithFive?: boolean;
 }
 
 export interface IPaginationState {
@@ -19,8 +20,9 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
   constructor(props: IPaginationProps) {
     super(props);
     this.state = {
-      selectedPageNumber:
-        parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
+      selectedPageNumber: this.props.startWithFive
+        ? parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE), 10) || 5
+        : parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
     };
   }
   /* tslint:disable:jsx-no-lambda */
@@ -34,41 +36,94 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
           id="dropdownMenuButton"
           onClick={this.props.onPreviousClick}
         >
-          Previous
+           Previous
         </button>
         {this.props.displayByPage ? (
-          <span>
-            <span className={Styles.pageNumebr}>{`${this.props.pageNumber}/${this.props.totalPages}`}</span>
-            <h2 className={Styles.spaceLine} />
-            {'show '}
-            <a
-              className={
-                this.state.selectedPageNumber === 15 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
-              }
-              target="_blank"
-              onClick={this.fetchData(15)}
-            >
-              {'15 '}
-            </a>
-            <a
-              className={
-                this.state.selectedPageNumber === 30 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
-              }
-              target="_blank"
-              onClick={this.fetchData(30)}
-            >
-              {'30 '}
-            </a>
-            <a
-              className={
-                this.state.selectedPageNumber === 60 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
-              }
-              target="_blank"
-              onClick={this.fetchData(60)}
-            >
-              {'60'}
-            </a>
-          </span>
+          this.props.startWithFive ? (
+            <span>
+              <span className={Styles.pageNumebr}>{`${this.props.pageNumber}/${this.props.totalPages}`}</span>
+              <h2 className={Styles.spaceLine} />
+              {'show '}
+              <a
+                className={
+                  this.state.selectedPageNumber === 5 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(5)}
+              >
+                {'5 '}
+              </a>
+              <a
+                className={
+                  this.state.selectedPageNumber === 20 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(20)}
+              >
+                {'20 '}
+              </a>
+              <a
+                className={
+                  this.state.selectedPageNumber === 30 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(30)}
+              >
+                {'30 '}
+              </a>
+              <a
+                className={
+                  this.state.selectedPageNumber === 60 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(60)}
+              >
+                {'60 '}
+              </a>
+              <a
+                className={
+                  this.state.selectedPageNumber === 100 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(100)}
+              >
+                {'100'}
+              </a>
+            </span>
+          ) : (
+            <span>
+              <span className={Styles.pageNumebr}>{`${this.props.pageNumber}/${this.props.totalPages}`}</span>
+              <h2 className={Styles.spaceLine} />
+              {'show '}
+              <a
+                className={
+                  this.state.selectedPageNumber === 15 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(15)}
+              >
+                {'15 '}
+              </a>
+              <a
+                className={
+                  this.state.selectedPageNumber === 30 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(30)}
+              >
+                {'30 '}
+              </a>
+              <a
+                className={
+                  this.state.selectedPageNumber === 60 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                }
+                target="_blank"
+                onClick={this.fetchData(60)}
+              >
+                {'60'}
+              </a>
+            </span>
+          )
         ) : (
           <span>{`${this.props.pageNumber}/${this.props.totalPages}`}</span>
         )}
@@ -85,7 +140,9 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
     );
   }
   protected fetchData = (val: number) => () => {
-    sessionStorage.setItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE, val.toString());
+    this.props.startWithFive
+      ? sessionStorage.setItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE, val.toString())
+      : sessionStorage.setItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE, val.toString());
     this.props.onViewByNumbers(val);
     this.setState({
       selectedPageNumber: val,

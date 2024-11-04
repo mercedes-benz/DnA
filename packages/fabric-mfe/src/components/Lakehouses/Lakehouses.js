@@ -27,7 +27,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId }) => {
       fabricApi
         .getAllBuckets()
         .then((res) => {
-          setBuckets(res?.data?.records);
+          setBuckets(res?.data?.data);
           SelectBox.defaultSetup(true);
           ProgressIndicator.hide();
         })
@@ -182,7 +182,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
             <div className={classNames(Styles.col1)}>{shortcut?.bucketname}<br />Connection Name: {shortcut?.connectionName}</div>
             <div className={classNames(Styles.col2)}>{shortcut?.name} - {shortcut?.path}</div>
             <div className={classNames(Styles.col3)}>
-              <button className={'btn'}><i className="icon mbc-icon new-tab" onClick={() => window.open(shortcut?.bucketpath)} /> Go to Bucket</button>
+              { shortcut?.bucketpath && <button className={'btn'}><i className="icon mbc-icon new-tab" onClick={() => window.open(shortcut?.bucketpath)} /> Go to Bucket</button> }
               <button className={'btn'}><i className="icon delete" onClick={() => handleDeleteShortcut(shortcut?.id)} /> Delete</button>
             </div>
           </div>

@@ -29,4 +29,6 @@ public class UserNotificationPreference implements Serializable{
 	private NotificationPreference airflowNotificationPref;
 	private NotificationPreference dataLakeNotificationPref;
 	private NotificationPreference dataEntryNotificationPref;
+	private NotificationPreference useCaseOwnerNotificationPref;
+	private NotificationPreference powerPlatformNotificationPref;
 }

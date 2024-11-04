@@ -10,6 +10,9 @@ import { history } from '../../router/History';
 import IconWrapper from 'components/icons/IconWrapper';
 import IconNameRenderer from 'components/icons/IconNameRenderer';
 import IconSpire from 'components/icons/IconSpire';
+import IconFabric from 'components/icons/IconFabric';
+import IconPowerPlatform from 'components/icons/IconPowerPlatform';
+
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
@@ -36,6 +39,11 @@ const DNACard = (props: IDNACardProps) => {
 
   const maxTagItem = 4;
 
+  const onViewDetailedPage = (e : any) => {
+    e.stopPropagation();
+    history.push(`/toolDetails/${props.id}`);
+  }
+
   return (
     <>
       <div
@@ -46,9 +54,7 @@ const DNACard = (props: IDNACardProps) => {
           props.isDisabled ? Styles.disabled : '',
           props.className,
         )}
-        onClick={() => {
-         props.isDetailedPage ? history.push('/toolDetails/' + props.id):( props.isExternalLink ? window.open(props.url) : history.push(props.url));
-        }}
+        onClick={() => { props.isExternalLink ? window.open(props.url) : history.push(props.url)}}
       >
         <div className={Styles.cardHeaderSection}>
           {props.isDisabled ? (
@@ -67,15 +73,18 @@ const DNACard = (props: IDNACardProps) => {
         <div className={Styles.cardIconSection}>
           {props.svgIcon ? (
             typeof props.svgIcon === 'string' ? (
-              props.svgIcon === 'spire'?
-                <IconSpire size='85px'/>
-              :
-                <IconNameRenderer name={props.svgIcon} />
+              props.svgIcon === 'spire' ?
+                <IconSpire size='85px' />
+                : props.svgIcon === 'powerPlatform' ?
+                  <IconPowerPlatform size='85px' /> :
+                  props.svgIcon === 'fabric' ?
+                    <IconFabric size='85px' />
+                    : <IconNameRenderer name={props.svgIcon} />
             ) : (
               props.svgIcon
             )
           ) : (
-            <IconWrapper size="100"/>
+            <IconWrapper size="100" />
           )}
         </div>
         <div
@@ -97,6 +106,19 @@ const DNACard = (props: IDNACardProps) => {
             );
           })}
           {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
+        </div>
+        <div className={Styles.cardFooterSection}>
+          {(props.isDetailedPage && !props.isDisabled)? (
+            <button
+              className={classNames('btn btn-primary', Styles.viewDetailedPage)}
+              type="button"
+              onClick={(e) => onViewDetailedPage(e)}
+            >
+              <h3>Show Details</h3>
+              <i className={classNames('icon mbc-icon arrow small right')} />
+            </button>
+          ) : ''
+          }
         </div>
       </div>
     </>

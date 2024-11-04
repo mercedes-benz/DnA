@@ -1,0 +1,128 @@
+.mainPanel {
+  padding: 72px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+    position: relative;
+  }
+
+  .content {
+    background-color: #252a33;
+  }
+
+  >div {
+    width: calc(50% - 7px);
+  }
+
+  .allCodeSpace {
+    padding-bottom: 30px;
+    flex: 1 auto;
+    position: relative;
+
+    .allcodeSpaceListviewContent {
+      background-color: #252a33;
+      padding-top: 15px;
+
+      .codeSpaceMargininone {
+        position: relative;
+        margin-top: 0;
+      }
+    }
+  }
+
+  .securityConfigRow {
+    background-color: #252a33;
+    height: 95px;
+  }
+
+  .noRequests {
+    align-items: center;
+    background-color: #252a33;
+    display: flex;
+    flex-direction: column;
+    height: 450px;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+  }
+  table {
+    .tableTitle {
+      th:first-child {
+        width: 16.66%;
+      }
+      th:nth-child(2) {
+        width: 18.66%;
+      }
+      th:nth-child(3) {
+        width: 32.66%;
+      }
+      th:nth-child(4) {
+        width: 16.66%;
+      }
+      th:nth-child(5) {
+        width: 8.66%;
+      }
+      th:last-child {
+        width: 8.66%;
+        text-align: right;
+        padding-right: 30px;
+      }
+    }
+  }
+}
+#create-security-tabs .scrollable.tabs-wrapper {
+  height: 44px;
+}
+
+#create-security-tabs .scrollable.tabs-wrapper nav,
+#create-security-tabs .tabs {
+  height: 44px;
+}
+
+#manage-codeSpace-tabs .tab {
+  min-width: max-content;
+
+  >a {
+    position: relative;
+    padding: 10px 50px 12px 40px;
+
+    &::before {
+      font-family: 'dna-icons';
+      content: '\e949';
+      position: absolute;
+      right: 20px;
+      font-size: var(--font-size-icon-highlight);
+    }
+
+    sup {
+      font-size: 15px;
+      font-style: bold;
+      vertical-align: sub;
+    }
+  }
+
+  &.valid a::before {
+    color: #00adef;
+  }
+}
+.actionBtns {
+  position: absolute;
+  z-index: 9;
+  top: 70px;
+  right: 0;
+}
+.btnOutline {
+  background: none;
+  border: none !important;
+  color: #c0c8d0;
+  height: auto;
+  margin: 0px 10px;
+  outline: none;
+  padding: 0 2px;
+
+  &:hover {
+      color: #00adef;
+      background: unset;
+  }
+}
+  
