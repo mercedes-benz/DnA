@@ -28,6 +28,11 @@ const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace
             <Spinner /> <span>&nbsp;</span>
           </button>
         }
+        {workspace?.status?.state === 'COMPLETED' && 
+          <button className={Styles.completedStatus}>
+            <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
+          </button>
+        }
       </div>
       <div className={Styles.col2}>
         <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>

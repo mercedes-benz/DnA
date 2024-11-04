@@ -8,7 +8,6 @@ import Spinner from '../spinner/Spinner';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-  const isRequestedWorkspace = user?.id !== workspace?.createdBy?.id;
   
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -61,8 +60,13 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           <div className={Styles.statusContainer}>
             <div className={Styles.statusItem}>
               <button tooltip-data={'Click for more information'} onClick={() => onSelectWorkspace(workspace)}>
-                {!isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <><Spinner /> <span>In progress</span></>}
+                {workspace?.status?.state === 'IN_PROGRESS' && <><Spinner /> <span>In progress</span></>}
               </button>
+              {workspace?.status?.state === 'COMPLETED' && 
+                <button className={Styles.completedStatus}>
+                  <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
+                </button>
+              }
               {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
