@@ -741,6 +741,7 @@ grafana.ini:
     plugins: /var/lib/grafana/plugins
     provisioning: /etc/grafana/provisioning
   analytics:
+    reporting_enabled: false
     check_for_updates: true
   log:
     mode: console
