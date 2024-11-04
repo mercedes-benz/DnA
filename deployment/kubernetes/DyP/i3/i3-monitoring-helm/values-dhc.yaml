@@ -896,6 +896,7 @@ grafana:
         isDefault: true
         basic_auth: false
         orgId: 2
+        editable: true
       - name: Alertmanager
         type: alertmanager
         access: proxy
@@ -908,7 +909,7 @@ grafana:
         isDefault: false
         basic_auth: false
         orgId: 2
-        editable: false
+        editable: true
       - name: Postgres
         type: postgres
         access: proxy
