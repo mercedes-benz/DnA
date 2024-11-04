@@ -1207,7 +1207,7 @@ loki:
       replicas: 3    
 
 fluent-bit:
-  enabled: true     
+  enabled: false     
   fullnameOverride: "fluent-bit"
   # the labels are required by OpenSearch networkPolicy to enable access to OpenSearch
   labels:
