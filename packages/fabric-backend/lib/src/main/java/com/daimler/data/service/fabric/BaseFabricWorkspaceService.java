@@ -42,22 +42,23 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
-import com.daimler.data.dto.fabric.*;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
-import com.daimler.data.dto.fabricWorkspace.*;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
@@ -192,17 +193,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
 		List<FabricWorkspaceNsql> filteredEntities = new ArrayList<>();
 		if(allEntities!=null && !allEntities.isEmpty()) {
-			for(FabricWorkspaceNsql existingEntity : allEntities) {
-				if(existingEntity!=null) {
-					List<String> filteredEntitlements = new ArrayList<>();
-					if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-						filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + existingEntity.getId() + "_")).collect(Collectors.toList());
-					}
-					String creatorId = existingEntity.getData().getCreatedBy().getId();
-					if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
-						filteredEntities.add(existingEntity);
+			if(user!=null && !"".equalsIgnoreCase(user.trim())){
+				for(FabricWorkspaceNsql existingEntity : allEntities) {
+					if(existingEntity!=null) {
+						List<String> filteredEntitlements = new ArrayList<>();
+						if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
+							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + existingEntity.getId() + "_")).collect(Collectors.toList());
+						}
+						String creatorId = existingEntity.getData().getCreatedBy().getId();
+						if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
+							filteredEntities.add(existingEntity);
+						}
 					}
 				}
+			}else {
+				filteredEntities.addAll(allEntities);
 			}
 		}
 		if (filteredEntities != null && !filteredEntities.isEmpty()) {
@@ -583,6 +588,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 			}
 		}else {
+			log.info("Role {} creation and assignment still in progress for {} ", existingRoleVO.getName() ,  workspaceName);
 			updatedRole.setAssignEntitlementsState(ConstantsUtility.INPROGRESS_STATE);
 			updatedRole.setRoleOwner("");
 			updatedRole.setGlobalRoleAssigner("");
@@ -941,7 +947,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
 					}
 				}
-				
 				return currentStatus;
 	}
 	
@@ -996,7 +1001,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
 							viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 						}else {
-							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
+							//fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
+							log.info("Custom group {} assigned to workspace {} , ignoring.", userGroupDetail.getDisplayName(), workspaceId);
 						}
 					}
 				}
