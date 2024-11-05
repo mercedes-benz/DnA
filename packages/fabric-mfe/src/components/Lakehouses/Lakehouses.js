@@ -345,7 +345,7 @@ function Lakehouses({ workspace, lakehouses }) {
                   <i className="icon delete" />
                 </button>
               </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setShowCreateShortcutModal(true) }}>
+              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
                 <i className="icon mbc-icon plus" />
                 <span>Create Shortcut</span>
               </button>&nbsp;&nbsp;&nbsp;&nbsp;
