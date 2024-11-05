@@ -1424,10 +1424,6 @@ import com.daimler.data.util.ConstantsUtility;
 						 environmentJsonbName = "prodDeploymentDetails";
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-					 deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
 					 // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 					 
 					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -1449,8 +1445,6 @@ import com.daimler.data.util.ConstantsUtility;
 					 auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 					 auditLogs.add(auditLog);
 					 deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
 					 //calling kong to create service, route and plugins
 					//  boolean apiRecipe = false;
 					 String serviceName = projectName;
@@ -1473,7 +1467,12 @@ import com.daimler.data.util.ConstantsUtility;
 					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
 					//  }
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie);
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired);
+					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
+					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+					deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";

@@ -15,6 +15,7 @@ import { CODE_SPACE_TITLE } from '../../Utility/constants';
 import { trackEvent } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
+import { Envs } from '../../Utility/envs';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -546,22 +547,34 @@ const DeployModal = (props) => {
                     </div>
                   )}
                   {oneApiSelected && (
-                    <div className={classNames(Styles.flexLayout)}>
-                      <TextBox
-                        type="text"
-                        label={'Api version shortname'}
-                        placeholder={'Client ID as per IAM used with Alice'}
-                        value={oneApiVersionShortName}
-                        errorText={oneApiVersionShortNameError}
-                        required={true}
-                        maxLength={200}
-                        onChange={(e) => {
-                          setOneApiVersionShortName(e.currentTarget.value);
-                          setOneApiVersionShortNameError('');
-                        }}
-                      />
-                      <div></div>
-                    </div>
+                    <>
+                      <div className={classNames(Styles.flexLayout)}>
+                        <TextBox
+                          type="text"
+                          label={'Api version shortname'}
+                          placeholder={'Api version shortname in oneAPI'}
+                          value={oneApiVersionShortName}
+                          errorText={oneApiVersionShortNameError}
+                          required={true}
+                          maxLength={200}
+                          onChange={(e) => {
+                            setOneApiVersionShortName(e.currentTarget.value);
+                            setOneApiVersionShortNameError('');
+                          }}
+                        />
+                        <div className={Styles.oneAPILink}>
+                          <a href={Envs.ONE_API_URL} target="_blank" rel="noreferrer">
+                            where to provision your api ? 
+                          </a>
+                        </div>
+                      </div>
+                      <span>
+                        <p
+                          style={{ color: 'var(--color-orange)' }}>
+                          <i className="icon mbc-icon alert circle"></i> We are supporting only GAS/OIDC. Please ensure that GAS/OIDC is selected as the identity provider under API management in the oneAPI portal.
+                        </p>
+                      </span>
+                    </>
                   )}
                   {/* {secureWithIAMSelected && (
                 <div
@@ -604,6 +617,7 @@ const DeployModal = (props) => {
                             className="ff-only"
                             checked={secureWithIAMSelected}
                             onChange={onChangeSecureWithIAM}
+                            disabled={oneApiSelected}
                             // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                             // disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                           />
@@ -750,22 +764,34 @@ const DeployModal = (props) => {
                     </div>
                   )}
                   {oneApiSelected && (
-                    <div className={classNames(Styles.flexLayout)}>
-                      <TextBox
-                        type="text"
-                        label={'Api version shortname'}
-                        placeholder={'Client ID as per IAM used with Alice'}
-                        value={oneApiVersionShortName}
-                        errorText={oneApiVersionShortNameError}
-                        required={true}
-                        maxLength={200}
-                        onChange={(e) => {
-                          setOneApiVersionShortName(e.currentTarget.value);
-                          setOneApiVersionShortNameError('');
-                        }}
-                      />
-                      <div></div>
-                    </div>
+                    <>
+                      <div className={classNames(Styles.flexLayout)}>
+                        <TextBox
+                          type="text"
+                          label={'Api version shortname'}
+                          placeholder={'Api version shortname in oneAPI'}
+                          value={oneApiVersionShortName}
+                          errorText={oneApiVersionShortNameError}
+                          required={true}
+                          maxLength={200}
+                          onChange={(e) => {
+                            setOneApiVersionShortName(e.currentTarget.value);
+                            setOneApiVersionShortNameError('');
+                          }}
+                        />
+                        <div className={Styles.oneAPILink}>
+                          <a href={Envs.ONE_API_URL} target="_blank" rel="noreferrer">
+                            where to provision your api ? 
+                          </a>
+                        </div>
+                      </div>
+                      <span>
+                        <p
+                          style={{ color: 'var(--color-orange)' }}>
+                          <i className="icon mbc-icon alert circle"></i> We are supporting only GAS/OIDC. Please ensure that GAS/OIDC is selected as the identity provider under API management in the oneAPI portal.
+                        </p>
+                      </span>
+                    </>
                   )}
                   {/* {secureWithIAMSelected && (
                 <div
