@@ -37,6 +37,7 @@ prometheus:
     fullnameOverride: "prometheus-server"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
+      tag: "v2.55.0"
     extraArgs:
       # Limit persistent data size (experimental)
       storage.tsdb.retention.size: "10GB"
@@ -47,7 +48,7 @@ prometheus:
       fsGroup: 65534
     persistentVolume:
      storageClass: dhc-gp3
-     size: 25Gi
+     size: 30Gi
     #podLabels for adding label for network policy
     retention: "30d"
     podLabels:
@@ -964,7 +965,7 @@ grafana:
     storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
-    size: 3Gi      
+    size: 4Gi      
 
   imageRenderer:
     deploymentStrategy: 
@@ -1067,7 +1068,7 @@ tempo-distributed:
     persistence:
       enabled: true
       inMemory: false
-      size: 10Gi
+      size: 5Gi
       storageClass: dhc-gp3    
     complete_block_timeout: 720h
   compactor:    
