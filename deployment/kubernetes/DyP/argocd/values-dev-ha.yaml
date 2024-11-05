@@ -2555,7 +2555,7 @@ repoServer:
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
     # -- Enable Horizontal Pod Autoscaler ([HPA]) for the repo server
-    enabled: true
+    enabled: false
     # -- Minimum number of replicas for the repo server [HPA]
     minReplicas: 2
     # -- Maximum number of replicas for the repo server [HPA]
@@ -2795,16 +2795,25 @@ repoServer:
   #    emptyDir: {}
 
   # -- Volumes to be used in replacement of emptydir on default volumes
-  existingVolumes: {}
+  existingVolumes: 
   #  gpgKeyring:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-keyring
   #  helmWorkingDir:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-workdir
-  #  tmp:
-  #    persistentVolumeClaim:
-  #      claimName: pvc-argocd-repo-server-tmp
+   tmp:
+    ephemeral:
+      volumeClaimTemplate:
+        metadata:
+          labels:
+            type: argocd-tmp
+        spec:
+          accessModes: [ "ReadWriteOnce" ]
+          storageClassName: "dhc-gp3"
+          resources:
+            requests:
+              storage: 20Gi  
   #  varFiles:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-varfiles
@@ -2832,13 +2841,7 @@ repoServer:
   podLabels: {}
 
   # -- Resource limits and requests for the repo server pods
-  resources: 
-   limits:
-     cpu: 3
-     memory: 2000Mi
-   requests:
-     cpu: 2
-     memory: 1500Mi
+  resources: {}
 
   # Repo server container ports
   containerPorts:
