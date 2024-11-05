@@ -7,6 +7,7 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
@@ -345,7 +346,7 @@ function Lakehouses({ workspace, lakehouses }) {
                   <i className="icon delete" />
                 </button>
               </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setShowCreateShortcutModal(true) }}>
+              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
                 <i className="icon mbc-icon plus" />
                 <span>Create Shortcut</span>
               </button>&nbsp;&nbsp;&nbsp;&nbsp;
