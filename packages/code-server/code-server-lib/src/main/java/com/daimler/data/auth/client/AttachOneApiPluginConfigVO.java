@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class AttachOneApiPluginConfigVO implements Serializable{
     private static final long serialVersionUID = 1L;
 	private String api_version_shortname;
+    private String environment;
 
     
 }
