@@ -37,7 +37,6 @@ prometheus:
     fullnameOverride: "prometheus-server"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
-      tag: "v2.55.0"
     extraArgs:
       # Limit persistent data size (experimental)
       storage.tsdb.retention.size: "10GB"
