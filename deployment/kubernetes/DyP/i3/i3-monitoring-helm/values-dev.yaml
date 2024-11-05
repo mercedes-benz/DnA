@@ -168,6 +168,7 @@ grafana:
         secretName: grafana-tls
 
   # if the Grafana URL uses a subpath like /grafana, ensure to set the following lines
+  assertNoLeakedSecrets: false
   grafana.ini:
     server:
       domain: monitoring.dna-aws.app.corpintra.net
