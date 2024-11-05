@@ -11,17 +11,17 @@ import { history } from '../store';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import SessionExpired from './SessionExpired';
 
-import PowerPlatformWorkspaces from '../pages/powerPlatformWorkspaces/PowerPlatformWorkspaces';
-import PowerPlatformWorkspace from '../pages/powerPlatformWorkspace/PowerPlatformWorkspace';
+import PowerPlatformEnvironments from '../pages/powerPlatformEnvironments/PowerPlatformEnvironments';
+import PowerPlatformEnvironment from '../pages/powerPlatformEnvironment/PowerPlatformEnvironment';
 
 export const protectedRoutes = [
   {
-    component: PowerPlatformWorkspaces,
+    component: PowerPlatformEnvironments,
     exact: true,
     path: '/',
   },
   {
-    component: PowerPlatformWorkspace,
+    component: PowerPlatformEnvironment,
     exact: true,
     path: '/workspace/:id',
   },

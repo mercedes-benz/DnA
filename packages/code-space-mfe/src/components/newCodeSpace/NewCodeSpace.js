@@ -1101,7 +1101,7 @@ const NewCodeSpace = (props) => {
                   className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '')}
                 >
                   <label id="description" className="input-label" htmlFor="description">
-                    Description2 <sup>*</sup>
+                    Description <sup>*</sup>
                   </label>
                   <textarea
                     id="description"

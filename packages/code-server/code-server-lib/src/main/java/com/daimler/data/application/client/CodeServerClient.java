@@ -159,9 +159,10 @@ public class CodeServerClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		try {
-			boolean isUserCreated = isUserPresent(userId)
-					|| createUser(userId, manageDto.getInputs().getIsCollaborator());
-
+			boolean isUserCreated = isUserPresent(userId);
+			if(!isUserCreated){
+				isUserCreated = createUser(userId, manageDto.getInputs().getIsCollaborator());
+			}
 			if (isUserCreated) {
 				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName);
 				if (isCreateServerStatus) {
@@ -173,7 +174,12 @@ public class CodeServerClient {
 					MessageDescription warning = new MessageDescription();
 					warnings.add(warning);
 				}
+			}else{
+				LOGGER.error(
+					"Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
+					userId, manageDto.getInputs().getAction());
 			}
+			
 		} catch (Exception e) {
 			LOGGER.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
@@ -216,17 +222,21 @@ public class CodeServerClient {
 }
 
 	private boolean createUser(String userId, String isCollaborator){
-		String userURI = jupyterUrl;
-		JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
-		List<String> userName = new ArrayList<>();
-		userName.add(userId);
-		userDto.setUsernames(userName);
-		userDto.setAdmin(false);
-		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders());
-        ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
-		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
-			LOGGER.info("User {} has registered sucessfully", userId);
-			return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
+		try{
+			String userURI = jupyterUrl;
+			JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
+			List<String> userName = new ArrayList<>();
+			userName.add(userId);
+			userDto.setUsernames(userName);
+			userDto.setAdmin(false);
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders());
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
+				LOGGER.info("User {} has registered sucessfully", userId);
+				return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
+			}
+		}catch(Exception e){
+			LOGGER.error("error occured while creating user in hub :{} ", e.getMessage());
 		}
 		return false;
 	}
