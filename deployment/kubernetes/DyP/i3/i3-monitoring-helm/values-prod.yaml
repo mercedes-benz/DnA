@@ -127,7 +127,7 @@ prometheus:
           params:
             format: [ 'prometheus' ]
           static_configs:
-            - targets: [ 'minio.minio.svc.cluster.local:80' ]
+            - targets: [ 'minio.prod-dna-minio.svc.cluster.local:80' ]
         - job_name: argocd
           metrics_path: /metrics
           params:
@@ -137,7 +137,7 @@ prometheus:
           scrape_interval: 5s
           static_configs:
           - targets:
-            - agrocd-application-controller.argocd.svc.cluster.local:8082
+            - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
 
@@ -174,7 +174,7 @@ prometheus:
           scrape_interval: 5s	
           static_configs:	
           - targets:	
-            - cs-hub-hub.code-server.svc.cluster.local:8081	
+            - cs-hub.prod-dna-cs-workspaces.svc.cluster.local:8081	
           tls_config:	
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
 
