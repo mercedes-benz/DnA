@@ -31,8 +31,6 @@ spring:
     driverClassName: org.postgresql.Driver
 
 fabricWorkspaces:
-  app.apikey: ${FABRIC_AUTH_APIKEY:xxxx}
-  app.appid: ${FABRIC_AUTH_APPID:xxxxx}
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
   clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
   grantType: ${FABRIC_OAUTH_GRANT_TYPE:client_credentials}
