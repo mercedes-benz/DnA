@@ -299,6 +299,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     public ResponseEntity<FabricShortcutsCollectionVO> getLakehouseS3Shortcut(@ApiParam(value = "Workspace ID",required=true) @PathVariable("id") String id,
     		@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("lakehouseId") String lakehouseId){
 		FabricShortcutsCollectionVO response = service.getLakehouseS3Shortcuts(id,lakehouseId);
+		if(response!=null && response.getTotalCount() == 0) {
+			return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
     }
 	
