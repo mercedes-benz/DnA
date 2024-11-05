@@ -652,44 +652,44 @@ extraObjects:
               - generate
               - "."
 
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: pvc-argocd-repo-server-tmp
-      namespace: argocd
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 20Gi
-      storageClassName: dhc-gp3
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-tmp
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 20Gi
+  #     storageClassName: dhc-gp3
 
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: pvc-argocd-repo-server-tmp-1
-      namespace: argocd
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 20Gi
-      storageClassName: dhc-gp3
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-tmp-1
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 20Gi
+  #     storageClassName: dhc-gp3
 
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: pvc-argocd-repo-server-tmp-2
-      namespace: argocd
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 20Gi
-      storageClassName: dhc-gp3      
+  # - apiVersion: v1
+  #   kind: PersistentVolumeClaim
+  #   metadata:
+  #     name: pvc-argocd-repo-server-tmp-2
+  #     namespace: argocd
+  #   spec:
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: 20Gi
+  #     storageClassName: dhc-gp3      
 
   # - apiVersion: v1
   #   kind: PersistentVolumeClaim
@@ -884,8 +884,8 @@ controller:
   emptyDir:
     # -- EmptyDir size limit for application controller
     # @default -- `""` (defaults not set if not specified i.e. no size limit)
-    sizeLimit: ""
-    # sizeLimit: "1Gi"
+    # sizeLimit: ""
+    sizeLimit: "1Gi"
 
   # -- Annotations for the application controller StatefulSet
   statefulsetAnnotations: {}
@@ -1210,8 +1210,8 @@ dex:
   emptyDir:
     # -- EmptyDir size limit for Dex server
     # @default -- `""` (defaults not set if not specified i.e. no size limit)
-    sizeLimit: ""
-    # sizeLimit: "1Gi"
+    # sizeLimit: ""
+    sizeLimit: "1Gi"
 
   # TLS certificate configuration via Secret
   ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/tls/#configuring-tls-to-argocd-dex-server
@@ -2070,8 +2070,8 @@ server:
   emptyDir:
     # -- EmptyDir size limit for the Argo CD server
     # @default -- `""` (defaults not set if not specified i.e. no size limit)
-    sizeLimit: ""
-    # sizeLimit: "1Gi"
+    # sizeLimit: ""
+    sizeLimit: "1Gi"
 
   # -- Annotations to be added to server Deployment
   deploymentAnnotations: {}
@@ -2338,7 +2338,7 @@ server:
   # Argo CD server ingress configuration
   ingress:
     # -- Enable an ingress resource for the Argo CD server
-    enabled: false
+    enabled: true
     # -- Specific implementation for ingress controller. One of `generic`, `aws` or `gke`
     ## Additional configuration might be required in related configuration sections
     controller: generic
@@ -2346,16 +2346,20 @@ server:
     labels: {}
     # -- Additional ingress annotations
     ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
-    annotations: {}
-      # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    annotations: 
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+      kubernetes.io/ingress.class: ingress-traefik
+      traefik.frontend.rule.type: PathPrefix
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+      traefik.ingress.kubernetes.io/router.tls: 'true'
 
     # -- Defines which ingress controller will implement the resource
-    ingressClassName: ""
+    ingressClassName: "ingress-traefik"
 
     # -- Argo CD server hostname
     # @default -- `""` (defaults to global.domain)
-    hostname: ""
+    hostname: "serving.kfp.dna-aws.app.corpintra.net"
 
     # -- The path to Argo CD server
     path: /
@@ -2402,10 +2406,10 @@ server:
 
     # -- Additional TLS configuration
     # @default -- `[]` (See [values.yaml])
-    extraTls: []
-      # - hosts:
-      #   - argocd.example.com
-      #   secretName: your-certificate-name
+    extraTls: 
+      - hosts:
+        - serving.kfp.dna-aws.app.corpintra.net
+        secretName: argocd-tls
 
     # AWS specific options for Application Load Balancer
     # Applies only when `serv.ingress.controller` is set to `aws`
@@ -2546,12 +2550,12 @@ repoServer:
   name: repo-server
 
   # -- The number of repo server pods to run
-  replicas: 1
+  replicas: 7
 
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
     # -- Enable Horizontal Pod Autoscaler ([HPA]) for the repo server
-    enabled: false
+    enabled: true
     # -- Minimum number of replicas for the repo server [HPA]
     minReplicas: 2
     # -- Maximum number of replicas for the repo server [HPA]
@@ -2791,16 +2795,16 @@ repoServer:
   #    emptyDir: {}
 
   # -- Volumes to be used in replacement of emptydir on default volumes
-  existingVolumes:
+  existingVolumes: {}
   #  gpgKeyring:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-keyring
   #  helmWorkingDir:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-workdir
-   tmp:
-     persistentVolumeClaim:
-       claimName: pvc-argocd-repo-server-tmp
+  #  tmp:
+  #    persistentVolumeClaim:
+  #      claimName: pvc-argocd-repo-server-tmp
   #  varFiles:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-varfiles
@@ -2812,8 +2816,8 @@ repoServer:
   emptyDir:
     # -- EmptyDir size limit for repo server
     # @default -- `""` (defaults not set if not specified i.e. no size limit)
-    sizeLimit: ""
-    # sizeLimit: "1Gi"
+    # sizeLimit: ""
+    sizeLimit: "3Gi"
 
   # -- Toggle the usage of a ephemeral Helm working directory
   useEphemeralHelmWorkingDir: true
@@ -2830,11 +2834,11 @@ repoServer:
   # -- Resource limits and requests for the repo server pods
   resources: 
    limits:
-     cpu: 3500m
-     memory: 5000Mi
+     cpu: 3
+     memory: 2000Mi
    requests:
-     cpu: 3000m
-     memory: 4000Mi
+     cpu: 2
+     memory: 1500Mi
 
   # Repo server container ports
   containerPorts:
@@ -2908,7 +2912,13 @@ repoServer:
   # @default -- `[]` (defaults to global.topologySpreadConstraints)
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
   ## If labelSelector is left out, it will default to the labelSelector configuration of the deployment
-  topologySpreadConstraints: []
+  topologySpreadConstraints: 
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-repo-server
     # - maxSkew: 1
     #   topologyKey: topology.kubernetes.io/zone
     #   whenUnsatisfiable: DoNotSchedule
@@ -3106,8 +3116,8 @@ applicationSet:
   emptyDir:
     # -- EmptyDir size limit for applicationSet controller
     # @default -- `""` (defaults not set if not specified i.e. no size limit)
-    sizeLimit: ""
-    # sizeLimit: "1Gi"
+    # sizeLimit: ""
+    sizeLimit: "1Gi"
 
   ## Metrics service configuration
   metrics:
