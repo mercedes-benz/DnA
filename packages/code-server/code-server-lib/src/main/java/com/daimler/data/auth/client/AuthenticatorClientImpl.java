@@ -351,7 +351,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -362,12 +362,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		Boolean prodSecureIAM = false;
 		if("prod".equalsIgnoreCase(env)){
 			if(Objects.nonNull(prodDeploymentDetails)) {
-				prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); 
+				prodSecureIAM = secureWithIAM;
 			}
 		}
 		if("int".equalsIgnoreCase(env)){
 			if(Objects.nonNull(intDeploymentDetails)) {
-				intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); 
+				intSecureIAM = secureWithIAM;
 			}
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
@@ -753,8 +753,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							if(("int".equalsIgnoreCase(env) && !intSecureIAM) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM) ){
 
 								String exsistingOneApiVersionShortName = "int".equalsIgnoreCase(env)?intDeploymentDetails.getOneApiVersionShortName():prodDeploymentDetails.getOneApiVersionShortName();
-								
-								if(!exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName)){
+								if(!exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName) || Objects.isNull(exsistingOneApiVersionShortName) ){
 
 									GenericMessage attachOneApiPluginResponse = new GenericMessage();
 									//delete oneapi plugin if any
