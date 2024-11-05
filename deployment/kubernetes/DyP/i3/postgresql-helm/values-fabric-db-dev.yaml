@@ -366,7 +366,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: fabric-backup-2024-11-03_00-01-10.tar.zst
+  recoveryFile: fabric-backup-2024-11-05_00-01-09.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
