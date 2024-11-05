@@ -389,6 +389,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
 				" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
+				" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
 
 			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
