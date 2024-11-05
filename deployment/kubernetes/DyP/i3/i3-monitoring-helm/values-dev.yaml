@@ -345,7 +345,6 @@ grafana:
       kind: NetworkPolicy
       metadata:
         name: allow-acme-http01-solver
-        namespace: i3-monitoring
       spec:
         podSelector:
           matchLabels:
