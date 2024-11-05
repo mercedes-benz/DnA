@@ -1,0 +1,1408 @@
+# Adjust values of prometheus Chart to run in DHC CaaS
+prometheus:
+  enabled: true
+  # See values of upstream chart for details: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
+  alertmanager:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/alertmanager
+    # Adjust securityContext for non-root
+    securityContext:
+      runAsUser: 65534
+      runAsNonRoot: true
+  configmapReload:
+    prometheus:
+      image:
+        repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
+    alertmanager:
+      image:
+        repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
+  initChownData:
+    enabled: false
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/busybox
+  kube-state-metrics:
+    enabled: false
+    image:
+      registry: registry-emea.app.corpintra.net
+      repository: k8scache/kube-state-metrics/kube-state-metrics
+    securityContext:
+      runAsUser: 65534
+      fsGroup: 65534
+  # DHC CaaS already provides nodeExporter
+  prometheus-node-exporter:
+    enabled: false
+  server:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
+    extraArgs:
+      # Limit persistent data size (experimental)
+      storage.tsdb.retention.size: "10GB"
+    # Adjust securityContext for non-root
+    securityContext:
+      runAsUser: 65534
+      runAsNonRoot: true
+      fsGroup: 65534
+    persistentVolume:
+     storageClass: dhc-gp3
+     size: 30Gi
+    #podLabels for adding label for network policy
+    retention: "30d"
+    podLabels:
+      i3.monitoring.app: prometheus
+    global:
+      # Adjust scrape_interval to 1m
+      scrape_interval: 1m
+      # Adjust scrape_timeout to 20s for scraping kube-system resources which may need > 10s to respond
+      scrape_timeout: 20s
+
+
+    ### BEGIN autoload all alert configmaps
+    extraVolumeMounts:
+      - name: alert-storage-volume
+        mountPath: /etc/config/alerting_rules
+        readOnly: true
+
+    extraVolumes:
+      - name: alert-storage-volume
+        emptyDir: {}
+
+    sidecarContainers:
+      reloadAlerts:
+        name: reload-alerts
+        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:1.26.1"
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: METHOD
+            value: WATCH
+          - name: LABEL
+            value: "prometheus_alert"
+          - name: FOLDER
+            value: "/alerts"
+          - name: RESOURCE
+            value: "configmap"
+          # - name: NAMESPACE
+          #   value: "{{ .Values.sidecar.dashboards.searchNamespace }}"
+          - name: SKIP_TLS_VERIFY
+            value: "true"
+          # Adapt REQ_URL if you change prometheus.server.prefixURL
+          - name: REQ_URL
+            value: "http://127.0.0.1:9090/-/reload"
+          - name: REQ_METHOD
+            value: POST
+        resources:
+          limits:
+            memory: "128Mi"
+        volumeMounts:
+        - name: alert-storage-volume
+          mountPath: /alerts
+  
+  serverFiles:
+    # The following is copied from the upstream prometheus Helm chart.
+    # Additions are marked with BEGIN/END CUSTOM
+    prometheus.yml:
+      rule_files:
+        - /etc/config/alerting_rules/*.yaml
+        - /etc/config/recording_rules.yml
+        - /etc/config/alerting_rules.yml
+      ## Below two files are DEPRECATED will be removed from this default values file
+        - /etc/config/rules
+        - /etc/config/alerts
+
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets:
+                - localhost:9090
+
+        #Connecting Prometheus with minio for metric sharing
+        - job_name: minio-job
+          metrics_path: '/minio/v2/metrics/cluster'
+          scrape_interval: 15s
+          scheme: http
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          params:
+            format: [ 'prometheus' ]
+          static_configs:
+            - targets: [ 'minio.dev-dna-minio.svc.cluster.local:80' ]
+        - job_name: argocd
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 5s
+          static_configs:
+          - targets:
+            - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
+
+        - job_name: cnpg	
+          metrics_path: /metrics	
+          params:	
+            format:	
+            - prometheus	
+          scheme: http	
+          scrape_interval: 5s	
+          static_configs:	
+          - targets:	
+            - 192-168-129-123.cnpg-system.pod.cluster.local:9187	
+          tls_config:	
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt  
+        - job_name: jaeger	
+          metrics_path: /metrics	
+          params:	
+            format:	
+            - prometheus	
+          scheme: http	
+          scrape_interval: 5s	
+          static_configs:	
+          - targets:	
+            - jaeger-query.i3-logging.svc.cluster.local:16687	
+          tls_config:	
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt     
+        - job_name: jupyterhub	
+          metrics_path: /hub/metrics
+          params:	
+            format:	
+            - prometheus	
+          scheme: http	
+          scrape_interval: 5s	
+          static_configs:	
+          - targets:	
+            - cs-hub.dev-dna-cs-workspaces.svc.cluster.local:8081	
+          tls_config:	
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
+
+        # A scrape configuration for running Prometheus on a Kubernetes cluster.
+        # This uses separate scrape configs for cluster components (i.e. API server, node)
+        # and services to allow each to use different authentication configs.
+        #
+        # Kubernetes labels will be added as Prometheus labels on metrics via the
+        # `labelmap` relabeling action.
+
+        # Scrape config for API servers.
+        #
+        # Kubernetes exposes API servers as endpoints to the default/kubernetes
+        # service so this uses `endpoints` role and uses relabelling to only keep
+        # the endpoints associated with the default/kubernetes service using the
+        # default named port `https`. This works for single API server deployments as
+        # well as HA API server deployments.
+        - job_name: 'kubernetes-apiservers'
+
+          kubernetes_sd_configs:
+            - role: endpoints
+
+          # Default to scraping over https. If required, just disable this or change to
+          # `http`.
+          scheme: https
+
+          # This TLS & bearer token file config is used to connect to the actual scrape
+          # endpoints for cluster components. This is separate to discovery auth
+          # configuration because discovery & scraping are two separate concerns in
+          # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+          # the cluster. Otherwise, more config options have to be provided within the
+          # <kubernetes_sd_config>.
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            # If your node certificates are self-signed or use a different CA to the
+            # master CA, then disable certificate verification below. Note that
+            # certificate verification is an integral part of a secure infrastructure
+            # so this should only be disabled in a controlled environment. You can
+            # disable certificate verification by uncommenting the line below.
+            #
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+          # Keep only the default/kubernetes service endpoints for the https port. This
+          # will add targets for each API server which Kubernetes adds an endpoint to
+          # the default/kubernetes service.
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name ]
+              action: keep
+              regex: default;kubernetes;https
+
+        - job_name: 'kubernetes-nodes'
+
+          # Default to scraping over https. If required, just disable this or change to
+          # `http`.
+          scheme: https
+
+          # This TLS & bearer token file config is used to connect to the actual scrape
+          # endpoints for cluster components. This is separate to discovery auth
+          # configuration because discovery & scraping are two separate concerns in
+          # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+          # the cluster. Otherwise, more config options have to be provided within the
+          # <kubernetes_sd_config>.
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            # If your node certificates are self-signed or use a different CA to the
+            # master CA, then disable certificate verification below. Note that
+            # certificate verification is an integral part of a secure infrastructure
+            # so this should only be disabled in a controlled environment. You can
+            # disable certificate verification by uncommenting the line below.
+            #
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+          kubernetes_sd_configs:
+            - role: node
+
+          relabel_configs:
+            - action: labelmap
+              regex: __meta_kubernetes_node_label_(.+)
+            - target_label: __address__
+              replacement: kubernetes.default.svc:443
+            - source_labels: [ __meta_kubernetes_node_name ]
+              regex: (.+)
+              target_label: __metrics_path__
+              replacement: /api/v1/nodes/$1/proxy/metrics
+
+
+        - job_name: 'kubernetes-nodes-cadvisor'
+
+          # Default to scraping over https. If required, just disable this or change to
+          # `http`.
+          scheme: https
+
+          # This TLS & bearer token file config is used to connect to the actual scrape
+          # endpoints for cluster components. This is separate to discovery auth
+          # configuration because discovery & scraping are two separate concerns in
+          # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+          # the cluster. Otherwise, more config options have to be provided within the
+          # <kubernetes_sd_config>.
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            # If your node certificates are self-signed or use a different CA to the
+            # master CA, then disable certificate verification below. Note that
+            # certificate verification is an integral part of a secure infrastructure
+            # so this should only be disabled in a controlled environment. You can
+            # disable certificate verification by uncommenting the line below.
+            #
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+          kubernetes_sd_configs:
+            - role: node
+
+          # This configuration will work only on kubelet 1.7.3+
+          # As the scrape endpoints for cAdvisor have changed
+          # if you are using older version you need to change the replacement to
+          # replacement: /api/v1/nodes/$1:4194/proxy/metrics
+          # more info here https://github.com/coreos/prometheus-operator/issues/633
+          relabel_configs:
+            - action: labelmap
+              regex: __meta_kubernetes_node_label_(.+)
+            - target_label: __address__
+              replacement: kubernetes.default.svc:443
+            - source_labels: [__meta_kubernetes_node_name]
+              regex: (.+)
+              target_label: __metrics_path__
+              replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+
+        # Scrape config for service endpoints.
+        #
+        # The relabeling allows the actual service scrape endpoint to be configured
+        # via the following annotations:
+        #
+        # * `prometheus.io/scrape`: Only scrape services that have a value of
+        # `true`, except if `prometheus.io/scrape-slow` is set to `true` as well.
+        # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+        # to set this to `https` & most likely set the `tls_config` of the scrape config.
+        # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+        # * `prometheus.io/port`: If the metrics are exposed on a different port to the
+        # service then set this appropriately.
+        # * `prometheus.io/param_<parameter>`: If the metrics endpoint uses parameters
+        # then you can set any parameter
+        - job_name: 'kubernetes-service-endpoints'
+
+          # BEGIN CUSTOM
+          # Provide cluster CA and bearer token for scraping kube-scheduler and kube-apiserver
+          # on DHC CaaS 1.14.6.
+          # insecure_skip_verify for other service endpoints using a custom CA
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          # END CUSTOM
+
+          kubernetes_sd_configs:
+            - role: endpoints
+
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_scrape ]
+              action: keep
+              regex: true
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_scrape_slow ]
+              action: drop
+              regex: true
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_scheme ]
+              action: replace
+              target_label: __scheme__
+              regex: (https?)
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_path ]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [ __address__, __meta_kubernetes_service_annotation_prometheus_io_port ]
+              action: replace
+              target_label: __address__
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+            - action: labelmap
+              regex: __meta_kubernetes_service_annotation_prometheus_io_param_(.+)
+              replacement: __param_$1
+            - action: labelmap
+              regex: __meta_kubernetes_service_label_(.+)
+            # BEGIN CUSTOM RELABELING: backward compatibility with i3-monitoring 4.x labels
+            - source_labels: [ __meta_kubernetes_namespace ]
+              action: replace
+              #target_label: namespace
+              target_label: kubernetes_namespace
+            - source_labels: [ __meta_kubernetes_service_name ]
+              action: replace
+              #target_label: service
+              target_label: kubernetes_name
+            - source_labels: [ __meta_kubernetes_pod_node_name ]
+              action: replace
+              #target_label: node
+              target_label: kubernetes_node
+            # END CUSTOM RELABELING
+
+            # BEGIN CUSTOM
+            - source_labels: [ __meta_kubernetes_pod_host_ip ]
+              separator: ;
+              regex: (.*)
+              target_label: kubernetes_node_ip
+              replacement: $1
+              action: replace
+            # add pod labels
+            - separator: ;
+              regex: __meta_kubernetes_pod_label_(.+)
+              replacement: $1
+              action: labelmap
+            - source_labels: [ __meta_kubernetes_pod_name ]
+              separator: ;
+              regex: (.*)
+              target_label: kubernetes_pod_name
+              replacement: $1
+              action: replace
+            # END CUSTOM
+
+          # Scrape config for slow service endpoints; same as above, but with a larger
+          # timeout and a larger interval
+          #
+          # The relabeling allows the actual service scrape endpoint to be configured
+          # via the following annotations:
+          #
+          # * `prometheus.io/scrape-slow`: Only scrape services that have a value of `true`
+          # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+          # to set this to `https` & most likely set the `tls_config` of the scrape config.
+          # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+          # * `prometheus.io/port`: If the metrics are exposed on a different port to the
+          # service then set this appropriately.
+          # * `prometheus.io/param_<parameter>`: If the metrics endpoint uses parameters
+          # then you can set any parameter
+        - job_name: 'kubernetes-service-endpoints-slow'
+
+          # BEGIN CUSTOM
+          # Provide cluster CA and bearer token for scraping kube-scheduler and kube-apiserver
+          # on DHC CaaS 1.14.6.
+          # insecure_skip_verify for other service endpoints using a custom CA
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          # END CUSTOM
+
+          scrape_interval: 5m
+          scrape_timeout: 30s
+
+          kubernetes_sd_configs:
+            - role: endpoints
+
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_scrape_slow ]
+              action: keep
+              regex: true
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_scheme ]
+              action: replace
+              target_label: __scheme__
+              regex: (https?)
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_path ]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [ __address__, __meta_kubernetes_service_annotation_prometheus_io_port ]
+              action: replace
+              target_label: __address__
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+            - action: labelmap
+              regex: __meta_kubernetes_service_annotation_prometheus_io_param_(.+)
+              replacement: __param_$1
+            - action: labelmap
+              regex: __meta_kubernetes_service_label_(.+)
+            # BEGIN CUSTOM RELABELING: backward compatibility with i3-monitoring 4.x labels
+            - source_labels: [ __meta_kubernetes_namespace ]
+              action: replace
+              # target_label: namespace
+              target_label: kubernetes_namespace
+            - source_labels: [ __meta_kubernetes_service_name ]
+              action: replace
+              #target_label: service
+              target_label: kubernetes_name
+            - source_labels: [ __meta_kubernetes_pod_node_name ]
+              action: replace
+              #target_label: node
+              target_label: kubernetes_node
+            # END CUSTOM RELABELING
+
+            # BEGIN CUSTOM
+            - source_labels: [ __meta_kubernetes_pod_host_ip ]
+              separator: ;
+              regex: (.*)
+              target_label: kubernetes_node_ip
+              replacement: $1
+              action: replace
+            - separator: ;
+              regex: __meta_kubernetes_pod_label_(.+)
+              replacement: $1
+              action: labelmap
+            - source_labels: [ __meta_kubernetes_pod_name ]
+              separator: ;
+              regex: (.*)
+              target_label: kubernetes_pod_name
+              replacement: $1
+              action: replace
+            # END CUSTOM
+
+        - job_name: 'prometheus-pushgateway'
+          honor_labels: true
+
+          kubernetes_sd_configs:
+            - role: service
+
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_probe ]
+              action: keep
+              regex: pushgateway
+
+        # Example scrape config for probing services via the Blackbox Exporter.
+        #
+        # The relabeling allows the actual service scrape endpoint to be configured
+        # via the following annotations:
+        #
+        # * `prometheus.io/probe`: Only probe services that have a value of `true`
+        - job_name: 'kubernetes-services'
+
+          metrics_path: /probe
+          params:
+            module: [ http_2xx ]
+          # BEGIN CUSTOM
+          tls_config:
+            insecure_skip_verify: true
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          # END CUSTOM
+
+          kubernetes_sd_configs:
+            - role: service
+
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_probe ]
+              action: keep
+              regex: true
+            - source_labels: [ __address__ ]
+              target_label: __param_target
+            - target_label: __address__
+              replacement: blackbox
+            - source_labels: [ __param_target ]
+              target_label: instance
+            - action: labelmap
+              regex: __meta_kubernetes_service_label_(.+)
+            # BEGIN CUSTOM RELABELING: backward compatibility with i3-monitoring 4.x labels
+            - source_labels: [ __meta_kubernetes_namespace ]
+              #target_label: namespace
+              target_label: kubernetes_namespace
+            - source_labels: [ __meta_kubernetes_service_name ]
+              #target_label: service
+              target_label: kubernetes_name
+            # END CUSTOM RELABELING
+
+        # Example scrape config for pods
+        #
+        # The relabeling allows the actual pod scrape endpoint to be configured via the
+        # following annotations:
+        #
+        # * `prometheus.io/scrape`: Only scrape pods that have a value of `true`,
+        # except if `prometheus.io/scrape-slow` is set to `true` as well.
+        # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+        # to set this to `https` & most likely set the `tls_config` of the scrape config.
+        # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+        # * `prometheus.io/port`: Scrape the pod on the indicated port instead of the default of `9102`.
+        - job_name: 'kubernetes-pods'
+          # BEGIN CUSTOM
+          tls_config:
+            insecure_skip_verify: true
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          # END CUSTOM
+          kubernetes_sd_configs:
+            - role: pod
+
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scrape ]
+              action: keep
+              regex: true
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scrape_slow ]
+              action: drop
+              regex: true
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scheme ]
+              action: replace
+              regex: (https?)
+              target_label: __scheme__
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_path ]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [ __address__, __meta_kubernetes_pod_annotation_prometheus_io_port ]
+              action: replace
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
+              replacement: __param_$1
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            # BEGIN CUSTOM RELABELING: backward compatibility with i3-monitoring 4.x labels
+            - source_labels: [ __meta_kubernetes_namespace ]
+              action: replace
+              #target_label: namespace
+              target_label: kubernetes_namespace
+            - source_labels: [ __meta_kubernetes_pod_name ]
+              action: replace
+              #target_label: pod
+              target_label: kubernetes_pod_name
+            # END CUSTOM RELABELING
+            - source_labels: [ __meta_kubernetes_pod_phase ]
+              regex: Pending|Succeeded|Failed|Completed
+              action: drop
+            # BEGIN CUSTOM
+            - source_labels: [ __meta_kubernetes_pod_node_name ]
+              target_label: node
+            - source_labels: [ __meta_kubernetes_pod_ready ]
+              target_label: ready
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scheme ]
+              action: replace
+              target_label: __scheme__
+              regex: (https?)
+
+          metric_relabel_configs:
+            # ## cadvisor daemonset metrics relabeling to match kubelet cadvisor metrics
+            # # copy labels starting with container_label_io_kubernetes_ to label without it
+            # # e.g.: container_label_io_kubernetes_pod_name -> pod_name
+            - action: labelmap
+              regex: container_label_io_kubernetes_(.+)
+            # copy container_label_io_kubernetes_pod_namespace -> namespace
+            - action: labelmap
+              regex: container_label_io_kubernetes_pod_(namespace)
+            # copy node label to kubernetes_io_hostname
+            - source_labels: [ node ]
+              target_label: kubernetes_io_hostname
+            ## end of cadvisor rewrites
+            - source_labels: [ mountpoint ]
+              regex: .*csi.*/(pvc-[a-f0-9-]{36})/(?:global)?mount
+              replacement: $1
+              target_label: pv_name
+            # extract pv_name from kube-state-metrics series
+            - source_labels: [ volumename ]
+              action: replace
+              regex: (.+)
+              target_label: pv_name
+            # extract pvc_name from kube-state-metrics series
+            - source_labels: [ persistentvolumeclaim ]
+              action: replace
+              regex: (.+)
+              target_label: pvc_name
+          # END CUSTOM
+
+          # Example Scrape config for pods which should be scraped slower. An useful example
+          # would be stackriver-exporter which queries an API on every scrape of the pod
+          #
+          # The relabeling allows the actual pod scrape endpoint to be configured via the
+          # following annotations:
+          #
+          # * `prometheus.io/scrape-slow`: Only scrape pods that have a value of `true`
+          # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+          # to set this to `https` & most likely set the `tls_config` of the scrape config.
+          # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+          # * `prometheus.io/port`: Scrape the pod on the indicated port instead of the default of `9102`.
+        - job_name: 'kubernetes-pods-slow'
+
+          # BEGIN CUSTOM
+          tls_config:
+            insecure_skip_verify: true
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          # END CUSTOM
+
+          scrape_interval: 5m
+          scrape_timeout: 30s
+
+          kubernetes_sd_configs:
+            - role: pod
+
+          relabel_configs:
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scrape_slow ]
+              action: keep
+              regex: true
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scheme ]
+              action: replace
+              regex: (https?)
+              target_label: __scheme__
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_path ]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [ __address__, __meta_kubernetes_pod_annotation_prometheus_io_port ]
+              action: replace
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
+              replacement: __param_$1
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            # BEGIN CUSTOM RELABELING: backward compatibility with i3-monitoring 4.x labels
+            - source_labels: [ __meta_kubernetes_namespace ]
+              action: replace
+              #target_label: namespace
+              target_label: kubernetes_namespace
+            - source_labels: [ __meta_kubernetes_pod_name ]
+              action: replace
+              #target_label: pod
+              target_label: kubernetes_pod_name
+              # END CUSTOM RELABELING
+            - source_labels: [ __meta_kubernetes_pod_phase ]
+              regex: Pending|Succeeded|Failed|Completed
+              action: drop
+            # BEGIN CUSTOM
+            - source_labels: [ __meta_kubernetes_pod_node_name ]
+              target_label: node
+            - source_labels: [ __meta_kubernetes_pod_ready ]
+              target_label: ready
+            - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scheme ]
+              action: replace
+              target_label: __scheme__
+              regex: (https?)
+
+          metric_relabel_configs:
+            # ## cadvisor daemonset metrics relabeling to match kubelet cadvisor metrics
+            # # copy labels starting with container_label_io_kubernetes_ to label without it
+            # # e.g.: container_label_io_kubernetes_pod_name -> pod_name
+            - action: labelmap
+              regex: container_label_io_kubernetes_(.+)
+            # copy container_label_io_kubernetes_pod_namespace -> namespace
+            - action: labelmap
+              regex: container_label_io_kubernetes_pod_(namespace)
+            # copy node label to kubernetes_io_hostname
+            - source_labels: [ node ]
+              target_label: kubernetes_io_hostname
+            ## end of cadvisor rewrites
+            - source_labels: [ mountpoint ]
+              regex: .*csi.*/(pvc-[a-f0-9-]{36})/(?:global)?mount
+              replacement: $1
+              target_label: pv_name
+            # extract pv_name from kube-state-metrics series
+            - source_labels: [ volumename ]
+              action: replace
+              regex: (.+)
+              target_label: pv_name
+            # extract pvc_name from kube-state-metrics series
+            - source_labels: [ persistentvolumeclaim ]
+              action: replace
+              regex: (.+)
+              target_label: pvc_name
+          # END CUSTOM              
+  ### END autoload all alert configmaps
+  prometheus-pushgateway:
+    enabled: true
+    fullnameOverride: "prometheus-pushgateway"
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/pushgateway
+    # Adjust securityContext for non-root
+    securityContext:
+      runAsUser: 65534
+      fsGroup: 65534
+    #podLabels for adding label for network policy
+    podLabels:
+      i3.monitoring.app: prometheus
+            
+    ingress:
+      enabled: true
+      path: /
+      hosts:
+        - <path:kv/data/dna/kubernetesSecret/monitoring#pushgateway.domain>
+      annotations:
+        traefik.frontend.rule.type: PathPrefix
+        kubernetes.io/ingress.class: ingress-traefik
+        traefik.ingress.kubernetes.io/router.tls: "true"
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        cert-manager.io/cluster-issuer: mercedes-benz-acme
+        traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+      tls:
+        - hosts:
+            - <path:kv/data/dna/kubernetesSecret/monitoring#pushgateway.domain>
+          secretName: metrics-pg-tls
+  # Disable default network policies of prometheus chart, we'll use our own more fine-grained network policies
+  networkPolicy:
+    enabled: true
+
+# Adjust values of grafana Chart to run in DHC CaaS
+grafana:
+  enabled: true
+  global:
+    # -- Overrides the Docker registry globally for all images
+    imageRegistry: registry-emea.app.corpintra.net/dockerhub
+  deploymentStrategy:
+    type: Recreate
+  ingress:
+    enabled: true
+    # # To expose Grafana, override ingress with the following settings
+    # enabled: true
+    path: /
+    hosts:
+       - <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: ingress-traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+    tls:
+      - hosts:
+          - <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+        secretName: grafana-tls
+
+  # if the Grafana URL uses a subpath like /grafana, ensure to set the following lines
+  grafana.ini:
+    server:
+      domain: <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+      root_url: https://<path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+      serve_from_sub_path: false
+    smtp:
+      enabled: true
+      host: <path:kv/data/dna/kubernetesSecret/monitoring#mailhost>
+      skip_verify: true
+      from_address: <path:kv/data/dna/kubernetesSecret/monitoring#fromaddress>
+      from_name: <path:kv/data/dna/kubernetesSecret/monitoring#fromname>
+    auth.generic_oauth:
+      enabled: true
+      allow_sign_up: true
+      auto_login: true
+      team_ids:
+      allowed_organizations:
+      name: MB-SSO
+      client_id: <path:kv/data/dna/kubernetesSecret/monitoring#client_id>
+      client_secret: <path:kv/data/dna/kubernetesSecret/monitoring#client_secret>
+      scopes: openid profile email offline_access
+      auth_url: <path:kv/data/dna/kubernetesSecret/monitoring#auth_url>
+      token_url: <path:kv/data/dna/kubernetesSecret/monitoring#token_url>
+      api_url: https://<path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>/userinfo
+      use_pkce: true
+      use_refresh_token: true     
+      skip_org_role_sync: true
+
+  ## Configure notifiers
+  ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
+  ##
+  notifiers:
+   notifiers.yaml:
+     notifiers:
+     - name: DnADevAlerts
+       type: email
+       uid: DnADevAlerts-UID
+       # either:
+       org_id: 1
+       # or
+       #org_name: Main Org.
+       is_default: true
+       send_reminder: true
+       frequency: 10h
+       settings:
+         addresses: <path:kv/data/dna/kubernetesSecret/monitoring#notifiers.addresses>
+     delete_notifiers:
+
+  # Enable dashboard sidecar
+  # Grafana will watch configmaps and secrets inside the same namespace with the matching label
+  sidecar:
+    image:
+      registry: registry-emea.app.corpintra.net
+      repository: dockerhub/kiwigrid/k8s-sidecar
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+  initChownData:
+    enabled: false
+
+  # DHC CaaS forbids settings of container capabilities, so lets disable PodSecurityPolicy
+  rbac:
+    pspEnabled: false
+
+  # Override default image dduportal/bats with one of ours
+  testFramework:
+    enabled: false
+
+  # Override default image appropriate/curl with one of ours
+  downloadDashboardsImage:
+    repository: registry-emea.app.corpintra.net/i3-images/alpine
+    tag: latest
+
+  # # To set admin credentials for login:
+  adminUser: <path:kv/data/dna/kubernetesSecret/monitoring#user>
+  adminPassword: <path:kv/data/dna/kubernetesSecret/monitoring#password>
+
+  # Default DataSource
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: "http://{{ .Release.Name }}-prometheus-server"
+        isDefault: true
+        basic_auth: false
+
+#Adding datasources for BAT Org.
+#       - name: Prometheus
+#         type: prometheus
+#         access: proxy
+#         url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
+#         isDefault: true
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Alertmanager
+#         type: alertmanager
+#         access: proxy
+#         url: "http://prometheus-alertmanager.{{ .Release.Namespace }}.svc.cluster.local:9093"
+#         jsonData:
+#           # Valid options for implementation include mimir, cortex and prometheus
+#           implementation: prometheus
+#           # Whether or not Grafana should send alert instances to this Alertmanager
+#           handleGrafanaManagedAlerts: false
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Postgres
+#         type: postgres
+#         access: proxy
+#         #Authentication
+#         url: "<path:bat/data/bat-dev/bat-postgres#hostname>:443"
+#         user: grafana
+#         secureJsonData:
+#           password: ""
+#           sslmode: 'require' # disable/require/verify-ca/verify-full
+# #          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#         jsonData:
+#           database: db
+#           maxOpenConns: 10 # Grafana v5.4+
+#           maxIdleConns: 2 # Grafana v5.4+
+#           connMaxLifetime: 14400 # Grafana v5.4+
+#           Version: 15   #DB version
+#           timescaledb: false
+
+  # Extra mount for plugins
+  extraEmptyDirMounts:
+  - name: init-plugins
+    mountPath: /var/lib/grafana/plugins
+    readOnly: false
+
+  # Provide plugins via initContainer
+  extraInitContainers:
+  - name: init-plugins
+    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:latest
+    command: ['sh', '-c', 'cp -R /configs/grafana/plugins/. /grafana-plugins/']
+    volumeMounts:
+    - name: init-plugins
+      mountPath: /grafana-plugins
+
+  # plugins: 
+  #   - yesoreyeram-infinity-datasource
+  # env: 
+  #   HTTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   NO_PROXY: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   HTTPS_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   http_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   https_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   ftp_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  persistence:
+    type: pvc
+    enabled: true
+    storageClassName: dhc-gp3
+    accessModes:
+      - ReadWriteOnce
+    size: 4Gi      
+
+  imageRenderer:
+    deploymentStrategy: 
+      type: Recreate
+
+# Enable DHC NetworkPolicies by default
+dhc-monitoring-netpols:
+  enabled: true
+  internal:
+    enabled: true
+  external:
+    alertmanager:
+      enabled: true
+      # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+      # ingresses:
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra"
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra-internet"
+    prometheus:
+      enabled: true
+      # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+      # ingresses:
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra"
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra-internet"
+    grafana:
+      enabled: true
+      # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+      # ingresses:
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra"
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra-internet"
+      port: 3000
+
+i3-alerts:
+  enabled: true
+
+i3-dashboards:
+  enabled: true
+prom2teams:
+  enabled: true
+  fullnameOverride: "prom2teams"
+  image:
+    repository: registry-emea.app.corpintra.net/dockerhub/idealista/prom2teams
+    tag: 4.2.1
+    pullPolicy: IfNotPresent
+  prom2teams:
+    connector: https://corpdir.webhook.office.com/webhookb2/1524d11f-7059-4a7a-814e-555b2b944d50@9652d7c2-1ccf-4940-8151-4a92bd474ed0/IncomingWebhook/cc1762d2905947a0a7d308b4b0261769/deb47579-be17-4ce6-88d6-f6a277258fa8
+    connectors: {}
+    # group_alerts_by can be one of
+    # ("name" | "description" | "instance" | "severity" | "status" | "summary" | "fingerprint" | "runbook_url")
+    group_alerts_by:
+    # loglevel can be one of (DEBUG | INFO | WARNING | ERROR | CRITICAL)
+    loglevel: INFO
+    extraEnv:
+      http_proxy: http://security-proxy.emea.svc.corpintra.net:3128
+      https_proxy: http://security-proxy.emea.svc.corpintra.net:3128
+      no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com
+
+tempo-distributed:
+  enabled: true
+  global:
+    image:
+      registry: registry-emea.app.corpintra.net/dockerhub
+  fullnameOverride: 'tempo'
+  ingester:
+    persistence:
+      enabled: true
+      inMemory: false
+      size: 5Gi
+      storageClass: dhc-gp3    
+    complete_block_timeout: 720h
+  compactor:    
+    config:
+      compaction:
+        block_retention: 720h    
+  traces:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+    zipkin:
+      enabled: true
+    jaeger:
+      thriftHttp:
+        enabled: true
+      thriftCompact:
+        # -- Enable Tempo to ingest Jaeger Thrift Compact traces
+        enabled: true        
+    opencensus:
+      enabled: false
+  storage:
+    trace:
+      s3:
+        endpoint: <path:kv/data/dna/kubernetesSecret/monitoring#s3.host>
+        bucket: <path:kv/data/dna/kubernetesSecret/monitoring#traces_bucket>
+        insecure: true
+        access_key: <path:kv/data/dna/kubernetesSecret/monitoring#access_key>
+        secret_key: <path:kv/data/dna/kubernetesSecret/monitoring#secret_key>
+        forcepathstyle: true
+  extraObjects: 
+    -   apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        metadata:
+          name: tempo
+          namespace: i3-monitoring
+        spec:
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: tempo
+          ingress:
+            - ports:
+                - protocol: TCP
+                  port: 3100
+                - protocol: TCP
+                  port: 14268
+                - protocol: TCP
+                  port: 9411
+                - protocol: TCP
+                  port: 4318
+                - protocol: TCP
+                  port: 7946   
+                - protocol: TCP
+                  port: 9095       
+                - protocol: TCP
+                  port: 11211        
+                - protocol: UDP
+                  port: 6831                                                                                  
+          policyTypes:
+            - Ingress      
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-acme-http01-solver
+        namespace: i3-monitoring
+      spec:
+        podSelector:
+          matchLabels:
+            acme.cert-manager.io/http01-solver: 'true'
+        ingress:
+          - ports:
+              - protocol: TCP
+                port: 8089
+          - from:
+              - podSelector:
+                  matchLabels:
+                    app: traefik
+                namespaceSelector:
+                  matchExpressions:
+                    - key: name
+                      operator: In
+                      values:
+                        - ingress
+        policyTypes:
+          - Ingress
+
+
+loki:
+  enabled: false
+  fullnameOverride: "loki"
+  global:
+    image:
+      registry: registry-emea.app.corpintra.net/dockerhub  
+  networkPolicy:
+    enabled: true         
+  sidecar:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar     
+  memcached:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/memcached      
+  memcachedExporter:
+    enabled: true
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
+  loki:
+    auth_enabled: false
+    limits_config:
+      retention_period: 48h   
+      max_streams_per_user: 100000         
+    commonConfig:
+      replication_factor: 3
+    schemaConfig:
+      configs:
+      - from: "2024-01-01"
+        store: tsdb
+        index:
+          prefix: loki_index_
+          period: 24h
+        object_store: s3
+        schema: v13
+    storage:
+      type: 's3'
+      bucketNames:
+        chunks: loki-chunks
+        ruler: loki-ruler
+        admin: loki-admin
+      s3:
+        endpoint: <path:kv/data/dna/kubernetesSecret/monitoring#s3.host>
+        secretAccessKey: <path:kv/data/dna/kubernetesSecret/monitoring#secret_key>
+        accessKeyId: <path:kv/data/dna/kubernetesSecret/monitoring#access_key>
+        s3ForcePathStyle: true
+        insecure: true
+        http_config: {}    
+    singleBinary:
+      replicas: 3    
+
+fluent-bit:
+  enabled: false     
+  fullnameOverride: "fluent-bit"
+  # the labels are required by OpenSearch networkPolicy to enable access to OpenSearch
+  labels:
+    i3-logging-opensearch-master-transport-client: "true"
+  podLabels:
+    i3-logging-opensearch-master-transport-client: "true"
+
+  kind: DaemonSet 
+
+  image:
+    repository: registry-emea.app.corpintra.net/dockerhub/fluent/fluent-bit
+    pullPolicy: IfNotPresent
+
+  podSecurityPolicy:
+    create: false
+
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 0
+
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 0
+
+  service:
+    type: ClusterIP
+    port: 2020
+    labels: { }
+    # nodePort: 30020
+    annotations: { }
+    #   prometheus.io/path: "/api/v1/metrics/prometheus"
+    #   prometheus.io/port: "2020"
+    #   prometheus.io/scrape: "true"
+
+  daemonSetVolumeMounts:
+    #https://github.com/kubernetes/kubernetes/issues/53022
+    - name: user-host-logs
+      subPath: pods
+      mountPath: /var/log/pods
+      readOnly: true
+    - name: user-host-logs
+      mountPath: /var/log/containers
+      subPath: containers
+      readOnly: true
+    - mountPath: /db
+      name: db-volume
+    
+  daemonSetVolumes:
+    - name: user-host-logs
+      persistentVolumeClaim:
+        claimName: i3-logging-user-host-logs-claim
+    - name: db-volume
+      emptyDir:
+        sizeLimit: 500Mi
+
+  # Info is the default log level of fluent-bit. Please note, that on setting logLevel to "DEBUG", fluent-bit puts multiple logs per second to stdout, therefore creating high cpu usage
+  logLevel: debug
+  networkPolicy:
+    enable: true
+
+  ## https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file
+  config:
+    service: |
+      [SERVICE]
+          Daemon Off
+          Flush 1
+          Log_Level {{ .Values.logLevel }}
+          Parsers_File parsers.conf
+          Parsers_File custom_parsers.conf
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port {{ .Values.service.port }}
+          Health_Check On
+
+    ## See documentation/INPUT.md
+    ## https://docs.fluentbit.io/manual/pipeline/inputs
+    inputs: |
+      # Input type tail is enabled by default, since this is the expected input mode on DHC CaaS. 
+      # see: https://pages.git.i.mercedes-benz.com/DHC/CaaS/docs/technical-guide/logging/user-host-logs
+      @INCLUDE input_tail.conf
+
+      # Input for opentelemetry. Opentelemetry endpoint is exposed at port 4318.
+      # @INCLUDE input_opentelemetry.conf
+
+    ## See documentation/FILTER.md
+    ## https://docs.fluentbit.io/manual/pipeline/filters
+    filters: |
+      # Kubernetes plugin is inactive by default. Uncomment to enable
+      @INCLUDE filter_kubernetes.conf
+
+      # Map env variables to log entry
+      @INCLUDE filter_add_to_log_from_env.conf
+
+      # Enable filtering of DHC CaaS Kubernetes api server audit logs. Comment to disable.
+      # If disabled, you need to enable extraFilters to avoid Opensearch index errors. See /documentation/FILTER.md for hints.
+      @INCLUDE filter_excludePlatformAuditLogs.conf
+
+      # Enable filtering of DHC CaaS Nodes kubelet logs. Comment to disable
+      @INCLUDE filter_excludePlatformKubeletLogs.conf
+
+      # Enable filtering of all container logs within namespace 'kube-system'. Comment to disable
+      @INCLUDE filter_excludeK8sSystemLogs.conf
+
+    ## By default, write logs to OpenSearch.
+    ## https://docs.fluentbit.io/manual/pipeline/outputs
+    outputs: |
+      @INCLUDE output_opensearch.conf
+
+    # extra files, which are included in config above
+    extraFiles:
+      input_tail.conf: |
+        # for explainations, see https://docs.fluentbit.io/manual/input/tail
+        [INPUT]
+            Name             tail
+            Path             /var/log/containers/*.log
+            multiline.parser  docker, cri
+            Tag              kube.*
+            Refresh_Interval 5
+            Mem_Buf_Limit    5MB
+            Skip_Long_Lines  On
+            Read_from_Head false
+            db      /db/tail.db
+      
+      input_opentelemetry.conf: |
+        # for explainations, see https://docs.fluentbit.io/manual/v/dev-2.2/pipeline/inputs/opentelemetry
+        [INPUT]
+            name opentelemetry
+            listen 127.0.0.1
+            port 4318
+
+      filter_add_to_log_from_env.conf: |
+        [FILTER]
+            Name record_modifier
+            Match *
+            Record HOSTNAME ${HOSTNAME}
+
+      filter_kubernetes.conf: |
+        [FILTER]
+            Name                kubernetes
+            Match               kube.*
+            Kube_Tag_Prefix     kube.var.log.containers.
+            Kube_URL            https://kubernetes.default.svc:443
+            Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+            #
+            # When enabled, it checks if the `log` field content is a JSON string map, if so,
+            # it append the map fields as part of the log structure.
+            Merge_Log           On
+            #
+            # When Merge_Log is enabled, the filter tries to assume the log field from the
+            # incoming message is a JSON string message and make a structured representation of it
+            # at the same level of the log field in the map. Now if Merge_Log_Key is set (a string name),
+            # all the new structured fields taken from the original log content are inserted under the new key.
+            #Merge_Log_Key       ""
+            #
+            # If On, enable the use of monitoring for a pod annotation of
+            # fluentbit.io/parser: parser_name. parser_name must be the name
+            # of a parser contained within parsers.conf
+            K8S-Logging.Parser  Off
+            #
+            # If true, enable the use of monitoring for a pod annotation of
+            # fluentbit.io/exclude: true. If present, discard logs from that pod.
+            K8S-Logging.Exclude On
+
+      filter_excludePlatformAuditLogs.conf: |
+        [FILTER]
+            Name                grep
+            Match               k8s_audit_sys_user
+            Exclude             kind Event
+
+      filter_excludePlatformKubeletLogs.conf: |
+        [FILTER]
+            Name                grep
+            Match               systemd_sys_kubelet
+            Exclude             HOSTNAME .*
+
+      filter_excludeK8sSystemLogs.conf: |
+        # Since nested fields are not support by grep filter, we use lift with prefix `k8s_resource_` and then filter linear index name
+        # see https://docs.fluentbit.io/manual/pipeline/filters/grep#nested-fields-example
+        [FILTER]
+            Name                modify
+            Condition           Key_Exists  kubernetes
+            Copy                kubernetes  k8s_resources
+            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
+
+        [FILTER]
+            Name                nest
+            Operation           lift
+            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
+            Nested_under        k8s_resources
+            Add_prefix          k8s_resource_
+
+        [FILTER]
+            Name                grep
+            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
+            Exclude             k8s_resource_namespace_name .*kube-system.*
+
+      output_opensearch.conf: |
+          [OUTPUT]
+              Name loki
+              Match kube.*
+              host loki-gateway.i3-monitoring.svc.cluster.local 
+              port 80
+              tenant_id ""
+              Labels job="fluent-bit"
+              auto_kubernetes_labels false
+              line_format json
