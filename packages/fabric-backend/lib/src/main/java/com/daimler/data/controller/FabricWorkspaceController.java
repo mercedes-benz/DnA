@@ -68,12 +68,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
 	
-	@Value("${fabricWorkspaces.app.apikey}")
-	private String appApiKey;
-	
-	@Value("${fabricWorkspaces.app.appid}")
-	private String appAppId;
-	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
@@ -457,24 +451,17 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<String> allEntitlementsList = new ArrayList<>();
 		if (offset == null || offset < 0)
 			offset = 0;
-		if (limit == null || limit < 0) {
+		if (limit == null || limit < 0) 
 			limit = defaultLimit;
-		}
-		String apikey = httpRequest!=null ? httpRequest.getHeader("apikey") : "";
-		String appid = httpRequest!=null ? httpRequest.getHeader("appid") : "";
-		if (apikey != null && appApiKey.equals(apikey) && appid!=null && appAppId.equals(appid)) {
-			log.info("System admin approver requesting all power apps");
-			user = "";
-		}else {
-			if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
-				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-			}
-			CreatedByVO requestUser = this.userStore.getVO();
-			UserInfo currentUserInfo = this.userStore.getUserInfo();
-			allEntitlementsList =  currentUserInfo.getEntitlement_group();
-			user = requestUser.getId();
-		}
 		
+		
+		if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) 
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			
+		CreatedByVO requestUser = this.userStore.getVO();
+		UserInfo currentUserInfo = this.userStore.getUserInfo();
+		allEntitlementsList =  currentUserInfo.getEntitlement_group();
+		user = requestUser.getId();
 		collection = service.getAll(limit, offset, user, allEntitlementsList);
 		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
 		return new ResponseEntity<>(collection, responseCode);
