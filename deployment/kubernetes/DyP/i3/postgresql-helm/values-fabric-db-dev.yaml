@@ -343,9 +343,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: false
+  createRestoreJob: true
   ## whether to create the list backup job or not
-  createListBackupJob: false
+  createListBackupJob: true
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -366,7 +366,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: fabric-backup-2024-11-03_00-01-10.tar.zst
+  recoveryFile: fabric-backup-2024-11-05_00-01-09.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
@@ -410,7 +410,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: true
+  enabled: false
 
 pgmonitoring:
   enabled: true
