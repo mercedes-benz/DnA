@@ -304,11 +304,6 @@
 
     .recipeHeaderSec {
       height: 60px;
-      display: flex;
-      justify-content: center;
-      margin-right: 29px;
-      margin-top: 10px;
-
     }
 
     .recipeSection {
@@ -410,7 +405,7 @@
         height: 5px;
       }
       .selectedRecipeCard {
-        margin: 40px 12px 6.5px;
+        margin: 40px 3px 7px 16px;
         background: #282e39;
         border: 1px solid #383f49;
       }
@@ -455,18 +450,16 @@
 }
 
 .recipeSearch {
-  display: flex;
-  margin-right: 20px;
+  padding-right: 20px;
 
   .searchInputField {
     background: none;
     border: none;
     border-bottom: 2px solid #383f49;
-    margin-left: 31px;
     height: 40px;
     color: #c0c8d0;
     outline: none;
-    width: 444px;
+    width: 100%;
     visibility: visible;
 
     &::placeholder {

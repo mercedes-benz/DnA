@@ -1413,63 +1413,63 @@ const NewCodeSpace = (props) => {
 
                   </div>
                     <div className={classNames(Styles.rightPane)}>
-                      {selectedRecipe === null ?
-                        !showProgressIndicator ? <div className={classNames(Styles.noRecipeSelected)}><p>No Recipe Selected </p></div> : <div className={classNames('text-center', Styles.progressIndicator)}>
+                      {showProgressIndicator ?
+                        <div className={classNames('text-center', Styles.progressIndicator)}>
                           <div className="progress infinite" />
                         </div>
-                        :
-                        <div className={classNames(Styles.selectedRecipeWrapper)}>
-                          <div className={classNames(Styles.selectedRecipeCard)}>
-                            <div className={classNames(Styles.cardHeader)}>
-                              <div className={classNames(Styles.cardTitle)}>
-                                <i className={classNames("icon mbc-icon tools-mini")}></i>
-                                <p>
-                                  {selectedRecipe?.recipeName?.length > 60
-                                    ? selectedRecipe.recipeName.slice(0, 57) + "..."
-                                    : selectedRecipe.recipeName}
-                                </p>
+                        : selectedRecipe === null ? <div className={classNames(Styles.noRecipeSelected)}><p>No Recipe Selected </p></div> :
+                          <div className={classNames(Styles.selectedRecipeWrapper)}>
+                            <div className={classNames(Styles.selectedRecipeCard)}>
+                              <div className={classNames(Styles.cardHeader)}>
+                                <div className={classNames(Styles.cardTitle)}>
+                                  <i className={classNames("icon mbc-icon tools-mini")}></i>
+                                  <p>
+                                    {selectedRecipe?.recipeName?.length > 60
+                                      ? selectedRecipe.recipeName.slice(0, 57) + "..."
+                                      : selectedRecipe.recipeName}
+                                  </p>
+                                </div>
+                                {!selectedRecipe?.isPublic && <div className={classNames(Styles.privateRecipeTag)}>Private</div>}
                               </div>
-                              {!selectedRecipe?.isPublic && <div className={classNames(Styles.privateRecipeTag)}>Private</div>}
-                            </div>
-                            <hr/>
-                            <div className={classNames(Styles.cardBodySection)}>
-                              <div>
+                              <hr />
+                              <div className={classNames(Styles.cardBodySection)}>
                                 <div>
-                                  <div>Hardware Config</div>
-                                  <div> {selectedRecipe?.oSName + ' , ' + selectedRecipe?.maxCpu + 'CPU , ' + (selectedRecipe?.maxRam / 1000) + 'GB RAM'}</div>
-                                </div>
-                                <div>
-                                  <div>Software Config</div>
                                   <div>
-                                    {selectedRecipe?.software?.map((val) => {
-                                      return (
-                                        <label key={val} className={classNames('chips', Styles.chips)}>
-                                          {val}
-                                        </label>
-                                      );
-                                    })}
+                                    <div>Hardware Config</div>
+                                    <div> {selectedRecipe?.oSName + ' , ' + selectedRecipe?.maxCpu + 'CPU , ' + (selectedRecipe?.maxRam / 1000) + 'GB RAM'}</div>
                                   </div>
-                                </div>
-                                {selectedRecipe?.additionalServices[0]?.length > 0 && <div>
-                                  <div>Additional Services</div>
                                   <div>
-                                    {selectedRecipe?.additionalServices?.map((val) => {
-                                      return (
-                                        <label key={val} className={classNames('chips', Styles.chips)}>
-                                          {val}
-                                        </label>
-                                      );
-                                    })}
+                                    <div>Software Config</div>
+                                    <div>
+                                      {selectedRecipe?.software?.map((val) => {
+                                        return (
+                                          <label key={val} className={classNames('chips', Styles.chips)}>
+                                            {val}
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
-                                </div>}
-                                <div>
-                                  <div>Created By</div>
-                                  <div>{selectedRecipe?.createdBy?.firstName + ' ' + selectedRecipe?.createdBy?.lastName}</div>
+                                  {selectedRecipe?.additionalServices[0]?.length > 0 && <div>
+                                    <div>Additional Services</div>
+                                    <div>
+                                      {selectedRecipe?.additionalServices?.map((val) => {
+                                        return (
+                                          <label key={val} className={classNames('chips', Styles.chips)}>
+                                            {val}
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>}
+                                  <div>
+                                    <div>Created By</div>
+                                    <div>{selectedRecipe?.createdBy?.firstName + ' ' + selectedRecipe?.createdBy?.lastName}</div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
                       }
                     </div>
 
