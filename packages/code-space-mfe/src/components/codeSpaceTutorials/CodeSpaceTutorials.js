@@ -53,18 +53,18 @@ const CodeSpaceTutorials = () => {
       id: '8',
       title: "How to create a private recipe",
       url: "code-space-tutorials/Private Visibility Recipe Creation.mp4",
-      description: "Steps to create a private recipe on Codespace"
+      description: "Steps to create a private recipe "
     },
     {
       id: '9',
       title: "How to create a public recipe",
       url: "code-space-tutorials/Public Visibility Recipe Creation.mp4",
-      description: "Steps to create a public recipe on Codespace"
+      description: "Steps to create a public recipe"
     },
     {
       id: '10',
       title: "Create your own private gpt with Codespace",
-      url: "code-space-tutorials/GPT with Rag.mp4",
+      url: "code-space-tutorials/Create your own private gpt with codespace.mp4",
       description: "Steps to create your own private gpt with Codespace"
     },
   ];
