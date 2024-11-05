@@ -222,7 +222,7 @@ grafana:
   sidecar:
     image:
       registry: registry-emea.app.corpintra.net
-      repository: dockerhub/kiwigrid/k8s-sidecar
+      repository: kiwigrid/k8s-sidecar
     dashboards:
       enabled: true
       label: grafana_dashboard
