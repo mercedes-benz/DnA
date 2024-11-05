@@ -233,7 +233,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<CreateDatasourceRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
 			String url = datasourceUrl;
-			url = url.replace(GATEWAY_IDENTIFIER, gatewayId);
+			url = url.replaceFirst(GATEWAY_IDENTIFIER, gatewayId);
 			ResponseEntity<DatasourceResponseDto> response = restTemplate.exchange(url, HttpMethod.POST,
 					requestEntity, DatasourceResponseDto.class);
 			if (response!=null && response.hasBody()) {
@@ -272,7 +272,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<AddDatasourceUserDto> requestEntity = new HttpEntity<>(addUserDto,headers);
 			String url = datasourceUrl;
-			url = url.replace(GATEWAY_IDENTIFIER, gatewayId);
+			url = url.replaceFirst(GATEWAY_IDENTIFIER, gatewayId);
 			url = url + "/" + datasourceConnectionId + "/users";
 			ResponseEntity<String> addUserResponse = proxyRestTemplate.exchange(url, HttpMethod.POST,
 					requestEntity, String.class);
@@ -311,7 +311,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String url = datasourceUrl;
-			url = url.replace(GATEWAY_IDENTIFIER, gatewayId);
+			url = url.replaceFirst(GATEWAY_IDENTIFIER, gatewayId);
 			url = url + "/" + datasourceConnectionId;
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
 					requestEntity, ErrorResponseDto.class);
@@ -341,8 +341,8 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<LakehouseS3ShortcutDto> requestEntity = new HttpEntity<>(createRequest,headers);
 			String url = shortcutUrl;
-			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
-			url = url.replace(LAKEHOUSE_IDENTIFIER, lakehouseId);
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replaceFirst(LAKEHOUSE_IDENTIFIER, lakehouseId);
 			ResponseEntity<LakehouseS3ShortcutResponseDto> response = proxyRestTemplate.exchange(url, HttpMethod.POST,
 					requestEntity, LakehouseS3ShortcutResponseDto.class);
 			if (response!=null && response.hasBody()) {
@@ -374,8 +374,8 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String url = shortcutUrl;
-			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
-			url = url.replace(LAKEHOUSE_IDENTIFIER, lakehouseId);
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replaceFirst(LAKEHOUSE_IDENTIFIER, lakehouseId);
 			url = url + "/" + shortcutId;
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
 					requestEntity, ErrorResponseDto.class);
@@ -404,7 +404,7 @@ public class FabricWorkspaceClient {
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String url = shortcutUrl;
 			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
-			url = url.replace(LAKEHOUSE_IDENTIFIER, lakehouseId);
+			url = url.replaceFirst(LAKEHOUSE_IDENTIFIER, lakehouseId);
 			ResponseEntity<LakehouseS3ShortcutCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
 					requestEntity, LakehouseS3ShortcutCollectionDto.class);
 			if (response !=null && response.hasBody()) {
@@ -432,7 +432,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<CreateLakehouseDto> requestEntity = new HttpEntity<>(createRequest,headers);
 			String url = lakehouseUrl;
-			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
 			ResponseEntity<LakehouseResponseDto> response = proxyRestTemplate.exchange(url, HttpMethod.POST,
 					requestEntity, LakehouseResponseDto.class);
 			if (response!=null && response.hasBody()) {
@@ -462,7 +462,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String url = lakehouseUrl;
-			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
 			ResponseEntity<LakehouseCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
 					requestEntity, LakehouseCollectionDto.class);
 			if (response !=null && response.hasBody()) {
@@ -490,7 +490,7 @@ public class FabricWorkspaceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String url = lakehouseUrl;
-			url = url.replace(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
 			url = url + "/" + lakehouseId;
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
 					requestEntity, ErrorResponseDto.class);

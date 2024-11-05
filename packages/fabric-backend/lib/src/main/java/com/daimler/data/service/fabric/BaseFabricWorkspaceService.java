@@ -1225,6 +1225,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 	public FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId) {
 		FabricShortcutsCollectionVO collectionVO = new FabricShortcutsCollectionVO();
+		collectionVO.setTotalCount(0);
+		collectionVO.setRecords(new ArrayList<>());
 		LakehouseS3ShortcutCollectionDto collection = fabricWorkspaceClient.listLakehouseshortcuts(id, lakehouseId);
 		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
 			Integer totalRecords = collection.getValue().size();
