@@ -18,6 +18,7 @@ const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
 const fabricTrainingUrl = Envs.FABRIC_TRAINING_URL;
 const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
+const powerPlatformTrainingUrl = Envs.POWER_PLATFORM_TRAINING_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
 const dataQToolUrl = Envs.DATAQ_TOOL_URL;
@@ -762,6 +763,19 @@ export const TrainingsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'sac',
+  },
+  {
+    name: 'Power Platform',
+    description:
+      'To help you discover the full potential of Power Platform, we invite you to explore some of the following available courses.',
+    tags: ['No / Low Code'],
+    url: powerPlatformTrainingUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !powerPlatformTrainingUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'powerPlatform',
   },
 ];
 
