@@ -889,48 +889,48 @@ grafana:
         basic_auth: false
 
 #Adding datasources for BAT Org.
-      - name: Prometheus
-        type: prometheus
-        access: proxy
-        url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
-        isDefault: true
-        basic_auth: false
-        orgId: 2
-        editable: true
-      - name: Alertmanager
-        type: alertmanager
-        access: proxy
-        url: "http://prometheus-alertmanager.{{ .Release.Namespace }}.svc.cluster.local:9093"
-        jsonData:
-          # Valid options for implementation include mimir, cortex and prometheus
-          implementation: prometheus
-          # Whether or not Grafana should send alert instances to this Alertmanager
-          handleGrafanaManagedAlerts: false
-        isDefault: false
-        basic_auth: false
-        orgId: 2
-        editable: true
-      - name: Postgres
-        type: postgres
-        access: proxy
-        #Authentication
-        url: "<path:bat/data/bat-dev/bat-postgres#hostname>:443"
-        user: grafana
-        secureJsonData:
-          password: ""
-          sslmode: 'require' # disable/require/verify-ca/verify-full
-#          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
-        isDefault: false
-        basic_auth: false
-        orgId: 2
-        editable: true
-        jsonData:
-          database: db
-          maxOpenConns: 10 # Grafana v5.4+
-          maxIdleConns: 2 # Grafana v5.4+
-          connMaxLifetime: 14400 # Grafana v5.4+
-          Version: 15   #DB version
-          timescaledb: false
+#       - name: Prometheus
+#         type: prometheus
+#         access: proxy
+#         url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
+#         isDefault: true
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Alertmanager
+#         type: alertmanager
+#         access: proxy
+#         url: "http://prometheus-alertmanager.{{ .Release.Namespace }}.svc.cluster.local:9093"
+#         jsonData:
+#           # Valid options for implementation include mimir, cortex and prometheus
+#           implementation: prometheus
+#           # Whether or not Grafana should send alert instances to this Alertmanager
+#           handleGrafanaManagedAlerts: false
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Postgres
+#         type: postgres
+#         access: proxy
+#         #Authentication
+#         url: "<path:bat/data/bat-dev/bat-postgres#hostname>:443"
+#         user: grafana
+#         secureJsonData:
+#           password: ""
+#           sslmode: 'require' # disable/require/verify-ca/verify-full
+# #          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#         jsonData:
+#           database: db
+#           maxOpenConns: 10 # Grafana v5.4+
+#           maxIdleConns: 2 # Grafana v5.4+
+#           connMaxLifetime: 14400 # Grafana v5.4+
+#           Version: 15   #DB version
+#           timescaledb: false
 
   # Extra mount for plugins
   extraEmptyDirMounts:
