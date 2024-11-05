@@ -110,7 +110,7 @@ hivemetastore:
     secretKey: <path:kv/data/dna/kubernetesSecret/trino#minio.secretKey>
     warehouseBucketName: datalake
   postgres:
-    host: hive-db.trino.svc.cluster.local:64000
+    host: hive-db.dev-dna-trino.svc.cluster.local:64000
     db: hive
     user: hive
     password: <path:kv/data/dna/kubernetesSecret/trino#postgtres.password>
