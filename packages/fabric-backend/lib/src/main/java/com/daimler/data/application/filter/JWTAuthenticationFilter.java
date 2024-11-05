@@ -44,7 +44,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -63,12 +62,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 public class JWTAuthenticationFilter implements Filter {
 
 	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
-
-	@Value("${fabricWorkspaces.app.apikey}")
-	private String appApiKey;
-	
-	@Value("${fabricWorkspaces.app.appid}")
-	private String appId;
 	
 	private UserStore userStore;
 
@@ -82,15 +75,9 @@ public class JWTAuthenticationFilter implements Filter {
 		log.debug("Intercepting Request to store userinfo:" + requestUri);
 		String userinfo = httpRequest.getHeader("dna-request-userdetails");
 		if (!StringUtils.hasText(userinfo)) {
-			String apikey = httpRequest.getHeader("apikey");
-			String appid = httpRequest.getHeader("appid");
-			if (apikey != null && appApiKey.equals(apikey) && appid!=null && appId.equals(appid)) {
-				filterChain.doFilter(servletRequest, servletResponse);
-			}else {
 				log.error("Request UnAuthorized");
 				forbidResponse(servletResponse);
 				return;
-			}
 		} else if (StringUtils.hasText(userinfo)) {
 			try {
 				log.debug(
