@@ -238,6 +238,8 @@ const AllCodeSpaces = (props) => {
                             by Developers for Developers
                         </small>
                     </div>
+
+
                     <div className={classNames(Styles.leftHeader)}>
                         <div className={classNames(Styles.listHeader)}>
                             <button
@@ -433,6 +435,14 @@ const AllCodeSpaces = (props) => {
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    }
+                    isUIRecipe={
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
