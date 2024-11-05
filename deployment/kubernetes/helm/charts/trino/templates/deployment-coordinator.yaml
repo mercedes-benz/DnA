@@ -40,7 +40,7 @@ spec:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
       {{- end }}
       imagePullSecrets:
-        - name: registry-credentials
+        - name: imagepullsecret
       containers:
         - name: {{ .Chart.Name }}-coordinator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
