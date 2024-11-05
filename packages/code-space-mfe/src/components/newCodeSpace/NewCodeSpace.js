@@ -326,6 +326,7 @@ const NewCodeSpace = (props) => {
     const recipe = recipesMaster.find((item) => item.id === recipeValue);
     setRecipeValue(selectedOption);
     getRecipeDetails(obj?.recipeName);
+    setRecipeError('');
     const isUserDefinedRecipe = recipe?.aliasId === 'public-user-defined' || recipe?.aliasId === 'private-user-defined';
     setIsUserDefinedGithubRecipe(isUserDefinedRecipe);
     if (!isUserDefinedRecipe) {
@@ -1385,7 +1386,6 @@ const NewCodeSpace = (props) => {
                             const value = e.target.value;
                             setRecipeSearchTerm(value);
                             const filteredRecipes = recipesMaster.filter((val) => val.recipeName.toLowerCase().includes(value.toLowerCase()));
-
                             setFilteredRecipe(filteredRecipes)
                           }}
                           />
