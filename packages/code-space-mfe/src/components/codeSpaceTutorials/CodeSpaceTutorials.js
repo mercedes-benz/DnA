@@ -49,6 +49,24 @@ const CodeSpaceTutorials = () => {
       url: "code-space-tutorials/Codespace Collaboration.mp4",
       description: "Steps for a collaborator to onboard into a Codespace"
     },
+    {
+      id: '8',
+      title: "How to create a private recipe",
+      url: "code-space-tutorials/Private Visibility Recipe Creation.mp4",
+      description: "Steps to create a private recipe on Codespace"
+    },
+    {
+      id: '9',
+      title: "How to create a public recipe",
+      url: "code-space-tutorials/Public Visibility Recipe Creation.mp4",
+      description: "Steps to create a public recipe on Codespace"
+    },
+    {
+      id: '10',
+      title: "Create your own private gpt with Codespace",
+      url: "code-space-tutorials/GPT with Rag.mp4",
+      description: "Steps to create your own private gpt with Codespace"
+    },
   ];
 
   const [selectedVideo, setSelectedVideo] = useState(codespaceTutorials[0]);
