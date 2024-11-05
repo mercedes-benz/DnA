@@ -21,7 +21,7 @@ service:
   type: ClusterIP
   port: 80
 ingress:
-  enabled: true
+  enabled: false
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: ingress-traefik
