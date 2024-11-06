@@ -47,9 +47,15 @@ fabricWorkspaces:
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
   subgroupPrefix: ${FABRIC_SUB_GROUP_PREFIX:XXXX}
-  gateway.encryption.publicKey.modulus: ${FABRIC_ENCRYPTION_PUBLICKEY_MODULUS:xxx}
-  gateway.id: ${FABRIC_GATEWAY_ID:xxx}
-  gateway.encryption.publicKey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:xxx}
+  shortcutNameprefix: ${FABRIC_SHORTCUT_PREFIX:XXXX}
+  shortcutLocation: ${FABRIC_SHORTCUT_LOCATION:XXXX}
+  gateway.id: ${FABRIC_GATEWAY_ID:XXXX}
+  gateway.encryption.publickey.modulus: ${FABRIC_ENCRYPTION_PUBLICKEY_MODULUS:XXXX}
+  gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
+  datasource:
+    credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
+    encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}
+    encryptionAlgorithm: ${FABRIC_DS_ENCRYPTEDALGO:RSA-OAEP}
   group:
     identifier:  ${FABRIC_ONBOARD_GROUP_IDENTIFIER:xxxxx}
     displayName:  ${FABRIC_ONBOARD_GROUP_DISPLAYNAME:xxxxx}
