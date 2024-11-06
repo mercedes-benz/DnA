@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-files-{{ .Release.Revision }}
+data:
+  {{- (.Files.Glob "files/*").AsConfig | nindent 2 }}
+immutable: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+data:
+  savedObjectApiEnabled: "{{ .Values.savedObjectApi.enabled }}"
+  opensearchHosts: "{{ .Values.opensearchHosts }}"
+  opensearchDashboardHosts: "{{ .Values.opensearchDashboardHosts }}"
+  opensearchDashboardVersion: "{{ .Values.opensearchDashboardVersion }}"
+  savedObjectApiPath: "{{ .Values.savedObjectApi.path }}"
+  savedObjectApiParams: "{{ .Values.savedObjectApi.additionalUrlParams }}"
+  ism: "{{ .Values.ism.enabled }}"
+  i3-access-anomaly: "{{ .Values.i3AccessAnomaly.enabled }}"
+immutable: true
