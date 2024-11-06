@@ -64,7 +64,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GenericMessage createLakehouse(String id, @Valid FabricLakehouseCreateRequestVO createRequestVO);
 
 	GenericMessage createLakehouseS3Shortcut(String id, String lakehouseId,
-			@Valid ShortcutCreateRequestVO createRequestVO);
+			@Valid ShortcutCreateRequestVO createRequestVO, String email);
 
 	FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId);
 

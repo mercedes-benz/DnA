@@ -216,39 +216,6 @@ public class FabricWorkspaceClient {
 		return microsoftGroupDetailDto;
 	}
 	
-
-	public DatasourceResponseDto createDatasource(CreateDatasourceRequestDto createRequest) {
-		DatasourceResponseDto responseDto = new DatasourceResponseDto();
-		try {
-			String token = getToken();
-			if(!Objects.nonNull(token)) {
-				log.error("Failed to fetch token to invoke fabric Apis");
-				responseDto.setErrorCode("500");
-				responseDto.setMessage("Failed to login using service principal, please try later.");
-				return responseDto;
-			}
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Authorization", "Bearer "+token);
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			HttpEntity<CreateDatasourceRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
-			String url = datasourceUrl;
-			url = url.replaceFirst(GATEWAY_IDENTIFIER, gatewayId);
-			ResponseEntity<DatasourceResponseDto> response = restTemplate.exchange(url, HttpMethod.POST,
-					requestEntity, DatasourceResponseDto.class);
-			if (response!=null && response.hasBody()) {
-				responseDto = response.getBody();
-			}
-		}catch(HttpClientErrorException.Conflict e) {
-			log.error("Failed to create datasource connection with displayName {} with conflict error {} ", createRequest.getDatasourcename(), e.getMessage());
-		}catch(Exception e) {
-			responseDto.setErrorCode("500");
-			responseDto.setMessage(e.getMessage());
-			log.error("Failed to create datasource connection with displayName {} with error {} ", createRequest.getDatasourcename(), e.getMessage());
-		}
-		return responseDto;
-	}
-	
 	public GenericMessage addUserToDatasource(String datasourceConnectionId, String emailAddress) {
 		GenericMessage response = new GenericMessage();
 		try {
@@ -325,6 +292,39 @@ public class FabricWorkspaceClient {
 		return errorResponse;
 	}
 	
+	public DatasourceResponseDto createDatasourceConnection(String workspaceName, CreateDatasourceRequestDto createRequest) {
+		DatasourceResponseDto responseDto = new DatasourceResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				responseDto.setErrorCode("500");
+				responseDto.setMessage("Failed to login using service principal, please try later.");
+				return responseDto;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<CreateDatasourceRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
+			String url = datasourceUrl;
+			url = url.replaceFirst(GATEWAY_IDENTIFIER, gatewayId);
+			ResponseEntity<DatasourceResponseDto> response = proxyRestTemplate.exchange(url, HttpMethod.POST,
+					requestEntity, DatasourceResponseDto.class);
+			if (response!=null && response.hasBody()) {
+				responseDto = response.getBody();
+			}
+		}catch(HttpClientErrorException.Conflict e) {
+			log.error("Failed to create gateway datasource connection {} for workspace {}  with conflict error {} ", createRequest.getDatasourcename(), workspaceName, e.getMessage());
+		}catch(Exception e) {
+			e.printStackTrace();
+			responseDto.setErrorCode("500");
+			responseDto.setMessage(e.getMessage());
+			log.error("Failed to create gateway datasource connection {} for workspace {}  with error {} ", createRequest.getDatasourcename(), workspaceName, e.getMessage());
+		}
+		return responseDto;
+	}
+	
 	public LakehouseS3ShortcutResponseDto createShortcut(String workspaceId, String lakehouseId, LakehouseS3ShortcutDto createRequest) {
 		LakehouseS3ShortcutResponseDto responseDto = new LakehouseS3ShortcutResponseDto();
 		try {
@@ -351,6 +351,7 @@ public class FabricWorkspaceClient {
 		}catch(HttpClientErrorException.Conflict e) {
 			log.error("Failed to create lakehouse shortcut with displayName {}  for lakehouse {} and workspace {} with conflict error {} ", createRequest.getName(), lakehouseId, workspaceId, e.getMessage());
 		}catch(Exception e) {
+			e.printStackTrace();
 			responseDto.setErrorCode("500");
 			responseDto.setMessage(e.getMessage());
 			log.error("Failed to create lakehouse shortcut with displayName {} for lakehouse {} and workspace {} with error {} ", createRequest.getName(), lakehouseId, workspaceId, e.getMessage());
