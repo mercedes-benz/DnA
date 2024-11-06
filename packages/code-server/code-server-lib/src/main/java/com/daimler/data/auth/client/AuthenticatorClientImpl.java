@@ -782,17 +782,17 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 								}
 									
+							}else{
+								//delete oneapi plugin if any if the variable is blank
+								GenericMessage deletePluginResponse = new GenericMessage();
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
+								LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+								//deleteing request transformer plugin if any
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
+								LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							}
-						}else{
-							//delete oneapi plugin if any if the variable is blank
-							GenericMessage deletePluginResponse = new GenericMessage();
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
-							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							//deleteing request transformer plugin if any
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
-							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 					}else{
 
