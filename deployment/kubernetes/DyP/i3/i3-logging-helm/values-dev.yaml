@@ -680,7 +680,7 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: 22Gi
+    size: 20Gi
     storageClass: dhc-gp3
   replicas: 1
   singleNode: true
