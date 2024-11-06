@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -26,11 +28,14 @@ import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
+import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.CredentialDetailsDto;
+import com.daimler.data.dto.fabric.DatasourceResponseDto;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
@@ -42,6 +47,8 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
+import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
+import com.daimler.data.dto.fabric.ShortcutTargetDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
@@ -85,6 +92,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private AuthoriserClient identityClient;
+	
+	@Autowired
+	private RSAEncryptionUtil encryptionUtil;
 	
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
@@ -131,6 +141,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
+	
+	@Value("${fabricWorkspaces.shortcutNameprefix}")
+	private String shortcutNameprefix;
+	
+	@Value("${fabricWorkspaces.shortcutLocation}")
+	private String shortcutLocation;
+	
+	@Value("${fabricWorkspaces.datasource.credentialType}")
+	private String datasourceCredentialType;
+	
+	@Value("${fabricWorkspaces.datasource.encryptedConnection}")
+	private String datasourceEncryptedConnection;
+	
+	@Value("${fabricWorkspaces.datasource.encryptionAlgorithm}")
+	private String datasourceEncryptionAlgorithm;
 	
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
 	
@@ -198,7 +223,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(existingEntity!=null) {
 						List<String> filteredEntitlements = new ArrayList<>();
 						if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + existingEntity.getId() + "_")).collect(Collectors.toList());
+							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(existingEntity.getId() + "_")).collect(Collectors.toList());
 						}
 						String creatorId = existingEntity.getData().getCreatedBy().getId();
 						if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
@@ -1188,15 +1213,90 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	public GenericMessage createLakehouseS3Shortcut(String id, String lakehouseId,
-			 ShortcutCreateRequestVO createRequestVO) {
+			 ShortcutCreateRequestVO createRequestVO, String email) {
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		LakehouseS3ShortcutDto createLakehouseS3ShortcutDto = new LakehouseS3ShortcutDto();
+		String connectionId = "";
+		String randomSeriesNumber = UUID.randomUUID().toString();
 		try {
-			createLakehouseS3ShortcutDto.setName(createRequestVO.getBucketname());
+			CreateDatasourceRequestDto createDatsourceReqDto = new CreateDatasourceRequestDto();
+			createDatsourceReqDto.setDatasourcename(shortcutNameprefix+createRequestVO.getBucketname() + "_" + randomSeriesNumber);
+			createDatsourceReqDto.setDatasourceType("extension");
+			String connectionDetails = "{\"extensionDataSourceKind\": \"AmazonS3Compatible\",\"extensionDataSourcePath\": \"" + shortcutLocation + "\"}";
+			createDatsourceReqDto.setConnectionDetails(connectionDetails);
+			
+			CredentialDetailsDto credentialsDto = new CredentialDetailsDto();
+			credentialsDto.setCredentialType(datasourceCredentialType);
+			credentialsDto.setEncryptedConnection(datasourceEncryptedConnection);
+			credentialsDto.setEncryptionAlgorithm(datasourceEncryptionAlgorithm);
+			credentialsDto.setPrivacyLevel("Organizational");
+			
+			String credentialsEncryptedString = "";
+			credentialsEncryptedString = encryptionUtil.encryptCredentialDetails(createRequestVO.getAccessKey(), createRequestVO.getSecretKey());
+			if(credentialsEncryptedString == null || "".equalsIgnoreCase(credentialsEncryptedString)) {
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to create shortcut, error occured while encrypting connection details with gateway's public key. Please retry again after a while.");
+				errors.add(message);
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				log.error("Failed to create shortcut for workspace {} and lakehouse {} , error occured while encrypting connection details with gateway's public key", id, lakehouseId);
+				return responseMessage;
+			}
+			credentialsDto.setCredentials(credentialsEncryptedString);
+			
+			credentialsDto.setSkipTestConnection(true);
+			credentialsDto.setUseEndUserOAuth2Credentials(false);
+			
+			createDatsourceReqDto.setCredentialDetails(credentialsDto);
+			DatasourceResponseDto createResponse = fabricWorkspaceClient.createDatasourceConnection(id, createDatsourceReqDto);
+			if(createResponse!=null && createResponse.getMessage() != null || createResponse==null || (createResponse!=null && (createResponse.getId() ==null || "".equalsIgnoreCase(createResponse.getId())))) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(createResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while creating fabric workspace datasource connection for shortcut {} ", id);
+					return responseMessage;
+			}
+			connectionId = createResponse.getId();
+			
+			try {
+				GenericMessage addUserToConnectionResponse = fabricWorkspaceClient.addUserToDatasource(connectionId,email);
+				if(addUserToConnectionResponse!=null && addUserToConnectionResponse.getErrors()!=null) {
+					warnings.addAll(addUserToConnectionResponse.getErrors());
+					warnings.addAll(addUserToConnectionResponse.getWarnings());
+				}
+			}catch(Exception e) {
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to add user to datasource connection " + connectionId + ". Please contact admin to add manually.");
+				warnings.add(message);
+			}
+			
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Error occured while creating connection. Failed to creating lakehouse  s3 shortcut for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while creating connection for fabric s3 shortcut {} for workspace {} lakehouse {} ",createRequestVO.getBucketname(), id, lakehouseId);
+			return responseMessage;
+		}
+		
+		try {
+			
+			createLakehouseS3ShortcutDto.setName( shortcutNameprefix + randomSeriesNumber);
 			createLakehouseS3ShortcutDto.setPath("Files/");
-			createLakehouseS3ShortcutDto.setTarget(null);
+			ShortcutTargetDto targetDto = new ShortcutTargetDto();
+			S3CompatibleTargetDto s3Target = new S3CompatibleTargetDto();
+			s3Target.setBucket(createRequestVO.getBucketname());
+			s3Target.setConnectionId(connectionId);
+			s3Target.setLocation(shortcutLocation);
+			s3Target.setSubpath("");
+			targetDto.setS3Compatible(s3Target);
+			
+			createLakehouseS3ShortcutDto.setTarget(targetDto);
 			LakehouseS3ShortcutResponseDto createResponse = fabricWorkspaceClient.createShortcut(id, lakehouseId, createLakehouseS3ShortcutDto);
 			if(createResponse!=null && createResponse.getMessage() != null) {
 					MessageDescription message = new MessageDescription();
