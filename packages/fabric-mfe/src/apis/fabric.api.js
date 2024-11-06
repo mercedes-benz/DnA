@@ -78,9 +78,7 @@ const deleteLakehouse = (workspaceId, lakehouseId) => {
 };
 
 const createShortcut = (workspaceId, lakehouseId, data) => {
-  return server.post(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts/`, {
-    data,
-  });
+  return server.post(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts/`, data);
 };
 
 const deleteShortcut = (workspaceId, lakehouseId, shortcutId) => {
