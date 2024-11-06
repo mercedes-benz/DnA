@@ -22,7 +22,13 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
+        {{- if eq .Values.env "prod" }}
           value: --namespace i3-monitoring -f values-scrapeconfig-dhc.yaml -f values-{{ .Values.env }}.yaml
+        {{- else if eq .Values.env "test" }}
+          value: --namespace i3-monitoring -f values-scrapeconfig-dhc.yaml -f values-{{ .Values.env }}.yaml
+        {{- else }}
+          value: --namespace i3-monitoring -f values-scrapeconfig-dhc.yaml -f values-{{ .Values.env | default "dev" }}.yaml
+        {{- end }}
   project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:

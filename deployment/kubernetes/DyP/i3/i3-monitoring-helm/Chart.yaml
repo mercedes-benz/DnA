@@ -32,3 +32,19 @@ dependencies:
   - name: i3-alerts
     condition: i3-alerts.enabled
     version: 6.3.1
+  - name: prom2teams
+    condition: prom2teams.enabled
+    version: 0.2.0
+    repository: file://charts/prom2teams
+  - name: tempo-distributed
+    condition: tempo-distributed.enabled
+    version: 1.11.0
+    repository: file://charts/tempo-distributed
+  - name: loki
+    condition: loki.enabled
+    version: 3.2.0
+    repository: file://charts/loki
+  - name: fluent-bit
+    condition: fluent-bit.enabled
+    version: 0.47.10
+    repository: file://charts/fluent-bit
