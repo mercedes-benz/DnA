@@ -349,6 +349,9 @@ const CodeSpaceCardItem = (props) => {
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
+  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
+
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -516,10 +519,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {intSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
@@ -618,10 +627,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {prodDeployed && (
                           <li>
-                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {prodSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
