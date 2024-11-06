@@ -568,10 +568,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					
 					if(apiRecipe){
 						if(intSecureIAM  || prodSecureIAM) {
+							//delete oneapi plugin if any
+							GenericMessage deletePluginResponse = new GenericMessage();
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
+							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+							if(!isSecuredWithCookie){
 								if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
 										//deleting OIDC  and Authorizer plugin if already available
-										GenericMessage deletePluginResponse = new GenericMessage();
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -580,7 +586,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										//deleteing jwt issuer plugin if any
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
-										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 										//attaching request transformer plugin 
@@ -588,146 +594,159 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
 										attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
-										if(!isSecuredWithCookie){
-											//change function plugin status to disable if any
-											changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
-											LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+										//change function plugin status to disable if any
+										changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+										LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 
-											//request for attaching ODIC plugin to authorize service with new client id and secret
-											AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
-											AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
-											AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
+										//request for attaching ODIC plugin to authorize service with new client id and secret
+										AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
+										AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
+										AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
 
-											attachOIDCPluginVO.setName(OIDC_PLUGIN);
+										attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
-											String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
-											String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+										String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
+										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
-											if("int".equalsIgnoreCase(env)){
-												attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
-												attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
-												attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
-											}
-											if("prod".equalsIgnoreCase(env)){
-												String prodDiscovery = authDiscovery.replace("-int","");
-												String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
-												String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
-
-												attachOIDCPluginConfigVO.setDiscovery(prodDiscovery);
-												attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
-												attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
-											}
-											attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
-											attachOIDCPluginConfigVO.setClient_id(clientID);
-											attachOIDCPluginConfigVO.setClient_secret(clientSecret);
-											attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
-											attachOIDCPluginConfigVO.setLogout_path(logoutPath);
-											attachOIDCPluginConfigVO.setRealm(realm);
-											attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser.isBlank()?authRedirectUri:redirectUriFromUser);
-											attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
-											attachOIDCPluginConfigVO.setResponse_type(responseType);
-											attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
-											attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
-											attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
-											attachOIDCPluginConfigVO.setFilters(ignorePaths);
-											attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
-											attachOIDCPluginConfigVO.setScope(scope);
-											attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
-											attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
-											//adding scopes that user given and appending scopes required for Authorization, if authorization enabled otherwise adding the scopes which user giving
-											if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
-												String combinedScopes = getDistinctWords(scope,authoriserScope);
-												attachOIDCPluginConfigVO.setScope(combinedScopes);
-											}else{
-												attachOIDCPluginConfigVO.setScope(scope);
-											}
-											attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
-											attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
-											attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
-										}else{
-
-											//attaching pre function plugin for api recipes 
-											AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
-											AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
-											AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
-
-											List<String>gitDetails = CommonUtils.getDetailsFromUrl(functionPluginGitUrl);
-
-											changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
-											LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-											if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
-												try{
-													JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionBackendFileName,codeServerEnvRef);
-													if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
-														LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
-														
-														String content = jsonResponse.getString("content");
-														String preFunctionContent = base64DecodeAandMinifyString(content);
-
-														List<String> preFunctionValue =  new ArrayList<>();
-														preFunctionValue.add(preFunctionContent);
-														
-														if("prod".equalsIgnoreCase(env)){
-															preFunctionValue.clear();
-															String prodPreFunctionContent = preFunctionContent.replace("-int","");
-															preFunctionValue.add(prodPreFunctionContent);
-														}
-
-														preFunctionConfigVO.setAccess(preFunctionValue);
-														preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
-														preFunctionPluginVO.setConfig(preFunctionConfigVO);
-														preFunctionRequestVO.setData(preFunctionPluginVO);
-
-														attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
-														LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
-													}
-												}catch(Exception e) {
-													LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
-												}
-											}
+										if("int".equalsIgnoreCase(env)){
+											attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
+											attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
+											attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
 										}
-										
-										//request for attaching APIAUTHORISER plugin to service only published the security config
+										if("prod".equalsIgnoreCase(env)){
+											String prodDiscovery = authDiscovery.replace("-int","");
+											String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
+											String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
+
+											attachOIDCPluginConfigVO.setDiscovery(prodDiscovery);
+											attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
+											attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
+										}
+										attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
+										attachOIDCPluginConfigVO.setClient_id(clientID);
+										attachOIDCPluginConfigVO.setClient_secret(clientSecret);
+										attachOIDCPluginConfigVO.setIntrospection_endpoint_auth_method(authoriserIntrospectionEndpointAuthMethod);
+										attachOIDCPluginConfigVO.setLogout_path(logoutPath);
+										attachOIDCPluginConfigVO.setRealm(realm);
+										attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser.isBlank()?authRedirectUri:redirectUriFromUser);
+										attachOIDCPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
+										attachOIDCPluginConfigVO.setResponse_type(responseType);
+										attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
+										attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+										attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
+										attachOIDCPluginConfigVO.setFilters(ignorePaths.isBlank()?null:ignorePaths);
+										attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths.isBlank()?null:ignorePaths);
+										attachOIDCPluginConfigVO.setScope(scope.isBlank()?null:scope);
+										attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
+										attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
+										//adding scopes that user given and appending scopes required for Authorization, if authorization enabled otherwise adding the scopes which user giving
 										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
-											
-											AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
-											AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
-											AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
-											if("int".equalsIgnoreCase(env)){
-												apiAuthoriserPluginConfigVO.setEnv("staging");
-												apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
-												if(securityConfig.getStaging().getPublished().getAppID()!=null)
-													apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
-											}
-											if("prod".equalsIgnoreCase(env)){
-												apiAuthoriserPluginConfigVO.setEnv("production");
-												String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int","");
-												apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
-												if(securityConfig.getProduction().getPublished().getAppID()!=null)
-													apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
-											}
-											// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
-											apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
-											apiAuthoriserPluginConfigVO.setLogType(logType);
-											apiAuthoriserPluginConfigVO.setPoolID(poolID);
-											apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
-											apiAuthoriserPluginConfigVO.setProjectName(projectName.toLowerCase());
-	
-											apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
-											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
-											apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
-	
-											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
-											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
-
+											String combinedScopes = getDistinctWords(scope,authoriserScope);
+											attachOIDCPluginConfigVO.setScope(combinedScopes);
+										}else{
+											attachOIDCPluginConfigVO.setScope(scope);
 										}
+										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
+										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
+										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 
 									}
 								}
-							
-							// attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
-							// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+							}else{
+								//deleting OIDC  and Authorizer plugin if already available
+								
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+								LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+								LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+								//deleteing jwt issuer plugin if any
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+								LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+
+								//attaching request transformer plugin 
+								attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+								LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+								attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
+								
+								//attaching pre function plugin for api recipes 
+								AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
+								AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
+								AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
+
+								List<String>gitDetails = CommonUtils.getDetailsFromUrl(functionPluginGitUrl);
+
+								changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
+								LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+								if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
+									try{
+										JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionBackendFileName,codeServerEnvRef);
+										if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+											LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+											
+											String content = jsonResponse.getString("content");
+											String preFunctionContent = base64DecodeAandMinifyString(content);
+
+											List<String> preFunctionValue =  new ArrayList<>();
+											preFunctionValue.add(preFunctionContent);
+											
+											if("prod".equalsIgnoreCase(env)){
+												preFunctionValue.clear();
+												String prodPreFunctionContent = preFunctionContent.replace("-int","");
+												preFunctionValue.add(prodPreFunctionContent);
+											}
+
+											preFunctionConfigVO.setAccess(preFunctionValue);
+											preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+											preFunctionPluginVO.setConfig(preFunctionConfigVO);
+											preFunctionRequestVO.setData(preFunctionPluginVO);
+
+											attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+											LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+										}
+									}catch(Exception e) {
+										LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
+									}
+								}
+							}
+							//request for attaching APIAUTHORISER plugin to service only published the security config
+							if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
+											
+								AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
+								AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
+								AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
+								if("int".equalsIgnoreCase(env)){
+									apiAuthoriserPluginConfigVO.setEnv("staging");
+									apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
+									if(securityConfig.getStaging().getPublished().getAppID()!=null)
+										apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
+								}
+								if("prod".equalsIgnoreCase(env)){
+									apiAuthoriserPluginConfigVO.setEnv("production");
+									String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int","");
+									apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
+									if(securityConfig.getProduction().getPublished().getAppID()!=null)
+										apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
+								}
+								// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+								apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
+								apiAuthoriserPluginConfigVO.setLogType(logType);
+								apiAuthoriserPluginConfigVO.setPoolID(poolID);
+								apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+								apiAuthoriserPluginConfigVO.setProjectName(projectName.toLowerCase());
+
+								apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
+								apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
+								apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
+
+								attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
+
+							}
 						}else{
 							GenericMessage deletePluginResponse = new GenericMessage();
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
@@ -782,8 +801,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 								}
 									
+							}else{
+								//delete oneapi plugin if any if the variable is blank
+								GenericMessage deletePluginResponse = new GenericMessage();
+								deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
+								LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							}
-						}else{
+						}
+						if((("int".equalsIgnoreCase(env) && !intSecureIAM) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM)) && (!Objects.nonNull(oneApiVersionShortName) || oneApiVersionShortName.isBlank())){
 							//delete oneapi plugin if any if the variable is blank
 							GenericMessage deletePluginResponse = new GenericMessage();
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
