@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +57,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private UserStore userStore;
-	
-	@Autowired
-	private HttpServletRequest httpRequest;
 	
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
@@ -332,7 +328,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage createLakehouseS3ShortcutResponse = service.createLakehouseS3Shortcut(id,lakehouseId,createRequestVO);
+			String email = requestUser.getEmail();
+			GenericMessage createLakehouseS3ShortcutResponse = service.createLakehouseS3Shortcut(id,lakehouseId,createRequestVO,email);
 			if(createLakehouseS3ShortcutResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(createLakehouseS3ShortcutResponse.getSuccess())) {
 					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.OK);
