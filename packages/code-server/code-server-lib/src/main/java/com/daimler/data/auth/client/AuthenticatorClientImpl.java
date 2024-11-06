@@ -775,6 +775,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 									attachOneApiPluginResponse = attachOneApiPluginToService(requestVO, serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling to attach oneapi plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachOneApiPluginResponse.getSuccess());
+
+									//attaching request transformer plugin 
+									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 								}
 									
 							}
@@ -783,6 +788,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							GenericMessage deletePluginResponse = new GenericMessage();
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
 							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//deleteing request transformer plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
+							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 					}else{
