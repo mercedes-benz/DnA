@@ -1,21 +1,19 @@
 # Adjust values of prometheus Chart to run in DHC CaaS
 prometheus:
   enabled: true
-  fullnameOverride: "prometheus"
   # See values of upstream chart for details: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
   alertmanager:
-    fullnameOverride: "prometheus-alertmanager"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/alertmanager
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
       runAsNonRoot: true
-  configmapReload:
-    prometheus:
+    configmapReload:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
-    alertmanager:
+  configmapReload:
+    prometheus:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
   initChownData:
@@ -34,7 +32,6 @@ prometheus:
   prometheus-node-exporter:
     enabled: false
   server:
-    fullnameOverride: "prometheus-server"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
@@ -72,7 +69,7 @@ prometheus:
     sidecarContainers:
       reloadAlerts:
         name: reload-alerts
-        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:0.1.151"
+        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:1.26.1"
         imagePullPolicy: IfNotPresent
         env:
           - name: METHOD
@@ -100,8 +97,6 @@ prometheus:
           mountPath: /alerts
   
   serverFiles:
-    # The following is copied from the upstream prometheus Helm chart.
-    # Additions are marked with BEGIN/END CUSTOM
     prometheus.yml:
       rule_files:
         - /etc/config/alerting_rules/*.yaml
@@ -734,7 +729,6 @@ prometheus:
   ### END autoload all alert configmaps
   prometheus-pushgateway:
     enabled: true
-    fullnameOverride: "prometheus-pushgateway"
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/pushgateway
     # Adjust securityContext for non-root
@@ -749,7 +743,7 @@ prometheus:
       enabled: true
       path: /
       hosts:
-        - <path:kv/data/dna/kubernetesSecret/monitoring#pushgateway.domain>
+        - metrics.dna-aws.app.corpintra.net
       annotations:
         traefik.frontend.rule.type: PathPrefix
         kubernetes.io/ingress.class: ingress-traefik
@@ -759,7 +753,7 @@ prometheus:
         traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
       tls:
         - hosts:
-            - <path:kv/data/dna/kubernetesSecret/monitoring#pushgateway.domain>
+            - metrics.dna-aws.app.corpintra.net
           secretName: metrics-pg-tls
   # Disable default network policies of prometheus chart, we'll use our own more fine-grained network policies
   networkPolicy:
@@ -768,24 +762,18 @@ prometheus:
 # Adjust values of grafana Chart to run in DHC CaaS
 grafana:
   enabled: true
-  fullnameOverride: "grafana"
-  # See values of upstream chart for details: https://github.com/grafana/helm-charts/tree/main/charts/grafana
-  image:
-    registry: registry-emea.app.corpintra.net
-    repository: dockerhub/grafana/grafana
-    tag: "11.3.0"
-    pullSecrets: []
-
+  global:
+    # -- Overrides the Docker registry globally for all images
+    imageRegistry: registry-emea.app.corpintra.net/dockerhub
   deploymentStrategy:
     type: Recreate
-
   ingress:
     enabled: true
     # # To expose Grafana, override ingress with the following settings
     # enabled: true
     path: /
     hosts:
-       - <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+       - monitoring.dna-aws.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: ingress-traefik
@@ -795,14 +783,15 @@ grafana:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     tls:
       - hosts:
-          - <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+          - monitoring.dna-aws.app.corpintra.net
         secretName: grafana-tls
 
   # if the Grafana URL uses a subpath like /grafana, ensure to set the following lines
+  assertNoLeakedSecrets: false
   grafana.ini:
     server:
-      domain: <path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
-      root_url: https://<path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>
+      domain: monitoring.dna-aws.app.corpintra.net
+      root_url: https://monitoring.dna-aws.app.corpintra.net
       serve_from_sub_path: false
     smtp:
       enabled: true
@@ -822,7 +811,7 @@ grafana:
       scopes: openid profile email offline_access
       auth_url: <path:kv/data/dna/kubernetesSecret/monitoring#auth_url>
       token_url: <path:kv/data/dna/kubernetesSecret/monitoring#token_url>
-      api_url: https://<path:kv/data/dna/kubernetesSecret/monitoring#grafana.domain>/userinfo
+      api_url: https://monitoring.dna-aws.app.corpintra.net/userinfo
       use_pkce: true
       use_refresh_token: true     
       skip_org_role_sync: true
@@ -884,7 +873,7 @@ grafana:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
+        url: "http://{{ .Release.Name }}-prometheus-server"
         isDefault: true
         basic_auth: false
 
@@ -941,7 +930,7 @@ grafana:
   # Provide plugins via initContainer
   extraInitContainers:
   - name: init-plugins
-    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:6.1.0
+    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:6.3.1
     command: ['sh', '-c', 'cp -R /configs/grafana/plugins/. /grafana-plugins/']
     volumeMounts:
     - name: init-plugins
@@ -969,6 +958,32 @@ grafana:
   imageRenderer:
     deploymentStrategy: 
       type: Recreate
+
+  extraObjects:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-acme-http01-solver
+      spec:
+        podSelector:
+          matchLabels:
+            acme.cert-manager.io/http01-solver: 'true'
+        ingress:
+          - ports:
+              - protocol: TCP
+                port: 8089
+          - from:
+              - podSelector:
+                  matchLabels:
+                    app: traefik
+                namespaceSelector:
+                  matchExpressions:
+                    - key: name
+                      operator: In
+                      values:
+                        - ingress
+        policyTypes:
+          - Ingress
 
 # Enable DHC NetworkPolicies by default
 dhc-monitoring-netpols:

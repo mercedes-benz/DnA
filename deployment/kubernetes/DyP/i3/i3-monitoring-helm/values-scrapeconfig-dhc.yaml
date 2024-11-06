@@ -387,6 +387,35 @@ prometheus:
         # to set this to `https` & most likely set the `tls_config` of the scrape config.
         # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
         # * `prometheus.io/port`: Scrape the pod on the indicated port instead of the default of `9102`.
+        - job_name: 'kubernetes-cadvisor'
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          scheme: https
+          kubernetes_sd_configs:
+          - role: node
+          relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc.cluster.local:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+          metric_relabel_configs:
+          # Drop labels to be equal with legacy external cadvisor ds
+          - action: labeldrop
+            regex: "beta_kubernetes_io_.*|failure_domain_beta_kubernetes_io_.*|topology_.*|node_kubernetes_io_.*|kubernetes_io_arch|kubernetes_io_os"
+          - source_labels: [ pod ]
+            action: replace
+            target_label: pod_name
+          - source_labels: [ instance ]
+            action: replace
+            target_label: node
+          - source_labels: [ container ]
+            action: replace
+            target_label: container_name
         - job_name: 'kubernetes-pods'
           # BEGIN CUSTOM
           tls_config:
@@ -446,14 +475,10 @@ prometheus:
               regex: (https?)
 
           metric_relabel_configs:
-            # ## cadvisor daemonset metrics relabeling to match kubelet cadvisor metrics
-            # # copy labels starting with container_label_io_kubernetes_ to label without it
-            # # e.g.: container_label_io_kubernetes_pod_name -> pod_name
-            - action: labelmap
-              regex: container_label_io_kubernetes_(.+)
-            # copy container_label_io_kubernetes_pod_namespace -> namespace
-            - action: labelmap
-              regex: container_label_io_kubernetes_pod_(namespace)
+            # Drop cadvisor ds metrics in favor of integrated kubelet-cadvisor
+            - source_labels: [app]
+              action: drop
+              regex: cadvisor
             # copy node label to kubernetes_io_hostname
             - source_labels: [ node ]
               target_label: kubernetes_io_hostname
