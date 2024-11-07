@@ -179,12 +179,12 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
           <div className={classNames(Styles.col3)}>Actions</div>
         </div>
         {shortcuts?.map((shortcut) => 
-          <div key={shortcut?.id} className={Styles.shortcut}>
-            <div className={classNames(Styles.col1)}>{shortcut?.bucketname}<br />Connection Name: {shortcut?.connectionName}</div>
+          <div key={shortcut?.name} className={Styles.shortcut}>
+            <div className={classNames(Styles.col1)}>{shortcut?.bucketname}<br />{shortcut?.connectionName && 'Connection Name: ' + shortcut?.connectionName}</div>
             <div className={classNames(Styles.col2)}>{shortcut?.name} - {shortcut?.path}</div>
             <div className={classNames(Styles.col3)}>
               { shortcut?.bucketpath && <button className={'btn'}><i className="icon mbc-icon new-tab" onClick={() => window.open(shortcut?.bucketpath)} /> Go to Bucket</button> }
-              <button className={'btn'}><i className="icon delete" onClick={() => handleDeleteShortcut(shortcut?.id)} /> Delete</button>
+              <button className={'btn'} onClick={() => handleDeleteShortcut(shortcut?.name)}><i className="icon delete" /> Delete</button>
             </div>
           </div>
         )}
@@ -342,7 +342,7 @@ function Lakehouses({ workspace, lakehouses }) {
                   {lakehouse?.name} 
                   {/* {lakehouse?.sensitivityLabel !== workspace?.dataClassification && <i className="icon mbc-icon info" tooltip-data={'Sensitivity label for lakehouse is not set or\nset higher than Workspace Data Classification. Please update.'} />} */}
                 </span>
-                <button className={classNames('btn', Styles.deleteBtn)} onClick={() => setShowDeleteModal(true)}>
+                <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
                   <i className="icon delete" />
                 </button>
               </h4>
