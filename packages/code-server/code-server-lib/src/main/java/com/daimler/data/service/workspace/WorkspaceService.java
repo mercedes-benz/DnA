@@ -92,9 +92,9 @@ public interface WorkspaceService {
 
     String getServerStatus(CodeServerWorkspaceVO vo);
 
-	GenericMessage startServer(String userId,String wsId);
+	GenericMessage startServer(String userId,String wsId, String cloudServiceProvider);
 
-    GenericMessage stopServer(CodeServerWorkspaceVO vo);
+    GenericMessage stopServer(CodeServerWorkspaceVO vo, String cloudServiceProvider);
 
     GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo);
 

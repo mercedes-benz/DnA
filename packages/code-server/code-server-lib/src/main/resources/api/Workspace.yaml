@@ -1377,7 +1377,7 @@ definitions:
         description: "Git URL"      
       cloudServiceProvider:
         type: string
-        enum: [DHC-CaaS]
+        enum: [DHC-CaaS,DHC-CaaS-AWS]
         description: "Cloud services provider. Ex: DHC-CaaS"
       ramSize:
         type: string

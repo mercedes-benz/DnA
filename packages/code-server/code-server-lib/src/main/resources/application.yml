@@ -87,6 +87,8 @@ codeServer:
   git.appname: ${CODE_SERVER_APPLICATION_NAME:XXXX}
   jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
   jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
+  jupyter.url.aws: ${CODE_SERVER_JUPYTER_URL_AWS:YOUR_JUPYTER_AWS_URL}
+  jupyter.pat.aws: ${CODE_SERVER_JUPYTER_PAT_AWS:YOUR_PAT_AWS}
   workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
   workspace.apikey: ${CODE_SERVER_API_KEY:XXX}
   git.pid: ${CODE_SERVER_PID_USER:XXXXX}
