@@ -188,7 +188,15 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+  const isUIRecipe = 
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
+  
+    const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -1093,7 +1101,7 @@ const CodeSpace = (props) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="800px"
+          modalWidth="1200px"
           buttonAlignment="right"
           show={showNewCodeSpaceModal}
           content={
@@ -1139,6 +1147,7 @@ const CodeSpace = (props) => {
           userInfo={props.user}
           codeSpaceData={codeSpaceData}
           enableSecureWithIAM={isIAMRecipe}
+          isUIRecipe={isUIRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
