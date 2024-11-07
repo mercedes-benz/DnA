@@ -228,7 +228,16 @@ opensearch-dashboards:
     i3-logging-opensearch-master-transport-client: "true"
 
   # We use lifecycle to delete securityDashboard plugin and create the search index and search filters on opensearch-dashboards startup.
-  lifecycle: {}
+  lifecycle:
+    postStart:
+      exec:
+        command:
+          - bash
+          - -c
+          - |
+            #!/bin/bash
+            # /usr/share/opensearch-dashboards/bin/opensearch-dashboards-plugin remove securityDashboards
+            echo "Opensearch"
 
   podSecurityContext:
     runAsUser: 1000
