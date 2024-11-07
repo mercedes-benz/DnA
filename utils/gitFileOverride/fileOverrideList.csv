@@ -47,3 +47,4 @@ SourcePath;DestinationPath
 ./packages/frontend/overrides/public/DnA-Storage-Bucket-TOU-v3.pdf;./packages/frontend/public/
 ./packages/frontend/overrides/public/PowerPlatform_SelfService_TermsConditions_English.pdf;./packages/frontend/public/
 ./packages/frontend/overrides/public/PowerPlatform_SelfService_TermsConditions_Deutsch.pdf;./packages/frontend/public/
+./packages/fabric-backend/overrides/V2__update_data.sql;./packages/fabric-backend/lib/src/main/resources/db/migration/
