@@ -254,6 +254,8 @@ paths:
           
 # path to upadte plugin 
 #  supported http methods DELETE and PATCH
+# path to upadte plugin 
+#  supported http methods DELETE and PATCH
  /kong/services/{serviceName}/plugins/{pluginName}:
     delete:
       tags:
@@ -627,7 +629,7 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error" 
+          description: "Internal error"  
           
 # path to get service 
 #  supported http methods GET    

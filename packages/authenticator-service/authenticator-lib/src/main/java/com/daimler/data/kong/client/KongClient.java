@@ -67,10 +67,10 @@ public interface KongClient {
 	public Map<String,String> getPluginIds(String serviceName, String pluginName);
 	
 	public GenericMessage deleteService(String serviceName);
+
+	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
   
 	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName);
-	
-	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
 
 	public  GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginVO attachRequestTransformerPluginVO, String serviceName);
 
