@@ -66,4 +66,16 @@
     color: #697582;
     font-size: var(--font-size-small);
   }
+
+  .infoIcon {
+    font-size: var(--font-size-icon-medium);
+    i {
+        cursor: pointer;
+        color: #697582 !important;
+
+        &:hover {
+            color: #00adef !important;
+        }
+    }
+  }
 }
