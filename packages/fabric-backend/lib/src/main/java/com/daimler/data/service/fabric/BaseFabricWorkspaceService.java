@@ -74,6 +74,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
+
 @Service
 @Slf4j
 public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspaceVO, FabricWorkspaceNsql, String> implements FabricWorkspaceService{
@@ -95,7 +96,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private RSAEncryptionUtil encryptionUtil;
-	
+		
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
 	
@@ -223,7 +224,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(existingEntity!=null) {
 						List<String> filteredEntitlements = new ArrayList<>();
 						if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(existingEntity.getId() + "_")).collect(Collectors.toList());
+							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(existingEntity.getId())).collect(Collectors.toList());
 						}
 						String creatorId = existingEntity.getData().getCreatedBy().getId();
 						if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
@@ -872,7 +873,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					List<GroupDetailsVO> groups  = currentStatus.getMicrosoftGroups();
 					List<GroupDetailsVO> updatedMicrosoftFabricGroups = new ArrayList<>();
 					//check for admin group
-					Optional<GroupDetailsVO> existingAdminGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					Optional<GroupDetailsVO> existingAdminGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(n.getGroupName().contains(dnaGroupPrefix) && n.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN))).findFirst() : null;
 					GroupDetailsVO existingAdminGroupVO = null;
 							if(existingAdminGroup!=null && existingAdminGroup.isPresent()) {
 								existingAdminGroupVO = existingAdminGroup.get();
@@ -885,7 +886,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							GroupDetailsVO updatedAdminRoleGroupVO = this.callGroupAssign(existingAdminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
 							
 					//check for contributor group
-					Optional<GroupDetailsVO> existingContributorGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					Optional<GroupDetailsVO> existingContributorGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(n.getGroupName().contains(dnaGroupPrefix) && n.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR))).findFirst() : null;
 					GroupDetailsVO existingContributorGroupVO = null;
 							if(existingContributorGroup!=null && existingContributorGroup.isPresent()) {
 								existingContributorGroupVO = existingContributorGroup.get();
@@ -898,7 +899,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							GroupDetailsVO updatedContributorGroupVO = this.callGroupAssign(existingContributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
 							
 					//check for member group
-					Optional<GroupDetailsVO> existingMemberGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					Optional<GroupDetailsVO> existingMemberGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(n.getGroupName().contains(dnaGroupPrefix) && n.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER))).findFirst() : null;
 					GroupDetailsVO existingMemberGroupVO = null;
 							if(existingMemberGroup!=null && existingMemberGroup.isPresent()) {
 								existingMemberGroupVO = existingMemberGroup.get();
@@ -911,7 +912,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							GroupDetailsVO updatedMemberRoleGroupVO = this.callGroupAssign(existingMemberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
 							
 					//check for viewer group
-					Optional<GroupDetailsVO> existingViewerGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER).equalsIgnoreCase(n.getGroupName())).findFirst() : null;
+					Optional<GroupDetailsVO> existingViewerGroup = groups!=null && !groups.isEmpty() ? groups.stream().filter(n->(n.getGroupName().contains(dnaGroupPrefix) && n.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER))).findFirst() : null;
 					GroupDetailsVO existingViewerGroupVO = null;
 							if(existingViewerGroup!=null && existingViewerGroup.isPresent()) {
 								existingViewerGroupVO = existingViewerGroup.get();
@@ -987,6 +988,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		boolean isViewerGroupAvailable = false;
 		GroupDetailsVO viewerGroupVO = new GroupDetailsVO();
 		boolean isDefaultGroupAvailable = false;
+		for(GroupDetailsVO tempGrp : existingGroupsDetails) {
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+				adminGroupVO = tempGrp;
+			}
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+				contributorGroupVO = tempGrp;
+			}
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+				memberGroupVO = tempGrp;
+			}
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+				viewerGroupVO = tempGrp;
+			}
+		}
 		//check for all groups and users for cleanup
 		FabricGroupsCollectionDto	usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
 		if(usersGroupsCollection!=null && usersGroupsCollection.getValue()!=null && !usersGroupsCollection.getValue().isEmpty()) {
@@ -1001,29 +1016,24 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						if((onboardGroupDisplayName).equalsIgnoreCase(userGroupDetail.getDisplayName())) {
 							isDefaultGroupAvailable = true;
 						}
-						else if((dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN).equalsIgnoreCase(userGroupDetail.getDisplayName())) {
+						else if(userGroupDetail.getDisplayName().equalsIgnoreCase(adminGroupVO.getGroupName())) {
 							isAdminGroupAvailable = true;
 							adminGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-							adminGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN);
 							adminGroupVO.setGroupId(userGroupDetail.getIdentifier());
 						}
-						else if((dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR).equalsIgnoreCase(userGroupDetail.getDisplayName())) {
+						else if(userGroupDetail.getDisplayName().equalsIgnoreCase(contributorGroupVO.getGroupName())) {
 							isContributorGroupAvailable = true;
 							contributorGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-							contributorGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR);
 							contributorGroupVO.setGroupId(userGroupDetail.getIdentifier());
-
 						}
-						else if((dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER).equalsIgnoreCase(userGroupDetail.getDisplayName())) {
+						else if(userGroupDetail.getDisplayName().equalsIgnoreCase(memberGroupVO.getGroupName())) {
 							isMemberGroupAvailable = true;
 							memberGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-							memberGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER);
 							memberGroupVO.setGroupId(userGroupDetail.getIdentifier());
 						}
-						else if((dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER).equalsIgnoreCase(userGroupDetail.getDisplayName())) {
+						else if(userGroupDetail.getDisplayName().equalsIgnoreCase(viewerGroupVO.getGroupName())) {
 							isViewerGroupAvailable = true;
 							viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-							viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
 							viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 						}else {
 							//fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
