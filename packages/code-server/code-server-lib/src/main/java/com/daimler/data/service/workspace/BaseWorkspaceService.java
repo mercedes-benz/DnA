@@ -1054,6 +1054,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 			 ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
+			 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 

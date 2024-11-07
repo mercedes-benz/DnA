@@ -20,6 +20,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.WorkbenchManageDto;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.dto.JupyterHubCreateUserDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -199,10 +200,11 @@ public class CodeServerClient {
 
     private boolean isUserPresent(String userId, String cloudServiceProvider) {
 		try {
-			if(cloudServiceProvider.equals(CloudServiceProviderEnum.DHC_CAAS)){
-				String userURI = jupyterUrl + "/" + userId.toLowerCase();
+			String userURI = "";
+			if(cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name())){
+				userURI= jupyterUrl + "/" + userId.toLowerCase();
 			} else {
-				String userURI = jupyterUrlAws + "/" + userId.toLowerCase();
+				userURI = jupyterUrlAws + "/" + userId.toLowerCase();
 			}
 			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
@@ -223,7 +225,7 @@ public class CodeServerClient {
 	private boolean createUser(String userId, String isCollaborator, String cloudServiceProvider){
 		boolean status = false;
 		try {
-			String userURI = cloudServiceProvider.equals(CloudServiceProviderEnum.DHC_CAAS) ? jupyterUrl : jupyterUrlAws;
+			String userURI = cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name()) ? jupyterUrl : jupyterUrlAws;
 			JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
 			List<String> userName = new ArrayList<>();
 			userName.add(userId);
@@ -252,10 +254,11 @@ public class CodeServerClient {
 	//to create server
 	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
-			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.DHC_CAAS)){
-				String userURI = jupyterUrl;
+			String userURI="";
+			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				userURI = jupyterUrl;
 			} else {
-				String userURI = jupyterUrlAws;
+				userURI = jupyterUrlAws;
 			}
 			String url = userURI + "/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"default\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
@@ -563,10 +566,11 @@ public class CodeServerClient {
 
 	private boolean createServerforExisting(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
-			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.DHC_CAAS)){
-				String userURI = jupyterUrl;
+			String userURI="";
+			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				userURI = jupyterUrl;
 			} else {
-				String userURI = jupyterUrlAws;
+				userURI = jupyterUrlAws;
 			}
 			String url = userURI + "/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()

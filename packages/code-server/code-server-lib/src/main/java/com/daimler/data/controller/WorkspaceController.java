@@ -874,7 +874,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
 		 CodeServerRecipe recipeData = recipeEntity!=null ? recipeEntity.getData():null;
 		 CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
-		 newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
+		 newRecipeVO.setCloudServiceProvider(reqVO.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		 newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
