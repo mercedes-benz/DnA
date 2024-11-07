@@ -2550,20 +2550,20 @@ repoServer:
   name: repo-server
 
   # -- The number of repo server pods to run
-  replicas: 7
+  replicas: 5
 
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
     # -- Enable Horizontal Pod Autoscaler ([HPA]) for the repo server
-    enabled: false
+    enabled: true
     # -- Minimum number of replicas for the repo server [HPA]
-    minReplicas: 2
+    minReplicas: 5
     # -- Maximum number of replicas for the repo server [HPA]
-    maxReplicas: 5
+    maxReplicas: 10
     # -- Average CPU utilization percentage for the repo server [HPA]
-    targetCPUUtilizationPercentage: 50
+    targetCPUUtilizationPercentage: 70
     # -- Average memory utilization percentage for the repo server [HPA]
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 70
     # -- Configures the scaling behavior of the target in both Up and Down directions.
     behavior: {}
       # scaleDown:
@@ -2841,7 +2841,13 @@ repoServer:
   podLabels: {}
 
   # -- Resource limits and requests for the repo server pods
-  resources: {}
+  resources: 
+   limits:
+     cpu: 1300m
+     memory: 1000Mi
+   requests:
+     cpu: 1
+     memory: 800Mi  
 
   # Repo server container ports
   containerPorts:

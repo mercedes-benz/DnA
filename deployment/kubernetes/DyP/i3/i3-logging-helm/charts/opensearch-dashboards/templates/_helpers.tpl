@@ -75,6 +75,21 @@ Return the appropriate apiVersion for ingress.
 {{- end -}}
 
 {{/*
+Return the appropriate apiVersion for Horizontal Pod Autoscaler.
+*/}}
+{{- define "opensearch-dashboards.hpa.apiVersion" -}}
+{{- if $.Capabilities.APIVersions.Has "autoscaling/v2/HorizontalPodAutoscaler" }}
+{{- print "autoscaling/v2" }}
+{{- else if $.Capabilities.APIVersions.Has "autoscaling/v2beta2/HorizontalPodAutoscaler" }}
+{{- print "autoscaling/v2beta2" }}
+{{- else if $.Capabilities.APIVersions.Has "autoscaling/v2beta1/HorizontalPodAutoscaler" }}
+{{- print "autoscaling/v2beta1" }}
+{{- else }}
+{{- print "autoscaling/v1" }}
+{{- end }}
+{{- end }}
+
+{{/*
 Return if ingress is stable.
 */}}
 {{- define "opensearch-dashboards.ingress.isStable" -}}

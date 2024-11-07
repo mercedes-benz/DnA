@@ -1,10 +1,9 @@
 apiVersion: v2
-appVersion: 2.11.0
+appVersion: 2.17.1
 description: A Helm chart for OpenSearch
 home: https://opensearch.org
 maintainers:
 - name: DandyDeveloper
-- name: bbarani
 - name: gaiksaya
 - name: peterzhuamazon
 - name: prudhvigodithi
@@ -14,4 +13,4 @@ sources:
 - https://github.com/opensearch-project/opensearch
 - https://github.com/opensearch-project/helm-charts
 type: application
-version: 2.16.1
+version: 2.26.0

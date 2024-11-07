@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -7,6 +8,162 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ## [Unreleased]
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.26.0]
+### Added
+- Updated OpenSearch appVersion to 2.17.1
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.25.0]
+### Added
+- Updated OpenSearch appVersion to 2.17.0
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.24.1]
+### Added
+- Allow user-defined labels on persistent volume claim
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+=======
+## [2.24.0]
+### Added
+- Ability to add additional `labels` to `serviceMonitor`
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.23.2]
+### Added
+- Metrics configuration in both `Service` templates
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Bug `protocol` missing for metrics in `Service`
+### Security
+---
+## [2.23.1]
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fixed `ServiceMonitor` bug for `port` value
+### Security
+---
+## [2.23.0]
+### Added
+- Added `ServiceMonitor` support for Prometheus monitoring
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.22.1]
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fixed opensearchJavaOpts defaults in README
+### Security
+---
+## [2.22.0]
+### Added
+- Updated OpenSearch appVersion to 2.16.0
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.21.0]
+### Added
+- Updated OpenSearch appVersion to 2.15.0
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.20.0]
+### Added
+- Updated OpenSearch appVersion to 2.14.0
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.19.0]
+### Added
+- Updated OpenSearch appVersion to 2.13.0
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.18.0]
+### Added
+### Breaking
+- Requires an initial admin password to be setup starting from App Version OpenSearch 2.12.0. Refer this github issue: https://github.com/opensearch-project/security/issues/3622
+- Updated OpenSearch appVersion to 2.12.0
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.17.3]
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Bug `opensearch.yml` configMap Read-only file system error.
+### Security
+---
+## [2.17.2]
+### Added
+- - Allow user-defined labels on ingress resource
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.17.1]
+### Added
+- Added ability to specify custom pod anti-affinity and pod affinity
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+---
+## [2.17.0]
+### Added
+- Updated OpenSearch appVersion to 2.11.1
 ### Changed
 ### Deprecated
 ### Removed
@@ -346,8 +503,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
-
-[Unreleased]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.16.0...HEAD
+[Unreleased]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.26.0...HEAD
+[2.26.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.25.0...opensearch-2.26.0
+[2.25.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.24.1...opensearch-2.25.0
+[2.24.1]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.24.0...opensearch-2.24.1
+[2.24.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.23.1...opensearch-2.24.0
+[2.23.2]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.23.1...opensearch-2.23.2
+[2.23.1]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.23.0...opensearch-2.23.1
+[2.23.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.22.1...opensearch-2.23.0
+[2.22.1]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.22.0...opensearch-2.22.1
+[2.22.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.21.0...opensearch-2.22.0
+[2.21.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.20.0...opensearch-2.21.0
+[2.20.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.19.0...opensearch-2.20.0
+[2.19.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.18.0...opensearch-2.19.0
+[2.18.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.17.3...opensearch-2.18.0
+[2.17.3]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.17.2...opensearch-2.17.3
+[2.17.2]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.17.1...opensearch-2.17.2
+[2.17.1]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.17.0...opensearch-2.17.1
+[2.17.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.16.1...opensearch-2.17.0
+[2.16.1]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.16.0...opensearch-2.16.1
 [2.16.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.15.0...opensearch-2.16.0
 [2.15.0]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.14.1...opensearch-2.15.0
 [2.14.1]: https://github.com/opensearch-project/helm-charts/compare/opensearch-2.14.0...opensearch-2.14.1
