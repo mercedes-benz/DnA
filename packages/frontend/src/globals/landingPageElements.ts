@@ -767,7 +767,7 @@ export const TrainingsLandingPageElements = [
     isDisabled: !fabricTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'tools-mini',
+    svgIconId: 'fabric',
   },
   {
     name: 'SAP Datasphere',
