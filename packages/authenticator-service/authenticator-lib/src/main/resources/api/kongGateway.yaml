@@ -1125,5 +1125,7 @@ definitions:
     properties:
       api_version_shortname:
         type: string
+      environment:
+        type: string
         
     

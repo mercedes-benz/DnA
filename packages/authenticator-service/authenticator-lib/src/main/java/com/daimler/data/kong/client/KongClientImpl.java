@@ -194,6 +194,7 @@ public class KongClientImpl implements KongClient {
 				requestBody.put("name", routeName);   
 				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 
 				requestBody.put("preserve_host", true);
+				requestBody.put("path_handling","v1");
 				HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
 				ResponseEntity<String> response = restTemplate.exchange(patchKongUri, HttpMethod.PUT, request, String.class);
 				if (response != null && response.hasBody()) {
@@ -966,6 +967,7 @@ public class KongClientImpl implements KongClient {
 			AttachOneApiPluginConfigRequestDto pluginConfigDto = new AttachOneApiPluginConfigRequestDto();
 			
 			pluginConfigDto.setApi_version_shortname(attachOneApiPluginVO.getConfig().getApiVersionShortname());
+			pluginConfigDto.setEnvironment(attachOneApiPluginVO.getConfig().getEnvironment());
 			requestWrapper.setConfig(pluginConfigDto);
 			requestWrapper.setName(attachOneApiPluginVO.getName());
 
