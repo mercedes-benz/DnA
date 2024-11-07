@@ -10,6 +10,9 @@ opensearchDashboardHosts: "http://i3-logging-opensearch-dashboards:5601"
 # Opensearch dashboard version
 opensearchDashboardVersion: "2.11.1"
 
+opensearchUsername: ""
+opensearchPassword: ""
+
 # Apply Index management policy
 ism:
   enabled: true

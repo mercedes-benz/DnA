@@ -11,6 +11,10 @@ import mimetypes
 from codecs import encode
 from urllib.parse import urlparse
 
+def encode_basic_auth(username, password):
+    credentials = f"{username}:{password}"
+    encoded_credentials = base64.b64encode(credentials.encode('ascii')).decode('ascii')
+    return f"Basic {encoded_credentials}"
 
 def make_post_request(url, data, headers, valid_response_codes, fail_ok=False):
     # data = urllib.parse.urlencode(data)
@@ -132,6 +136,10 @@ saved_object_enabled = os.environ['SAVED_OBJECT_API_ENABLED']
 saved_object_api_params = os.environ.get('SAVED_OBJECT_API_PARAMS', "")
 i3_ism = os.environ['I3_ISM']
 os_dashboard_version = os.environ['OPENSEARCH_DASHBOARD_VERSION']
+username = os.environ['OPENSEARCH_USERNAME']
+password = os.environ['OPENSEARCH_PASSWORD']
+
+auth_header = encode_basic_auth(username, password)
 
 print(f"opensearch_dashboard_urls: {opensearch_dashboard_urls}")
 print(f"saved_objects_path: {saved_objects_path}")
@@ -143,8 +151,8 @@ print(f"os_dashboard_version: {os_dashboard_version}")
 
 def wait_for_os_dashboard_to_be_ready(dashboard_url):
     url = f"{dashboard_url}/api/status"
-    make_get_request(url, {}, [200])
-
+    headers = {'Authorization': auth_header}
+    make_get_request(url, headers, [200])
 
 ism_data = {
         "policy": {
@@ -203,70 +211,70 @@ for dashboard_url in opensearch_dashboard_urls.strip().split(','):
     wait_for_os_dashboard_to_be_ready(dashboard_url)
 
     # Creating Index Pattern
-    headers={'content-type': 'application/json', 'osd-version': os_dashboard_version}
+    headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
     data = '{"attributes": {"title": "kubernetes_*","timeFieldName": "@flb-timestamp"}}'
     response = make_post_request(
-        f"{dashboard_url}/api/saved_objects/index-pattern/kubernetes?overwrite=true",data, headers, [200] , True      
+        f"{dashboard_url}/api/saved_objects/index-pattern/kubernetes?overwrite=true", data, headers, [200], True
     ) 
 
     # Creating Application Logs Filter
-    headers={'content-type': 'application/json', 'osd-version': os_dashboard_version}
+    headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
     data = None
     response = make_post_request(
         f"{dashboard_url}/api/saved_objects/search/application-logs?overwrite=true",data, headers, [200] , True     
     ) 
 
     # Creating Platform Kubernetes API Audit Logs Filter
-    headers={'content-type': 'application/json', 'osd-version': os_dashboard_version}
+    headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
     data = None
     response = make_post_request(
-        f"{dashboard_url}/api/saved_objects/search/platform-k8s-audit-logs?overwrite=true",data, headers, [200], True      
+        f"{dashboard_url}/api/saved_objects/search/platform-k8s-audit-logs?overwrite=true", data, headers, [200], True
     ) 
 
-    # Creating Platform Kubernets Nodes Kubelet Logs Filter
-    headers={'content-type': 'application/json', 'osd-version': os_dashboard_version}
+    # Creating Platform Kubernetes Nodes Kubelet Logs Filter
+    headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
     data = None
     response = make_post_request(
-        f"{dashboard_url}/api/saved_objects/search/platform-kubelet-logs?overwrite=true",data, headers, [200] , True      
+        f"{dashboard_url}/api/saved_objects/search/platform-kubelet-logs?overwrite=true", data, headers, [200], True
     ) 
 
 
     # ISM
     if i3_ism == 'true':
         # check for ism
-        headers={'content-type': 'application/json','osd-version': os_dashboard_version}
+        headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
         response = make_get_request(
-            f"{dashboard_url}/api/ism/policies/kubernetes", headers, [200]      
+            f"{dashboard_url}/api/ism/policies/kubernetes", headers, [200]
         )
         print(f'ISM response {response}')
         data = json.loads(response)
         if "error" in data.keys():
             if data["error"].startswith("[index_not_found_exception]"):
-                headers={'content-type': 'application/json','osd-version': os_dashboard_version}
+                headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
                 response = make_put_request(
-                        f"{dashboard_url}/api/ism/policies/kubernetes",json.dumps(ism_data), headers, [200]      
-                    ) 
+                    f"{dashboard_url}/api/ism/policies/kubernetes", json.dumps(ism_data), headers, [200]
+                ) 
                 print(f'ISM Policy response {response}')
                 # Assigning kubernetes index management policy for kubernetes_ index
-                headers={'content-type': 'application/json', 'osd-version': os_dashboard_version}
+                headers = {'content-type': 'application/json', 'osd-version': os_dashboard_version, 'Authorization': auth_header}
                 data = '{"indices": ["kubernetes_*"],"policyId": "kubernetes"}'
                 response = make_post_request(
-                    f"{dashboard_url}/api/ism/applyPolicy",data, headers, [200]      
+                    f"{dashboard_url}/api/ism/applyPolicy", data, headers, [200]
                 ) 
                 print(f'ISM Policy Apply response {response}')
      
-    # Savved object Api
+    # Saved object API
     if saved_object_enabled == "true":
         # first install saved objects bundled with chart
         for file_name in list_files("/etc/savedobjects"):
             print(f"file_name {file_name}")
-            headers = {'osd-version': os_dashboard_version}
+            headers = {'osd-version': os_dashboard_version, 'Authorization': auth_header}
             response = multi_part_post(url=dashboard_url, path=f"{saved_objects_path}{saved_object_api_params}", file_name=file_name, headers=headers, valid_response_codes=[200])
             print(f'Saved Object response {response}')
         # install additional configmap files
         for file_name in list_files("/etc/additionalcms"):
             print(f"file_name additionalcms {file_name}")
-            headers = {'osd-version': os_dashboard_version}
+            headers = {'osd-version': os_dashboard_version, 'Authorization': auth_header}
             response = multi_part_post(url=dashboard_url, path=f"{saved_objects_path}{saved_object_api_params}", file_name=file_name, headers=headers, valid_response_codes=[200])
             print(f'Saved Object response {response}')
 

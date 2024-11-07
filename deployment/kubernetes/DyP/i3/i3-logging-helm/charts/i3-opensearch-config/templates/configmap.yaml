@@ -14,6 +14,8 @@ data:
   savedObjectApiEnabled: "{{ .Values.savedObjectApi.enabled }}"
   opensearchHosts: "{{ .Values.opensearchHosts }}"
   opensearchDashboardHosts: "{{ .Values.opensearchDashboardHosts }}"
+  opensearchUsername: "{{ .Values.opensearchUsername }}"
+  opensearchPassword: "{{ .Values.opensearchPassword }}"
   opensearchDashboardVersion: "{{ .Values.opensearchDashboardVersion }}"
   savedObjectApiPath: "{{ .Values.savedObjectApi.path }}"
   savedObjectApiParams: "{{ .Values.savedObjectApi.additionalUrlParams }}"

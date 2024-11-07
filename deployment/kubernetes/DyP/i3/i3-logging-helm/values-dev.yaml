@@ -431,6 +431,10 @@ opensearch:
 
   networkPolicy:
     create: true
+  
+  extraEnvs:
+    - name: plugins.security.ssl.http.enabled
+      value: "false"    
 
   securityConfig:
     enabled: true
@@ -689,7 +693,7 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: 20Gi
+    size: 12Gi
     storageClass: dhc-gp3
   replicas: 1
   singleNode: true
@@ -707,6 +711,9 @@ i3-opensearch-config:
 
   # Opensearch dashboard version
   opensearchDashboardVersion: "2.17.1"
+
+  opensearchPassword: "kibanaserver"
+  opensearchUsername: "kibanaserver"
   
   # Apply Index management policy
   ism:
@@ -718,3 +725,31 @@ i3-opensearch-config:
     
   # Apply reusable saved objects.Global tenent is used by default
   savedObjectApi:
+    enabled: false
+
+    # Path of saved objects api
+    path: "/api/saved_objects/_import"
+
+    # Additional url parameters.
+    #eg ?param1=val1&param2=val2
+    additionalUrlParams: "?overwrite=true"
+
+    # List your configmaps 
+    # Case 1
+    # If you added your ndjson to savedobjects folder those will be installed automatically. 
+    # or Case 2
+    # Create your configmaps! Your configmaps will be instaled after your ndjson in savedobjects folder. List your external configmaps in additionalConfigMapNames.
+    # Your configmap needs to be in the same namespace as the namespace where you installed i3-logging
+    # apiVersion: v1
+    # kind: ConfigMap
+    # metadata:
+    #   name: replaceMeWithANameForYourConfigmap
+    # data:
+    #   replaceMeWithANameForYourSavedObject: |
+    #     <value>
+    #
+    # then in the fild below add those names
+    #
+    # additionalConfigMapNames:
+    #   - replaceMeWithANameForYourConfigmap
+    additionalConfigMapNames: []  

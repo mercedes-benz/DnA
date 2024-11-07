@@ -34,6 +34,16 @@ spec:
               configMapKeyRef:
                 name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
                 key: opensearchDashboardHosts
+          - name: OPENSEARCH_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchUsername
+          - name: OPENSEARCH_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchPassword                         
           - name: OPENSEARCH_DASHBOARD_VERSION
             valueFrom:
               configMapKeyRef:
