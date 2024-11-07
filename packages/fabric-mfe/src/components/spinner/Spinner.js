@@ -6,7 +6,7 @@ const classNames = cn.bind(Styles);
 
 const Spinner = () => {
   return (
-    <div className={classNames('text-center', Styles.spinner)}>
+    <div className={classNames('text-center', Styles.fbspinner)}>
       <div className="progress infinite" />
     </div>
   );
