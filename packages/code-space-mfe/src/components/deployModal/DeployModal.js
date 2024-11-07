@@ -247,22 +247,22 @@ const DeployModal = (props) => {
     // }
     let formValid = true;
     if (
-      secureWithIAMSelected && !cookieSelected &&
-      ((deployEnvironment === 'staging'
+      secureWithIAMSelected &&
+      (((deployEnvironment === 'staging'
         ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
         : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
-        changeSelected) &&
+        changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
       clientSecret.length === 0
     ) {
       formValid = false;
       setClientIdError('*Missing Entry');
     }
     if (
-      secureWithIAMSelected && !cookieSelected &&
-      ((deployEnvironment === 'staging'
+      secureWithIAMSelected &&
+      (((deployEnvironment === 'staging'
         ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
         : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
-        changeSelected) &&
+        changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
       clientSecret.length === 0
     ) {
       formValid = false;
