@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -26,26 +28,46 @@ import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
+import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
+import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.CredentialDetailsDto;
+import com.daimler.data.dto.fabric.DatasourceResponseDto;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseDto;
+import com.daimler.data.dto.fabric.LakehouseResponseDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
+import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
+import com.daimler.data.dto.fabric.ShortcutTargetDto;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,6 +92,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private AuthoriserClient identityClient;
+	
+	@Autowired
+	private RSAEncryptionUtil encryptionUtil;
 	
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
@@ -117,10 +142,72 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
 	
+	@Value("${fabricWorkspaces.shortcutNameprefix}")
+	private String shortcutNameprefix;
+	
+	@Value("${fabricWorkspaces.shortcutLocation}")
+	private String shortcutLocation;
+	
+	@Value("${fabricWorkspaces.datasource.credentialType}")
+	private String datasourceCredentialType;
+	
+	@Value("${fabricWorkspaces.datasource.encryptedConnection}")
+	private String datasourceEncryptedConnection;
+	
+	@Value("${fabricWorkspaces.datasource.encryptionAlgorithm}")
+	private String datasourceEncryptionAlgorithm;
+	
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
 	
 	public BaseFabricWorkspaceService() {
 		super();
+	}
+	
+	@Override
+	@Transactional
+	public FabricWorkspacesCollectionVO getAllLov( int limit,  int offset) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
+		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
+		if (allEntities != null && !allEntities.isEmpty()) {
+			for(FabricWorkspaceNsql entity : allEntities) {
+				try {
+					String id = entity.getId();
+					log.info("Fetched fabric project record from db successfully for id {} ", id);
+					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+					if(dtoFromFabric!=null) {
+						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+								jpaRepo.deleteById(id);
+								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+						}else {
+							entity.getData().setName(dtoFromFabric.getDisplayName());
+							entity.getData().setDescription(dtoFromFabric.getDescription());
+							jpaRepo.save(entity);
+							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+							vos.add(updatedVO);
+						}
+					}
+				}catch(Exception e) {
+					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		if(vos!=null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int newOffset = offset>vos.size() ? 0 : offset;
+			if(limit==0)
+				limit = vos.size();
+			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
+			paginatedVOs = vos.subList(newOffset, newLimit);
+		}
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		return collectionVO;
 	}
 
 	@Override
@@ -131,17 +218,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
 		List<FabricWorkspaceNsql> filteredEntities = new ArrayList<>();
 		if(allEntities!=null && !allEntities.isEmpty()) {
-			for(FabricWorkspaceNsql existingEntity : allEntities) {
-				if(existingEntity!=null) {
-					List<String> filteredEntitlements = new ArrayList<>();
-					if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-						filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + existingEntity.getId() + "_")).collect(Collectors.toList());
-					}
-					String creatorId = existingEntity.getData().getCreatedBy().getId();
-					if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
-						filteredEntities.add(existingEntity);
+			if(user!=null && !"".equalsIgnoreCase(user.trim())){
+				for(FabricWorkspaceNsql existingEntity : allEntities) {
+					if(existingEntity!=null) {
+						List<String> filteredEntitlements = new ArrayList<>();
+						if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
+							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(existingEntity.getId() + "_")).collect(Collectors.toList());
+						}
+						String creatorId = existingEntity.getData().getCreatedBy().getId();
+						if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
+							filteredEntities.add(existingEntity);
+						}
 					}
 				}
+			}else {
+				filteredEntities.addAll(allEntities);
 			}
 		}
 		if (filteredEntities != null && !filteredEntities.isEmpty()) {
@@ -175,6 +266,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(vos!=null && !vos.isEmpty()) {
 			totalCount = vos.size();
 			int newOffset = offset>vos.size() ? 0 : offset;
+			if(limit == 0) {
+				limit = totalCount;
+			}
 			int newLimit = offset+limit > vos.size() ? vos.size() : offset+limit;
 			paginatedVOs = vos.subList(newOffset, newLimit);
 		}
@@ -208,6 +302,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			voFromDb.setName(dtoFromFabric.getDisplayName());
 			voFromDb.setDescription(dtoFromFabric.getDescription());
 			try {
+				LakehouseCollectionDto lakehousesCollection = fabricWorkspaceClient.listLakehouses(id);
+				if(lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
+					List<LakehouseDto> value = lakehousesCollection.getValue();
+					List<FabricLakehouseVO> lakehouseVOs = new ArrayList<>();
+					lakehouseVOs = value.stream().map(n -> assembler.toLakehouseVOFromDto(n)).collect(Collectors.toList());
+					voFromDb.setLakehouses(lakehouseVOs);
+				}
 				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
 				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
 				jpaRepo.save(updatedEntity);
@@ -218,6 +319,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return voFromDb;
 	}
 
+	
 	@Override
 	@Transactional
 	public ResponseEntity<FabricWorkspaceResponseVO> createWorkspace(FabricWorkspaceVO vo) {
@@ -511,6 +613,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 			}
 		}else {
+			log.info("Role {} creation and assignment still in progress for {} ", existingRoleVO.getName() ,  workspaceName);
 			updatedRole.setAssignEntitlementsState(ConstantsUtility.INPROGRESS_STATE);
 			updatedRole.setRoleOwner("");
 			updatedRole.setGlobalRoleAssigner("");
@@ -869,7 +972,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
 					}
 				}
-				
 				return currentStatus;
 	}
 	
@@ -924,7 +1026,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
 							viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 						}else {
-							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
+							//fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
+							log.info("Custom group {} assigned to workspace {} , ignoring.", userGroupDetail.getDisplayName(), workspaceId);
 						}
 					}
 				}
@@ -1041,5 +1144,230 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		jpaRepo.save(updatedEntity);
 		return existingFabricWorkspace;
 	}
+
+	@Override
+	@Transactional
+	public GenericMessage deleteLakehouse(String id, String lakehouseId) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteLakehouse(id, lakehouseId);
+			if(deleteResponse!=null && deleteResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(deleteResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while deleting fabric workspace lakehouse {} ", id);
+					return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to delete lakehouse for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while deleting fabric workspace {} lakehouse {} ", id, lakehouseId);
+			return responseMessage;
+		}
+	}
+
+	@Override
+	public GenericMessage createLakehouse(String id,  FabricLakehouseCreateRequestVO createRequestVO) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		CreateLakehouseDto createLakehouseDto = new CreateLakehouseDto();
+		try {
+			createLakehouseDto.setDescription(createRequestVO.getDescription());
+			createLakehouseDto.setDisplayName(createRequestVO.getName());
+			LakehouseResponseDto createResponse = fabricWorkspaceClient.createLakehouse(id, createLakehouseDto);
+			if(createResponse!=null && createResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(createResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while creating fabric workspace lakehouse {} ", id);
+					return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to creating lakehouse for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while creating fabric workspace {} lakehouse {} ", id, createRequestVO.getName());
+			return responseMessage;
+		}
+	}
+
+	@Override
+	public GenericMessage createLakehouseS3Shortcut(String id, String lakehouseId,
+			 ShortcutCreateRequestVO createRequestVO, String email) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		LakehouseS3ShortcutDto createLakehouseS3ShortcutDto = new LakehouseS3ShortcutDto();
+		String connectionId = "";
+		String randomSeriesNumber = UUID.randomUUID().toString();
+		try {
+			CreateDatasourceRequestDto createDatsourceReqDto = new CreateDatasourceRequestDto();
+			createDatsourceReqDto.setDatasourcename(shortcutNameprefix+createRequestVO.getBucketname() + "_" + randomSeriesNumber);
+			createDatsourceReqDto.setDatasourceType("extension");
+			String connectionDetails = "{\"extensionDataSourceKind\": \"AmazonS3Compatible\",\"extensionDataSourcePath\": \"" + shortcutLocation + "\"}";
+			createDatsourceReqDto.setConnectionDetails(connectionDetails);
+			
+			CredentialDetailsDto credentialsDto = new CredentialDetailsDto();
+			credentialsDto.setCredentialType(datasourceCredentialType);
+			credentialsDto.setEncryptedConnection(datasourceEncryptedConnection);
+			credentialsDto.setEncryptionAlgorithm(datasourceEncryptionAlgorithm);
+			credentialsDto.setPrivacyLevel("Organizational");
+			
+			String credentialsEncryptedString = "";
+			credentialsEncryptedString = encryptionUtil.encryptCredentialDetails(createRequestVO.getAccessKey(), createRequestVO.getSecretKey());
+			if(credentialsEncryptedString == null || "".equalsIgnoreCase(credentialsEncryptedString)) {
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to create shortcut, error occured while encrypting connection details with gateway's public key. Please retry again after a while.");
+				errors.add(message);
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				log.error("Failed to create shortcut for workspace {} and lakehouse {} , error occured while encrypting connection details with gateway's public key", id, lakehouseId);
+				return responseMessage;
+			}
+			credentialsDto.setCredentials(credentialsEncryptedString);
+			
+			credentialsDto.setSkipTestConnection(true);
+			credentialsDto.setUseEndUserOAuth2Credentials(false);
+			
+			createDatsourceReqDto.setCredentialDetails(credentialsDto);
+			DatasourceResponseDto createResponse = fabricWorkspaceClient.createDatasourceConnection(id, createDatsourceReqDto);
+			if(createResponse!=null && createResponse.getMessage() != null || createResponse==null || (createResponse!=null && (createResponse.getId() ==null || "".equalsIgnoreCase(createResponse.getId())))) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(createResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while creating fabric workspace datasource connection for shortcut {} ", id);
+					return responseMessage;
+			}
+			connectionId = createResponse.getId();
+			
+			try {
+				GenericMessage addUserToConnectionResponse = fabricWorkspaceClient.addUserToDatasource(connectionId,email);
+				if(addUserToConnectionResponse!=null && addUserToConnectionResponse.getErrors()!=null) {
+					warnings.addAll(addUserToConnectionResponse.getErrors());
+					warnings.addAll(addUserToConnectionResponse.getWarnings());
+				}
+			}catch(Exception e) {
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to add user to datasource connection " + connectionId + ". Please contact admin to add manually.");
+				warnings.add(message);
+			}
+			
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Error occured while creating connection. Failed to creating lakehouse  s3 shortcut for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while creating connection for fabric s3 shortcut {} for workspace {} lakehouse {} ",createRequestVO.getBucketname(), id, lakehouseId);
+			return responseMessage;
+		}
+		
+		try {
+			
+			createLakehouseS3ShortcutDto.setName( shortcutNameprefix + randomSeriesNumber);
+			createLakehouseS3ShortcutDto.setPath("Files/");
+			ShortcutTargetDto targetDto = new ShortcutTargetDto();
+			S3CompatibleTargetDto s3Target = new S3CompatibleTargetDto();
+			s3Target.setBucket(createRequestVO.getBucketname());
+			s3Target.setConnectionId(connectionId);
+			s3Target.setLocation(shortcutLocation);
+			s3Target.setSubpath("");
+			targetDto.setS3Compatible(s3Target);
+			
+			createLakehouseS3ShortcutDto.setTarget(targetDto);
+			LakehouseS3ShortcutResponseDto createResponse = fabricWorkspaceClient.createShortcut(id, lakehouseId, createLakehouseS3ShortcutDto);
+			if(createResponse!=null && createResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(createResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred:{} while creating fabric workspace lakehouse s3 shortcut {} ", id);
+					return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to creating lakehouse  s3 shortcut for workspace with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred:{} while creating fabric  s3 shortcut {} for workspace {} lakehouse {} ",createRequestVO.getBucketname(), id, lakehouseId);
+			return responseMessage;
+		}
+	}
+
+	@Override
+	public FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId) {
+		FabricShortcutsCollectionVO collectionVO = new FabricShortcutsCollectionVO();
+		collectionVO.setTotalCount(0);
+		collectionVO.setRecords(new ArrayList<>());
+		LakehouseS3ShortcutCollectionDto collection = fabricWorkspaceClient.listLakehouseshortcuts(id, lakehouseId);
+		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
+			Integer totalRecords = collection.getValue().size();
+			collectionVO.setTotalCount(totalRecords);
+			List<ShortcutVO> records = new ArrayList<>();
+			records = collection.getValue().stream().map(n -> assembler.toLakehouseShortcutVOFromDto(n)).collect(Collectors.toList());
+			collectionVO.setRecords(records);
+		}
+		return collectionVO;
+	}
+	
+	@Override
+    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
+        GenericMessage response = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        List<MessageDescription> warnings = new ArrayList<>();
+ 
+        try{
+            List<RolesVO> roleList = roleRequestVO.getData().getRoleList();
+            for(RolesVO role : roleList){
+                UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+                roleRequestDto.setReason(roleRequestVO.getData().getReason());
+                roleRequestDto.setValidFrom(role.getValidFrom());
+                roleRequestDto.setValidTo(role.getValidTo());
+                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
+                if(!status.is2xxSuccessful()){
+                    warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
+                }
+            }
+        }
+        catch(Exception e){
+            errors.add(new MessageDescription("Failed to request roles for the user  with exception " + e.getMessage()));
+            response.setErrors(errors);
+            response.setSuccess("FAILED");
+            log.error("Failed to request role  Fabric workspace with exception {} ",e.getMessage());
+            return response;
+        }
+        response.setSuccess(!warnings.isEmpty() ? "WARNING" : "SUCCESS");
+        response.setWarnings(warnings);
+        response.setErrors(errors);
+        return response;
+    }
 
 }
