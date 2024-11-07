@@ -62,8 +62,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 public class JWTAuthenticationFilter implements Filter {
 
 	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
-
-
+	
 	private UserStore userStore;
 
 	@Override
@@ -76,9 +75,9 @@ public class JWTAuthenticationFilter implements Filter {
 		log.debug("Intercepting Request to store userinfo:" + requestUri);
 		String userinfo = httpRequest.getHeader("dna-request-userdetails");
 		if (!StringUtils.hasText(userinfo)) {
-			log.error("Request UnAuthorized");
-			forbidResponse(servletResponse);
-			return;
+				log.error("Request UnAuthorized");
+				forbidResponse(servletResponse);
+				return;
 		} else if (StringUtils.hasText(userinfo)) {
 			try {
 				log.debug(

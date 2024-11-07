@@ -1320,8 +1320,6 @@ definitions:
       isSecuredWithCookie :
         type: boolean
 
-
-           
   CodeServerDeploymentDetailsVO:
     type: object
     properties:
