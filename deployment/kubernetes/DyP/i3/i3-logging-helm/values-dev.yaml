@@ -693,7 +693,7 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: 12Gi
+    size: 50Gi
     storageClass: dhc-gp3
   replicas: 1
   singleNode: true
