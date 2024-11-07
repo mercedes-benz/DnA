@@ -148,7 +148,7 @@ public class FabricWorkspaceClient {
 			ObjectMapper objectMapper = new ObjectMapper();
 			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
 					FabricOAuthResponse.class);
-			log.info("getToken log {}",introspectionResponse);
+			//log.info("getToken log {}",introspectionResponse);
 			log.debug("Introspection Response:" + introspectionResponse);
 			log.info("Successfully fetch oidc token post login for powerbi");
 			return introspectionResponse.getAccess_token();
@@ -171,7 +171,7 @@ public class FabricWorkspaceClient {
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		try {
 			ResponseEntity<String> response = proxyRestTemplate.postForEntity(groupSearchloginUrl, request, String.class);
-			log.info(" getTokenForGroupSearch log {}",response);
+			//log.info(" getTokenForGroupSearch log {}",response);
 			ObjectMapper objectMapper = new ObjectMapper();
 			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
 					FabricOAuthResponse.class);
