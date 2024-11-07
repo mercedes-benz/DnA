@@ -206,7 +206,7 @@ public class CodeServerClient {
 			} else {
 				userURI = jupyterUrlAws + "/" + userId.toLowerCase();
 			}
-			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders());
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
 					String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
@@ -231,7 +231,7 @@ public class CodeServerClient {
 			userName.add(userId);
 			userDto.setUsernames(userName);
 			userDto.setAdmin(false);
-			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders());
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
 				log.info("User {} has registered sucessfully", userId);
@@ -243,11 +243,24 @@ public class CodeServerClient {
 		return status;
 	}
 
-	private HttpHeaders getHeaders(){
+	private HttpHeaders getHeaders(String cloudServiceProvider){
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			headers.set("Authorization", "Bearer " + jupyterPersonalAccessToken);
+		}else{
+			headers.set("Authorization", "Bearer " + jupyterPatAws);
+		}
+		return headers;
+	}
+
+	private HttpHeaders getHeaders( ){
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
 		headers.set("Authorization", "Bearer " + jupyterPersonalAccessToken);
+		
 		return headers;
 	}
 
@@ -270,7 +283,7 @@ public class CodeServerClient {
 			+ manageDto.getInputs().getCpu_limit() + ", \"cpu_guarantee\": "
 			+ manageDto.getInputs().getCpu_guarantee() + ",\"extra_containers\": "
 			+ manageDto.getInputs().getExtraContainers() + "}";
-			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
 				if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
@@ -285,15 +298,15 @@ public class CodeServerClient {
 	}
 
 	// create start code server using jupyterhub ends
-	public GenericMessage doStartServer(String userId, String wsId) {
+	public GenericMessage doStartServer(String userId, String wsId, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			boolean isServerRunning = this.serverStatus(userId, wsId);
+			boolean isServerRunning = this.serverStatus(userId, wsId, cloudServiceProvider);
 			if (!isServerRunning) {
-				boolean isStartedServer = this.startNamedServer(userId, wsId);
+				boolean isStartedServer = this.startNamedServer(userId, wsId,cloudServiceProvider);
 				if (isStartedServer) {
 					status = "SUCCESS";
 				} else {
@@ -320,10 +333,10 @@ public class CodeServerClient {
 	}	
 
 	//starting named server
-	public boolean startNamedServer(String userName, String wsId) {
+	public boolean startNamedServer(String userName, String wsId, String cloudServiceProvider) {
 		try {
 			String url = jupyterUrl+"/" +userName + "/servers/" + wsId;
-			HttpEntity<String> entity = new HttpEntity<>(getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null ) {
 				HttpStatus statusCode = manageWorkbenchResponse.getStatusCode();
@@ -342,9 +355,14 @@ public class CodeServerClient {
 		return false;
 	}
 
-	public boolean serverStatus(String userId, String workspaceId) {
+	public boolean serverStatus(String userId, String workspaceId, String cloudServiceProvider) {
 
-		String userURI = jupyterUrl+"/" + userId;
+		String userURI ="";
+		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			userURI = jupyterUrl+"/" + userId;
+		}else{
+			userURI = jupyterUrlAws+"/"+userId;
+		}
 		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders());
 		try {
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
@@ -382,43 +400,43 @@ public class CodeServerClient {
 		return false;
 	}
 
-	public GenericMessage checkServerStatus(String userId, String workspaceId) {
-		GenericMessage response = new GenericMessage();
-		String status = "FAILED";
-		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
+	// public GenericMessage checkServerStatus(String userId, String workspaceId) {
+	// 	GenericMessage response = new GenericMessage();
+	// 	String status = "FAILED";
+	// 	List<MessageDescription> warnings = new ArrayList<>();
+	// 	List<MessageDescription> errors = new ArrayList<>();
 
-		try {
-			boolean isServerStatus = serverStatus(userId, workspaceId);
-			if (isServerStatus) {
-				status = "SUCCESS";
-				log.info("Successfully started codeServer workbench server for user {}", userId);
-			} else {
-				log.warn("Failed to start codeServer workbench server for user {}", userId);
-				MessageDescription warning = new MessageDescription();
-				warning.setMessage("Failed to start codeServer workbench server for user " + userId);
-				warnings.add(warning);
-			}
-		} catch (Exception e) {
-			log.error("Error occurred while starting codeServer workbench for user {}", userId, e);
-			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while managing codeServer workbench: " + e.getMessage());
-			errors.add(error);
-		}
+	// 	try {
+	// 		boolean isServerStatus = serverStatus(userId, workspaceId, cloudServiceProvider);
+	// 		if (isServerStatus) {
+	// 			status = "SUCCESS";
+	// 			log.info("Successfully started codeServer workbench server for user {}", userId);
+	// 		} else {
+	// 			log.warn("Failed to start codeServer workbench server for user {}", userId);
+	// 			MessageDescription warning = new MessageDescription();
+	// 			warning.setMessage("Failed to start codeServer workbench server for user " + userId);
+	// 			warnings.add(warning);
+	// 		}
+	// 	} catch (Exception e) {
+	// 		log.error("Error occurred while starting codeServer workbench for user {}", userId, e);
+	// 		MessageDescription error = new MessageDescription();
+	// 		error.setMessage("Failed while managing codeServer workbench: " + e.getMessage());
+	// 		errors.add(error);
+	// 	}
 
-		response.setSuccess(status);
-		response.setWarnings(warnings);
-		response.setErrors(errors);
+	// 	response.setSuccess(status);
+	// 	response.setWarnings(warnings);
+	// 	response.setErrors(errors);
 
-		return response;
-	}	
+	// 	return response;
+	// }	
 
 	//To stop server of  codespace jupyter hub
-	public boolean stopServer(String wsId, String userId) {
+	public boolean stopServer(String wsId, String userId, String cloudServiceProvider) {
 		try {
 			String url = jupyterUrl+"/" + userId + "/servers/" + wsId;
 			String requestJsonString = "{\"remove\":false}";  
-			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 	
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
@@ -442,7 +460,7 @@ public class CodeServerClient {
 	try {
 		String url = jupyterUrl+"/" + userId + "/servers/" + wsId;
 		String requestJsonString = "{\"remove\":true}";  // Changed to true for stopping the server
-		HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+		HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 		ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 		
 		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
@@ -519,12 +537,37 @@ public class CodeServerClient {
 						}
 					}
 				}
-				return vo;
+				//return vo;
 			}
 		} catch (Exception e) {
 			log.info("Failed while getting all codeserver status details" + e.getMessage());
 		}
-		return null;
+		try {
+			String userURI = jupyterUrlAws+"/"+userId;
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders(CloudServiceProviderEnum.CAAS_AWS.name()));
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
+					String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() == HttpStatus.OK) {
+				String responseBody = manageWorkbenchResponse.getBody();
+				if (responseBody != null) {
+					JSONObject jsonResponse = new JSONObject(responseBody);
+					if (jsonResponse.has("servers")) {
+						JSONObject serversObject = jsonResponse.getJSONObject("servers");
+						for (Object key : serversObject.keySet()) {
+							JSONObject keyObject = serversObject.getJSONObject(key.toString());
+							boolean isServerReady = keyObject.optBoolean("ready", false);
+							if (isServerReady) {
+								vo.add(key.toString());
+							}
+						}
+					}
+				}
+				//return vo;
+			}
+		} catch (Exception e) {
+			log.info("Failed while getting all codeserver status details" + e.getMessage());
+		}
+		return vo;
 	}
 
 	public GenericMessage toMoveExistingtoJupyterhub(WorkbenchManageDto manageDto, String codespaceName) {
@@ -582,7 +625,7 @@ public class CodeServerClient {
 					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
 					+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
 					+ manageDto.getInputs().getCpu_guarantee() + "}";
-			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {

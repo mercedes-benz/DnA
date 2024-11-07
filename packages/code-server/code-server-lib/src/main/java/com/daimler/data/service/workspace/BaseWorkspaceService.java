@@ -2464,7 +2464,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 GenericMessage responseMessage = new GenericMessage();
 			 try {
  
-				 boolean response = client.serverStatus(userName.toLowerCase(),id);
+				 boolean response = client.serverStatus(userName.toLowerCase(),id, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
 				 if (response) {
 					 statusValue = "true";
 					 savedOwnerEntity.getData().setServerStatus("SERVER_STARTED");
@@ -2483,14 +2483,14 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 @Transactional
-	 public GenericMessage startServer(String userId,String wsId)
+	 public GenericMessage startServer(String userId,String wsId, String cloudServiceProvider)
 	 {
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 try {
  
-			 GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId);
+			 GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId,cloudServiceProvider);
 				 if (startServer != null) {
 					 if (!"SUCCESS".equalsIgnoreCase(startServer.getSuccess()) ||
 							 (startServer.getErrors() != null && !startServer.getErrors().isEmpty()) ||
@@ -2519,7 +2519,7 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 @Transactional
-	 public GenericMessage stopServer(CodeServerWorkspaceVO vo) {
+	 public GenericMessage stopServer(CodeServerWorkspaceVO vo, String cloudServiceProvider) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -2528,7 +2528,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
  
 		 try {
-			 boolean stopServerResponse = client.stopServer(wsid, userName);
+			 boolean stopServerResponse = client.stopServer(wsid, userName, cloudServiceProvider);
  
 			 if (stopServerResponse) {
 				 responseMessage.setSuccess("SUCCESS");
@@ -2631,10 +2631,10 @@ import com.daimler.data.util.ConstantsUtility;
 				 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 				 String codespaceName = workspace.getProjectDetails().getProjectName();
 				 String ownerwsid = workspace.getWorkspaceId();
-				 boolean status = client.serverStatus(workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getWorkspaceId());
+				 boolean status = client.serverStatus(workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getWorkspaceId(),workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 				 if(status)
 				 {
-					 boolean stopserver = client.stopServer(workspace.getWorkspaceId(), workspace.getWorkspaceOwner().getId().toLowerCase());
+					 boolean stopserver = client.stopServer(workspace.getWorkspaceId(), workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 					 if(!stopserver)
 					 {
 						 responseMessage.setSuccess("FAILED");
