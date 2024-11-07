@@ -703,7 +703,7 @@ i3-opensearch-config:
   opensearchHosts: "http://i3-logging-opensearch-master:9200"
 
   # Opensearch Dashboards to apply the policy to.Supports comma seperated values.
-  opensearchDashboardHosts: "http://kibanaserver:kibanaserver@i3-logging-opensearch-dashboards:5601"
+  opensearchDashboardHosts: "http://i3-logging-opensearch-dashboards:5601"
 
   # Opensearch dashboard version
   opensearchDashboardVersion: "2.17.1"
