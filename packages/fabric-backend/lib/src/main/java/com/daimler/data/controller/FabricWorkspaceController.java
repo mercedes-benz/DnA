@@ -493,7 +493,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
 		List<String> filteredEntitlements = new ArrayList<>();
 		if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + id + "_")).collect(Collectors.toList());
+			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 		if(!requestUser.getId().equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty())) {
