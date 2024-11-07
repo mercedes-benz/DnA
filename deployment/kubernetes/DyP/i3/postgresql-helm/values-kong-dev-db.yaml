@@ -412,7 +412,7 @@ statefulSet:
   enabled: true
 
 pgmonitoring:
-  enabled: true
+  enabled: false
   image:
     repository: registry-emea.app.corpintra.net/dockerhub/prometheuscommunity/postgres-exporter
     tag: v0.10.1
