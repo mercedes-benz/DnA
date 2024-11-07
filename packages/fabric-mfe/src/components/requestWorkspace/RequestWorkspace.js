@@ -20,7 +20,7 @@ const WorkspaceItem = ({ workspace, onRequest }) => {
         </div>
       </div>
       <div className={Styles.workspaceAction}>
-        <button className="btn btn-primary" onClick={() => onRequest(workspace)}>Request Workspace</button>
+        <button className="btn btn-primary" onClick={() => onRequest(workspace)}>Request Access</button>
       </div>
     </div>
   )
