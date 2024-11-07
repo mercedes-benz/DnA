@@ -174,10 +174,12 @@ public class CodeServerClient {
 					MessageDescription warning = new MessageDescription();
 					warnings.add(warning);
 				}
-			} else {
-				LOGGER.error("Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
+			}else{
+				LOGGER.error(
+					"Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
 					userId, manageDto.getInputs().getAction());
 			}
+			
 		} catch (Exception e) {
 			LOGGER.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
@@ -193,21 +195,34 @@ public class CodeServerClient {
 		return response;
 	}
 
-    	private boolean isUserPresent(String userId){
-		String userURI = jupyterUrl+"/"+userId.toLowerCase();
+    private boolean isUserPresent(String userId){
+		String userURI = jupyterUrl;
 		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders());
-        	ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET,entity,String.class);
+        ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET,entity,String.class);
 		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
-			LOGGER.info("user registered successfully", userId);
-			return true;
+			LOGGER.info("Checking if user {} is already registered successfully", userId);
+
+			// Parse the JSON response and check if the userId is present
+			String responseBody = manageWorkbenchResponse.getBody();
+			if (responseBody != null) {
+				JSONArray usersArray = new JSONArray(responseBody);
+				for (int i = 0; i < usersArray.length(); i++) {
+					JSONObject userObject = usersArray.getJSONObject(i);
+					String name = userObject.optString("name");
+					if (name.equals(userId)) {
+						LOGGER.info("User {} is already registered", userId);
+						return true;
+					}
+				}
+			}
 		}
-	 	LOGGER.info("User {} is not registered", userId);
-		return false;
-	}
+
+	 LOGGER.info("User {} is not registered", userId);
+	 return false;
+}
 
 	private boolean createUser(String userId, String isCollaborator){
-		boolean status = false;
-		try {
+		try{
 			String userURI = jupyterUrl;
 			JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
 			List<String> userName = new ArrayList<>();
@@ -220,10 +235,10 @@ public class CodeServerClient {
 				LOGGER.info("User {} has registered sucessfully", userId);
 				return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
 			}
-		}	catch(Exception e) {
+		}catch(Exception e){
 			LOGGER.error("error occured while creating user in hub :{} ", e.getMessage());
 		}
-		return status;
+		return false;
 	}
 
 	private HttpHeaders getHeaders(){
