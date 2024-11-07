@@ -561,7 +561,7 @@ export const ToolsLandingPageElements = [
     isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'sass',
     isDnAInternalTool: false,
   },
 ];
