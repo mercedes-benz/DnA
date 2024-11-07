@@ -87,6 +87,8 @@ const DeployModal = (props) => {
   const [oneApiSelected, setOneApiSelected] = useState(false);
   const [oneApiVersionShortName, setOneApiVersionShortName] = useState('');
   const [oneApiVersionShortNameError, setOneApiVersionShortNameError] = useState('');
+  const [cookieSelected, setCookieSelected] = useState(false);
+  const [isSecuredWithCookie, setIsSecuredWithCookie] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -118,6 +120,8 @@ const DeployModal = (props) => {
         setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
         setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
+        setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
+        setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -193,12 +197,16 @@ const DeployModal = (props) => {
       setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
       setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
       // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+      setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
+      setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
     } else {
       setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
       getPublishedConfig(props?.codeSpaceData?.id, 'prod');
       setOneApiSelected(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false);
       setOneApiVersionShortName(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName || '');
       // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+      setCookieSelected(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
+      setIsSecuredWithCookie(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
     }
   };
 
@@ -240,10 +248,10 @@ const DeployModal = (props) => {
     let formValid = true;
     if (
       secureWithIAMSelected &&
-      ((deployEnvironment === 'staging'
+      (((deployEnvironment === 'staging'
         ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
         : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
-        changeSelected) &&
+        changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
       clientSecret.length === 0
     ) {
       formValid = false;
@@ -251,10 +259,10 @@ const DeployModal = (props) => {
     }
     if (
       secureWithIAMSelected &&
-      ((deployEnvironment === 'staging'
+      (((deployEnvironment === 'staging'
         ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
         : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
-        changeSelected) &&
+        changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
       clientSecret.length === 0
     ) {
       formValid = false;
@@ -285,6 +293,7 @@ const DeployModal = (props) => {
         scope: secureWithIAMSelected ? scope.join(' ') : '',
         isApiRecipe: props.enableSecureWithIAM,
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
+        isSecuredWithCookie : cookieSelected || false,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -456,7 +465,27 @@ const DeployModal = (props) => {
                   )}
                   {secureWithIAMSelected && (
                     <div>
-                      {!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
+                      {!props.isUIRecipe && (<div className={Styles.flexLayout}>
+                        <div className={Styles.infoIcon}>
+                          <label className={classNames("switch", cookieSelected ? 'on' : '')}>
+                            <span className="label" style={{ marginRight: '5px' }}>
+                              Switch to cookie based authentication
+                            </span>
+                            <span className="wrapper">
+                              <input
+                                value={cookieSelected}
+                                type="checkbox"
+                                className="ff-only"
+                                onChange={() => {setCookieSelected(!cookieSelected);}}
+                                checked={cookieSelected}
+                                maxLength={63}
+                              />
+                            </span>
+                          </label>
+                        </div>
+                        <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
+                      </div>)}
+                      {!cookieSelected ? (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected || (!cookieSelected && isSecuredWithCookie) ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -543,7 +572,7 @@ const DeployModal = (props) => {
                             Change Credentials
                           </button>
                         </div>
-                      )}
+                      )) : ''}
                     </div>
                   )}
                   {oneApiSelected && (
@@ -673,7 +702,27 @@ const DeployModal = (props) => {
                   )}
                   {secureWithIAMSelected && (
                     <div>
-                      {!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
+                      {!props.isUIRecipe && (<div className={Styles.flexLayout}>
+                        <div className={Styles.infoIcon}>
+                          <label className={classNames("switch", cookieSelected ? 'on' : '')}>
+                            <span className="label" style={{ marginRight: '5px' }}>
+                              Switch to cookie based authentication
+                            </span>
+                            <span className="wrapper">
+                              <input
+                                value={cookieSelected}
+                                type="checkbox"
+                                className="ff-only"
+                                onChange={() => {setCookieSelected(!cookieSelected);}}
+                                checked={cookieSelected}
+                                maxLength={63}
+                              />
+                            </span>
+                          </label>
+                        </div>
+                        <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
+                      </div>)}
+                      {!cookieSelected ? (!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected || (!cookieSelected && isSecuredWithCookie) ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -760,7 +809,7 @@ const DeployModal = (props) => {
                             Change Credentials
                           </button>
                         </div>
-                      )}
+                      )) : ''}
                     </div>
                   )}
                   {oneApiSelected && (
