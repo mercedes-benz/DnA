@@ -31,6 +31,7 @@ const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const odinUrl = Envs.ODIN_URL; 
+const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
@@ -545,6 +546,23 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataPreparation',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'SASS',
+    name: 'SASS',
+    description: 'Sales Analytics Self Service (SASS) is the new analytics service offering for the Data Community in Sales & Marketing. Our mission is to promote quick and easy delivery of key eXtollo resources (Azure) to our digital citizens. ',
+    tags: ['Data Engineering','Data Storage','Cloud','Frontend Reporting'],
+    url: sassUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !sassUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'sass',
     isDnAInternalTool: false,
   },
 ];
