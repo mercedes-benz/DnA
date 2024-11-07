@@ -963,7 +963,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							//deleteing request transformer plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
 							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings())
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 							//change function plugin status to disable if any
 							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
