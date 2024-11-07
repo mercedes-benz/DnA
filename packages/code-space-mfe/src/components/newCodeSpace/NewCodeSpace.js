@@ -715,7 +715,6 @@ const NewCodeSpace = (props) => {
             projectCollaborators: codeSpaceCollaborators,
             projectName: projectName,
             recipeName: recipeValue,
-            cloudServiceProvider : environment,
             // gitRepoName: null,
             dataGovernance: {
               typeOfProject: typeOfProject,
@@ -729,6 +728,9 @@ const NewCodeSpace = (props) => {
               piiData: PII,
               archerId: archerId,
               procedureID: procedureID,
+            },
+            recipeDetails: {
+              cloudServiceProvider: environment, 
             },
           },
         },
