@@ -93,7 +93,7 @@ const RoleCreationModal = ({workspace, onClose}) => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             fitView
-            fitViewOptions={{ padding: 0.2, minZoom: 0.95 }}
+            fitViewOptions={{ minZoom: 0.1 }}
             connectionLineType={ConnectionLineType.SmoothStep}
             nodeTypes={{ 
               roleEntitlementNode: RoleEntitlementNode
