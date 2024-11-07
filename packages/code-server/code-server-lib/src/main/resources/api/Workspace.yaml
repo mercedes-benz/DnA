@@ -1317,9 +1317,9 @@ definitions:
         required: true
       oneApiVersionShortName:
         type: string
+      isSecuredWithCookie :
+        type: boolean
 
-
-           
   CodeServerDeploymentDetailsVO:
     type: object
     properties:
@@ -1347,6 +1347,8 @@ definitions:
         description: "git job run Id of project deployed"
       oneApiVersionShortName:
         type: string
+      isSecuredWithCookie:
+        type: boolean
       deploymentAuditLogs:
         type: array
         items:
