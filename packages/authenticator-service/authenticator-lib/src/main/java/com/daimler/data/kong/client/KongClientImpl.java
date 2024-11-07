@@ -887,7 +887,7 @@ public class KongClientImpl implements KongClient {
 			errors.add(messageDescription);
 			message.setErrors(errors);
 		}
-
+    
 		return message;
 	}
 
