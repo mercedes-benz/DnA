@@ -464,12 +464,12 @@ public class CodeServerClient {
 	}	
 
 	//To delete server of codespace jupyter hub
-	public boolean deleteServer(WorkbenchManageDto manageDto, String cloudServiceProvider) {
+	public boolean deleteServer(WorkbenchManageDto manageDto) {
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		String wsId = manageDto.getInputs().getWsid();
 	try {
 		String url = "";
-		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+		if(manageDto.getInputs().getCloudServiceProvider().equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
 			url = jupyterUrl+"/" +userId + "/servers/" + wsId;
 		}else{
 			url = jupyterUrlAws+"/" +userId + "/servers/" + wsId;
