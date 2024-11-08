@@ -1416,7 +1416,7 @@ public class BaseStorageService implements StorageService {
 		params.setCredentialsMode("KEYPAIR");
 		params.setAccessKey(currentUser);
 		params.setSecretKey(secretKey);
-		params.setDefaultManagedBucket("/"+bucketName);
+		params.setDefaultManagedBucket(bucketName);
 		params.setDefaultManagedPath("/");
 		params.setRegionOrEndpoint(minioClientApi);
 		params.setHdfsInterface("S3A");
@@ -1424,7 +1424,7 @@ public class BaseStorageService implements StorageService {
 		params.setChbucket("/"+bucketName);
 		params.setChroot("/");
 		params.setSwitchToRegionFromBucket(false);
-		params.setUsePathMode(false);
+		params.setUsePathMode(true);
 		params.setMetastoreSynchronizationMode("NO_SYNC");
 
 		requestDTO.setParams(params);
