@@ -74,12 +74,12 @@ vaultInjector:
   enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/role: 'dna_dev_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/datalakeMFE'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'dna_kv/dev/kubernetesSecret/datalakeMFE'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
-      {{- with secret "kv/dna/kubernetesSecret/datalakeMFE" -}}
+      {{- with secret "dna_kv/dev/kubernetesSecret/datalakeMFE" -}}
           window["DATALAKE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

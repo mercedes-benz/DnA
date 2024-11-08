@@ -11,7 +11,7 @@ mysql:
   image:
     pullPolicy: "Always"
   auth:
-    rootPassword: <path:kv/data/dna/kubernetesSecret/openmetadata#mysql-root-password>    # to be provided by CI/CD
+    rootPassword: <path:dna_kv/data/dev/kubernetesSecret/openmetadata#mysql-root-password>    # to be provided by CI/CD
   primary:
     extraFlags: "--sort_buffer_size=10M"
     persistence:
@@ -86,7 +86,7 @@ airflow:
       AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS: "/airflow-dags/dags"  
     users:
     - username: admin
-      password: <path:kv/data/dna/kubernetesSecret/openmetadata#openmetadata-airflow-password>
+      password: <path:dna_kv/data/dev/kubernetesSecret/openmetadata#openmetadata-airflow-password>
       role: Admin
       email: ironman@superhero.org
       firstName: tony

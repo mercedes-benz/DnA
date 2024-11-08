@@ -76,10 +76,10 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: 'matomo'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/matomoMFE'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'dna_kv/dev/kubernetesSecret/matomoMFE'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
-      {{- with secret "kv/dna/kubernetesSecret/matomoMFE" -}}
+      {{- with secret "dna_kv/dev/kubernetesSecret/matomoMFE" -}}
           window["MATOMO_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

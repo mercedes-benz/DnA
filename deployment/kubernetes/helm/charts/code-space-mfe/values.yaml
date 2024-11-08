@@ -76,12 +76,12 @@ vaultInjector:
   enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'code-space'
+    vault.hashicorp.com/role: 'dna_dev_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/code-spaceMFE'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'dna_kv/dev/kubernetesSecret/code-spaceMFE'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
-      {{- with secret "kv/dna/kubernetesSecret/code-spaceMFE" -}}
+      {{- with secret "dna_kv/dev/kubernetesSecret/code-spaceMFE" -}}
           window["code-space_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

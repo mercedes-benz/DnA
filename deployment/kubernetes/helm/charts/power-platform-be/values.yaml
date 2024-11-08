@@ -30,11 +30,11 @@ serviceAccount:
 
 podAnnotations:   
   vault.hashicorp.com/agent-inject: 'false'
-  vault.hashicorp.com/role: 'dna'
+  vault.hashicorp.com/role: 'dna_dev_k8_role'
   vault.hashicorp.com/agent-pre-populate-only: 'true'
-  vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/power-platform-be'
+  vault.hashicorp.com/agent-inject-secret-envvar: 'dna_kv/dev/kubernetesSecret/power-platform-be'
   vault.hashicorp.com/agent-inject-template-envvar: | 
-    {{- with secret "kv/dna/kubernetesSecret/power-platform-be" -}}
+    {{- with secret "dna_kv/dev/kubernetesSecret/power-platform-be" -}}
       {{- range $k, $v := .Data.data }}
           export {{ $k }}="{{ $v }}"
       {{- end }}
