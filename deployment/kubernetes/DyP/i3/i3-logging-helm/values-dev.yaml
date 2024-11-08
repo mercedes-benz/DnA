@@ -213,7 +213,14 @@ fluent-bit:
           Replace_Dots On
           Logstash_Prefix kubernetes_cluster
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>                          
+          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>            
+
+        [OUTPUT]
+          name        loki
+          match       *
+          host        loki-gateway.i3-monitoring.svc.cluster.local
+          port        80
+          labels      job=fluentbit
 
 opensearch-dashboards:
   enabled: true
