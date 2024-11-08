@@ -15,8 +15,8 @@ annotations:
   notifications.argoproj.io/subscribe.on-sync-status-unknown.teams: channelName
   notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
 gitRepo:
-  username: <path:kv/data/dna/kubernetesSecret/argocd#username | base64encode>
-  password: <path:kv/data/dna/kubernetesSecret/argocd#password | base64encode>
+  username: <path:dna_kv/data/staging/kubernetesSecret/argocd#username | base64encode>
+  password: <path:dna_kv/data/staging/kubernetesSecret/argocd#password | base64encode>
 
 repositories:
   # - name: chronos-frontend
