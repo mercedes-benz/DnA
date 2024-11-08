@@ -1416,12 +1416,12 @@ public class BaseStorageService implements StorageService {
 		params.setCredentialsMode("KEYPAIR");
 		params.setAccessKey(currentUser);
 		params.setSecretKey(secretKey);
-		params.setDefaultManagedBucket(bucketName);
+		params.setDefaultManagedBucket("/"+bucketName);
 		params.setDefaultManagedPath("/");
 		params.setRegionOrEndpoint(minioClientApi);
 		params.setHdfsInterface("S3A");
 		params.setEncryptionMode("NONE");
-		params.setChbucket("/"+bucketName);
+		params.setChbucket(bucketName);
 		params.setChroot("/");
 		params.setSwitchToRegionFromBucket(false);
 		params.setUsePathMode(true);
