@@ -335,7 +335,12 @@ public class CodeServerClient {
 	//starting named server
 	public boolean startNamedServer(String userName, String wsId, String cloudServiceProvider) {
 		try {
-			String url = jupyterUrl+"/" +userName + "/servers/" + wsId;
+			String url = "";
+			if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			 	url = jupyterUrl+"/" +userName + "/servers/" + wsId;
+			}else{
+				url = jupyterUrlAws+"/" +userName + "/servers/" + wsId;
+			}
 			HttpEntity<String> entity = new HttpEntity<>(getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null ) {
@@ -434,7 +439,12 @@ public class CodeServerClient {
 	//To stop server of  codespace jupyter hub
 	public boolean stopServer(String wsId, String userId, String cloudServiceProvider) {
 		try {
-			String url = jupyterUrl+"/" + userId + "/servers/" + wsId;
+			String url ="";
+			if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+				 url = jupyterUrl+"/" + userId + "/servers/" + wsId;
+			}else{
+				url = jupyterUrlAws+"/" + userId + "/servers/" + wsId;
+			}
 			String requestJsonString = "{\"remove\":false}";  
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
@@ -454,11 +464,16 @@ public class CodeServerClient {
 	}	
 
 	//To delete server of codespace jupyter hub
-	public boolean deleteServer(WorkbenchManageDto manageDto) {
+	public boolean deleteServer(WorkbenchManageDto manageDto, String cloudServiceProvider) {
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		String wsId = manageDto.getInputs().getWsid();
 	try {
-		String url = jupyterUrl+"/" + userId + "/servers/" + wsId;
+		String url = "";
+		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			url = jupyterUrl+"/" +userId + "/servers/" + wsId;
+		}else{
+			url = jupyterUrlAws+"/" +userId + "/servers/" + wsId;
+		}
 		String requestJsonString = "{\"remove\":true}";  // Changed to true for stopping the server
 		HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 		ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
