@@ -393,8 +393,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			}
 		}
     }
-	
 
+  
 	@Override
 	@ApiOperation(value = "List of values for available workspaces", nickname = "getWorkspacesLov", notes = "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
     @ApiResponses(value = { 
@@ -674,6 +674,5 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		
 	}
-
     
 }
