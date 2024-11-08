@@ -350,7 +350,8 @@ import com.daimler.data.util.ConstantsUtility;
 		 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
 		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
 		 {
-			 boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
+			String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+			 boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto,cloudServiceProvider);
 			 if(!deleteAction)
 			 {
 				 log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
