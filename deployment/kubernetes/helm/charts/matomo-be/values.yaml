@@ -105,11 +105,11 @@ vaultInjector:
   enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_dev_k8_role'
+    vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-envvar: 'dna_kv/dev/kubernetesSecret/matomoService'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/matomoService'
     vault.hashicorp.com/agent-inject-template-envvar: | 
-      {{- with secret "dna_kv/dev/kubernetesSecret/matomoService" -}}
+      {{- with secret "kv/dna/kubernetesSecret/matomoService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
