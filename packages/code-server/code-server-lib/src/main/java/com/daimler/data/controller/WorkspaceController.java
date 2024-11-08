@@ -874,7 +874,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
 		 CodeServerRecipe recipeData = recipeEntity!=null ? recipeEntity.getData():null;
 		 CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
-		 newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
+		 newRecipeVO.setCloudServiceProvider(reqVO.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		 newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
@@ -2079,6 +2079,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 if (Objects.nonNull(data) && data!=null){
 			 	// String userName = data.getProjectDetails().getProjectOwner().getId().toLowerCase();
 				// String wsId = data.getWorkspaceId();
+				String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
 				String status = service.getServerStatus(vo);
 				if(status.equalsIgnoreCase("true"))
 				{
@@ -2148,7 +2149,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
 		String wsId = data.getWorkspaceId();
-		responseMessage = service.startServer(shortId,wsId);
+		String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+		responseMessage = service.startServer(shortId,wsId,cloudServiceProvider);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
@@ -2199,7 +2201,8 @@ import org.springframework.beans.factory.annotation.Value;
 			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 		}
 
-		responseMessage = service.stopServer(vo);
+		String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+		responseMessage = service.stopServer(vo,cloudServiceProvider);
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
