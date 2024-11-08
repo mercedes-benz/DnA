@@ -59,7 +59,7 @@ const NewCodeSpace = (props) => {
 
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
-  const [environment, setEnvironment] = useState('DHC-CaaS');
+  const [environment, setEnvironment] = useState('DHC-CaaS-AWS');
   const [recipeValue, setRecipeValue] = useState(projectDetails?.recipeDetails?.Id ? projectDetails?.recipeDetails?.Id : '0');
   // const recipes = recipesMaster;
   const [recipesMaster, setRecipeMaster] = useState([]);
@@ -729,6 +729,9 @@ const NewCodeSpace = (props) => {
               archerId: archerId,
               procedureID: procedureID,
             },
+            recipeDetails: {
+              cloudServiceProvider: environment, 
+            },
           },
         },
         pat: githubToken
@@ -1348,13 +1351,27 @@ const NewCodeSpace = (props) => {
                         <input
                           type="radio"
                           className="ff-only"
-                          value={'DHC-CaaS'}
+                          value="DHC-CaaS-AWS"
                           name="environment"
                           onChange={onEnvironmentChange}
-                          checked={true}
+                          checked={environment==='DHC-CaaS-AWS'}
                         />
                       </span>
-                      <span className="label">DHC CaaS</span>
+                      <span className="label">DHC CaaS (AWS)</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="DHC-CaaS"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={environment==='DHC-CaaS'}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">DHC CaaS (On-Prem)</span>
                     </label>
                     <label className={classNames('radio')}>
                       <span className="wrapper">
@@ -1383,20 +1400,6 @@ const NewCodeSpace = (props) => {
                         />
                       </span>
                       <span className="label">eXtollo (Coming Soon)</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
-                          value="aws"
-                          name="environment"
-                          onChange={onEnvironmentChange}
-                          checked={false}
-                          disabled={true}
-                        />
-                      </span>
-                      <span className="label">AWS (Coming Soon)</span>
                     </label>
                   </div>
                 </div>
