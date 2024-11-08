@@ -346,12 +346,12 @@ import com.daimler.data.util.ConstantsUtility;
 		 String workspaceUserId = entity.getData().getWorkspaceOwner().getId();
 		 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
 		 ownerWorkbenchDeleteInputsDto.setType(recipeType);
+		 ownerWorkbenchDeleteInputsDto.setCloudServiceProvider(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
 		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
 		 {
-			String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-			 boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto,cloudServiceProvider);
+			 boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
 			 if(!deleteAction)
 			 {
 				 log.warn("Deleting is failed for {} for user {}",entity.getData().getWorkspaceId(), workspaceUserId);
