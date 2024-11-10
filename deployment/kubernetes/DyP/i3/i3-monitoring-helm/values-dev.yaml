@@ -1193,7 +1193,7 @@ loki:
     auth_enabled: false
     limits_config:  
       retention_period: 48h
-      enforce_metric_name: false
+      # enforce_metric_name: false
       reject_old_samples: true
       reject_old_samples_max_age: 168h
       max_cache_freshness_per_query: 10m
