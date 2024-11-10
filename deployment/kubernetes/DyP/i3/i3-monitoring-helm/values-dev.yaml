@@ -841,7 +841,7 @@ grafana:
   sidecar:
     image:
       registry: registry-emea.app.corpintra.net
-      repository: dockerhub/kiwigrid/k8s-sidecar
+      repository: kiwigrid/k8s-sidecar
     dashboards:
       enabled: true
       label: grafana_dashboard
@@ -1172,13 +1172,13 @@ tempo-distributed:
 
 
 loki:
-  enabled: false
+  enabled: true
   fullnameOverride: "loki"
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
   networkPolicy:
-    enabled: true         
+    enabled: false         
   sidecar:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar     
@@ -1191,9 +1191,23 @@ loki:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   loki:
     auth_enabled: false
-    limits_config:
-      retention_period: 48h   
-      max_streams_per_user: 100000         
+    limits_config:  
+      retention_period: 48h
+      enforce_metric_name: false
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      max_cache_freshness_per_query: 10m
+      split_queries_by_interval: 15m
+      # for big logs tune
+      per_stream_rate_limit: 512M
+      per_stream_rate_limit_burst: 1024M
+      cardinality_limit: 200000
+      ingestion_burst_size_mb: 1000
+      ingestion_rate_mb: 10000
+      max_entries_limit_per_query: 1000000
+      max_label_value_length: 20480
+      max_label_name_length: 10240
+      max_label_names_per_series: 300
     commonConfig:
       replication_factor: 3
     schemaConfig:
@@ -1220,213 +1234,16 @@ loki:
         http_config: {}    
     singleBinary:
       replicas: 3    
-
-fluent-bit:
-  enabled: false     
-  fullnameOverride: "fluent-bit"
-  # the labels are required by OpenSearch networkPolicy to enable access to OpenSearch
-  labels:
-    i3-logging-opensearch-master-transport-client: "true"
-  podLabels:
-    i3-logging-opensearch-master-transport-client: "true"
-
-  kind: DaemonSet 
-
-  image:
-    repository: registry-emea.app.corpintra.net/dockerhub/fluent/fluent-bit
-    pullPolicy: IfNotPresent
-
-  podSecurityPolicy:
-    create: false
-
-  podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 0
-
-  securityContext:
-    runAsUser: 1000
-    runAsGroup: 0
-
-  service:
-    type: ClusterIP
-    port: 2020
-    labels: { }
-    # nodePort: 30020
-    annotations: { }
-    #   prometheus.io/path: "/api/v1/metrics/prometheus"
-    #   prometheus.io/port: "2020"
-    #   prometheus.io/scrape: "true"
-
-  daemonSetVolumeMounts:
-    #https://github.com/kubernetes/kubernetes/issues/53022
-    - name: user-host-logs
-      subPath: pods
-      mountPath: /var/log/pods
-      readOnly: true
-    - name: user-host-logs
-      mountPath: /var/log/containers
-      subPath: containers
-      readOnly: true
-    - mountPath: /db
-      name: db-volume
-    
-  daemonSetVolumes:
-    - name: user-host-logs
-      persistentVolumeClaim:
-        claimName: i3-logging-user-host-logs-claim
-    - name: db-volume
-      emptyDir:
-        sizeLimit: 500Mi
-
-  # Info is the default log level of fluent-bit. Please note, that on setting logLevel to "DEBUG", fluent-bit puts multiple logs per second to stdout, therefore creating high cpu usage
-  logLevel: debug
-  networkPolicy:
-    enable: true
-
-  ## https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file
-  config:
-    service: |
-      [SERVICE]
-          Daemon Off
-          Flush 1
-          Log_Level {{ .Values.logLevel }}
-          Parsers_File parsers.conf
-          Parsers_File custom_parsers.conf
-          HTTP_Server On
-          HTTP_Listen 0.0.0.0
-          HTTP_Port {{ .Values.service.port }}
-          Health_Check On
-
-    ## See documentation/INPUT.md
-    ## https://docs.fluentbit.io/manual/pipeline/inputs
-    inputs: |
-      # Input type tail is enabled by default, since this is the expected input mode on DHC CaaS. 
-      # see: https://pages.git.i.mercedes-benz.com/DHC/CaaS/docs/technical-guide/logging/user-host-logs
-      @INCLUDE input_tail.conf
-
-      # Input for opentelemetry. Opentelemetry endpoint is exposed at port 4318.
-      # @INCLUDE input_opentelemetry.conf
-
-    ## See documentation/FILTER.md
-    ## https://docs.fluentbit.io/manual/pipeline/filters
-    filters: |
-      # Kubernetes plugin is inactive by default. Uncomment to enable
-      @INCLUDE filter_kubernetes.conf
-
-      # Map env variables to log entry
-      @INCLUDE filter_add_to_log_from_env.conf
-
-      # Enable filtering of DHC CaaS Kubernetes api server audit logs. Comment to disable.
-      # If disabled, you need to enable extraFilters to avoid Opensearch index errors. See /documentation/FILTER.md for hints.
-      @INCLUDE filter_excludePlatformAuditLogs.conf
-
-      # Enable filtering of DHC CaaS Nodes kubelet logs. Comment to disable
-      @INCLUDE filter_excludePlatformKubeletLogs.conf
-
-      # Enable filtering of all container logs within namespace 'kube-system'. Comment to disable
-      @INCLUDE filter_excludeK8sSystemLogs.conf
-
-    ## By default, write logs to OpenSearch.
-    ## https://docs.fluentbit.io/manual/pipeline/outputs
-    outputs: |
-      @INCLUDE output_opensearch.conf
-
-    # extra files, which are included in config above
-    extraFiles:
-      input_tail.conf: |
-        # for explainations, see https://docs.fluentbit.io/manual/input/tail
-        [INPUT]
-            Name             tail
-            Path             /var/log/containers/*.log
-            multiline.parser  docker, cri
-            Tag              kube.*
-            Refresh_Interval 5
-            Mem_Buf_Limit    5MB
-            Skip_Long_Lines  On
-            Read_from_Head false
-            db      /db/tail.db
-      
-      input_opentelemetry.conf: |
-        # for explainations, see https://docs.fluentbit.io/manual/v/dev-2.2/pipeline/inputs/opentelemetry
-        [INPUT]
-            name opentelemetry
-            listen 127.0.0.1
-            port 4318
-
-      filter_add_to_log_from_env.conf: |
-        [FILTER]
-            Name record_modifier
-            Match *
-            Record HOSTNAME ${HOSTNAME}
-
-      filter_kubernetes.conf: |
-        [FILTER]
-            Name                kubernetes
-            Match               kube.*
-            Kube_Tag_Prefix     kube.var.log.containers.
-            Kube_URL            https://kubernetes.default.svc:443
-            Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-            Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
-            #
-            # When enabled, it checks if the `log` field content is a JSON string map, if so,
-            # it append the map fields as part of the log structure.
-            Merge_Log           On
-            #
-            # When Merge_Log is enabled, the filter tries to assume the log field from the
-            # incoming message is a JSON string message and make a structured representation of it
-            # at the same level of the log field in the map. Now if Merge_Log_Key is set (a string name),
-            # all the new structured fields taken from the original log content are inserted under the new key.
-            #Merge_Log_Key       ""
-            #
-            # If On, enable the use of monitoring for a pod annotation of
-            # fluentbit.io/parser: parser_name. parser_name must be the name
-            # of a parser contained within parsers.conf
-            K8S-Logging.Parser  Off
-            #
-            # If true, enable the use of monitoring for a pod annotation of
-            # fluentbit.io/exclude: true. If present, discard logs from that pod.
-            K8S-Logging.Exclude On
-
-      filter_excludePlatformAuditLogs.conf: |
-        [FILTER]
-            Name                grep
-            Match               k8s_audit_sys_user
-            Exclude             kind Event
-
-      filter_excludePlatformKubeletLogs.conf: |
-        [FILTER]
-            Name                grep
-            Match               systemd_sys_kubelet
-            Exclude             HOSTNAME .*
-
-      filter_excludeK8sSystemLogs.conf: |
-        # Since nested fields are not support by grep filter, we use lift with prefix `k8s_resource_` and then filter linear index name
-        # see https://docs.fluentbit.io/manual/pipeline/filters/grep#nested-fields-example
-        [FILTER]
-            Name                modify
-            Condition           Key_Exists  kubernetes
-            Copy                kubernetes  k8s_resources
-            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
-
-        [FILTER]
-            Name                nest
-            Operation           lift
-            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
-            Nested_under        k8s_resources
-            Add_prefix          k8s_resource_
-
-        [FILTER]
-            Name                grep
-            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
-            Exclude             k8s_resource_namespace_name .*kube-system.*
-
-      output_opensearch.conf: |
-          [OUTPUT]
-              Name loki
-              Match kube.*
-              host loki-gateway.i3-monitoring.svc.cluster.local 
-              port 80
-              tenant_id ""
-              Labels job="fluent-bit"
-              auto_kubernetes_labels false
-              line_format json
+  extraObjects:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: loki-allow-all
+      spec:
+        podSelector: 
+          matchLabels:
+            app.kubernetes.io/name: loki
+        ingress:
+          - {}
+        policyTypes:
+          - Ingress
