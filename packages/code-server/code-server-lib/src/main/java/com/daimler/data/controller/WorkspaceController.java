@@ -2590,8 +2590,8 @@ import org.springframework.beans.factory.annotation.Value;
 			}
 			List<String> authorizedUsers = new ArrayList<>();
 			if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
-				String owner = vo.getProjectDetails().getProjectOwner().getId();
-				authorizedUsers.add(owner);
+				String workspaceOwner = vo.getWorkspaceOwner().getId();
+				authorizedUsers.add(workspaceOwner);
 			}
 			if (!authorizedUsers.contains(userId)) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
