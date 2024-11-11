@@ -184,6 +184,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						}else {
 							entity.getData().setName(dtoFromFabric.getDisplayName());
 							entity.getData().setDescription(dtoFromFabric.getDescription());
+							log.info("getAllLOV-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
 							jpaRepo.save(entity);
 							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 							vos.add(updatedVO);
@@ -250,6 +251,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						}else {
 							entity.getData().setName(dtoFromFabric.getDisplayName());
 							entity.getData().setDescription(dtoFromFabric.getDescription());
+							log.info("getAll-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
 							jpaRepo.save(entity);
 							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 							vos.add(updatedVO);
@@ -300,6 +302,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 				return null;
 			}
+			log.info("getbyid-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
 			voFromDb.setName(dtoFromFabric.getDisplayName());
 			voFromDb.setDescription(dtoFromFabric.getDescription());
 			try {
@@ -1188,7 +1191,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					errors.add(message);
 					responseMessage.setErrors(errors);
 					responseMessage.setSuccess("FAILED");
-					log.error("Error occurred:{} while deleting fabric workspace lakehouse {} ", id);
+					log.error("Error occurred:{} while deleting fabric workspace lakehouse {} ", id,lakehouseId);
 					return responseMessage;
 			}
 			responseMessage.setSuccess("SUCCESS");
@@ -1202,6 +1205,38 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			responseMessage.setErrors(errors);
 			responseMessage.setSuccess("FAILED");
 			log.error("Error occurred:{} while deleting fabric workspace {} lakehouse {} ", id, lakehouseId);
+			return responseMessage;
+		}
+	}
+	
+	@Override
+	@Transactional
+	public GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteShortcut(id, lakehouseId,shortcutName);
+			if(deleteResponse!=null && deleteResponse.getMessage() != null) {
+					MessageDescription message = new MessageDescription();
+					message.setMessage(deleteResponse.getMessage());
+					errors.add(message);
+					responseMessage.setErrors(errors);
+					responseMessage.setSuccess("FAILED");
+					log.error("Error occurred: while deleting fabric workspace id {} lakehouse {} shortcut {} ", id, lakehouseId, shortcutName);
+					return responseMessage;
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
+		}catch(Exception e) {
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to delete shortcut for workspace lakehouse with error : " + e.getMessage());
+			errors.add(message);
+			responseMessage.setErrors(errors);
+			responseMessage.setSuccess("FAILED");
+			log.error("Error occurred: while deleting fabric workspace id {} lakehouse {} shortcut {} ", id, lakehouseId, shortcutName);
 			return responseMessage;
 		}
 	}
@@ -1354,8 +1389,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 	public FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId) {
 		FabricShortcutsCollectionVO collectionVO = new FabricShortcutsCollectionVO();
-		collectionVO.setTotalCount(0);
-		collectionVO.setRecords(new ArrayList<>());
 		LakehouseS3ShortcutCollectionDto collection = fabricWorkspaceClient.listLakehouseshortcuts(id, lakehouseId);
 		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
 			Integer totalRecords = collection.getValue().size();
@@ -1363,6 +1396,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			List<ShortcutVO> records = new ArrayList<>();
 			records = collection.getValue().stream().map(n -> assembler.toLakehouseShortcutVOFromDto(n)).collect(Collectors.toList());
 			collectionVO.setRecords(records);
+		}else {
+			collectionVO.setTotalCount(0);
+			collectionVO.setRecords(new ArrayList<>());
 		}
 		return collectionVO;
 	}
