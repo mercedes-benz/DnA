@@ -23,6 +23,11 @@
         position: relative;
         font-size: var(--font-size-small);
 
+        i {
+          color: #0ae6ab;
+          margin-right: -25px;
+        }
+
         &::after {
           content: "";
           background-color: #1d202b;
