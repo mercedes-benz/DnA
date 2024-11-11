@@ -1,3 +1,4 @@
+{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
@@ -17,3 +18,4 @@ spec:
   sourceRepos:
     - {{ .Values.repoURL }}
     - https://git.i.mercedes-benz.com/DNA/dna-kong.git
+{{- end -}}
