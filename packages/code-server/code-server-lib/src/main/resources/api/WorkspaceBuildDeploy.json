@@ -3,9 +3,9 @@
 	"dateLibrary": "legacy",
 	"hideGenerationTimestamp": true,
 	"useTags": true,
-	"modelPackage": "com.daimler.data.dto.buildDeploy",
-	"apiPackage": "com.daimler.data.api.buildDeploy",
-	"invokerPackage": "com.daimler.data.service.buildDeploy",
+	"modelPackage": "com.daimler.data.dto.workspace.buildDeploy",
+	"apiPackage": "com.daimler.data.api.workspace.buildDeploy",
+	"invokerPackage": "com.daimler.data.service.workspace",
 	"importMappings": {
 		"BindingResult": "org.springframework.validation.BindingResult",
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
