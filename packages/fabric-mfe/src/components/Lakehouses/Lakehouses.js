@@ -136,8 +136,12 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
       fabricApi
         .getAllShortcuts(workspaceId, lakehouseId)
         .then((res) => {
-          setShortcuts(res?.data?.records);
-          ProgressIndicator.hide();
+          if (res.status === 204) {
+            setShortcuts([]);
+          } else {
+            setShortcuts(res?.data?.records);
+            ProgressIndicator.hide();
+          }
         })
         .catch((e) => {
           ProgressIndicator.hide();
