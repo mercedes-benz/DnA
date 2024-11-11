@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import store, { history } from './store';
 
 import Routes, { protectedRoutes } from './routes/FabricRoutes';
-import ScrollToTop from '../../fabric-backend/scrollToTop/ScrollToTop';
+import ScrollToTop from './components/scrollToTop/ScrollToTop';
 
 const App = ({ user, ...rest }) => {
   useEffect(() => {
