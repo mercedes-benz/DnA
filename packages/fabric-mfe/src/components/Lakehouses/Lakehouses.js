@@ -132,32 +132,37 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   const [shortcuts, setShortcuts] = useState([]);
 
   useEffect(() => {
+    getShortcuts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getShortcuts = () => {
     ProgressIndicator.show();
-      fabricApi
-        .getAllShortcuts(workspaceId, lakehouseId)
-        .then((res) => {
-          if (res.status === 204) {
-            setShortcuts([]);
-          } else {
-            setShortcuts(res?.data?.records);
-            ProgressIndicator.hide();
-          }
-        })
-        .catch((e) => {
-          ProgressIndicator.hide();
-          if(e?.response?.status === 403) {
-            Notification.show('Unauthorized to view this page or not found', 'alert');
-            history.push(`/`);
-          } else {
-            Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Fetching shortcuts failed!',
-              'alert',
-            );
-          }
-        });
-  }, [workspaceId, lakehouseId]);
+    fabricApi
+      .getAllShortcuts(workspaceId, lakehouseId)
+      .then((res) => {
+        if (res.status === 204) {
+          setShortcuts([]);
+        } else {
+          setShortcuts(res?.data?.records);
+        }
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        if(e?.response?.status === 403) {
+          Notification.show('Unauthorized to view this page or not found', 'alert');
+          history.push(`/`);
+        } else {
+          Notification.show(
+            e.response.data.errors?.length
+              ? e.response.data.errors[0].message
+              : 'Fetching shortcuts failed!',
+            'alert',
+          );
+        }
+      });
+  }
 
   const handleDeleteShortcut = (id) => {
     ProgressIndicator.show();
@@ -166,6 +171,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
       .then(() => {
         Notification.show('Shortcut deleted successfully');
         ProgressIndicator.hide();
+        getShortcuts();
       })
       .catch((e) => {
         ProgressIndicator.hide();
