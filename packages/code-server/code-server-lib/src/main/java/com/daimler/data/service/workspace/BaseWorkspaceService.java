@@ -2957,7 +2957,7 @@ import com.daimler.data.util.ConstantsUtility;
 		try{
 			if(CloudServiceProviderEnum.CAAS.name().equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name())){
 				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-				entity.getData().getProjectDetails().getRecipeDetails().setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS.name());
+				entity.getData().getProjectDetails().getRecipeDetails().setCloudServiceProvider(ConstantsUtility.DHC_CAAS_AWS);
 				entity.getData().setIsWorkspaceMigrated(true);
 				jpaRepo.save(entity);
 				status = "SUCCESS";
