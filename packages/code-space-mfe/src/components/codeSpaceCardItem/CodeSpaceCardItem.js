@@ -283,6 +283,7 @@ const CodeSpaceCardItem = (props) => {
       .then((res) => {
         
         if (res.data.success === 'SUCCESS') {
+          ProgressIndicator.hide();
           Notification.show(
             'Your Codespace for project ' + codeSpace.projectDetails?.projectName +' is requested to migrate.'
           );
