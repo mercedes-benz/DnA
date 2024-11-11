@@ -219,8 +219,6 @@ const VaultManagement = (props) => {
     }
   };
 
-
-
   const onDelete = (key, value) => {
     const dataList = {};
     const updatedList = keyValue;
