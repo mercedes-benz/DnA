@@ -648,6 +648,11 @@
 				 CodeServerWorkspace data = entity.getData();
 				 if (data != null) {
 					 BeanUtils.copyProperties(data, vo);
+					 if(data.getIsWorkspaceMigrated()!= null){
+						vo.setIsWorkspaceMigrated(data.getIsWorkspaceMigrated());
+					 }else{
+						vo.setIsWorkspaceMigrated(false);
+					 }
 					 if (data.getIntiatedOn() != null)
 						 vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 					 UserInfo codespaceUserDetails = data.getWorkspaceOwner();
@@ -743,6 +748,11 @@
 			 CodeServerWorkspace data = new CodeServerWorkspace();
 			 entity.setId(vo.getId());
 			 BeanUtils.copyProperties(vo, data);
+			 if(vo.isIsWorkspaceMigrated()!=null){
+				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
+			 }else{
+				data.setIsWorkspaceMigrated(false);
+			 }
 			 UserInfoVO ownerVO = vo.getWorkspaceOwner();
 			 if (ownerVO != null) {
 				 UserInfo owner = this.toUserInfo(ownerVO);
