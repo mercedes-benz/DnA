@@ -22,7 +22,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS         
-          value: -f values-jupyterhub-db-dev.yaml
+          value: -f values-jupyterhub-db-{{ .Values.env }}.yaml
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
