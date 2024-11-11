@@ -1130,14 +1130,6 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
-        # - name: env
-        #   in: query
-        #   description: environment variable to select the target environment
-        #   required: true
-        #   type: string
-        #   enum:
-        #   - int
-        #   - prod
       responses:
         201:
           description: "Returns message of success or failure"
