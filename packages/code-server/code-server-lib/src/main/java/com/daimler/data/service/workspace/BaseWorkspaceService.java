@@ -79,7 +79,8 @@
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
@@ -2944,6 +2945,37 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
 		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage migrateWorkspace(CodeServerWorkspaceVO vo){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try{
+			if(CloudServiceProviderEnum.CAAS.name().equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name())){
+				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+				entity.getData().getProjectDetails().getRecipeDetails().setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS.name());
+				entity.getData().setIsWorkspaceMigrated(true);
+				jpaRepo.save(entity);
+				status = "SUCCESS";
+			}else{
+				MessageDescription error = new MessageDescription();
+					error.setMessage("workspace already migrated , Bad Request ");
+			}
+
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+		
 	}
 
 }

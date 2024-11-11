@@ -102,5 +102,7 @@ public interface WorkspaceService {
 
 	GenericMessage restartWorkspace(String userId, String id, String env);
 
+	GenericMessage migrateWorkspace(CodeServerWorkspaceVO vo);
+
 	
 }
