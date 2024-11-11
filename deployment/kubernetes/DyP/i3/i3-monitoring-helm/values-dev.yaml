@@ -1164,6 +1164,9 @@ loki:
     enabled: true
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
+  write:
+    persistence:
+      size: 20Gi
   loki:
     auth_enabled: false
     limits_config:  
