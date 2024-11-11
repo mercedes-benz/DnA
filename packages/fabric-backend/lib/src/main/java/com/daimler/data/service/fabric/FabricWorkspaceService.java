@@ -68,4 +68,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId);
 
+	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
+
 }
