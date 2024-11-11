@@ -1,6 +1,9 @@
 package com.daimler.data.service.fabric;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -10,6 +13,8 @@ import org.springframework.stereotype.Component;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +62,8 @@ public class WorkspaceBackgroundJobsService {
 	@Scheduled(cron = "0 0/7 * * * *")
 	public void updateWorkspacesJob() {	
 		try {
-		List<FabricWorkspaceVO> workspaceVOs = fabricService.getAll();
+			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
+			List<FabricWorkspaceVO> workspaceVOs = collection!=null ? collection.getRecords() : new ArrayList<>();
 			log.info("Fetched all fabric workspaces from service successfully during scheduled job");
 			if(workspaceVOs!=null && !workspaceVOs.isEmpty()) {
 				log.info("During scheduled job, fetch success. Workspaces available, proceeding with processing user management for each");
@@ -80,7 +86,14 @@ public class WorkspaceBackgroundJobsService {
 						}
 					}
 					if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
-						fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), workspaceVO.getName(), workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+						FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
+						List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), workspaceVO.getName(), workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+						tempWorkspaceVO.getStatus().setMicrosoftGroups(updatedGroupDetails);
+						try {
+							fabricService.create(tempWorkspaceVO);
+						}catch(Exception saveException) {
+							log.error("During scheduled job, failed to update the workspace with latest group assignments for workspace {} and id {} with exception {}", workspaceVO.getName(), workspaceVO.getId(), saveException.getMessage());
+						}
 					}
 				}
 			}

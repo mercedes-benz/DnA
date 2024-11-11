@@ -37,6 +37,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 
 import io.swagger.annotations.Api;
@@ -375,7 +376,25 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage createLakehouseS3ShortcutResponse = new GenericMessage(); //service.deleteLakehouseS3Shortcut(id,lakehouseId,shortcutId);
+			String path = "";
+			boolean isPresent = false;
+			FabricShortcutsCollectionVO response = service.getLakehouseS3Shortcuts(id,lakehouseId);
+			if(response!=null && response.getRecords()!= null && !response.getRecords().isEmpty()) {
+				List<ShortcutVO> records = response.getRecords();
+				if(records!=null && !records.isEmpty()){
+					for(ShortcutVO record : records) {
+						if(record!=null && record.getName()!=null && record.getName().equalsIgnoreCase(shortcutId)) {
+							isPresent = true;
+							path = record.getPath() != null ? record.getPath() : "/Files";
+						}
+					}
+				}
+			}
+			if(!isPresent) {
+				log.warn("No Shortcut {} found with workspace id {} and lakehouse {}", shortcutId, id, lakehouseId);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
+			GenericMessage createLakehouseS3ShortcutResponse = service.deleteLakehouseS3Shortcut(id,lakehouseId,path+"/"+shortcutId);
 			if(createLakehouseS3ShortcutResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(createLakehouseS3ShortcutResponse.getSuccess())) {
 					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.OK);
@@ -383,13 +402,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}else {
-				GenericMessage response = new GenericMessage();
-				response.setSuccess("FAILED");
+				GenericMessage errResponse = new GenericMessage();
+				errResponse.setSuccess("FAILED");
 				List<MessageDescription> errors = new ArrayList<>();
 				MessageDescription errMsg = new MessageDescription("");
 				errors.add(errMsg);
-				response.setErrors(errors);
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+				errResponse.setErrors(errors);
+				return new ResponseEntity<>(errResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		}
     }

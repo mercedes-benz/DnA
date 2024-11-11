@@ -12,7 +12,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 
-const CreateShortcutModalContent = ({ workspaceId, lakehouseId }) => {
+const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
   const [bucketNameError, setBucketNameError] = useState('');
   const [buckets, setBuckets] = useState([]);
@@ -89,6 +89,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId }) => {
         .then(() => {
           Notification.show('Shortcut created successfully');
           ProgressIndicator.hide();
+          onCreateShortcut();
         })
         .catch((e) => {
           ProgressIndicator.hide();
@@ -131,28 +132,37 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   const [shortcuts, setShortcuts] = useState([]);
 
   useEffect(() => {
+    getShortcuts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getShortcuts = () => {
     ProgressIndicator.show();
-      fabricApi
-        .getAllShortcuts(workspaceId, lakehouseId)
-        .then((res) => {
+    fabricApi
+      .getAllShortcuts(workspaceId, lakehouseId)
+      .then((res) => {
+        if (res.status === 204) {
+          setShortcuts([]);
+        } else {
           setShortcuts(res?.data?.records);
-          ProgressIndicator.hide();
-        })
-        .catch((e) => {
-          ProgressIndicator.hide();
-          if(e?.response?.status === 403) {
-            Notification.show('Unauthorized to view this page or not found', 'alert');
-            history.push(`/`);
-          } else {
-            Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Fetching shortcuts failed!',
-              'alert',
-            );
-          }
-        });
-  }, [workspaceId, lakehouseId]);
+        }
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        if(e?.response?.status === 403) {
+          Notification.show('Unauthorized to view this page or not found', 'alert');
+          history.push(`/`);
+        } else {
+          Notification.show(
+            e.response.data.errors?.length
+              ? e.response.data.errors[0].message
+              : 'Fetching shortcuts failed!',
+            'alert',
+          );
+        }
+      });
+  }
 
   const handleDeleteShortcut = (id) => {
     ProgressIndicator.show();
@@ -161,6 +171,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
       .then(() => {
         Notification.show('Shortcut deleted successfully');
         ProgressIndicator.hide();
+        getShortcuts();
       })
       .catch((e) => {
         ProgressIndicator.hide();
@@ -171,8 +182,8 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   return (
     <div className={Styles.shortcutsContainer}>
       <h4>Shortcuts</h4>
-      {shortcuts.length === 0 && <p>No shortcuts are present. Create a shortcut.</p>}
-      {shortcuts.length > 0 && <>
+      {shortcuts?.length === 0 && <p>No shortcuts are present. Create a shortcut.</p>}
+      {shortcuts?.length > 0 && <>
         <div className={classNames(Styles.shortcut, Styles.thead)}>
           <div className={classNames(Styles.col1)}>Bucket Name</div>
           <div className={classNames(Styles.col2)}>Shortcut Name & Path</div>
@@ -193,7 +204,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   );
 }
 
-function Lakehouses({ workspace, lakehouses }) {
+function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   const [showCreateLakehouseModal, setShowCreateLakehouseModal] = useState(false);
   const [lakehouseName, setLakehouseName] = useState('');
   const [lakehouseNameError, setLakehouseNameError] = useState(false);
@@ -310,6 +321,8 @@ function Lakehouses({ workspace, lakehouses }) {
         .then(() => {
           Notification.show('Lakehouse deleted successfully');
           ProgressIndicator.hide();
+          setShowDeleteModal(false);
+          onDeleteLakehouse();
         })
         .catch((e) => {
           ProgressIndicator.hide();
@@ -342,11 +355,13 @@ function Lakehouses({ workspace, lakehouses }) {
                   {lakehouse?.name} 
                   {/* {lakehouse?.sensitivityLabel !== workspace?.dataClassification && <i className="icon mbc-icon info" tooltip-data={'Sensitivity label for lakehouse is not set or\nset higher than Workspace Data Classification. Please update.'} />} */}
                 </span>
-                <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
-                  <i className="icon delete" />
-                </button>
+                {user?.id === workspace?.createdBy?.id && 
+                  <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
+                    <i className="icon delete" />
+                  </button>
+                }
               </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
+              <button className={classNames('btn btn-primary', Styles.outlineBtn, user?.id !== workspace?.createdBy?.id && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
                 <i className="icon mbc-icon plus" />
                 <span>Create Shortcut</span>
               </button>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -391,7 +406,7 @@ function Lakehouses({ workspace, lakehouses }) {
           modalWidth={'400px'}
           buttonAlignment="right"
           show={showCreateShortcutModal}
-          content={<CreateShortcutModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
+          content={<CreateShortcutModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} onCreateShortcut={() => setShowCreateShortcutModal(false)} />}
           scrollableContent={false}
           onCancel={() => { setShowCreateShortcutModal(false) }}
         />
