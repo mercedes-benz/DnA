@@ -86,7 +86,7 @@ hub:
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
   db:
-    type: postgres
+    type: sqlite-pvc
     upgrade:
     pvc:
       annotations: {}
