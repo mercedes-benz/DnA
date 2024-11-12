@@ -130,6 +130,9 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.workspace.url}")
 	 private String codespaceUrl;
 
+	 @Value("${codeServer.workspace.url.aws}")
+	 private String codespaceUrlAWS;
+
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
 	 @Value("${codeServer.codespace.filename}")
@@ -633,7 +636,7 @@ import com.daimler.data.util.ConstantsUtility;
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId());
+			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
@@ -813,7 +816,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId());
+			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
 			 jpaRepo.save(entity);
 			 responseVO.setData(workspaceAssembler.toVo(entity));
@@ -1137,7 +1140,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
 			 ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
@@ -1207,10 +1210,10 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 	 }
  
-	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
+	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
-		 String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 String workspaceUrl = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codespaceUrlAWS:codespaceUrl)+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
 		 if (recipeId.toLowerCase().startsWith("public")) {
@@ -2504,9 +2507,9 @@ import com.daimler.data.util.ConstantsUtility;
 				 if (response) {
 					 statusValue = "true";
 					 savedOwnerEntity.getData().setServerStatus("SERVER_STARTED");
-					 log.info("Server started sucessfully for {} user of workspace {}",userName,id);
+					 log.debug("Server started sucessfully for {} user of workspace {}",userName,id);
 				 } else {
-					 log.warn("Server is not started for {} user of workspace {}",userName,id);
+					 log.debug("Server is not started for {} user of workspace {}",userName,id);
 					 statusValue = "false";
 					 savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
 				 }
@@ -2796,7 +2799,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 workspace.setStatus(ConstantsUtility.CREATEDSTATE);//added
 				 String recipeId = workspace.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 				 String projectOwnerId = workspace.getWorkspaceOwner().getId();
-					 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+					 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId,vo.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 					 workspace.setWorkspaceUrl(workspaceUrl);
 				 String resource = "4Gi,200M,0.3,4000M,2";
 				 workspace.getProjectDetails().getRecipeDetails().setResource(resource);

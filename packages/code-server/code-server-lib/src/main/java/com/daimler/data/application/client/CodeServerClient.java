@@ -384,13 +384,13 @@ public class CodeServerClient {
 							if (isServerReady) {
 								return true;
 							} else {
-								log.error("Server for user {} in workspace {} is not started", userId, workspaceId);
+								log.debug("Server for user {} in workspace {} is not started", userId, workspaceId);
 							}
 						} else {
-							log.error("Workspace {} not found for user {}", workspaceId, userId);
+							log.debug("Workspace {} not found for user {}", workspaceId, userId);
 						}
 					} else {
-						log.error("No servers found for user {}", userId);
+						log.debug("No servers found for user {}", userId);
 					}
 				} else {
 					log.error("Empty response body while fetching server details for user {}", userId);
