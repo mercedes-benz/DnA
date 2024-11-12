@@ -185,7 +185,7 @@ configs:
     admin.enabled: true
 
     # -- Timeout to discover if a new manifests version got published to the repository
-    timeout.reconciliation: 180s
+    timeout.reconciliation: 1200s
 
     # -- Timeout to refresh application data as well as target manifests cache
     timeout.hard.reconciliation: 180s
@@ -194,7 +194,7 @@ configs:
     ## Ref: https://argo-cd.readthedocs.io/en/stable/user-guide/status-badge/
     statusbadge.enabled: false
 
-    timeout.reconciliation.jitter: 60s
+    timeout.reconciliation.jitter: 300s
 
     # Dex configuration
     # dex.config: |
@@ -577,30 +577,6 @@ extraObjects:
     metadata:
       name: cmp-plugin
     data:
-      avp-kustomize.yaml: |
-        ---
-        apiVersion: argoproj.io/v1alpha1
-        kind: ConfigManagementPlugin
-        metadata:
-          name: argocd-vault-plugin-kustomize
-        spec:
-          allowConcurrency: true
-
-          # Note: this command is run _before_ anything is done, therefore the logic is to check
-          # if this looks like a Kustomize bundle
-          discover:
-            find:
-              command:
-                - find
-                - "."
-                - -name
-                - kustomization.yaml
-          generate:
-            command:
-              - sh
-              - "-c"
-              - "kustomize build . | argocd-vault-plugin generate -"
-          lockRepo: false
 
       avp-helm.yaml: |
         ---
@@ -610,8 +586,6 @@ extraObjects:
           name: argocd-vault-plugin-helm
         spec:
           allowConcurrency: true
-          # Note: this command is run _before_ any Helm templating is done, therefore the logic is to check
-          # if this looks like a Helm chart
           discover:
             find:
               command:
@@ -619,9 +593,6 @@ extraObjects:
                 - "-c"
                 - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
           generate:
-            # **IMPORTANT**: passing `${ARGOCD_ENV_helm_args}` effectively allows users to run arbitrary code in the Argo CD 
-            # repo-server (or, if using a sidecar, in the plugin sidecar). Only use this when the users are completely trusted. If
-            # possible, determine which Helm arguments are needed by your users and explicitly pass only those arguments.
             command:
               - sh
               - "-c"
@@ -2550,12 +2521,12 @@ repoServer:
   name: repo-server
 
   # -- The number of repo server pods to run
-  replicas: 5
+  replicas: 15
 
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
     # -- Enable Horizontal Pod Autoscaler ([HPA]) for the repo server
-    enabled: true
+    enabled: false
     # -- Minimum number of replicas for the repo server [HPA]
     minReplicas: 5
     # -- Maximum number of replicas for the repo server [HPA]
@@ -2621,11 +2592,15 @@ repoServer:
   # -- Environment variables to pass to repo server
   env: 
       - name: ARGOCD_GIT_ATTEMPTS_COUNT
-        value: "3"
+        value: '3'
       - name: ARGOCD_EXEC_TIMEOUT
-        value: "2m30s"  
+        value: "5m"  
       - name: ARGOCD_HELM_ALLOW_CONCURRENCY
         value: "true"
+      - name: ARGOCD_K8SCLIENT_RETRY_MAX
+        value: '9'
+      - name: ARGOCD_K8SCLIENT_RETRY_BASE_BACKOFF
+        value: "250ms"                
 
   # -- envFrom to pass to repo server
   # @default -- `[]` (See [values.yaml])
@@ -2644,7 +2619,7 @@ repoServer:
   extraContainers: 
     - command:
       - /var/run/argocd/argocd-cmp-server
-      image: registry-emea.app.corpintra.net/publicquay/argoproj/argocd:v2.11.4
+      image: registry-emea.app.corpintra.net/dnaplatform/argocd-vault:latest
       name: avp-helm
       env:
         - name: AVP_AUTH_TYPE
@@ -2673,13 +2648,13 @@ repoServer:
       - mountPath: /home/argocd/cmp-server/config/plugin.yaml
         name: cmp-plugin
         subPath: avp-helm.yaml
-      - mountPath: /usr/local/bin/argocd-vault-plugin
-        name: custom-tools
-        subPath: argocd-vault-plugin
+      # - mountPath: /usr/local/bin/argocd-vault-plugin
+      #   name: custom-tools
+      #   subPath: argocd-vault-plugin
 
     - command:
       - /var/run/argocd/argocd-cmp-server
-      image: registry-emea.app.corpintra.net/publicquay/argoproj/argocd:v2.11.4
+      image: registry-emea.app.corpintra.net/dnaplatform/argocd-vault:latest
       name: avp
       env:
         - name: AVP_AUTH_TYPE
@@ -2707,9 +2682,9 @@ repoServer:
       - mountPath: /home/argocd/cmp-server/config/plugin.yaml
         name: cmp-plugin
         subPath: avp.yaml
-      - mountPath: /usr/local/bin/argocd-vault-plugin
-        name: custom-tools
-        subPath: argocd-vault-plugin
+      # - mountPath: /usr/local/bin/argocd-vault-plugin
+      #   name: custom-tools
+      #   subPath: argocd-vault-plugin
 
     # - name: cmp-my-plugin
     #   command:
@@ -2753,30 +2728,30 @@ repoServer:
     #       name: cmp-tmp
 
   # -- Init containers to add to the repo server pods
-  initContainers:
-  - args:
-      - >-
-        cd /tmp && curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o argocd-vault-plugin &&
-        chmod +x argocd-vault-plugin &&
-        mv argocd-vault-plugin /custom-tools/
-    command:
-    - sh
-    - -c
-    env:
-    - name: AVP_VERSION
-      value: 1.18.1
-    - name: HTTP_PROXY
-      value: "http://security-proxy.emea.svc.corpintra.net:3128"
-    - name: HTTPS_PROXY
-      value: "http://security-proxy.emea.svc.corpintra.net:3128"               
-    image: registry-emea.app.corpintra.net/dockerhub/redhat/ubi8
-    name: download-tools
-    volumeMounts:
-    - mountPath: /custom-tools
-      name: custom-tools
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 999          
+  # initContainers: {}
+  # - args:
+  #     - >-
+  #       cd /tmp && curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o argocd-vault-plugin &&
+  #       chmod +x argocd-vault-plugin &&
+  #       mv argocd-vault-plugin /custom-tools/
+  #   command:
+  #   - sh
+  #   - -c
+  #   env:
+  #   - name: AVP_VERSION
+  #     value: 1.18.1
+  #   - name: HTTP_PROXY
+  #     value: "http://security-proxy.emea.svc.corpintra.net:3128"
+  #   - name: HTTPS_PROXY
+  #     value: "http://security-proxy.emea.svc.corpintra.net:3128"               
+  #   image: registry-emea.app.corpintra.net/dockerhub/redhat/ubi8
+  #   name: download-tools
+  #   volumeMounts:
+  #   - mountPath: /custom-tools
+  #     name: custom-tools
+  #   securityContext:
+  #     runAsNonRoot: true
+  #     runAsUser: 999          
 
   # -- Additional volumeMounts to the repo server main container
   volumeMounts: []
