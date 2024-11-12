@@ -1344,12 +1344,14 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe,
+			 	String oneApiVersionShortName, boolean isSecuredWithCookie , boolean isprivateRecipe) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 try {
+			 String repoName = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -1358,7 +1360,17 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto
 						 .setEnvironment(codeServerEnvValue);
-				 deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
+				
+				if(isprivateRecipe){
+					List<String> repoDetails = CommonUtils.getDetailsFromUrl(deployJobInputDto.getRepo());
+					if(repoDetails.size() > 0 && repoDetails !=null){
+						repoName = repoDetails.get(0);
+						gitOrgName = repoDetails.get(1);
+					}
+				}else {
+					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
+				}
+				
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);

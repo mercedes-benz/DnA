@@ -10,11 +10,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+
 import org.json.JSONObject;
 
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.daimler.data.util.CommonUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,6 +57,8 @@ public class GitClient {
 
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
+
+	private static String HTTP_HEADER ="https://";
 
 	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
@@ -269,12 +275,25 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repoName) {
+	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repo) {
 		try {
+			String repoName = null;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
+			if(repo.contains(HTTP_HEADER)){
+				if(!repo.endsWith("/")){
+					repo.concat("/");
+				}
+				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoName);
+				if(repoDetails.size() > 0 && repoDetails !=null){
+					repoName = repoDetails.get(0);
+					gitOrgName = repoDetails.get(1);
+				}
+			}else {
+				repoName =  repo;
+			}
 			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches?per_page=100";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
