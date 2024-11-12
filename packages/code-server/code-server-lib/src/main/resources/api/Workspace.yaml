@@ -333,6 +333,14 @@ paths:
           description: "Workspace ID of server to be deleted"
           required: true
           type: "string"
+        - name: "cloudServiceProvider"
+          in: query
+          description: cloudServiceProvider variable to select the target provider to stop
+          required: true
+          type: string
+          enum:
+          - DHC-CaaS
+          - DHC-CaaS-AWS
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1020,6 +1028,14 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: "cloudServiceProvider"
+          in: query
+          description: cloudServiceProvider variable to select the target provider to start
+          required: true
+          type: string
+          enum:
+          - DHC-CaaS
+          - DHC-CaaS-AWS
       responses:
         201:
           description: "Returns message of success or failure"

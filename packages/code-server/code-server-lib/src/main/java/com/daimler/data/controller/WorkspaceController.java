@@ -2113,7 +2113,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id)
+    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "cloudServiceProvider variable to select the target provider to start", required = true, allowableValues = "DHC-CaaS, DHC-CaaS-AWS") @Valid @RequestParam(value = "cloudServiceProvider", required = true) String cloudServiceProvider)
 	{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -2149,7 +2149,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
 		String wsId = data.getWorkspaceId();
-		String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+		//String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
 		responseMessage = service.startServer(shortId,wsId,cloudServiceProvider);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
@@ -2168,7 +2168,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id)
+    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id, @NotNull @ApiParam(value = "cloudServiceProvider variable to select the target provider to start", required = true, allowableValues = "DHC-CaaS, DHC-CaaS-AWS") @Valid @RequestParam(value = "cloudServiceProvider", required = true) String cloudServiceProvider)
 	{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -2201,7 +2201,7 @@ import org.springframework.beans.factory.annotation.Value;
 			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 		}
 
-		String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+		//String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
 		responseMessage = service.stopServer(vo,cloudServiceProvider);
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
