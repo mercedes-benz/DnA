@@ -708,7 +708,9 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		 }
 		 String pat = initializeCollabWSRequestVO.getPat();
-		 
+		 if(ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(collabUserVO.getStatus()) || ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(collabUserVO.getStatus())){
+			collabUserVO.getProjectDetails().getRecipeDetails().setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS);
+		 }
 		 if(!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
 			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
 			 String projectName = collabUserVO.getProjectDetails().getProjectName();
