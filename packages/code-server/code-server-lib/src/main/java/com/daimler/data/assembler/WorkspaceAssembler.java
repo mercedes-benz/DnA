@@ -91,6 +91,9 @@
  
 	 @Value("${codeServer.env.value}")
 	 private String codeServerEnvValue;
+
+	 @Value("${codeServer.env.value.aws}")
+	 private String codeServerEnvValueAws;
  
 	 private UserInfoVO toUserInfoVO(UserInfo userInfo) {
 		 UserInfoVO vo = new UserInfoVO();
@@ -582,7 +585,11 @@
 			BeanUtils.copyProperties(vo, recipeDetails);
 			 recipeDetails.setCpuCapacity(vo.getCpuCapacity().toString());
 			 recipeDetails.setCloudServiceProvider(vo.getCloudServiceProvider().toString());
-			 recipeDetails.setEnvironment(codeServerEnvValue);
+			 if(vo.getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS_AWS)){
+				recipeDetails.setEnvironment(codeServerEnvValueAws);
+			} else {
+				recipeDetails.setEnvironment(codeServerEnvValue);
+			}
 			 recipeDetails.setOperatingSystem(vo.getOperatingSystem().toString());
 			 recipeDetails.setRamSize(vo.getRamSize().toString());
 			 if(vo.getRecipeId()!=null){
