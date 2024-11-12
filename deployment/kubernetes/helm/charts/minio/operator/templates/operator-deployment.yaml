@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "minio-operator"
+  name: minio-operator
+  namespace: {{ .Release.Namespace }}
   labels: {{- include "minio-operator.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.operator.replicaCount }}
@@ -9,7 +10,9 @@ spec:
     matchLabels: {{- include "minio-operator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels: {{- include "minio-operator.selectorLabels" . | nindent 8 }}
+      labels:
+        {{- include "minio-operator.labels" . | nindent 8 }}
+        {{- include "minio-operator.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.operator.imagePullSecrets }}
       imagePullSecrets: {{- toYaml . | nindent 8 }}
@@ -41,14 +44,24 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag }}"
+          image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.digest | default .Values.operator.image.tag }}"
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           args:
             - controller
           {{- with .Values.operator.env }}
           env: {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.operator.sidecarImage }}
+            - name: "OPERATOR_SIDECAR_IMAGE"
+              value: "{{ .Values.operator.sidecarImage.repository }}:{{ .Values.operator.sidecarImage.digest | default .Values.operator.sidecarImage.tag }}"
+          {{- end }}
           resources: {{- toYaml .Values.operator.resources | nindent 12 }}
           {{- with .Values.operator.containerSecurityContext }}
           securityContext: {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.operator.volumeMounts }}
+          volumeMounts: {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.operator.volumes }}
+      volumes: {{- toYaml . | nindent 8 }}
+      {{- end }}

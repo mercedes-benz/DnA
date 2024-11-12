@@ -269,6 +269,12 @@
 			 {
 				deploymentDetails.setSecureWithIAMRequired(false);
 			 }
+
+			if(vo.isIsSecuredWithCookie()!=null){
+				deploymentDetails.setIsSecuredWithCookie(vo.isIsSecuredWithCookie());
+			}else{
+				deploymentDetails.setIsSecuredWithCookie(false);
+			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -324,6 +330,12 @@
 			 if (deploymentDetails.getLastDeployedOn() != null){
 				 deploymentDetailsVO
 						 .setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
+			 }
+
+			 if(deploymentDetails.getIsSecuredWithCookie()!=null){
+				deploymentDetailsVO.isSecuredWithCookie(deploymentDetails.getIsSecuredWithCookie());
+			 }else{
+				deploymentDetailsVO.isSecuredWithCookie(false);
 			 }
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {
@@ -636,6 +648,11 @@
 				 CodeServerWorkspace data = entity.getData();
 				 if (data != null) {
 					 BeanUtils.copyProperties(data, vo);
+					 if(data.getIsWorkspaceMigrated()!= null){
+						vo.setIsWorkspaceMigrated(data.getIsWorkspaceMigrated());
+					 }else{
+						vo.setIsWorkspaceMigrated(false);
+					 }
 					 if (data.getIntiatedOn() != null)
 						 vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 					 UserInfo codespaceUserDetails = data.getWorkspaceOwner();
@@ -731,6 +748,11 @@
 			 CodeServerWorkspace data = new CodeServerWorkspace();
 			 entity.setId(vo.getId());
 			 BeanUtils.copyProperties(vo, data);
+			 if(vo.isIsWorkspaceMigrated()!=null){
+				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
+			 }else{
+				data.setIsWorkspaceMigrated(false);
+			 }
 			 UserInfoVO ownerVO = vo.getWorkspaceOwner();
 			 if (ownerVO != null) {
 				 UserInfo owner = this.toUserInfo(ownerVO);

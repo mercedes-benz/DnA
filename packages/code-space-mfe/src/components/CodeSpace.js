@@ -188,7 +188,18 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+  const isUIRecipe = 
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
+  
+    const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+
+    const intSecuredWithOneApi = codeSpaceData?.projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+    const prodSecuredWithOneApi = codeSpaceData?.projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -326,7 +337,7 @@ const CodeSpace = (props) => {
 
   const handleOIDCLogin = (res) => {
     const loginWindow = window.open(
-      Envs.CODESPACE_OIDC_POPUP_URL + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
+      (codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? Envs.CODESPACE_AWS_POPUP_URL : Envs.CODESPACE_OIDC_POPUP_URL) + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
       'codeSpaceSessionWindow',
       'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
     );
@@ -813,11 +824,18 @@ const CodeSpace = (props) => {
                               )}
                               {codeDeployed && (
                                 <li>
-                                  <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                                    Deployed App URL{' '}
-                                    {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                    <i className="icon mbc-icon new-tab" />
-                                  </a>
+                                  {intSecuredWithOneApi ? (
+                                    <span className={classNames(Styles.oneAPILink)}>
+                                      Deployed App URL (oneAPI){' '} 
+                                      <i className="icon mbc-icon new-tab" />
+                                    </span>
+                                  ) : (
+                                    <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                                      Deployed App URL{' '}
+                                      {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                      <i className="icon mbc-icon new-tab" />
+                                    </a>
+                                  )}
                                 </li>
                               )}
                               {intDeploymentDetails?.lastDeploymentStatus && (
@@ -931,11 +949,18 @@ const CodeSpace = (props) => {
                               )}
                               {prodCodeDeployed && (
                                 <li>
-                                  <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                                    Deployed App URL{' '}
-                                    {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                    <i className="icon mbc-icon new-tab" />
-                                  </a>
+                                  {prodSecuredWithOneApi ? (
+                                    <span className={classNames(Styles.oneAPILink)}>
+                                      Deployed App URL (oneAPI){' '} 
+                                      <i className="icon mbc-icon new-tab" />
+                                    </span>
+                                  ) : (
+                                    <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                                      Deployed App URL{' '}
+                                      {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                      <i className="icon mbc-icon new-tab" />
+                                    </a>
+                                  )}
                                 </li>
                               )}
                               {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -1093,7 +1118,7 @@ const CodeSpace = (props) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="800px"
+          modalWidth="1200px"
           buttonAlignment="right"
           show={showNewCodeSpaceModal}
           content={
@@ -1139,6 +1164,7 @@ const CodeSpace = (props) => {
           userInfo={props.user}
           codeSpaceData={codeSpaceData}
           enableSecureWithIAM={isIAMRecipe}
+          isUIRecipe={isUIRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}

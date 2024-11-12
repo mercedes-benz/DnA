@@ -83,6 +83,7 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
+  const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
 
   useEffect(() => {
 
@@ -267,8 +268,42 @@ const CodeSpaceCardItem = (props) => {
   };
 
   const onStartStopCodeSpace = (codespace) => {
-    props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+    if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
+      props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+    }
+    else{
+      codespace.serverStatus === 'SERVER_STARTED' ? props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress) : setShowMigrateOrStartModal(true);
+    }
   };
+
+  const onMigrateWorkplace = () => {
+    setShowMigrateOrStartModal(false);
+    ProgressIndicator.show();
+    CodeSpaceApiClient.migrateWorkplace(codeSpace.id)
+      .then((res) => {
+        
+        if (res.data.success === 'SUCCESS') {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Your Codespace for project ' + codeSpace.projectDetails?.projectName +' is requested to migrate.'
+          );
+        } else {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in migrating your code space. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in migrating your code space. Please try again later.'+ err.message,
+          'alert',
+        );
+      });
+
+  }
 
   const handleServerStatusAndProgress = () => {
     codeSpace.serverStatus = 'SERVER_STOPPED';
@@ -348,6 +383,9 @@ const CodeSpaceCardItem = (props) => {
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
+  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   const securedWithIAMContent = (
     <svg
@@ -516,10 +554,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {intSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
@@ -618,10 +662,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {prodDeployed && (
                           <li>
-                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {prodSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -1208,6 +1258,25 @@ const CodeSpaceCardItem = (props) => {
           setShowRestartModal(false);
         }}
       />)}
+      { showMigrateOrStartModal && (
+        <ConfirmModal
+          title={''}
+          acceptButtonTitle="Migrate your workspace to DHC-Caas(AWS)"
+          cancelButtonTitle="Start your workspace on DHC-Caas(On-Prem)"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showMigrateOrStartModal}
+          content={<div>
+            <h3>Do you want to migrate from DHC-Caas(On-Prem) to DHC-Caas(AWS)</h3>
+            <p>Note: Before migrating please commit your changes and untracked files in your current workspace.</p>
+          </div>}
+          onCancel={() => {
+            props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress);
+            setShowMigrateOrStartModal(false);
+          }}
+          onAccept={onMigrateWorkplace}
+        />
+      )}
     </>
   );
 };
