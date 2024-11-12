@@ -377,7 +377,7 @@ public class FabricWorkspaceClient {
 			String url = shortcutUrl;
 			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
 			url = url.replaceFirst(LAKEHOUSE_IDENTIFIER, lakehouseId);
-			url = url + "/" + shortcutId;
+			url = url + shortcutId;
 			ResponseEntity<ErrorResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.DELETE,
 					requestEntity, ErrorResponseDto.class);
 			if (response !=null && response.getStatusCode().is2xxSuccessful()) {
@@ -537,6 +537,7 @@ public class FabricWorkspaceClient {
 		}
 		return workspaceDetailDto;
 	}
+	
 	
 	public WorkspaceDetailDto getWorkspaceDetails(String workspaceId) {
 		WorkspaceDetailDto workspaceDetailDto = new WorkspaceDetailDto();
