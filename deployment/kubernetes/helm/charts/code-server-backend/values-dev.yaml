@@ -1,0 +1,83 @@
+replicaCount: 1
+namespace: code-server
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
+  pullPolicy: Always
+  tag: '801'
+envs: {}
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: code-server-backend
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ''
+podAnnotations:
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/role: dna
+  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+  vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+  vault.hashicorp.com/template-static-secret-render-interval: 10s
+  vault.hashicorp.com/agent-pre-populate-only: 'false'
+  vault.hashicorp.com/namespace: fmas/dev
+  vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-truststore.jks: |
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.TRUSTSTORE }}
+    {{- end }}
+  vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-keystore.p12: |
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.KEYSTORE }}
+    {{- end }}      
+  vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/codeServerService
+  vault.hashicorp.com/agent-inject-template-envvar: |
+    {{- with secret "kv/dna/kubernetesSecret/codeServerService" -}}
+      {{- range $k, $v := .Data.data }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}
+    {{- end }}
+    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- range $k, $v := .Data.data }}
+      {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}        
+      {{- end }}      
+    {{- end }}
+podSecurityContext:
+  runAsUser: 1000
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: false
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: api.code-spaces.dev.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.code-spaces.dev.dna.app.corpintra.net
+      secretName: cs-tls-secret
+resources: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity: {}
+vaultInjector:
+  enable: true
+  jarName: code-server-lib*.jar
