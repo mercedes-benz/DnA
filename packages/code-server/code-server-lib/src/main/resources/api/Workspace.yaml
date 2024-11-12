@@ -1319,6 +1319,8 @@ definitions:
         type: string
       isSecuredWithCookie :
         type: boolean
+      repo :
+        type: string
 
 
            
