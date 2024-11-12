@@ -1023,6 +1023,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @PathVariable("id") String id,
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @Valid @RequestBody ManageDeployRequestDto deployRequestDto) {
 		 try {
+			 boolean isPrivateRecipe = false;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -1056,8 +1057,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
-			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
+			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -1067,6 +1067,10 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
+				isPrivateRecipe = true;
+				deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 			 }
 			 String environment = "int";
 			 String branch = "main";
@@ -1127,7 +1131,7 @@ import org.springframework.beans.factory.annotation.Value;
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie(),isPrivaterecipe);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
