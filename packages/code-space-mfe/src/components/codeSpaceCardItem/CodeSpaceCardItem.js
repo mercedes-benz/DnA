@@ -42,7 +42,7 @@ import { Envs } from '../../Utility/envs';
 let isTouch = false;
 
 const CodeSpaceCardItem = (props) => {
-  const codeSpace = props.codeSpace;
+  let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   // const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
@@ -83,6 +83,7 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
+  const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
 
   useEffect(() => {
 
@@ -267,12 +268,53 @@ const CodeSpaceCardItem = (props) => {
   };
 
   const onStartStopCodeSpace = (codespace) => {
-    props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+    if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
+      props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
+    }
+    else{
+      codespace.serverStatus === 'SERVER_STARTED' ? props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS') : setShowMigrateOrStartModal(true);
+    }
   };
+
+  const onMigrateWorkplace = () => {
+    setShowMigrateOrStartModal(false);
+    ProgressIndicator.show();
+    CodeSpaceApiClient.migrateWorkplace(codeSpace.id)
+      .then((res) => {
+        
+        if (res.data.success === 'SUCCESS') {
+          codeSpace.projectDetails.recipeDetails.cloudServiceProvider = 'DHC-CaaS-AWS';
+          ProgressIndicator.hide();
+          Notification.show(
+            'Your Codespace for project ' + codeSpace.projectDetails?.projectName +' is requested to migrate.'
+          );
+          props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
+        } else {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in migrating your code space. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in migrating your code space. Please try again later.'+ err.message,
+          'alert',
+        );
+      });
+
+  }
 
   const handleServerStatusAndProgress = () => {
     codeSpace.serverStatus = 'SERVER_STOPPED';
-    CodeSpaceApiClient.serverStatusFromHub(props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
+    const env = codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? 'DHC-CaaS-AWS' : 'DHC-CaaS';
+    console.log('env : ',env);
+    CodeSpaceApiClient.serverStatusFromHub(env,props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
       const data = JSON.parse(e.data);
       if (data.progress === 100 && data.ready) {
         setServerProgress(100);
@@ -1223,6 +1265,25 @@ const CodeSpaceCardItem = (props) => {
           setShowRestartModal(false);
         }}
       />)}
+      { showMigrateOrStartModal && (
+        <ConfirmModal
+          title={''}
+          acceptButtonTitle="Migrate your workspace to DHC-Caas(AWS)"
+          cancelButtonTitle="Start your workspace on DHC-Caas(On-Prem)"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showMigrateOrStartModal}
+          content={<div>
+            <h3>Do you want to migrate from DHC-Caas(On-Prem) to DHC-Caas(AWS)</h3>
+            <p>Note: Before migrating please commit your changes and untracked files in your current workspace.</p>
+          </div>}
+          onCancel={() => {
+            props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS' );
+            setShowMigrateOrStartModal(false);
+          }}
+          onAccept={onMigrateWorkplace}
+        />
+      )}
     </>
   );
 };
