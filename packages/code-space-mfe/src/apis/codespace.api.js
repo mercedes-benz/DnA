@@ -1,5 +1,6 @@
 import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import { Envs } from '../Utility/envs';
 
 const getCodeSpacesList = () => { 
     return server.get(`workspaces`, {
@@ -248,9 +249,9 @@ const update_secret = (path, secret_value, env) => {
     );
 };
 
-const startStopWorkSpace = (id, serverStarted) => { 
-    if (serverStarted) return server.delete(`/workspaces/server/${id}`, {data: {},});
-    return server.post(`/workspaces/startserver/${id}`, {data: {},});
+const startStopWorkSpace = (id, serverStarted, env) => { 
+    if (serverStarted) return server.delete(`/workspaces/server/${id}?cloudServiceProvider=${env}`, {data: {},});
+    return server.post(`/workspaces/startserver/${id}?cloudServiceProvider=${env}`, {data: {},});
 };
 
 const workSpaceStatus = () => {
@@ -263,8 +264,12 @@ const getUrlHub = (endpoint) => {
     return `${new URL('../hub/api/', baseURL).href}${endpoint}`;
 };
 
-const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => { 
-    const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
+const getAwsUrlHub = (endpoint) => {
+    return `${new URL(Envs.AWS_PROGRESS_API_URL).href}${endpoint}`;
+}
+
+const serverStatusFromHub = (env, userId, workspaceId, onMessageCB, onCloseCB) => { 
+    const sse = new EventSourcePolyfill(env==='DHC-CaaS-AWS' ? getAwsUrlHub(`users/${userId}/servers/${workspaceId}/progress`)  :getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
       withCredentials: true,
       headers: { Authorization: readJwt() },
     });

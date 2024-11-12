@@ -42,7 +42,7 @@ import { Envs } from '../../Utility/envs';
 let isTouch = false;
 
 const CodeSpaceCardItem = (props) => {
-  const codeSpace = props.codeSpace;
+  let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   // const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
@@ -269,10 +269,10 @@ const CodeSpaceCardItem = (props) => {
 
   const onStartStopCodeSpace = (codespace) => {
     if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
-      props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+      props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
     }
     else{
-      codespace.serverStatus === 'SERVER_STARTED' ? props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress) : setShowMigrateOrStartModal(true);
+      codespace.serverStatus === 'SERVER_STARTED' ? props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS') : setShowMigrateOrStartModal(true);
     }
   };
 
@@ -283,10 +283,15 @@ const CodeSpaceCardItem = (props) => {
       .then((res) => {
         
         if (res.data.success === 'SUCCESS') {
+          codeSpace.projectDetails.recipeDetails.cloudServiceProvider = 'DHC-CaaS-AWS';
           ProgressIndicator.hide();
           Notification.show(
             'Your Codespace for project ' + codeSpace.projectDetails?.projectName +' is requested to migrate.'
           );
+          props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         } else {
           ProgressIndicator.hide();
           Notification.show(
@@ -307,7 +312,9 @@ const CodeSpaceCardItem = (props) => {
 
   const handleServerStatusAndProgress = () => {
     codeSpace.serverStatus = 'SERVER_STOPPED';
-    CodeSpaceApiClient.serverStatusFromHub(props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
+    const env = codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? 'DHC-CaaS-AWS' : 'DHC-CaaS';
+    console.log('env : ',env);
+    CodeSpaceApiClient.serverStatusFromHub(env,props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
       const data = JSON.parse(e.data);
       if (data.progress === 100 && data.ready) {
         setServerProgress(100);
@@ -1256,7 +1263,7 @@ const CodeSpaceCardItem = (props) => {
             <p>Note: Before migrating please commit your changes and untracked files in your current workspace.</p>
           </div>}
           onCancel={() => {
-            props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress);
+            props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS' );
             setShowMigrateOrStartModal(false);
           }}
           onAccept={onMigrateWorkplace}
