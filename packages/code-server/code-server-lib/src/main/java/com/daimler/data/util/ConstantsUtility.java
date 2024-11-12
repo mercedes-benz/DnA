@@ -56,6 +56,7 @@ public class ConstantsUtility {
 	public static final String BAT_FRONTEND = "bat-frontend";
 	public static final String BAT_BACKEND = "bat-backend";
 	public static final String DHC_CAAS_AWS = "DHC-CaaS-AWS";
+	public static final String DHC_CAAS = "DHC-CaaS";
 
 
 }
