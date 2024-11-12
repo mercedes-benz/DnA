@@ -1033,7 +1033,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			 ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			 ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
-			 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+			 if(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 			} else {
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
