@@ -150,7 +150,7 @@ public class FabricWorkspaceClient {
 					FabricOAuthResponse.class);
 			//log.info("getToken log {}",introspectionResponse);
 			log.debug("Introspection Response:" + introspectionResponse);
-			log.info("Successfully fetch oidc token post login for powerbi");
+			//log.info("Successfully fetch oidc token post login for powerbi");
 			return introspectionResponse.getAccess_token();
 		} catch (Exception e) {
 			log.error("Failed to fetch OIDC token with error {} ",e.getMessage());
@@ -571,6 +571,10 @@ public class FabricWorkspaceClient {
 					workspaceDetailDto.setErrorCode("WorkspaceNotFound");
 					workspaceDetailDto.setMessage("Failed to fetch details, WorkspaceNotFound. Record might not exist.");
 					log.error("Failed to get workspace details for id {} with {} exception . Which could mean that workspace doesnt exist anymore.", workspaceId, e.getMessage());
+				}else if (e.getMessage().contains("TooManyRequests")) {
+					workspaceDetailDto.setErrorCode("TooManyRequests");
+					workspaceDetailDto.setMessage("Failed to fetch details, TooManyRequests. Please try after a while.");
+					log.error("Failed to get workspace details for id {} with {} exception . TooManyRequests. Please try after a while.", workspaceId, e.getMessage());
 				}
 			return workspaceDetailDto;
 		}
