@@ -328,6 +328,13 @@
     }
   }
 
+  .manualStart { 
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 30px);
+      }
+  }
   .oneAPILink{
     color: #99a5b3;
     &:hover {
