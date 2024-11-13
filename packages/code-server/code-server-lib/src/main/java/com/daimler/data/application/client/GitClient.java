@@ -10,11 +10,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+
 import org.json.JSONObject;
 
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.daimler.data.util.CommonUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,6 +57,8 @@ public class GitClient {
 
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
+
+	private static String HTTP_HEADER ="https://";
 
 	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
@@ -269,12 +275,25 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repoName) {
+	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repo) {
 		try {
+			String repoName = null;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
+			if(repo.contains(HTTP_HEADER)){
+				if(!repo.endsWith("/")){
+					repo.concat("/");
+				}
+				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoName);
+				if(repoDetails.size() > 0 && repoDetails !=null){
+					repoName = repoDetails.get(0);
+					gitOrgName = repoDetails.get(1);
+				}
+			}else {
+				repoName =  repo;
+			}
 			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches?per_page=100";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
@@ -403,6 +422,35 @@ public class GitClient {
 		}
 		return isAdmin;
 		
+	}
+
+	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName, String branch) throws Exception {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer "+ personalAccessToken );
+			String url = gitUrl+"/api/v3/repos/"+repoOwner+"/"+repoName+"/contents/"+folderPath+"/"+fileName+"?ref="+branch;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if(response != null && response.getStatusCode()!=null && response.getStatusCode() == (HttpStatus.OK)) {
+				String responseBody = response.getBody();
+				JSONObject jsonResponse = new JSONObject(responseBody);
+				if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+					log.info("Successfully fetched  file from Git repository.");
+					return jsonResponse;
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error occured while fetching file from git url :{}, message: {}", gitUrl,e.getMessage());
+			if(e.getMessage().contains("Not Found")) {
+				return null;
+			} else {
+				throw new Exception(e.getMessage());
+			}
+		}
+		log.info("The  file is not present in the Git repository.");
+		return null;
 	}
 	
 }

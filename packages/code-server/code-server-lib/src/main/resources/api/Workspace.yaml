@@ -1346,14 +1346,29 @@ definitions:
         type: string
       secureWithIAMRequired:
         type: boolean
-      technicalUserDetailsForIAMLogin:
-        type: string
+      # technicalUserDetailsForIAMLogin:
+      #   type: string
       # valutInjectorEnable:  # Corrected property name
       #   type: boolean
         default: false  # This should now work as expected
       clientID:
         type: string
       clientSecret:
+        type: string
+      redirectUri:
+        type: string
+      ignorePaths:
+        type: string
+      scope:
+        type: string
+      isApiRecipe:
+        type: boolean
+        required: true
+      oneApiVersionShortName:
+        type: string
+      isSecuredWithCookie :
+        type: boolean
+      repo :
         type: string
 
 
@@ -1383,6 +1398,10 @@ definitions:
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"
+      oneApiVersionShortName:
+        type: string
+      isSecuredWithCookie:
+        type: boolean
       deploymentAuditLogs:
         type: array
         items:
