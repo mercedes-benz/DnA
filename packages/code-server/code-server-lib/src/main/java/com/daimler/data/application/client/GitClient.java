@@ -12,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.json.JSONObject;
 
@@ -278,6 +279,7 @@ public class GitClient {
 	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repo) {
 		try {
 			String repoName = null;
+			String gitOrg = null;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
@@ -291,12 +293,13 @@ public class GitClient {
 				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repo);
 				if(repoDetails.size() > 0 && repoDetails !=null){
 					repoName = repoDetails.get(2);
-					gitOrgName = repoDetails.get(1);
+					gitOrg = repoDetails.get(1);
 				}
 			}else {
 				repoName =  repo;
 			}
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches?per_page=100";
+			String OrgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
+			String url = gitBaseUri+"/repos/" + OrgName + "/"+ repoName+ "/branches?per_page=100";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
 			if (response != null && response.getStatusCode()!=null) {
