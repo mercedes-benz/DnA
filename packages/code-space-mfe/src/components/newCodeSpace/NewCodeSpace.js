@@ -309,9 +309,9 @@ const NewCodeSpace = (props) => {
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
-  const getRecipeDetails = (recipeName) => {
+  const getRecipeDetails = (id) => {
     setShowProgressIndicator(true);
-    CodeSpaceApiClient.getCodeSpaceRecipe(recipeName)
+    CodeSpaceApiClient.getCodeSpaceRecipe(id)
     .then((res)=>{
       setShowProgressIndicator(false);
       setSelectedRecipe(res.data.data);
@@ -325,7 +325,7 @@ const NewCodeSpace = (props) => {
     const selectedOption = obj.id;
     const recipe = recipesMaster.find((item) => item.id === recipeValue);
     setRecipeValue(selectedOption);
-    getRecipeDetails(obj?.recipeName);
+    getRecipeDetails(obj?.id);
     setRecipeError('');
     const isUserDefinedRecipe = recipe?.aliasId === 'public-user-defined' || recipe?.aliasId === 'private-user-defined';
     setIsUserDefinedGithubRecipe(isUserDefinedRecipe);
