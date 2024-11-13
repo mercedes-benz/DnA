@@ -258,7 +258,7 @@ const DeployModal = (props) => {
       setClientIdError('*Missing Entry');
     }
     if (
-      secureWithIAMSelected && !cookieSelected &&
+      secureWithIAMSelected && 
       (((deployEnvironment === 'staging'
         ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired && !cookieSelected)
         : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired && !cookieSelected)) ||
