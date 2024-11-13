@@ -327,6 +327,20 @@
       text-decoration: none;
     }
   }
+
+  .manualStart { 
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 30px);
+      }
+  }
+  .oneAPILink{
+    color: #99a5b3;
+    &:hover {
+      color: #99a5b3 !important; 
+    }
+  }
   
   @keyframes OpenNewTab {
     0% {
