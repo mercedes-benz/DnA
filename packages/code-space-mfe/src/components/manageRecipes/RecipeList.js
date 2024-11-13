@@ -31,12 +31,26 @@ const RecipeList = ({ recipe, additionalServices, onDeleteRecipe, onSelectRecipe
 
   const handleEditRecipe = (e) => {
     e.stopPropagation();
-    history.push(`/codespaceRecipes/${recipe?.recipeName}`);
+    history.push(`/codespaceRecipes/${recipe?.id}`);
   }
 
   const handleDeleteRecipe = (e) => {
     e.stopPropagation();
-    onDeleteRecipe(recipe);
+    setShowDeleteModal(true)
+  }
+
+  const handleRecipeDelete = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deleteCodeSpaceRecipe(recipe?.id)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show("Recipe Deleted Successfully");
+        setShowDeleteModal(false);
+        onRefresh();
+      }).catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+      });
   }
 
   return (
