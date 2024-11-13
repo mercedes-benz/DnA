@@ -158,11 +158,11 @@ const AllCodeSpaces = (props) => {
         setShowDeployCodeSpaceModal(true);
     };
 
-    const onStartStopCodeSpace = (codeSpace, startSuccessCB, env) => {
+    const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
         serverStarted ? setLoading(true) : ProgressIndicator.show();
-        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env)
+        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env, manual)
             .then((res) => {
                 serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 if (res.data.success === 'SUCCESS') {

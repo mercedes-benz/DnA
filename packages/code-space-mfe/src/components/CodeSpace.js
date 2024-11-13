@@ -10,7 +10,7 @@ import Tabs from '../common/modules/uilab/js/src/tabs';
 import { Envs } from '../Utility/envs';
 // import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../store';
-import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, trackEvent } from '../Utility/utils';
+import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, trackEvent, buildGitJobLogViewAWSURL, buildLogViewAWSURL } from '../Utility/utils';
 import Modal from 'dna-container/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
@@ -802,7 +802,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                    href={codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                     rel="noreferrer"
                                   >
                                     Last Build &amp; Deploy Logs{' '}
@@ -824,10 +824,15 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildLogViewURL(
-                                      codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
-                                      true,
-                                    )}
+                                    href={codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' ?
+                                      buildLogViewAWSURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
+                                      ) :
+                                      buildLogViewURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
+                                      )}
                                     rel="noreferrer"
                                   >
                                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -920,7 +925,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                    href={codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                     rel="noreferrer"
                                   >
                                     Build &amp; Deploy Logs{' '}
@@ -942,8 +947,12 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildLogViewURL(
-                                      prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                    href={codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' ?
+                                      buildLogViewAWSURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      ) :
+                                      buildLogViewURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                     )}
                                     rel="noreferrer"
                                   >
@@ -1036,9 +1045,14 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={buildLogViewURL(
-                                      codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
-                                      true,
+                                    src={codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' ?
+                                      buildLogViewAWSURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
+                                      ) :
+                                      buildLogViewURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
                                     )}
                                     height="100%"
                                     width="100%"
@@ -1051,8 +1065,12 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={buildLogViewURL(
-                                      prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                    src={codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' ?
+                                      buildLogViewAWSURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      ) :
+                                      buildLogViewURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                     )}
                                     height="100%"
                                     width="100%"

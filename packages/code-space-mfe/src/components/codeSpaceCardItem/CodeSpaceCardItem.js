@@ -6,6 +6,8 @@ import {
   regionalDateAndTimeConversionSolution,
   buildLogViewURL,
   buildGitJobLogViewURL,
+  buildLogViewAWSURL,
+  buildGitJobLogViewAWSURL,
   buildGitUrl,
 } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -84,6 +86,7 @@ const CodeSpaceCardItem = (props) => {
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
+  const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
   useEffect(() => {
 
@@ -313,7 +316,6 @@ const CodeSpaceCardItem = (props) => {
   const handleServerStatusAndProgress = () => {
     codeSpace.serverStatus = 'SERVER_STOPPED';
     const env = codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? 'DHC-CaaS-AWS' : 'DHC-CaaS';
-    console.log('env : ',env);
     CodeSpaceApiClient.serverStatusFromHub(env,props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
       const data = JSON.parse(e.data);
       if (data.progress === 100 && data.ready) {
@@ -432,6 +434,25 @@ const CodeSpaceCardItem = (props) => {
     setShowRestartModal(false);
   }
 
+  const onShowOnPremStartModal = (
+    <div>
+      <p>
+        Click on the Start button to start your workspace incase the link is inaccessible. If you have already started before then access your workspace through the link provided. Please note that the link may take some time to be accessible after the start.
+      </p>
+      <div className={Styles.manualStart}>
+        <div>
+          <button
+            className={classNames('btn btn-tertiary')}
+            onClick={() => {props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS', true);}}
+          >
+            Start your old workspace
+          </button>
+        </div>
+        <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div
@@ -497,6 +518,17 @@ const CodeSpaceCardItem = (props) => {
                         </a>
                       </li>
                     )}
+                    {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
+                      <li>
+                        <span
+                          onClick={() => {
+                            setShowOnPremStartModal(true);
+                          }}
+                        >
+                          Start on DHC-CaaS On-Prem (manual)
+                        </span>
+                      </li>
+                    )}
                     <li>
                       <hr />
                     </li>
@@ -547,7 +579,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                              href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                               rel="noreferrer"
                             >
                               Last Build &amp; Deploy Logs{' '}
@@ -568,7 +600,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                              href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS'? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true) :buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
                               rel="noreferrer"
                             >
                               Application Logs <i className="icon mbc-icon new-tab" />
@@ -649,7 +681,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                              href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                               rel="noreferrer"
                             >
                               Build &amp; Deploy Logs{' '}
@@ -670,7 +702,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                              href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()) : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                               rel="noreferrer"
                             >
                               Application Logs <i className="icon mbc-icon new-tab" />
@@ -992,10 +1024,13 @@ const CodeSpaceCardItem = (props) => {
                   <>
                     {!creationFailed && deployingInProgress && (
                       <a
-                        href={
-                          intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
+                        href={ codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? 
+                          (intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
+                            ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
+                            : buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)) :
+                          (intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
                             ? buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)
+                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID))
                         }
                         target="_blank"
                         rel="noreferrer"
@@ -1016,7 +1051,7 @@ const CodeSpaceCardItem = (props) => {
                             intCodeDeployFailed ? (
                               <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                                 <a
-                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployFailLink}
@@ -1037,7 +1072,7 @@ const CodeSpaceCardItem = (props) => {
                             ) : (
                               <span className={Styles.statusIndicator}>
                                 <a
-                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployedLink}
@@ -1053,7 +1088,7 @@ const CodeSpaceCardItem = (props) => {
                           ) : prodCodeDeployFailed ? (
                             <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                               <a
-                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployFailLink}
@@ -1074,7 +1109,7 @@ const CodeSpaceCardItem = (props) => {
                           ) : (
                             <span className={Styles.statusIndicator}>
                               <a
-                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployedLink}
@@ -1267,6 +1302,23 @@ const CodeSpaceCardItem = (props) => {
             setShowMigrateOrStartModal(false);
           }}
           onAccept={onMigrateWorkplace}
+        />
+      )}
+      {showOnPremStartModal && (
+        <Modal
+          title={''}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+          }}
+          buttonAlignment="center"
+          show={showOnPremStartModal}
+          content={onShowOnPremStartModal}
+          onCancel={() => setShowOnPremStartModal(false)}
         />
       )}
     </>

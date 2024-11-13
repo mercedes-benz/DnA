@@ -249,8 +249,8 @@ const update_secret = (path, secret_value, env) => {
     );
 };
 
-const startStopWorkSpace = (id, serverStarted, env) => { 
-    if (serverStarted) return server.delete(`/workspaces/server/${id}?cloudServiceProvider=${env}`, {data: {},});
+const startStopWorkSpace = (id, serverStarted, env, manual) => { 
+    if (serverStarted && !manual) return server.delete(`/workspaces/server/${id}?cloudServiceProvider=${env}`, {data: {},});
     return server.post(`/workspaces/startserver/${id}?cloudServiceProvider=${env}`, {data: {},});
 };
 
