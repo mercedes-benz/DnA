@@ -36,6 +36,7 @@ const RecipeList = ({ recipe, additionalServices, onDeleteRecipe, onSelectRecipe
 
   const handleDeleteRecipe = (e) => {
     e.stopPropagation();
+    onDeleteRecipe(recipe);
     setShowDeleteModal(true)
   }
 
