@@ -126,8 +126,6 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.workspace.url}")
 	 private String codespaceUrl;
 
-	 @Value("${codeServer.collab.pid}")
-	 private String collabPid;
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
  
@@ -449,187 +447,6 @@ import com.daimler.data.util.ConstantsUtility;
 		 return responseMessage;
 	 }
  
-	 @Override
-	 @Transactional
-	 public InitializeWorkspaceResponseVO initiateWorkspacewithAdminPat(CodeServerWorkspaceVO vo, String pat){
-		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
-		responseVO.setData(null);
-		responseVO.setSuccess("FAILED");
-		List<MessageDescription> errors = new ArrayList<>();
-		List<MessageDescription> warnings = new ArrayList<>();
-		try {
-
-			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-			
-			String repoName = "";
-			String repoNameWithOrg = "";
-			List<UserInfoVO> collabs = vo.getProjectDetails().getProjectCollaborators();
-			boolean isOwner = false;
-			List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
-			String projectName = vo.getProjectDetails().getProjectName();
-			repoName = vo.getProjectDetails().getGitRepoName();
-			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
-					.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			}
-			String pathCheckout = "";
-			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							.startsWith("private")
-			   ) {
-				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
-			} else {
-				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-				if(repoNameWithOrg.contains(",")) {
-				   String url[] = repoNameWithOrg.split(",");
-				   repoNameWithOrg = url[0];
-				   pathCheckout = url[1];
-			   } else {
-				   pathCheckout = "";
-			   }
-			}
-			if(repoNameWithOrg.isEmpty()) {
-			   pathCheckout = "";
-			   repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
-		   }
-			UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
-			UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
-			String projectOwnerId = "";
-			// validate user pat
-			String RecipeId = null;
-		   if(vo.getProjectDetails().getRecipeDetails().getRecipeId()!=null){
-			   vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.fromValue(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString()));
-		   } else if(vo.getProjectDetails().getRecipeDetails().getRecipeType().equals(ConstantsUtility.GENERIC)) {
-			   vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.TEMPLATE);
-		   } else {
-			   vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
-		   }
-		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
-				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat);
-				if (!validateUserPatstatus.is2xxSuccessful()) {
-					MessageDescription errMsg = new MessageDescription(
-							"Invalid Git Personal Access Token provided. Please verify and retry.");
-					errors.add(errMsg);
-					responseVO.setErrors(errors);
-					return responseVO;
-				}
-			}
-			else {
-				if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
-					HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(entity.getData().getGitUserName(), pat, repoName);
-					if(!publicGitPatStatus.is2xxSuccessful()) {
-						MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token. Please verify and retry");
-						errors.add(errMsg);
-						responseVO.setErrors(errors);
-						return responseVO;
-					}
-				}
-			}
-
-			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
-			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
-			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
-			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
-			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
-			String[] parts = resource.split(",");
-			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
-			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
-			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
-			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
-			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
-			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
-			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
-			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-				ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-			} else {
-				ownerWorkbenchCreateInputsDto.setProfile("default");
-			}
-			ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
-			ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
-			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
-				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 isOwner = true;
-				 projectOwnerId = projectOwner.getId();
-			 }
-			 else {
-				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
-			 }
-			ownerWorkbenchCreateInputsDto.setPat(pat);
-			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
-			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
-			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-				ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-			} else {
-				ownerWorkbenchCreateInputsDto.setType("default");
-			}
-			List<String> extraContainers = new ArrayList<>();
-			List<String> additionalServices =  vo.getProjectDetails().getRecipeDetails().getAdditionalServices();
-			if (additionalServices != null) {
-				for (String additionalService : additionalServices) {
-					String additionalServiceEnv = additionalServiceRepo.findByServiceName(additionalService);
-					if(!additionalServiceEnv.isEmpty()) {
-						StringBuffer addStringBuffer =  new StringBuffer();
-						addStringBuffer.append(additionalServiceEnv);
-						addStringBuffer.deleteCharAt(0);
-						addStringBuffer.deleteCharAt(addStringBuffer.length()-1);
-						extraContainers.add(addStringBuffer.toString());
-					}
-				}
-			}
-			ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
-			ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
-			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
-			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
-			String codespaceName = vo.getProjectDetails().getProjectName();
-			String ownerwsid = vo.getWorkspaceId();
-			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
-			if (createOwnerWSResponse != null) {
-				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
-						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
-						(createOwnerWSResponse.getWarnings() != null
-								&& !createOwnerWSResponse.getWarnings().isEmpty())) {
-					if(vo.getGitUserName()!=null) {
-						log.info("intiate workbench failed for user "+vo.getGitUserName());
-					}
-					MessageDescription errMsg = new MessageDescription(
-							"Failed to initialize workbench while creating individual codespaces, please retry.");
-					errors.add(errMsg);
-					errors.addAll(createOwnerWSResponse.getErrors());
-					warnings.addAll(createOwnerWSResponse.getWarnings());
-					responseVO.setErrors(errors);
-					responseVO.setWarnings(warnings);
-					return responseVO;
-
-				}
-			}
-			if(vo.getGitUserName()!=null) {
-				log.info("intiate workbench successful for user "+vo.getGitUserName());
-			}
-			Date initatedOn = new Date();
-			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
-			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
-			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
-			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId());
-			entity.getData().setWorkspaceUrl(workspaceUrl);
-			jpaRepo.save(entity);
-			responseVO.setData(workspaceAssembler.toVo(entity));
-			responseVO.setErrors(new ArrayList<>());
-			responseVO.setWarnings(new ArrayList<>());
-			responseVO.setSuccess("SUCCESS");
-			return responseVO;
-		} catch (Exception e) {
-			MessageDescription errMsg = new MessageDescription(
-					"Failed to initialize workbench with exception." + e.getMessage() + " Please retry.");
-			errors.add(errMsg);
-			responseVO.setErrors(errors);
-			responseVO.setWarnings(warnings);
-			return responseVO;
-		}	 
-	}
-
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat) {
@@ -1344,7 +1161,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1440,29 +1257,28 @@ import com.daimler.data.util.ConstantsUtility;
 					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails);
 					 //calling kong to create service, route and plugins
-					//  boolean apiRecipe = false;
+					 boolean apiRecipe = false;
 					 String serviceName = projectName;
-					//  String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					//  String reactRecipeId = RecipeIdEnum.REACT.toString();
-					//  String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					//  String dashRecipeId = RecipeIdEnum.DASH.toString();
-					//  String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					//  String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					//  String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+					 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					 String reactRecipeId = RecipeIdEnum.REACT.toString();
+					 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					 String dashRecipeId = RecipeIdEnum.DASH.toString();
+					 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
-					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					//  } else {
-					// 	 apiRecipe = true;
-					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					//  }
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope);
-					status = "SUCCESS";
+					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					 } else {
+						 apiRecipe = true;
+						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					 }
+					 status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 errors.addAll(jobResponse.getErrors());
@@ -2064,23 +1880,22 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				//   deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
-				//  if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
-				//  }
-				//  if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
-				//  || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
-				//  || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
-				//  expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				//  }
-				//  if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
-				//  }
-				//  if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
-				//  }
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
+				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
+				 }
+				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
+				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+				 || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
+				 expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+				 }
+				 if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
+				 }
+				 if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+					  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
+				 }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if ("int".equalsIgnoreCase(targetEnv)) {

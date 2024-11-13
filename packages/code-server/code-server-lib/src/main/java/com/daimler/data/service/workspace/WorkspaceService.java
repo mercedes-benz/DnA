@@ -42,7 +42,7 @@ public interface WorkspaceService {
 	GenericMessage deleteById(String userId,String id);
 
 	CodeServerWorkspaceVO getById(String userId, String id);
-	
+ 
 	List<CodeServerWorkspaceVO> getAll(String userId,int offset,int limit);
 	
 	CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value);
@@ -54,8 +54,6 @@ public interface WorkspaceService {
 	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat);
 
 	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat);
-
-	InitializeWorkspaceResponseVO initiateWorkspacewithAdminPat(CodeServerWorkspaceVO vo, String pat);
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 

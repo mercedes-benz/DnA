@@ -154,9 +154,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Value("${codeServer.workspace.apikey}")
 	private String apiKeyValue;
-
-	@Value("${codeServer.run.collab.admin}")
-	 private boolean runCollab;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -593,76 +590,8 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
  
 		 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
-	}
+	 }
  
-	 @Override
-	 @ApiOperation(value = "Initialize Workbench for user by admin.", nickname = "initializeWorkspaceByAdmin", notes = "Initialize workbench for collab user by admin", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
-	 @ApiResponses(value = { 
-		 @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
-		 @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-		 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-		 @ApiResponse(code = 403, message = "Request is not authorized."),
-		 @ApiResponse(code = 405, message = "Method not allowed"),
-		 @ApiResponse(code = 500, message = "Internal error") })
-	 @RequestMapping(value = "/workspaces/{id}/{userId}",
-		 produces = { "application/json" }, 
-		 consumes = { "application/json" },
-		 method = RequestMethod.PUT)
-	 	public ResponseEntity<InitializeWorkspaceResponseVO> initializeWorkspaceByAdmin(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "user ID to be fetched",required=true) @PathVariable("userId") String userId,@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody InitializeCollabWorkspaceRequestVO initializeCollabWSRequestVO){
-			List<MessageDescription> errors = new ArrayList<>();
-			InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
-			if (runCollab) {
-				HttpStatus responseStatus = HttpStatus.OK;
-				CodeServerWorkspaceVO collabUserVO = service.getById(userId, id);
-				List<MessageDescription> warnings = new ArrayList<>();
-				responseMessage.setData(collabUserVO);
-				responseMessage.setErrors(errors);
-				responseMessage.setWarnings(warnings);
-				responseMessage.setSuccess("FAILED");
-				if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
-					String status = collabUserVO.getStatus();
-					if (status != null) {
-						if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
-								&& !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
-							MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
-							errors.add(errMsg);
-							responseMessage.setErrors(errors);
-							return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
-						}
-					}
-				} else {
-					MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
-					errors.add(errMsg);
-					responseMessage.setErrors(errors);
-					responseMessage.setData(null);
-					return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-				}
-				String pat = initializeCollabWSRequestVO.getPat();
-				if (!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
-					String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
-					String projectName = collabUserVO.getProjectDetails().getProjectName();
-					CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
-					if (ownerCodespaceVO != null && (!ownerCodespaceVO.getStatus().toUpperCase()
-							.equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)
-							&& !ownerCodespaceVO.getWorkspaceId().equalsIgnoreCase(collabUserVO.getWorkspaceId()))) {
-						MessageDescription errMsg = new MessageDescription(
-								"Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
-						errors.add(errMsg);
-						responseMessage.setErrors(errors);
-						return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
-
-					}
-				}
-				InitializeWorkspaceResponseVO responseData = service.initiateWorkspacewithAdminPat(collabUserVO, pat);
-				return new ResponseEntity<>(responseData, responseStatus);
-			}
-			MessageDescription errMsg = new MessageDescription(
-								"Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
-						errors.add(errMsg);
-						responseMessage.setErrors(errors);
-			return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
-		}
-
 	 @Override
 	 @ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags = {
 			 "code-server", })
