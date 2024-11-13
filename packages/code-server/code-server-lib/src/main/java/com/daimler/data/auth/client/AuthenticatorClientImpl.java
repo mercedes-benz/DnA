@@ -532,7 +532,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
-			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
+			if(!isServiceAlreadyCreated && "success".equalsIgnoreCase(createServiceResponse.getSuccess())  ) {
 				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
@@ -870,12 +870,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginConfigVO.setRedirect_uri(redirectUriFromUser);
 									attachOIDCPluginConfigVO.setRevoke_tokens_on_logout("no");
 									attachOIDCPluginConfigVO.setResponse_type(responseType);
-									attachOIDCPluginConfigVO.setScope(scope);
+									attachOIDCPluginConfigVO.setScope(scope.isBlank()?null:scope);
 									attachOIDCPluginConfigVO.setSsl_verify(sslVerify);
 									attachOIDCPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
 									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
-									attachOIDCPluginConfigVO.setFilters(ignorePaths);
-									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths);
+									attachOIDCPluginConfigVO.setFilters(ignorePaths.isBlank()?null:ignorePaths);
+									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths.isBlank()?null:ignorePaths);
 									attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
 									attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
 									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
