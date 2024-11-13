@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import store, { history } from './store';
 
 import Routes, { protectedRoutes } from './routes/FabricRoutes';
+import ScrollToTop from './components/scrollToTop/ScrollToTop';
 
 const App = ({ user, ...rest }) => {
   useEffect(() => {
@@ -19,6 +20,7 @@ const App = ({ user, ...rest }) => {
   }, []);
   return (
     <Provider store={store}>
+      <ScrollToTop />
       <Routes user={user} hostHistory={rest.hostHistory}/>
     </Provider>
   );
