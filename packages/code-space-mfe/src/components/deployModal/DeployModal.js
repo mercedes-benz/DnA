@@ -249,8 +249,8 @@ const DeployModal = (props) => {
     if (
       secureWithIAMSelected &&
       (((deployEnvironment === 'staging'
-        ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
-        : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
+        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired && !cookieSelected)
+        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired && !cookieSelected)) ||
         changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
       clientSecret.length === 0
     ) {
@@ -258,10 +258,10 @@ const DeployModal = (props) => {
       setClientIdError('*Missing Entry');
     }
     if (
-      secureWithIAMSelected &&
+      secureWithIAMSelected && 
       (((deployEnvironment === 'staging'
-        ? !projectDetails.intDeploymentDetails.secureWithIAMRequired
-        : !projectDetails.prodDeploymentDetails.secureWithIAMRequired) ||
+        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired && !cookieSelected)
+        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired && !cookieSelected)) ||
         changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
       clientSecret.length === 0
     ) {
