@@ -283,7 +283,9 @@ public class GitClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
 			if(repo.contains(HTTP_HEADER)){
-				if(!repo.endsWith("/")){
+				if(!repo.endsWith("/") && repo.contains(".git")){
+					repo = repo.replace(".git","/");
+				} else if(!repo.endsWith("/")){
 					repo.concat("/");
 				}
 				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoName);
