@@ -46,7 +46,7 @@ public class GitOperationsController {
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<GitBranchesCollectionDto> getGitBranches(@ApiParam(value = "git repo name for which branches needed to be fetched",required=true) @Valid @RequestParam(value = "repoDetail", required = false) String repoDetail) {
+    public ResponseEntity<GitBranchesCollectionDto> getGitBranches(@ApiParam(value = "git repo name for which branches needed to be fetched", required=true) @Valid @RequestParam(value = "repoDetail", required = true) String repoDetail) {
 		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repoDetail);
 		return new ResponseEntity<>(branchesCollection,HttpStatus.OK);
 	}
