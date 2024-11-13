@@ -477,6 +477,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		requestedEntitlement.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add entitlement {} for workspace {} ", subgroupPrefix  + workspaceId + "_" + permissionName, workspaceName);
+			EntiltlemetDetailsDto getResponse = identityClient.getEntitlement(createRequestDto.getDisplayName());
+			if(getResponse!=null && getResponse.getUuid()!=null) {
+				requestedEntitlement.setEntitlementId(getResponse.getEntitlementId());
+				requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
+				log.info("Called identity management system to get entitlement {} for workspace {} . Entitlement fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getUuid());
+				return requestedEntitlement;
+			}
 			EntiltlemetDetailsDto entitlementCreateResponse = identityClient.createEntitlement(createRequestDto);
 			if(entitlementCreateResponse!=null && entitlementCreateResponse.getEntitlementId()!=null) {
 				requestedEntitlement.setEntitlementId(entitlementCreateResponse.getEntitlementId());
@@ -543,6 +550,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRoleVO.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add role {} for workspace {} ", workspaceName + "_" + permissionName, workspaceName);
+			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getName());
+			if(getResponse!=null && getResponse.getId()!=null) {
+				createRoleVO.setId(getResponse.getId());
+				createRoleVO.setLink(identityRoleUrl+workspaceName + "_" +  permissionName);
+				createRoleVO.setState(ConstantsUtility.CREATED_STATE);
+				log.info("Called identity management system to get role {} for workspace {} . Role fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getId());
+				return createRoleVO;
+			}
 			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto);
 			if(createRoleResponseDto!=null && createRoleResponseDto.getId()!=null) {
 				createRoleVO.setId(createRoleResponseDto.getId());
