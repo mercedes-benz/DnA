@@ -237,7 +237,6 @@ public class AuthoriserClient {
         try {
 
 			String token = getToken();
-			System.out.println(token);
 			if(!Objects.nonNull(token)) {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				return roleResponseDto;
