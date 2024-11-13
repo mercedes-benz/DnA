@@ -112,6 +112,8 @@ definitions:
       comment:
         type: string
         description: "Comment for Build managment"
+      buildDeployedBy:
+        $ref: "#/definitions/UserInfoVO"
 
   buildResponseVo:
     type: object
