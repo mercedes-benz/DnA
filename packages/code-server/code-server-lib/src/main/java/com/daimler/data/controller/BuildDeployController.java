@@ -3,13 +3,18 @@ package com.daimler.data.controller;
 import javax.validation.Valid;
 
 import com.daimler.data.api.workspace.buildDeploy.CodeServerBuildServiceApi;
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.buildDeploy.BuildRequestVo;
 import com.daimler.data.dto.workspace.buildDeploy.BuildResponseVo;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +36,9 @@ import java.util.List;
 @Slf4j
 public class BuildDeployController implements CodeServerBuildServiceApi {
     
+	 @Autowired
+	 private UserStore userStore;
+ 
     @Override
     @ApiOperation(value = "Trigger Build by the user in code-server.", nickname = "triggerBuild", notes = "Trigger Build by the user in code-server for", response = BuildResponseVo.class, tags={ "code-server-build-service", })
     @ApiResponses(value = { 
@@ -45,6 +53,11 @@ public class BuildDeployController implements CodeServerBuildServiceApi {
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<BuildResponseVo>  triggerBuild(@ApiParam(value = "Request Body that contains data required for triggering build in code server workbench by the user" ,required=true )  @Valid @RequestBody BuildRequestVo buildRequestVo){
+        CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+        buildRequestVo.setBuildDeployedBy(currentUserVO);
+        
         return null;
     }
         
