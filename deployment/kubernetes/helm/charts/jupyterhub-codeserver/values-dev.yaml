@@ -46,7 +46,7 @@ hub:
       admin_access: true
       authenticator_class: generic-oauth
       redirect_to_server: false
-      default_url: https://dna-aws.app.corpintra.net/#/codespaces
+      default_url: https://dev.dna.app.corpintra.net/#/codespaces
       cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     CryptKeeper:
       keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      

@@ -53,7 +53,7 @@ hub:
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
-      oauth_callback_url: https://code-spaces.test.dna.app.corpintra.net/hub/oauth_callback
+      oauth_callback_url: https://fccockpit.dna-aws.app.corpintra.net/hub/oauth_callback
       authorize_url: https://sso-int.mercedes-benz.com/as/authorization.oauth2
       token_url: https://sso-int.mercedes-benz.com/as/token.oauth2  
       userdata_url: https://sso-int.mercedes-benz.com/idp/userinfo.openid
@@ -472,7 +472,7 @@ proxy:
       key: tls.key
       crt: tls.crt
     hosts: 
-      - code-spaces.test.dna.app.corpintra.net
+      - fccockpit.dna-aws.app.corpintra.net
 
 # singleuser relates to the configuration of KubeSpawner which runs in the hub
 # pod, and its spawning of user pods such as jupyter-myusername.
@@ -878,7 +878,7 @@ prePuller:
       pullSecrets: []
 
 ingress:
-  enabled: false
+  enabled: true
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     kubernetes.io/ingress.class: ingress-traefik
@@ -890,10 +890,10 @@ ingress:
   pathSuffix: hub
   pathType: Prefix
   hosts:
-    - code-spaces.test.dna.app.corpintra.net
+    - fccockpit.dna-aws.app.corpintra.net
   tls:
     - hosts:
-        - code-spaces.test.dna.app.corpintra.net
+        - fccockpit.dna-aws.app.corpintra.net
       secretName: cs-tls-secret  
 
 # cull relates to the jupyterhub-idle-culler service, responsible for evicting
