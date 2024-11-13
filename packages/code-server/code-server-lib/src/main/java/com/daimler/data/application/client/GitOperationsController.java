@@ -42,7 +42,7 @@ public class GitOperationsController {
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{repo}/branches",
+    @RequestMapping(value = "/workspaces/branches",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
