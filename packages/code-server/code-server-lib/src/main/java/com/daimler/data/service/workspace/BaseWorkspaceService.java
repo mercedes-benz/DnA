@@ -1353,6 +1353,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 List<MessageDescription> errors = new ArrayList<>();
 		 try {
 			 String repoName = null;
+			 String repoUrl = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -1363,15 +1364,16 @@ import com.daimler.data.util.ConstantsUtility;
 						 .setEnvironment(codeServerEnvValue);
 				
 				if(isprivateRecipe){
-					List<String> repoDetails = CommonUtils.getDetailsFromUrl(deployJobInputDto.getRepo());
+					repoUrl = deployJobInputDto.getRepo().replaceAll(".git","/");
+					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
 					if(repoDetails.size() > 0 && repoDetails !=null){
-						repoName = repoDetails.get(0);
+						repoName = repoDetails.get(2);
 						gitOrgName = repoDetails.get(1);
 					}
-				}else {
-					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
+				} else {
+					repoName = entity.getData().getProjectDetails().getGitRepoName();
 				}
-				
+				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
