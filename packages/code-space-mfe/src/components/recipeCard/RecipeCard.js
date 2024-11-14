@@ -20,11 +20,6 @@ const RecipeCard = ({recipe, additionalServices, onSelectRecipe, onDeleteRecipe}
     return ramValue.toString();
   };
 
-const chipsAdditionalServices =
-  additionalServices && additionalServices?.length
-    ? <label className={classNames('chips', Styles.chips)}>{additionalServices[0]?.serviceName} {additionalServices[0]?.version}</label> + '...'
-    : 'N/A';
-
   return (
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
@@ -50,14 +45,18 @@ const chipsAdditionalServices =
             <div>Software Configuration</div>
             {console.log('chips', recipe.software[0])}
             <div>
-              {recipe?.software && recipe?.software?.length
+              {recipe?.software && recipe?.software?.length > 1
                 ? <label className={classNames('chips', Styles.chips)}>{recipe?.software[0]}</label>
                 : 'N/A'}
             </div>
           </div>
           <div>
             <div>Additional Services</div>
-            <div>{chipsAdditionalServices}</div>
+            <div>
+              {additionalServices && additionalServices?.length > 1
+                ? <label className={classNames('chips', Styles.chips)}>{additionalServices[0]?.serviceName} {additionalServices[0]?.version}</label>
+                : 'N/A'}
+            </div>
           </div>
         </div>
       </div>

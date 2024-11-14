@@ -165,4 +165,19 @@
     font-size: 18px;
     margin: 0;
   }
-} 
+}
+.statusBtns {
+  display: flex;
+  column-gap: 15px;
+}
+.refreshBtn {
+  background: unset;
+  border: 0;
+  padding: 0;
+  float: right;
+  margin-top: -40px;
+
+  &:hover {
+    background: unset;
+  }
+}

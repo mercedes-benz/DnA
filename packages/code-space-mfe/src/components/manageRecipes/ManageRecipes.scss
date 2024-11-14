@@ -246,6 +246,11 @@
   margin: 0px 8px;
   outline: none;
   padding: 0;
+  
+  > i {
+    margin-right: 5px;
+    transform: translateY(-1px);
+  }
 
   &:hover {
       color: #00adef;
