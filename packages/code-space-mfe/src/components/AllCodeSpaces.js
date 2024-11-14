@@ -174,7 +174,7 @@ const AllCodeSpaces = (props) => {
                         '.',
                     );
 
-                    startSuccessCB();
+                    !manual && startSuccessCB();
 
                 } else {
                     Notification.show(

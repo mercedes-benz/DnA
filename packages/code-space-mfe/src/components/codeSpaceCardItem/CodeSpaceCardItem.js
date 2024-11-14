@@ -415,6 +415,17 @@ const CodeSpaceCardItem = (props) => {
     </div>
   );
 
+  const migrateOrStartContent = (
+    <div className={Styles.modalContentWrapper}>
+      <div className={Styles.modalTitle}>Do you want to migrate from DHC-Caas(On-Prem) to DHC-Caas(AWS) ? </div>
+      <div className={Styles.modalContent}>
+        <p>Note: Before migrating please commit or keep a backup of your changes and untracked files present in your current workspace. On migration your workspace will be requested to start but please note that the initial start may take some time.</p>
+        <br/>
+        <p>If you do not wish to migrate at the moment you can start your workspace by simply clicking on the DHC-CaaS(On-Prem) option.</p>
+      </div>
+    </div>
+  );
+
   const onRestart = (env) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
@@ -1293,10 +1304,7 @@ const CodeSpaceCardItem = (props) => {
           showAcceptButton={true}
           showCancelButton={true}
           show={showMigrateOrStartModal}
-          content={<div>
-            <h3>Do you want to migrate from DHC-Caas(On-Prem) to DHC-Caas(AWS)</h3>
-            <p>Note: Before migrating please commit your changes and untracked files in your current workspace.</p>
-          </div>}
+          content={migrateOrStartContent}
           onCancel={() => {
             props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS' );
             setShowMigrateOrStartModal(false);
@@ -1306,7 +1314,7 @@ const CodeSpaceCardItem = (props) => {
       )}
       {showOnPremStartModal && (
         <Modal
-          title={''}
+          title={'Manual Start'}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'60%'}
