@@ -18,7 +18,7 @@ annotations:
   notifications.argoproj.io/subscribe.on-sync-running.teams: channelName
   notifications.argoproj.io/subscribe.on-sync-status-unknown.teams: channelName
   notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
-  
+  argocd.argoproj.io/manifest-generate-paths: .
 repositories:
   - name: dna-kong
     url: https://git.i.mercedes-benz.com/DNA/dna-kong.git
