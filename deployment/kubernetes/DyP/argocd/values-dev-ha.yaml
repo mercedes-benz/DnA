@@ -589,12 +589,14 @@ extraObjects:
           discover:
             find:
               command:
-                - sh
+                - "/bin/sh"
                 - "-c"
                 - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
           generate:
             command:
-              - sh
+              - "/bin/bash"
+              - "-o"
+              - "pipefail" # exit with non-zero code if any command in pipeline fails
               - "-c"
               - |
                 helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE ${ARGOCD_ENV_HELM_ARGS} . |
