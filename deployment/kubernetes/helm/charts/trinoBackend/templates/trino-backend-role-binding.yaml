@@ -5,8 +5,8 @@ metadata:
   namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
-    name: trino-backend-sa
-    namespace: {{ .Values.namespace }}
+    name: trino-backend-sa
+    namespace: {{ .Values.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
