@@ -928,66 +928,66 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							}
 						}
 					}
+					if(!isAdminGroupAvailable) {
+						adminGroupVO = new GroupDetailsVO();
+						adminGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						adminGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN);
+					}
+					if(!isContributorGroupAvailable) {
+						contributorGroupVO = new GroupDetailsVO();
+						contributorGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						contributorGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR);
+					}
+					if(!isMemberGroupAvailable) {
+						memberGroupVO = new GroupDetailsVO();
+						memberGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						memberGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER);
+					}
+					if(!isViewerGroupAvailable) {
+						viewerGroupVO = new GroupDetailsVO();
+						viewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
+					}
 					//check if groups are assigned
 					FabricGroupsCollectionDto usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
 					//change status if available and also assigned, if not create and assign
 					if(usersGroupsCollection!=null && usersGroupsCollection.getValue()!=null && !usersGroupsCollection.getValue().isEmpty()) {
 						for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
 							if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
-								if(isAdminGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(adminGroupVO.getGroupName())) {
-										isAdminGroupAvailable = true;
-										adminGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										adminGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-										GroupDetailsVO existingAdminGroupVO = new GroupDetailsVO();
-										existingAdminGroupVO.setState(ConstantsUtility.PENDING_STATE);
-										existingAdminGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN);
-										adminGroupVO = this.callGroupAssign(existingAdminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(adminGroupVO.getGroupName())) {
+									isAdminGroupAssigned = true;
+									adminGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									adminGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								
-								if(isContributorGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(contributorGroupVO.getGroupName())) {
-										isContributorGroupAvailable = true;
-										contributorGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										contributorGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-									GroupDetailsVO existingContributorGroupVO =  new GroupDetailsVO();
-									existingContributorGroupVO.setState(ConstantsUtility.PENDING_STATE);
-									existingContributorGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR);
-									contributorGroupVO = this.callGroupAssign(existingContributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(contributorGroupVO.getGroupName())) {
+									isContributorGroupAssigned = true;
+									contributorGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									contributorGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								
-								if(isMemberGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(memberGroupVO.getGroupName())) {
-										isMemberGroupAvailable = true;
-										memberGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										memberGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-									GroupDetailsVO existingMemberGroupVO = new GroupDetailsVO();
-									existingMemberGroupVO.setState(ConstantsUtility.PENDING_STATE);
-									existingMemberGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER);
-									memberGroupVO = this.callGroupAssign(existingMemberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(memberGroupVO.getGroupName())) {
+									isMemberGroupAssigned = true;
+									memberGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									memberGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-
-								if(isViewerGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(viewerGroupVO.getGroupName())) {
-										isViewerGroupAvailable = true;
-										viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-									GroupDetailsVO existingViewerGroupVO = new GroupDetailsVO();
-									existingViewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
-									existingViewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
-									viewerGroupVO = this.callGroupAssign(existingViewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(viewerGroupVO.getGroupName())) {
+									isViewerGroupAssigned = true;
+									viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								
 							}
 						}
+					}
+					if(!isAdminGroupAssigned) {
+						adminGroupVO = this.callGroupAssign(adminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+					}
+					if(!isContributorGroupAssigned) {
+						contributorGroupVO = this.callGroupAssign(contributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
+					}
+					if(!isMemberGroupAssigned) {
+						memberGroupVO = this.callGroupAssign(memberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
+					}
+					if(!isViewerGroupAssigned) {
+						viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 					}
 					
 					updatedMicrosoftFabricGroups.add(adminGroupVO);
@@ -1102,24 +1102,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(isAdminGroupAvailable) {
 			updatedGroups.add(adminGroupVO);
 		}else {
+			log.info("Admin group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			adminGroupVO = this.callGroupAssign(adminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
 			updatedGroups.add(adminGroupVO);
 		}
 		if(isContributorGroupAvailable) {
 			updatedGroups.add(contributorGroupVO);
 		}else {
+			log.info("Contributor group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			contributorGroupVO = this.callGroupAssign(contributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
 			updatedGroups.add(contributorGroupVO);
 		}
 		if(isMemberGroupAvailable) {
 			updatedGroups.add(memberGroupVO);
 		}else {
+			log.info("Member group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			memberGroupVO = this.callGroupAssign(memberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
 			updatedGroups.add(memberGroupVO);
 		}
 		if(isViewerGroupAvailable) {
 			updatedGroups.add(viewerGroupVO);
 		}else {
+			log.info("Viewer group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 			updatedGroups.add(viewerGroupVO);
 		}
