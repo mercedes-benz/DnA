@@ -29,6 +29,21 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         .getAllBuckets()
         .then((res) => {
           setBuckets(res?.data?.data);
+          if(res.status !== 204) {
+            const sortedBuckets = res?.data?.data.sort((x, y) => {
+                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+                if (fx < fy) {
+                    return -1;
+                }
+                if (fx > fy) {
+                    return 1;
+                }
+                return 0;
+            });
+            setBuckets(sortedBuckets);
+          } else {
+            setBuckets([]);
+          }
           SelectBox.defaultSetup(true);
           ProgressIndicator.hide();
         })
@@ -175,7 +190,11 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
       })
       .catch((e) => {
         ProgressIndicator.hide();
-        Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Shortcut deletion failed', 'alert');
+        if(e?.response?.status === 403) {
+          Notification.show('Permision denied. Only Admins can delete shortcuts.', 'alert');
+        } else {
+          Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Shortcut deletion failed', 'alert');
+        }
       });
   }
 
@@ -226,10 +245,14 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   }, [workspace]);
 
   // Pagination 
-  const [totalNumberOfPages] = useState(1);
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+
+  useEffect(() => {
+    setTotalNumberOfPages(Math.ceil(lakehouses.length / maxItemsPerPage));
+  }, [lakehouses, maxItemsPerPage]);
 
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
@@ -240,16 +263,28 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const paginatedLakehousesTemp = lakehouses?.slice(
+    currentPageOffset,
+    currentPageOffset + maxItemsPerPage
+  );
+
+  const [paginatedLakehouses, setPaginatedLakehouses] = useState(paginatedLakehousesTemp);
+
   const onPaginationPreviousClick = () => {
-    const currentPageNum = currentPageNumber - 1;
-    const currentPageOffsetTemp = (currentPageNum - 1) * maxItemsPerPage;
-    setCurrentPageNumber(currentPageNum);
-    setCurrentPageOffset(currentPageOffsetTemp);
+    if (currentPageNumber > 1) {
+      const newPageNumber = currentPageNumber - 1;
+      const newOffset = (newPageNumber - 1) * maxItemsPerPage;
+      setCurrentPageNumber(newPageNumber);
+      setCurrentPageOffset(newOffset);
+    }
   };
   const onPaginationNextClick = () => {
-    const currentPageOffsetTemp = currentPageNumber * maxItemsPerPage;
-    setCurrentPageNumber(currentPageNumber + 1);
-    setCurrentPageOffset(currentPageOffsetTemp);
+    if (currentPageNumber < totalNumberOfPages) {
+      const newPageNumber = currentPageNumber + 1;
+      const newOffset = newPageNumber * maxItemsPerPage - maxItemsPerPage;
+      setCurrentPageNumber(newPageNumber);
+      setCurrentPageOffset(newOffset);
+    }
   };
   const onViewByPageNum = (pageNum) => {
     setCurrentPageNumber(1);
@@ -258,9 +293,12 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   };
 
   useEffect(() => {
-    // get lakehouses here
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
+    const paginatedData = lakehouses?.slice(
+      currentPageOffset,
+      currentPageOffset + maxItemsPerPage
+    );
+    setPaginatedLakehouses(paginatedData);
+  }, [currentPageNumber, maxItemsPerPage, lakehouses, currentPageOffset]);
 
   const handleCreateLakehouse = () => {
     if(lakehouseName.length === 0) {
@@ -342,13 +380,13 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
             </button>
           </div> */}
         </div>
-        {lakehouses?.length === 0 &&
+        {paginatedLakehouses?.length === 0 &&
           <div className={Styles.noLakehouse}>
             <p>No lakehouse present in this workspace. Please create one.</p>
           </div>
         }
         <div className={Styles.lakehouseContent}>
-          {lakehouses?.length > 0 && lakehouses?.map((lakehouse) =>
+          {paginatedLakehouses?.length > 0 && paginatedLakehouses?.map((lakehouse) =>
             <div key={lakehouse?.id} className={Styles.lakehouse}>
               <h4>
                 <span>
