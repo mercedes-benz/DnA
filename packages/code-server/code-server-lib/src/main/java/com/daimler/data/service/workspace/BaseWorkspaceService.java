@@ -1370,9 +1370,9 @@ import com.daimler.data.util.ConstantsUtility;
 						gitOrgName = repoDetails.get(1);
 					}
 				} else {
-					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
+					repoName = entity.getData().getProjectDetails().getGitRepoName();
 				}
-				
+				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
