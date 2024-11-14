@@ -28,10 +28,9 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       fabricApi
         .getAllBuckets()
         .then((res) => {
-          setBuckets(res?.data?.data);
           if(res.status !== 204) {
-            const sortedBuckets = res?.data?.data.sort((x, y) => {
-                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+            const sortedBuckets = res?.data?.data?.sort((x, y) => {
+                let fx = x?.bucketName?.toLowerCase(), fy = y?.bucketName?.toLowerCase();
                 if (fx < fy) {
                     return -1;
                 }
@@ -54,8 +53,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
             history.push(`/`);
           } else {
             Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
+              e?.response?.data?.errors?.length
+                ? e?.response?.data?.errors[0]?.message
                 : 'Fetching buckets failed!',
               'alert',
             );
