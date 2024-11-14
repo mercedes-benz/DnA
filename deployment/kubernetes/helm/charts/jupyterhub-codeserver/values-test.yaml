@@ -39,6 +39,7 @@ hub:
         - palansa
       auto_login: true
       allowed_users:
+       - ramyrao
     JupyterHub:
       admin_access: true
       authenticator_class: generic-oauth
