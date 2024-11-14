@@ -68,6 +68,7 @@ import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -172,29 +173,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
 		if (allEntities != null && !allEntities.isEmpty()) {
 			for(FabricWorkspaceNsql entity : allEntities) {
-				try {
-					String id = entity.getId();
-					log.info("Fetched fabric project record from db successfully for id {} ", id);
-					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-					if(dtoFromFabric!=null) {
-						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-								jpaRepo.deleteById(id);
-								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-						}else {
-							entity.getData().setName(dtoFromFabric.getDisplayName());
-							entity.getData().setDescription(dtoFromFabric.getDescription());
-							log.info("getAllLOV-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-							jpaRepo.save(entity);
-							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-							vos.add(updatedVO);
-						}
-					}
-				}catch(Exception e) {
-					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
-					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-					vos.add(updatedVO);
-				}
+//				try {
+//					String id = entity.getId();
+//					log.info("Fetched fabric project record from db successfully for id {} ", id);
+//					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+//					if(dtoFromFabric!=null) {
+//						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+//								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+//								jpaRepo.deleteById(id);
+//								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+//						}else {
+//							entity.getData().setName(dtoFromFabric.getDisplayName());
+//							entity.getData().setDescription(dtoFromFabric.getDescription());
+//							log.info("getAllLOV-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
+//							jpaRepo.save(entity);
+//							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//							vos.add(updatedVO);
+//						}
+//					}
+//				}catch(Exception e) {
+//					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+//					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//					vos.add(updatedVO);
+//				}
+				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+				vos.add(updatedVO);
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
@@ -239,29 +242,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		if (filteredEntities != null && !filteredEntities.isEmpty()) {
 			for(FabricWorkspaceNsql entity : filteredEntities) {
-				try {
-					String id = entity.getId();
-					log.info("Fetched fabric project record from db successfully for id {} ", id);
-					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-					if(dtoFromFabric!=null) {
-						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-								jpaRepo.deleteById(id);
-								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-						}else {
-							entity.getData().setName(dtoFromFabric.getDisplayName());
-							entity.getData().setDescription(dtoFromFabric.getDescription());
-							log.info("getAll-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-							jpaRepo.save(entity);
-							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-							vos.add(updatedVO);
-						}
-					}
-				}catch(Exception e) {
-					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
-					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-					vos.add(updatedVO);
-				}
+//				try {
+//					String id = entity.getId();
+//					log.info("Fetched fabric project record from db successfully for id {} ", id);
+//					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+//					if(dtoFromFabric!=null) {
+//						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+//								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+//								jpaRepo.deleteById(id);
+//								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+//						}else {
+//							entity.getData().setName(dtoFromFabric.getDisplayName());
+//							entity.getData().setDescription(dtoFromFabric.getDescription());
+//							log.info("getAll-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
+//							jpaRepo.save(entity);
+//							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//							vos.add(updatedVO);
+//						}
+//					}
+//				}catch(Exception e) {
+//					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+//					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//					vos.add(updatedVO);
+//				}
+				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+				vos.add(updatedVO);
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
@@ -290,21 +295,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public FabricWorkspaceVO getById(String id) {
 		FabricWorkspaceVO voFromDb =  super.getById(id);
 		log.info("Fetched fabric project record from db successfully for id {} ", id);
-		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-		if(dtoFromFabric!=null) {
-			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-				try{
-					jpaRepo.deleteById(id);
-					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-				}catch(Exception e) {
-					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
-				}
-				return null;
-			}
-			log.info("getbyid-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-			voFromDb.setName(dtoFromFabric.getDisplayName());
-			voFromDb.setDescription(dtoFromFabric.getDescription());
+//		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+//		if(dtoFromFabric!=null) {
+//			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+//				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+//				try{
+//					jpaRepo.deleteById(id);
+//					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+//				}catch(Exception e) {
+//					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
+//				}
+//				return null;
+//			}
+//			log.info("getbyid-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
+//			voFromDb.setName(dtoFromFabric.getDisplayName());
+//			voFromDb.setDescription(dtoFromFabric.getDescription());
 			try {
 				LakehouseCollectionDto lakehousesCollection = fabricWorkspaceClient.listLakehouses(id);
 				if(lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
@@ -319,7 +324,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			}catch(Exception e) {
 				log.error("Failed to update latest displayName and description from Fabric to Database for project id {} . Will be updated in next fetch", id);
 			}
-		}
+//		}
 		return voFromDb;
 	}
 
@@ -473,6 +478,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		requestedEntitlement.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add entitlement {} for workspace {} ", subgroupPrefix  + workspaceId + "_" + permissionName, workspaceName);
+			EntiltlemetDetailsDto getResponse = identityClient.getEntitlement(createRequestDto.getDisplayName());
+			if(getResponse!=null && getResponse.getUuid()!=null) {
+				requestedEntitlement.setEntitlementId(getResponse.getEntitlementId());
+				requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
+				log.info("Called identity management system to get entitlement {} for workspace {} . Entitlement fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getUuid());
+				return requestedEntitlement;
+			}
 			EntiltlemetDetailsDto entitlementCreateResponse = identityClient.createEntitlement(createRequestDto);
 			if(entitlementCreateResponse!=null && entitlementCreateResponse.getEntitlementId()!=null) {
 				requestedEntitlement.setEntitlementId(entitlementCreateResponse.getEntitlementId());
@@ -539,6 +551,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRoleVO.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add role {} for workspace {} ", workspaceName + "_" + permissionName, workspaceName);
+			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getName());
+			if(getResponse!=null && getResponse.getId()!=null) {
+				createRoleVO.setId(getResponse.getId());
+				createRoleVO.setLink(identityRoleUrl+workspaceName + "_" +  permissionName);
+				createRoleVO.setState(ConstantsUtility.CREATED_STATE);
+				log.info("Called identity management system to get role {} for workspace {} . Role fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getId());
+				return createRoleVO;
+			}
 			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto);
 			if(createRoleResponseDto!=null && createRoleResponseDto.getId()!=null) {
 				createRoleVO.setId(createRoleResponseDto.getId());
