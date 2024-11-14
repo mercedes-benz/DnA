@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-mfe
   pullPolicy: IfNotPresent
-  tag: '827'
+  tag: '830'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -49,7 +49,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_dev_k8_role"
+    vault.hashicorp.com/role: dna_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/dev/kubernetesSecret/fabricMFE
