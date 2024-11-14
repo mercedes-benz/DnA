@@ -10,7 +10,7 @@ codeserverbackend: http://code-server-backend.code-server.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe
   pullPolicy: IfNotPresent
-  tag: '815'
+  tag: '834'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -50,7 +50,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_dev_k8_role"
+    vault.hashicorp.com/role: dna_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
