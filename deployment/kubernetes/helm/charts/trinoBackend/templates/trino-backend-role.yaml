@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 rules:
   - verbs:
-      - '*'
+      - '*'
     apiGroups:
       - '*'
     resources:
