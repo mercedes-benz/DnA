@@ -1364,7 +1364,7 @@ import com.daimler.data.util.ConstantsUtility;
 				if(isprivateRecipe){
 					List<String> repoDetails = CommonUtils.getDetailsFromUrl(deployJobInputDto.getRepo());
 					if(repoDetails.size() > 0 && repoDetails !=null){
-						repoName = repoDetails.get(0);
+						repoName = repoDetails.get(2);
 						gitOrgName = repoDetails.get(1);
 					}
 				}else {
