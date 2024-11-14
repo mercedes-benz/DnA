@@ -38,7 +38,7 @@ const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
 
   const handleEditRecipe = (e) => {
     e.stopPropagation();
-    history.push(`/codespaceRecipes/${recipe?.recipeName}`);
+    history.push(`/codespaceRecipes/${recipe?.id}`);
   }
 
   const handleDeleteRecipe = (e) => {
@@ -48,7 +48,7 @@ const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
 
   const handleRecipeDelete = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.deleteCodeSpaceRecipe(recipe.recipeName)
+    CodeSpaceApiClient.deleteCodeSpaceRecipe(recipe?.id)
       .then(() => {
         ProgressIndicator.hide();
         Notification.show("Recipe Deleted Successfully");
