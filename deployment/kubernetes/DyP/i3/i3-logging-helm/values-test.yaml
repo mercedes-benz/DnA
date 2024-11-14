@@ -215,8 +215,8 @@ fluent-bit:
           Time_Key @flb-timestamp
           Replace_Dots On
           Logstash_Prefix kubernetes_cluster
-          HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>
+          HTTP_User <path:dna_kv/data/staging/kubernetesSecret/logger#user>
+          HTTP_Passwd <path:dna_kv/data/staging/kubernetesSecret/logger#password>
 
         [OUTPUT]
           Name  opensearch
@@ -229,8 +229,8 @@ fluent-bit:
           Time_Key @flb-timestamp
           Replace_Dots On
           Logstash_Prefix kong_kubernetes_cluster
-          HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>              
+          HTTP_User <path:dna_kv/data/staging/kubernetesSecret/logger#user>
+          HTTP_Passwd <path:dna_kv/data/staging/kubernetesSecret/logger#password>              
 
 dhc-forwarder:
   # Enable user-fluentd service in `default`
@@ -262,7 +262,7 @@ opensearch-dashboards:
 
 
             OSD_VERSION=2.11.0
-            OSD_URL=http://kibanaserver:<path:kv/data/dna/kubernetesSecret/logger#password>@localhost:5601
+            OSD_URL=http://kibanaserver:<path:dna_kv/data/staging/kubernetesSecret/logger#password>@localhost:5601
             wait_time=5 
             max_wait_time=300
             start_time=$(date +%s)
@@ -347,13 +347,13 @@ opensearch-dashboards:
                           {
                             "state_name": "delete",
                             "conditions": {
-                              "min_index_age": "<path:kv/data/dna/kubernetesSecret/logger#retention_age>"
+                              "min_index_age": "<path:dna_kv/data/staging/kubernetesSecret/logger#retention_age>"
                             }
                           },
                           {
                             "state_name": "delete",
                             "conditions": {
-                              "min_size": "<path:kv/data/dna/kubernetesSecret/logger#retention_size>"
+                              "min_size": "<path:dna_kv/data/staging/kubernetesSecret/logger#retention_size>"
                             }
                           }
                         ]
@@ -403,7 +403,7 @@ opensearch-dashboards:
       opensearch.hosts: ["http://i3-logging-opensearch-master:9200"]
       opensearch.ssl.verificationMode: none
       opensearch.username: kibanaserver
-      opensearch.password: <path:kv/data/dna/kubernetesSecret/logger#password>
+      opensearch.password: <path:dna_kv/data/staging/kubernetesSecret/logger#password>
       opensearch.requestHeadersWhitelist: [authorization, securitytenant, Authorization]
 
       opensearch_security.multitenancy.enabled: true
@@ -435,7 +435,7 @@ opensearch-dashboards:
       cert-manager.io/cluster-issuer: daimler-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - host: <path:kv/data/dna/kubernetesSecret/logger#host>
+      - host: <path:dna_kv/data/staging/kubernetesSecret/logger#host>
         paths:
           - path: /
             backend:
@@ -443,7 +443,7 @@ opensearch-dashboards:
               servicePort: 5601
     tls:
       - hosts:
-          - <path:kv/data/dna/kubernetesSecret/logger#host>
+          - <path:dna_kv/data/staging/kubernetesSecret/logger#host>
         secretName: logs-tls
     #  - secretName: chart-example-tls
     #    hosts:
@@ -483,11 +483,11 @@ opensearch:
       cert-manager.io/cluster-issuer: daimler-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - <path:kv/data/dna/kubernetesSecret/logger#opensearch-host>
+      - <path:dna_kv/data/staging/kubernetesSecret/logger#opensearch-host>
     path: /
     tls:
       - hosts:
-          - <path:kv/data/dna/kubernetesSecret/logger#opensearch-host>
+          - <path:dna_kv/data/staging/kubernetesSecret/logger#opensearch-host>
         secretName: logs-opensearch-tls
 
   image:
@@ -626,21 +626,21 @@ opensearch:
             config_version: 2
 
           admin:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_kv/data/staging/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "admin"
             description: "Admin user"
 
           kibanaserver:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_kv/data/staging/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "admin"            
             description: "OpenSearch Dashboards server"
 
           kibanaro:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_kv/data/staging/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "kibanauser"
@@ -652,21 +652,21 @@ opensearch:
             description: "Demo read-only user for OpenSearch dashboards"
 
           logstash:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_kv/data/staging/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "logstash"
             description: "Demo logstash user"
 
           readall:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_kv/data/staging/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "readall"
             description: "Demo readall user"
 
           snapshotrestore:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_kv/data/staging/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "snapshotrestore"
@@ -833,8 +833,8 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: <path:kv/data/dna/kubernetesSecret/logger#size>
-    storageClass: <path:kv/data/dna/kubernetesSecret/logger#storageClass>
+    size: <path:dna_kv/data/staging/kubernetesSecret/logger#size>
+    storageClass: <path:dna_kv/data/staging/kubernetesSecret/logger#storageClass>
   replicas: 1
   singleNode: true
   opensearchJavaOpts: "-Xmx2048M -Xms2048M"
@@ -921,9 +921,9 @@ jaeger:
       host: i3-logging-opensearch-master
       port: 9200
       anonymous: false
-      user: <path:kv/data/dna/kubernetesSecret/logger#user>
+      user: <path:dna_kv/data/staging/kubernetesSecret/logger#user>
       usePassword: true
-      password: <path:kv/data/dna/kubernetesSecret/logger#password>
+      password: <path:dna_kv/data/staging/kubernetesSecret/logger#password>
       extraEnv:
         - name: ES_TAGS_AS_FIELDS_ALL
           value: "true"          
