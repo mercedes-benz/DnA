@@ -1,0 +1,125 @@
+appName: clamav
+namespace: clamav
+securityContext:
+  runasUser: 100
+app:
+  backend:
+    name: clamav-rest
+    replicaCount: 2
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
+      tag: 3.1.6
+    secrets:
+      name: oneapi-secrets
+      onapiBasicAuthToken: null
+      jwtSecretKey: null
+      appDBUserName: null
+      appDBPassword: null
+    config:
+      clamav_backend_url: clamav-service
+      clamav_backend_port: 3310
+      max_file_size: 4000MB
+      max_request_size: 4000MB
+      api_request_limit: 20
+      with_in: 2
+      time_unit: seconds
+      auth_api_host: null
+      restricted_url_pattern: null
+      loggingPath: /tmp/clamav/log
+      loggingEnvironment: dev
+      corsOriginUrl: null
+      dbUri: null
+      flywayEnabled: true
+      flywayBaselineOnMigrate: true
+      flywayBaselineVersion: 0
+      flywaySchema: public
+      vaultHost: null
+      vaultPort: null
+      appUrl: null
+      enableAuth: true
+      verifyLoginApi: null
+      unscribeMalwareScanApi: null
+      naas_broker: null
+  vault:
+    secret:
+      rootToken: null
+  probes:
+    initialDelaySeconds: 60
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: api
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: api
+image:
+  replicaCount: 4
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-11
+  pullPolicy: Always
+ingress:
+  enabled: false
+  host: scan.dna.app.corpintra.net
+  certificateIssuer: daimler-acme
+  prefix: /internal
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+imagePullSecret:
+  name: imagepullsecret
+Storage:
+  storageClass: cinder
+  accessModes: ReadWriteOnce
+  size: 5G
+resources:
+  requests:
+    memory: 4000Mi
+    cpu: 2
+  limits:
+    memory: 4000Mi
+    cpu: 2
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna_prod_k8_role'
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-truststore.jks: |
+      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.TRUSTSTORE }}
+      {{- end }}
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-keystore.p12: |
+      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.KEYSTORE }}
+      {{- end }}      
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/prod/kubernetesSecret/malwareService
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "dna_kv/prod/kubernetesSecret/malwareService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+        {{- range $k, $v := .Data.data }}
+        {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}        
+        {{- end }}      
+      {{- end }}   
+  saName: default
+  jarName: malwarescan-lib*.jar
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 20
