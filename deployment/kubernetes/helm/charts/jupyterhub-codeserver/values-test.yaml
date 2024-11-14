@@ -37,19 +37,16 @@ hub:
     Authenticator:
       admin_users:
         - palansa
-        - ghosdeb
-        - vimhask
       auto_login: true
       allowed_users:
-        - ramyrao
     JupyterHub:
       admin_access: true
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://test.dna.app.corpintra.net/#/codespaces
       cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
-    # CryptKeeper:
-    #   keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
+    CryptKeeper:
+      keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
