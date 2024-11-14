@@ -1059,7 +1059,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
-			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public")
+			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
