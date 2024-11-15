@@ -1362,7 +1362,12 @@ import com.daimler.data.util.ConstantsUtility;
 						 .setEnvironment(codeServerEnvValue);
 
 				if (isprivateRecipe) {
-					repoUrl = deployJobInputDto.getRepo().replaceAll(".git", "/");
+					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+						repoUrl = repoUrl.replaceAll(".git","/");
+					} else {
+						repoUrl.concat("/");
+					}
 					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
 					if (repoDetails.size() > 0 && repoDetails != null) {
 						repoName = repoDetails.get(2);
@@ -1371,7 +1376,7 @@ import com.daimler.data.util.ConstantsUtility;
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
 				}
-				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
+				 deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
