@@ -2111,7 +2111,6 @@ import com.daimler.data.util.ConstantsUtility;
 				 return responseMessage;
 			 } else {
 				 if (projectRecipe.toLowerCase().startsWith("public")
-						 || projectRecipe.toLowerCase().startsWith("private")
 						 || projectRecipe.equalsIgnoreCase("default")) {
 					 log.error("Cannot update public/private recipe types, deploy n undeploy is disabled");
 					 MessageDescription msg = new MessageDescription(
