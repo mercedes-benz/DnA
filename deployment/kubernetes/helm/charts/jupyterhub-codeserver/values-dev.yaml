@@ -352,7 +352,8 @@ proxy:
       tag: "4.6.2" # https://github.com/jupyterhub/configurable-http-proxy/tags
       pullPolicy:
       pullSecrets: []
-    extraCommandLineFlags: []
+    extraCommandLineFlags:
+    - "--no-include-prefix"
     livenessProbe:
       enabled: true
       initialDelaySeconds: 60
