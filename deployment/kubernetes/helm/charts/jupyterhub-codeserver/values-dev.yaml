@@ -46,8 +46,8 @@ hub:
       redirect_to_server: false
       default_url: https://dev.dna.app.corpintra.net/#/codespaces
       cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
-    # CryptKeeper:
-    #   keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
+    CryptKeeper:
+      keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
