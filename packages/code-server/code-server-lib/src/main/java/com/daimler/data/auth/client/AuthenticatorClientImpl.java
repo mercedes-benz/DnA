@@ -349,22 +349,31 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> protocols = new ArrayList();
 		String currentPath = "";
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
+		CreateRouteRequestVO createRouteRequestVOApi = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
+		CreateRouteVO createRouteVOApi = new CreateRouteVO();
+
 		if(kongApiForDeploymentURL) {
-			if(apiRecipe) {
-				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
-			}
-			else {
-				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
-			}
+			// if(apiRecipe) {
+			currentPath = "/" + serviceName.toLowerCase() + "/" + env;
+			createRouteVOApi.setName(env!=null?serviceName.toLowerCase()+"-"+env:serviceName.toLowerCase()+ "-api");
+			createRouteVOApi.setHosts(hosts);		
+			createRouteVOApi.setPaths(paths);
+			createRouteVOApi.setProtocols(protocols);
+			createRouteVOApi.setStripPath(true);
+			createRouteRequestVOApi.setData(createRouteVO);
+			// 	if(env.equalsIgnoreCase("int"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
+			// 	if(env.equalsIgnoreCase("prod"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
+			// }
+			// else {
+			// 	currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
+			// 	if(env.equalsIgnoreCase("int"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
+			// 	if(env.equalsIgnoreCase("prod"))
+			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
+			// }
 //			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 //				paths.add("/" + serviceName + "/" + "int" + "/api");
 //			}
@@ -470,6 +479,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 			}
 			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
+				if(kongApiForDeploymentURL) {
+					createRouteResponse = createRoute(createRouteRequestVOApi, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+				}
 				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
