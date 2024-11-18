@@ -789,6 +789,7 @@ definitions:
         properties:
           roleName:
             type: string
+            pattern: "^[A-Z0-9]+[A-Z0-9._-]{1,60}$"
 
 
     
