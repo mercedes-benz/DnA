@@ -2080,7 +2080,7 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				 }
