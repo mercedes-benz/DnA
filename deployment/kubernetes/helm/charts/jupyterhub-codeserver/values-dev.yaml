@@ -46,8 +46,8 @@ hub:
       redirect_to_server: false
       default_url: https://dev.dna.app.corpintra.net/#/codespaces
       cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
-    # CryptKeeper:
-    #   keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
+    CryptKeeper:
+      keys: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
     GenericOAuthenticator:
       client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -67,6 +67,7 @@ hub:
     annotations: {}
     ports:
       nodePort:
+      appProtocol:
     extraPorts: []
     loadBalancerIP:
   baseUrl: /
@@ -193,16 +194,6 @@ hub:
             }
           }        
 
-  #   livenessProbe:
-  #     httpGet:
-  #       path: /healthz
-  #       port: http
-  #       scheme: HTTP    
-  #     initialDelaySeconds: 90
-  #     periodSeconds: 10
-  #     failureThreshold: 5
-  #     successThreshold: 1
-  #     timeoutSeconds: 3
   extraFiles: {}
   extraEnv: {}
   extraContainers: []
@@ -210,16 +201,21 @@ hub:
   extraVolumeMounts: []
   image:
     name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-hub
-    tag: "3.2.1"
+    tag: "4.0.0"
     pullPolicy:
     pullSecrets: []
   resources: {}
   podSecurityContext:
+    runAsNonRoot: true
     fsGroup: 1000
+    seccompProfile:
+      type: "RuntimeDefault"
   containerSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
     allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
   lifecycle: {}
   loadRoles: {}
   services: {}
@@ -340,15 +336,20 @@ proxy:
   chp:
     revisionHistoryLimit:
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     image:
       name: registry-emea.app.corpintra.net/publicquay/jupyterhub/configurable-http-proxy
       # tag is automatically bumped to new patch versions by the
       # watch-dependencies.yaml workflow.
       #
-      tag: "4.6.1" # https://github.com/jupyterhub/configurable-http-proxy/tags
+      tag: "4.6.2" # https://github.com/jupyterhub/configurable-http-proxy/tags
       pullPolicy:
       pullSecrets: []
     extraCommandLineFlags:
@@ -394,15 +395,20 @@ proxy:
   traefik:
     revisionHistoryLimit:
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     image:
       name: traefik
       # tag is automatically bumped to new patch versions by the
       # watch-dependencies.yaml workflow.
       #
-      tag: "v2.10.5" # ref: https://hub.docker.com/_/traefik?tab=tags
+      tag: "v3.2.0" # ref: https://hub.docker.com/_/traefik?tab=tags
       pullPolicy:
       pullSecrets: []
     hsts:
@@ -444,12 +450,17 @@ proxy:
     extraPodSpec: {}
   secretSync:
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     image:
       name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-secret-sync
-      tag: "3.2.1"
+      tag: "4.0.0"
       pullPolicy:
       pullSecrets: []
     resources: {}
@@ -490,7 +501,7 @@ singleuser:
   networkTools:
     image:
       name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-network-tools
-      tag: "3.2.1"
+      tag: "4.0.0"
       pullPolicy:
       pullSecrets: []
     resources: {}
@@ -583,26 +594,11 @@ singleuser:
     CS_MINIO_KEY: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_key>
     CS_MINIO_SECRET: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
   lifecycleHooks: {}
-    # postStart:
-    #   exec:
-    #     command:
-    #       - /bin/sh
-    #       - -c
-    #       - |
-    #         echo 'postStart hook started'
-    #         mc alias set minio $MINIO_ENDPOINT $MINIO_KEY $MINIO_SECRET
-    #         mkdir -p /home/coder/entrypoint.d
-    #         mc cp minio/code-server/react/build/entrypoint.d/pkg-install.sh /home/coder/entrypoint.d/
-    #         chmod +x /home/coder/entrypoint.d/pkg-install.sh
-    #         ./home/coder/entrypoint.d/pkg-install.sh
-    #         mc alias remove minio
-    #         echo 'postStart hook succeeded'
-
-  initContainers: []     
+  initContainers: []
   extraContainers: []
   allowPrivilegeEscalation: false
   uid: 1000
-  fsGid: 1000
+  fsGid: 100
   serviceAccountName:
   storage:
     type: dynamic
@@ -636,7 +632,7 @@ singleuser:
     limits: {}
     guarantees: {}
   cmd: jupyterhub-singleuser
-  defaultUrl: 
+  defaultUrl:
   extraPodConfig: {}
   profileList:
     - display_name: "Default environment"
@@ -666,19 +662,24 @@ scheduling:
     #
     plugins:
       score:
-        # These scoring plugins are enabled by default according to
-        # https://kubernetes.io/docs/reference/scheduling/config/#scheduling-plugins
-        # 2022-02-22.
+        # We make use of the default scoring plugins, but we re-enable some with
+        # a new priority, leave some enabled with their lower default priority,
+        # and disable some.
         #
-        # Enabled with high priority:
+        # Below are the default scoring plugins as of 2024-09-23 according to
+        # https://kubernetes.io/docs/reference/scheduling/config/#scheduling-plugins.
+        #
+        # Re-enabled with high priority:
         # - NodeAffinity
         # - InterPodAffinity
         # - NodeResourcesFit
         # - ImageLocality
+        #
         # Remains enabled with low default priority:
         # - TaintToleration
         # - PodTopologySpread
         # - VolumeBinding
+        #
         # Disabled for scoring:
         # - NodeResourcesBalancedAllocation
         #
@@ -707,20 +708,25 @@ scheduling:
       - name: NodeResourcesFit
         args:
           scoringStrategy:
+            type: MostAllocated
             resources:
               - name: cpu
                 weight: 1
               - name: memory
                 weight: 1
-            type: MostAllocated
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     image:
       # IMPORTANT: Bumping the minor version of this binary should go hand in
-      #            hand with an inspection of the user-scheduelrs RBAC resources
-      #            that we have forked in
+      #            hand with an inspection of the user-scheduelr's RBAC
+      #            resources that we have forked in
       #            templates/scheduling/user-scheduler/rbac.yaml.
       #
       #            Debugging advice:
@@ -753,7 +759,7 @@ scheduling:
       # here. We aim to stay around 1 minor version behind the latest k8s
       # version.
       #
-      tag: "v1.26.11" # ref: https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG
+      tag: "v1.30.6" # ref: https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG
       pullPolicy:
       pullSecrets: []
     nodeSelector: {}
@@ -785,7 +791,7 @@ scheduling:
       #
       # If you update this, also update prePuller.pause.image.tag
       #
-      tag: "3.9"
+      tag: "3.10"
       pullPolicy:
       pullSecrets: []
     revisionHistoryLimit:
@@ -793,9 +799,14 @@ scheduling:
     labels: {}
     annotations: {}
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     resources: {}
   corePods:
     tolerations:
@@ -829,9 +840,14 @@ prePuller:
   annotations: {}
   resources: {}
   containerSecurityContext:
+    runAsNonRoot: true
     runAsUser: 65534 # nobody user
     runAsGroup: 65534 # nobody group
     allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
   extraTolerations: []
   # hook relates to the hook-image-awaiter Job and hook-image-puller DaemonSet
   hook:
@@ -840,13 +856,18 @@ prePuller:
     # image and the configuration below relates to the hook-image-awaiter Job
     image:
       name: registry-emea.app.corpintra.net/publicquay/jupyterhub/k8s-image-awaiter
-      tag: "3.2.1"
+      tag: "4.0.0"
       pullPolicy:
       pullSecrets: []
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     podSchedulingWaitDuration: 10
     nodeSelector: {}
     tolerations: []
@@ -857,13 +878,18 @@ prePuller:
       annotations: {}
   continuous:
     enabled: true
-  pullProfileListImages: false
+  pullProfileListImages: true
   extraImages: {}
   pause:
     containerSecurityContext:
+      runAsNonRoot: true
       runAsUser: 65534 # nobody user
       runAsGroup: 65534 # nobody group
       allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
     image:
       name: registry-emea.app.corpintra.net/k8scache/pause
       # tag is automatically bumped to new patch versions by the
@@ -871,7 +897,7 @@ prePuller:
       #
       # If you update this, also update scheduling.userPlaceholder.image.tag
       #
-      tag: "3.9"
+      tag: "3.10"
       pullPolicy:
       pullSecrets: []
 
