@@ -1037,13 +1037,13 @@ dex:
     - name: AVP_AUTH_TYPE
       value: "k8s"
     - name: AVP_K8S_ROLE
-      value: "dna"
+      value: "dna_dev_k8_role"
     - name: AVP_TYPE
       value: "vault"
     - name: VAULT_ADDR
-      value: "https://hcvault.app.corpintra.net"    
-    - name: VAULT_NAMESPACE
-      value: "fmas/dev"    
+      value: "https://dnaplatform.service.vault-prod.rd.corpintra.net"    
+    # - name: VAULT_NAMESPACE
+    #   value: "fmas/dev"    
     - name: VAULT_SKIP_VERIFY
       value: "true"          
 
@@ -2265,13 +2265,13 @@ repoServer:
         - name: AVP_AUTH_TYPE
           value: "k8s"
         - name: AVP_K8S_ROLE
-          value: "dna"
+          value: "dna_dev_k8_role"
         - name: AVP_TYPE
           value: "vault"
         - name: VAULT_ADDR
-          value: "https://hcvault.app.corpintra.net"   
-        - name: VAULT_NAMESPACE
-          value: "fmas/dev"         
+          value: "https://dnaplatform.service.vault-prod.rd.corpintra.net"   
+        # - name: VAULT_NAMESPACE
+        #   value: "fmas/dev"
         - name: VAULT_SKIP_VERIFY
           value: "true"                                        
       volumeMounts:
