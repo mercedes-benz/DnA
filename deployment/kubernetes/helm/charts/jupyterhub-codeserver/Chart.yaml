@@ -29,7 +29,7 @@ keywords:
 - jupyter
 - jupyterhub
 - z2jh
-kubeVersion: '>=1.28.0-0'
+# kubeVersion: '>=1.28.0-0'
 maintainers:
 - email: erik@sundellopensource.se
   name: Erik Sundell
