@@ -1,0 +1,29 @@
+# Default values for aws-data-migration-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+
+namespace: 'backup-ns-01'
+pvcs:
+  - pvcName: ws1887
+    backupPath: '/home/backup-ns-01'
+  - pvcName: ws1888
+    backupPath: '/home/backup-ns-02'
+  - pvcName: ws1889
+    backupPath: '/home/backup-ns-03'
+
+backupJob:
+  enabled: false
+
+restoreJob:
+  enabled: false
+
+storageCredentials:
+  accessKeyId: "test"
+  secretAccessKey: "test"
+  resticKey: "test"
+  #Mounted directly to the pod env not as a secret
+  apiUrl: "s3:https://s3.eu-west-2.amazonaws.com"
+  bucketName: "example-bucket"
+#  path: "pvc-name" , this will be the pvc-name
