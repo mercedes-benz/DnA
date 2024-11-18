@@ -136,7 +136,7 @@ injector:
     timeoutSeconds: 5
 
   # Mount Path of the Vault Kubernetes Auth Method.
-  authPath: "auth/k8_auth_dna_dev"
+  authPath: "auth/k8_auth_dna_prod"
 
   # Configures the log verbosity of the injector.
   # Supported log levels include: trace, debug, info, warn, error
