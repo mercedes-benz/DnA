@@ -1,27 +1,27 @@
 annotations:
   artifacthub.io/images: |
-    - image: quay.io/jupyterhub/configurable-http-proxy:4.6.1
+    - image: quay.io/jupyterhub/configurable-http-proxy:4.6.2
       name: configurable-http-proxy
-    - image: quay.io/jupyterhub/k8s-hub:3.2.1
+    - image: quay.io/jupyterhub/k8s-hub:4.0.0
       name: k8s-hub
-    - image: quay.io/jupyterhub/k8s-image-awaiter:3.2.1
+    - image: quay.io/jupyterhub/k8s-image-awaiter:4.0.0
       name: k8s-image-awaiter
-    - image: quay.io/jupyterhub/k8s-network-tools:3.2.1
+    - image: quay.io/jupyterhub/k8s-network-tools:4.0.0
       name: k8s-network-tools
-    - image: quay.io/jupyterhub/k8s-secret-sync:3.2.1
+    - image: quay.io/jupyterhub/k8s-secret-sync:4.0.0
       name: k8s-secret-sync
-    - image: quay.io/jupyterhub/k8s-singleuser-sample:3.2.1
+    - image: quay.io/jupyterhub/k8s-singleuser-sample:4.0.0
       name: k8s-singleuser-sample
-    - image: registry.k8s.io/kube-scheduler:v1.26.11
+    - image: registry.k8s.io/kube-scheduler:v1.30.6
       name: kube-scheduler
-    - image: registry.k8s.io/pause:3.9
+    - image: registry.k8s.io/pause:3.10
       name: pause
-    - image: registry.k8s.io/pause:3.9
+    - image: registry.k8s.io/pause:3.10
       name: pause
-    - image: traefik:v2.10.5
+    - image: traefik:v3.2.0
       name: traefik
 apiVersion: v2
-appVersion: 4.0.2
+appVersion: 5.2.1
 description: Multi-user Jupyter installation
 home: https://z2jh.jupyter.org
 icon: https://hub.jupyter.org/helm-chart/images/hublogo.svg
@@ -29,7 +29,7 @@ keywords:
 - jupyter
 - jupyterhub
 - z2jh
-# kubeVersion: '>=1.23.0-0'
+kubeVersion: '>=1.28.0-0'
 maintainers:
 - email: erik@sundellopensource.se
   name: Erik Sundell
@@ -38,4 +38,4 @@ maintainers:
 name: jupyterhub
 sources:
 - https://github.com/jupyterhub/zero-to-jupyterhub-k8s
-version: 3.2.1
+version: 4.0.0
