@@ -1606,30 +1606,30 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		WorkflowDefinitionDto workflow = new WorkflowDefinitionDto();
 		workflow.setId(Integer.valueOf(workflowDefinitionId));
 		
-		CreateRoleRequestDto adminRoleRequestDto = new CreateRoleRequestDto();
-		adminRoleRequestDto.setAccessReview(accessReview);
+		CreateRoleRequestDto roleRequestDto = new CreateRoleRequestDto();
+		roleRequestDto.setAccessReview(accessReview);
 		
-		adminRoleRequestDto.setCommunityAvailability(Arrays.asList(communityAvailabilitySplits));
-		adminRoleRequestDto.setDataClassification("CONFIDENTIAL");
-		adminRoleRequestDto.setDefaultValidityType("OPTIONAL");
-		adminRoleRequestDto.setDeprovisioning(false);
-		adminRoleRequestDto.setDescription("Generic DNA role");
-		adminRoleRequestDto.setDynamic(false);
-		adminRoleRequestDto.setGlobalCentralAvailable(true);
-		adminRoleRequestDto.setId(roleName);
-		adminRoleRequestDto.setJobTitle(false);
-		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		adminRoleRequestDto.setName(roleName);
-		adminRoleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
-		adminRoleRequestDto.setNeedsCustomScopes(false);
-		adminRoleRequestDto.setNeedsOrgScopes(false);
-		adminRoleRequestDto.setNotificationsActive(true);
-		adminRoleRequestDto.setOrganizationAvailabilities(new ArrayList<>());
-		adminRoleRequestDto.setRoleType("BUSINESS");
-		adminRoleRequestDto.setSelfRequestable(true);
-		adminRoleRequestDto.setWorkflowBased(true);
-		adminRoleRequestDto.setWorkflowDefinition(workflow);
-		return adminRoleRequestDto;
+		roleRequestDto.setCommunityAvailability(Arrays.asList(communityAvailabilitySplits));
+		roleRequestDto.setDataClassification("CONFIDENTIAL");
+		roleRequestDto.setDefaultValidityType("OPTIONAL");
+		roleRequestDto.setDeprovisioning(false);
+		roleRequestDto.setDescription("Generic DNA role");
+		roleRequestDto.setDynamic(false);
+		roleRequestDto.setGlobalCentralAvailable(true);
+		roleRequestDto.setId(roleName);
+		roleRequestDto.setJobTitle(false);
+		roleRequestDto.setMarketAvailabilities(new ArrayList<>());
+		roleRequestDto.setName(roleName);
+		roleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
+		roleRequestDto.setNeedsCustomScopes(false);
+		roleRequestDto.setNeedsOrgScopes(false);
+		roleRequestDto.setNotificationsActive(true);
+		roleRequestDto.setOrganizationAvailabilities(new ArrayList<>());
+		roleRequestDto.setRoleType("BUSINESS");
+		roleRequestDto.setSelfRequestable(true);
+		roleRequestDto.setWorkflowBased(true);
+		roleRequestDto.setWorkflowDefinition(workflow);
+		return roleRequestDto;
 	}
 	
 	public RoleDetailsVO callGenericRoleCreate(String roleName) {
