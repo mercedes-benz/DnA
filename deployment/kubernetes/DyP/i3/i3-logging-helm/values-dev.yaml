@@ -335,6 +335,7 @@ opensearch-dashboards:
 
 opensearch:
   enabled: true
+  maxUnavailable: 
 
   # Provide custom masterService to match with fluent-bit output.host
   masterService: "i3-logging-opensearch-master"
