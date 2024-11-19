@@ -304,7 +304,7 @@ master:
   ##
   podAnnotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/role: 'dna_staging_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-redis-password-new: 'dna_kv/staging/kubernetesSecret/redis'
     vault.hashicorp.com/tls-skip-verify: 'true'
@@ -693,7 +693,7 @@ replica:
   ##
   podAnnotations: 
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/role: 'dna_staging_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-redis-password: 'dna_kv/staging/kubernetesSecret/redis'
     vault.hashicorp.com/tls-skip-verify: 'true'
