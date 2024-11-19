@@ -38,7 +38,6 @@ const AliceRoleRequest = () => {
 
   useEffect(() => {
     const storedRoles = sessionStorage.getItem(SESSION_STORAGE_KEYS.ALICE_ROLES_CREATED);
-    console.log(JSON.parse(storedRoles));
     if (storedRoles) {
       setRolesCreated(JSON.parse(storedRoles));
     }
