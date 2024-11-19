@@ -2805,9 +2805,9 @@ import com.daimler.data.util.ConstantsUtility;
 				 workspace.setStatus(ConstantsUtility.CREATEDSTATE);//added
 				 String recipeId = workspace.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 				 String projectOwnerId = workspace.getWorkspaceOwner().getId();
-					 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId,ConstantsUtility.DHC_CAAS_AWS);
-					 workspace.setWorkspaceUrl(workspaceUrl);
-				 String resource = "4Gi,200M,0.3,4000M,2";
+				 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId,ConstantsUtility.DHC_CAAS_AWS);
+				 workspace.setWorkspaceUrl(workspaceUrl);
+				 String resource = workspace.getProjectDetails().getRecipeDetails().getResource();
 				 workspace.getProjectDetails().getRecipeDetails().setResource(resource);
 				 workspace.setServerStatus("SERVER_STOPPED");
 				 vo.setData(workspace);
