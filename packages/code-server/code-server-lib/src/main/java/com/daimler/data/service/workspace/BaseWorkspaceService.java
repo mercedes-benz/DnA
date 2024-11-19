@@ -3014,10 +3014,19 @@ import com.daimler.data.util.ConstantsUtility;
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try{
+			String recipeId= null;
+			String ownersWsid = null;
+			String workspaceUrl = null;
+			String shortId=null;
 			if(CloudServiceProviderEnum.CAAS.name().equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name())){
 				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+				recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+				ownersWsid = entity.getData().getWorkspaceId();
+				shortId = entity.getData().getWorkspaceOwner().getId();
+				workspaceUrl = this.getWorkspaceUrl(recipeId,ownersWsid,shortId,ConstantsUtility.DHC_CAAS_AWS);
 				entity.getData().getProjectDetails().getRecipeDetails().setCloudServiceProvider(ConstantsUtility.DHC_CAAS_AWS);
 				entity.getData().setIsWorkspaceMigrated(true);
+				entity.getData().setWorkspaceUrl(workspaceUrl);
 				jpaRepo.save(entity);
 				status = "SUCCESS";
 			}else{
