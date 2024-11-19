@@ -1213,7 +1213,12 @@ import com.daimler.data.util.ConstantsUtility;
 	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
-		 String workspaceUrl = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codespaceUrlAWS:codespaceUrl)+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 String workspaceUrl = null;
+		 if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
+			workspaceUrl = codespaceUrlAWS +"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 } else {
+			workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 }
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
 		 if (recipeId.toLowerCase().startsWith("public")) {
