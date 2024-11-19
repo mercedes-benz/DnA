@@ -9,7 +9,7 @@ const RecipeCard = ({recipe, additionalServices, onSelectRecipe, onDeleteRecipe}
   
   useEffect(() => {
     Tooltip.defaultSetup();
-  }, [recipe]);
+  }, [recipe, additionalServices]);
 
   const handleOpenWorkspace = () => {
     onSelectRecipe(recipe);
@@ -43,19 +43,36 @@ const RecipeCard = ({recipe, additionalServices, onSelectRecipe, onDeleteRecipe}
           </div>
           <div>
             <div>Software Configuration</div>
-            {console.log('chips', recipe.software[0])}
             <div>
-              {recipe?.software && recipe?.software?.length > 1
-                ? <label className={classNames('chips', Styles.chips)}>{recipe?.software[0]}</label>
-                : 'N/A'}
+              {recipe?.software && recipe?.software.length > 0 ? (
+                <label className={classNames('chips', Styles.reChips)}>
+                  {recipe.software[0]}{" "}
+                  {recipe.software.length > 1 && (
+                    <span className={Styles.spanMore} onClick={() => onSelectRecipe(recipe)}>
+                      +{recipe.software.length - 1} more
+                    </span>
+                  )}
+                </label>
+              ) : (
+                "N/A"
+              )}
             </div>
           </div>
           <div>
             <div>Additional Services</div>
             <div>
-              {additionalServices && additionalServices?.length > 1
-                ? <label className={classNames('chips', Styles.chips)}>{additionalServices[0]?.serviceName} {additionalServices[0]?.version}</label>
-                : 'N/A'}
+              {additionalServices && additionalServices?.length > 0 ? (
+                <label className={classNames('chips', Styles.reChips)}>
+                  {additionalServices[0]?.serviceName}{" "}
+                  {additionalServices?.length > 1 && (
+                    <span className={Styles.spanMore} onClick={() => onSelectRecipe(recipe)}>
+                      +{additionalServices?.length - 1} more
+                    </span>
+                  )}
+                </label>
+              ) : (
+                "N/A"
+              )}
             </div>
           </div>
         </div>
