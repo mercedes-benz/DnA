@@ -6,6 +6,7 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import RecipeList from './RecipeList';
 import Pagination from 'dna-container/Pagination';
 import Modal from 'dna-container/Modal';
+// import { IconGear } from 'dna-container/IconGear';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants';
 import { getQueryParameterByName } from 'dna-container/Query';
 import Caption from 'dna-container/Caption';
@@ -199,10 +200,10 @@ const ManageRecipes = () => {
                 <button
                   className={classNames('btn btn-primary', Styles.btnOutline)}
                   type="button"
-                  onClick={() => history.push('/codespaceRecipes/manageRecipe')}
+                  onClick={() => history.push('/administration')}
                 >
-                  <i className="icon mbc-icon plus" />
-                  <span>Add New Recipe</span>
+                  <IconGear size={'14'} />
+                  <span>Administration</span>
                 </button>
               </div> */}
               <div>
@@ -277,6 +278,14 @@ const ManageRecipes = () => {
                         />
                       )}
                     </div>
+                    <Pagination
+                      totalPages={totalNumberOfPages}
+                      pageNumber={currentPageNumber}
+                      onPreviousClick={onPaginationPreviousClick}
+                      onNextClick={onPaginationNextClick}
+                      onViewByNumbers={onViewByPageNum}
+                      displayByPage={true}
+                    />
                   </>
                 }
                 {listViewMode && (
@@ -355,14 +364,14 @@ const ManageRecipes = () => {
                         </tbody>
                       </table>
                     </div>
-                      <Pagination
-                        totalPages={totalNumberOfPages}
-                        pageNumber={currentPageNumber}
-                        onPreviousClick={onPaginationPreviousClick}
-                        onNextClick={onPaginationNextClick}
-                        onViewByNumbers={onViewByPageNum}
-                        displayByPage={true}
-                      />
+                    <Pagination
+                      totalPages={totalNumberOfPages}
+                      pageNumber={currentPageNumber}
+                      onPreviousClick={onPaginationPreviousClick}
+                      onNextClick={onPaginationNextClick}
+                      onViewByNumbers={onViewByPageNum}
+                      displayByPage={true}
+                    />
                   </div>
                 }
               </div>
