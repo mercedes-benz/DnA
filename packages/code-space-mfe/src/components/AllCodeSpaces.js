@@ -444,7 +444,8 @@ const AllCodeSpaces = (props) => {
             {showAWSWarningModal && (
                 <Modal
                     title={'Attention!!'}
-                    showAcceptButton={false}
+                    showAcceptButton={true}
+                    acceptButtonTitle="OK"
                     showCancelButton={false}
                     modalWidth={'60%'}
                     modalStyle={{
@@ -457,6 +458,7 @@ const AllCodeSpaces = (props) => {
                     content={<div dangerouslySetInnerHTML={{ __html: Envs.AWS_MIGRATION_WARNING_MODAL_CONTENT }} />}
                     scrollableContent={true}
                     onCancel={() => setShowAWSWarningModal(false)}
+                    onAccept={() => setShowAWSWarningModal(false)}
                 />
             )}
         </div>
