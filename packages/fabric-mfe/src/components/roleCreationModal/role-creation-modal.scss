@@ -141,6 +141,12 @@
   height: 2px;
 }
 
+.copyIcon {
+  transform: translate(-4px, 1px);
+  display: inline-block !important;
+  margin-right: -4px !important;
+}
+
 .roleEntitlementNode {
   padding: 6px 12px;
   font-size: 12px;
