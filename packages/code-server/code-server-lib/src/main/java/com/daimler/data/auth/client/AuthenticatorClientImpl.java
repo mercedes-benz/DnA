@@ -513,13 +513,13 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName, cloudServiceProvider);
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName,cloudServiceProvider);
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
-					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env, cloudServiceProvider);
+					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
@@ -534,14 +534,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
 										//deleting OIDC  and Authorizer plugin if already available
 										GenericMessage deletePluginResponse = new GenericMessage();
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN, cloudServiceProvider);
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN, cloudServiceProvider);
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings(), cloudServiceProvider);
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings(),cloudServiceProvider);
 										//deleteing jwy issuer plugin if any
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN, cloudServiceProvider);
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										
@@ -586,7 +586,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
 										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe );
-										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env, cloudServiceProvider);
+										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 
 										//request for attaching APIAUTHORISER plugin to service
 										if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
@@ -619,7 +619,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
 	
 											LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin ",kongApiForDeploymentURL, apiRecipe );
-											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env, cloudServiceProvider);
+											attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 										}
 									}
 								}
@@ -628,14 +628,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						}else{
 							GenericMessage deletePluginResponse = new GenericMessage();
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN, cloudServiceProvider);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN, cloudServiceProvider);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing jwy issuer plugin if any
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN, cloudServiceProvider);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
