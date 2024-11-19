@@ -1946,6 +1946,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
+		 String cloudServiceProvider = null;
 		 try {
 			 String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			 boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
@@ -2067,7 +2068,11 @@ import com.daimler.data.util.ConstantsUtility;
  
 						 }
 					 }
-					 entity.getData().setWorkspaceUrl(workspaceUrl);
+					cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+					if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
+						workspaceUrl = workspaceUrl.replaceAll("dna","dna-aws");
+				 	}
+					entity.getData().setWorkspaceUrl(workspaceUrl);
 				 }
 				 entity.getData().setStatus(latestStatus);
 				 workspaceCustomRepository.update(entity);
