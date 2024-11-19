@@ -3,7 +3,7 @@ namespace: fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
   pullPolicy: IfNotPresent
-  tag: '122'
+  tag: '137'
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
@@ -15,28 +15,27 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: dna
+  vault.hashicorp.com/role: "dna_staging_k8_role"
   vault.hashicorp.com/tls-skip-verify: 'true'
-  vault.hashicorp.com/namespace: fmas/staging
   vault.hashicorp.com/agent-pre-populate-only: 'true'
-  vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/staging/kubernetesSecret/kafka
   vault.hashicorp.com/agent-inject-template-truststore.jks: |
-    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
     {{ base64Decode  .Data.data.TRUSTSTORE }}
     {{- end }}
-  vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/staging/kubernetesSecret/kafka
   vault.hashicorp.com/agent-inject-template-keystore.p12: |
-    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
     {{ base64Decode  .Data.data.KEYSTORE }}
     {{- end }}      
-  vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/fabricService
+  vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/staging/kubernetesSecret/fabricService
   vault.hashicorp.com/agent-inject-template-envvar: |
-    {{- with secret "kv/dna/kubernetesSecret/fabricService" -}}
+    {{- with secret "dna_kv/staging/kubernetesSecret/fabricService" -}}
       {{- range $k, $v := .Data.data }}
           export {{ $k }}="{{ $v }}"
       {{- end }}
     {{- end }}
-    {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+    {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
       {{- range $k, $v := .Data.data }}
       {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
           export {{ $k }}="{{ $v }}"

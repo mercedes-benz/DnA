@@ -13,7 +13,7 @@ image:
   pullPolicy: IfNotPresent
   tag: 1.3.3
 imagePullSecrets:
-  - name: imagepullsecret
+  - name: imagepullsecret 
 nameOverride: ''
 fullnameOverride: data-product-mfe
 podSecurityContext:
@@ -51,14 +51,13 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: 'dna_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/prod
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/dataProductMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/prod/kubernetesSecret/dataProductMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "kv/dna/kubernetesSecret/dataProductMFE" -}}
+      {{- with secret "dna_kv/prod/kubernetesSecret/dataProductMFE" -}}
           window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

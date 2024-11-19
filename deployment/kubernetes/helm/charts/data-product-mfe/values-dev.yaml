@@ -11,7 +11,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-mfe
   pullPolicy: IfNotPresent
-  tag: '112'
+  tag: '632'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -51,17 +51,16 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: "dna_dev_k8_role"
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/dev
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/dataProductMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/dev/kubernetesSecret/dataProductMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "kv/dna/kubernetesSecret/dataProductMFE" -}}
+      {{- with secret "dna_kv/dev/kubernetesSecret/dataProductMFE" -}}
           window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

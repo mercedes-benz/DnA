@@ -4,7 +4,7 @@ secret: []
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dss-backend
   pullPolicy: IfNotPresent
-  tag: '104'
+  tag: '471'
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-be
@@ -53,16 +53,15 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: "dna_dev_k8_role"
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/dev
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/dssService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/dev/kubernetesSecret/dssService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "kv/dna/kubernetesSecret/dssService" -}}
+      {{- with secret "dna_kv/dev/kubernetesSecret/dssService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}

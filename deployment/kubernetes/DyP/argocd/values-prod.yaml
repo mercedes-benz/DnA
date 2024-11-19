@@ -1037,15 +1037,16 @@ dex:
     - name: AVP_AUTH_TYPE
       value: "k8s"
     - name: AVP_K8S_ROLE
-      value: "dna"
+      value: "dna_prod_k8_role"
     - name: AVP_TYPE
       value: "vault"
     - name: VAULT_ADDR
-      value: "https://hcvault.app.corpintra.net"    
-    - name: VAULT_NAMESPACE
-      value: "fmas/prod"    
+      value: "https://dnaplatform.service.vault-prod.rd.corpintra.net"    
+    # - name: VAULT_NAMESPACE
+    #   value: "fmas/prod"    
     - name: VAULT_SKIP_VERIFY
       value: "true" 
+
 
   # -- envFrom to pass to the Dex server
   # @default -- `[]` (See [values.yaml])
@@ -2264,15 +2265,17 @@ repoServer:
         - name: AVP_AUTH_TYPE
           value: "k8s"
         - name: AVP_K8S_ROLE
-          value: "dna"
+          value: "dna_prod_k8_role"
+        - name: AVP_K8S_MOUNT_PATH
+          value: "auth/k8_auth_dna_prod"
         - name: AVP_TYPE
           value: "vault"
         - name: VAULT_ADDR
-          value: "https://hcvault.app.corpintra.net"   
-        - name: VAULT_NAMESPACE
-          value: "fmas/prod"    
+          value: "https://dnaplatform.service.vault-prod.rd.corpintra.net"   
+        # - name: VAULT_NAMESPACE
+        #   value: "fmas/prod"
         - name: VAULT_SKIP_VERIFY
-          value: "true"                                             
+          value: "true"                                       
       volumeMounts:
         - mountPath: /var/run/argocd
           name: var-files
