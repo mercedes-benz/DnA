@@ -135,6 +135,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
+	 
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
  
@@ -1376,20 +1377,40 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe,
+			 	String oneApiVersionShortName, boolean isSecuredWithCookie , boolean isprivateRecipe) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 String cloudServiceProvider = null;
 		 try {
+			 String repoName = null;
+			 String repoUrl = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("deploy");
 				 deployJobInputDto.setBranch(branch);
-				 deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
+				 deployJobInputDto
+						 .setEnvironment(codeServerEnvValue);
+  			if (isprivateRecipe) {
+					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")) {
+						repoUrl = repoUrl.replaceAll(".git","/");
+					} else {
+						repoUrl.concat("/");
+					}
+					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+					if(repoDetails.size() > 0 && repoDetails !=null){
+						repoName = repoDetails.get(2);
+						gitOrgName = repoDetails.get(1);
+					}
+				} else {
+					repoName = entity.getData().getProjectDetails().getGitRepoName();
+				}
+				 deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -1400,6 +1421,15 @@ import com.daimler.data.util.ConstantsUtility;
  //				} else {
  //					deployJobInputDto.setSecure_iam("false");
  //				}
+				 if((!isApiRecipe && !oneApiVersionShortName.isBlank()) || (isSecureWithIAMRequired && !oneApiVersionShortName.isBlank()) ){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Failed while deploying codeserver workspace project, couldn't deploy for this combination. BAD REQUEST. ");
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				 }
 				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
 				 } else {
@@ -1451,8 +1481,6 @@ import com.daimler.data.util.ConstantsUtility;
 						 environmentJsonbName = "prodDeploymentDetails";
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-					 deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					 // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 					 
 					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -1474,18 +1502,16 @@ import com.daimler.data.util.ConstantsUtility;
 					 auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 					 auditLogs.add(auditLog);
 					 deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
 					 //calling kong to create service, route and plugins
-					//  boolean apiRecipe = false;
+					 boolean apiRecipe = false;
 					 String serviceName = projectName;
-					//  String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					//  String reactRecipeId = RecipeIdEnum.REACT.toString();
-					//  String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					//  String dashRecipeId = RecipeIdEnum.DASH.toString();
-					//  String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					//  String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					//  String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+					 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					 String reactRecipeId = RecipeIdEnum.REACT.toString();
+					 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					 String dashRecipeId = RecipeIdEnum.DASH.toString();
+					 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
 					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
@@ -1498,7 +1524,12 @@ import com.daimler.data.util.ConstantsUtility;
 					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
 					//  }
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, cloudServiceProvider);
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
+					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
+					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+					deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
@@ -2080,7 +2111,6 @@ import com.daimler.data.util.ConstantsUtility;
 				 return responseMessage;
 			 } else {
 				 if (projectRecipe.toLowerCase().startsWith("public")
-						 || projectRecipe.toLowerCase().startsWith("private")
 						 || projectRecipe.equalsIgnoreCase("default")) {
 					 log.error("Cannot update public/private recipe types, deploy n undeploy is disabled");
 					 MessageDescription msg = new MessageDescription(
@@ -2104,23 +2134,22 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				//   deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
-				//  if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
-				//  }
-				//  if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
-				//  || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
-				//  || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
-				//  expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				//  }
-				//  if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
-				//  }
-				//  if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-				// 	  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
-				//  }
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
+				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
+				 }
+				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
+				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+				 || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
+				 expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+				 }
+				 if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
+				 }
+				 if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+					  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
+				 }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if ("int".equalsIgnoreCase(targetEnv)) {
