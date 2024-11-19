@@ -129,7 +129,7 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
   pullPolicy: IfNotPresent
-  tag: 3.2.17
+  tag: 3.2.18
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
