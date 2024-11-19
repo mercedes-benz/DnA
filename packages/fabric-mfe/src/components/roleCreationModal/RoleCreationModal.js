@@ -4,6 +4,7 @@ import { ReactFlow, Controls, ConnectionLineType, Background, useNodesState, use
 import '@xyflow/react/dist/style.css';
 import Styles from './role-creation-modal.scss';
 import Spinner from "../spinner/Spinner";
+import Notification from "../../common/modules/uilab/js/src/notification";
 import { FLOW_DIAGRAM_STATES, FLOW_DIAGRAM_TYPES } from "../../utilities/constants";
 import { generateNodesAndEdges, getLayoutedElements } from "../../utilities/utils";
 
@@ -55,7 +56,7 @@ const RoleEntitlementNode = ({ data }) => {
             {isGroupStatePending && 'Assigning '}
             {isGroupStateCreated && 'Created '}
             {isGroupStateAssigned && 'Assigned '}
-            <span>{data.name}</span> {data.label}
+            <span>{data.name} <i className={classNames('icon mbc-icon copy', Styles.copyIcon)} onClick={() => navigator.clipboard.writeText(data.name).then(() => Notification.show('Copied to Clipboard'))}></i></span> {data.label}
             {(isUpdateRoleEntitlementCreated || isUpdateRoleEntitlementAssigned) && <a href={data?.link} target="_blank" rel="noreferrer noopener">[Alice Link <i className="icon mbc-icon new-tab"></i>]</a>}
           </div>
         </div>
