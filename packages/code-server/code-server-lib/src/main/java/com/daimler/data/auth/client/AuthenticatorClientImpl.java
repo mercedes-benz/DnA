@@ -230,10 +230,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	private static final String ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE = "/requestTransformerPlugin";
 	private static final String ATTACH_ONE_API_PLUGIN_TO_SERVICE = "/oneApiPlugin";
-  private static String cloudServiceProvider = null;
+
 	
 	@Override
-	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
+	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -289,7 +289,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage createRoute(CreateRouteRequestVO createRouteRequestVO, String serviceName) {
+	public GenericMessage createRoute(CreateRouteRequestVO createRouteRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -335,7 +335,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	// BUG-339 public GenericMessage attachJWTPluginToService(new dto,String serviceName){
 
 	@Override
-	public GenericMessage attachPluginToService(AttachPluginRequestVO attachPluginRequestVO, String serviceName) {
+	public GenericMessage attachPluginToService(AttachPluginRequestVO attachPluginRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -377,7 +377,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudProvider) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -549,7 +549,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {	
 			boolean isServiceAlreadyCreated = false;
 			boolean isRouteAlreadyCreated = false;
-			createServiceResponse = createService(createServiceRequestVO);
+			createServiceResponse = createService(createServiceRequestVO, cloudServiceProvider);
 			if(Objects.nonNull(createServiceResponse) && Objects.nonNull(createServiceResponse.getErrors())) {
 				List<MessageDescription> responseErrors = createServiceResponse.getErrors();
 				for(MessageDescription error : responseErrors) {
@@ -558,8 +558,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
-			if(!isServiceAlreadyCreated && "success".equalsIgnoreCase(createServiceResponse.getSuccess())  ) {
-				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
+				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
 					for(MessageDescription error : responseErrors) {
@@ -577,13 +577,13 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
-					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName, cloudServiceProvider);
+					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
-					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env, cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
@@ -604,14 +604,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
 										//deleting OIDC  and Authorizer plugin if already available
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+										GenericMessage deletePluginResponse = new GenericMessage();
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN, cloudServiceProvider);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN, cloudServiceProvider);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										//deleteing jwt issuer plugin if any
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
@@ -674,7 +675,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										}
 										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
-										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 
 									}
@@ -775,14 +776,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							}
 						}else{
 							GenericMessage deletePluginResponse = new GenericMessage();
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN, cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN, cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing jwt issuer plugin if any
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting JWT issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing request transformer plugin if any
@@ -1039,7 +1040,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName) {
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1103,7 +1104,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 
 	@Override
-	public GenericMessage deleteService(String serviceName) {
+	public GenericMessage deleteService(String serviceName, String cloudServiceProvider) {
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
@@ -1159,7 +1160,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage deleteRoute(String serviceName, String routeName) {
+	public GenericMessage deleteRoute(String serviceName, String routeName, String cloudServiceProvider) {
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
@@ -1214,7 +1215,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage deletePlugin(String serviceName, String pluginName) {
+	public GenericMessage deletePlugin(String serviceName, String pluginName, String cloudServiceProvider) {
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
@@ -1264,8 +1265,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName) {
-
+	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1319,7 +1319,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName) {
+	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider) {
 
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";

@@ -186,7 +186,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
- 
+		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -414,7 +414,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 && entity.getData().getProjectDetails().getProdDeploymentDetails()
 						 .getLastDeploymentStatus() != null) ){
 		 GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
-				 entity.getData().getWorkspaceId());
+				 entity.getData().getWorkspaceId(), cloudServiceProvider);
 		 if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
 			 log.info("Kong route: {} deleted successfully", entity.getData().getWorkspaceId());
 		 else {
@@ -425,7 +425,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
  
 		 // Deleting Kong service
-		 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId());
+		 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId(), cloudServiceProvider);
 		 if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
 			 log.info("Kong service: {} deleted successfully", entity.getData().getWorkspaceId());
 		 else {
@@ -2761,6 +2761,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 try
 		 {
 			 CodeServerWorkspace workspace = vo.getData();
+			 String cloudServiceProvider = workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 			 String repoName = "";
 			 String repoNameWithOrg = "";
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
@@ -2836,7 +2837,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 vo.setData(workspace);
 				 jpaRepo.save(vo);
 				 GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(vo.getData().getWorkspaceId(),
-				 vo.getData().getWorkspaceId());
+				 vo.getData().getWorkspaceId(), cloudServiceProvider);
 				 if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
 					 log.info("Kong route: {} deleted successfully", vo.getData().getWorkspaceId());
 				 else {
@@ -2846,7 +2847,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 }
 				 }
 				 // Deleting Kong service
-				 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId());
+				 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId(), cloudServiceProvider);
 				 if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
 					 log.info("Kong service: {} deleted successfully", vo.getData().getWorkspaceId());
 				 else {

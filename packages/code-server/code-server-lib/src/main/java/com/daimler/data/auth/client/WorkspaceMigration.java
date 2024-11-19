@@ -23,6 +23,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -97,7 +98,7 @@ public class WorkspaceMigration {
 				log.info("old workspace ids for which service already created and attaching authorization plugin as migration are: {}", oldWsIdsWithService);
 				if (Objects.nonNull(oldWsIdsWithService) && oldWsIdsWithService.size() > 0) {
 					for (String oldWsIdWithService : oldWsIdsWithService) {
-						authenticatorClient.attachAppAuthoriserPluginToService(null, oldWsIdWithService);
+						authenticatorClient.attachAppAuthoriserPluginToService(null, oldWsIdWithService , ConstantsUtility.DHC_CAAS);
 					}
 				}
 			} catch (Exception e) {
