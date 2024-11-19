@@ -18,7 +18,9 @@ const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
 const fabricTrainingUrl = Envs.FABRIC_TRAINING_URL;
 const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
+const powerPlatformTrainingUrl = Envs.POWER_PLATFORM_TRAINING_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
+const aliceUrl = Envs.ALICE_BASE_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
 const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
@@ -30,6 +32,7 @@ const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const odinUrl = Envs.ODIN_URL; 
+const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
@@ -546,6 +549,40 @@ export const ToolsLandingPageElements = [
     svgIcon: 'dataPreparation',
     isDnAInternalTool: false,
   },
+  {
+    id: 'SASS',
+    name: 'SASS',
+    description: 'Sales Analytics Self Service (SASS) is the new analytics service offering for the Data Community in Sales & Marketing. Our mission is to promote quick and easy delivery of key eXtollo resources (Azure) to our digital citizens. ',
+    tags: ['Data Engineering','Data Storage','Cloud','Frontend Reporting'],
+    url: sassUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !sassUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'sass',
+    isDnAInternalTool: false,
+  },
+  {
+    id:'AliceRoleRequest',
+    name: 'Alice Role Request',
+    description: 'A platform to create Alice roles in Dna platform',
+    tags: ['Onprem'],
+    isExternalLink: false,
+    url: '/aliceRoleRequest',
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !aliceUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: false,
+  },
 ];
 
 export const TranparencyLandingPageElements = [
@@ -748,7 +785,7 @@ export const TrainingsLandingPageElements = [
     isDisabled: !fabricTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'tools-mini',
+    svgIconId: 'fabric',
   },
   {
     name: 'SAP Datasphere',
@@ -762,6 +799,19 @@ export const TrainingsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'sac',
+  },
+  {
+    name: 'Power Platform',
+    description:
+      'To help you discover the full potential of Power Platform, we invite you to explore some of the following available courses.',
+    tags: ['No / Low Code'],
+    url: powerPlatformTrainingUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !powerPlatformTrainingUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'powerPlatform',
   },
 ];
 

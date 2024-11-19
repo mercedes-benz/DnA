@@ -196,8 +196,8 @@ public class CodeServerClient {
 		response.setWarnings(warnings);
 		response.setErrors(errors);
 		return response;
-	}
-
+  }
+  
     private boolean isUserPresent(String userId, String cloudServiceProvider) {
 		try {
 			String userURI = "";
@@ -410,6 +410,7 @@ public class CodeServerClient {
 	// 	String status = "FAILED";
 	// 	List<MessageDescription> warnings = new ArrayList<>();
 	// 	List<MessageDescription> errors = new ArrayList<>();
+
 
 	// 	try {
 	// 		boolean isServerStatus = serverStatus(userId, workspaceId, cloudServiceProvider);
