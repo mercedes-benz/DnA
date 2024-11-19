@@ -596,7 +596,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 						if(intSecureIAM  || prodSecureIAM) {
 							//delete oneapi plugin if any
 							GenericMessage deletePluginResponse = new GenericMessage();
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
@@ -774,7 +774,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
 								apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
 
-								attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env);
+								attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 
 							}
@@ -790,7 +790,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting JWT issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing request transformer plugin if any
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//change function plugin status to disable if any
@@ -807,7 +807,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									GenericMessage attachOneApiPluginResponse = new GenericMessage();
 									//delete oneapi plugin if any
 									GenericMessage deletePluginResponse = new GenericMessage();
-									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN);
+									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 									LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
