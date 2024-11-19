@@ -51,7 +51,6 @@ const AliceRoleRequest = () => {
           "roleName": value
         }
       }
-      console.log(data);
       ProgressIndicator.show();
       ApiClient.createAliceRole(data)
         .then((res: any) => {
@@ -162,7 +161,7 @@ const AliceRoleRequest = () => {
                   {rolesCreated.map((item: any, key: any) => {
                     return (
                       <div className="chips read-only" key={key} onClick={() => {
-                        const url = Envs.ALICE_BASE_URL+"/roles/"+item;
+                        const url = Envs.ALICE_BASE_URL+"/admin/roles/"+item;
                         window.open( url, '_blank');
                       }}>
                         <label className="name">{item}</label>
