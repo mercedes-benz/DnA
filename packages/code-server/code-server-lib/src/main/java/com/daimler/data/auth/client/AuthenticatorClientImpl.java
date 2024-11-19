@@ -604,7 +604,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
 										//deleting OIDC  and Authorizer plugin if already available
-										GenericMessage deletePluginResponse = new GenericMessage();
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -700,7 +699,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 
 								//attaching request transformer plugin 
-								attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
+								attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 								LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
 								attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 								
@@ -946,7 +945,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												preFunctionPluginVO.setConfig(preFunctionConfigVO);
 												preFunctionRequestVO.setData(preFunctionPluginVO);
 
-												attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
+												attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 												LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
 											}
 										}catch(Exception e) {
@@ -973,7 +972,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												postFunctionPluginVO.setConfig(postFunctionConfigVO);
 												postFunctionRequestVO.setData(postFunctionPluginVO);
 
-												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
+												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
 											}
 										}catch(Exception e) {
