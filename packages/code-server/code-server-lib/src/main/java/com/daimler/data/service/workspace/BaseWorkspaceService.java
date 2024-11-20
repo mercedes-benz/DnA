@@ -1392,6 +1392,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 try {
 			 String repoName = null;
 			 String repoUrl = null;
+			 String gitOrg = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -1410,12 +1411,14 @@ import com.daimler.data.util.ConstantsUtility;
 					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
 					if(repoDetails.size() > 0 && repoDetails !=null){
 						repoName = repoDetails.get(2);
-						gitOrgName = repoDetails.get(1);
+						gitOrg = repoDetails.get(1);
 					}
+					deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
+					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
+
 				}
-				 deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -2144,7 +2147,7 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				 }
