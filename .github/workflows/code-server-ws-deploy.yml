@@ -136,11 +136,11 @@ jobs:
       uses: vimeda/helm@v1.7.0
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
-        namespace: 'codespaces-apps'
+        namespace: '${{ vars.K8S_NAMESPACE }}'
         chart: 'workspace-repo/deploy/helm'
         values: |
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
-          namespace: codespaces-apps
+          namespace: ${{ vars.K8S_NAMESPACE }}
           image:
             repository: registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps
             tag: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
@@ -206,7 +206,7 @@ jobs:
           task: 'remove'
           chart: 'workspace-application-0.1.0'
           release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
-          namespace: 'codespaces-apps'
+          namespace: '${{ vars.K8S_NAMESPACE }}'
         env:
           KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'             
 
@@ -239,7 +239,7 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.KUBECONFIG_BASE64 }}
         with:
-          args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=codespaces-apps
+          args: rollout restart deployment ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }} --namespace=${{ vars.K8S_NAMESPACE }}
 
   statusUpdateRestart:
     name: Update Status restart
