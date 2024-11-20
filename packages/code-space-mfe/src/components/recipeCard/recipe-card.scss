@@ -59,6 +59,18 @@
       > div {
         display: flex;
         justify-content: space-between;
+
+        .reChips {
+          padding: 6px 10px;
+        }
+
+        .spanMore {
+          display: block;
+          font-size: var(--font-size-smallest);
+          color: #00adef;
+          cursor: pointer;
+        }
+
         &:not(:last-child) {
           margin-bottom: 10px;
         }

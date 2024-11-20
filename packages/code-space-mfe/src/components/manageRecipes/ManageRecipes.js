@@ -274,7 +274,7 @@ const ManageRecipes = () => {
                             setSelectedRecipe(recipe);
                             setShowDeleteModal(true);
                           }}
-                          additionalServices={additionalServices}
+                          additionalServices={additionalServices?.filter(service => recipe?.additionalServices?.includes(service?.serviceName))}
                         />
                       )}
                     </div>
@@ -388,7 +388,7 @@ const ManageRecipes = () => {
           modalWidth="60vw"
           show={showDetailsModal}
           scrollableContent={true}
-          content={<ViewRecipe recipe={selectedRecipe} additionalServices={additionalServices} />}
+          content={<ViewRecipe recipe={selectedRecipe} additionalServices={additionalServices?.filter(service => selectedRecipe?.additionalServices?.includes(service.serviceName))} />}
           onCancel={() => {
             setShowDetailsModal(false);
           }}
