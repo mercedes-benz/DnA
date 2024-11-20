@@ -564,7 +564,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}
 			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
 				if(kongApiForDeploymentURL) {
-					createRouteResponse = createRoute(createRouteRequestVOApi, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+					createRouteResponse = createRoute(createRouteRequestVOApi, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
 				}
 				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
