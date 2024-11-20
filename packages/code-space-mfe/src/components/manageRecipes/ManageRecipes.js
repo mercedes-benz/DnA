@@ -178,7 +178,7 @@ const ManageRecipes = () => {
 
   const handleRecipeDelete = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.deleteCodeSpaceRecipe(selectedRecipe.recipeName)
+    CodeSpaceApiClient.deleteCodeSpaceRecipe(selectedRecipe?.id)
       .then(() => {
         ProgressIndicator.hide();
         Notification.show("Recipe Deleted Successfully");
