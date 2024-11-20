@@ -112,5 +112,37 @@
         color: #00adef;
       }
     }
+    .toggleSwitch {
+      font-size: var(--font-size-icon-medium);
+      .toggleError{
+       color:  #E84D47;
+       margin-top: 10px;
+       font-size: 13px;
+      }
 
+    }
+   .saveBtn{
+    display: flex;
+    justify-content:flex-end;
+    margin-top: 20px;
+    button{
+      margin-left: 10px;
+    }
+   }
+   .copyBtn{
+    display: flex;
+    justify-content:flex-end;
+    height: 30px;
+    margin-top: -10px;
+    
+   }
+   .errorMsg{
+    color:  #E84D47;
+    margin-top: 10px;
+   }
+   .jsonView{
+    .info{
+      margin: 5px 0px;
+    }
+   }
 }
