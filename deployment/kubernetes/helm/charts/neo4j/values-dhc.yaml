@@ -468,7 +468,7 @@ statefulset:
 
 # additional environment variables for the Neo4j Container
 env: 
-    NEO4J_PLUGINS: '["apoc-extended"]'
+    NEO4J_PLUGINS: '["apoc-extended","apoc"]'
     NEO4J_apoc_import_file_use__neo4j__config: 'true'
     HTTPS_PROXY : 'http://security-proxy.emea.svc.corpintra.net:3128/'
     HTTP_PROXY : 'http://security-proxy.emea.svc.corpintra.net:3128/'
