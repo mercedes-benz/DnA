@@ -466,8 +466,9 @@ statefulset:
 
 # additional environment variables for the Neo4j Container
 env: 
-  - name: NEO4J_PLUGINS
-    value: '["apoc-extended"]'
+  NEO4J_PLUGINS: '["apoc-extended"]'
+  # - name: NEO4J_PLUGINS
+  #   value: ''
 
 # Other K8s configuration to apply to the Neo4j pod
 podSpec:
