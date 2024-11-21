@@ -310,6 +310,8 @@ services:
 # Neo4j Configuration (yaml format)
 config:
   server.config.strict_validation.enabled: "false"
+  codedbms.security.procedures.whitelist: apoc.meta.*
+  codedbms.security.procedures.unrestricted: apoc.*
   #dbms.cluster.minimum_initial_system_primaries_count: "3"
   # The amount of memory to use for mapping the store files.
   # The default page cache memory assumes the machine is dedicated to running
