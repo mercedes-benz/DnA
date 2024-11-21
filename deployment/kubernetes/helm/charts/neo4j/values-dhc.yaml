@@ -325,9 +325,11 @@ config:
   # server.memory.heap.initial_size: "317m"
   # server.memory.heap.max_size: "317m"
 
-apoc_config: {}
-#  apoc.trigger.enabled: "true"
-#  apoc.import.file.enabled: "true"
+apoc_config: 
+ apoc.trigger.enabled: "true"
+ apoc.import.file.enabled: "true"
+ apoc.export.file.enabled: "true"
+ apoc.import.file.use.neo4j.config: "true"
 
 #apoc_credentials allow you to set configs like apoc.jdbc.<aliasname>.url and apoc.es.<aliasname>.url via a kubernetes secret mounted on the provided path
 #ensure the secret exists beforehand or else an error will be thrown by the helm chart
@@ -463,7 +465,9 @@ statefulset:
 #      demo: alpha
 
 # additional environment variables for the Neo4j Container
-env: {}
+env: 
+  - name: NEO4J_PLUGINS
+    value: '["apoc-extended"]'
 
 # Other K8s configuration to apply to the Neo4j pod
 podSpec:
