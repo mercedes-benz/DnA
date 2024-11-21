@@ -70,6 +70,9 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				}else{
 					recipeVo.setIsDeployEnabled(false);
 				}
+				if(entity.getId() != null){
+					recipeVo.setId(entity.getId());
+				}	
 				// List<UserInfoVO> users = new ArrayList<>();
 				// List<UserInfo> userDetails = recipe.getUsers();
 				// if(recipe.getIsPublic()!=null){

@@ -69,6 +69,7 @@ import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.dto.fabricWorkspace.RolesListVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1458,7 +1459,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
         response.setErrors(errors);
         return response;
     }
-
+    
 	@Override
 	public GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String creatorId){
 		GenericMessage response = new GenericMessage();
