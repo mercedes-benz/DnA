@@ -111,7 +111,7 @@ jobs:
         password: ${{ secrets.VAULT_PASSWORD }}
         ignoreNotFound: true
         secrets: |
-            ${{ vars.VAULT_MOUTH_PATH }}/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
+            codespaces_kv/data/${{ vars.VAULT_SUB_PATH }}/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
