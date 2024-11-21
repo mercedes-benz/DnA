@@ -214,7 +214,7 @@ services:
 
   # A LoadBalancer Service for external Neo4j driver applications and Neo4j Browser
   neo4j:
-    enabled: false
+    enabled: true
 
     # Annotations for the K8s Service object
     annotations: {}
