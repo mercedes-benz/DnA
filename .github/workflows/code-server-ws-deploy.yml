@@ -112,7 +112,7 @@ jobs:
         namespace: ${{ vars.VAULT_NAMESPACE }}
         ignoreNotFound: true
         secrets: |
-            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
+            ${{ vars.VAULT_MOUTH_PATH }}/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
@@ -148,7 +148,7 @@ jobs:
             - name: imagepullsecret
           vaultInjector:
             enable: ${{ github.event.inputs.valutInjectorEnable }}
-            path: kv/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}
+            path: ${{ vars.VAULT_MOUTH_PATH }}/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}
             root_path: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api    
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
