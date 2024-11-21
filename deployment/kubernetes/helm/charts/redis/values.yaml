@@ -302,12 +302,8 @@ master:
   ## @param master.podAnnotations Annotations for Redis&reg; master pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
-  podAnnotations:
-    vault.hashicorp.com/agent-inject: 'false'
-    vault.hashicorp.com/role: 'dna'
-    vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-redis-password: 'kv/dna/kubernetesSecret/redis'
-    vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "kv/dna/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
+  podAnnotations: {}
+    
 
   ## @param master.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; master pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
@@ -690,12 +686,7 @@ replica:
   ## @param replica.podAnnotations Annotations for Redis&reg; replicas pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
-  podAnnotations:
-    vault.hashicorp.com/agent-inject: 'false'
-    vault.hashicorp.com/role: 'dna'
-    vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-redis-password: 'kv/dna/kubernetesSecret/Redis'
-    vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "kv/dna/kubernetesSecret/Redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
+  podAnnotations: {}
 
   ## @param replica.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; replicas pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
