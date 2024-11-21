@@ -105,11 +105,10 @@ jobs:
       uses: hashicorp/vault-action@v3.0.0
       if: ${{ github.event.inputs.valutInjectorEnable == 'true' }}
       with:
-        url: https://hcvault.app.corpintra.net
+        url: https://dnaplatform.service.vault-prod.rd.corpintra.net
         method: userpass
         username: ${{ secrets.VAULT_USERNAME }}
         password: ${{ secrets.VAULT_PASSWORD }}
-        namespace: ${{ vars.VAULT_NAMESPACE }}
         ignoreNotFound: true
         secrets: |
             ${{ vars.VAULT_MOUTH_PATH }}/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
