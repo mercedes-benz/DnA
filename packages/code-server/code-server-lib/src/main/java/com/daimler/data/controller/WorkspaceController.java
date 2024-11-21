@@ -708,7 +708,9 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		 }
 		 String pat = initializeCollabWSRequestVO.getPat();
-		 
+		 if(ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(collabUserVO.getStatus()) || ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(collabUserVO.getStatus())){
+			collabUserVO.getProjectDetails().getRecipeDetails().setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS);
+		 }
 		 if(!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
 			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
 			 String projectName = collabUserVO.getProjectDetails().getProjectName();
@@ -874,7 +876,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
 		 CodeServerRecipe recipeData = recipeEntity!=null ? recipeEntity.getData():null;
 		 CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
-		 newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
+		 newRecipeVO.setCloudServiceProvider(reqVO.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		 newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
@@ -1023,6 +1025,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @PathVariable("id") String id,
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @Valid @RequestBody ManageDeployRequestDto deployRequestDto) {
 		 try {
+			 boolean isPrivateRecipe = false;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -1057,7 +1060,6 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -1067,6 +1069,10 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
+				isPrivateRecipe = true;
+				deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 			 }
 			 String environment = "int";
 			 String branch = "main";
@@ -1127,7 +1133,7 @@ import org.springframework.beans.factory.annotation.Value;
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
@@ -2079,6 +2085,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 if (Objects.nonNull(data) && data!=null){
 			 	// String userName = data.getProjectDetails().getProjectOwner().getId().toLowerCase();
 				// String wsId = data.getWorkspaceId();
+				String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
 				String status = service.getServerStatus(vo);
 				if(status.equalsIgnoreCase("true"))
 				{
@@ -2112,7 +2119,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id)
+    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "cloudServiceProvider variable to select the target provider to start", required = true, allowableValues = "DHC-CaaS, DHC-CaaS-AWS") @Valid @RequestParam(value = "cloudServiceProvider", required = true) String cloudServiceProvider)
 	{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -2148,7 +2155,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
 		String wsId = data.getWorkspaceId();
-		responseMessage = service.startServer(shortId,wsId);
+		//String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+		responseMessage = service.startServer(shortId,wsId,cloudServiceProvider);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
@@ -2166,7 +2174,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id)
+    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id, @NotNull @ApiParam(value = "cloudServiceProvider variable to select the target provider to start", required = true, allowableValues = "DHC-CaaS, DHC-CaaS-AWS") @Valid @RequestParam(value = "cloudServiceProvider", required = true) String cloudServiceProvider)
 	{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -2199,7 +2207,8 @@ import org.springframework.beans.factory.annotation.Value;
 			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 		}
 
-		responseMessage = service.stopServer(vo);
+		//String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+		responseMessage = service.stopServer(vo,cloudServiceProvider);
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
@@ -2551,6 +2560,65 @@ import org.springframework.beans.factory.annotation.Value;
 		} catch (Exception e) {
 			log.error("Failed to restart workspace {}, with exception {}", id, e.getLocalizedMessage());
 			MessageDescription exceptionMsg = new MessageDescription("Failed to restart due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "migrate  workspace Project to Aws for a given Id.", nickname = "migrateWorkspace", notes = "migrate workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/migrateworkspace",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> migrateWorkspace(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			CodeServerWorkspaceVO vo = service.getById(userId, id);
+			if (vo == null || vo.getWorkspaceId() == null) {
+				log.debug("No workspace found, returning empty");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> warnings = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("No workspace found for given id and the user");
+				warnings.add(msg);
+				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+			}
+			List<String> authorizedUsers = new ArrayList<>();
+			if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
+				String workspaceOwner = vo.getWorkspaceOwner().getId();
+				authorizedUsers.add(workspaceOwner);
+			}
+			if (!authorizedUsers.contains(userId)) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Not authorized to Migrate project for workspace. User does not have privileges.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				log.info("User {} cannot Migrate project for workspace {}, insufficient privileges.", userId,
+						vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			}
+			GenericMessage responseMsg = service.migrateWorkspace(vo);
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+			}
+			log.info("User {} Migrated  workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			return new ResponseEntity<>(responseMsg, HttpStatus.OK); 
+		} catch (Exception e) {
+			log.error("Failed to Migrate workspace {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to Migrate due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
