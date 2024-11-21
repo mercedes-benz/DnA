@@ -325,10 +325,10 @@ config:
   # server.memory.heap.initial_size: "317m"
   # server.memory.heap.max_size: "317m"
 
-apoc_config: {}
-#  apoc.trigger.enabled: "true"
-#  apoc.import.file.enabled: "true"
-#  apoc.export.file.enabled: "true"
+apoc_config: 
+ apoc.trigger.enabled: "true"
+ apoc.import.file.enabled: "true"
+ apoc.export.file.enabled: "true"
 #  apoc.import.file.use.neo4j.config: "true"
 
 #apoc_credentials allow you to set configs like apoc.jdbc.<aliasname>.url and apoc.es.<aliasname>.url via a kubernetes secret mounted on the provided path
@@ -467,8 +467,6 @@ statefulset:
 # additional environment variables for the Neo4j Container
 env: 
     NEO4J_PLUGINS: '["apoc-extended"]'
-    NEO4J_apoc_export_file_enabled: 'true'
-    NEO4J_apoc_import_file_enabled: 'true'
     NEO4J_apoc_import_file_use__neo4j__config: 'true'
     HTTPS_PROXY : 'http://security-proxy.emea.svc.corpintra.net:3128/'
     HTTP_PROXY : 'http://security-proxy.emea.svc.corpintra.net:3128/'
@@ -477,6 +475,8 @@ env:
     https_proxy : 'http://security-proxy.emea.svc.corpintra.net:3128/'
     NO_PROXY : '53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1'
     no_proxy : '53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1'  
+    # NEO4J_apoc_export_file_enabled: 'true'
+    # NEO4J_apoc_import_file_enabled: 'true'
   # - name: NEO4J_PLUGINS
   #   value: ''
 
