@@ -20,6 +20,7 @@ const fabricTrainingUrl = Envs.FABRIC_TRAINING_URL;
 const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
 const powerPlatformTrainingUrl = Envs.POWER_PLATFORM_TRAINING_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
+const aliceUrl = Envs.ALICE_BASE_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
 const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
@@ -563,6 +564,23 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sass',
+    isDnAInternalTool: false,
+  },
+  {
+    id:'AliceRoleRequest',
+    name: 'Alice Role Request',
+    description: 'A platform to create Alice roles in Dna platform',
+    tags: ['Onprem'],
+    isExternalLink: false,
+    url: '/aliceRoleRequest',
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !aliceUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:true,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
     isDnAInternalTool: false,
   },
 ];
