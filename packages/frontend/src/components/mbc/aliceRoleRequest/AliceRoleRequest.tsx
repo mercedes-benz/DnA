@@ -65,7 +65,7 @@ const AliceRoleRequest = () => {
             setRoleName('');
             sessionStorage.setItem(SESSION_STORAGE_KEYS.ALICE_ROLES_CREATED, JSON.stringify(updatedRoles));
             setRoleNameError('');
-            Notification.show('role created successfully');
+            Notification.show('Role created successfully')
           } else {
             if (res?.errors[0]?.message?.length > 0) {
               Notification.show(res?.errors[0]?.message, 'alert')
