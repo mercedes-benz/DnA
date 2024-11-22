@@ -70,4 +70,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
 
+	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
+
 }
