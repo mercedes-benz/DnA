@@ -112,13 +112,7 @@ const AliceRoleRequest = () => {
           </p>
 
           <p>
-            To view the roles that have been created or are already existing, visit the Alice portal at{' '}
-            <a href={Envs.ALICE_BASE_URL + "/access/profile?category=myRoles"} target="_blank" rel="noreferrer">
-              {Envs.ALICE_BASE_URL+"/access/profile?category=myRoles"}
-            </a>.
-          </p>
-          <p>
-            You can view the roles created through this page at:{' '}
+            To view the roles that have been created, visit the Alice portal at{' '}
             <a href={`${Envs.ALICE_BASE_URL}/admin/roles`} target="_blank" rel="noreferrer">
               {`${Envs.ALICE_BASE_URL}/admin/roles`}
             </a>.
