@@ -2,10 +2,7 @@ package com.daimler.data.application.client;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -20,7 +17,6 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.WorkbenchManageDto;
-import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.dto.JupyterHubCreateUserDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -196,12 +192,12 @@ public class CodeServerClient {
 		response.setWarnings(warnings);
 		response.setErrors(errors);
 		return response;
-	}
-
+  }
+  
     private boolean isUserPresent(String userId, String cloudServiceProvider) {
 		try {
 			String userURI = "";
-			if(cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name())){
+			if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 				userURI= jupyterUrl + "/" + userId.toLowerCase();
 			} else {
 				userURI = jupyterUrlAws + "/" + userId.toLowerCase();
@@ -225,7 +221,7 @@ public class CodeServerClient {
 	private boolean createUser(String userId, String isCollaborator, String cloudServiceProvider){
 		boolean status = false;
 		try {
-			String userURI = cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name()) ? jupyterUrl : jupyterUrlAws;
+			String userURI = cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) ? jupyterUrl : jupyterUrlAws;
 			JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
 			List<String> userName = new ArrayList<>();
 			userName.add(userId);
@@ -247,7 +243,7 @@ public class CodeServerClient {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
-		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+		if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS)){
 			headers.set("Authorization", "Bearer " + jupyterPersonalAccessToken);
 		}else{
 			headers.set("Authorization", "Bearer " + jupyterPatAws);
@@ -255,12 +251,11 @@ public class CodeServerClient {
 		return headers;
 	}
 
-	private HttpHeaders getHeaders( ){
+	private HttpHeaders getHeaders(){
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
 		headers.set("Authorization", "Bearer " + jupyterPersonalAccessToken);
-		
 		return headers;
 	}
 
@@ -268,7 +263,7 @@ public class CodeServerClient {
 	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String userURI="";
-			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+			if(manageDto.getInputs().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 				userURI = jupyterUrl;
 			} else {
 				userURI = jupyterUrlAws;
@@ -336,7 +331,7 @@ public class CodeServerClient {
 	public boolean startNamedServer(String userName, String wsId, String cloudServiceProvider) {
 		try {
 			String url = "";
-			if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS)){
 			 	url = jupyterUrl+"/" +userName + "/servers/" + wsId;
 			}else{
 				url = jupyterUrlAws+"/" +userName + "/servers/" + wsId;
@@ -363,7 +358,7 @@ public class CodeServerClient {
 	public boolean serverStatus(String userId, String workspaceId, String cloudServiceProvider) {
 
 		String userURI ="";
-		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+		if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS)){
 			userURI = jupyterUrl+"/" + userId;
 		}else{
 			userURI = jupyterUrlAws+"/"+userId;
@@ -440,7 +435,7 @@ public class CodeServerClient {
 	public boolean stopServer(String wsId, String userId, String cloudServiceProvider) {
 		try {
 			String url ="";
-			if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS)){
 				 url = jupyterUrl+"/" + userId + "/servers/" + wsId;
 			}else{
 				url = jupyterUrlAws+"/" + userId + "/servers/" + wsId;
@@ -448,7 +443,7 @@ public class CodeServerClient {
 			String requestJsonString = "{\"remove\":false}";  
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
-	
+			
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
 				if (manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
 					log.info("Server {} stopped successfully for user {}", wsId, userId);
@@ -469,7 +464,7 @@ public class CodeServerClient {
 		String wsId = manageDto.getInputs().getWsid();
 	try {
 		String url = "";
-		if(manageDto.getInputs().getCloudServiceProvider().equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+		if(manageDto.getInputs().getCloudServiceProvider().equalsIgnoreCase(ConstantsUtility.DHC_CAAS)){
 			url = jupyterUrl+"/" +userId + "/servers/" + wsId;
 		}else{
 			url = jupyterUrlAws+"/" +userId + "/servers/" + wsId;
@@ -559,7 +554,7 @@ public class CodeServerClient {
 		}
 		try {
 			String userURI = jupyterUrlAws+"/"+userId;
-			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders(CloudServiceProviderEnum.CAAS_AWS.name()));
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders(ConstantsUtility.DHC_CAAS_AWS));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
 					String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() == HttpStatus.OK) {
@@ -625,7 +620,7 @@ public class CodeServerClient {
 	private boolean createServerforExisting(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
 			String userURI="";
-			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+			if(manageDto.getInputs().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 				userURI = jupyterUrl;
 			} else {
 				userURI = jupyterUrlAws;
