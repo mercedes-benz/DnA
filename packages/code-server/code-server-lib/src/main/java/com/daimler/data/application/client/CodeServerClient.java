@@ -368,7 +368,7 @@ public class CodeServerClient {
 		}else{
 			userURI = jupyterUrlAws+"/"+userId;
 		}
-		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders());
+		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders(cloudServiceProvider));
 		try {
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
 					String.class);
