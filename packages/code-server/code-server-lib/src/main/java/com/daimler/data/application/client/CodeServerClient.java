@@ -20,6 +20,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.WorkbenchManageDto;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.dto.JupyterHubCreateUserDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CodeServerClient {
 	
-	private static Logger LOGGER = LoggerFactory.getLogger(CodeServerClient.class);
-
 	@Value("${codeServer.gitjob.deployuri}")
 	private String codeServerGitJobDeployUri;
 	
@@ -56,6 +55,12 @@ public class CodeServerClient {
 
 	@Value("${codeServer.jupyter.url}")
 	private String jupyterUrl;
+
+	@Value("${codeServer.jupyter.pat.aws}")
+	private String jupyterPatAws;
+
+	@Value("${codeServer.jupyter.url.aws}")
+	private String jupyterUrlAws;
 	
 	@Autowired
 	RestTemplate restTemplate;
@@ -129,10 +134,10 @@ public class CodeServerClient {
 						if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
 				if(manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
 					status = "SUCCESS";
-					LOGGER.info("Success while performing {} action for codeServer workbench for user {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
+					log.info("Success while performing {} action for codeServer workbench for user {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
 				}
 				else {
-					LOGGER.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), manageWorkbenchResponse.getStatusCodeValue());
+					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), manageWorkbenchResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageWorkbenchResponse.getBody() + " Response Code is : " + manageWorkbenchResponse.getStatusCodeValue());
 					warnings.add(warning);
@@ -140,7 +145,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
+			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
@@ -159,27 +164,27 @@ public class CodeServerClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		try {
-			boolean isUserCreated = isUserPresent(userId);
+			boolean isUserCreated = isUserPresent(userId, manageDto.getInputs().getCloudServiceProvider());
 			if(!isUserCreated){
-				isUserCreated = createUser(userId, manageDto.getInputs().getIsCollaborator());
+				isUserCreated = createUser(userId, manageDto.getInputs().getIsCollaborator(), manageDto.getInputs().getCloudServiceProvider());
 			}
 			if (isUserCreated) {
 				boolean isCreateServerStatus = this.createServer(manageDto, codespaceName);
 				if (isCreateServerStatus) {
 					status = "SUCCESS";
 				} else {
-					LOGGER.info(
+					log.info(
 							"Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
 							manageDto.getInputs().getAction(), userId);
 					MessageDescription warning = new MessageDescription();
 					warnings.add(warning);
 				}
 			} else {
-				LOGGER.error("Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
+				log.error("Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
 					userId, manageDto.getInputs().getAction());
 			}
 		} catch (Exception e) {
-			LOGGER.error(
+			log.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
 					userId, manageDto.getInputs().getAction(), e.getMessage());
 			MessageDescription error = new MessageDescription();
@@ -191,53 +196,84 @@ public class CodeServerClient {
 		response.setWarnings(warnings);
 		response.setErrors(errors);
 		return response;
-	}
-
-    	private boolean isUserPresent(String userId){
-		String userURI = jupyterUrl+"/"+userId.toLowerCase();
-		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders());
-        	ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET,entity,String.class);
-		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
-			LOGGER.info("user registered successfully", userId);
-			return true;
+  }
+  
+    private boolean isUserPresent(String userId, String cloudServiceProvider) {
+		try {
+			String userURI = "";
+			if(cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name())){
+				userURI= jupyterUrl + "/" + userId.toLowerCase();
+			} else {
+				userURI = jupyterUrlAws + "/" + userId.toLowerCase();
+			}
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders(cloudServiceProvider));
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
+					String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
+				log.info("user registered successfully", userId);
+				return true;
+			} else if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is4xxClientError()) {
+				log.info("User {} is not registered", userId);
+				return false;
+			}
+		} catch (Exception e) {
+			log.error("error occured while checking for user in hub :{} ", e.getMessage());
 		}
-	 	LOGGER.info("User {} is not registered", userId);
 		return false;
 	}
 
-	private boolean createUser(String userId, String isCollaborator){
+	private boolean createUser(String userId, String isCollaborator, String cloudServiceProvider){
 		boolean status = false;
 		try {
-			String userURI = jupyterUrl;
+			String userURI = cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name()) ? jupyterUrl : jupyterUrlAws;
 			JupyterHubCreateUserDTO userDto = new JupyterHubCreateUserDTO();
 			List<String> userName = new ArrayList<>();
 			userName.add(userId);
 			userDto.setUsernames(userName);
 			userDto.setAdmin(false);
-			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders());
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(userDto,getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
-				LOGGER.info("User {} has registered sucessfully", userId);
+				log.info("User {} has registered sucessfully", userId);
 				return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
 			}
 		}	catch(Exception e) {
-			LOGGER.error("error occured while creating user in hub :{} ", e.getMessage());
+			log.error("error occured while creating user in hub :{} ", e.getMessage());
 		}
 		return status;
 	}
 
-	private HttpHeaders getHeaders(){
+	private HttpHeaders getHeaders(String cloudServiceProvider){
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			headers.set("Authorization", "Bearer " + jupyterPersonalAccessToken);
+		}else{
+			headers.set("Authorization", "Bearer " + jupyterPatAws);
+		}
+		return headers;
+	}
+
+	private HttpHeaders getHeaders( ){
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
 		headers.set("Authorization", "Bearer " + jupyterPersonalAccessToken);
+		
 		return headers;
 	}
 
 	//to create server
 	public boolean createServer(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
-			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
+			String userURI="";
+			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				userURI = jupyterUrl;
+			} else {
+				userURI = jupyterUrlAws;
+			}
+			String url = userURI + "/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"default\", \"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 			+ "\", \"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase() + "\", \"isCollaborator\" : \"false\", "
 			+ "\"pathCheckout\": \"" + manageDto.getInputs().getPathCheckout() + "\", \"GITHUB_TOKEN\": \"" + manageDto.getInputs().getPat() + "\"" +  "}, "
@@ -247,7 +283,7 @@ public class CodeServerClient {
 			+ manageDto.getInputs().getCpu_limit() + ", \"cpu_guarantee\": "
 			+ manageDto.getInputs().getCpu_guarantee() + ",\"extra_containers\": "
 			+ manageDto.getInputs().getExtraContainers() + "}";
-			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
 				if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
@@ -262,15 +298,15 @@ public class CodeServerClient {
 	}
 
 	// create start code server using jupyterhub ends
-	public GenericMessage doStartServer(String userId, String wsId) {
+	public GenericMessage doStartServer(String userId, String wsId, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			boolean isServerRunning = this.serverStatus(userId, wsId);
+			boolean isServerRunning = this.serverStatus(userId, wsId, cloudServiceProvider);
 			if (!isServerRunning) {
-				boolean isStartedServer = this.startNamedServer(userId, wsId);
+				boolean isStartedServer = this.startNamedServer(userId, wsId,cloudServiceProvider);
 				if (isStartedServer) {
 					status = "SUCCESS";
 				} else {
@@ -297,10 +333,15 @@ public class CodeServerClient {
 	}	
 
 	//starting named server
-	public boolean startNamedServer(String userName, String wsId) {
+	public boolean startNamedServer(String userName, String wsId, String cloudServiceProvider) {
 		try {
-			String url = jupyterUrl+"/" +userName + "/servers/" + wsId;
-			HttpEntity<String> entity = new HttpEntity<>(getHeaders());
+			String url = "";
+			if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			 	url = jupyterUrl+"/" +userName + "/servers/" + wsId;
+			}else{
+				url = jupyterUrlAws+"/" +userName + "/servers/" + wsId;
+			}
+			HttpEntity<String> entity = new HttpEntity<>(getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null ) {
 				HttpStatus statusCode = manageWorkbenchResponse.getStatusCode();
@@ -319,8 +360,14 @@ public class CodeServerClient {
 		return false;
 	}
 
-	public boolean serverStatus(String userId, String workspaceId) {
-		String userURI = jupyterUrl+"/" + userId;
+	public boolean serverStatus(String userId, String workspaceId, String cloudServiceProvider) {
+
+		String userURI ="";
+		if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			userURI = jupyterUrl+"/" + userId;
+		}else{
+			userURI = jupyterUrlAws+"/"+userId;
+		}
 		HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders());
 		try {
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
@@ -337,64 +384,70 @@ public class CodeServerClient {
 							if (isServerReady) {
 								return true;
 							} else {
-								LOGGER.error("Server for user {} in workspace {} is not started", userId, workspaceId);
+								log.debug("Server for user {} in workspace {} is not started", userId, workspaceId);
 							}
 						} else {
-							LOGGER.error("Workspace {} not found for user {}", workspaceId, userId);
+							log.debug("Workspace {} not found for user {}", workspaceId, userId);
 						}
 					} else {
-						LOGGER.error("No servers found for user {}", userId);
+						log.debug("No servers found for user {}", userId);
 					}
 				} else {
-					LOGGER.error("Empty response body while fetching server details for user {}", userId);
+					log.error("Empty response body while fetching server details for user {}", userId);
 				}
 			} else {
-				LOGGER.error("Failed to fetch server details for user {}. Status code: {}", userId,
+				log.error("Failed to fetch server details for user {}. Status code: {}", userId,
 						manageWorkbenchResponse != null ? manageWorkbenchResponse.getStatusCode() : "null");
 			}
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred while fetching server details for user " + userId, e);
+			log.error("Exception occurred while fetching server details for user " + userId, e);
 		}
 		return false;
 	}
 
-	public GenericMessage checkServerStatus(String userId, String workspaceId) {
-		GenericMessage response = new GenericMessage();
-		String status = "FAILED";
-		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
+	// public GenericMessage checkServerStatus(String userId, String workspaceId) {
+	// 	GenericMessage response = new GenericMessage();
+	// 	String status = "FAILED";
+	// 	List<MessageDescription> warnings = new ArrayList<>();
+	// 	List<MessageDescription> errors = new ArrayList<>();
 
-		try {
-			boolean isServerStatus = serverStatus(userId, workspaceId);
-			if (isServerStatus) {
-				status = "SUCCESS";
-				LOGGER.info("Successfully started codeServer workbench server for user {}", userId);
-			} else {
-				LOGGER.warn("Failed to start codeServer workbench server for user {}", userId);
-				MessageDescription warning = new MessageDescription();
-				warning.setMessage("Failed to start codeServer workbench server for user " + userId);
-				warnings.add(warning);
-			}
-		} catch (Exception e) {
-			LOGGER.error("Error occurred while starting codeServer workbench for user {}", userId, e);
-			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while managing codeServer workbench: " + e.getMessage());
-			errors.add(error);
-		}
 
-		response.setSuccess(status);
-		response.setWarnings(warnings);
-		response.setErrors(errors);
+	// 	try {
+	// 		boolean isServerStatus = serverStatus(userId, workspaceId, cloudServiceProvider);
+	// 		if (isServerStatus) {
+	// 			status = "SUCCESS";
+	// 			log.info("Successfully started codeServer workbench server for user {}", userId);
+	// 		} else {
+	// 			log.warn("Failed to start codeServer workbench server for user {}", userId);
+	// 			MessageDescription warning = new MessageDescription();
+	// 			warning.setMessage("Failed to start codeServer workbench server for user " + userId);
+	// 			warnings.add(warning);
+	// 		}
+	// 	} catch (Exception e) {
+	// 		log.error("Error occurred while starting codeServer workbench for user {}", userId, e);
+	// 		MessageDescription error = new MessageDescription();
+	// 		error.setMessage("Failed while managing codeServer workbench: " + e.getMessage());
+	// 		errors.add(error);
+	// 	}
 
-		return response;
-	}	
+	// 	response.setSuccess(status);
+	// 	response.setWarnings(warnings);
+	// 	response.setErrors(errors);
+
+	// 	return response;
+	// }	
 
 	//To stop server of  codespace jupyter hub
-	public boolean stopServer(String wsId, String userId) {
+	public boolean stopServer(String wsId, String userId, String cloudServiceProvider) {
 		try {
-			String url = jupyterUrl+"/" + userId + "/servers/" + wsId;
+			String url ="";
+			if(cloudServiceProvider.equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+				 url = jupyterUrl+"/" + userId + "/servers/" + wsId;
+			}else{
+				url = jupyterUrlAws+"/" + userId + "/servers/" + wsId;
+			}
 			String requestJsonString = "{\"remove\":false}";  
-			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(cloudServiceProvider));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 	
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
@@ -416,9 +469,14 @@ public class CodeServerClient {
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		String wsId = manageDto.getInputs().getWsid();
 	try {
-		String url = jupyterUrl+"/" + userId + "/servers/" + wsId;
+		String url = "";
+		if(manageDto.getInputs().getCloudServiceProvider().equalsIgnoreCase(CloudServiceProviderEnum.CAAS.name())){
+			url = jupyterUrl+"/" +userId + "/servers/" + wsId;
+		}else{
+			url = jupyterUrlAws+"/" +userId + "/servers/" + wsId;
+		}
 		String requestJsonString = "{\"remove\":true}";  // Changed to true for stopping the server
-		HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+		HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 		ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 		
 		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
@@ -451,10 +509,10 @@ public class CodeServerClient {
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
 				if(manageDeploymentResponse.getStatusCode().is2xxSuccessful()) {
 					status = "SUCCESS";
-					LOGGER.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
+					log.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
 				}
 				else {
-					LOGGER.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
+					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageDeploymentResponse.getBody() + " Response Code is : " + manageDeploymentResponse.getStatusCodeValue());
 					warnings.add(warning);
@@ -462,7 +520,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
+			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
@@ -495,12 +553,37 @@ public class CodeServerClient {
 						}
 					}
 				}
-				return vo;
+				//return vo;
 			}
 		} catch (Exception e) {
 			log.info("Failed while getting all codeserver status details" + e.getMessage());
 		}
-		return null;
+		try {
+			String userURI = jupyterUrlAws+"/"+userId;
+			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<>(getHeaders(CloudServiceProviderEnum.CAAS_AWS.name()));
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.GET, entity,
+					String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() == HttpStatus.OK) {
+				String responseBody = manageWorkbenchResponse.getBody();
+				if (responseBody != null) {
+					JSONObject jsonResponse = new JSONObject(responseBody);
+					if (jsonResponse.has("servers")) {
+						JSONObject serversObject = jsonResponse.getJSONObject("servers");
+						for (Object key : serversObject.keySet()) {
+							JSONObject keyObject = serversObject.getJSONObject(key.toString());
+							boolean isServerReady = keyObject.optBoolean("ready", false);
+							if (isServerReady) {
+								vo.add(key.toString());
+							}
+						}
+					}
+				}
+				//return vo;
+			}
+		} catch (Exception e) {
+			log.info("Failed while getting all codeserver status details" + e.getMessage());
+		}
+		return vo;
 	}
 
 	public GenericMessage toMoveExistingtoJupyterhub(WorkbenchManageDto manageDto, String codespaceName) {
@@ -510,15 +593,15 @@ public class CodeServerClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		String userId = manageDto.getInputs().getShortid().toLowerCase();
 		try {
-			boolean isUserCreated = isUserPresent(userId)
-					|| createUser(userId, manageDto.getInputs().getIsCollaborator());
+			boolean isUserCreated = isUserPresent(userId, manageDto.getInputs().getCloudServiceProvider())
+					|| createUser(userId, manageDto.getInputs().getIsCollaborator(),  manageDto.getInputs().getCloudServiceProvider());
 
 			if (isUserCreated) {
 				boolean isCreateServerStatus = createServerforExisting(manageDto, codespaceName);
 				if (isCreateServerStatus) {
 					status = "SUCCESS";
 				} else {
-					LOGGER.info(
+					log.info(
 							"Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
 							manageDto.getInputs().getAction(), userId);
 					MessageDescription warning = new MessageDescription();
@@ -526,7 +609,7 @@ public class CodeServerClient {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error(
+			log.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
 					userId, manageDto.getInputs().getAction(), e.getMessage());
 			MessageDescription error = new MessageDescription();
@@ -542,7 +625,13 @@ public class CodeServerClient {
 
 	private boolean createServerforExisting(WorkbenchManageDto manageDto, String codespaceName) {
 		try {
-			String url = jupyterUrl+"/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
+			String userURI="";
+			if(manageDto.getInputs().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				userURI = jupyterUrl;
+			} else {
+				userURI = jupyterUrlAws;
+			}
+			String url = userURI + "/"+ manageDto.getInputs().getShortid().toLowerCase() + "/servers/" + manageDto.getInputs().getWsid();
 			String requestJsonString = "{\"profile\": \"" + manageDto.getInputs().getProfile()
 					+ "\",\"env\": {\"GITHUBREPO_URL\": \"" + manageDto.getInputs().getRepo()
 					+ "\",\"SHORTID\" : \"" + manageDto.getInputs().getShortid().toLowerCase()
@@ -552,7 +641,7 @@ public class CodeServerClient {
 					+ "\",\"mem_limit\": \"" + manageDto.getInputs().getMem_limit() + "\",\"cpu_limit\": "
 					+ manageDto.getInputs().getCpu_limit() + ",\"cpu_guarantee\": "
 					+ manageDto.getInputs().getCpu_guarantee() + "}";
-			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders());
+			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {

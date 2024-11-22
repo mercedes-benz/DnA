@@ -44,6 +44,7 @@ const CodeSpaceRecipe = (props) => {
   const [maxCpu, setMaxCpu] = useState('');
   const [minRam, setMinRam] = useState('1000');
   const [maxRam, setMaxRam] = useState('');
+  const [id, setId] = useState('');
   const [isSoftwareMissing, setSoftwareMissing] = useState(false);
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
@@ -78,6 +79,7 @@ const CodeSpaceRecipe = (props) => {
       CodeSpaceApiClient.getCodeSpaceRecipe(recipeId)
         .then((res) => {
           const recipe = res.data.data;
+          setId(recipe?.id);
           setDiskSpace(recipe?.diskSpace);
           setMaxCpu(recipe?.maxCpu);
           setMinCpu(recipe?.minCpu);
@@ -385,9 +387,11 @@ const CodeSpaceRecipe = (props) => {
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
         additionalServices: selectedAdditionalServices.map(service => service?.serviceName),
+        id: id
       };
+
       ProgressIndicator.show();
-      CodeSpaceApiClient.updateCodeSpaceRecipe(recipeId, data)
+      CodeSpaceApiClient.updateCodeSpaceRecipe(id, data)
         .then(() => {
           ProgressIndicator.hide();
           history.push('/manageRecipes');
@@ -395,7 +399,8 @@ const CodeSpaceRecipe = (props) => {
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+          const errorMsg = err?.response?.data?.errors && err.response.data.errors.length > 0 ? err.response.data.errors[0]?.message : "Something went wrong";
+          Notification.show(errorMsg, 'alert');
         });
     }
   };
@@ -408,6 +413,13 @@ const CodeSpaceRecipe = (props) => {
         ...prevState,
         recipeName: requiredError,
       }));
+    }else if(recipeName?.startsWith(" ") || recipeName?.endsWith(" ")){
+      isValid = false;
+      setErrorObj((prevState) => ({
+        ...prevState,
+        recipeName: "Recipe name cannot start or end with whitespaces",
+      }));
+
     }
     if (gitUrl === '') {
       isValid = false;
@@ -490,7 +502,7 @@ const CodeSpaceRecipe = (props) => {
         <div className={classNames(Styles.mainPanel)}>
           <div>
             <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} onBackClick={handleBackClick}>
-              <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>
+              {!edit && <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>}
             </Caption>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>

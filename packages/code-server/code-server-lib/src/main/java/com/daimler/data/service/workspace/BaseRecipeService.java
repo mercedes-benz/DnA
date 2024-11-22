@@ -252,8 +252,8 @@ public class BaseRecipeService implements RecipeService{
 
 	@Override
 	@Transactional
-	public RecipeVO getByRecipeName(String recipeName) {
-		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+	public RecipeVO getRecipeById(String id) {
+		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findById(id);
 		return recipeAssembler.toVo(entity);
 	}
 
@@ -434,10 +434,10 @@ public class BaseRecipeService implements RecipeService{
 	// }
 
 	@Override
-	public GenericMessage deleteRecipe(String recipeName)
+	public GenericMessage deleteRecipe(String id)
 	{
 		GenericMessage msg = new GenericMessage();
-		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findById(id);
         if (recipe != null) {
 			GenericMessage val =   workspaceCustomRecipeRepo.deleteRecipe(recipe);
             return new GenericMessage("Recipe deleted successfully");
