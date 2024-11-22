@@ -98,7 +98,7 @@ auth:
   ## @param auth.rootPassword Password for the `root` user. Ignored if existing secret is provided
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mysql#setting-the-root-password-on-first-run
   ##
-  rootPassword: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#rootPassword>
+  rootPassword: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#rootPassword>
   ## @param auth.createDatabase Wheter to create the .Values.auth.database or not
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mysql#creating-a-database-on-first-run
   ##
@@ -110,10 +110,10 @@ auth:
   ## @param auth.username Name for a custom user to create
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mysql#creating-a-database-user-on-first-run
   ##
-  username: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#username>
+  username: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#username>
   ## @param auth.password Password for the new user. Ignored if existing secret is provided
   ##
-  password: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#password>
+  password: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#password>
   ## @param auth.replicationUser MySQL replication user
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mysql#setting-up-a-replication-cluster
   ##
@@ -1171,21 +1171,21 @@ metrics:
     ##
     rules: []
 backupRestore:
-  DB_SERVER: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbServer>
-  DB_PORT: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbPort>
-  DB_USER: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbUser>
-  DB_PASS: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbpass>
-  DB_DUMP_DEBUG: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbDumpDebug>
-  DB_DUMP_TARGET: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbDumpTarget>
-  AWS_ACCESS_KEY_ID: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#awsAccessKeyId>
-  AWS_SECRET_ACCESS_KEY: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#awsSecretAccessKey>
-  RUN_ONCE: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#runOnce>
-  AWS_ENDPOINT_URL: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#awsEndpointUrl>
-  AWS_CLI_OPTS: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#awsCliOpts>
-  SINGLE_DATABASE: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#singleDatabase>
-  DB_NAMES: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbNames>
-  DB_RESTORE_TARGET: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#dbRestoreTarget>
-  RESTORE_DB_SERVER: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#restoreDbServer>
-  RESTORE_DB_PORT: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#restoreDbPort>
-  RESTORE_DB_USER: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#restoreDbUser>
-  RESTORE_DB_PASS: <path:kv/data/dna/kubernetesSecret/mysqlMatomo#restoreDbPass>
+  DB_SERVER: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbServer>
+  DB_PORT: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbPort>
+  DB_USER: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbUser>
+  DB_PASS: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbpass>
+  DB_DUMP_DEBUG: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbDumpDebug>
+  DB_DUMP_TARGET: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbDumpTarget>
+  AWS_ACCESS_KEY_ID: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#awsAccessKeyId>
+  AWS_SECRET_ACCESS_KEY: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#awsSecretAccessKey>
+  RUN_ONCE: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#runOnce>
+  AWS_ENDPOINT_URL: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#awsEndpointUrl>
+  AWS_CLI_OPTS: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#awsCliOpts>
+  SINGLE_DATABASE: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#singleDatabase>
+  DB_NAMES: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbNames>
+  DB_RESTORE_TARGET: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbRestoreTarget>
+  RESTORE_DB_SERVER: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#restoreDbServer>
+  RESTORE_DB_PORT: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#restoreDbPort>
+  RESTORE_DB_USER: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#restoreDbUser>
+  RESTORE_DB_PASS: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#restoreDbPass>
