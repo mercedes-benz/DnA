@@ -135,6 +135,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
+	 
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
  
@@ -740,6 +741,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 String[] parts = resource.split(",");
 			 ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			 ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
+			 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(ConstantsUtility.DHC_CAAS_AWS);
 			 ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
 			 double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
 			 double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
@@ -750,11 +752,8 @@ import com.daimler.data.util.ConstantsUtility;
 			 } else {
 				 ownerWorkbenchCreateInputsDto.setProfile("default");
 			 }
-			 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
-				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
-			} else {
-				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
-			}
+			 
+			 ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 			 ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 			 if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
 				  ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
@@ -811,12 +810,13 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 			 Date initatedOn = new Date();
+			 
 			 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
+			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
 			 jpaRepo.save(entity);
 			 responseVO.setData(workspaceAssembler.toVo(entity));
