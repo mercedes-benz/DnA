@@ -5,7 +5,7 @@ app:
     replicaCount: 1
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: 171
+      tag: '614'
     secrets:
       name: naas-app-secrets
       jwtKey: null
@@ -46,9 +46,6 @@ app:
     readinessProbe:
       path: /actuator/health/readiness
       port: api
-image:
-  pullPolicy: Always
-  tag: '69'
 ingress:
   enabled: false
   host: naas.test.dna.app.corpintra.net
