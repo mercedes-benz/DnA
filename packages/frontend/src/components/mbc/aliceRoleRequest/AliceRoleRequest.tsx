@@ -29,8 +29,12 @@ const AliceRoleRequest = () => {
       setRoleNameError('Role name cannot be empty');
       return false
     }
+    if (roleName.includes(" ")) {
+      setRoleNameError('Role name cannot contain spaces');
+      return false;
+    }
     if (specialCharPattern.test(roleName.toUpperCase())) {
-      setRoleNameError('The role name must not contain special char other than ._-');
+      setRoleNameError('Role name can only contain letters, numbers, and the following characters: . _ -');
       return false;
     }
     return true;
@@ -72,9 +76,12 @@ const AliceRoleRequest = () => {
           }
 
         })
-        .catch(() => {
+        .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show("Something went wrong", "alert")
+          Notification.show(
+            err?.message || "Something went wrong", 
+            "alert"
+          );
         });
     }
 
@@ -94,11 +101,11 @@ const AliceRoleRequest = () => {
         </div>
         <div className={classNames(Styles.content)}>
           <p>
-            On this page, you can create Alice roles within the DNA platform (Application ID: {Envs.ALICE_APP_ID}).
+            On this page, you can create Alice roles within the DNA platform (Application ID: {Envs.ALICE_APP_ID}) .
           </p>
 
           <p>
-            To create a new role, use the following link:{' '}
+            To create a new role with application ID other than {Envs.ALICE_APP_ID}, use the following link:{' '}
             <a href={Envs.ALICE_BASE_URL+"/access/accessRequest"} target="_blank" rel="noreferrer">
               {Envs.ALICE_BASE_URL+"/access/accessRequest"}
             </a>.
@@ -108,6 +115,12 @@ const AliceRoleRequest = () => {
             To view the roles that have been created or are already existing, visit the Alice portal at{' '}
             <a href={Envs.ALICE_BASE_URL + "/access/profile?category=myRoles"} target="_blank" rel="noreferrer">
               {Envs.ALICE_BASE_URL+"/access/profile?category=myRoles"}
+            </a>.
+          </p>
+          <p>
+            You can view the roles created through this page at:{' '}
+            <a href={`${Envs.ALICE_BASE_URL}/admin/roles`} target="_blank" rel="noreferrer">
+              {`${Envs.ALICE_BASE_URL}/admin/roles`}
             </a>.
           </p>
         </div>
@@ -155,7 +168,7 @@ const AliceRoleRequest = () => {
             <div className={classNames(Styles.rolesListSection)} >
               {rolesCreated?.length ? (<div className={classNames(Styles.rolesList)} >
                 <div className={classNames(Styles.header)}>
-                  <h5>Roles created in this session</h5>
+                  <h5>IDs of roles created in this session</h5>
                 </div>
                 <div className={Styles.infoLinks}>
                   {rolesCreated.map((item: any, key: any) => {
