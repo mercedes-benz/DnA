@@ -1147,7 +1147,7 @@ tempo-distributed:
 
 
 loki:
-  enabled: false
+  enabled: true
   fullnameOverride: "loki"
   global:
     image:
