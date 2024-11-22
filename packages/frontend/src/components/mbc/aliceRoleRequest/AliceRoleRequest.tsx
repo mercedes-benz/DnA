@@ -65,7 +65,7 @@ const AliceRoleRequest = () => {
             setRoleName('');
             sessionStorage.setItem(SESSION_STORAGE_KEYS.ALICE_ROLES_CREATED, JSON.stringify(updatedRoles));
             setRoleNameError('');
-            Notification.show('role created successfully')
+            Notification.show('role created successfully');
           } else {
             if (res?.errors[0]?.message?.length > 0) {
               Notification.show(res?.errors[0]?.message, 'alert')
@@ -79,7 +79,7 @@ const AliceRoleRequest = () => {
         .catch((err) => {
           ProgressIndicator.hide();
           Notification.show(
-            err?.errors[0]?.message || "Something went wrong", 
+            err?.message || "Something went wrong", 
             "alert"
           );
         });
@@ -168,7 +168,7 @@ const AliceRoleRequest = () => {
             <div className={classNames(Styles.rolesListSection)} >
               {rolesCreated?.length ? (<div className={classNames(Styles.rolesList)} >
                 <div className={classNames(Styles.header)}>
-                  <h5>Ids of roles created in this session</h5>
+                  <h5>IDs of roles created in this session</h5>
                 </div>
                 <div className={Styles.infoLinks}>
                   {rolesCreated.map((item: any, key: any) => {
