@@ -105,14 +105,13 @@ jobs:
       uses: hashicorp/vault-action@v3.0.0
       if: ${{ github.event.inputs.valutInjectorEnable == 'true' }}
       with:
-        url: https://hcvault.app.corpintra.net
+        url: https://dnaplatform.service.vault-prod.rd.corpintra.net
         method: userpass
         username: ${{ secrets.VAULT_USERNAME }}
         password: ${{ secrets.VAULT_PASSWORD }}
-        namespace: ${{ vars.VAULT_NAMESPACE }}
         ignoreNotFound: true
         secrets: |
-            kv/data/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
+            codespaces_kv/data/${{ vars.VAULT_SUB_PATH }}/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }} * | BUILD_ ;         
         
     - name: Build application
       working-directory: ./workspace-repo/deploy
@@ -148,7 +147,7 @@ jobs:
             - name: imagepullsecret
           vaultInjector:
             enable: ${{ github.event.inputs.valutInjectorEnable }}
-            path: kv/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}
+            path: ${{ vars.VAULT_MOUTH_PATH }}/${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}
             root_path: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/api    
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
