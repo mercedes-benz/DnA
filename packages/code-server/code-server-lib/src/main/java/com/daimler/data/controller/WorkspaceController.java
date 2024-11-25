@@ -1028,6 +1028,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
+			 CodeServerWorkspaceVO ownerVo = null;
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
 				 GenericMessage emptyResponse = new GenericMessage();
@@ -1037,6 +1038,21 @@ import org.springframework.beans.factory.annotation.Value;
 				 warnings.add(msg);
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
+			 if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
+				ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
+			} else{
+				ownerVo = vo;
+			}
+			if(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs().isEmpty() && ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs().isEmpty()) {
+				if(ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name().equals(ConstantsUtility.DHC_CAAS)){
+					GenericMessage emptyResponse = new GenericMessage();
+					List<MessageDescription> warnings = new ArrayList<>();
+					MessageDescription msg = new MessageDescription();
+					msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
+					warnings.add(msg);
+					return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+				}
+			} 
 			 List<String> authorizedUsers = new ArrayList<>();
 			 if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
 				 String owner = vo.getProjectDetails().getProjectOwner().getId();
