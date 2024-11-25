@@ -79,8 +79,8 @@ spring:
         enabled: false
         trust:
           store:
-            path: ${VAULT_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
-            password: ${VAULT_TRUSTSTORE_PASSWORD:XXXX}
+            path: ${CA_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
+            password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
 
 kafka:
   centralTopic:
