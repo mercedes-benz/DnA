@@ -1414,7 +1414,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-				 if(cloudServiceProvider.equals(CloudServiceProviderEnum.CAAS.name())){
+				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 } else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
