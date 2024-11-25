@@ -381,19 +381,19 @@ const DeployModal = (props) => {
               </div>
             </div>
             <div>
-              <Tags
-                title={'Code Branch to Deploy'}
-                max={1}
-                chips={branchValue}
-                placeholder={'Type here...'}
-                tags={branches}
-                setTags={onBranchChange}
-                isMandatory={true}
-                showMissingEntryError={isBranchValueMissing}
-                showAllTagsOnFocus={true}
-                disableSelfTagAdd={true}
-                suggestionPopupHeight={150}
-              />
+                <Tags
+                  title={'Code Branch to Deploy'}
+                  max={1}
+                  chips={branchValue}
+                  placeholder={'Only the top 100 branches will be fetched'}
+                  tags={branches}
+                  setTags={onBranchChange}
+                  isMandatory={true}
+                  showMissingEntryError={isBranchValueMissing}
+                  showAllTagsOnFocus={true}
+                  disableSelfTagAdd={true}
+                  suggestionPopupHeight={150}
+                />
             </div>
           </div>
           {(props.enableSecureWithIAM || props.isUIRecipe) && (

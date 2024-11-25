@@ -419,10 +419,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> protocols = new ArrayList();
 		String currentPath = "";
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
-		CreateRouteRequestVO createRouteRequestVOApi = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
-		CreateRouteVO createRouteVOApi = new CreateRouteVO();
-
 		if(kongApiForDeploymentURL) {
 			// if(apiRecipe) {
 
@@ -567,6 +564,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					createRouteResponse = createRoute(createRouteRequestVOApi, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
 				}
 				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
+
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
 					for(MessageDescription error : responseErrors) {
