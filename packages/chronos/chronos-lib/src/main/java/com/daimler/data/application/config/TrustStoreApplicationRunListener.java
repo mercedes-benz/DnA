@@ -10,7 +10,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 public class TrustStoreApplicationRunListener implements SpringApplicationRunListener {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(CacheUpdateEventListener.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(TrustStoreApplicationRunListener.class);
 
     public TrustStoreApplicationRunListener(SpringApplication application, String[] args) {
         // Constructor required by SpringApplicationRunListener
