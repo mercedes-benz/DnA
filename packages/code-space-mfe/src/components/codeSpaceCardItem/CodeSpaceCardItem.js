@@ -940,6 +940,7 @@ const CodeSpaceCardItem = (props) => {
                   <span
                     title={'Please contact Codespace Admin'}
                     className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
+                    onClick={() => onStartStopCodeSpace(codeSpace)}
                   >
                     Server Start Failed
                   </span>
