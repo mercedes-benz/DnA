@@ -76,7 +76,12 @@ spring:
       kv:
        enabled: true  
       ssl:
-        enabled: false 
+        enabled: false
+        trust:
+          store:
+            path: ${VAULT_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
+            password: ${VAULT_TRUSTSTORE_PASSWORD:XXXX}
+
 kafka:
   centralTopic:
     name: dnaCentralEventTopic      
