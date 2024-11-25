@@ -1,4 +1,4 @@
-replicaCount: 2
+replicaCount: 1
 namespace: fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
