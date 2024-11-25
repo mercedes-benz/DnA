@@ -172,29 +172,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
 		if (allEntities != null && !allEntities.isEmpty()) {
 			for(FabricWorkspaceNsql entity : allEntities) {
-				try {
-					String id = entity.getId();
-					log.info("Fetched fabric project record from db successfully for id {} ", id);
-					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-					if(dtoFromFabric!=null) {
-						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-								jpaRepo.deleteById(id);
-								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-						}else {
-							entity.getData().setName(dtoFromFabric.getDisplayName());
-							entity.getData().setDescription(dtoFromFabric.getDescription());
-							log.info("getAllLOV-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-							jpaRepo.save(entity);
-							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-							vos.add(updatedVO);
-						}
-					}
-				}catch(Exception e) {
-					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
-					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-					vos.add(updatedVO);
-				}
+//				try {
+//					String id = entity.getId();
+//					log.info("Fetched fabric project record from db successfully for id {} ", id);
+//					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+//					if(dtoFromFabric!=null) {
+//						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+//								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+//								jpaRepo.deleteById(id);
+//								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+//						}else {
+//							entity.getData().setName(dtoFromFabric.getDisplayName());
+//							entity.getData().setDescription(dtoFromFabric.getDescription());
+//							log.info("getAllLOV-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
+//							jpaRepo.save(entity);
+//							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//							vos.add(updatedVO);
+//						}
+//					}
+//				}catch(Exception e) {
+//					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+//					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//					vos.add(updatedVO);
+//				}
+				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+				vos.add(updatedVO);
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
@@ -239,29 +241,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		if (filteredEntities != null && !filteredEntities.isEmpty()) {
 			for(FabricWorkspaceNsql entity : filteredEntities) {
-				try {
-					String id = entity.getId();
-					log.info("Fetched fabric project record from db successfully for id {} ", id);
-					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-					if(dtoFromFabric!=null) {
-						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-								jpaRepo.deleteById(id);
-								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-						}else {
-							entity.getData().setName(dtoFromFabric.getDisplayName());
-							entity.getData().setDescription(dtoFromFabric.getDescription());
-							log.info("getAll-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-							jpaRepo.save(entity);
-							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-							vos.add(updatedVO);
-						}
-					}
-				}catch(Exception e) {
-					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
-					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-					vos.add(updatedVO);
-				}
+//				try {
+//					String id = entity.getId();
+//					log.info("Fetched fabric project record from db successfully for id {} ", id);
+//					WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+//					if(dtoFromFabric!=null) {
+//						if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+//								log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+//								jpaRepo.deleteById(id);
+//								log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+//						}else {
+//							entity.getData().setName(dtoFromFabric.getDisplayName());
+//							entity.getData().setDescription(dtoFromFabric.getDescription());
+//							log.info("getAll-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
+//							jpaRepo.save(entity);
+//							FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//							vos.add(updatedVO);
+//						}
+//					}
+//				}catch(Exception e) {
+//					log.error("Failed to update Fabric workspace record of id {} during get all records",entity.getId());
+//					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+//					vos.add(updatedVO);
+//				}
+				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+				vos.add(updatedVO);
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
@@ -290,21 +294,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public FabricWorkspaceVO getById(String id) {
 		FabricWorkspaceVO voFromDb =  super.getById(id);
 		log.info("Fetched fabric project record from db successfully for id {} ", id);
-		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-		if(dtoFromFabric!=null) {
-			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-				try{
-					jpaRepo.deleteById(id);
-					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-				}catch(Exception e) {
-					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
-				}
-				return null;
-			}
-			log.info("getbyid-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-			voFromDb.setName(dtoFromFabric.getDisplayName());
-			voFromDb.setDescription(dtoFromFabric.getDescription());
+//		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
+//		if(dtoFromFabric!=null) {
+//			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
+//				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
+//				try{
+//					jpaRepo.deleteById(id);
+//					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
+//				}catch(Exception e) {
+//					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
+//				}
+//				return null;
+//			}
+//			log.info("getbyid-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
+//			voFromDb.setName(dtoFromFabric.getDisplayName());
+//			voFromDb.setDescription(dtoFromFabric.getDescription());
 			try {
 				LakehouseCollectionDto lakehousesCollection = fabricWorkspaceClient.listLakehouses(id);
 				if(lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
@@ -319,7 +323,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			}catch(Exception e) {
 				log.error("Failed to update latest displayName and description from Fabric to Database for project id {} . Will be updated in next fetch", id);
 			}
-		}
+//		}
 		return voFromDb;
 	}
 
@@ -473,6 +477,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		requestedEntitlement.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add entitlement {} for workspace {} ", subgroupPrefix  + workspaceId + "_" + permissionName, workspaceName);
+			EntiltlemetDetailsDto getResponse = identityClient.getEntitlement(createRequestDto.getDisplayName());
+			if(getResponse!=null && getResponse.getUuid()!=null) {
+				requestedEntitlement.setEntitlementId(getResponse.getEntitlementId());
+				requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
+				log.info("Called identity management system to get entitlement {} for workspace {} . Entitlement fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getUuid());
+				return requestedEntitlement;
+			}
 			EntiltlemetDetailsDto entitlementCreateResponse = identityClient.createEntitlement(createRequestDto);
 			if(entitlementCreateResponse!=null && entitlementCreateResponse.getEntitlementId()!=null) {
 				requestedEntitlement.setEntitlementId(entitlementCreateResponse.getEntitlementId());
@@ -539,6 +550,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRoleVO.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add role {} for workspace {} ", workspaceName + "_" + permissionName, workspaceName);
+			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getName());
+			if(getResponse!=null && getResponse.getId()!=null) {
+				createRoleVO.setId(getResponse.getId());
+				createRoleVO.setLink(identityRoleUrl+workspaceName + "_" +  permissionName);
+				createRoleVO.setState(ConstantsUtility.CREATED_STATE);
+				log.info("Called identity management system to get role {} for workspace {} . Role fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getId());
+				return createRoleVO;
+			}
 			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto);
 			if(createRoleResponseDto!=null && createRoleResponseDto.getId()!=null) {
 				createRoleVO.setId(createRoleResponseDto.getId());
@@ -909,66 +928,66 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							}
 						}
 					}
+					if(!isAdminGroupAvailable) {
+						adminGroupVO = new GroupDetailsVO();
+						adminGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						adminGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN);
+					}
+					if(!isContributorGroupAvailable) {
+						contributorGroupVO = new GroupDetailsVO();
+						contributorGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						contributorGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR);
+					}
+					if(!isMemberGroupAvailable) {
+						memberGroupVO = new GroupDetailsVO();
+						memberGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						memberGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER);
+					}
+					if(!isViewerGroupAvailable) {
+						viewerGroupVO = new GroupDetailsVO();
+						viewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
+						viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
+					}
 					//check if groups are assigned
 					FabricGroupsCollectionDto usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
 					//change status if available and also assigned, if not create and assign
 					if(usersGroupsCollection!=null && usersGroupsCollection.getValue()!=null && !usersGroupsCollection.getValue().isEmpty()) {
 						for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
 							if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
-								if(isAdminGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(adminGroupVO.getGroupName())) {
-										isAdminGroupAvailable = true;
-										adminGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										adminGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-										GroupDetailsVO existingAdminGroupVO = new GroupDetailsVO();
-										existingAdminGroupVO.setState(ConstantsUtility.PENDING_STATE);
-										existingAdminGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_ADMIN);
-										adminGroupVO = this.callGroupAssign(existingAdminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(adminGroupVO.getGroupName())) {
+									isAdminGroupAssigned = true;
+									adminGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									adminGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								
-								if(isContributorGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(contributorGroupVO.getGroupName())) {
-										isContributorGroupAvailable = true;
-										contributorGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										contributorGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-									GroupDetailsVO existingContributorGroupVO =  new GroupDetailsVO();
-									existingContributorGroupVO.setState(ConstantsUtility.PENDING_STATE);
-									existingContributorGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_CONTRIBUTOR);
-									contributorGroupVO = this.callGroupAssign(existingContributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(contributorGroupVO.getGroupName())) {
+									isContributorGroupAssigned = true;
+									contributorGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									contributorGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								
-								if(isMemberGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(memberGroupVO.getGroupName())) {
-										isMemberGroupAvailable = true;
-										memberGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										memberGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-									GroupDetailsVO existingMemberGroupVO = new GroupDetailsVO();
-									existingMemberGroupVO.setState(ConstantsUtility.PENDING_STATE);
-									existingMemberGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_MEMBER);
-									memberGroupVO = this.callGroupAssign(existingMemberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(memberGroupVO.getGroupName())) {
+									isMemberGroupAssigned = true;
+									memberGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									memberGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-
-								if(isViewerGroupAvailable) {
-									if(userGroupDetail.getDisplayName().equalsIgnoreCase(viewerGroupVO.getGroupName())) {
-										isViewerGroupAvailable = true;
-										viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
-										viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
-									}
-								}else {
-									GroupDetailsVO existingViewerGroupVO = new GroupDetailsVO();
-									existingViewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
-									existingViewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
-									viewerGroupVO = this.callGroupAssign(existingViewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase(viewerGroupVO.getGroupName())) {
+									isViewerGroupAssigned = true;
+									viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+									viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								
 							}
 						}
+					}
+					if(!isAdminGroupAssigned) {
+						adminGroupVO = this.callGroupAssign(adminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+					}
+					if(!isContributorGroupAssigned) {
+						contributorGroupVO = this.callGroupAssign(contributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
+					}
+					if(!isMemberGroupAssigned) {
+						memberGroupVO = this.callGroupAssign(memberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
+					}
+					if(!isViewerGroupAssigned) {
+						viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 					}
 					
 					updatedMicrosoftFabricGroups.add(adminGroupVO);
@@ -1083,24 +1102,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(isAdminGroupAvailable) {
 			updatedGroups.add(adminGroupVO);
 		}else {
+			log.info("Admin group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			adminGroupVO = this.callGroupAssign(adminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
 			updatedGroups.add(adminGroupVO);
 		}
 		if(isContributorGroupAvailable) {
 			updatedGroups.add(contributorGroupVO);
 		}else {
+			log.info("Contributor group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			contributorGroupVO = this.callGroupAssign(contributorGroupVO, workspaceId, ConstantsUtility.PERMISSION_CONTRIBUTOR);
 			updatedGroups.add(contributorGroupVO);
 		}
 		if(isMemberGroupAvailable) {
 			updatedGroups.add(memberGroupVO);
 		}else {
+			log.info("Member group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			memberGroupVO = this.callGroupAssign(memberGroupVO, workspaceId, ConstantsUtility.PERMISSION_MEMBER);
 			updatedGroups.add(memberGroupVO);
 		}
 		if(isViewerGroupAvailable) {
 			updatedGroups.add(viewerGroupVO);
 		}else {
+			log.info("Viewer group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 			updatedGroups.add(viewerGroupVO);
 		}
