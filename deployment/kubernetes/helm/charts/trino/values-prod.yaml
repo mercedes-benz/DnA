@@ -1,0 +1,169 @@
+appName: trino
+namespace: trino
+access-rules:
+  endpoint: http://trino-backend-service.trino.svc.cluster.local:7575/service/access
+cert:
+  certManager: daimler-acme
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/trino-immuta/trino-immuta-v2
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart version.
+  tag: 419-v1
+
+ingress:
+  enabled: true
+  host: "trino.dna.app.corpintra.net"
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+ 
+server:
+  host: "trino.dna.app.corpintra.net"
+  workers: 2
+  node:
+    environment: prod
+    dataDir: /data/trino
+    pluginDir: /usr/lib/trino/plugin
+  log:
+    trino:
+      level: INFO
+  config:
+    path: /etc/trino
+    internalSharedSecret: <path:dna_kv/data/prod/kubernetesSecret/trino#internalSharedSecret>
+    http:
+      port: 8080
+    query:
+      maxMemory: "4GB"
+      maxMemoryPerNode: "1GB"
+    memory:
+      heapHeadroomPerNode: "1GB"
+  exchangeManager:
+    name: "filesystem"
+    baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  jvm:
+    maxHeapSize: "8G"
+    gcMethod:
+      type: "UseG1GC"
+      g1:
+        heapRegionSize: "32M"
+  autoscaling:
+    enabled: false
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+
+additionalNodeProperties: {}
+
+additionalJVMConfig: {}
+
+additionalConfigProperties: {}
+
+additionalLogProperties: {}
+
+additionalExchangeManagerProperties: {}
+
+additionalCatalogs: {}
+
+# Array of EnvVar (https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core)
+env: []
+
+initContainers: {}
+  # coordinator:
+  #   - name: init-coordinator
+  #     image: busybox:1.28
+  #     imagePullPolicy: IfNotPresent
+  #     command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+  # worker:
+  #   - name: init-worker
+  #     image: busybox:1.28
+  #     command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+  # Annotations to add to the service account
+  annotations: {}
+
+authentication:
+  oidc:
+    enabled: true
+    issuer: "https://sso.mercedes-benz.com"
+    authUrl: "https://sso.mercedes-benz.com/as/authorization.oauth2"
+    tokenUrl: "https://sso.mercedes-benz.com/as/token.oauth2"
+    jwksUrl: "https://sso.mercedes-benz.com/pf/JWKS"
+    clientId: <path:dna_kv/data/prod/kubernetesSecret/trino#clientId>
+    clientSecret: <path:dna_kv/data/prod/kubernetesSecret/trino#clientSecret>
+    userInfoUrl: "https://sso.mercedes-benz.com/idp/userinfo.openid"
+    scopes: "openid"
+    claim: "sub"
+  password:
+    user: "immuta"
+    bcryptPass: <path:dna_kv/data/prod/kubernetesSecret/trino#bcryptPass>
+
+hivemetastore:
+  image: "registry-emea.app.corpintra.net/dnaplatform/hivemetastore:1.0.1"
+  server:
+    session:
+      check_interval: "1h"
+      timeout: "2h"
+    operation:
+      timeout: "2h"
+    thrift:
+      http_timeout: "2h"
+  requests:
+    memory: "8G"
+    cpu: 2
+  limits:
+    memory: "8G"
+    cpu: 2
+#Don`t start the minio host name with http:// as http prefix was already present in the metastore-cfg.file
+  minio:
+    host: "minio.storage.svc.cluster.local:9000"
+    accessKey: <path:dna_kv/data/prod/kubernetesSecret/trino#minio.accessKey>
+    secretKey: <path:dna_kv/data/prod/kubernetesSecret/trino#minio.secretKey>
+    warehouseBucketName: "datalake"
+  postgres:
+    host: "hive-db.trino.svc.cluster.local:64000"
+    db: "hive"
+    user: "hive"
+    password: <path:dna_kv/data/prod/kubernetesSecret/trino#postgtres.password>
+
+immuta:
+  enabled: true
+  name: "immuta"
+  endpoint: <path:dna_kv/data/prod/kubernetesSecret/trino#immuta.endpoint>
+  apiKey: <path:dna_kv/data/prod/kubernetesSecret/trino#immuta.apikey>
+  listenerName: "immuta-event-listener"
+  nonImmutaUserPermission: READ
