@@ -459,7 +459,7 @@ const CodeSpaceCardItem = (props) => {
             Start your old workspace
           </button>
         </div>
-        <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
+        <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id.toLowerCase()+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
       </div>
     </div>
   );
