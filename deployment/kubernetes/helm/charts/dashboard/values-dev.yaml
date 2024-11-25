@@ -5,7 +5,7 @@ image:
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
-dbUrl: <path:kv/data/dna/kubernetesSecret/reportService#API_DB_URL>
+dbUrl: <path:dna_aws_kv/data/dev/kubernetesSecret/reportService#API_DB_URL>
 secret:
   name: dashboard-secrets
   appUserName: null
@@ -54,31 +54,30 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
-    vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: DnAPlatform/dev
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
+    vault.hashicorp.com/tls-skip-verify: 'true'  
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/reportService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/dev/kubernetesSecret/reportService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "kv/dna/kubernetesSecret/reportService" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/reportService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"

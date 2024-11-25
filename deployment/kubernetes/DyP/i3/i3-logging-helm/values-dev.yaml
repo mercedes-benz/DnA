@@ -212,8 +212,8 @@ fluent-bit:
           Time_Key @flb-timestamp
           Replace_Dots On
           Logstash_Prefix kubernetes_cluster
-          HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>          
+          HTTP_User <path:dna_aws_kv/data/dev/kubernetesSecret/logger#user>
+          HTTP_Passwd <path:dna_aws_kv/data/dev/kubernetesSecret/logger#password>          
 
         [Output]
           name                   loki
@@ -482,7 +482,7 @@ opensearch:
 
           # Define your internal users here
           new-user:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
             reserved: false
             hidden: false
             opendistro_security_roles:
@@ -496,7 +496,7 @@ opensearch:
           ## Demo users
 
           admin:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "admin"
@@ -510,7 +510,7 @@ opensearch:
             description: "OpenSearch Dashboards server"
 
           kibanaro:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "kibanauser"
@@ -522,21 +522,21 @@ opensearch:
             description: "Demo read-only user for OpenSearch dashboards"
 
           logstash:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "logstash"
             description: "Demo logstash user"
 
           readall:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "readall"
             description: "Demo readall user"
 
           snapshotrestore:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "snapshotrestore"

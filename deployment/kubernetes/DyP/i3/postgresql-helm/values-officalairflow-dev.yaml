@@ -1,6 +1,6 @@
 namespace: airfow-prod
 annotations:
-  argocdvault: "kv/data/dna/kubernetesSecret/dnadb"
+  argocdvault: "dna_aws_kv/data/dev/kubernetesSecret/dnadb"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -391,7 +391,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:kv/data/dna/kubernetesSecret/dnadb#init-db>
+  script: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#init-db>
 
 test:
   enabled: true

@@ -8,12 +8,12 @@ image:
 imagePullSecrets: []
 
 nfs:
-  server: <path:kv/data/dna/kubernetesSecret/nfsprovisioner#retainserver>
-  path: <path:kv/data/dna/kubernetesSecret/nfsprovisioner#retainpath>
+  server: <path:dna_aws_kv/data/staging/kubernetesSecret/nfsprovisioner#retainserver>
+  path: <path:dna_aws_kv/data/staging/kubernetesSecret/nfsprovisioner#retainpath>
   mountOptions:
   volumeName: nfs-subdir-external-provisioner-root
   # Reclaim policy for the main nfs volume
-  reclaimPolicy: <path:kv/data/dna/kubernetesSecret/nfsprovisioner#retainstorageclassreclaimPolicy>
+  reclaimPolicy: <path:dna_aws_kv/data/staging/kubernetesSecret/nfsprovisioner#retainstorageclassreclaimPolicy>
 
 # For creating the StorageClass automatically:
 storageClass:
@@ -34,7 +34,7 @@ storageClass:
   allowVolumeExpansion: true
 
   # Method used to reclaim an obsoleted volume
-  reclaimPolicy: <path:kv/data/dna/kubernetesSecret/nfsprovisioner#retainstorageclassreclaimPolicy>
+  reclaimPolicy: <path:dna_aws_kv/data/staging/kubernetesSecret/nfsprovisioner#retainstorageclassreclaimPolicy>
 
   # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
   archiveOnDelete: true

@@ -4,11 +4,11 @@
 
 # see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbrickssecret:
-  clientId: "<path:kv/data/dna/kubernetesSecret/formbricks#clientId>"
-  clientSecret: "<path:kv/data/dna/kubernetesSecret/formbricks#clientSecret>"
-  database_url: "<path:kv/data/dna/kubernetesSecret/formbricks#database_url>"
-  encryption_key: "<path:kv/data/dna/kubernetesSecret/formbricks#encryption_key>"
-  nextauth_secret: "<path:kv/data/dna/kubernetesSecret/formbricks#nextauth_secret>"
+  clientId: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#clientId>"
+  clientSecret: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#clientSecret>"
+  database_url: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#database_url>"
+  encryption_key: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#encryption_key>"
+  nextauth_secret: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#nextauth_secret>"
 formbricks: 
   webappUrl: https://survey.test.dna.app.corpintra.net                               # REQUIRED: Base URL of the site.
   nextauthUrl: "https://survey.test.dna.app.corpintra.net"                            # REQUIRED: Location of the auth server.

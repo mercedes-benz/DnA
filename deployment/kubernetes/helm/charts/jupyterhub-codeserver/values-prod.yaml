@@ -45,10 +45,10 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dna.app.corpintra.net/#/codespaces
-      cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
+      cookie_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
-      client_id: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_id>
-      client_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#client_secret>
+      client_id: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_id>
+      client_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_secret>
       oauth_callback_url: https://code-spaces.dna.app.corpintra.net/hub/oauth_callback
       authorize_url: https://sso.mercedes-benz.com/as/authorization.oauth2
       token_url: https://sso.mercedes-benz.com/as/token.oauth2  
@@ -95,7 +95,7 @@ hub:
       subPath:
       storageClassName: dhc-gp3
     url: postgresql+psycopg2://cs-db:64000/jupyterhub
-    password: <path:kv/data/dna/kubernetesSecret/cs#dbadm.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/cs#dbadm.password>
   labels: {}
   annotations: {}
   command: []
@@ -293,7 +293,7 @@ rbac:
 # proxy relates to the proxy pod, the proxy-public service, and the autohttps
 # pod and proxy-http service.
 proxy:
-  secretToken: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#secretToken>
+  secretToken: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#secretToken>
   annotations: {}
   deploymentStrategy:
     ## type: Recreate
@@ -577,9 +577,9 @@ singleuser:
     NO_PROXY : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     no_proxy : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     ENTRYPOINTD : /home/coder/entrypoint.d    
-    CS_MINIO_ENDPOINT: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
-    CS_MINIO_KEY: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_key>
-    CS_MINIO_SECRET: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
+    CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
+    CS_MINIO_KEY: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
+    CS_MINIO_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
   lifecycleHooks: {}
     # postStart:
     #   exec:

@@ -1,0 +1,765 @@
+
+# The default values of the subchart already meet the requirements for DHC CaaS
+fluent-bit:
+  enabled: true
+
+  # the labels are required by OpenSearch networkPolicy to enable access to OpenSearch
+  labels:
+    i3-logging-opensearch-master-transport-client: "true"
+  podLabels:
+    i3-logging-opensearch-master-transport-client: "true"
+
+  kind: DaemonSet 
+
+  image:
+    repository: registry-emea.app.corpintra.net/dockerhub/fluent/fluent-bit
+    pullPolicy: IfNotPresent
+
+  podSecurityPolicy:
+    create: false
+
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 0
+
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 0
+
+  service:
+    type: ClusterIP
+    port: 2020
+    labels: { }
+    # nodePort: 30020
+    annotations: { }
+    #   prometheus.io/path: "/api/v1/metrics/prometheus"
+    #   prometheus.io/port: "2020"
+    #   prometheus.io/scrape: "true"
+  
+  daemonSetVolumeMounts:
+    #https://github.com/kubernetes/kubernetes/issues/53022
+    - name: user-host-logs
+      subPath: pods
+      mountPath: /var/log/pods
+      readOnly: true
+    - name: user-host-logs
+      mountPath: /var/log/containers
+      subPath: containers
+      readOnly: true
+    - mountPath: /db
+      name: db-volume
+    
+  daemonSetVolumes:
+    - name: user-host-logs
+      persistentVolumeClaim:
+        claimName: i3-logging-user-host-logs-claim
+    - name: db-volume
+      emptyDir:
+        sizeLimit: 500Mi
+
+  # Info is the default log level of fluent-bit. Please note, that on setting logLevel to "DEBUG", fluent-bit puts multiple logs per second to stdout, therefore creating high cpu usage
+  logLevel: debug
+
+  networkPolicy:
+    enable: true
+
+  ## https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file
+  config:
+    service: |
+      [SERVICE]
+          Daemon Off
+          Flush 1
+          Log_Level {{ .Values.logLevel }}
+          Parsers_File parsers.conf
+          Parsers_File custom_parsers.conf
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port {{ .Values.service.port }}
+          Health_Check On
+
+    ## See documentation/INPUT.md
+    ## https://docs.fluentbit.io/manual/pipeline/inputs
+    inputs: |
+      # Input type tail is enabled by default, since this is the expected input mode on DHC CaaS. 
+      # see: https://pages.git.i.mercedes-benz.com/DHC/CaaS/docs/technical-guide/logging/user-host-logs
+      @INCLUDE input_tail.conf
+
+      # Input for opentelemetry. Opentelemetry endpoint is exposed at port 4318.
+      # @INCLUDE input_opentelemetry.conf
+
+    ## See documentation/FILTER.md
+    ## https://docs.fluentbit.io/manual/pipeline/filters
+    filters: |
+      # Kubernetes plugin is inactive by default. Uncomment to enable
+      @INCLUDE filter_kubernetes.conf
+
+      # Map env variables to log entry
+      @INCLUDE filter_add_to_log_from_env.conf
+
+      # Enable filtering of DHC CaaS Kubernetes api server audit logs. Comment to disable.
+      # If disabled, you need to enable extraFilters to avoid Opensearch index errors. See /documentation/FILTER.md for hints.
+      @INCLUDE filter_excludePlatformAuditLogs.conf
+
+      # Enable filtering of DHC CaaS Nodes kubelet logs. Comment to disable
+      @INCLUDE filter_excludePlatformKubeletLogs.conf
+
+      # Enable filtering of all container logs within namespace 'kube-system'. Comment to disable
+      @INCLUDE filter_excludeK8sSystemLogs.conf
+
+    ## By default, write logs to OpenSearch.
+    ## https://docs.fluentbit.io/manual/pipeline/outputs
+    outputs: |
+      @INCLUDE output_opensearch.conf
+
+    # extra files, which are included in config above
+    extraFiles:
+      input_tail.conf: |
+        # for explainations, see https://docs.fluentbit.io/manual/input/tail
+        [INPUT]
+            Name             tail
+            Path             /var/log/containers/*.log
+            multiline.parser  docker, cri
+            Tag              kube.*
+            Refresh_Interval 5
+            Mem_Buf_Limit    5MB
+            Skip_Long_Lines  On
+            Read_from_Head false
+            db      /db/tail.db
+      
+      input_opentelemetry.conf: |
+        # for explainations, see https://docs.fluentbit.io/manual/v/dev-2.2/pipeline/inputs/opentelemetry
+        [INPUT]
+            name opentelemetry
+            listen 127.0.0.1
+            port 4318
+
+      filter_add_to_log_from_env.conf: |
+        [FILTER]
+            Name record_modifier
+            Match *
+            Record HOSTNAME ${HOSTNAME}
+
+      filter_kubernetes.conf: |
+        [FILTER]
+            Name                kubernetes
+            Match               kube.*
+            Kube_Tag_Prefix     kube.var.log.containers.
+            Kube_URL            https://kubernetes.default.svc:443
+            Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+            #
+            # When enabled, it checks if the `log` field content is a JSON string map, if so,
+            # it append the map fields as part of the log structure.
+            Merge_Log           On
+            #
+            # When Merge_Log is enabled, the filter tries to assume the log field from the
+            # incoming message is a JSON string message and make a structured representation of it
+            # at the same level of the log field in the map. Now if Merge_Log_Key is set (a string name),
+            # all the new structured fields taken from the original log content are inserted under the new key.
+            #Merge_Log_Key       ""
+            #
+            # If On, enable the use of monitoring for a pod annotation of
+            # fluentbit.io/parser: parser_name. parser_name must be the name
+            # of a parser contained within parsers.conf
+            K8S-Logging.Parser  Off
+            #
+            # If true, enable the use of monitoring for a pod annotation of
+            # fluentbit.io/exclude: true. If present, discard logs from that pod.
+            K8S-Logging.Exclude On
+
+      filter_excludePlatformAuditLogs.conf: |
+        [FILTER]
+            Name                grep
+            Match               k8s_audit_sys_user
+            Exclude             kind Event
+
+      filter_excludePlatformKubeletLogs.conf: |
+        [FILTER]
+            Name                grep
+            Match               systemd_sys_kubelet
+            Exclude             HOSTNAME .*
+
+      filter_excludeK8sSystemLogs.conf: |
+        # Since nested fields are not support by grep filter, we use lift with prefix `k8s_resource_` and then filter linear index name
+        # see https://docs.fluentbit.io/manual/pipeline/filters/grep#nested-fields-example
+        [FILTER]
+            Name                modify
+            Condition           Key_Exists  kubernetes
+            Copy                kubernetes  k8s_resources
+            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
+
+        [FILTER]
+            Name                nest
+            Operation           lift
+            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
+            Nested_under        k8s_resources
+            Add_prefix          k8s_resource_
+
+        [FILTER]
+            Name                grep
+            Match_Regex         ^(k8s|kube\.var\.log\.containers).*$
+            Exclude             k8s_resource_namespace_name .*kube-system.*
+
+      output_opensearch.conf: |
+        [OUTPUT]
+          Name  opensearch
+          Match *
+          Host  i3-logging-opensearch-master
+          Port  9200
+          Logstash_Format On
+          Retry_Limit 2
+          Suppress_Type_Name On
+          Time_Key @flb-timestamp
+          Replace_Dots On
+          Logstash_Prefix kubernetes_cluster
+          HTTP_User <path:dna_aws_kv/data/staging/kubernetesSecret/logger#user>
+          HTTP_Passwd <path:dna_aws_kv/data/staging/kubernetesSecret/logger#password>          
+
+        [Output]
+          name                   loki
+          match                  *
+          host                   loki-gateway.i3-monitoring
+          port                   80
+          labels                 Clustername=$(clusterName), namespace=$kubernetes['namespace_name'], pod_name=$kubernetes['pod_name']
+          auto_kubernetes_labels on
+          Retry_Limit            no_limits
+
+opensearch-dashboards:
+  enabled: true
+  image:
+    repository: "registry-emea.app.corpintra.net/dockerhub/opensearchproject/opensearch-dashboards"
+    # override image tag, which is .Chart.AppVersion from upstream opensearch-dashboards helm chart by default
+    # if you change this, you also must change opensearchDashboardVersion in i3-opensearch-config
+    tag: "2.17.1"
+
+  # the label is required by OpenSearch networkPolicy to enable access to OpenSearch
+  labels:
+    i3-logging-opensearch-master-transport-client: "true"
+
+  # We use lifecycle to delete securityDashboard plugin and create the search index and search filters on opensearch-dashboards startup.
+  lifecycle:
+    postStart:
+      exec:
+        command:
+          - bash
+          - -c
+          - |
+            #!/bin/bash
+            # /usr/share/opensearch-dashboards/bin/opensearch-dashboards-plugin remove securityDashboards
+            echo "Opensearch"
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+  securityContext:
+    runAsUser: 1000
+
+  opensearchHosts: http://i3-logging-opensearch-master:9200
+
+  extraEnvs: []
+    # Defines the opensearch-dashboards url path prefix. Should match with server.basePath in opensearch-dashboards.config.opensearch_dashboards.yml
+    #- name: SERVER_BASEPATH
+    #  value: /logging
+    # - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+    #   value: "true"
+
+
+  config:
+    opensearch_dashboards.yml: |
+      logging:
+        quiet: true
+      opensearch.hosts: ["http://i3-logging-opensearch-master:9200"]
+      opensearch.ssl.verificationMode: none
+      opensearch.username: kibanaserver
+      opensearch.password: kibanaserver
+      opensearch.requestHeadersWhitelist: [authorization, securitytenant, Authorization]
+
+      opensearch_security.multitenancy.enabled: true
+      opensearch_security.multitenancy.tenants.preferred: [Private, Global]
+      opensearch_security.readonly_mode.roles: [kibana_read_only]
+      # Use this setting if you are running opensearch-dashboards without https
+      opensearch_security.cookie.secure: true
+      opensearch_security.cookie.isSameSite: "None"
+      server.host: '0.0.0.0'
+      opensearch_security.auth.anonymous_auth_enabled: true
+      opensearch_security.auth.type: [basicauth]
+      opensearch_security.jwt.url_param: "jwtToken"
+      opensearch_security.auth.multiple_auth_enabled: true
+      opensearch_security.jwt.enabled: false      
+
+
+  extraInitContainers: [ ]
+
+  extraContainers: [ ]
+
+  extraVolumes: [ ]
+
+  ingress:
+    enabled: true
+    annotations: 
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: ingress-traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+    hosts:
+      - host: logs.dna-aws.app.corpintra.net
+        paths:
+          - path: /
+            backend:
+              serviceName: i3-logging-opensearch-dashboards
+              servicePort: 5601
+    tls:
+      - hosts:
+          - logs.dna-aws.app.corpintra.net
+        secretName: logs-tls
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+  extraObjects:
+   -  apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: opensearch-dashboards
+        namespace: i3-logging
+      spec:
+        podSelector:
+          matchLabels:
+            app: opensearch-dashboards
+        ingress:
+          - {}
+        policyTypes:
+          - Ingress
+
+
+opensearch:
+  enabled: true
+  maxUnavailable: 
+
+  # Provide custom masterService to match with fluent-bit output.host
+  masterService: "i3-logging-opensearch-master"
+
+
+  ingress:
+    enabled: true
+    annotations: 
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: ingress-traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+    hosts:
+      - api.logs.dna-aws.app.corpintra.net
+    path: /
+    tls:
+      - hosts:
+          - api.logs.dna-aws.app.corpintra.net
+        secretName: logs-opensearch-tls
+
+  image:
+    repository: "registry-emea.app.corpintra.net/dockerhub/opensearchproject/opensearch"
+
+  securityContext:
+    runAsUser: 1000
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "2Gi"
+    limits:
+      cpu: "4000m"
+      memory: "4Gi"
+
+  sysctl:
+    enabled: false
+
+  # Provide custom clusterName for consistent resource naming of all components
+  clusterName: i3-logging-opensearch
+
+  labels:
+    i3-logging-opensearch-master-transport-client: "true"
+
+  config:
+    log4j2.properties: |
+      status = info
+
+      appender.console.type = Console
+      appender.console.name = console
+
+      rootLogger.level = info
+      rootLogger.appenderRef.console.ref = console
+
+    opensearch.yml: |
+      cluster.name: opensearch-cluster
+      # Bind to all interfaces because we don't know what IP address Docker will assign to us.
+      network.host: 0.0.0.0
+
+      plugins:
+        security:
+          ssl:
+            transport:
+              pemcert_filepath: esnode.pem
+              pemkey_filepath: esnode-key.pem
+              pemtrustedcas_filepath: root-ca.pem
+              enforce_hostname_verification: false
+            http:
+              enabled: false
+              pemcert_filepath: esnode.pem
+              pemkey_filepath: esnode-key.pem
+              pemtrustedcas_filepath: root-ca.pem
+          allow_unsafe_democertificates: true
+          allow_default_init_securityindex: true
+          authcz:
+            admin_dn:
+              - CN=admin,OU=client,O=client,L=test,C=de
+          audit.type: internal_opensearch
+          enable_snapshot_restore_privilege: true
+          check_snapshot_restore_write_privileges: true
+          restapi:
+            roles_enabled: ["all_access", "security_rest_api_access"]
+          system_indices:
+            enabled: true
+            indices:
+              [
+                ".opendistro-alerting-config",
+                ".opendistro-alerting-alert*",
+                ".opendistro-anomaly-results*",
+                ".opendistro-anomaly-detector*",
+                ".opendistro-anomaly-checkpoints",
+                ".opendistro-anomaly-detection-state",
+                ".opendistro-reports-*",
+                ".opendistro-notifications-*",
+                ".opendistro-notebooks",
+                ".opendistro-asynchronous-search-response*",
+              ]
+
+  networkPolicy:
+    create: true
+  
+  extraEnvs:
+    - name: plugins.security.ssl.http.enabled
+      value: "false"    
+
+  securityConfig:
+    enabled: true
+    path: "/usr/share/opensearch/config/opensearch-security/"
+    config:
+      data:
+        config.yml: |-
+          _meta:
+            type: "config"
+            config_version: "2"
+          config:
+            dynamic:
+              http:
+                anonymous_auth_enabled: true
+              authc:
+                basic_internal_auth_domain:
+                  http_enabled: true
+                  transport_enabled: true
+                  order: 4
+                  http_authenticator:
+                    type: basic
+                    challenge: false
+                  authentication_backend:
+                    type: internal               
+                        
+
+        internal_users.yml: |-
+          ---
+          # This is the internal user database
+          # The hash value is a bcrypt hash and can be generated with plugin/tools/hash.sh
+
+          _meta:
+            type: "internalusers"
+            config_version: 2
+
+          # Define your internal users here
+          new-user:
+            hash: "<path:dna_aws_kv/data/staging/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            hidden: false
+            opendistro_security_roles:
+            - "specify-some-security-role-here"
+            backend_roles:
+            - "specify-some-backend-role-here"
+            attributes:
+              attribute1: "value1"
+            static: false
+
+          ## Demo users
+
+          admin:
+            hash: "<path:dna_aws_kv/data/staging/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            backend_roles:
+            - "admin"
+            description: "Admin user"
+
+          kibanaserver:
+            hash: "$2y$12$iw9/ne84LT9qXkj2HMceGOstSOj23KhCWsMs5jmKCSNT.iuQY6m32"
+            reserved: false
+            backend_roles:
+            - "admin"            
+            description: "OpenSearch Dashboards server"
+
+          kibanaro:
+            hash: "<path:dna_aws_kv/data/staging/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            backend_roles:
+            - "kibanauser"
+            - "readall"
+            attributes:
+              attribute1: "value1"
+              attribute2: "value2"
+              attribute3: "value3"
+            description: "Demo read-only user for OpenSearch dashboards"
+
+          logstash:
+            hash: "<path:dna_aws_kv/data/staging/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            backend_roles:
+            - "logstash"
+            description: "Demo logstash user"
+
+          readall:
+            hash: "<path:dna_aws_kv/data/staging/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            backend_roles:
+            - "readall"
+            description: "Demo readall user"
+
+          snapshotrestore:
+            hash: "<path:dna_aws_kv/data/staging/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            backend_roles:
+            - "snapshotrestore"
+            description: "Demo snapshotrestore user"
+
+        roles.yml: |-
+          ---
+          complex-role:
+            reserved: false
+            hidden: false
+            cluster_permissions:
+            - "read"
+            - "cluster:monitor/nodes/stats"
+            - "cluster:monitor/task/get"
+            index_permissions:
+            - index_patterns:
+              - "opensearch_dashboards_sample_data_*"
+              dls: "{\"match\": {\"FlightDelay\": true}}"
+              fls:
+              - "~FlightNum"
+              masked_fields:
+              - "Carrier"
+              allowed_actions:
+              - "read"
+            tenant_permissions:
+            - tenant_patterns:
+              - "analyst_*"
+              allowed_actions:
+              - "kibana_all_write"
+            static: false
+          opendistro_security_anonymous:
+            reserved: false
+            cluster_permissions:
+              - 'read'
+            index_permissions:
+              - index_patterns:
+                  - '*'
+                allowed_actions:
+                  - 'read'
+            tenant_permissions:
+              - tenant_patterns:
+                  - "anonymous"
+                allowed_actions:
+                  - "kibana_all_read"            
+          _meta:
+            type: "roles"
+            config_version: 2
+
+        roles_mapping.yml: |-
+          ---
+          _meta:
+            type: "rolesmapping"
+            config_version: 2
+          manage_snapshots:
+            reserved: true
+            hidden: false
+            backend_roles:
+            - "snapshotrestore"
+            hosts: []
+            users: []
+            and_backend_roles: []
+          logstash:
+            reserved: false
+            hidden: false
+            backend_roles:
+            - "logstash"
+            hosts: []
+            users: []
+            and_backend_roles: []
+          own_index:
+            reserved: false
+            hidden: false
+            backend_roles: []
+            hosts: []
+            users:
+            - "*"
+            and_backend_roles: []
+            description: "Allow full access to an index named like the username"
+          kibana_user:
+            reserved: false
+            hidden: false
+            backend_roles:
+            - "kibanauser"
+            hosts: []
+            users: []
+            and_backend_roles: []
+            description: "Maps kibanauser to kibana_user"
+          complex-role:
+            reserved: false
+            hidden: false
+            backend_roles:
+            - "ldap-analyst"
+            hosts: []
+            users:
+            - "new-user"
+            and_backend_roles: []
+          all_access:
+            reserved: true
+            hidden: false
+            backend_roles:
+            - "admin"
+            hosts: []
+            users: 
+            - "admin"
+            - "kibana_server"
+            and_backend_roles: []
+            description: "Maps admin to all_access"
+          readall:
+            reserved: true
+            hidden: false
+            backend_roles:
+            - "readall"
+            hosts: []
+            users: []
+            and_backend_roles: []
+          kibana_server:
+            reserved: true
+            hidden: false
+            backend_roles: 
+            - "kibanaserver"
+            - "admin"
+            hosts: []
+            users:
+            - "kibanaserver"
+            and_backend_roles: []
+          custom_role:
+            reserved: false
+            users:
+            - "*"         
+          opendistro_security_anonymous:
+            reserved: true
+            backend_roles:
+            - "opendistro_security_anonymous_backendrole"              
+
+        action_groups.yml: |-
+          ---
+          my-action-group:
+            reserved: false
+            hidden: false
+            allowed_actions:
+            - "indices:data/write/index*"
+            - "indices:data/write/update*"
+            - "indices:admin/mapping/put"
+            - "indices:data/write/bulk*"
+            - "read"
+            - "write"
+            static: false
+          _meta:
+            type: "actiongroups"
+            config_version: 2
+        
+        tenants.yml: |-
+          ---
+          _meta:
+            type: "tenants"
+            config_version: 2
+          admin_tenant:
+            reserved: false
+            description: "Demo tenant for admin user"
+          anonymous:
+            reserved: false
+            description: "anonymous tenant for Code Space"            
+
+
+  persistence:
+    enableInitChown: false
+    size: 50Gi
+    storageClass: dhc-gp3
+  replicas: 1
+  singleNode: true
+  opensearchJavaOpts: "-Xmx2048M -Xms2048M"
+
+i3-opensearch-config:
+  # Apply i3 specific configuration such as ISM policy
+  enabled: true
+
+  # Opensearch Hosts to apply the policy to. Supports comma seperated values.
+  opensearchHosts: "http://i3-logging-opensearch-master:9200"
+
+  # Opensearch Dashboards to apply the policy to.Supports comma seperated values.
+  opensearchDashboardHosts: "http://i3-logging-opensearch-dashboards:5601"
+
+  # Opensearch dashboard version
+  opensearchDashboardVersion: "2.17.1"
+
+  opensearchPassword: "kibanaserver"
+  opensearchUsername: "kibanaserver"
+  
+  # Apply Index management policy
+  ism:
+    enabled: true
+
+  # Apply i3-access anomaly detector to Opensearch dashboards.
+  i3AccessAnomaly:
+    enabled: false
+    
+  # Apply reusable saved objects.Global tenent is used by default
+  savedObjectApi:
+    enabled: false
+
+    # Path of saved objects api
+    path: "/api/saved_objects/_import"
+
+    # Additional url parameters.
+    #eg ?param1=val1&param2=val2
+    additionalUrlParams: "?overwrite=true"
+
+    # List your configmaps 
+    # Case 1
+    # If you added your ndjson to savedobjects folder those will be installed automatically. 
+    # or Case 2
+    # Create your configmaps! Your configmaps will be instaled after your ndjson in savedobjects folder. List your external configmaps in additionalConfigMapNames.
+    # Your configmap needs to be in the same namespace as the namespace where you installed i3-logging
+    # apiVersion: v1
+    # kind: ConfigMap
+    # metadata:
+    #   name: replaceMeWithANameForYourConfigmap
+    # data:
+    #   replaceMeWithANameForYourSavedObject: |
+    #     <value>
+    #
+    # then in the fild below add those names
+    #
+    # additionalConfigMapNames:
+    #   - replaceMeWithANameForYourConfigmap
+    additionalConfigMapNames: []  

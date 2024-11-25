@@ -24,7 +24,7 @@ spec:
       env:
         - name: HELM_ARGS
           {{- if ne .Values.env "prod" }}          
-          value: -f values-airflow-db-dev.yaml --set namespace={{ .Values.env }}-dna-airflow
+          value: -f values-airflow-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-airflow
           {{ else }}
           value: -f values-airflow-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-airflow
           {{- end }}          
