@@ -36,8 +36,8 @@
           label, a {
             cursor: pointer;
           }
-          label{
-            max-width: 80% !important;
+          a {
+            min-width: 24px !important;
           }
         }
   
@@ -346,4 +346,3 @@
       top: -2px;
     }
   }
-    
