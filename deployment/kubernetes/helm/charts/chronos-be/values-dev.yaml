@@ -3,7 +3,7 @@ namespace: chronos
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-be
   pullPolicy: IfNotPresent
-  tag: '352'
+  tag: '905'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -14,7 +14,7 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: "dna_dev_k8_role"
+  vault.hashicorp.com/role: dna_dev_k8_role
   vault.hashicorp.com/tls-skip-verify: 'true'
   vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
   vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
