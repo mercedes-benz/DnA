@@ -314,7 +314,7 @@ const DeployModal = (props) => {
                   title={'Code Branch to Deploy'}
                   max={1}
                   chips={branchValue}
-                  placeholder={'Type here...'}
+                  placeholder={'Only the top 100 branches will be fetched'}
                   tags={branches}
                   setTags={onBranchChange}
                   isMandatory={true}
