@@ -208,7 +208,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("undeploy");
 				 deployJobInputDto.setBranch(branch);
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				} else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
@@ -257,7 +257,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("undeploy");
 				 deployJobInputDto.setBranch(branch);
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				} else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
@@ -337,7 +337,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 recipeType = "default";
 		 }
 		 String environment = null;
-		 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+		 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 			environment = codeServerEnvValue;
 		 } else {
 			environment = codeServerEnvValueAws;
@@ -566,7 +566,7 @@ import com.daimler.data.util.ConstantsUtility;
 			} else {
 				ownerWorkbenchCreateInputsDto.setProfile("default");
 			}
-			if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+			if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 			} else {
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
@@ -1033,7 +1033,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			 ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			 ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
-			 if(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+			 if(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 			} else {
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
@@ -1855,7 +1855,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("undeploy");
 				 deployJobInputDto.setBranch(branch);
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				} else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
@@ -2138,6 +2138,9 @@ import com.daimler.data.util.ConstantsUtility;
 				 } else {
 					 environmentJsonbName = "prodDeploymentDetails";
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+				 }
+				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
+					deploymentUrl = deploymentUrl.replaceAll("dna","dna-aws");
 				 }
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					 String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
@@ -2651,7 +2654,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 } else {
 					 ownerWorkbenchCreateInputsDto.setProfile("default");
 				 }
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 				} else {
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
@@ -2774,7 +2777,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 } else {
 					 ownerWorkbenchCreateInputsDto.setProfile("default");
 				 }
-				 if(vo.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				 if(vo.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
 				} else {
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
@@ -2912,7 +2915,7 @@ import com.daimler.data.util.ConstantsUtility;
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("restart");
 				deployJobInputDto.setBranch("main");
-				if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(CloudServiceProviderEnum.CAAS.name())){
+				if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				} else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
@@ -3018,7 +3021,7 @@ import com.daimler.data.util.ConstantsUtility;
 			String ownersWsid = null;
 			String workspaceUrl = null;
 			String shortId=null;
-			if(CloudServiceProviderEnum.CAAS.name().equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name())){
+			if(ConstantsUtility.DHC_CAAS.equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name())){
 				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 				recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 				ownersWsid = entity.getData().getWorkspaceId();
