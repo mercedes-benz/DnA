@@ -56,7 +56,7 @@ app:
       port: api
 image:
   replicaCount: 4
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-22
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-25
   pullPolicy: Always
 ingress:
   enabled: false
@@ -87,7 +87,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_prod_k8_role'
+    vault.hashicorp.com/role: dna_prod_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
@@ -100,6 +100,11 @@ vaultInjector:
       {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
+    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_kv/prod/kubernetesSecret/infra
+    vault.hashicorp.com/agent-inject-template-catruststore.jks: |
+      {{- with secret "dna_kv/prod/kubernetesSecret/infra" -}}
+      {{ base64Decode  .Data.data.CA_TRUSTSTORE }}
+      {{- end }}        
     vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/prod/kubernetesSecret/malwareService
     vault.hashicorp.com/agent-inject-template-envvar: |
       {{- with secret "dna_kv/prod/kubernetesSecret/malwareService" -}}
