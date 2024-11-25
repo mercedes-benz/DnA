@@ -1,0 +1,32 @@
+{{- $clusterEnabled := eq (include "neo4j.isClusterEnabled" .) "true" }}
+
+{{- if and (not (kindIs "invalid" $.Values.neo4j.operations)) $.Values.neo4j.operations.enableServer $clusterEnabled -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "neo4j.fullname" . }}-operations
+  labels:
+    app: "neo4j-operations"
+    {{- include "neo4j.labels" $.Values.neo4j.operations | indent 4 }}
+spec:
+  restartPolicy: Never
+  serviceAccountName: "{{ if kindIs "string" $.Values.podSpec.serviceAccountName | and $.Values.podSpec.serviceAccountName }}{{ $.Values.podSpec.serviceAccountName }}{{ else }}{{ include "neo4j.fullname" . }}{{ end }}"
+  containers:
+    - name: {{ include "neo4j.fullname" . }}-operations
+      image: {{ $.Values.neo4j.operations.image }}
+      imagePullPolicy: "Always"
+      env:
+        - name: RELEASE_NAME
+          value: {{ include "neo4j.fullname" . | quote }}
+        {{- if and (not (kindIs "invalid" $.Values.neo4j.passwordFromSecret)) (not (empty $.Values.neo4j.passwordFromSecret)) }}
+        - name: SECRETNAME
+          value: {{ $.Values.neo4j.passwordFromSecret | quote }}
+        {{- else }}
+        - name: SECRETNAME
+          value: {{ include "neo4j.name" . | printf "%s-auth" | quote }}
+        {{- end }}
+        - name: NAMESPACE
+          value: {{ .Release.Namespace | quote }}
+        - name: PROTOCOL
+          value: {{ $.Values.neo4j.operations.protocol | default "neo4j" | quote }}
+{{- end -}}

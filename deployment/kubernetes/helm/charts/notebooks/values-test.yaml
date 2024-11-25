@@ -1,0 +1,64 @@
+appName: notebooks
+namespace: notebooks
+app:
+  jupyter:
+    config:
+      configproxy_auth_token: <path:dna_kv/data/staging/kubernetesSecret/notebooks#configproxy_auth_token>
+      kf_pipelines_endpoint: http://ml-pipeline-ui.kubeflow
+  image:
+    name: registry-emea.app.corpintra.net/dnaplatform/test/jupyterhub:2.1.4
+    pullPolicy: Always
+  profileListImages:
+    default: registry-emea.app.corpintra.net/dnaplatform/test/pyspark-notebook-default:1.0.10
+    tensorflow: registry-emea.app.corpintra.net/dnaplatform/test/pyspark-notebook-tensorflow:1.0.10
+    chronos: registry-emea.app.corpintra.net/dnaplatform/test/pyspark-notebook:1.0-chronos
+  proxy:
+    image: registry-emea.app.corpintra.net/dnaplatform/test/configurable-http-proxy:1.0.2
+  hubConfig:
+    name: hub-config
+    KubeSpawnerimage: registry-emea.app.corpintra.net/dnaplatform/test/pyspark-notebook-default:1.0.10
+    securitycontext: https://test.dna.app.corpintra.net https://notebook.test.dna.app.corpintra.net login-int.mercedes-benz.com sso-int.mercedes-benz.com *.mercedes-benz.com
+    serviceAccount: default-editor
+    oauthAuthenticator: GenericOAuthenticator
+    oauthClientId: <path:dna_kv/data/staging/kubernetesSecret/notebooks#oauthClientId>
+    oauthClientSecret: <path:dna_kv/data/staging/kubernetesSecret/notebooks#oauthClientSecret>
+    oauthCallback: https://notebook.test.dna.app.corpintra.net/hub/oauth_callback
+    oauthAuthorizeUrl: https://sso-int.mercedes-benz.com/as/authorization.oauth2
+    oauthTokenUrl: https://sso-int.mercedes-benz.com/as/token.oauth2
+    oauthUserDataUrl: https://sso-int.mercedes-benz.com/idp/userinfo.openid
+    oauthUsrKey: sub
+    oauthLoginSvc: mercedes-benz OIDC
+    prespawn_hook: ''
+    enableUserNS: 'True'
+    userNameSpaceTemplate: kubeflow
+    vaultStorageAnnotations: |
+      c.KubeSpawner.cmd = ['sh', '-c','. /vault/secrets/minio && start-notebook.sh']
+
+      ## Make sure you have dummy secret path called "dna_kv/staging/minio/DEFAULT"
+      c.KubeSpawner.extra_annotations = {
+        "vault.hashicorp.com/agent-init-first": "true",
+        "vault.hashicorp.com/agent-inject": "true",
+        "vault.hashicorp.com/agent-inject-secret-minio": "dna_kv/staging/minio/DEFAULT",
+        "vault.hashicorp.com/agent-inject-template-minio": "{{{{ range secrets \"dna_kv/staging/minio/\" }}}}{{{{ $str := \"{username}\" | toUpper}}}}{{{{- if (eq . $str) }}}}{{{{ with secret (printf \"dna_kv/staging/minio/%s\" .) }}}}{{{{ range $k, $v := .Data.data  }}}}export MINIO_ACCESS_KEY=\"{{{{ $k }}}}\"\nexport MINIO_SECRET_KEY=\"{{{{ $v }}}}\"{{{{ end }}}}{{{{ end }}}}{{{{- end }}}}{{{{ end }}}}",
+        "vault.hashicorp.com/agent-pre-populate-only": "true",
+        "vault.hashicorp.com/role": "dna_staging_k8_role",
+        "vault.hashicorp.com/tls-skip-verify": "true",
+        "traffic.sidecar.istio.io/excludeOutboundPorts": "443"
+        }  
+ingress:
+  enabled: true
+  host: notebook.test.dna.app.corpintra.net
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+Storage:
+  storageClass: cinder
+  accessModes: ReadWriteOnce
+  size: 1G
+resources:
+  cpu: 0.5
+  memory: 1G
