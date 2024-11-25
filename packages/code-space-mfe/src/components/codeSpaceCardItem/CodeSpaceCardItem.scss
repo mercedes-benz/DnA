@@ -32,8 +32,12 @@
           padding-bottom: 5px;
           width: 100%;
           text-align: left;
+          display: flex;
           label, a {
             cursor: pointer;
+          }
+          label{
+            max-width: 80% !important;
           }
         }
   
@@ -154,7 +158,7 @@
       font-size: var(--font-size-icon-small);
       letter-spacing: 1px;
       border-radius: 2px;
-      margin-right: 7px;
+      margin-right: 5px;
   
       &.wsStartStop {
         border: 1px solid #00adef;
@@ -232,7 +236,7 @@
       border: 0;
       color: #99a5b3;
       float: right;
-      margin-left: 10px;
+      margin-left: 8px;
       outline: 0;
       padding: 0;
       &:hover {
