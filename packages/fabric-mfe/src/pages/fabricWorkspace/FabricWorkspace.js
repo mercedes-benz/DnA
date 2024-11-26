@@ -8,6 +8,7 @@ import Modal from 'dna-container/Modal';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { fabricApi } from '../../apis/fabric.api';
 import Spinner from '../../components/spinner/Spinner';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
@@ -108,13 +109,17 @@ const WorkspaceDetails = ({ workspace }) => {
   );
 }
 
-const FabricWorkspace = () => {
+const FabricWorkspace = ({ user }) => {
   const { id: workspaceId } = useParams();
   const history = useHistory();
 
   const [loading, setLoading] = useState(true);
   const [workspace, setWorkspace] = useState();
   const [showStatusModal, setShowStatusModal] = useState(false);
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, []);
 
   useEffect(() => {
     getWorkspace();
@@ -151,19 +156,36 @@ const FabricWorkspace = () => {
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          {!loading && <Caption title={`Fabric Workspace - ${workspace?.name}`} />}
-          <div>
-            {workspace?.status?.state === 'IN_PROGRESS' ?
+          {!loading && 
+            <Caption title={`Fabric Workspace - ${workspace?.name}`}>
+              <div>
+                <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
+                  <i className="icon mbc-icon refresh"></i>
+                </button>
+              </div>
+            </Caption>    
+          }
+          <div className={Styles.statusBtns}>
+            {workspace?.status?.state === 'IN_PROGRESS' &&
               <button className={classNames('btn btn-secondary', Styles.createNewCard)} onClick={() => setShowStatusModal(true)}>
                 <p className={Styles.addlabel}><Spinner /> <span>Provisioning in progress</span></p>
               </button>
-            :
-              <button className={classNames('btn btn-secondary', Styles.createNewCard)} type="button" onClick={() => window.open(`https://app.fabric.microsoft.com/groups/${workspace?.id}`)}>
-                <p className={Styles.addlabel}>Access Workspace <i className="icon mbc-icon new-tab" /></p>
+            }
+            {workspace?.status?.state === 'COMPLETED' &&
+              <button className={classNames('btn btn-secondary', Styles.createNewCard)} onClick={() => setShowStatusModal(true)}>
+                <p className={Styles.addlabel}><i className="icon mbc-icon check circle" /> <span>Provisioned</span></p>
               </button>
             }
+            <button className={classNames('btn btn-secondary', Styles.createNewCard)} type="button" onClick={() => window.open(`https://app.fabric.microsoft.com/groups/${workspace?.id}`)}>
+              <p className={Styles.addlabel}>Access Workspace <i className="icon mbc-icon new-tab" /></p>
+            </button>
           </div>
-          <Lakehouses workspace={workspace} lakehouses={workspace?.lakehouses ? workspace?.lakehouses : []} />
+          <Lakehouses 
+            user={user} 
+            workspace={workspace} 
+            lakehouses={workspace?.lakehouses ? workspace?.lakehouses : []} 
+            onDeleteLakehouse={getWorkspace} 
+          />
           <WorkspaceDetails workspace={workspace} />
         </div>
       </div>

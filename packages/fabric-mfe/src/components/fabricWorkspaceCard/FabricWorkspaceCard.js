@@ -67,7 +67,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 {workspace?.status?.state === 'IN_PROGRESS' && <><Spinner /> <span>In progress</span></>}
               </button>
               {workspace?.status?.state === 'COMPLETED' && 
-                <button className={Styles.completedStatus}>
+                <button className={Styles.completedStatus} onClick={() => onSelectWorkspace(workspace)}>
                   <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
                 </button>
               }
