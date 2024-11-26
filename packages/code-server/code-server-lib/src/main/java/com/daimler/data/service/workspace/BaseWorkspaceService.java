@@ -108,6 +108,9 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Value("${codeServer.base.uri}")
 	 private String codeServerBaseUri;
+
+	 @Value("${codeServer.base.uri.aws}")
+	 private String codeServerBaseUriAws;
  
 	 @Value("${codeServer.git.orgname}")
 	 private String gitOrgName;
@@ -2170,7 +2173,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 				 }
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
-					deploymentUrl = deploymentUrl.replaceAll("dna","dna-aws");
+					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
 				 }
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					 String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
