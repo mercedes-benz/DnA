@@ -49,10 +49,10 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Created by</div>
             <div>{workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}</div>
           </div>
-          <div>
+          {/* <div>
             <div>Role</div>
             <div>{workspace?.role || 'N/A'}</div>
-          </div>
+          </div> */}
           <div>
             <div>Classification</div>
             <div>{workspace?.dataClassification || 'N/A'}</div>
@@ -67,7 +67,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 {workspace?.status?.state === 'IN_PROGRESS' && <><Spinner /> <span>In progress</span></>}
               </button>
               {workspace?.status?.state === 'COMPLETED' && 
-                <button className={Styles.completedStatus}>
+                <button className={Styles.completedStatus} onClick={() => onSelectWorkspace(workspace)}>
                   <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
                 </button>
               }

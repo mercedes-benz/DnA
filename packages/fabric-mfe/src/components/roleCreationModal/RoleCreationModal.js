@@ -81,9 +81,9 @@ const RoleCreationModal = ({workspace, onClose}) => {
         <h3>{workspace?.name}</h3>
         <p>Entitlements, Roles, Microsoft Groups</p>
         <div className={Styles.overallStatusContainer}>
-          <div><Spinner /> <span>Creating Roles & Entitlements</span></div>
-          <div><Spinner /> <span>Updating Roles with Entitlements</span></div>
-          <div><Spinner /> <span>Assigning Roles to Microsoft Groups</span></div>
+          <div>{workspace?.status?.state === 'IN_PROGRESS' ? <Spinner /> : <i className="icon mbc-icon check circle"></i>} <span>Creating Roles & Entitlements</span></div>
+          <div>{workspace?.status?.state === 'IN_PROGRESS' ? <Spinner /> : <i className="icon mbc-icon check circle"></i>} <span>Updating Roles with Entitlements</span></div>
+          <div>{workspace?.status?.state === 'IN_PROGRESS' ? <Spinner /> : <i className="icon mbc-icon check circle"></i>} <span>Assigning Roles to Microsoft Groups</span></div>
         </div>
       </div>
       <div className={Styles.content}>
