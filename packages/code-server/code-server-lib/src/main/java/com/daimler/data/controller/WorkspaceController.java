@@ -1056,7 +1056,7 @@ import org.springframework.beans.factory.annotation.Value;
 				ownerVo = vo;
 			}
 			if(Objects.nonNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.nonNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
-				if(Objects.isNull(ownerVo.isIsWorkspaceMigrated() || !ownerVo.isIsWorkspaceMigrated())) {
+				if(Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) {
 					GenericMessage emptyResponse = new GenericMessage();
 					List<MessageDescription> warnings = new ArrayList<>();
 					MessageDescription msg = new MessageDescription();
