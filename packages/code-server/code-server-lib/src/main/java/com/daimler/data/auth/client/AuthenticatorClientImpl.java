@@ -424,27 +424,27 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-			// if(apiRecipe) {
+			if(apiRecipe) {
 
-			// 	currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
-			// 	if(env.equalsIgnoreCase("int"))
-			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
-			// 	if(env.equalsIgnoreCase("prod"))
-			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
-			// }
-			// else {
-			// 	currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
-			// 	if(env.equalsIgnoreCase("int"))
-			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
-			// 	if(env.equalsIgnoreCase("prod"))
-			// 		paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
-			// }
-//			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
-//				paths.add("/" + serviceName + "/" + "int" + "/api");
-//			}
-//			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
-//				paths.add("/" + serviceName + "/" + "prod" + "/api");
-//			}
+				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
+				if(env.equalsIgnoreCase("int"))
+					paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
+				if(env.equalsIgnoreCase("prod"))
+					paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
+			}
+			else {
+				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
+				if(env.equalsIgnoreCase("int"))
+					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
+				if(env.equalsIgnoreCase("prod"))
+					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
+			}
+			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
+				paths.add("/" + serviceName + "/" + "int" + "/api");
+			}
+			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
+				paths.add("/" + serviceName + "/" + "prod" + "/api");
+			}
 			if(!(paths.contains(currentPath))) {
 				paths.add(currentPath);
 			}			
