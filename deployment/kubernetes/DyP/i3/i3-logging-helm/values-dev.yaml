@@ -215,14 +215,14 @@ fluent-bit:
           HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
           HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>          
 
-        [Output]
-          name                   loki
-          match                  *
-          host                   loki-gateway.i3-monitoring
-          port                   80
-          labels                 Clustername=$(clusterName), namespace=$kubernetes['namespace_name'], pod_name=$kubernetes['pod_name']
-          auto_kubernetes_labels on
-          Retry_Limit            no_limits
+        # [Output]
+        #   name                   loki
+        #   match                  *
+        #   host                   loki-gateway.i3-monitoring
+        #   port                   80
+        #   labels                 Clustername=$(clusterName), namespace=$kubernetes['namespace_name'], pod_name=$kubernetes['pod_name']
+        #   auto_kubernetes_labels on
+        #   Retry_Limit            no_limits
 
 opensearch-dashboards:
   enabled: true
