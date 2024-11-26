@@ -1043,14 +1043,14 @@ import org.springframework.beans.factory.annotation.Value;
 			} else{
 				ownerVo = vo;
 			}
-			if(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs().isEmpty() && ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs().isEmpty()) {
+			if(Objects.nonNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs()) && Objects.nonNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs())) {
 				if(ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name().equals(ConstantsUtility.DHC_CAAS)){
 					GenericMessage emptyResponse = new GenericMessage();
 					List<MessageDescription> warnings = new ArrayList<>();
 					MessageDescription msg = new MessageDescription();
 					msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
 					warnings.add(msg);
-					return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+					return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 				}
 			} 
 			 List<String> authorizedUsers = new ArrayList<>();
