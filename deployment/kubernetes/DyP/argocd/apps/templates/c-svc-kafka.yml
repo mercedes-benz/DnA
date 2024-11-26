@@ -23,7 +23,7 @@ spec:
       releaseName: i3-kafka
       skipCrds: false
       valueFiles:
-        - values-dyp.yaml
+        - values-{{ .Values.env }}.yaml
   project: c-svc
 {{- if .Values.enableSync }}
   syncPolicy:
