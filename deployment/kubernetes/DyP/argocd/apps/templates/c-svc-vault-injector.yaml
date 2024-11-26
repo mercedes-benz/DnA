@@ -13,7 +13,7 @@ metadata:
     project: dna
 spec:
   destination:
-    namespace: dev-dna-vault-injector
+    namespace: vault-injector
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/vault-injector

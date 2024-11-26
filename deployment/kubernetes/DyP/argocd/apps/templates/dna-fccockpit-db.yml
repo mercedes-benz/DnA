@@ -24,12 +24,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-fccockpit-db-prod.yaml 
-          {{- if ne .Values.env "prod" }}          
-          value: -f values-fccockpit-db-prod.yaml --set namespace={{ .Values.env }}-dna-cs-apps-services
-          {{ else }}
-          value: -f values-fccockpit-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs-apps-services
-          {{- end }}              
+          value: -f values-fccockpit-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs-apps-services             
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
