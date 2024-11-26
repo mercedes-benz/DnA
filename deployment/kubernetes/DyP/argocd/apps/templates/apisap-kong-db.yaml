@@ -23,11 +23,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          {{- if ne .Values.env "prod" }}          
-          value: -f values-apisap-prod-db.yaml --set namespace={{ .Values.env }}-apisap
-          {{ else }}
-          value: -f values-apisap-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-apisap
-          {{- end }}                    
+          value: -f values-apisap-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-apisap                 
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
