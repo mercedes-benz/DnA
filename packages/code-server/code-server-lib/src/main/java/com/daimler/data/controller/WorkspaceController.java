@@ -761,7 +761,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
 		 }
 		ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
-		if(!ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider())){
+		if(!(ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider()))){
 			GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errorMessage = new ArrayList<>();
 			 MessageDescription msg = new MessageDescription();
@@ -1055,8 +1055,8 @@ import org.springframework.beans.factory.annotation.Value;
 			} else{
 				ownerVo = vo;
 			}
-			if(Objects.nonNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs()) && Objects.nonNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs())) {
-				if(ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name().equals(ConstantsUtility.DHC_CAAS)){
+			if(Objects.nonNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.nonNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
+				if(Objects.isNull(ownerVo.isIsWorkspaceMigrated() || !ownerVo.isIsWorkspaceMigrated())) {
 					GenericMessage emptyResponse = new GenericMessage();
 					List<MessageDescription> warnings = new ArrayList<>();
 					MessageDescription msg = new MessageDescription();
