@@ -751,7 +751,7 @@ controller:
   # Additional replicas will cause sharding of managed clusters across number of replicas.
   ## With dynamic cluster distribution turned on, sharding of the clusters will gracefully
   ## rebalance if the number of replica's changes or one becomes unhealthy. (alpha)
-  replicas: 10
+  replicas: 5
 
   # -- Enable dynamic cluster distribution (alpha)
   # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/dynamic-cluster-distribution
@@ -1853,7 +1853,7 @@ server:
   name: server
 
   # -- The number of server pods to run
-  replicas: 10
+  replicas: 5
 
   ## Argo CD server Horizontal Pod Autoscaler
   autoscaling:
@@ -2523,7 +2523,7 @@ repoServer:
   name: repo-server
 
   # -- The number of repo server pods to run
-  replicas: 10
+  replicas: 5
 
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
@@ -2532,7 +2532,7 @@ repoServer:
     # -- Minimum number of replicas for the repo server [HPA]
     minReplicas: 5
     # -- Maximum number of replicas for the repo server [HPA]
-    maxReplicas: 10
+    maxreplicas: 5
     # -- Average CPU utilization percentage for the repo server [HPA]
     targetCPUUtilizationPercentage: 70
     # -- Average memory utilization percentage for the repo server [HPA]
@@ -3033,7 +3033,7 @@ applicationSet:
   name: applicationset-controller
 
   # -- The number of ApplicationSet controller pods to run
-  replicas: 10
+  replicas: 5
 
   ## ApplicationSet controller Pod Disruption Budget
   ## Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
