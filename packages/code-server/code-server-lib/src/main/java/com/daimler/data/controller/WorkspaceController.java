@@ -746,6 +746,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		 CodeServerWorkspaceVO ownerVo = null;
 		 GenericMessage responseMessage = new GenericMessage();
  
 		 if (userIdDto.getId() == null) {
@@ -759,8 +760,19 @@ import org.springframework.beans.factory.annotation.Value;
 			 emptyResponse.setErrors(errorMessage);
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
 		 }
- 
-		 if (vo == null || vo.getWorkspaceId() == null) {
+		ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
+		if(!ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider())){
+			GenericMessage emptyResponse = new GenericMessage();
+			 List<MessageDescription> errorMessage = new ArrayList<>();
+			 MessageDescription msg = new MessageDescription();
+			 msg.setMessage("Ownership cannot be transferred to Collaborator with different CloudService Provider, kindly migrate.");
+			 errorMessage.add(msg);
+			 emptyResponse.addErrors(msg);
+			 emptyResponse.setSuccess("FAILED");
+			 emptyResponse.setErrors(errorMessage);
+			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_ACCEPTABLE);
+		}
+		if (vo == null || vo.getWorkspaceId() == null) {
 			 log.debug("No workspace found, returning empty");
 			 GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errorMessage = new ArrayList<>();
