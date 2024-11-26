@@ -49,6 +49,10 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Created by</div>
             <div>{workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}</div>
           </div>
+          {/* <div>
+            <div>Role</div>
+            <div>{workspace?.role || 'N/A'}</div>
+          </div> */}
           <div>
             <div>Role</div>
             <div>{workspace?.role || 'N/A'}</div>
