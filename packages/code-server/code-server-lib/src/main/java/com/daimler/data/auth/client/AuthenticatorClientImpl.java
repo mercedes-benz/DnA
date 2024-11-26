@@ -299,7 +299,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");		
+			headers.set("Content-Type", "application/json");
+			LOGGER.info("cloudServiceProvider "+cloudServiceProvider);	
 			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
@@ -342,6 +343,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
+		LOGGER.info("serviceProvider "+cloudServiceProvider);
 		if("prod".equalsIgnoreCase(env)){
 			if(Objects.nonNull(prodDeploymentDetails)) {
 				prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); 
