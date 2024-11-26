@@ -1048,6 +1048,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 MessageDescription msg = new MessageDescription();
 				 msg.setMessage("No workspace found for given id and the user");
 				 warnings.add(msg);
+				 emptyResponse.setWarnings(warnings);
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
 			 if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
@@ -1062,6 +1063,7 @@ import org.springframework.beans.factory.annotation.Value;
 					MessageDescription msg = new MessageDescription();
 					msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
 					warnings.add(msg);
+					emptyResponse.setWarnings(warnings);
 					return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 				}
 			} 
