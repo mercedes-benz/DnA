@@ -202,8 +202,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					headers.set("apikey", awsApiKey);
 				}
 			}
-			String createServiceUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE;
-			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);			
+			String createServiceUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE;
+			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);	
+			LOGGER.info("CreateService deploy entity "+entity);
 			ResponseEntity<String> createServiceResponse = restTemplate.exchange(createServiceUri, HttpMethod.POST, entity, String.class);
 			if (createServiceResponse != null && createServiceResponse.getStatusCode()!=null) {
 				if(createServiceResponse.getStatusCode().is2xxSuccessful()) {
