@@ -507,7 +507,7 @@ const NewCodeSpace = (props) => {
       .catch((err) => {
         ProgressIndicator.hide();
         Notification.show(
-          'Error in transferring Code Space ownership. Please try again later.\n' + err.message,
+          'Error in transferring Code Space ownership. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
           'alert',
         );
       });
