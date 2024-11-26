@@ -21,11 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          {{- if ne .Values.env "prod" }}          
-          value: -f values-fabric-db-dev.yaml
-          {{ else }}
-          value: -f values-fabric-db-{{ .Values.env }}.yaml
-          {{- end }}             
+          value: -f values-fabric-db-{{ .Values.env }}.yaml          
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:

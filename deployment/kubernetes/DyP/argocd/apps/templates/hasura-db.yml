@@ -21,7 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-hasura.yaml
+          value: -f values-hasura-db-{{ .Values.env }}.yaml
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
