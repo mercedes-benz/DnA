@@ -35,35 +35,42 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 @SpringBootApplication
 @ComponentScan({ "com.daimler.data.db.entities", "com.daimler.data.db.repo", "com.daimler.data.controller",
 		"com.daimler.data.service", "com.daimler.data.assembler", "com.daimler.data.application.config",
 		"com.daimler.data.application.client", "com.daimler.data.util", "com.daimler.data.application.filter",
 		"com.daimler.data.auth.client", "com.daimler.data.application.logging", "com.daimler.data.auth.vault","com.daimler.dna" })
-public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
+		public class Application extends SpringBootServletInitializer {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
-
-	public static void main(String[] args) {
-		LOG.info("Starting up the dna chronos application");
-
-		String trustStorePath = System.getProperty("spring.cloud.vault.ssl.trust.store.path");
-        String trustStorePassword = System.getProperty("spring.cloud.vault.ssl.trust.store.password");
-
-		LOG.info("Adding CA Trust Store....");
-        if (trustStorePath != null && trustStorePassword != null) {
-            System.setProperty("javax.net.ssl.trustStore", trustStorePath);
-            System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
-			LOG.info("Added CA Trust Store value {}....",System.getProperty("javax.net.ssl.trustStore"));
-        } 
-
-		SpringApplication.run(Application.class, args);
-	}
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-		return builder.sources(Application.class);
-	}
-
-}
+			private static final Logger LOG = LoggerFactory.getLogger(Application.class);
+		
+			public static void main(String[] args) {
+				LOG.info("Starting up the dna chronos application");
+		
+				// Create a SpringApplication instance to access the environment
+				SpringApplication app = new SpringApplication(Application.class);
+				ConfigurableEnvironment environment = app.run(args).getEnvironment();
+		
+				String trustStorePath = environment.getProperty("spring.cloud.vault.ssl.trust.store.path");
+				String trustStorePassword = environment.getProperty("spring.cloud.vault.ssl.trust.store.password");
+		
+				LOG.info("Adding CA Trust Store....");
+				if (trustStorePath != null && trustStorePassword != null) {
+					System.setProperty("javax.net.ssl.trustStore", trustStorePath);
+					System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
+					LOG.info("Added CA Trust Store value {}....", System.getProperty("javax.net.ssl.trustStore"));
+				} else {
+					LOG.warn("Trust store path or password is not configured!");
+				}
+		
+				SpringApplication.run(Application.class, args);
+			}
+		
+			@Override
+			protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+				return builder.sources(Application.class);
+			}
+		}
+		
