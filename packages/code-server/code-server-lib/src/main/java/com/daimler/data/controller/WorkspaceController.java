@@ -1044,11 +1044,11 @@ import org.springframework.beans.factory.annotation.Value;
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
 				 GenericMessage emptyResponse = new GenericMessage();
-				 List<MessageDescription> warnings = new ArrayList<>();
+				 List<MessageDescription> errors = new ArrayList<>();
 				 MessageDescription msg = new MessageDescription();
 				 msg.setMessage("No workspace found for given id and the user");
-				 warnings.add(msg);
-				 emptyResponse.setWarnings(warnings);
+				 errors.add(msg);
+				 emptyResponse.setErrors(errors);
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
 			 if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
@@ -1059,11 +1059,11 @@ import org.springframework.beans.factory.annotation.Value;
 			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
 				if(Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) {
 					GenericMessage emptyResponse = new GenericMessage();
-					List<MessageDescription> warnings = new ArrayList<>();
+					List<MessageDescription> errors = new ArrayList<>();
 					MessageDescription msg = new MessageDescription();
 					msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
-					warnings.add(msg);
-					emptyResponse.setWarnings(warnings);
+					errors.add(msg);
+					emptyResponse.setErrors(errors);
 					return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 				}
 			} 
