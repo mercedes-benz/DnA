@@ -49,11 +49,11 @@ import org.springframework.core.env.ConfigurableEnvironment;
 				LOG.info("Starting up the dna chronos application");
 		
 				// Create a SpringApplication instance to access the environment
-				SpringApplication app = new SpringApplication(Application.class);
-				ConfigurableEnvironment environment = app.run(args).getEnvironment();
+				// SpringApplication app = new SpringApplication(Application.class);
+				// ConfigurableEnvironment environment = app.run(args).getEnvironment();
 		
-				String trustStorePath = environment.getProperty("spring.cloud.vault.ssl.trust.store.path");
-				String trustStorePassword = environment.getProperty("spring.cloud.vault.ssl.trust.store.password");
+				String trustStorePath = System.getProperty("spring.cloud.vault.ssl.trust.store.path");
+				String trustStorePassword = System.getProperty("spring.cloud.vault.ssl.trust.store.password");
 		
 				LOG.info("Adding CA Trust Store....");
 				if (trustStorePath != null && trustStorePassword != null) {
