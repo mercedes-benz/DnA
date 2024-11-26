@@ -47,7 +47,7 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://test.dna.app.corpintra.net/#/codespaces
-      cookie_secret: <path:kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
+      cookie_secret: <path:dna_kv/data/dna/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -97,7 +97,7 @@ hub:
       subPath:
       storageClassName: cinder-retain
     url: postgresql+psycopg2://jupyterhub-db.code-server.svc.cluster.local:64000/jupyterhub
-    password: <path:kv/data/dna/kubernetesSecret/jupyterhubdb#dbadm.password>
+    password: <path:dna_kv/data/staging/kubernetesSecret/jupyterhubdb#dbadm.password>
   labels: {}
   annotations: {}
   command: []

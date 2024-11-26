@@ -21,11 +21,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          {{- if ne .Values.env "prod" }}          
-          value: -f values-dss-dev-db.yaml
-          {{ else }}
-          value: -f values-dss-{{ .Values.env }}-db.yaml
-          {{- end }}             
+          value: -f values-dss-{{ .Values.env }}-db.yaml           
   project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
