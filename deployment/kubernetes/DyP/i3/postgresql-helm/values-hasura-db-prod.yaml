@@ -1,6 +1,6 @@
 namespace: hasura
 annotations:
-  argocdvault: "kv/data/dna/kubernetesSecret/hasuradb"
+  argocdvault: "dna_aws_kv/data/prod/kubernetesSecret/hasuradb"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##

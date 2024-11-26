@@ -1,6 +1,6 @@
-namespace: hasura
+namespace: code-server
 annotations:
-  argocdvault: "dna_aws_kv/data/dev/kubernetesSecret/hasuradb"
+  argocdvault: "dna_aws_kv/data/prod/kubernetesSecret/csdb"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -13,10 +13,10 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-  fullnameOverride: "hasuradb"
+fullnameOverride: "cs-hub-db"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#replicaCount | jsonParse>
 
 printEnv: true
 
@@ -80,19 +80,19 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: hasuradb
+DBName: jupyterhub
 
 ## Configure S3 properties if S3 storage will be used
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#accesskey>
+  accesskey: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#secretkey>
+  secretkey: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#s3.host>
+  host: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -144,9 +144,9 @@ walArchiving:
       storageClass: dhc-backup-nfs
   s3:
     ## Configuration for S3 storage
-    subfolder: postgresql-cluster
+    subfolder: dev-db-backups
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,31 +201,32 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#backup.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: hasura
-    password: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#dbadm.password>
+    username: jovyan
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false
-      # name: customschema  ## technical user, e.g. to do switchover and other cluster operations
+      # name: customschema
+  ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#patroni.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#pgmon.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#debezium.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#dataCatalog.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -242,13 +243,13 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#db.size>
-  # storageClass: dhc-gp3
+  size: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#size>
+  # storageClass: cinder
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: dhc-gp3
+    # storageClass: cinder
     # PVCName: name
 
 ## Network Policy to be applied
@@ -287,6 +288,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
+  successfulJobsHistoryLimit: "1"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -300,15 +302,15 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-gp3-retain
+      storageClass: cinder-retain
   s3:
     ## Configuration for S3 storage
-    # subfolder: postgresql-cluster
+    subfolder: jupyterhub-db-backups
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#bucketName>
   ## general configuration for backup
-  schedule: "1 0 * * *"
-  retention: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#retention>
+  schedule: "@weekly"
+  retention: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -330,11 +332,11 @@ backup:
   ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
   tempPgdataVolume:
     ## recommended
-    enabled: false
+    enabled: true
     size: 1Gi
-    # storageClass: dhc-gp3
+    # storageClass: cinder
   file:
-    name: hasura-backup
+    name: jupyterhub-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -353,21 +355,21 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: true
+      enabled: false
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: postgresql-backup*.tar.gz
+  recoveryFile: jupyterhub-db-backups/jupyterhub-backup-2024-11-07_07-04-20.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -390,8 +392,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_aws_kv/data/dev/kubernetesSecret/hasuradb#init-db>
-
+  script: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#init-db>
 
 test:
   enabled: true
@@ -511,4 +512,5 @@ lb:
   port: 4400
 
 ## define permanent replication slots. These slots will be preserved during switchover/failover
+## for details see [documentation](https://patroni.readthedocs.io/en/latest/SETTINGS.html)
 slots:
