@@ -746,7 +746,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
-		 CodeServerWorkspaceVO ownerVo = null;
+		 CodeServerWorkspaceVO userVo = null;
 		 GenericMessage responseMessage = new GenericMessage();
  
 		 if (userIdDto.getId() == null) {
@@ -760,8 +760,8 @@ import org.springframework.beans.factory.annotation.Value;
 			 emptyResponse.setErrors(errorMessage);
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
 		 }
-		ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
-		if(!(ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider()))){
+		 userVo = service.getByProjectName(userIdDto.getId(), vo.getProjectDetails().getProjectName());
+		if(!(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(userVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider()))){
 			GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errorMessage = new ArrayList<>();
 			 MessageDescription msg = new MessageDescription();
@@ -1055,7 +1055,7 @@ import org.springframework.beans.factory.annotation.Value;
 			} else{
 				ownerVo = vo;
 			}
-			if(Objects.nonNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.nonNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
+			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
 				if(Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) {
 					GenericMessage emptyResponse = new GenericMessage();
 					List<MessageDescription> warnings = new ArrayList<>();
