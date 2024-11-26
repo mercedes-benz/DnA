@@ -1417,7 +1417,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-				 if(!Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
 				 }
 				hasProdUrl = Objects.nonNull(
@@ -1443,6 +1443,7 @@ import com.daimler.data.util.ConstantsUtility;
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
 				}
+				log.info("cloudServiceProvider  "+cloudServiceProvider);
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 } else {
