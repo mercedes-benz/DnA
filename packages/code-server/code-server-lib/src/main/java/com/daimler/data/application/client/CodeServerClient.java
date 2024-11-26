@@ -190,8 +190,8 @@ public class CodeServerClient {
 		response.setErrors(errors);
 		return response;
 	}
-
-    private boolean isUserPresent(String userId) {
+  
+  private boolean isUserPresent(String userId) {
 		try {
 			String userURI = jupyterUrl + "/" + userId.toLowerCase();
 			HttpEntity<JupyterHubCreateUserDTO> entity = new HttpEntity<JupyterHubCreateUserDTO>(getHeaders());
