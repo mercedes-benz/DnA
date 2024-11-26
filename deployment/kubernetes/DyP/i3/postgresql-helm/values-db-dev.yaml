@@ -244,7 +244,7 @@ service:
 ##
 persistence:
   enabled: true
-  size: 4Gi
+  size: 5Gi
   storageClass: dhc-gp3
   # PVCName: name
   wal:
