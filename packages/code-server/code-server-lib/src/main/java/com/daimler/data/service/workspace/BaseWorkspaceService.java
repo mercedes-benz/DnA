@@ -1391,7 +1391,6 @@ import com.daimler.data.util.ConstantsUtility;
 		 boolean workspaceMigrated = false;
 		 boolean hasProdUrl = false;
 		 boolean hasIntUrl = false;
-		 boolean hasAuditLogs = false;
 		 try {
 			 String repoName = null;
 			 String repoUrl = null;
@@ -1450,39 +1449,17 @@ import com.daimler.data.util.ConstantsUtility;
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-				 if(!Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())){
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
 				 }
-				//  if(!workspaceMigrated){
-				// 	if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)) {
-				// 			if(Objects.nonNull(ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) || Objects.nonNull(ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
-				// 				cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-				// 			}
-				// 		} else {
-				// 			cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-				// 		}
-				// 	} else {
-				// 		if(Objects.nonNull(ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl()) || Objects.nonNull(ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs())) {
-				// 			if(ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl().contains("aws") || ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl().contains("aws")) {
-				// 				cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-				// 			} else {
-				// 				cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-
-				// 			}
-				// 		}else{
-				// 			cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-				// 		}
-				// 	}
 				hasProdUrl = Objects.nonNull(
 						ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
 				hasIntUrl = Objects.nonNull(
 						ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
-
-				hasAuditLogs = Objects.nonNull(
-						ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs());
 				if (!workspaceMigrated) {
 					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+						log.info("serviceProviders  "+cloudServiceProvider);
 					} else {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
@@ -1492,12 +1469,13 @@ import com.daimler.data.util.ConstantsUtility;
 							(hasIntUrl && ownerEntity.getData().getProjectDetails().getIntDeploymentDetails()
 									.getDeploymentUrl().contains("aws"))) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-					} else if (hasProdUrl || hasAuditLogs) {
+					} else if (hasProdUrl || hasIntUrl) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
 					} else {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
 				}
+				log.info("cloudServiceProvider  "+cloudServiceProvider);
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 } else {
