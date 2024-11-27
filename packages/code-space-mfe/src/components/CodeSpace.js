@@ -1111,7 +1111,7 @@ const CodeSpace = (props) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="800px"
+          modalWidth="1200px"
           buttonAlignment="right"
           show={showNewCodeSpaceModal}
           content={

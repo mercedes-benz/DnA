@@ -1355,6 +1355,8 @@ definitions:
         type: string
       clientSecret:
         type: string
+      repo:
+        type: string
 
 
            

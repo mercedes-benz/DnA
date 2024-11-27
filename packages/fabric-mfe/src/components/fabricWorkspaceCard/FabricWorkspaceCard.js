@@ -1,91 +1,98 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Styles from './fabric-workspace-card.scss';
 import { useHistory } from 'react-router-dom';
-// Container Components
-import Modal from 'dna-container/Modal';
-// import ConfirmModal from 'dna-container/ConfirmModal';
-// utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
-// import Notification from '../../common/modules/uilab/js/src/notification';
-import FabricWorkspaceForm from '../fabricWorkspaceForm/FabricWorkspaceForm';
+import Spinner from '../spinner/Spinner';
 
-const FabricWorkspaceCard = ({user,workspace,onRefresh}) => {
-  const [editWorkspace, setEditWorkspace] = useState(false);
-  // const [showDeleteModal, setShowDeleteModal] = useState(false);
+const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-
+  
   useEffect(() => {
     Tooltip.defaultSetup();
-  }, []);
+  }, [workspace]);
+
+  const handleOpenWorkspace = () => {
+    history.push(`/workspace/${workspace?.id}`);
+  }
 
   return (
-    <>
-      <div className={Styles.projectCard}>
-        <div
-          className={Styles.cardHead}
-          onClick={() => {
-            history.push(`/workspace/${workspace?.id}`);
-          }}
-        >
-          <div className={Styles.cardHeadInfo}>
-            <div>
-              <div className={Styles.cardHeadTitle}>{workspace?.workspaceName}</div>
-              <div className="btn btn-text forward arrow"></div>
-            </div>
-          </div>
-        </div>
-        <hr />
-        <div className={Styles.cardBodySection}>
-          <div>
-            <div>
-              <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(workspace.createdOn)}</div>
-            </div>
-            <div>
-              <div>schema</div>
-              <div>{workspace.schemaName}</div>
-            </div>
-            <div>
-              <div>Classification</div>
-              <div>{workspace.classificationType || 'N/A'}</div>
-            </div>
-            <div>
-              <div>Connector Type</div>
-              <div>{workspace.connectorType || 'N/A'}</div>
-            </div>
-          </div>
-        </div>
-        <div className={Styles.cardFooter}>
-          <div>&nbsp;</div>
-          <div className={Styles.btnGrp}>
-            <button className={classNames("btn btn-primary",workspace.createdBy.id === user.id ? "" :"hide")} onClick={() => setEditWorkspace(true)}>
-              <i className="icon mbc-icon edit fill"></i>
-              <span>Edit</span>
-            </button>
-            <button className={classNames("btn btn-primary", Styles.btnDisabled)}>
-              <i className="icon delete"></i>
-              <span>Delete</span>
-            </button>
+    <div className={classNames(Styles.projectCard)}>
+      <div className={Styles.cardHead}>
+        <div className={classNames(Styles.cardHeadInfo)}>
+          <div
+            className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
+            onClick={handleOpenWorkspace}
+          >
+            {workspace?.name}
           </div>
         </div>
       </div>
-      { editWorkspace &&
-        <Modal
-          title={'Edit Fabric Workspace'}
-          hiddenTitle={true}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'800px'}
-          buttonAlignment="right"
-          show={editWorkspace}
-          content={<FabricWorkspaceForm edit={true} workspace={workspace} onSave={() => {setEditWorkspace(false); onRefresh()}} />}
-          scrollableContent={true}
-          onCancel={() => setEditWorkspace(false)}
-        />
-      }
-    </>
+      <hr />
+      <div className={Styles.cardBodySection}>
+        <div>
+          <div>
+            <div>Workspace Link</div>
+            <div>
+              <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>
+                Access Workspace
+                <i className={classNames('icon mbc-icon new-tab')} />
+              </a>
+            </div>
+          </div>
+          <div>
+            <div>Created on</div>
+            <div>{workspace?.createdOn && regionalDateAndTimeConversionSolution(workspace?.createdOn)}</div>
+          </div>
+          <div>
+            <div>Created by</div>
+            <div>{workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}</div>
+          </div>
+          <div>
+            <div>Classification</div>
+            <div>{workspace?.dataClassification || 'N/A'}</div>
+          </div>
+        </div>
+      </div>
+      <div className={Styles.cardFooter}>
+        <>
+          <div className={Styles.statusContainer}>
+            <div className={Styles.statusItem}>
+              <button tooltip-data={'Click for more information'} onClick={() => onSelectWorkspace(workspace)}>
+                {workspace?.status?.state === 'IN_PROGRESS' && <><Spinner /> <span>In progress</span></>}
+              </button>
+              {workspace?.status?.state === 'COMPLETED' && 
+                <button className={Styles.completedStatus} onClick={() => onSelectWorkspace(workspace)}>
+                  <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
+                </button>
+              }
+              {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
+            </div>
+          </div>
+          {user?.id === workspace?.createdBy?.id &&
+            <div className={Styles.btnGrp}>
+              <button
+                className={'btn btn-primary'}
+                type="button"
+                onClick={() => onEditWorkspace(workspace)}
+              >
+                <i className="icon mbc-icon edit"></i>
+                <span>Edit</span>
+              </button>
+              <button
+                className={'btn btn-primary'}
+                type="button"
+                onClick={() => onDeleteWorkspace(workspace)}
+              >
+                <i className="icon delete"></i>
+                <span>Delete</span>
+              </button>
+            </div>
+          }
+        </>
+      </div>
+    </div>
   );
 };
 export default FabricWorkspaceCard;
