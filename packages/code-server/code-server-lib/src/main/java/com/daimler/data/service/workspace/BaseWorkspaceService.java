@@ -2027,6 +2027,12 @@ import com.daimler.data.util.ConstantsUtility;
 			 if (isCreateDeleteStatuses) {
 				 if ("CREATED".equalsIgnoreCase(latestStatus)) {
 					 String workspaceUrl = codeServerBaseUri + "/" + workspaceName + "/?folder=/home/coder";
+					 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+					 if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
+						workspaceUrl = codespaceUrlAWS + "/" + workspaceName + "/?folder=/home/coder";
+					 } else {
+						workspaceUrl = codespaceUrl + "/" + workspaceName + "/?folder=/home/coder";
+					 }
 					 if (!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						 workspaceUrl += "/app";
 					 if (projectRecipe.toLowerCase().startsWith("public")) {
@@ -2106,11 +2112,6 @@ import com.daimler.data.util.ConstantsUtility;
  
 						 }
 					 }
-					cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-					if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
-						workspaceUrl = workspaceUrl.replaceAll("dna","dna-aws");
-				 	}
-					entity.getData().setWorkspaceUrl(workspaceUrl);
 				 }
 				 entity.getData().setStatus(latestStatus);
 				 workspaceCustomRepository.update(entity);
