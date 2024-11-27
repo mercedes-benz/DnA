@@ -2011,7 +2011,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 try {
 			 String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			 boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
-			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(name);
 			 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			 String workspaceName = entity.getData().getWorkspaceId();
 			 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
