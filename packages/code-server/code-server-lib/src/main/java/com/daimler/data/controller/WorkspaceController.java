@@ -1058,7 +1058,7 @@ import org.springframework.beans.factory.annotation.Value;
 				ownerVo = vo;
 			}
 			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
-				if(Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) {
+				if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name().equals(ConstantsUtility.DHC_CAAS)) {
 					GenericMessage emptyResponse = new GenericMessage();
 					List<MessageDescription> errors = new ArrayList<>();
 					MessageDescription msg = new MessageDescription();
