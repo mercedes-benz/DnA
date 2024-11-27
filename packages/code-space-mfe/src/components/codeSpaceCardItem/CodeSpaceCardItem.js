@@ -1023,10 +1023,11 @@ const CodeSpaceCardItem = (props) => {
                 )}
                 {serverFailed && (
                   <span
-                    title={'Please contact Codespace Admin'}
+                    title={'Server Start Failed: Please contact Codespace Admin'}
                     className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
+                    onClick={() => onStartStopCodeSpace(codeSpace)}
                   >
-                    Server Start Failed
+                    Start Failed
                   </span>
                 )}
                 {createInProgress ? (

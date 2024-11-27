@@ -24,4 +24,23 @@ public class CommonUtils {
 		}
 		return repoDetails;
 	}
+
+	public static List<String> getDetailsFromUrl(String url){
+		List<String> details = new ArrayList<>();
+		try{
+			String[] codespaceSplitValues = url.split("/");
+			int length = codespaceSplitValues.length;
+			String repoName = codespaceSplitValues[length - 1];
+			String repoOwner = codespaceSplitValues[length - 2];
+			String gitUrl = url.replace("/" + repoOwner, "");
+			gitUrl = gitUrl.replace("/" + repoName, "");
+			details.add(gitUrl);
+			details.add(repoOwner);
+			details.add(repoName);
+		}catch(Exception e){
+			log.error("Exception occured in utils",e);
+		}
+		return details;
+
+	}
 }
