@@ -853,6 +853,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
