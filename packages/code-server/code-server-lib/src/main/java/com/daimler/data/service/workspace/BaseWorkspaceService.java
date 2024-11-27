@@ -2132,6 +2132,7 @@ import com.daimler.data.util.ConstantsUtility;
 					cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 					if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
 						workspaceUrl = workspaceUrl.replaceAll("dna","dna-aws");
+						log.info("cloudServiceProvider = "+cloudServiceProvider+ " replacedurl = "+workspaceUrl);
 				 	}
 					entity.getData().setWorkspaceUrl(workspaceUrl);
 				 }
