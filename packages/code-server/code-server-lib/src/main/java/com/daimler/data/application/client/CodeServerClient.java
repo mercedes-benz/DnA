@@ -131,10 +131,8 @@ public class CodeServerClient {
 				if(manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
 					status = "SUCCESS";
 					log.info("Success while performing {} action for codeServer workbench for user {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
-					log.info("Success while performing {} action for codeServer workbench for user {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
 				}
 				else {
-					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), manageWorkbenchResponse.getStatusCodeValue());
 					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), manageWorkbenchResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageWorkbenchResponse.getBody() + " Response Code is : " + manageWorkbenchResponse.getStatusCodeValue());
@@ -143,7 +141,6 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
 			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
@@ -173,7 +170,6 @@ public class CodeServerClient {
 					status = "SUCCESS";
 				} else {
 					log.info(
-					log.info(
 							"Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
 							manageDto.getInputs().getAction(), userId);
 					MessageDescription warning = new MessageDescription();
@@ -181,12 +177,9 @@ public class CodeServerClient {
 				}
 			} else {
 				log.error("Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
-			} else {
-				log.error("Error occurred while calling codeServer create for user {} and action {}. User not created in hub.",
 					userId, manageDto.getInputs().getAction());
 			}
 		} catch (Exception e) {
-			log.error(
 			log.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
 					userId, manageDto.getInputs().getAction(), e.getMessage());
@@ -221,11 +214,7 @@ public class CodeServerClient {
 			}
 		} catch (Exception e) {
 			log.error("error occured while checking for user in hub :{} ", e.getMessage());
-		} catch (Exception e) {
-			log.error("error occured while checking for user in hub :{} ", e.getMessage());
 		}
-		return false;
-	}
 		return false;
 	}
 
@@ -242,11 +231,8 @@ public class CodeServerClient {
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(userURI, HttpMethod.POST,entity, String.class);
 			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
 				log.info("User {} has registered sucessfully", userId);
-				log.info("User {} has registered sucessfully", userId);
 				return manageWorkbenchResponse.getStatusCode().is2xxSuccessful();
 			}
-		}	catch(Exception e) {
-			log.error("error occured while creating user in hub :{} ", e.getMessage());
 		}	catch(Exception e) {
 			log.error("error occured while creating user in hub :{} ", e.getMessage());
 		}
@@ -403,15 +389,12 @@ public class CodeServerClient {
 					}
 				} else {
 					log.error("Empty response body while fetching server details for user {}", userId);
-					log.error("Empty response body while fetching server details for user {}", userId);
 				}
 			} else {
-				log.error("Failed to fetch server details for user {}. Status code: {}", userId,
 				log.error("Failed to fetch server details for user {}. Status code: {}", userId,
 						manageWorkbenchResponse != null ? manageWorkbenchResponse.getStatusCode() : "null");
 			}
 		} catch (Exception e) {
-			log.error("Exception occurred while fetching server details for user " + userId, e);
 			log.error("Exception occurred while fetching server details for user " + userId, e);
 		}
 		return false;
@@ -522,10 +505,8 @@ public class CodeServerClient {
 				if(manageDeploymentResponse.getStatusCode().is2xxSuccessful()) {
 					status = "SUCCESS";
 					log.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
-					log.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
 				}
 				else {
-					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
 					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageDeploymentResponse.getBody() + " Response Code is : " + manageDeploymentResponse.getStatusCodeValue());
@@ -534,7 +515,6 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
 			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
@@ -617,7 +597,6 @@ public class CodeServerClient {
 					status = "SUCCESS";
 				} else {
 					log.info(
-					log.info(
 							"Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
 							manageDto.getInputs().getAction(), userId);
 					MessageDescription warning = new MessageDescription();
@@ -625,7 +604,6 @@ public class CodeServerClient {
 				}
 			}
 		} catch (Exception e) {
-			log.error(
 			log.error(
 					"Error occurred while calling codeServer manage workbench for user {} and action {} with exception: {}",
 					userId, manageDto.getInputs().getAction(), e.getMessage());
