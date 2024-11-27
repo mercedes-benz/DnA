@@ -1157,6 +1157,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     }
   };
   protected setTags = (arr: string[]) => {
+    
+    
     const description = this.props.description;
     description.tags = arr;
     // this.props.onStateChange();
