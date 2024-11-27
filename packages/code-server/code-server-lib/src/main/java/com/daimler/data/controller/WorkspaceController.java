@@ -888,7 +888,12 @@ import org.springframework.beans.factory.annotation.Value;
 		 CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
 		 CodeServerRecipe recipeData = recipeEntity!=null ? recipeEntity.getData():null;
 		 CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
-		 newRecipeVO.setCloudServiceProvider(reqVO.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
+		 String cloudServiceProvider =  reqVO.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString();
+		 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)) {
+			newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS);
+		 } else {
+			newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.CAAS);
+		 }
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		 newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
