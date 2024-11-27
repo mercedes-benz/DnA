@@ -30,7 +30,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         .getAllBuckets()
         .then((res) => {
           if(res.status !== 204) {
-            const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.id + '@-@' + bucket?.bucketName} })
+            const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.bucketName} })
             setBuckets(sortedBuckets);
           } else {
             setBuckets([]);
@@ -55,28 +55,30 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
   }, []);
 
   useEffect(() => {
-    ProgressIndicator.show();
-      fabricApi
-        .getConnectionInfo(bucketName[0]?.split('@-@')[1])
-        .then((res) => {
-          setAccessKey(res?.data?.data?.userVO?.accesskey);
-          setSecretKey(res?.data?.data?.userVO?.secretKey);
-          ProgressIndicator.hide();
-        })
-        .catch((e) => {
-          ProgressIndicator.hide();
-          if(e?.response?.status === 403) {
-            Notification.show('Unauthorized to view this page or not found', 'alert');
-            history.push(`/`);
-          } else {
-            Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Fetching bucket connection details failed!',
-              'alert',
-            );
-          }
-        });
+    if(bucketName) {
+      ProgressIndicator.show();
+        fabricApi
+          .getConnectionInfo(bucketName[0])
+          .then((res) => {
+            setAccessKey(res?.data?.data?.userVO?.accesskey);
+            setSecretKey(res?.data?.data?.userVO?.secretKey);
+            ProgressIndicator.hide();
+          })
+          .catch((e) => {
+            ProgressIndicator.hide();
+            if(e?.response?.status === 403) {
+              Notification.show('Unauthorized to view this page or not found', 'alert');
+              history.push(`/`);
+            } else {
+              Notification.show(
+                e.response.data.errors?.length
+                  ? e.response.data.errors[0].message
+                  : 'Fetching bucket connection details failed!',
+                'alert',
+              );
+            }
+          });
+    }
   }, [bucketName]);
 
   const handleCreateShortcut = () => {
@@ -84,8 +86,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       setBucketNameError(true);
     } else {
       const data = {
-        bucketId: bucketName[0]?.includes('@-@') ? bucketName[0]?.split('@-@')[0] : '',
-        bucketname: bucketName[0]?.includes('@-@') ? bucketName[0]?.split('@-@')[1] : '',
+        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName[0])[0]?.id || '',
+        bucketname: bucketName[0],
         accessKey,
         secretKey
       }
@@ -113,7 +115,6 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
           chips={bucketName}
           tags={buckets}
           setTags={(selectedTags) => {
-            console.log('selectedTags: ', selectedTags);
             setBucketName(selectedTags);
           }}
           isMandatory={true}
