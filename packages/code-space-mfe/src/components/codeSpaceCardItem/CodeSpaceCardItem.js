@@ -88,6 +88,7 @@ const CodeSpaceCardItem = (props) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `d/fe3tblb85d1xce/codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=code-server&var-pod=${codeSpace.workspaceId}&var-container=notebook`
 
   useEffect(() => {
 
@@ -533,15 +534,12 @@ const CodeSpaceCardItem = (props) => {
                         </a>
                       </li>
                     )}
-                    {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
+                     {serverStarted && (
                       <li>
-                        <span
-                          onClick={() => {
-                            setShowOnPremStartModal(true);
-                          }}
-                        >
-                          Start on DyP-CaaS On-Prem (manual)
-                        </span>
+                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Resource usage
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
                       </li>
                     )}
                     <li>
