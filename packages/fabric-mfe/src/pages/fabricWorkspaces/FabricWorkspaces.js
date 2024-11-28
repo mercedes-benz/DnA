@@ -112,17 +112,17 @@ const FabricWorkspaces = ({user}) => {
         .getFabricWorkspaces(currentPageOffset, maxItemsPerPage)
         .then((res) => {
           if(res.status !== 204) {
-            const sortedProjects = res?.data?.records.sort((x, y) => {
-                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
-                if (fx < fy) {
-                    return -1;
-                }
-                if (fx > fy) {
-                    return 1;
-                }
-                return 0;
-            });
-            setWorkspaces(sortedProjects);
+            // const sortedProjects = res?.data?.records.sort((x, y) => {
+            //     let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+            //     if (fx < fy) {
+            //         return -1;
+            //     }
+            //     if (fx > fy) {
+            //         return 1;
+            //     }
+            //     return 0;
+            // });
+            setWorkspaces(res?.data?.records);
             const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
