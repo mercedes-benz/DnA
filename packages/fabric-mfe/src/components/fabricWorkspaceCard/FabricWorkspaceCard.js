@@ -25,7 +25,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
             onClick={handleOpenWorkspace}
           >
-            {workspace?.name}
+            {workspace?.name || 'null'}
           </div>
         </div>
       </div>

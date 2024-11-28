@@ -23,7 +23,7 @@ const WorkspaceDetails = ({ workspace }) => {
           <div className={Styles.formWrapper}>
             <div className={classNames(Styles.flex)}>
               <div className={Styles.col3}>
-                <p className={Styles.label}>Workspace Name</p> {workspace?.name}
+                <p className={Styles.label}>Workspace Name</p> {workspace?.name || 'null'}
               </div>
               <div className={Styles.col3}>
                 <p className={Styles.label}>Created on</p>
@@ -157,7 +157,7 @@ const FabricWorkspace = ({ user }) => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {!loading && 
-            <Caption title={`Fabric Workspace - ${workspace?.name}`}>
+            <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
               <div>
                 <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
                   <i className="icon mbc-icon refresh"></i>
