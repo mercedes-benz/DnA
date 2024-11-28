@@ -83,6 +83,7 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `d/fe3tblb85d1xce/codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=code-server&var-pod=${codeSpace.workspaceId}&var-container=notebook`
 
   useEffect(() => {
 
@@ -451,6 +452,14 @@ const CodeSpaceCardItem = (props) => {
                       <li>
                         <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
                           Go to code repo
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
+                     {serverStarted && (
+                      <li>
+                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Resource usage
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>
