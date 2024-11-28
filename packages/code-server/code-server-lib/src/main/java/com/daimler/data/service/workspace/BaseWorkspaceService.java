@@ -640,7 +640,7 @@ import com.daimler.data.util.ConstantsUtility;
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
+			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
@@ -1143,7 +1143,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
+			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			 ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
@@ -1406,7 +1406,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto
 						 .setEnvironment(codeServerEnvValue);
 
-				if (isprivateRecipe) {
+  			if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
 						repoUrl = repoUrl.replaceAll(".git","/");
@@ -1459,9 +1459,9 @@ import com.daimler.data.util.ConstantsUtility;
 					}
 				} else {
 					if ((hasProdUrl && ownerEntity.getData().getProjectDetails().getProdDeploymentDetails()
-							.getDeploymentUrl().contains("aws")) ||
+							.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
 							(hasIntUrl && ownerEntity.getData().getProjectDetails().getIntDeploymentDetails()
-									.getDeploymentUrl().contains("aws"))) {
+									.getDeploymentUrl().contains(codeServerBaseUriAws))) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					} else if (hasProdUrl || hasIntUrl) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
@@ -2200,10 +2200,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					 String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
- //					if (existingDeploymentUrl == null || "".equalsIgnoreCase(existingDeploymentUrl)
- //							|| "null".equalsIgnoreCase(existingDeploymentUrl)) {
-						 deploymentDetails.setDeploymentUrl(deploymentUrl);
- //					}
+					 deploymentDetails.setDeploymentUrl(deploymentUrl);
 					 deploymentDetails.setLastDeployedBranch(branch);
 					 deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 					 deploymentDetails.setLastDeployedOn(now);
@@ -2250,6 +2247,7 @@ import com.daimler.data.util.ConstantsUtility;
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
 				 } else {
+					 deploymentDetails.setDeploymentUrl(deploymentUrl);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);
 					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -3077,7 +3075,7 @@ import com.daimler.data.util.ConstantsUtility;
 			String ownersWsid = null;
 			String workspaceUrl = null;
 			String shortId=null;
-			if(ConstantsUtility.DHC_CAAS.equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name())){
+			if(ConstantsUtility.DHC_CAAS.equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString())){
 				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 				recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 				ownersWsid = entity.getData().getWorkspaceId();
@@ -3090,11 +3088,14 @@ import com.daimler.data.util.ConstantsUtility;
 				status = "SUCCESS";
 			}else{
 				MessageDescription error = new MessageDescription();
+					log.info("workspace already migrated , Bad Request ");
 					error.setMessage("workspace already migrated , Bad Request ");
+					errors.add(error);
 			}
 
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
+			log.info("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
 			error.setMessage("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
 			errors.add(error);
 		}
