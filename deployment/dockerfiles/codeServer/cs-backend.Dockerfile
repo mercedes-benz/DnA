@@ -10,6 +10,5 @@ ENV ARTIFACT_NAME=code-server-lib-1.0.0.jar
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/code-server-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
-
 EXPOSE 7173
 CMD java -jar $ARTIFACT_NAME
