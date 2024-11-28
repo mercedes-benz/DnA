@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.4.7
+    version: 1.4.8
   profile:
     active: production
   kafka:
@@ -34,6 +34,10 @@ spring:
        enabled: true  
       ssl:
         enabled: false
+        trust:
+          store:
+            path: ${CA_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
+            password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
     stream:
       function:
         bindings:

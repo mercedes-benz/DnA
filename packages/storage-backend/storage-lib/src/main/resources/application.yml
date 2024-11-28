@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.18
+    version: 3.2.19
   profile:
     active: production
   cache:
@@ -76,7 +76,12 @@ spring:
       kv:
        enabled: true  
       ssl:
-        enabled: false 
+        enabled: false
+        trust:
+          store:
+            path: ${CA_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
+            password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
+
 kafka:
   centralTopic:
     name: dnaCentralEventTopic      
