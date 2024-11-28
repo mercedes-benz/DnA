@@ -89,21 +89,20 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/dev
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/modelRegistryService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/dev/kubernetesSecret/modelRegistryService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "kv/dna/kubernetesSecret/modelRegistryService" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/modelRegistryService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "kv/dna/kubernetesSecret/minio" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/minio" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}

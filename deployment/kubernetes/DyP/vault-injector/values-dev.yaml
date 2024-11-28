@@ -22,7 +22,7 @@ global:
 
   # External vault server address for the injector and CSI provider to use.
   # Setting this will disable deployment of a vault server.
-  externalVaultAddr: "https://vault-int.app.corpintra.net/"
+  externalVaultAddr: "https://dnaplatform.service.vault-prod.rd.corpintra.net"
 
   # If deploying to OpenShift
   openshift: false
@@ -136,7 +136,7 @@ injector:
     timeoutSeconds: 5
 
   # Mount Path of the Vault Kubernetes Auth Method.
-  authPath: "auth/kubernetes"
+  authPath: "auth/k8_auth_dna_aws_dev"
 
   # Configures the log verbosity of the injector.
   # Supported log levels include: trace, debug, info, warn, error

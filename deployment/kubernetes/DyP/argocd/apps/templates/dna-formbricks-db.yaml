@@ -23,11 +23,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          {{- if ne .Values.env "prod" }}          
-          value: -f values-formbricks-db-dev.yaml --set namespace={{ .Values.env }}-dna-formbricks
-          {{ else }}
-          value: -f values-formbricks-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-formbricks
-          {{- end }}          
+          value: -f values-formbricks-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-formbricks        
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:

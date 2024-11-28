@@ -304,12 +304,11 @@ master:
   ##
   podAnnotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-redis-password-new: 'kv/dna/kubernetesSecret/redis'
-    vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: DnAPlatform/staging
-    vault.hashicorp.com/agent-inject-template-redis-password-new: '{{`{{- with secret "kv/dna/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
+    vault.hashicorp.com/agent-inject-secret-redis-password-new: 'dna_aws_kv/staging/kubernetesSecret/redis'
+    vault.hashicorp.com/tls-skip-verify: 'true' 
+    vault.hashicorp.com/agent-inject-template-redis-password-new: '{{`{{- with secret "dna_aws_kv/staging/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
   ## @param master.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; master pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
   ##
@@ -693,12 +692,11 @@ replica:
   ##
   podAnnotations: 
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-redis-password: 'kv/dna/kubernetesSecret/redis'
+    vault.hashicorp.com/agent-inject-secret-redis-password: 'dna_aws_kv/staging/kubernetesSecret/redis'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: DnAPlatform/staging
-    vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "kv/dna/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
+    vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "dna_aws_kv/staging/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
   ## @param replica.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; replicas pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
   ##

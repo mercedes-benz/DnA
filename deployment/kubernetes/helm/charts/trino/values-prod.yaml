@@ -33,7 +33,7 @@ server:
       level: INFO
   config:
     path: /etc/trino
-    internalSharedSecret: <path:kv/data/dna/kubernetesSecret/trino#internalSharedSecret>
+    internalSharedSecret: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#internalSharedSecret>
     http:
       port: 8080
     query:
@@ -123,14 +123,14 @@ authentication:
     authUrl: "https://sso.mercedes-benz.com/as/authorization.oauth2"
     tokenUrl: "https://sso.mercedes-benz.com/as/token.oauth2"
     jwksUrl: "https://sso.mercedes-benz.com/pf/JWKS"
-    clientId: <path:kv/data/dna/kubernetesSecret/trino#clientId>
-    clientSecret: <path:kv/data/dna/kubernetesSecret/trino#clientSecret>
+    clientId: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#clientId>
+    clientSecret: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#clientSecret>
     userInfoUrl: "https://sso.mercedes-benz.com/idp/userinfo.openid"
     scopes: "openid"
     claim: "sub"
   password:
     user: "immuta"
-    bcryptPass: <path:kv/data/dna/kubernetesSecret/trino#bcryptPass>
+    bcryptPass: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#bcryptPass>
 
 hivemetastore:
   image: "registry-emea.app.corpintra.net/dnaplatform/hivemetastore:1.0.1"
@@ -151,19 +151,19 @@ hivemetastore:
 #Don`t start the minio host name with http:// as http prefix was already present in the metastore-cfg.file
   minio:
     host: "minio.storage.svc.cluster.local:9000"
-    accessKey: <path:kv/data/dna/kubernetesSecret/trino#minio.accessKey>
-    secretKey: <path:kv/data/dna/kubernetesSecret/trino#minio.secretKey>
+    accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#minio.accessKey>
+    secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#minio.secretKey>
     warehouseBucketName: "datalake"
   postgres:
     host: "hive-db.trino.svc.cluster.local:64000"
     db: "hive"
     user: "hive"
-    password: <path:kv/data/dna/kubernetesSecret/trino#postgtres.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#postgtres.password>
 
 immuta:
   enabled: true
   name: "immuta"
-  endpoint: <path:kv/data/dna/kubernetesSecret/trino#immuta.endpoint>
-  apiKey: <path:kv/data/dna/kubernetesSecret/trino#immuta.apikey>
+  endpoint: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#immuta.endpoint>
+  apiKey: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#immuta.apikey>
   listenerName: "immuta-event-listener"
   nonImmutaUserPermission: READ

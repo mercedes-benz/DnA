@@ -2,14 +2,14 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 formbrickssecret:
-  clientId: "<path:kv/data/dna/kubernetesSecret/formbricks#clientId>"
-  clientSecret: "<path:kv/data/dna/kubernetesSecret/formbricks#clientSecret>"
-  database_url: "<path:kv/data/dna/kubernetesSecret/formbricks#database_url>"
-  encryption_key: "<path:kv/data/dna/kubernetesSecret/formbricks#encryption_key>"
-  nextauth_secret: "<path:kv/data/dna/kubernetesSecret/formbricks#nextauth_secret>"
-  accesskey: "<path:kv/data/dna/kubernetesSecret/formbricks#accesskey>"
-  secretKey: "<path:kv/data/dna/kubernetesSecret/formbricks#secretkey>"
-  endpointUrl: "<path:kv/data/dna/kubernetesSecret/formbricks#s3.host>"
+  clientId: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#clientId>"
+  clientSecret: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#clientSecret>"
+  database_url: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#database_url>"
+  encryption_key: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#encryption_key>"
+  nextauth_secret: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#nextauth_secret>"
+  accesskey: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#accesskey>"
+  secretKey: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#secretkey>"
+  endpointUrl: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#s3.host>"
   
 # see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbricks: 

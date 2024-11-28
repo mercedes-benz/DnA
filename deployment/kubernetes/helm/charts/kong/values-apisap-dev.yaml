@@ -342,10 +342,10 @@ extraResources:
       name: global-sap-saml
       namespace: {{ .Release.Namespace }}
     data:
-      ca-root.pem: <path:kv/data/dna/kubernetesSecret/infraAPISAP#ca-root | base64encode>
-      cert.pem: <path:kv/data/dna/kubernetesSecret/infraAPISAP#cert | base64encode>
-      key.pem: <path:kv/data/dna/kubernetesSecret/infraAPISAP#key | base64encode>
-      tls.crt: <path:kv/data/dna/kubernetesSecret/infraAPISAP#tls | base64encode>
+      ca-root.pem: <path:dna_aws_kv/data/dev/kubernetesSecret/infraAPISAP#ca-root | base64encode>
+      cert.pem: <path:dna_aws_kv/data/dev/kubernetesSecret/infraAPISAP#cert | base64encode>
+      key.pem: <path:dna_aws_kv/data/dev/kubernetesSecret/infraAPISAP#key | base64encode>
+      tls.crt: <path:dna_aws_kv/data/dev/kubernetesSecret/infraAPISAP#tls | base64encode>
     type: Opaque
  - |
     apiVersion: v1
@@ -354,6 +354,6 @@ extraResources:
       name: kong-gateway-secret
       namespace: {{ .Release.Namespace }}
     data:
-      ONEAPI_GATEWAY_KEY: <path:kv/data/dna/kubernetesSecret/infraAPISAP#oneapi_key | base64encode>
-      ONEAPI_GATEWAY_SECRET: <path:kv/data/dna/kubernetesSecret/infraAPISAP#oneapi_secret | base64encode>
+      ONEAPI_GATEWAY_KEY: <path:dna_aws_kv/data/dev/kubernetesSecret/infraAPISAP#oneapi_key | base64encode>
+      ONEAPI_GATEWAY_SECRET: <path:dna_aws_kv/data/dev/kubernetesSecret/infraAPISAP#oneapi_secret | base64encode>
     type: Opaque   

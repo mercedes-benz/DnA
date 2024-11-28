@@ -1,23 +1,33 @@
-# Default values for dataentry-be.
+# Default values for hasura.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-namespace: dataentry
+replicaCount: 2
+
 image:
-  repository: ""
+  repository: registry-emea.app.corpintra.net/dnaplatform/hasura/graphql-engine
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "v2.16.1"
+
+imagePullSecrets: 
+  - name: imagepullsecret
+nameOverride: "hasura"
+fullnameOverride: "hasura"
+namespace: "hasura"
 
 #Add new env as array value with name/value field. Keep one tab indentation.
-envs: {}
-  # - name: MAX_FILE_SIZE
-  #   value: 3000MB
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: "dataentry-be"
+envs:
+  - name: HASURA_GRAPHQL_DATABASE_URL
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/hasura#db>
+  ## enable the console served by server
+  - name: HASURA_GRAPHQL_ENABLE_CONSOLE
+    value: "true"
+  ## enable debugging mode. It is recommended to disable this in production
+  - name: HASURA_GRAPHQL_DEV_MODE
+    value: "true"
+  - name: HASURA_GRAPHQL_ADMIN_SECRET
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/hasura#secret>
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -28,31 +38,22 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-podAnnotations:   
-  vault.hashicorp.com/agent-inject: 'false'
-  vault.hashicorp.com/role: 'dna'
-  vault.hashicorp.com/agent-pre-populate-only: 'true'
-  vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/dataentry-be'
-  vault.hashicorp.com/agent-inject-template-envvar: | 
-    {{- with secret "kv/dna/kubernetesSecret/dataentry-be" -}}
-      {{- range $k, $v := .Data.data }}
-          export {{ $k }}="{{ $v }}"
-      {{- end }}
-    {{- end }}
+podAnnotations: {}
+
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
-  # runAsUser: 1000
+  runAsUser: 999
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
 
 ingress:
   enabled: false
@@ -94,15 +95,3 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-## Inject the application environment variable from vault service
-# If you enable vault injector, the environment variables specified above will be will be override from vault
-vaultInjector:
-  enable: false     
-  jarName: "dataentry-lib*.jar"
-
-podDisruptionBudget:
-  enabled: false
-  # Uncomment only one of the following when enabled is set to true
-  # maxUnavailable: "50%"
-  # minAvailable: "50%"

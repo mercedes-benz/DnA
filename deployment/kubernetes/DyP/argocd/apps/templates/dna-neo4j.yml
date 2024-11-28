@@ -22,7 +22,7 @@ spec:
     helm:
       releaseName: neo4j-release
       valueFiles:
-        - values-dhc.yaml                 
+        - values-{{ .Values.env }}.yaml                 
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:

@@ -6,8 +6,8 @@ namespace: argocd
 repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
 enableSync: true
 gitRepo:
-  username: <path:kv/data/dna/kubernetesSecret/argocd#username | base64encode>
-  password: <path:kv/data/dna/kubernetesSecret/argocd#password | base64encode>
+  username: <path:dna_aws_kv/data/staging/kubernetesSecret/argocd#username | base64encode>
+  password: <path:dna_aws_kv/data/staging/kubernetesSecret/argocd#password | base64encode>
 
 annotations: 
   notifications.argoproj.io/subscribe.on-created.teams: channelName

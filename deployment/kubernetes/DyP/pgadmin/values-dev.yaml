@@ -185,8 +185,8 @@ secretKeys:
 ## Needed chart reinstall for apply changes
 env:
   # can be email or nickname
-  email: <path:kv/data/dna/kubernetesSecret/pgadmin#email>
-  password: <path:kv/data/dna/kubernetesSecret/pgadmin#password>
+  email: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#email>
+  password: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#password>
   # pgpassfile: /var/lib/pgadmin/storage/pgadmin/file.pgpass
 
   # set context path for application (e.g. /pgadmin4/*)
@@ -313,8 +313,8 @@ extraDeploy:
       name: pgadmin4-oauth2-secret
     type: Opaque
     stringData:
-      OAUTH2_CLIENT_ID: <path:kv/data/dna/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
-      OAUTH2_CLIENT_SECRET: <path:kv/data/dna/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
+      OAUTH2_CLIENT_ID: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
+      OAUTH2_CLIENT_SECRET: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
 
   - apiVersion: v1
     kind: ConfigMap

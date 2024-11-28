@@ -66,8 +66,8 @@ tenant:
   #
   configSecret:
     name: myminio-env-configuration
-    accessKey: <path:kv/data/dna/kubernetesSecret/minio#MINIO_ROOT_USER>
-    secretKey: <path:kv/data/dna/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+    accessKey: <path:dna_aws_kv/data/dev/kubernetesSecret/minio#MINIO_ROOT_USER>
+    secretKey: <path:dna_aws_kv/data/dev/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
   ###
   # If this variable is set to true, then enable the usage of an existing Kubernetes secret to set environment variables for the Tenant.
   # The existing Kubernetes secret name must be placed under .tenant.configuration.name e.g. existing-minio-env-configuration
@@ -631,5 +631,5 @@ extraResources:
       name: crop-cacert
       namespace: {{ .Release.Namespace }}
     data:
-      public.crt: <path:kv/data/dna/kubernetesSecret/infra#croppem | base64encode>
+      public.crt: <path:dna_aws_kv/data/dev/kubernetesSecret/infra#croppem | base64encode>
     type: Opaque

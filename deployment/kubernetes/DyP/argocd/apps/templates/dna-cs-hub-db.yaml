@@ -24,7 +24,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS  
-          value: -f values-cs-db.yaml --set namespace={{ .Values.env }}-dna-cs-workspaces
+          value: -f values-cs-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs-workspaces
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
