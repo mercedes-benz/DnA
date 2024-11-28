@@ -36,4 +36,4 @@ startupapicheck:
 installCRDs: true
 
 extraObjects:
-  cert: <path:kv/data/dna/kubernetesSecret/infra#croppem | base64encode>
+  cert: <path:dna_aws_kv/data/dev/kubernetesSecret/infra#croppem | base64encode>
