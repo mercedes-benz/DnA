@@ -1088,7 +1088,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 			 ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
-			 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
+			 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 
@@ -2570,7 +2570,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 GenericMessage responseMessage = new GenericMessage();
 			 try {
  
-				 boolean response = client.serverStatus(userName.toLowerCase(),id, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name());
+				 boolean response = client.serverStatus(userName.toLowerCase(),id, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 				 if (response) {
 					 statusValue = "true";
 					 savedOwnerEntity.getData().setServerStatus("SERVER_STARTED");
