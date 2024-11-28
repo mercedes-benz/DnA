@@ -19,6 +19,7 @@ import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
+import { Envs } from '../Utility/envs';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -47,6 +48,7 @@ const AllCodeSpaces = (props) => {
     const goback = () => {
         History.goBack();
     };
+    const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
 
     const getCodeSpacesData = () => {
         setLoading(true);
@@ -64,6 +66,7 @@ const AllCodeSpaces = (props) => {
     };
 
     useEffect(() => {
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
     }, []);
 
@@ -158,11 +161,11 @@ const AllCodeSpaces = (props) => {
         setShowDeployCodeSpaceModal(true);
     };
 
-    const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
+    const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
         serverStarted ? setLoading(true) : ProgressIndicator.show();
-        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
+        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env, manual)
             .then((res) => {
                 serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 if (res.data.success === 'SUCCESS') {
@@ -174,7 +177,7 @@ const AllCodeSpaces = (props) => {
                         '.',
                     );
 
-                    startSuccessCB();
+                    !manual && startSuccessCB();
 
                 } else {
                     Notification.show(
@@ -475,6 +478,26 @@ const AllCodeSpaces = (props) => {
                     }
                     scrollableContent={true}
                     onCancel={() => { setShowTutorialsModel(false) }}
+                />
+            )}
+            {showAWSWarningModal && (
+                <Modal
+                    title={'Attention!!'}
+                    showAcceptButton={true}
+                    acceptButtonTitle="OK"
+                    showCancelButton={false}
+                    modalWidth={'60%'}
+                    modalStyle={{
+                        padding: '50px 35px 35px 35px',
+                        minWidth: 'unset',
+                        width: '60%',
+                      }}
+                    buttonAlignment="center"
+                    show={showAWSWarningModal}
+                    content={<div dangerouslySetInnerHTML={{ __html: Envs.AWS_MIGRATION_WARNING_MODAL_CONTENT }} />}
+                    scrollableContent={true}
+                    onCancel={() => setShowAWSWarningModal(false)}
+                    onAccept={() => setShowAWSWarningModal(false)}
                 />
             )}
         </div>

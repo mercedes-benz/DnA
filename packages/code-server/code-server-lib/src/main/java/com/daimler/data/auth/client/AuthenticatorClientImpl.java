@@ -31,6 +31,7 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.CommonUtils;
 
 @Component
@@ -43,9 +44,21 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	@Value("${authenticator.uri}")
 	private String authenticatorBaseUri;
-	
+
+	@Value("${authenticator.uri.aws}")
+	private String authenticatorBaseUriAWS;
+
+	@Value("${authenticator.api.aws.key}")
+	private String awsApiKey;
+
+	@Value("${authenticator.api.key}")
+	private String apiKey;
+
 	@Value("${codeServer.env.url}")
 	private String codeServerEnvUrl;
+
+	@Value("${codeServer.env.url.aws}")
+	private String codeServerEnvUrlAWS;
 	
 	@Value("${kong.bearerOnly}")
 	private String bearerOnly;
@@ -219,7 +232,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_ONE_API_PLUGIN_TO_SERVICE = "/oneApiPlugin";
 	
 	@Override
-	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
+	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -227,10 +240,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");		
-
-			String createServiceUri = authenticatorBaseUri + CREATE_SERVICE;
-			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);			
+			headers.set("Content-Type", "application/json");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
+			String createServiceUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE;
+			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);	
+			LOGGER.info("CreateService deploy entity "+entity);
 			ResponseEntity<String> createServiceResponse = restTemplate.exchange(createServiceUri, HttpMethod.POST, entity, String.class);
 			if (createServiceResponse != null && createServiceResponse.getStatusCode()!=null) {
 				if(createServiceResponse.getStatusCode().is2xxSuccessful()) {
@@ -271,7 +289,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage createRoute(CreateRouteRequestVO createRouteRequestVO, String serviceName) {
+	public GenericMessage createRoute(CreateRouteRequestVO createRouteRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -280,8 +298,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
-
-			String createRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE;
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
+			String createRouteUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE;
 			HttpEntity<CreateRouteRequestVO> entity = new HttpEntity<CreateRouteRequestVO>(createRouteRequestVO,headers);			
 			ResponseEntity<String> createRouteResponse = restTemplate.exchange(createRouteUri, HttpMethod.POST, entity, String.class);
 			if (createRouteResponse != null && createRouteResponse.getStatusCode()!=null) {
@@ -313,7 +335,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	// BUG-339 public GenericMessage attachJWTPluginToService(new dto,String serviceName){
 
 	@Override
-	public GenericMessage attachPluginToService(AttachPluginRequestVO attachPluginRequestVO, String serviceName) {
+	public GenericMessage attachPluginToService(AttachPluginRequestVO attachPluginRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -321,9 +343,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");		
-
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE;
+			headers.set("Content-Type", "application/json");
+			LOGGER.info("cloudServiceProvider "+cloudServiceProvider);	
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
+			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachPluginRequestVO> entity = new HttpEntity<AttachPluginRequestVO>(attachPluginRequestVO,headers);			
 			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
 			if (attachPluginResponse != null && attachPluginResponse.getStatusCode()!=null) {
@@ -351,7 +378,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -360,6 +387,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
+		LOGGER.info("serviceProvider "+cloudServiceProvider);
 		if("prod".equalsIgnoreCase(env)){
 			if(Objects.nonNull(prodDeploymentDetails)) {
 				prodSecureIAM = secureWithIAM;
@@ -424,7 +452,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		protocols.add("http");
 		protocols.add("https");
-		hosts.add(codeServerEnvUrl);
+		hosts.add(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl);
 		createRouteVO.setName(env!=null?serviceName.toLowerCase()+"-"+env:serviceName.toLowerCase());
 		createRouteVO.setHosts(hosts);		
 		createRouteVO.setPaths(paths);
@@ -439,7 +467,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		attachPluginVO.setName(OIDC_PLUGIN);
 
-		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/";	
+		String recovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/";	
 		String redirectUri = "/" + serviceName.toLowerCase();
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
@@ -467,7 +495,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachJwtPluginConfigVO attachJwtPluginConfigVO = new AttachJwtPluginConfigVO();
 		attachJwtPluginVO.setName(JWTISSUER_PLUGIN);
 		attachJwtPluginConfigVO.setAlgorithm(jwtAlgorithm);
-		attachJwtPluginConfigVO.setAuthurl(authenticatorBaseUri);
+		attachJwtPluginConfigVO.setAuthurl(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri);
 		attachJwtPluginConfigVO.setClientHomeUrl(jwtClientHomeUrl);
 		attachJwtPluginConfigVO.setClient_id(jwtClientId);
 		attachJwtPluginConfigVO.setClient_secret(jwtClientSecret);
@@ -523,7 +551,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {	
 			boolean isServiceAlreadyCreated = false;
 			boolean isRouteAlreadyCreated = false;
-			createServiceResponse = createService(createServiceRequestVO);
+			createServiceResponse = createService(createServiceRequestVO, cloudServiceProvider);
 			if(Objects.nonNull(createServiceResponse) && Objects.nonNull(createServiceResponse.getErrors())) {
 				List<MessageDescription> responseErrors = createServiceResponse.getErrors();
 				for(MessageDescription error : responseErrors) {
@@ -533,7 +561,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 			}
 			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
-				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
 					for(MessageDescription error : responseErrors) {
@@ -551,13 +579,13 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
-					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName,cloudServiceProvider);
+					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
-					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
@@ -578,15 +606,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								if(Objects.nonNull(clientID) && Objects.nonNull(clientSecret)){
 									if(!clientID.isEmpty() && !clientSecret.isEmpty()){
 										//deleting OIDC  and Authorizer plugin if already available
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+										GenericMessage deletePluginResponse = new GenericMessage();
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										//deleteing jwt issuer plugin if any
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
-										LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings(),cloudServiceProvider);
+										//deleteing jwy issuer plugin if any
+										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
+										LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 										//attaching request transformer plugin 
@@ -605,7 +634,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 										attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
-										String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
+										String authRecovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
 										String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
 										if("int".equalsIgnoreCase(env)){
@@ -648,7 +677,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										}
 										attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 										attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
-										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+
+										attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 										LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin with status {}",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 
 									}
@@ -699,7 +729,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												String prodPreFunctionContent = preFunctionContent.replace("-int","");
 												preFunctionValue.add(prodPreFunctionContent);
 											}
-
+                      
 											preFunctionConfigVO.setAccess(preFunctionValue);
 											preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
 											preFunctionPluginVO.setConfig(preFunctionConfigVO);
@@ -749,14 +779,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							}
 						}else{
 							GenericMessage deletePluginResponse = new GenericMessage();
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing jwt issuer plugin if any
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN);
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting JWT issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							//deleteing request transformer plugin if any
@@ -1013,7 +1043,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName) {
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1022,8 +1052,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
-
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_JWT_PLUGIN_TO_SERVICE;
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
+			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_JWT_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachJwtPluginRequestVO> entity = new HttpEntity<AttachJwtPluginRequestVO>(attachJwtPluginRequestVO,headers);			
 			ResponseEntity<String> attachJwtPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
 			if (attachJwtPluginResponse != null && attachJwtPluginResponse.getStatusCode()!=null) {
@@ -1073,17 +1107,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 
 	@Override
-	public GenericMessage deleteService(String serviceName) {
+	public GenericMessage deleteService(String serviceName, String cloudServiceProvider) {
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String deleteServiceUri = authenticatorBaseUri + CREATE_SERVICE  +"/" + serviceName;
+			
+			String deleteServiceUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE  +"/" + serviceName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteServiceUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.hasBody()) {
@@ -1123,17 +1163,22 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage deleteRoute(String serviceName, String routeName) {
+	public GenericMessage deleteRoute(String serviceName, String routeName, String cloudServiceProvider) {
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String deleteRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE + "/" + routeName;
+			String deleteRouteUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE + "/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
@@ -1173,17 +1218,22 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage deletePlugin(String serviceName, String pluginName) {
+	public GenericMessage deletePlugin(String serviceName, String pluginName, String cloudServiceProvider) {
 
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String deleteRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName;
+			String deleteRouteUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
@@ -1223,8 +1273,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName) {
-
+	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1233,8 +1282,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
-
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE;
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
+			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE;
 			if(attachAppAuthoriserPluginRequestVO==null) {
 				AttachAppAuthoriserPluginRequestVO appAuthoriserPluginRequestVO = new AttachAppAuthoriserPluginRequestVO();
 				AttachAppAuthoriserPluginVO appAuthoriserPluginVO = new AttachAppAuthoriserPluginVO();
@@ -1274,7 +1327,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName) {
+	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider) {
 
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
@@ -1284,9 +1337,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
-
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE;
-
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
+			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachApiAuthoriserPluginRequestVO> entity = new HttpEntity<AttachApiAuthoriserPluginRequestVO>(attachApiAuthoriserPluginRequestVO,headers);			
 			ResponseEntity<String> attachApiAuthoriserPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
 			if (attachApiAuthoriserPluginResponse != null && attachApiAuthoriserPluginResponse.getStatusCode()!=null) {

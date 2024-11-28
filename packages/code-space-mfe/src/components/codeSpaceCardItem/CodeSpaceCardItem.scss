@@ -332,10 +332,35 @@
     }
   }
 
+  .manualStart { 
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 30px);
+    }
+  }
+
   .oneAPILink{
     color: #99a5b3;
     &:hover {
       color: #99a5b3 !important; 
+    }
+  }
+  .modalContentWrapper {
+    margin-top: -20px;
+    font-size: var(--font-size-sub-headline);
+    .modalTitle {
+      margin-top: 0px;
+      text-align: center;
+    }
+    .modalContent {
+      margin-top: 20px;
+      font-size: var(--font-size-medium);
+  
+      p {
+        margin: 0 auto;
+        max-width: 650px;
+      }
     }
   }
   
