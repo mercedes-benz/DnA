@@ -1,0 +1,71 @@
+namespace: fabric
+configJs: |
+  window["fabric_INJECTED_ENVIRONMENT"]={
+    ENABLE_fabric_SERVICE=true,
+    fabric_MFE_APP_URL="",
+    fabric_API_BASEURL=""
+  };
+replicaCount: 1
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/fabric-mfe
+  pullPolicy: IfNotPresent
+  tag: '932'
+imagePullSecrets:
+  - name: imagepullsecret
+nameOverride: ''
+fullnameOverride: fabric-mfe
+podSecurityContext:
+  runAsUser: 1001
+containerPort: 8091
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: workspaces.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - workspaces.test.dna.app.corpintra.net
+      secretName: workspaces-tls-secret
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna_staging_k8_role
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/staging/kubernetesSecret/fabricMFE
+    vault.hashicorp.com/agent-inject-file-configjs: config.js
+    vault.hashicorp.com/agent-inject-template-configjs: |
+      {{- with secret "dna_kv/staging/kubernetesSecret/fabricMFE" -}}
+          window["fabric_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}   
+  saName: default
+podDisruptionBudget:
+  enabled: false
