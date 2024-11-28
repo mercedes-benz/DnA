@@ -1063,7 +1063,7 @@ import org.springframework.beans.factory.annotation.Value;
 				ownerVo = vo;
 			}
 			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
-				if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name().equals(ConstantsUtility.DHC_CAAS)) {
+				if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
 					GenericMessage emptyResponse = new GenericMessage();
 					List<MessageDescription> errors = new ArrayList<>();
 					MessageDescription msg = new MessageDescription();
@@ -2120,7 +2120,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 if (Objects.nonNull(data) && data!=null){
 			 	// String userName = data.getProjectDetails().getProjectOwner().getId().toLowerCase();
 				// String wsId = data.getWorkspaceId();
-				String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
+				String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString();
 				String status = service.getServerStatus(vo);
 				if(status.equalsIgnoreCase("true"))
 				{
@@ -2190,7 +2190,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
 		String wsId = data.getWorkspaceId();
-		//String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
 		responseMessage = service.startServer(shortId,wsId,cloudServiceProvider);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
@@ -2241,9 +2240,7 @@ import org.springframework.beans.factory.annotation.Value;
 			emptyResponse.setErrors(errorMessage);
 			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 		}
-
-		//String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().name();
-		responseMessage = service.stopServer(vo,cloudServiceProvider);
+        responseMessage = service.stopServer(vo,cloudServiceProvider);
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
