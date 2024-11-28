@@ -540,7 +540,7 @@ tenant:
 # Set the keys to conform to the Ingress controller and configuration of your choice.
 ingress:
   api:
-    enabled: false
+    enabled: true
     ingressClassName: ""
     labels: { }
     annotations: 
