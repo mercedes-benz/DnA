@@ -1,0 +1,63 @@
+---
+{{- if .Values.restoreJob.enabled }}
+{{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
+{{- $bucketName := .Values.storageCredentials.bucketName }}
+{{- $namespace :=  .Values.namespace }}
+{{- range $index, $pvc := .Values.pvcs }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $pvc.pvcName }}-rs-job
+  namespace: {{ $namespace | quote }}
+spec:
+  template:
+    spec:
+      containers:      
+      - image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
+        imagePullPolicy: IfNotPresent
+        name: restic
+        args:
+        - restore
+        - latest  # change me, if needed, to restore different snapshot
+        - --target
+        - {{ $pvc.backupPath }} ## path
+        - --insecure-tls
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "{{ $apiUrl }}/{{ $bucketName }}/{{ $pvc.pvcName }}"
+        - name: RESTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: resticKey
+              name: s3-secret
+              optional: false
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: accessKeyId
+              name: s3-secret
+              optional: false
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretAccessKey
+              name: s3-secret
+              optional: false
+        volumeMounts:
+        - mountPath: {{ $pvc.backupPath }} ##
+          name: backupdata
+        - name: backupdata
+          mountPath: /.cache          
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000            
+      volumes:
+      - name: backupdata
+        persistentVolumeClaim:
+          claimName: {{ $pvc.pvcName }}
+---
+{{- end }}
+{{- end }}
