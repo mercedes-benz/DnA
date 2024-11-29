@@ -393,7 +393,7 @@ const CodeSpaceCardItem = (props) => {
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
-  const deploymentMigrated = (!codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL) && !codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL));
+  const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
 
   const securedWithIAMContent = (
     <svg
