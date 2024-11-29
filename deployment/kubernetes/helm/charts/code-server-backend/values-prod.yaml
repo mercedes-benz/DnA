@@ -3,7 +3,7 @@ namespace: code-server
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
-  tag: 1.2.12
+  tag: 1.3.0
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -14,7 +14,7 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: 'dna_prod_k8_role'
+  vault.hashicorp.com/role: dna_prod_k8_role
   vault.hashicorp.com/tls-skip-verify: 'true'
   vault.hashicorp.com/agent-pre-populate-only: 'true'
   vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
