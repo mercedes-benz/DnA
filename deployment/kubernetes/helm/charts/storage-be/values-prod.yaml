@@ -129,7 +129,7 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
   pullPolicy: IfNotPresent
-  tag: 3.2.18
+  tag: 3.2.19
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -168,7 +168,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_prod_k8_role'
+    vault.hashicorp.com/role: dna_prod_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
