@@ -96,7 +96,7 @@ hub:
       storage: 1Gi
       subPath:
       storageClassName: cinder-retain
-    url: postgresql+psycopg2://jupyterhub-db.code-server.svc.cluster.local:64000/jupyterhub
+    url: postgresql+psycopg2://jupyterhub-db.tools.svc.cluster.local:64000/jupyterhub
     password: <path:dna_kv/data/dev/kubernetesSecret/jupyterhubdb#dbadm.password>
   labels: {}
   annotations: {}
