@@ -6,6 +6,7 @@ import SelectBox from 'dna-container/SelectBox';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
+import Tags from 'dna-container/Tags';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
@@ -29,16 +30,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         .getAllBuckets()
         .then((res) => {
           if(res.status !== 204) {
-            const sortedBuckets = res?.data?.data?.sort((x, y) => {
-                let fx = x?.bucketName?.toLowerCase(), fy = y?.bucketName?.toLowerCase();
-                if (fx < fy) {
-                    return -1;
-                }
-                if (fx > fy) {
-                    return 1;
-                }
-                return 0;
-            });
+            const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.bucketName} })
             setBuckets(sortedBuckets);
           } else {
             setBuckets([]);
@@ -63,28 +55,30 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
   }, []);
 
   useEffect(() => {
-    ProgressIndicator.show();
-      fabricApi
-        .getConnectionInfo(bucketName?.split('@-@')[1])
-        .then((res) => {
-          setAccessKey(res?.data?.data?.userVO?.accesskey);
-          setSecretKey(res?.data?.data?.userVO?.secretKey);
-          ProgressIndicator.hide();
-        })
-        .catch((e) => {
-          ProgressIndicator.hide();
-          if(e?.response?.status === 403) {
-            Notification.show('Unauthorized to view this page or not found', 'alert');
-            history.push(`/`);
-          } else {
-            Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Fetching bucket connection details failed!',
-              'alert',
-            );
-          }
-        });
+    if(bucketName) {
+      ProgressIndicator.show();
+        fabricApi
+          .getConnectionInfo(bucketName[0])
+          .then((res) => {
+            setAccessKey(res?.data?.data?.userVO?.accesskey);
+            setSecretKey(res?.data?.data?.userVO?.secretKey);
+            ProgressIndicator.hide();
+          })
+          .catch((e) => {
+            ProgressIndicator.hide();
+            if(e?.response?.status === 403) {
+              Notification.show('Unauthorized to view this page or not found', 'alert');
+              history.push(`/`);
+            } else {
+              Notification.show(
+                e.response.data.errors?.length
+                  ? e.response.data.errors[0].message
+                  : 'Fetching bucket connection details failed!',
+                'alert',
+              );
+            }
+          });
+    }
   }, [bucketName]);
 
   const handleCreateShortcut = () => {
@@ -92,8 +86,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       setBucketNameError(true);
     } else {
       const data = {
-        bucketId: bucketName?.includes('@-@') ? bucketName?.split('@-@')[0] : '',
-        bucketname: bucketName?.includes('@-@') ? bucketName?.split('@-@')[1] : '',
+        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName[0])[0]?.id || '',
+        bucketname: bucketName[0],
         accessKey,
         secretKey
       }
@@ -114,27 +108,21 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
 
   return (
     <div className={Styles.lakehouseModalContent}>
-      <div className={classNames('input-field-group include-error', bucketNameError ? 'error' : '')}>
-        <label className={'input-label'}>
-          Select Storage Bucket <sup>*</sup>
-        </label>
-        <div className={classNames('custom-select')}>
-          <select
-            id="storageBucketField"
-            value={bucketName}
-            onChange={(e) => setBucketName(e.target.value)}
-          >
-            <option value={0}>Choose</option>
-            {buckets?.map((bucket) => {
-              return (
-                <option id={bucket?.bucketName} key={bucket?.name} value={bucket?.id + '@-@' + bucket?.bucketName}>
-                  {bucket?.bucketName}
-                </option>
-              )
-            })}
-          </select>
-        </div>
+      <div className={classNames('input-field-group include-error')}>
+        <Tags
+          title={'Select Storage Bucket'}
+          max={1}
+          chips={bucketName}
+          tags={buckets}
+          setTags={(selectedTags) => {
+            setBucketName(selectedTags);
+          }}
+          isMandatory={true}
+          showMissingEntryError={bucketNameError}
+          showAllTagsOnFocus={true}
+        />
       </div>
+      <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
       <button className={classNames('btn btn-tertiary', Styles.submitBtn)} onClick={handleCreateShortcut}>
         Create Shortcut
       </button>
@@ -437,10 +425,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
       { showCreateShortcutModal &&
         <Modal
           title={'Create Shortcut'}
-          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'400px'}
+          modalWidth={'600px'}
+          modalStyle={{maxWidth: '600px', paddingTop: '40px'}}
           buttonAlignment="right"
           show={showCreateShortcutModal}
           content={<CreateShortcutModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} onCreateShortcut={() => setShowCreateShortcutModal(false)} />}
