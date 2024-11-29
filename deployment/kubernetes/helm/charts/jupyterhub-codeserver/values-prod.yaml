@@ -47,6 +47,7 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dna.app.corpintra.net/#/codespaces
+      cookie_secret: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -85,7 +86,7 @@ hub:
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
   db:
-    type: sqlite-pvc
+    type: postgres
     upgrade:
     pvc:
       annotations: {}
@@ -95,8 +96,8 @@ hub:
       storage: 20Gi
       subPath:
       storageClassName: cinder-retain
-    url:
-    password:
+    url: postgresql+psycopg2://jupyterhub-db.code-server.svc.cluster.local:64000/jupyterhub
+    password: <path:dna_kv/data/prod/kubernetesSecret/jupyterhubdb#dbadm.password>
   labels: {}
   annotations: {}
   command: []
@@ -678,16 +679,16 @@ singleuser:
                     chmod +x /home/coder/entrypoint.d/pkg-install.sh  
                   fi      
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN     
+                    key: GH_PAT_TOKEN
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH    
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -716,16 +717,16 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GH_PAT_TOKEN    
+                    key: GH_PAT_TOKEN
               - name: GIT_BRANCH
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -754,7 +755,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -763,7 +764,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH        
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -792,7 +793,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -801,7 +802,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH       
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -830,7 +831,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -839,7 +840,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH         
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -868,7 +869,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -877,7 +878,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -906,7 +907,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -915,7 +916,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -944,7 +945,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -953,7 +954,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -982,7 +983,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -991,7 +992,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1020,7 +1021,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1029,7 +1030,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1058,7 +1059,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1067,7 +1068,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1096,7 +1097,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1105,7 +1106,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1138,7 +1139,7 @@ singleuser:
                     chmod +x /home/coder/entrypoint.d/pkg-install.sh
                   fi       
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1147,7 +1148,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1187,7 +1188,7 @@ singleuser:
                     echo "Exiting init container.."
                   fi                
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1196,7 +1197,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1349,7 +1350,7 @@ singleuser:
                     chmod +x /home/coder/entrypoint.d/pkg-install.sh
                   fi       
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1358,7 +1359,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH   
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1391,7 +1392,7 @@ singleuser:
                     chmod +x /home/coder/entrypoint.d/pkg-install.sh
                   fi       
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1400,7 +1401,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH     
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1436,7 +1437,7 @@ singleuser:
                   cp -vr ./tools/extension/. /home/coder/extension          
                   chmod +x /home/coder/entrypoint.d/pkg-install.sh        
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1445,7 +1446,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH      
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
@@ -1502,7 +1503,7 @@ singleuser:
                     chmod +x /home/coder/entrypoint.d/pkg-install.sh
                   fi           
             env:
-              - name: GH_PAT_TOKEN 
+              - name: GH_PAT_TOKEN
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
@@ -1511,7 +1512,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH      
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder
