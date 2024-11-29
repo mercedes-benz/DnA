@@ -538,7 +538,7 @@ const CodeSpace = (props) => {
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
-  const deploymentMigrated = (!codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL) && !codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL));
+  const deploymentMigrated = !(codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
 
   const RestartContent = (
     <div>
