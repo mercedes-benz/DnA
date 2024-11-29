@@ -540,6 +540,8 @@ const CodeSpaceCardItem = (props) => {
                           Resource usage
                           <i className="icon mbc-icon new-tab" />
                         </a>
+                      </li>
+                     )}
                     {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
                       <li>
                         <span
