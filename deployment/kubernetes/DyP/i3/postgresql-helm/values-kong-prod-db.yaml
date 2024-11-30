@@ -243,7 +243,7 @@ service:
 persistence:
   enabled: true
   size: <path:dna_aws_kv/data/prod/kubernetesSecret/kongdb#size>
-  # storageClass: dhc-gp3
+  storageClass: dhc-gp3-retaindhc-gp3
   # PVCName: name
   wal:
     enabled: false
