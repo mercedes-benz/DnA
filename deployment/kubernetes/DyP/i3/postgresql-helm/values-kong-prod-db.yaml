@@ -16,7 +16,7 @@ image:
 fullnameOverride: "kong-db"
 ## PostgreSQL replica count
 ##
-replicaCount: 2
+replicaCount: 3
 
 printEnv: true
 
@@ -330,8 +330,8 @@ backup:
   ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
   tempPgdataVolume:
     ## recommended
-    enabled: true
-    size: 25Gi
+    enabled: false
+    size: 1Gi
     # storageClass: dhc-gp3
   file:
     name: kong-backup
