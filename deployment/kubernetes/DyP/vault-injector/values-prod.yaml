@@ -22,7 +22,7 @@ global:
 
   # External vault server address for the injector and CSI provider to use.
   # Setting this will disable deployment of a vault server.
-  externalVaultAddr: "https://dnaplatform.service.vault-prod.rd.corpintra.net/"
+  externalVaultAddr: "https://dnaplatform.service.vault-prod.rd.corpintra.net"
 
   # If deploying to OpenShift
   openshift: false
@@ -48,7 +48,7 @@ injector:
   # @default: global.enabled
   enabled: "-"
 
-  replicas: 1
+  replicas: 3
 
   # Configures the port the injector should listen on
   port: 8080
