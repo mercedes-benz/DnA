@@ -1,5 +1,5 @@
 replicaCount: 1
-namespace: power-platform
+namespace: dev-dna-power-platform
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/power-platform-be
   pullPolicy: IfNotPresent
