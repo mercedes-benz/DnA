@@ -1171,6 +1171,7 @@ metrics:
     ##
     rules: []
 backupRestore:
+  ENTIRE_DB_DUMP_TARGET: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#entiredbDumpTarget>
   DB_SERVER: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbServer>
   DB_PORT: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbPort>
   DB_USER: <path:dna_kv/data/dev/kubernetesSecret/mysqlMatomo#dbUser>
