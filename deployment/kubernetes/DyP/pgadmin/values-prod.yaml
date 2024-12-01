@@ -116,7 +116,7 @@ networkPolicy:
 ## Ingress
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: true
+  enabled: false
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     kubernetes.io/ingress.class: traefik
