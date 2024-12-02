@@ -215,6 +215,7 @@ spec:
 {{- if and .Values.backup.enabled (eq .Values.backup.storage "fs" ) .Values.backup.fs.volume.enabled }}
 kind: PersistentVolumeClaim
 apiVersion: v1
+namespace: {{ .Values.namespace }}
 metadata:
   name: {{ include "postgres.fullname" . }}-backup
   labels:
@@ -236,6 +237,7 @@ spec:
 {{- if and .Values.backup.enabled .Values.backup.tempPgdataVolume.enabled }}
 kind: PersistentVolumeClaim
 apiVersion: v1
+namespace: {{ .Values.namespace }}
 metadata:
   name: {{ include "postgres.fullname" . }}-temp-backup
   labels:
