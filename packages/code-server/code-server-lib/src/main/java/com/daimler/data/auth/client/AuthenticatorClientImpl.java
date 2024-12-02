@@ -566,10 +566,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
-			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
 			if(routeResponse.getId()==null){
 				if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
-					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
 					if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 						List<MessageDescription> responseErrors = createRouteResponse.getErrors();
 						for(MessageDescription error : responseErrors) {
@@ -1383,15 +1383,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	}
 
-	public RouteResponseVO getRouteByName(String serviceName, String routeName) {
+	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider) {
 
 		
 		RouteResponseVO routeResponseVO = new RouteResponseVO();				
 		try {
-			String kongUri = authenticatorBaseUri + "/services/" + serviceName + "/routes/" + routeName;
+			String kongUri = cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri + "/services/" + serviceName + "/routes/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
