@@ -2010,7 +2010,6 @@ import com.daimler.data.util.ConstantsUtility;
 		 String cloudServiceProvider = null;
 		 boolean hasProdUrl = false;
 		 boolean hasIntUrl = false;
-		 boolean workspaceMigrated = false;
 		 try {
 			 String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			 boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
@@ -2198,22 +2197,11 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 				 }
 				 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-				 if(Objects.nonNull(entity.getData().getIsWorkspaceMigrated())) {
-					workspaceMigrated = entity.getData().getIsWorkspaceMigrated();
-				 }
-				
+				 
 				hasProdUrl = Objects.nonNull(
 					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
 				hasIntUrl = Objects.nonNull(
 					entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
-				if (!workspaceMigrated) {
-					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-						log.info("serviceProviders  "+cloudServiceProvider);
-					} else {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-					}
-				} else {
 					if ((hasProdUrl && entity.getData().getProjectDetails().getProdDeploymentDetails()
 							.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
 							(hasIntUrl && entity.getData().getProjectDetails().getIntDeploymentDetails()
@@ -2224,7 +2212,6 @@ import com.daimler.data.util.ConstantsUtility;
 					} else {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
-				}
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
 					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
 				 }
@@ -2995,7 +2982,6 @@ import com.daimler.data.util.ConstantsUtility;
 		String cloudServiceProvider = null;
 		boolean hasProdUrl = false;
 		boolean hasIntUrl = false;
-		boolean workspaceMigrated = false;
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			if (entity != null) {
@@ -3004,30 +2990,19 @@ import com.daimler.data.util.ConstantsUtility;
 				deployJobInputDto.setAction("restart");
 				deployJobInputDto.setBranch("main");
 				cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
-				if(Objects.nonNull(entity.getData().getIsWorkspaceMigrated())) {
-					workspaceMigrated = entity.getData().getIsWorkspaceMigrated();
-				 }
 				hasProdUrl = Objects.nonNull(
 					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
 				hasIntUrl = Objects.nonNull(
 					entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
-				if (!workspaceMigrated) {
-					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-					} else {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-					}
+				if ((hasProdUrl && entity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
+						(hasIntUrl && entity.getData().getProjectDetails().getIntDeploymentDetails()
+								.getDeploymentUrl().contains(codeServerBaseUriAws))) {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				} else if (hasProdUrl || hasIntUrl) {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS;
 				} else {
-					if ((hasProdUrl && entity.getData().getProjectDetails().getProdDeploymentDetails()
-							.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
-							(hasIntUrl && entity.getData().getProjectDetails().getIntDeploymentDetails()
-									.getDeploymentUrl().contains(codeServerBaseUriAws))) {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-					} else if (hasProdUrl || hasIntUrl) {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-					} else {
-						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-					}
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 				}
 				log.info("cloudServiceProvider-restart "+ cloudServiceProvider);
 				if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
