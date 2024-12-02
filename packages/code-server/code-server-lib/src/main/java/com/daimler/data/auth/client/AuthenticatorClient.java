@@ -32,6 +32,6 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName);
 
-	public RouteResponseVO getRouteByName(String serviceName, String routeName,cloudServiceProvider);
+	public RouteResponseVO getRouteByName(String serviceName, String routeName,String cloudServiceProvider);
 
 }
