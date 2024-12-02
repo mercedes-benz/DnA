@@ -850,7 +850,7 @@ public class KongClientImpl implements KongClient {
 			
 		} 
 		catch (Exception e) {
-			LOGGER.error("Exception occured while getting service: {} details", serviceName);			
+			LOGGER.error("Exception occured while getting route: {} details {}.", serviceName, e.getMessage());			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			createRouteResponseVO.setErrors(errors);
