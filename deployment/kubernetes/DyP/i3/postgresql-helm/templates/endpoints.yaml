@@ -1,0 +1,21 @@
+{{ if .Values.endpoints.enabled }}
+# those endpoints will be created by patroni
+# we have empty scaffolds here to properly delete them on cleanup
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ include "postgres.clustername" . }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: before-hook-creation
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: before-hook-creation
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+subsets: []
+{{- end }}
