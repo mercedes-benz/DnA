@@ -121,6 +121,11 @@ configJs: |
       SPIRE_URL='YOUR_SPIRE_URL',
       GENAI_DIRECT_CHAT_URL = 'YOUR_GENAI_DIRECT_CHAT_URL'
 
+      POWER_PLATFORM_DEFAULT_ENVIRONMENT_URL: 'YOUR_POWER_PLATFORM_DEFAULT_ENVIRONMENT_URL',
+      POWER_PLATFORM_CITIZEN_DEVELOPER_ACCOUNT_URL: 'YOUR_POWER_PLATFORM_CITIZEN_DEVELOPER_ACCOUNT_URL',
+      POWER_PLATFORM_FULL_DEVELOPER_ACCOUNT_URL: 'YOUR_POWER_PLATFORM_FULL_DEVELOPER_ACCOUNT_URL',
+      POWER_PLATFORM_SUPPORT_EMAIL: 'YOUR_POWER_PLATFORM_SUPPORT_EMAIL',
+      POWER_PLATFORM_SOCIAL_INTRANET_URL: 'YOUR_POWER_PLATFORM_SOCIAL_INTRANET_URL',
     };
 
     window["STORAGE_INJECTED_ENVIRONMENT"]={
@@ -172,6 +177,7 @@ configJs: |
         CONTAINER_APP_URL:'http://localhost:9090',
         API_BASEURL: 'http://localhost:7171/api',
         FABRIC_API_BASEURL: 'YOUR_FABRIC_API_BASEURL',
+        ALICE_URL: 'YOUR_ALICE_URL',
         STORAGE_API_BASEURL: 'http://localhost:7175/api',
         REPORTS_API_BASEURL: 'http://localhost:7173/api',
         TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
@@ -194,6 +200,7 @@ configJs: |
         STORAGE_API_BASEURL: 'http://localhost:7175/api',
         REPORTS_API_BASEURL: 'http://localhost:7173/api',
         TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+        TOU_GE_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>",
     }; 
 
     

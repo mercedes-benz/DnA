@@ -8,6 +8,7 @@ configJs: |
       CONTAINER_APP_URL: "http://localhost:9090",
       API_BASEURL: "http://localhost:7171/api",
       FABRIC_API_BASEURL: 'YOUR_FABRIC_API_BASEURL',
+      ALICE_URL: 'YOUR_ALICE_URL',
       REPORTS_API_BASEURL: 'YOUR_REPORTS_API_BASEURL',
       STORAGE_API_BASEURL: 'YOUR_STORAGE_API_BASEURL',
       TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
