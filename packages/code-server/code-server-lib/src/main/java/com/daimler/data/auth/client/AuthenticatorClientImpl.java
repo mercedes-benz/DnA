@@ -23,6 +23,10 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class AuthenticatorClientImpl  implements AuthenticatorClient{
@@ -468,22 +472,27 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
-			if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
-				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
-				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
-					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
-					for(MessageDescription error : responseErrors) {
-						if(error.getMessage().contains("Route already exist")) {
-							isRouteAlreadyCreated = true;
+			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+			if(routeResponse.getId()==null){
+				if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
+					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+					if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
+						List<MessageDescription> responseErrors = createRouteResponse.getErrors();
+						for(MessageDescription error : responseErrors) {
+							if(error.getMessage().contains("Route already exist")) {
+								isRouteAlreadyCreated = true;
+							}
 						}
 					}
 				}
+				else {
+					LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
+					return;
+				}
+			}else{
+				LOGGER.info("Route name {} already exist. ",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+				isRouteAlreadyCreated = true;
 			}
-			else {
-				LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
-				return;
-			}
-
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
@@ -937,6 +946,45 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		response.setErrors(errors);
 		return response;
 	
+	}
+
+	public RouteResponseVO getRouteByName(String serviceName, String routeName) {
+
+		
+		RouteResponseVO routeResponseVO = new RouteResponseVO();				
+		try {
+			String kongUri = authenticatorBaseUri + "/services/" + serviceName + "/routes/" + routeName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.OK) {					
+					String jsonString = response.getBody();
+					ObjectMapper mapper = new ObjectMapper();
+					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+					try {
+						routeResponseVO = mapper.readValue(jsonString, RouteResponseVO.class);
+					} catch (JsonMappingException e) {
+						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
+					} catch (JsonProcessingException e) {
+						LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
+					}					
+					return routeResponseVO;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			LOGGER.error("Error while getting route details  {} error: {}", serviceName, ex.getMessage());
+			return routeResponseVO;
+			
+		} 
+		catch (Exception e) {
+			LOGGER.error("Exception occured while getting route details: {} details {}.", serviceName, e.getMessage());			
+			return routeResponseVO;
+		}
+		return routeResponseVO;
 	}
 
 }
