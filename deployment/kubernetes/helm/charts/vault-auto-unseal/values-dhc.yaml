@@ -1,0 +1,15 @@
+schedule: <path:dna_kv/data/dev/kubernetesSecret/vaultUnseal#schedule>
+restartPolicy: OnFailure
+successfulJobsHistoryLimit: 1
+namespace: vault
+image:
+  name: registry-emea.app.corpintra.net/dnaplatform/vault/vault-unseal
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+envs:
+  - name: VAULT_ADDR
+    value: <path:dna_kv/data/dev/kubernetesSecret/vaultUnseal#address>
+  - name: VAULT_TOKEN
+    value: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#token>
+  - name: UNSEAL_KEYS
+    value: <path:dna_kv/data/dev/kubernetesSecret/vaultUnseal#unsealKey1>
