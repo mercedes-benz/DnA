@@ -28,7 +28,7 @@ kubeVersion: ""
 nameOverride: ""
 ## @param fullnameOverride String to fully override matomo.fullname template
 ##
-fullnameOverride: ""
+fullnameOverride: "test-dna-matomo"
 ## @param namespaceOverride String to fully override common.names.namespace
 ##
 namespaceOverride: ""

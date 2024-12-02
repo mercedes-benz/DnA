@@ -1,4 +1,4 @@
-namespace: dev-dna-powerplatform
+namespace: dev-dna-power-platform
 configJs: |
   window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
     ENABLE_POWER_PLATFORM_SERVICE=true,
