@@ -357,9 +357,8 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="createdBy">
                     <label className="input-label summary">Created By</label>
                     <br />
-                    {/* {description.createdBy ? description.createdBy.firstName : 'NA'} */}
-                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX}>
-                      {description.createdBy.firstName}
+                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX + description.createdBy.id}>
+                      {description.createdBy.firstName} {description.createdBy.lastName}
                     </a>{' '}
                   </div>
 
