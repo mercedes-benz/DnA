@@ -26,6 +26,7 @@ import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -949,44 +950,43 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	}
 
+	@Override
 	public RouteResponseVO getRouteByName(String serviceName, String routeName) {
-
-		
-		RouteResponseVO routeResponseVO = new RouteResponseVO();				
-		try {
-			String kongUri = authenticatorBaseUri + CREATE_SERVICE+ "/" + serviceName + "/routes/" + routeName;
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
-			if (response != null && response.hasBody()) {
-				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK) {					
-					String jsonString = response.getBody();
-					ObjectMapper mapper = new ObjectMapper();
-					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-					try {
-						routeResponseVO = mapper.readValue(jsonString, RouteResponseVO.class);
-						LOGGER.info("routeresponse "+routeResponseVO);
-					} catch (JsonMappingException e) {
-						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
-					} catch (JsonProcessingException e) {
-						LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
-					}					
-					return routeResponseVO;
-				}
-			}
-		} catch (HttpClientErrorException ex) {
-			LOGGER.error("Error while getting route details  {} error: {}", serviceName, ex.getMessage());
-			return routeResponseVO;
-			
-		} 
-		catch (Exception e) {
-			LOGGER.error("Exception occured while getting route details: {} details {}.", serviceName, e.getMessage());			
-			return routeResponseVO;
-		}
-		return routeResponseVO;
-	}
+    RouteResponseVO routeResponseVO = new RouteResponseVO();
+    try {
+        String kongUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + "/routes/" + routeName;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/json");
+        headers.set("Content-Type", "application/json");
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+        if (response != null && response.hasBody()) {
+            HttpStatus statusCode = response.getStatusCode();
+            if (statusCode == HttpStatus.OK) {
+                String jsonString = response.getBody();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                try {
+                    JsonNode rootNode = mapper.readTree(jsonString);
+                    JsonNode dataNode = rootNode.path("data");
+                    routeResponseVO = mapper.treeToValue(dataNode, RouteResponseVO.class);
+                    LOGGER.info("routeresponse " + routeResponseVO);
+                } catch (JsonMappingException e) {
+                    LOGGER.error("JsonMappingException for get route {}", e.getMessage());
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
+                }
+                return routeResponseVO;
+            }
+        }
+    } catch (HttpClientErrorException ex) {
+        LOGGER.error("Error while getting route details  {} error: {}", serviceName, ex.getMessage());
+        return routeResponseVO;
+    } catch (Exception e) {
+        LOGGER.error("Exception occurred while getting route details: {} details {}.", serviceName, e.getMessage());
+        return routeResponseVO;
+    }
+    return routeResponseVO;
+}
 
 }
