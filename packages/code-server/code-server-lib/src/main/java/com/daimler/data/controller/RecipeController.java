@@ -78,11 +78,12 @@ public class RecipeController implements CodeServerRecipeApi {
 		UserInfoVO currentUserVO = new UserInfoVO();
 		BeanUtils.copyProperties(currentUser, currentUserVO);
 		recipeRequestVO.setCreatedBy(currentUserVO);
+		String id = recipeRequestVO.getId() != null ? recipeRequestVO.getId() : null;
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
 		recipeRequestVO.setIsDeployEnabled(false);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
-		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
+		String name = service.getRecipeById(id)!= null ? service.getRecipeById(id).getRecipeName() : null;
 		if (name == null) {
 			// recipeRequestVO.setStatus("REQUESTED");
 			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
@@ -101,7 +102,7 @@ public class RecipeController implements CodeServerRecipeApi {
 			} else {
 				responseMessage.setData(softwareMessage.getErrors());
 				responseMessage.setSuccess("FAILED");
-				log.info("The software creation process failed in the Git repository for the recipe."+recipeName);
+				log.info("The software creation process failed for create in the Git repository for the recipe."+recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 			}
 		} else {
@@ -110,6 +111,55 @@ public class RecipeController implements CodeServerRecipeApi {
 			log.info("workspace {} already exists for User {} with name: {} ", recipeName);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Update recipe details for a given id.", nickname = "updateRecipeById", notes = "Update recipe details for a recipe id.", response = InitializeRecipeVo.class, tags={ "code-server-recipe", })
+	@ApiResponses(value = { 
+		@ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeRecipeVo.class),
+		@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 405, message = "Method not allowed"),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/recipeDetails/{id}",
+		produces = { "application/json" }, 
+		consumes = { "application/json" },
+		method = RequestMethod.PUT)
+	public ResponseEntity<InitializeRecipeVo> updateRecipeById(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody RecipeVO recipeRequestVO){
+		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		recipeRequestVO.setCreatedBy(currentUserVO);
+		String id = recipeRequestVO.getId() != null ? recipeRequestVO.getId() : null;
+		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
+		//RecipeVO vo = service.getByRecipeName(recipeName);
+		recipeRequestVO.setIsDeployEnabled(false);
+		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
+		String name = service.getRecipeById(id)!= null ? service.getRecipeById(id).getRecipeName() : null;
+		if(name!=null) {
+			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
+			if(softwareMessage.getSuccess().equals("SUCCESS")) {
+				RecipeVO recipeVO = service.updateRecipe(recipeRequestVO);
+				if (Objects.nonNull(recipeVO)) {
+					responseMessage.setData(recipeVO);
+					responseMessage.setSuccess("SUCCESS");
+					log.info("The recipe has been updated successfully with the name: "+recipeName);
+					return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+				}
+				responseMessage.setData(null);
+				responseMessage.setSuccess("FAILED");
+				log.info("The update of a recipe failed for recipe name. "+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+			} else {
+				responseMessage.setData(softwareMessage.getErrors());
+				responseMessage.setSuccess("FAILED");
+				log.info("The software creation process failed for update in the Git repository for the recipe."+recipeName);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+			}
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	@Override
@@ -165,7 +215,7 @@ public class RecipeController implements CodeServerRecipeApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get workspace recipe details for a given Id.", nickname = "getByRecipeName", notes = "Get workspace recipe details for a given Id.", response = RecipeVO.class, tags = {
+	@ApiOperation(value = "Get workspace recipe details for a given Id.", nickname = "getById", notes = "Get workspace recipe details for a given Id.", response = RecipeVO.class, tags = {
 			"code-server-recipe", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of success or failure", response = RecipeVO.class),
@@ -175,14 +225,14 @@ public class RecipeController implements CodeServerRecipeApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/recipeDetails/{recipeName}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/recipeDetails/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<InitializeRecipeVo> getByRecipeName(
-			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("recipeName") String recipeName) {
+	public ResponseEntity<InitializeRecipeVo> getRecipeById(
+			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id) {
 		
 			InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		// if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
-			RecipeVO recipeVO = service.getByRecipeName(recipeName);
+			RecipeVO recipeVO = service.getRecipeById(id);
 			if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
 				responseMessage.setSuccess("SUCCESS");
 				responseMessage.setData(recipeVO);
@@ -190,7 +240,7 @@ public class RecipeController implements CodeServerRecipeApi {
 			} else {
 				responseMessage.setSuccess("FAILED");
 				responseMessage.setData(null);
-				log.info("No recipe found for given recipeName: {} ", recipeName);
+				log.info("No recipe found for given id: {} ", id);
 				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 			}
 		// } else {
@@ -469,18 +519,18 @@ public class RecipeController implements CodeServerRecipeApi {
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/recipeDetails/{recipeName}",
+    @RequestMapping(value = "/recipeDetails/{id}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
-		public ResponseEntity<GenericMessage> deleteRecipe(@ApiParam(value = "recipe to be deleted", required = true) @PathVariable("recipeName") String recipeName) {
+		public ResponseEntity<GenericMessage> deleteRecipe(@ApiParam(value = "recipe to be deleted", required = true) @PathVariable("id") String id) {
 			CreatedByVO currentUser = this.userStore.getVO();
-			String id = currentUser.getId();
-			CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+			String userId = currentUser.getId();
+			CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findById(id);
 		
 			if (entity != null && Objects.nonNull(entity)) {
-				if (id.equalsIgnoreCase(entity.getData().getCreatedBy().getId())) {
-					GenericMessage genericMessage = service.deleteRecipe(recipeName);
+				if (userId.equalsIgnoreCase(entity.getData().getCreatedBy().getId())) {
+					GenericMessage genericMessage = service.deleteRecipe(id);
 					return ResponseEntity.ok(genericMessage);
 				} else {
 					// not authorized
@@ -490,5 +540,5 @@ public class RecipeController implements CodeServerRecipeApi {
 				// not found
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericMessage("Recipe not found."));
 			}
-		}	
+		}
 }

@@ -3,6 +3,7 @@ import '@univerjs/design/lib/index.css';
 import Styles from './data-entry-sheet.scss';
 
 import { Univer, LocaleType, UniverInstanceType, Tools } from '@univerjs/core';
+import { FUniver } from "@univerjs/facade";
 import { defaultTheme } from '@univerjs/design';
 import { UniverDocsPlugin } from '@univerjs/docs';
 import { UniverDocsUIPlugin } from '@univerjs/docs-ui';
@@ -73,6 +74,14 @@ const DataEntrySheet = forwardRef(({ data }, ref) => {
 
     // create workbook instance
     workbookRef.current = univer.createUnit(UniverInstanceType.UNIVER_SHEET, data);
+
+    const univerAPI = FUniver.newAPI(univer);
+
+    const activeSheet = univerAPI.getActiveWorkbook().getActiveSheet();
+    const range = activeSheet.getRange('A:A');
+    range.forEach((cell) => {
+      cell.setReadOnly(true);
+    });
   };
 
   /**

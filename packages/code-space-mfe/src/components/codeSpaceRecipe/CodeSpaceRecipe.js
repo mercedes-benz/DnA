@@ -4,6 +4,7 @@ import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'dna-container/SelectBox';
 import TextBox from 'dna-container/TextBox';
 import Caption from 'dna-container/Caption';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import { Envs } from '../../Utility/envs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
@@ -19,7 +20,7 @@ const classNames = cn.bind(Styles);
 const CodeSpaceRecipe = (props) => {
   const { id: recipeId } = useParams();
 
-  const edit = recipeId ? true : false;
+  const edit = recipeId && recipeId !== 'codespace' && recipeId !== 'manageRecipe' ? true : false;
   const requiredError = '*Missing entry';
   const repeatedError = '*Recipe name already exists';
   const history = useHistory();
@@ -27,6 +28,7 @@ const CodeSpaceRecipe = (props) => {
   const [notificationMsg, setNotificationMsg] = useState(false);
   const [softwares, setSoftwares] = useState([]);
   const [enableCreate, setEnableCreate] = useState(false);
+  const [showUpdateRecipeModal, setShowUpdateRecipeModal] = useState(false);
 
   const [recipeName, setRecipeName] = useState('');
   const [isPublic, setIsPublic] = useState(false);
@@ -42,6 +44,7 @@ const CodeSpaceRecipe = (props) => {
   const [maxCpu, setMaxCpu] = useState('');
   const [minRam, setMinRam] = useState('1000');
   const [maxRam, setMaxRam] = useState('');
+  const [id, setId] = useState('');
   const [isSoftwareMissing, setSoftwareMissing] = useState(false);
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
@@ -71,11 +74,12 @@ const CodeSpaceRecipe = (props) => {
   }, []);
   
   useEffect(() => {
-    if(recipeId !== undefined) {
+    if(edit) {
       ProgressIndicator.show();
       CodeSpaceApiClient.getCodeSpaceRecipe(recipeId)
         .then((res) => {
           const recipe = res.data.data;
+          setId(recipe?.id);
           setDiskSpace(recipe?.diskSpace);
           setMaxCpu(recipe?.maxCpu);
           setMinCpu(recipe?.minCpu);
@@ -84,10 +88,14 @@ const CodeSpaceRecipe = (props) => {
           setRecipeName(recipe?.recipeName);
           setGitUrl(recipe?.repodetails);
           setSoftware(recipe?.software);
+          recipe?.maxCpu === '0.5' && setHardware('small');
+          recipe?.maxCpu === '1' && setHardware('medium');
+          recipe?.maxCpu === '1.5' && setHardware('large');
           setIsPublic(recipe?.isPublic);
           setGitRepoLoc(recipe?.gitRepoLoc);
           setDeployPath(recipe?.deployPath);
-          setSelectedAdditionalServices(recipe?.additionalServices);
+          setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.serviceName)));
+          setEnableCreate(true);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         })
@@ -102,7 +110,7 @@ const CodeSpaceRecipe = (props) => {
           }
         });
     }
-  }, [recipeId]);
+  }, [edit, recipeId, additionalServices]);
 
   useEffect(() => {
     CodeSpaceApiClient.getSoftwareLov()
@@ -379,9 +387,11 @@ const CodeSpaceRecipe = (props) => {
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
         additionalServices: selectedAdditionalServices.map(service => service?.serviceName),
+        id: id
       };
+
       ProgressIndicator.show();
-      CodeSpaceApiClient.updateCodeSpaceRecipe(recipeId, data)
+      CodeSpaceApiClient.updateCodeSpaceRecipe(id, data)
         .then(() => {
           ProgressIndicator.hide();
           history.push('/manageRecipes');
@@ -389,7 +399,8 @@ const CodeSpaceRecipe = (props) => {
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
+          const errorMsg = err?.response?.data?.errors && err.response.data.errors.length > 0 ? err.response.data.errors[0]?.message : "Something went wrong";
+          Notification.show(errorMsg, 'alert');
         });
     }
   };
@@ -402,6 +413,13 @@ const CodeSpaceRecipe = (props) => {
         ...prevState,
         recipeName: requiredError,
       }));
+    }else if(recipeName?.startsWith(" ") || recipeName?.endsWith(" ")){
+      isValid = false;
+      setErrorObj((prevState) => ({
+        ...prevState,
+        recipeName: "Recipe name cannot start or end with whitespaces",
+      }));
+
     }
     if (gitUrl === '') {
       isValid = false;
@@ -466,19 +484,31 @@ const CodeSpaceRecipe = (props) => {
     return isValid;
   };
 
+  const handleBackClick = () => {
+    recipeId === 'codespace' && history.push('/');
+    (recipeId === 'manageRecipe' || recipeId !== 'codespace')  && history.push('/manageRecipes');
+  }
+
+  const updateRecipeContent = (
+    <div>
+      {/* <h3>Are you sure you want to update this recipe?</h3> */}
+      <h5>If you update the recipe, users will need to create<br />new codespaces to apply the changes, as existing codespaces will not be updated.</h5>
+    </div>
+  );
+
   return (
     <div>
       <div>
         <div className={classNames(Styles.mainPanel)}>
           <div>
-            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'}>
-              <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>
+            <Caption title={edit ? 'Update Recipe' : 'Create New Recipe'} onBackClick={handleBackClick}>
+              {!edit && <p className={Styles.warning}><i className="icon mbc-icon alert circle" /> <span>Recipe creation cannot be done from personal repo. For eg. <pre>USERID/repo_name</pre></span></p>}
             </Caption>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames(Styles.firstPanel, 'addRecipe')}>
                 <div className={classNames(Styles.formWrapper)}>
                   <div className={classNames(Styles.flex)}>
-                    <div className={classNames(Styles.col2, recipeId && Styles.disabledSection)}>
+                    <div className={classNames(Styles.col2, edit && Styles.disabledSection)}>
                       <TextBox
                         type="text"
                         controlId={'recipeNameInput'}
@@ -493,7 +523,7 @@ const CodeSpaceRecipe = (props) => {
                       />
                     </div>
                     <div className={(Styles.col2)}>
-                      <div className={classNames('input-field-group include-error')}>
+                      <div className={classNames('input-field-group include-error', edit && Styles.disabledSection)}>
                         <label className={classNames(Styles.inputLabel, Styles.m5, 'input-label')}>
                           Recipe Visibility <sup>*</sup>
                         </label>
@@ -528,7 +558,7 @@ const CodeSpaceRecipe = (props) => {
                       </div>
                     </div>
                     <div className={classNames(Styles.col2)}>
-                      <div className={classNames(Styles.inputLabel, 'input-label')}>
+                      <div className={classNames(Styles.inputLabel, 'input-label', edit && Styles.disabledSection)}>
                         <TextBox
                           type="text"
                           controlId={'gitUrlInput'}
@@ -540,6 +570,7 @@ const CodeSpaceRecipe = (props) => {
                           required={true}
                           maxLength={200}
                           onChange={onGitUrlChange}
+                          onBlur={errorObj?.gitUrl?.length ? undefined : verifyRequest}
                         />
                         {(!enableCreate &&
                           <button className={classNames('btn btn-tertiary', Styles.verifyButton, errorObj?.gitUrl?.length > 0 && Styles.giturlerror)} type="button" onClick={verifyRequest}>
@@ -559,10 +590,9 @@ const CodeSpaceRecipe = (props) => {
                         <div id="HardwareBox" className='custom-select'>
                           <select
                             id="HardewareField"
-                            required={true}
-                            required-error={errorObj.hardware}
                             value={hardware}
-                            onChange={onHardwareChange}>
+                            onChange={onHardwareChange}
+                            >
                             <option value={'small'}>DiskSpace - 5GB CPU - 0.5 RAM - 2GB</option>
                             <option value={'medium'}>DiskSpace - 10GB CPU - 1 RAM - 3GB</option>
                             <option value={'large'}>DiskSpace - 15GB CPU - 1.5 RAM - 4GB</option>
@@ -590,8 +620,9 @@ const CodeSpaceRecipe = (props) => {
                         }}
                         isMandatory={true}
                         showMissingEntryError={isSoftwareMissing}
+                        showAllTagsOnFocus={true}
                       />
-                      <div className={classNames(Styles.request)} >
+                      <div className={classNames(Styles.request, Styles.requestSoft)} >
                         <a href={Envs.CODESPACE_SOFTWARE_REQUEST_TEMPLATE} target="_blank" rel="noopener noreferrer">
                           Request new Software
                         </a>
@@ -703,7 +734,7 @@ const CodeSpaceRecipe = (props) => {
                 </div>
 
                 <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={edit ? onUpdateRecipe : onCreateRecipe}>
+                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe()}>
                     {edit ? 'Update Recipe' : 'Create Recipe'}
                   </button>
                 </div>
@@ -748,6 +779,19 @@ const CodeSpaceRecipe = (props) => {
                 </div>
               </div>
             }
+          />
+        }
+        {showUpdateRecipeModal &&
+          <ConfirmModal
+            title={''}
+            acceptButtonTitle="Yes"
+            cancelButtonTitle="No"
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={showUpdateRecipeModal}
+            content={updateRecipeContent}
+            onCancel={() => setShowUpdateRecipeModal(false)}
+            onAccept={onUpdateRecipe}
           />
         }
       </div>
