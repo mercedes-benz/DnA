@@ -1388,7 +1388,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		
 		RouteResponseVO routeResponseVO = new RouteResponseVO();				
 		try {
-			String kongUri = cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri + "/services/" + serviceName + "/routes/" + routeName;
+			String kongUri = cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri + "CREATE_SERVICE/" + serviceName + "/routes/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
