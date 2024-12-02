@@ -956,7 +956,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String kongUri = authenticatorBaseUri + CREATE_SERVICE+ "/" + serviceName + "/routes/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
