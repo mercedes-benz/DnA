@@ -1388,7 +1388,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		
 		RouteResponseVO routeResponseVO = new RouteResponseVO();				
 		try {
-			String kongUri = cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri + "CREATE_SERVICE/" + serviceName + "/routes/" + routeName;
+			String kongUri = cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri + CREATE_SERVICE +"/"+ serviceName + "/routes/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/x-www-form-urlencoded");
@@ -1439,7 +1439,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
 
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + "/" + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
 
 			HttpEntity<AttachFunctionPluginRequestVO> entity = new HttpEntity<AttachFunctionPluginRequestVO>(attachFunctionPluginRequestVO,headers);			
 			ResponseEntity<String> attachFunctionPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
