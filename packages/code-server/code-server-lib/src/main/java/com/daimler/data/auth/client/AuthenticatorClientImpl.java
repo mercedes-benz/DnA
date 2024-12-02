@@ -34,6 +34,7 @@ import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.CommonUtils;
@@ -1384,8 +1385,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	}
 
+  @Override
 	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider) {
-
 		
 		RouteResponseVO routeResponseVO = new RouteResponseVO();				
 		try {
@@ -1407,7 +1408,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					ObjectMapper mapper = new ObjectMapper();
 					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 					try {
-						routeResponseVO = mapper.readValue(jsonString, RouteResponseVO.class);
+            JsonNode rootNode = mapper.readTree(jsonString);
+            JsonNode dataNode = rootNode.path("data");
+            routeResponseVO = mapper.treeToValue(dataNode, RouteResponseVO.class);
 						LOGGER.info("routeresponse "+routeResponseVO);
 					} catch (JsonMappingException e) {
 						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
