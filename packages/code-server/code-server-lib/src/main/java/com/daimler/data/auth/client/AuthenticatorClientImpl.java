@@ -566,6 +566,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
+			LOGGER.info("calling kong to get route details for projectname : {}",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
 			if(routeResponse.getId()==null){
 				if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
@@ -1407,6 +1408,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 					try {
 						routeResponseVO = mapper.readValue(jsonString, RouteResponseVO.class);
+						LOGGER.info("routeresponse "+routeResponseVO);
 					} catch (JsonMappingException e) {
 						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
 					} catch (JsonProcessingException e) {
