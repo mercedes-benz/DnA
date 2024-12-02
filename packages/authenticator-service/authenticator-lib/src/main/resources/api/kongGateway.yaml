@@ -250,6 +250,40 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+    get:
+        tags:
+          - "kong"
+        summary: "Get a route by ID."
+        description: "Get a route by ID"
+        operationId: "getRouteByName"
+        parameters:
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which route has to be fetched"
+          required: true
+          type: "string"
+        - name: "routeName"
+          in: "path"
+          description: "Name of the route to be fetched"
+          required: true
+          type: "string"  
+        responses:
+          200:
+            description: "Returns message of success or failure"
+            schema:
+              $ref: "#/definitions/CreateRouteResponseVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
 
           
 # path to upadte plugin 
