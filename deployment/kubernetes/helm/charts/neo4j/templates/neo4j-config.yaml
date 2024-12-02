@@ -126,6 +126,8 @@ data:
   dbms.routing.default_router: "SERVER"
   dbms.routing.client_side.enforce_for_domains: "*.{{ .Values.clusterDomain }}"
   dbms.routing.enabled: "true"
+  dbms.cluster.discovery.version: "{{ .Values.discoveryVersion }}"
+  dbms.kubernetes.discovery.v2.service_port_name: "tcp-tx"
   {{- end }}
 
   {{- if $clusterEnabled }}
