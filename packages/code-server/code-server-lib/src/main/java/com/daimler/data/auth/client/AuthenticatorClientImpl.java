@@ -970,7 +970,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
                     JsonNode rootNode = mapper.readTree(jsonString);
                     JsonNode dataNode = rootNode.path("data");
                     routeResponseVO = mapper.treeToValue(dataNode, RouteResponseVO.class);
-                    LOGGER.info("routeresponse " + routeResponseVO);
                 } catch (JsonMappingException e) {
                     LOGGER.error("JsonMappingException for get route {}", e.getMessage());
                 } catch (JsonProcessingException e) {
