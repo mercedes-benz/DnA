@@ -419,11 +419,11 @@ const CodeSpaceCardItem = (props) => {
 
   const migrateOrStartContent = (
     <div className={Styles.modalContentWrapper}>
-      <div className={Styles.modalTitle}>Do you want to migrate from DHC-Caas(On-Prem) to DHC-Caas(AWS) ? </div>
+      <div className={Styles.modalTitle}>Do you want to migrate from DyP-CaaS(On-Prem) to DyP-CaaS(AWS) ? </div>
       <div className={Styles.modalContent}>
         <p>Note: Before migrating please commit or keep a backup of your changes and untracked files present in your current workspace. On migration your workspace will be requested to start but please note that the initial start may take some time.</p>
         <br/>
-        <p>If you do not wish to migrate at the moment you can start your workspace by simply clicking on the DHC-CaaS(On-Prem) option.</p>
+        <p>If you do not wish to migrate at the moment you can start your workspace by simply clicking on the DyP-CaaS(On-Prem) option.</p>
       </div>
     </div>
   );
@@ -538,7 +538,7 @@ const CodeSpaceCardItem = (props) => {
                             setShowOnPremStartModal(true);
                           }}
                         >
-                          Start on DHC-CaaS On-Prem (manual)
+                          Start on DyP-CaaS On-Prem (manual)
                         </span>
                       </li>
                     )}
@@ -764,7 +764,7 @@ const CodeSpaceCardItem = (props) => {
             </div>
             <div>
               <div>Environment</div>
-              <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
+              <div>{projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
@@ -1302,8 +1302,8 @@ const CodeSpaceCardItem = (props) => {
       { showMigrateOrStartModal && (
         <ConfirmModal
           title={''}
-          acceptButtonTitle="Migrate your workspace to DHC-Caas(AWS)"
-          cancelButtonTitle="Start your workspace on DHC-Caas(On-Prem)"
+          acceptButtonTitle="Migrate your workspace to DyP-CaaS(AWS)"
+          cancelButtonTitle="Start your workspace on DyP-CaaS(On-Prem)"
           showAcceptButton={true}
           showCancelButton={true}
           show={showMigrateOrStartModal}

@@ -20,6 +20,7 @@ import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
+import ConfirmModal from 'dna-container/ConfirmModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -215,6 +216,34 @@ const AllCodeSpaces = (props) => {
         }
         window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
     }
+
+    const AWSWarningModalContent = (
+        <div className={Styles.modalContentWrapper}>
+            <div className={Styles.modalMainTitle}><i className="icon mbc-icon alert circle" />Heads Up! Codespaces is Moving to DyPCaaS AWS <i className="icon mbc-icon alert circle" /></div>
+            <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
+            <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
+            <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>Link to DOC-575734</a>).</p>
+            <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
+            <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
+            <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
+            <p>
+                <ul>
+                    <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
+                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful video guide under tutorials to walk you through it.</li>
+                </ul>
+            </p>
+            <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
+            <p>
+                <ol>
+                    <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li>
+                    <li><b>Easy Migration:</b> Use our self-service migration flow to move your workspace to DyPCaaS AWS.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 10th, 2025.</li>
+                </ol>
+            </p>
+            <div className={Styles.modalTitle}>Need Assistance?:</div>
+            <p>Join our Teams channel [<a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Link here</a>] or Mattermost channel [<a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Link here</a>] for help or to discuss any concerns.</p>
+        </div>
+    );
 
     return (
         <div className={classNames(Styles.mainPanel)}>
@@ -473,23 +502,24 @@ const AllCodeSpaces = (props) => {
                 />
             )}
             {showAWSWarningModal && (
-                <Modal
-                    title={'Attention!!'}
-                    showAcceptButton={true}
+                <ConfirmModal
+                    title={''}
+                    showAcceptButton={false}
                     acceptButtonTitle="OK"
                     showCancelButton={false}
-                    modalWidth={'60%'}
+                    modalWidth={'70%'}
                     modalStyle={{
-                        padding: '50px 35px 35px 35px',
                         minWidth: 'unset',
-                        width: '60%',
+                        width: '70%',
                       }}
                     buttonAlignment="center"
                     show={showAWSWarningModal}
-                    content={<div dangerouslySetInnerHTML={{ __html: Envs.AWS_MIGRATION_WARNING_MODAL_CONTENT }} />}
+                    content={AWSWarningModalContent}
                     scrollableContent={true}
                     onCancel={() => setShowAWSWarningModal(false)}
                     onAccept={() => setShowAWSWarningModal(false)}
+                    showIcon = {false}
+                    showCloseIcon = {true}
                 />
             )}
         </div>

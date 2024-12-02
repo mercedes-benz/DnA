@@ -1496,7 +1496,7 @@ const NewCodeSpace = (props) => {
                           checked={environment==='DHC-CaaS-AWS'}
                         />
                       </span>
-                      <span className="label">DHC CaaS (AWS)</span>
+                      <span className="label">DyP CaaS (AWS)</span>
                     </label>
                     <label className={classNames('radio')}>
                       <span className="wrapper">
@@ -1510,7 +1510,7 @@ const NewCodeSpace = (props) => {
                           disabled={true}
                         />
                       </span>
-                      <span className="label">DHC CaaS (On-Prem)</span>
+                      <span className="label">DyP CaaS (On-Prem)</span>
                     </label>
                     <label className={classNames('radio')}>
                       <span className="wrapper">
