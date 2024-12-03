@@ -367,11 +367,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			url = "http://" + serviceName.toLowerCase() + "-" + env;		
 			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
 				if("dev".equalsIgnoreCase(codeServerEnvRef))
-					url = url + ".dev-codespaces-apps:80";
+					url = url + ".dev-dna-cs-apps:80";
 				else if("staging".equalsIgnoreCase(codeServerEnvRef))
-					url = url + ".test-codespaces-apps:80";
+					url = url + ".test-dna-cs-apps:80";
 				else
-					url = url + ".prod-codespaces-apps:80";
+					url = url + ".prod-dna-cs-apps:80";
 			}else{	    		    
 				url = url +  ".codespaces-apps:80";
 			}
