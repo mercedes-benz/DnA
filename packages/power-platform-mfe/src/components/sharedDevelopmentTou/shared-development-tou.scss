@@ -1,0 +1,43 @@
+.form {  
+  width: 950px;
+  margin: 0 auto 20px;
+  .formHeader {
+    margin-bottom: 20px;
+    text-align: center;
+    p {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .formFooter {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  > .col {
+    width: 100%;
+  }
+}
+.touContent {
+  margin-top: 35px;
+  margin-bottom: 35px;
+  height: 50vh;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+}

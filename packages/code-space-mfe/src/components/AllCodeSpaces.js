@@ -40,7 +40,9 @@ const AllCodeSpaces = (props) => {
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
-        [showTutorialsModel, setShowTutorialsModel] = useState(false);
+        [showTutorialsModel, setShowTutorialsModel] = useState(false),
+        [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
+        [filteredCodeSpaces, setFilteredCodespaces] = useState();
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -67,6 +69,7 @@ const AllCodeSpaces = (props) => {
 
     useEffect(() => {
         Tooltip.defaultSetup();
+        setFilteredCodespaces(codeSpaces);
     }, [codeSpaces]);
 
     // const onPaginationPreviousClick = () => {
@@ -235,37 +238,68 @@ const AllCodeSpaces = (props) => {
                             by Developers for Developers
                         </small>
                     </div>
-                    <div className={classNames(Styles.listHeader)}>
-                        {codeSpaces?.length ? (
-                            <>
-                                <button
-                                    className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-icon-circle'}
-                                    tooltip-data="Refresh"
-                                    onClick={getCodeSpacesData}
-                                >
-                                    <i className="icon mbc-icon refresh" />
-                                </button>
-                            </>
-                        ) : null}
+                    <div className={classNames(Styles.leftHeader)}>
+                        <div className={classNames(Styles.listHeader)}>
+                            <button
+                                className={'btn btn-primary'}
+                                tooltip-data="Refresh"
+                                onClick={getCodeSpacesData}
+                            >
+                                <i className="icon mbc-icon refresh" />
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.newRecipe)}
+                                type="button"
+                                onClick={() => { history.push('/codespaceRecipes/codespace') }}
+                            >
+                                <i className={'icon mbc-icon plus'} />
+                                <span>&nbsp;Add New Recipe</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.configIcon)}
+                                type="button"
+                                onClick={onShowSecurityConfigRequest}
+                            >
+                                <IconGear size={'14'} />
+                                <span>&nbsp;Manage Recipes</span>
+                            </button>
 
-                        <button
-                            className={classNames('btn btn-primary', Styles.configIcon)}
-                            type="button"
-                            onClick={onShowSecurityConfigRequest}
-                        >
-                            <IconGear size={'14'} />
-                            <span>&nbsp;Manage Recipes</span>
-                        </button>
-
-                        <button
-                            className={classNames('btn btn-primary', Styles.tutorials)}
-                            tooltip-data="code space video tutorials"
-                            onClick={() => { setShowTutorialsModel(true) }}
-                        >
-                            <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
-                            <span>Video Tutorials</span>
-                        </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.tutorials)}
+                                tooltip-data="code space video tutorials"
+                                onClick={() => { setShowTutorialsModel(true) }}
+                            >
+                                <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
+                                <span>Video Tutorials</span>
+                            </button>
+                        </div>
+                        <div className={classNames(Styles.codspaceSearch)}>
+                            <input
+                                type="text"
+                                className={classNames(Styles.searchInputField)}
+                                placeholder="Search CodeSpace"
+                                maxLength={100}
+                                value={codeSpaceSearchTerm}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setCodeSpaceSearchTerm(value);
+                                    const filteredRecipes = codeSpaces.filter((val) => val.projectDetails.projectName.toLowerCase().includes(value.toLowerCase()));
+                                    console.log(codeSpaces);
+                                    setFilteredCodespaces(filteredRecipes)
+                                }}
+                            />
+                            <i
+                                className={classNames('icon mbc-icon', codeSpaceSearchTerm?.length ? 'close circle' : 'search', Styles.searchIcon)}
+                                onClick={()=>{
+                                    if(codeSpaceSearchTerm?.length ){
+                                        setCodeSpaceSearchTerm(""); 
+                                        setFilteredCodespaces(codeSpaces);
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
+                    
                 </div>
                 {loading ? (
                     <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
@@ -299,7 +333,7 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -317,7 +351,7 @@ const AllCodeSpaces = (props) => {
 
                                         </div>
                                     </div>
-                                    {(codeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                                    {(filteredCodeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
                                                
                                         <div className={Styles.cardsSeparator}>
                                             <h5 className="sub-title-text">Collaborated Code Spaces</h5>
@@ -327,7 +361,7 @@ const AllCodeSpaces = (props) => {
                                     )}
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -366,7 +400,7 @@ const AllCodeSpaces = (props) => {
                     hiddenTitle={true}
                     showAcceptButton={false}
                     showCancelButton={false}
-                    modalWidth="800px"
+                    modalWidth="1200px"
                     buttonAlignment="right"
                     show={showNewCodeSpaceModal}
                     content={

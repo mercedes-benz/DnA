@@ -13,6 +13,12 @@ const createCodeSpace = (data) => { //TESTED
     );
 };
 
+const getReadMeFile = (id) => { 
+    return server.get(`workspaces/${id}/readme`,{
+        data: {},
+    });
+};
+
 const editCodeSpace = (id, data) => { //tested
     return server.patch(`workspaces/${id}/datagovernance`, 
         data
@@ -31,8 +37,8 @@ const deleteCodeSpace = (id) => { //tested
     });
 };
   
-const getCodeSpacesGitBranchList = (repoName) => { //tested
-    return server.get(`workspaces/${repoName}/branches`, {
+const getCodeSpacesGitBranchList = (repoName) => { 
+    return server.get(`workspaces/branches?repoDetail=${repoName}`, {
         data: {},
     });
 };
@@ -296,6 +302,7 @@ export const CodeSpaceApiClient = {
     getCodeSpaceConfig,
     getPublishedConfig,
     getEntitlements,
+    getReadMeFile,
     getRoles,
     getRolesMappings,
     addCodeSpaceRequest,
