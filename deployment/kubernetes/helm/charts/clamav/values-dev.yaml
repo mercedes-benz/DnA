@@ -7,7 +7,7 @@ app:
     name: clamav-rest
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
-      tag: 3ccc860f5cdb125b396c8e7f3358c3a5e9cab344
+      tag: '981'
     replicaCount: 1
     secrets:
       name: oneapi-secrets
