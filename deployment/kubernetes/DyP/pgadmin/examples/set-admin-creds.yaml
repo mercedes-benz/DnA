@@ -1,0 +1,22 @@
+#
+# values.yaml
+#
+
+# Security
+## Admin user
+existingSecret: pgadmin4-password
+env:
+  # can be email or nickname
+  email: pgadmin4
+
+#
+# secrets.yaml
+#
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgadmin4-password
+type: Opaque
+data:
+  password: xxxxxxxxx
