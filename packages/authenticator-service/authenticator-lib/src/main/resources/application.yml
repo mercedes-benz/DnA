@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-authenticator-service
-    version: 1.0.9
+    version: 1.1.0
   profile:
     active: production
   jpa:
