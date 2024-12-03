@@ -24,4 +24,6 @@ public interface AuthenticatorClient {
 
 	public GenericMessage deletePlugin(String serviceName, String pluginName);
 
+	public RouteResponseVO getRouteByName(String serviceName, String routeName);
+
 }
