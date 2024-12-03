@@ -41,7 +41,8 @@
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
- 
+
+ import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -78,10 +79,12 @@
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
- import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
+import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.dto.workspace.ResourceVO;
@@ -105,6 +108,9 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Value("${codeServer.base.uri}")
 	 private String codeServerBaseUri;
+
+	 @Value("${codeServer.base.uri.aws}")
+	 private String codeServerBaseUriAws;
  
 	 @Value("${codeServer.git.orgname}")
 	 private String gitOrgName;
@@ -112,14 +118,29 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.env.value}")
 	 private String codeServerEnvValue;
  
+	 @Value("${codeServer.env.value.aws}")
+	 private String codeServerEnvValueAws;
+
 	 @Value("${codeServer.git.orguri}")
 	 private String gitOrgUri;
+ 
+	 @Value("${codeServer.git.orgname}")
+	 private String orgName;
  
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
  
 	 @Value("${codeServer.workspace.url}")
 	 private String codespaceUrl;
+
+	 @Value("${codeServer.workspace.url.aws}")
+	 private String codespaceUrlAWS;
+
+	 @Value("${codeServer.collab.pid}")
+	 private String collabPid;
+	 
+	 @Value("${codeServer.codespace.filename}")
+	 private String codespaceFileName;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -168,7 +189,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
- 
+		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -190,8 +211,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("undeploy");
 				 deployJobInputDto.setBranch(branch);
-				 deployJobInputDto
-						 .setEnvironment(codeServerEnvValue);
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+					deployJobInputDto.setEnvironment(codeServerEnvValue);
+				} else {
+					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
+				}
 				 deployJobInputDto
 						 .setRepo(gitOrgUri + gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -236,8 +260,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("undeploy");
 				 deployJobInputDto.setBranch(branch);
-				 deployJobInputDto
-						 .setEnvironment(codeServerEnvValue);
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+					deployJobInputDto.setEnvironment(codeServerEnvValue);
+				} else {
+					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
+				}
 				 deployJobInputDto
 						 .setRepo(gitOrgUri + gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -312,7 +339,13 @@ import com.daimler.data.util.ConstantsUtility;
 		 if(recipeType == null) {
 			 recipeType = "default";
 		 }
-		 String environment = codeServerEnvValue;
+		 String environment = null;
+		 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+			environment = codeServerEnvValue;
+		 } else {
+			environment = codeServerEnvValueAws;
+		 }
+		 
 		 // List<Object[]> records = new ArrayList<>();
 		 // if(isProjectOwner) {
 		 // records =
@@ -336,6 +369,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 String workspaceUserId = entity.getData().getWorkspaceOwner().getId();
 		 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
 		 ownerWorkbenchDeleteInputsDto.setType(recipeType);
+		 ownerWorkbenchDeleteInputsDto.setCloudServiceProvider(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
 		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
@@ -383,7 +417,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 && entity.getData().getProjectDetails().getProdDeploymentDetails()
 						 .getLastDeploymentStatus() != null) ){
 		 GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
-				 entity.getData().getWorkspaceId());
+				 entity.getData().getWorkspaceId(), cloudServiceProvider);
 		 if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
 			 log.info("Kong route: {} deleted successfully", entity.getData().getWorkspaceId());
 		 else {
@@ -394,7 +428,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
  
 		 // Deleting Kong service
-		 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId());
+		 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId(), cloudServiceProvider);
 		 if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
 			 log.info("Kong service: {} deleted successfully", entity.getData().getWorkspaceId());
 		 else {
@@ -439,6 +473,191 @@ import com.daimler.data.util.ConstantsUtility;
 		 return responseMessage;
 	 }
  
+	 @Override
+	 @Transactional
+	 public InitializeWorkspaceResponseVO initiateWorkspacewithAdminPat(CodeServerWorkspaceVO vo, String pat){
+		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
+		responseVO.setData(null);
+		responseVO.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			
+			String repoName = "";
+			String repoNameWithOrg = "";
+			List<UserInfoVO> collabs = vo.getProjectDetails().getProjectCollaborators();
+			boolean isOwner = false;
+			List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+			String projectName = vo.getProjectDetails().getProjectName();
+			repoName = vo.getProjectDetails().getGitRepoName();
+			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
+					.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			String pathCheckout = "";
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
+					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+							.startsWith("private")
+			   ) {
+				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+			} else {
+				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				if(repoNameWithOrg.contains(",")) {
+				   String url[] = repoNameWithOrg.split(",");
+				   repoNameWithOrg = url[0];
+				   pathCheckout = url[1];
+			   } else {
+				   pathCheckout = "";
+			   }
+			}
+			if(repoNameWithOrg.isEmpty()) {
+			   pathCheckout = "";
+			   repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+		   }
+			UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
+			UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
+			String projectOwnerId = "";
+			// validate user pat
+			String RecipeId = null;
+		   if(vo.getProjectDetails().getRecipeDetails().getRecipeId()!=null){
+			   vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.fromValue(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString()));
+		   } else if(vo.getProjectDetails().getRecipeDetails().getRecipeType().equals(ConstantsUtility.GENERIC)) {
+			   vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.TEMPLATE);
+		   } else {
+			   vo.getProjectDetails().getRecipeDetails().setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
+		   }
+		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
+				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat);
+				if (!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription(
+							"Invalid Git Personal Access Token provided. Please verify and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
+			}
+			else {
+				if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
+					HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(entity.getData().getGitUserName(), pat, repoName);
+					if(!publicGitPatStatus.is2xxSuccessful()) {
+						MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token. Please verify and retry");
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
+					}
+				}
+			}
+
+			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
+			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
+			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
+			// ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
+			String resource = entity.getData().getProjectDetails().getRecipeDetails().getResource() ;
+			String[] parts = resource.split(",");
+			ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
+			ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
+			ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
+			double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
+			double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
+			ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
+			ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
+			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
+				ownerWorkbenchCreateInputsDto.setProfile(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
+			} else {
+				ownerWorkbenchCreateInputsDto.setProfile("default");
+			}
+			if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+			} else {
+				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
+			}
+			ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
+			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
+				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
+				 isOwner = true;
+				 projectOwnerId = projectOwner.getId();
+			 }
+			 else {
+				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
+			 }
+			ownerWorkbenchCreateInputsDto.setPat(pat);
+			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
+			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
+				ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
+			} else {
+				ownerWorkbenchCreateInputsDto.setType("default");
+			}
+			List<String> extraContainers = new ArrayList<>();
+			List<String> additionalServices =  vo.getProjectDetails().getRecipeDetails().getAdditionalServices();
+			if (additionalServices != null) {
+				for (String additionalService : additionalServices) {
+					String additionalServiceEnv = additionalServiceRepo.findByServiceName(additionalService);
+					if(!additionalServiceEnv.isEmpty()) {
+						StringBuffer addStringBuffer =  new StringBuffer();
+						addStringBuffer.append(additionalServiceEnv);
+						addStringBuffer.deleteCharAt(0);
+						addStringBuffer.deleteCharAt(addStringBuffer.length()-1);
+						extraContainers.add(addStringBuffer.toString());
+					}
+				}
+			}
+			ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
+			ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
+			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
+			ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+			String codespaceName = vo.getProjectDetails().getProjectName();
+			String ownerwsid = vo.getWorkspaceId();
+			GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
+			if (createOwnerWSResponse != null) {
+				if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
+						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
+						(createOwnerWSResponse.getWarnings() != null
+								&& !createOwnerWSResponse.getWarnings().isEmpty())) {
+					if(vo.getGitUserName()!=null) {
+						log.info("intiate workbench failed for user "+vo.getGitUserName());
+					}
+					MessageDescription errMsg = new MessageDescription(
+							"Failed to initialize workbench while creating individual codespaces, please retry.");
+					errors.add(errMsg);
+					errors.addAll(createOwnerWSResponse.getErrors());
+					warnings.addAll(createOwnerWSResponse.getWarnings());
+					responseVO.setErrors(errors);
+					responseVO.setWarnings(warnings);
+					return responseVO;
+
+				}
+			}
+			if(vo.getGitUserName()!=null) {
+				log.info("intiate workbench successful for user "+vo.getGitUserName());
+			}
+			Date initatedOn = new Date();
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
+			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
+			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
+			entity.getData().setWorkspaceUrl(workspaceUrl);
+			jpaRepo.save(entity);
+			responseVO.setData(workspaceAssembler.toVo(entity));
+			responseVO.setErrors(new ArrayList<>());
+			responseVO.setWarnings(new ArrayList<>());
+			responseVO.setSuccess("SUCCESS");
+			return responseVO;
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription(
+					"Failed to initialize workbench with exception." + e.getMessage() + " Please retry.");
+			errors.add(errMsg);
+			responseVO.setErrors(errors);
+			responseVO.setWarnings(warnings);
+			return responseVO;
+		}	 
+	}
+
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat) {
@@ -525,6 +744,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 String[] parts = resource.split(",");
 			 ownerWorkbenchCreateInputsDto.setStorage_capacity(parts[0]);
 			 ownerWorkbenchCreateInputsDto.setMem_guarantee(parts[1]);
+			 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(ConstantsUtility.DHC_CAAS_AWS);
 			 ownerWorkbenchCreateInputsDto.setMem_limit(parts[3]);
 			 double cpuLimit = Double.parseDouble(parts[4].replaceAll("[^0-9.]", ""));
 			 double cpuGuarantee = Double.parseDouble(parts[2].replaceAll("[^0-9.]", ""));
@@ -535,7 +755,8 @@ import com.daimler.data.util.ConstantsUtility;
 			 } else {
 				 ownerWorkbenchCreateInputsDto.setProfile("default");
 			 }
-			 ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+			 
+			 ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 			 ownerWorkbenchCreateInputsDto.setPathCheckout(pathCheckout);
 			 if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
 				  ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
@@ -592,12 +813,13 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 			 Date initatedOn = new Date();
+			 
 			 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId());
+			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
 			 jpaRepo.save(entity);
 			 responseVO.setData(workspaceAssembler.toVo(entity));
@@ -814,8 +1036,11 @@ import com.daimler.data.util.ConstantsUtility;
 			 ownerWorkbenchCreateInputsDto.setCpu_limit(cpuLimit);
 			 ownerWorkbenchCreateInputsDto.setCpu_guarantee(cpuGuarantee);
 			 ownerWorkbenchCreateInputsDto.setProfile(recipeIdType);
-			 ownerWorkbenchCreateInputsDto
-					 .setEnvironment(codeServerEnvValue);
+			 if(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+			} else {
+				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
+			}
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
@@ -863,6 +1088,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 			 ownerWorkbenchCreateInputsDto.setExtraContainers(extraContainers);
+			 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 
@@ -917,7 +1143,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
-			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
+			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			 ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
@@ -987,10 +1213,15 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 	 }
  
-	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId)
+	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
-		 String workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 String workspaceUrl = null;
+		 if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
+			workspaceUrl = codespaceUrlAWS +"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 } else {
+			workspaceUrl = codespaceUrl+"/"+shortId.toLowerCase()+"/"+wsId+"/?folder=/home/coder";
+		 }
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
 		 if (recipeId.toLowerCase().startsWith("public")) {
@@ -1080,6 +1311,43 @@ import com.daimler.data.util.ConstantsUtility;
 	 }
  
 	 @Override
+	 public CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception {
+		String gitUrl = null;
+		String repoName = null;
+		String readmeFileContent = null;
+		String repoOwner = null;
+		byte[] file = null;
+		CodeSpaceReadmeVo codeSpaceReadmeVo =  new CodeSpaceReadmeVo();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+		String gitHubUrl= entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+		String projectName = entity.getData().getProjectDetails().getProjectName();
+		if(gitHubUrl == null || gitHubUrl.isEmpty()) {
+			gitHubUrl = "https://" + gitOrgUri + orgName + "/"+projectName+"/";
+		}
+		if(gitHubUrl.contains(".git")) {
+			gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
+		}
+		String[] codespaceSplitValues = gitHubUrl.split("/");
+		int length = codespaceSplitValues.length;
+		repoName = codespaceSplitValues[length-1];
+		repoOwner = codespaceSplitValues[length-2];
+		gitUrl = gitHubUrl.replace("/"+repoOwner, "");
+		gitUrl = gitUrl.replace("/"+repoName, "");
+		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName);
+		if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+			readmeFileContent =  jsonResponse.getString("content");
+			log.info("Retrieving a software's SHA was successfull from Git.");
+			if(readmeFileContent!=null){
+				file = readmeFileContent.getBytes();
+				codeSpaceReadmeVo.setFile(file);
+			}
+			
+		}
+		return codeSpaceReadmeVo;
+	 }
+
+
+	 @Override
 	 public List<CodeServerWorkspaceVO> getAll(String userId, int offset, int limit) {
 		 List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findAll(userId, limit, offset);
 		 entities.forEach(entity -> {
@@ -1116,12 +1384,19 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
+		 String cloudServiceProvider = null;
+		 boolean workspaceMigrated = false;
+		 boolean hasProdUrl = false;
+		 boolean hasIntUrl = false;
 		 try {
+			 String repoName = null;
+			 String repoUrl = null;
+			 String gitOrg = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -1130,7 +1405,25 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto
 						 .setEnvironment(codeServerEnvValue);
-				 deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
+
+  			if (isprivateRecipe) {
+					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+						repoUrl = repoUrl.replaceAll(".git","/");
+					} else {
+						repoUrl.concat("/");
+					}
+					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+					if (repoDetails.size() > 0 && repoDetails != null) {
+						repoName = repoDetails.get(2);
+						gitOrg = repoDetails.get(1);
+					}
+					deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+				} else {
+					repoName = entity.getData().getProjectDetails().getGitRepoName();
+					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
+
+				}
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -1149,6 +1442,39 @@ import com.daimler.data.util.ConstantsUtility;
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
+				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
+					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
+				 }
+				hasProdUrl = Objects.nonNull(
+						ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
+				hasIntUrl = Objects.nonNull(
+						ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
+				if (!workspaceMigrated) {
+					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+						log.info("serviceProviders  "+cloudServiceProvider);
+					} else {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					}
+				} else {
+					if ((hasProdUrl && ownerEntity.getData().getProjectDetails().getProdDeploymentDetails()
+							.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
+							(hasIntUrl && ownerEntity.getData().getProjectDetails().getIntDeploymentDetails()
+									.getDeploymentUrl().contains(codeServerBaseUriAws))) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					} else if (hasProdUrl || hasIntUrl) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+					} else {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					}
+				}
+				log.info("cloudServiceProvider  "+cloudServiceProvider);
+				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
+					deployJobInputDto.setEnvironment(codeServerEnvValue);
+				 } else {
+					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
+				 }
 				 if (ownerEntity == null || ownerEntity.getData() == null
 						 || ownerEntity.getData().getWorkspaceId() == null) {
 					 MessageDescription error = new MessageDescription();
@@ -1222,18 +1548,19 @@ import com.daimler.data.util.ConstantsUtility;
 					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
 					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
-					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 } else {
-						 apiRecipe = true;
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					 }
-					 status = "SUCCESS";
+					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  } else {
+					// 	 apiRecipe = true;
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  }
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, cloudServiceProvider);
+					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 errors.addAll(jobResponse.getErrors());
@@ -1584,8 +1911,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("undeploy");
 				 deployJobInputDto.setBranch(branch);
-				 deployJobInputDto
-						 .setEnvironment(codeServerEnvValue);
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+					deployJobInputDto.setEnvironment(codeServerEnvValue);
+				} else {
+					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
+				}
 				 deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(projectOwner);
@@ -1677,10 +2007,13 @@ import com.daimler.data.util.ConstantsUtility;
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
+		 String cloudServiceProvider = null;
+		 boolean hasProdUrl = false;
+		 boolean hasIntUrl = false;
 		 try {
 			 String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			 boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
-			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(name);
 			 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			 String workspaceName = entity.getData().getWorkspaceId();
 			 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -1719,6 +2052,12 @@ import com.daimler.data.util.ConstantsUtility;
 			 if (isCreateDeleteStatuses) {
 				 if ("CREATED".equalsIgnoreCase(latestStatus)) {
 					 String workspaceUrl = codeServerBaseUri + "/" + workspaceName + "/?folder=/home/coder";
+					 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+					 if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
+						workspaceUrl = codespaceUrlAWS + "/" + workspaceName + "/?folder=/home/coder";
+					 } else {
+						workspaceUrl = codespaceUrl + "/" + workspaceName + "/?folder=/home/coder";
+					 }
 					 if (!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						 workspaceUrl += "/app";
 					 if (projectRecipe.toLowerCase().startsWith("public")) {
@@ -1798,7 +2137,6 @@ import com.daimler.data.util.ConstantsUtility;
  
 						 }
 					 }
-					 entity.getData().setWorkspaceUrl(workspaceUrl);
 				 }
 				 entity.getData().setStatus(latestStatus);
 				 workspaceCustomRepository.update(entity);
@@ -1811,7 +2149,6 @@ import com.daimler.data.util.ConstantsUtility;
 				 return responseMessage;
 			 } else {
 				 if (projectRecipe.toLowerCase().startsWith("public")
-						 || projectRecipe.toLowerCase().startsWith("private")
 						 || projectRecipe.equalsIgnoreCase("default")) {
 					 log.error("Cannot update public/private recipe types, deploy n undeploy is disabled");
 					 MessageDescription msg = new MessageDescription(
@@ -1835,7 +2172,7 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				 }
@@ -1859,12 +2196,28 @@ import com.daimler.data.util.ConstantsUtility;
 					 environmentJsonbName = "prodDeploymentDetails";
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 				 }
+				 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+				 
+				hasProdUrl = Objects.nonNull(
+					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
+				hasIntUrl = Objects.nonNull(
+					entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
+					if ((hasProdUrl && entity.getData().getProjectDetails().getProdDeploymentDetails()
+							.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
+							(hasIntUrl && entity.getData().getProjectDetails().getIntDeploymentDetails()
+									.getDeploymentUrl().contains(codeServerBaseUriAws))) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					} else if (hasProdUrl || hasIntUrl) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+					} else {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					}
+				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
+					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
+				 }
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					 String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
- //					if (existingDeploymentUrl == null || "".equalsIgnoreCase(existingDeploymentUrl)
- //							|| "null".equalsIgnoreCase(existingDeploymentUrl)) {
-						 deploymentDetails.setDeploymentUrl(deploymentUrl);
- //					}
+					 deploymentDetails.setDeploymentUrl(deploymentUrl);
 					 deploymentDetails.setLastDeployedBranch(branch);
 					 deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 					 deploymentDetails.setLastDeployedOn(now);
@@ -1911,6 +2264,7 @@ import com.daimler.data.util.ConstantsUtility;
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
 				 } else {
+					 deploymentDetails.setDeploymentUrl(deploymentUrl);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);
 					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -2233,13 +2587,13 @@ import com.daimler.data.util.ConstantsUtility;
 			 GenericMessage responseMessage = new GenericMessage();
 			 try {
  
-				 boolean response = client.serverStatus(userName.toLowerCase(),id);
+				 boolean response = client.serverStatus(userName.toLowerCase(),id, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 				 if (response) {
 					 statusValue = "true";
 					 savedOwnerEntity.getData().setServerStatus("SERVER_STARTED");
-					 log.info("Server started sucessfully for {} user of workspace {}",userName,id);
+					 log.debug("Server started sucessfully for {} user of workspace {}",userName,id);
 				 } else {
-					 log.warn("Server is not started for {} user of workspace {}",userName,id);
+					 log.debug("Server is not started for {} user of workspace {}",userName,id);
 					 statusValue = "false";
 					 savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
 				 }
@@ -2252,14 +2606,14 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 @Transactional
-	 public GenericMessage startServer(String userId,String wsId)
+	 public GenericMessage startServer(String userId,String wsId, String cloudServiceProvider)
 	 {
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 try {
  
-			 GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId);
+			 GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId,cloudServiceProvider);
 				 if (startServer != null) {
 					 if (!"SUCCESS".equalsIgnoreCase(startServer.getSuccess()) ||
 							 (startServer.getErrors() != null && !startServer.getErrors().isEmpty()) ||
@@ -2288,7 +2642,7 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 @Transactional
-	 public GenericMessage stopServer(CodeServerWorkspaceVO vo) {
+	 public GenericMessage stopServer(CodeServerWorkspaceVO vo, String cloudServiceProvider) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -2297,7 +2651,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
  
 		 try {
-			 boolean stopServerResponse = client.stopServer(wsid, userName);
+			 boolean stopServerResponse = client.stopServer(wsid, userName, cloudServiceProvider);
  
 			 if (stopServerResponse) {
 				 responseMessage.setSuccess("SUCCESS");
@@ -2371,7 +2725,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 } else {
 					 ownerWorkbenchCreateInputsDto.setProfile("default");
 				 }
-				 ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+				 if(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+				} else {
+					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
+				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 				 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
@@ -2400,10 +2758,10 @@ import com.daimler.data.util.ConstantsUtility;
 				 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 				 String codespaceName = workspace.getProjectDetails().getProjectName();
 				 String ownerwsid = workspace.getWorkspaceId();
-				 boolean status = client.serverStatus(workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getWorkspaceId());
+				 boolean status = client.serverStatus(workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getWorkspaceId(),workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 				 if(status)
 				 {
-					 boolean stopserver = client.stopServer(workspace.getWorkspaceId(), workspace.getWorkspaceOwner().getId().toLowerCase());
+					 boolean stopserver = client.stopServer(workspace.getWorkspaceId(), workspace.getWorkspaceOwner().getId().toLowerCase(),workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 					 if(!stopserver)
 					 {
 						 responseMessage.setSuccess("FAILED");
@@ -2458,6 +2816,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 try
 		 {
 			 CodeServerWorkspace workspace = vo.getData();
+			 String cloudServiceProvider = workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 			 String repoName = "";
 			 String repoNameWithOrg = "";
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
@@ -2489,7 +2848,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 } else {
 					 ownerWorkbenchCreateInputsDto.setProfile("default");
 				 }
-				 ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+				 if(vo.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS)){
+					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValue);
+				} else {
+					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
+				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 				 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
@@ -2521,15 +2884,15 @@ import com.daimler.data.util.ConstantsUtility;
 				 workspace.setStatus(ConstantsUtility.CREATEDSTATE);//added
 				 String recipeId = workspace.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 				 String projectOwnerId = workspace.getWorkspaceOwner().getId();
-					 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId);
-					 workspace.setWorkspaceUrl(workspaceUrl);
-				 String resource = "4Gi,200M,0.3,4000M,2";
+				 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId,ConstantsUtility.DHC_CAAS_AWS);
+				 workspace.setWorkspaceUrl(workspaceUrl);
+				 String resource = workspace.getProjectDetails().getRecipeDetails().getResource();
 				 workspace.getProjectDetails().getRecipeDetails().setResource(resource);
 				 workspace.setServerStatus("SERVER_STOPPED");
 				 vo.setData(workspace);
 				 jpaRepo.save(vo);
 				 GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(vo.getData().getWorkspaceId(),
-				 vo.getData().getWorkspaceId());
+				 vo.getData().getWorkspaceId(), cloudServiceProvider);
 				 if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
 					 log.info("Kong route: {} deleted successfully", vo.getData().getWorkspaceId());
 				 else {
@@ -2539,7 +2902,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 }
 				 }
 				 // Deleting Kong service
-				 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId());
+				 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(vo.getData().getWorkspaceId(), cloudServiceProvider);
 				 if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
 					 log.info("Kong service: {} deleted successfully", vo.getData().getWorkspaceId());
 				 else {
@@ -2616,6 +2979,9 @@ import com.daimler.data.util.ConstantsUtility;
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
+		String cloudServiceProvider = null;
+		boolean hasProdUrl = false;
+		boolean hasIntUrl = false;
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			if (entity != null) {
@@ -2623,8 +2989,27 @@ import com.daimler.data.util.ConstantsUtility;
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("restart");
 				deployJobInputDto.setBranch("main");
-				deployJobInputDto
-						.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+				cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+				hasProdUrl = Objects.nonNull(
+					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
+				hasIntUrl = Objects.nonNull(
+					entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
+				if ((hasProdUrl && entity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
+						(hasIntUrl && entity.getData().getProjectDetails().getIntDeploymentDetails()
+								.getDeploymentUrl().contains(codeServerBaseUriAws))) {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				} else if (hasProdUrl || hasIntUrl) {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				} else {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				}
+				log.info("cloudServiceProvider-restart "+ cloudServiceProvider);
+				if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
+					deployJobInputDto.setEnvironment(codeServerEnvValue);
+				} else {
+					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
+				}
 				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
@@ -2712,6 +3097,49 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
 		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage migrateWorkspace(CodeServerWorkspaceVO vo){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try{
+			String recipeId= null;
+			String ownersWsid = null;
+			String workspaceUrl = null;
+			String shortId=null;
+			if(ConstantsUtility.DHC_CAAS.equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString())){
+				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+				recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+				ownersWsid = entity.getData().getWorkspaceId();
+				shortId = entity.getData().getWorkspaceOwner().getId();
+				workspaceUrl = this.getWorkspaceUrl(recipeId,ownersWsid,shortId,ConstantsUtility.DHC_CAAS_AWS);
+				entity.getData().getProjectDetails().getRecipeDetails().setCloudServiceProvider(ConstantsUtility.DHC_CAAS_AWS);
+				entity.getData().setIsWorkspaceMigrated(true);
+				entity.getData().setWorkspaceUrl(workspaceUrl);
+				jpaRepo.save(entity);
+				status = "SUCCESS";
+			}else{
+				MessageDescription error = new MessageDescription();
+					log.info("workspace already migrated , Bad Request ");
+					error.setMessage("workspace already migrated , Bad Request ");
+					errors.add(error);
+			}
+
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
+			error.setMessage("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+		
 	}
 
 }

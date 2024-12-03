@@ -10,6 +10,10 @@ import { history } from '../../router/History';
 import IconWrapper from 'components/icons/IconWrapper';
 import IconNameRenderer from 'components/icons/IconNameRenderer';
 import IconSpire from 'components/icons/IconSpire';
+import IconFabric from 'components/icons/IconFabric';
+import IconSass from 'components/icons/IconSass'
+import IconPowerPlatform from 'components/icons/IconPowerPlatform';
+
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
@@ -70,15 +74,20 @@ const DNACard = (props: IDNACardProps) => {
         <div className={Styles.cardIconSection}>
           {props.svgIcon ? (
             typeof props.svgIcon === 'string' ? (
-              props.svgIcon === 'spire'?
-                <IconSpire size='85px'/>
-              :
-                <IconNameRenderer name={props.svgIcon} />
+              props.svgIcon === 'spire' ?
+                <IconSpire size='85px' />
+                : props.svgIcon === 'powerPlatform' ?
+                  <IconPowerPlatform size='85px' /> :
+                  props.svgIcon === 'fabric' ?
+                    <IconFabric size='85px' />
+                    : props.svgIcon === 'sass' ?
+                      <IconSass size='85px' />
+                      : <IconNameRenderer name={props.svgIcon} />
             ) : (
               props.svgIcon
             )
           ) : (
-            <IconWrapper size="100"/>
+            <IconWrapper size="100" />
           )}
         </div>
         <div
@@ -102,7 +111,7 @@ const DNACard = (props: IDNACardProps) => {
           {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
         </div>
         <div className={Styles.cardFooterSection}>
-          {props.isDetailedPage ? (
+          {(props.isDetailedPage && !props.isDisabled)? (
             <button
               className={classNames('btn btn-primary', Styles.viewDetailedPage)}
               type="button"

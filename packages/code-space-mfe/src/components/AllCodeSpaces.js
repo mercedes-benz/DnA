@@ -19,6 +19,8 @@ import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
+import { Envs } from '../Utility/envs';
+import ConfirmModal from 'dna-container/ConfirmModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -40,11 +42,14 @@ const AllCodeSpaces = (props) => {
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
-        [showTutorialsModel, setShowTutorialsModel] = useState(false);
+        [showTutorialsModel, setShowTutorialsModel] = useState(false),
+        [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
+        [filteredCodeSpaces, setFilteredCodespaces] = useState();
     const History = useHistory();
     const goback = () => {
         History.goBack();
     };
+    const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
 
     const getCodeSpacesData = () => {
         setLoading(true);
@@ -62,11 +67,13 @@ const AllCodeSpaces = (props) => {
     };
 
     useEffect(() => {
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
     }, []);
 
     useEffect(() => {
         Tooltip.defaultSetup();
+        setFilteredCodespaces(codeSpaces);
     }, [codeSpaces]);
 
     // const onPaginationPreviousClick = () => {
@@ -155,11 +162,11 @@ const AllCodeSpaces = (props) => {
         setShowDeployCodeSpaceModal(true);
     };
 
-    const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
+    const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
         serverStarted ? setLoading(true) : ProgressIndicator.show();
-        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
+        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env, manual)
             .then((res) => {
                 serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 if (res.data.success === 'SUCCESS') {
@@ -171,7 +178,7 @@ const AllCodeSpaces = (props) => {
                         '.',
                     );
 
-                    startSuccessCB();
+                    !manual && startSuccessCB();
 
                 } else {
                     Notification.show(
@@ -210,6 +217,34 @@ const AllCodeSpaces = (props) => {
         window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
     }
 
+    const AWSWarningModalContent = (
+        <div className={Styles.modalContentWrapper}>
+            <div className={Styles.modalMainTitle}><i className="icon mbc-icon alert circle" />Heads Up! Codespaces is Moving to DyPCaaS AWS <i className="icon mbc-icon alert circle" /></div>
+            <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
+            <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
+            <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>Link to DOC-575734</a>).</p>
+            <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
+            <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
+            <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
+            <p>
+                <ul>
+                    <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
+                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful video guide under tutorials to walk you through it.</li>
+                </ul>
+            </p>
+            <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
+            <p>
+                <ol>
+                    <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li>
+                    <li><b>Easy Migration:</b> Use our self-service migration flow to move your workspace to DyPCaaS AWS.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 10th, 2025.</li>
+                </ol>
+            </p>
+            <div className={Styles.modalTitle}>Need Assistance?:</div>
+            <p>Join our Teams channel [<a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Link here</a>] or Mattermost channel [<a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Link here</a>] for help or to discuss any concerns.</p>
+        </div>
+    );
+
     return (
         <div className={classNames(Styles.mainPanel)}>
             <div className={classNames(Styles.wrapper)}>
@@ -235,37 +270,68 @@ const AllCodeSpaces = (props) => {
                             by Developers for Developers
                         </small>
                     </div>
-                    <div className={classNames(Styles.listHeader)}>
-                        {codeSpaces?.length ? (
-                            <>
-                                <button
-                                    className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-icon-circle'}
-                                    tooltip-data="Refresh"
-                                    onClick={getCodeSpacesData}
-                                >
-                                    <i className="icon mbc-icon refresh" />
-                                </button>
-                            </>
-                        ) : null}
+                    <div className={classNames(Styles.leftHeader)}>
+                        <div className={classNames(Styles.listHeader)}>
+                            <button
+                                className={'btn btn-primary'}
+                                tooltip-data="Refresh"
+                                onClick={getCodeSpacesData}
+                            >
+                                <i className="icon mbc-icon refresh" />
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.newRecipe)}
+                                type="button"
+                                onClick={() => { history.push('/codespaceRecipes/codespace') }}
+                            >
+                                <i className={'icon mbc-icon plus'} />
+                                <span>&nbsp;Add New Recipe</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.configIcon)}
+                                type="button"
+                                onClick={onShowSecurityConfigRequest}
+                            >
+                                <IconGear size={'14'} />
+                                <span>&nbsp;Manage Recipes</span>
+                            </button>
 
-                        <button
-                            className={classNames('btn btn-primary', Styles.configIcon)}
-                            type="button"
-                            onClick={onShowSecurityConfigRequest}
-                        >
-                            <IconGear size={'14'} />
-                            <span>&nbsp;Manage Recipes</span>
-                        </button>
-
-                        <button
-                            className={classNames('btn btn-primary', Styles.tutorials)}
-                            tooltip-data="code space video tutorials"
-                            onClick={() => { setShowTutorialsModel(true) }}
-                        >
-                            <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
-                            <span>Video Tutorials</span>
-                        </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.tutorials)}
+                                tooltip-data="code space video tutorials"
+                                onClick={() => { setShowTutorialsModel(true) }}
+                            >
+                                <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
+                                <span>Video Tutorials</span>
+                            </button>
+                        </div>
+                        <div className={classNames(Styles.codspaceSearch)}>
+                            <input
+                                type="text"
+                                className={classNames(Styles.searchInputField)}
+                                placeholder="Search CodeSpace"
+                                maxLength={100}
+                                value={codeSpaceSearchTerm}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setCodeSpaceSearchTerm(value);
+                                    const filteredRecipes = codeSpaces.filter((val) => val.projectDetails.projectName.toLowerCase().includes(value.toLowerCase()));
+                                    console.log(codeSpaces);
+                                    setFilteredCodespaces(filteredRecipes)
+                                }}
+                            />
+                            <i
+                                className={classNames('icon mbc-icon', codeSpaceSearchTerm?.length ? 'close circle' : 'search', Styles.searchIcon)}
+                                onClick={()=>{
+                                    if(codeSpaceSearchTerm?.length ){
+                                        setCodeSpaceSearchTerm(""); 
+                                        setFilteredCodespaces(codeSpaces);
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
+                    
                 </div>
                 {loading ? (
                     <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
@@ -299,7 +365,7 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -317,7 +383,7 @@ const AllCodeSpaces = (props) => {
 
                                         </div>
                                     </div>
-                                    {(codeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                                    {(filteredCodeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
                                                
                                         <div className={Styles.cardsSeparator}>
                                             <h5 className="sub-title-text">Collaborated Code Spaces</h5>
@@ -327,7 +393,7 @@ const AllCodeSpaces = (props) => {
                                     )}
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -366,7 +432,7 @@ const AllCodeSpaces = (props) => {
                     hiddenTitle={true}
                     showAcceptButton={false}
                     showCancelButton={false}
-                    modalWidth="800px"
+                    modalWidth="1200px"
                     buttonAlignment="right"
                     show={showNewCodeSpaceModal}
                     content={
@@ -433,6 +499,27 @@ const AllCodeSpaces = (props) => {
                     }
                     scrollableContent={true}
                     onCancel={() => { setShowTutorialsModel(false) }}
+                />
+            )}
+            {showAWSWarningModal && (
+                <ConfirmModal
+                    title={''}
+                    showAcceptButton={false}
+                    acceptButtonTitle="OK"
+                    showCancelButton={false}
+                    modalWidth={'70%'}
+                    modalStyle={{
+                        minWidth: 'unset',
+                        width: '70%',
+                      }}
+                    buttonAlignment="center"
+                    show={showAWSWarningModal}
+                    content={AWSWarningModalContent}
+                    scrollableContent={true}
+                    onCancel={() => setShowAWSWarningModal(false)}
+                    onAccept={() => setShowAWSWarningModal(false)}
+                    showIcon = {false}
+                    showCloseIcon = {true}
                 />
             )}
         </div>

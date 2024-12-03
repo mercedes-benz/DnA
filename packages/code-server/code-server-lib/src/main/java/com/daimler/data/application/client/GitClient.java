@@ -10,6 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import com.daimler.data.util.CommonUtils;
+
+import java.util.List;
+import java.util.Objects;
+
 import org.json.JSONObject;
 
 import org.springframework.web.client.HttpClientErrorException;
@@ -53,6 +58,8 @@ public class GitClient {
 
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
+
+	private static String HTTP_HEADER ="https://";
 
 	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
@@ -101,13 +108,13 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public JSONObject getSoftwareFileFromGit(String repoName, String repoOwner, String gitUrl) throws Exception {
+	public JSONObject readFileFromGit(String repoName, String repoOwner, String gitUrl, String fileName) throws Exception {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer "+ personalAccessToken );
-			String url = gitUrl+"api/v3/repos/"+repoOwner+"/"+repoName+"/contents/.codespaces/"+gitFoldername+"/"+gitFileName;
+			String url = gitUrl+"api/v3/repos/"+repoOwner+"/"+repoName+"/contents/.codespaces/"+gitFoldername+"/"+ fileName;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if(response != null && response.getStatusCode()!=null && response.getStatusCode() == (HttpStatus.OK)) {
@@ -269,13 +276,30 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repoName) {
+	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repo) {
 		try {
+			String repoName = null;
+			String gitOrg = null;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches?per_page=100";
+			if(repo.contains(HTTP_HEADER)){
+				if(!repo.endsWith("/") && repo.contains(".git")){
+					repo = repo.replace(".git","/");
+				} else if(!repo.endsWith("/")){
+					repo.concat("/");
+				}
+				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repo);
+				if(repoDetails.size() > 0 && repoDetails !=null){
+					repoName = repoDetails.get(2);
+					gitOrg = repoDetails.get(1);
+				}
+			}else {
+				repoName =  repo;
+			}
+			String OrgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
+			String url = gitBaseUri+"/repos/" + OrgName + "/"+ repoName+ "/branches?per_page=100";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
 			if (response != null && response.getStatusCode()!=null) {
