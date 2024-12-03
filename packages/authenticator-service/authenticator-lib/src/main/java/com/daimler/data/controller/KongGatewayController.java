@@ -29,7 +29,6 @@ import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteRequestVO;
-import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.CreateServiceRequestVO;
 import com.daimler.data.dto.kongGateway.CreateServiceVO;
@@ -449,21 +448,16 @@ public class KongGatewayController implements KongApi{
 		
 	}
 
-	@Override
-	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
-		try{
-			CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
-			if(Objects.nonNull(createRouteResponseVO)) {
-				return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
-			}
-			else {
-				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-		}catch(Exception e) {
-			LOGGER.error("Failed to get Kong route details {} with exception {} ", routeName,e.getMessage());
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+//	@Override
+//	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
+//		CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
+//		if(Objects.nonNull(createRouteResponseVO)) {
+//			return new ResponseEntity<>(createRouteResponseVO, HttpStatus.OK);
+//		}
+//		else {
+//			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//	}
 
 //	@Override
 //	public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
