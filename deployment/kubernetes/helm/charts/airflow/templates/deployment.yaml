@@ -6,7 +6,7 @@ metadata:
 spec:
   strategy:
     type: Recreate
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       name: {{ include "airflow-service.name" . }}
