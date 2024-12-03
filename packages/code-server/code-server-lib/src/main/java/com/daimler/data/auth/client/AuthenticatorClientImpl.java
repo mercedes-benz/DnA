@@ -514,8 +514,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 				}
 			}
-			LOGGER.info("calling kong to get route details for projectname : {}",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
-			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+			LOGGER.info("calling kong to get route details for projectname : {}",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
 			if(routeResponse == null || routeResponse.getId()==null){
 				if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
 					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
