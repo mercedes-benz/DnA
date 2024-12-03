@@ -1395,54 +1395,49 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	}
 
-  @Override
+	@Override
 	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider) {
-		
-		RouteResponseVO routeResponseVO = new RouteResponseVO();				
-		try {
-			String kongUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE +"/"+ serviceName + "/routes/" + routeName;
-			LOGGER.info("kongUri = "+kongUri);
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
-				if(awsApiKey!=null){
-					headers.set("apikey", awsApiKey);
-				}
-			}
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
-			if (response != null && response.hasBody()) {
-				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK) {					
-					String jsonString = response.getBody();
-					ObjectMapper mapper = new ObjectMapper();
-					mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-					try {
-            JsonNode rootNode = mapper.readTree(jsonString);
-            JsonNode dataNode = rootNode.path("data");
-            routeResponseVO = mapper.treeToValue(dataNode, RouteResponseVO.class);
-						LOGGER.info("routeresponse "+routeResponseVO);
-					} catch (JsonMappingException e) {
-						LOGGER.error("JsonMappingException for get route {}", e.getMessage());
-					} catch (JsonProcessingException e) {
-						LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
-					}					
-					return routeResponseVO;
-				}
-			}
-		} catch (HttpClientErrorException ex) {
-			LOGGER.error("Error while getting route details  {} error: {}", serviceName, ex.getMessage());
-			return routeResponseVO;
-			
-		} 
-		catch (Exception e) {
-			LOGGER.error("Exception occured while getting route details: {} details {}.", serviceName, e.getMessage());			
-			return routeResponseVO;
-		}
-		return routeResponseVO;
-	}
-
+    RouteResponseVO routeResponseVO = new RouteResponseVO();
+    try {
+        String kongUri =  (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + "/routes/" + routeName;
+	    HttpHeaders headers = new HttpHeaders();
+	    headers.set("Accept", "application/json");
+	    headers.set("Content-Type", "application/json");
+	    if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+	      if(awsApiKey!=null){
+		headers.set("apikey", awsApiKey);
+	      }
+	    }
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+        if (response != null && response.hasBody()) {
+            HttpStatus statusCode = response.getStatusCode();
+            if (statusCode == HttpStatus.OK) {
+                String jsonString = response.getBody();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                try {
+                    JsonNode rootNode = mapper.readTree(jsonString);
+                    JsonNode dataNode = rootNode.path("data");
+                    routeResponseVO = mapper.treeToValue(dataNode, RouteResponseVO.class);
+                } catch (JsonMappingException e) {
+                    LOGGER.error("JsonMappingException for get route {}", e.getMessage());
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("JsonProcessingException for get route{}", e.getMessage());
+                }
+                return routeResponseVO;
+            }
+        }
+    } catch (HttpClientErrorException ex) {
+        LOGGER.error("Error while getting route details  {} error: {}", serviceName, ex.getMessage());
+        return routeResponseVO;
+    } catch (Exception e) {
+        LOGGER.error("Exception occurred while getting route details: {} details {}.", serviceName, e.getMessage());
+        return routeResponseVO;
+    }
+    return routeResponseVO;
+}
+  
 	@Override
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
 
@@ -1691,7 +1686,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		response.setErrors(errors);
 		return response;
 	}
-	
 	
 
 }

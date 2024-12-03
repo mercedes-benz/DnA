@@ -24,6 +24,8 @@ public interface AuthenticatorClient {
 
 	public GenericMessage deletePlugin(String serviceName, String pluginName, String cloudServiceProvider);
 
+	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider);
+
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName);
 
 	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
@@ -32,6 +34,5 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName);
 
-	public RouteResponseVO getRouteByName(String serviceName, String routeName,String cloudServiceProvider);
 
 }
