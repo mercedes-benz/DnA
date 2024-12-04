@@ -25,6 +25,8 @@ import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
 import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
+import { marked } from 'marked';
+import { Envs } from '../../Utility/envs';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -78,6 +80,9 @@ const CodeSpaceCardItem = (props) => {
   const prodWrapperRef = useRef(null);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
+  const [showReadMeModal, setShowReadMeModal] = useState(false);
+  const [readMeContent, setReadMeContent] = useState('');
+  const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
 
   useEffect(() => {
 
@@ -211,6 +216,28 @@ const CodeSpaceCardItem = (props) => {
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
+  };
+
+  const getReadMeFile = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getReadMeFile(codeSpace?.workspaceId)
+      .then((res) => {
+        ProgressIndicator.hide();
+        let htmlContent = '';
+        if(res.status === 200){
+          const base64Data = atob(res.data.file);
+          const decodedText = atob(base64Data);
+          htmlContent = marked(decodedText);
+          setReadMeContent(htmlContent);
+          setShowReadMeModal(true);
+        }else{
+          Notification.show('No content found', 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('something went wrong' + err.message, 'alert');
+      });
   };
 
   const onRetryCreateClick = () => {
@@ -911,10 +938,11 @@ const CodeSpaceCardItem = (props) => {
                 )}
                 {serverFailed && (
                   <span
-                    title={'Please contact Codespace Admin'}
+                    title={'Server Start Failed: Please contact Codespace Admin'}
                     className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
+                    onClick={() => onStartStopCodeSpace(codeSpace)}
                   >
-                    Server Start Failed
+                    Start Failed
                   </span>
                 )}
                 {createInProgress ? (
@@ -1065,6 +1093,11 @@ const CodeSpaceCardItem = (props) => {
                       <IconGear size={'18'} />
                     </button>
                   )}
+                {enableReadMe && (
+                  <button className="btn btn-primary" onClick={() =>  getReadMeFile()}>
+                    <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
+                  </button>
+                )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
@@ -1122,6 +1155,21 @@ const CodeSpaceCardItem = (props) => {
         onCancel={deleteCodeSpaceClose}
         onAccept={deleteCodeSpaceAccept}
       />
+
+      {showReadMeModal && (
+        <Modal
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showReadMeModal}
+          content={ <div dangerouslySetInnerHTML={{ __html: readMeContent }} />}
+          scrollableContent={true}
+          onCancel={() => setShowReadMeModal(false)}
+          modalStyle={{
+            width: '90%',
+            maxHeight: '90%',
+          }}
+        />
+      )}
 
       {showDoraMetricsModal && (
         <Modal

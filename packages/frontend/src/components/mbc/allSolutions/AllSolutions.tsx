@@ -358,7 +358,7 @@ export default class AllSolutions extends React.Component<
       window.location.href.indexOf('mysolutions') !== -1;
 
     const exportCSVIcon = () => {
-      const element = hideFilterView ? (
+      const element = (hideFilterView && !isGenAI) ? (
         ''
       ) : (
         <span className={classNames(filterStyle.iconTrigger)} onClick={this.triggerDownloadCSVData}>
@@ -434,7 +434,7 @@ export default class AllSolutions extends React.Component<
                           <i className="icon mbc-icon listview big" />
                         </span>
                       </div>
-                      {!hideFilterView ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
+                      {!hideFilterView || isGenAI ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
                       {exportCSVIcon()}
                       {!hideFilterView || isGenAI ? (
                         <>

@@ -93,7 +93,10 @@ codeServer:
   recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
   run.init: ${RUN_INIT_POST_CONSTRUCT:YOUR_INIT_POST_CONSTRUCT_BOOLEAN}
+  run.collab.admin: ${RUN_COLLAB_ADMIN:YOUR_COLLAB_BOOLEAN}
+  collab.pid: ${COLLAB_PID:YOUR_COLLAB_PID}
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
+  codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

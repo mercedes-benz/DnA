@@ -76,7 +76,7 @@ const DeployModal = (props) => {
     // setIAMTechnicalUserID('');
     getPublishedConfig(props?.codeSpaceData?.id, 'int');
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.recipeDetails?.recipeId === "private-user-defined" ? projectDetails?.recipeDetails?.repodetails : projectDetails?.gitRepoName)
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeDeployModal(true);
@@ -314,7 +314,7 @@ const DeployModal = (props) => {
                   title={'Code Branch to Deploy'}
                   max={1}
                   chips={branchValue}
-                  placeholder={'Type here...'}
+                  placeholder={'Only the top 100 branches will be fetched'}
                   tags={branches}
                   setTags={onBranchChange}
                   isMandatory={true}

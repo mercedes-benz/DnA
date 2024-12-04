@@ -1491,6 +1491,10 @@
     &.dublicate::before{
       content: "\e947";
     }
+    &.localcomplianceofficer::before{
+      content: '\e977'
+    }
+    
   }
 
   .active-status {

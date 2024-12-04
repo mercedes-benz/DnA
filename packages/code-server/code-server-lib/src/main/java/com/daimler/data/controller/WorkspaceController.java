@@ -79,6 +79,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailCollectionVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
@@ -153,6 +154,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Value("${codeServer.workspace.apikey}")
 	private String apiKeyValue;
+
+	@Value("${codeServer.run.collab.admin}")
+	 private boolean runCollab;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -363,7 +367,6 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
 		 }
 		if (vo.getStatus().equalsIgnoreCase("CREATED")) {
-
 			Boolean isAdmin =false;
 			List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
 			if(collabList!=null){
@@ -590,8 +593,76 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
  
 		 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
-	 }
+	}
  
+	 @Override
+	 @ApiOperation(value = "Initialize Workbench for user by admin.", nickname = "initializeWorkspaceByAdmin", notes = "Initialize workbench for collab user by admin", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
+	 @ApiResponses(value = { 
+		 @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
+		 @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+		 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		 @ApiResponse(code = 403, message = "Request is not authorized."),
+		 @ApiResponse(code = 405, message = "Method not allowed"),
+		 @ApiResponse(code = 500, message = "Internal error") })
+	 @RequestMapping(value = "/workspaces/{id}/{userId}",
+		 produces = { "application/json" }, 
+		 consumes = { "application/json" },
+		 method = RequestMethod.PUT)
+	 	public ResponseEntity<InitializeWorkspaceResponseVO> initializeWorkspaceByAdmin(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "user ID to be fetched",required=true) @PathVariable("userId") String userId,@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody InitializeCollabWorkspaceRequestVO initializeCollabWSRequestVO){
+			List<MessageDescription> errors = new ArrayList<>();
+			InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
+			if (runCollab) {
+				HttpStatus responseStatus = HttpStatus.OK;
+				CodeServerWorkspaceVO collabUserVO = service.getById(userId, id);
+				List<MessageDescription> warnings = new ArrayList<>();
+				responseMessage.setData(collabUserVO);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				responseMessage.setSuccess("FAILED");
+				if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
+					String status = collabUserVO.getStatus();
+					if (status != null) {
+						if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
+								&& !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
+							MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
+							errors.add(errMsg);
+							responseMessage.setErrors(errors);
+							return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+						}
+					}
+				} else {
+					MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
+					errors.add(errMsg);
+					responseMessage.setErrors(errors);
+					responseMessage.setData(null);
+					return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+				}
+				String pat = initializeCollabWSRequestVO.getPat();
+				if (!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
+					String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
+					String projectName = collabUserVO.getProjectDetails().getProjectName();
+					CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
+					if (ownerCodespaceVO != null && (!ownerCodespaceVO.getStatus().toUpperCase()
+							.equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)
+							&& !ownerCodespaceVO.getWorkspaceId().equalsIgnoreCase(collabUserVO.getWorkspaceId()))) {
+						MessageDescription errMsg = new MessageDescription(
+								"Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+						errors.add(errMsg);
+						responseMessage.setErrors(errors);
+						return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+
+					}
+				}
+				InitializeWorkspaceResponseVO responseData = service.initiateWorkspacewithAdminPat(collabUserVO, pat);
+				return new ResponseEntity<>(responseData, responseStatus);
+			}
+			MessageDescription errMsg = new MessageDescription(
+								"Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+						errors.add(errMsg);
+						responseMessage.setErrors(errors);
+			return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+		}
+
 	 @Override
 	 @ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags = {
 			 "code-server", })
@@ -952,6 +1023,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @PathVariable("id") String id,
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @Valid @RequestBody ManageDeployRequestDto deployRequestDto) {
 		 try {
+			 boolean isPrivateRecipe = false;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -986,7 +1058,6 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -996,6 +1067,10 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
+				isPrivateRecipe = true;
+				deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 			 }
 			 String environment = "int";
 			 String branch = "main";
@@ -1056,7 +1131,7 @@ import org.springframework.beans.factory.annotation.Value;
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),isPrivateRecipe);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
@@ -1792,7 +1867,7 @@ import org.springframework.beans.factory.annotation.Value;
  
 	 }
 
-	 @Override
+	@Override
 	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigDetailVO.class, tags = {
 			"code-server", })
     @ApiResponses(value = {
@@ -1845,6 +1920,34 @@ import org.springframework.beans.factory.annotation.Value;
 		
 	}
    
+	@Override
+	@ApiOperation(value = "Get how to use codespace instructions from Readme file in git", nickname = "getReadme", notes = "Get how to use codespace instructions from Readme file in git ", response = CodeSpaceReadmeVo.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns readme file from the repo of the codespace", response = CodeSpaceReadmeVo.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/readme",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<CodeSpaceReadmeVo> getReadme(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id) {
+		CodeSpaceReadmeVo codeSpaceReadmeVo = new CodeSpaceReadmeVo();
+		try {
+			codeSpaceReadmeVo = service.getCodeSpaceReadmeFile(id);
+			if (codeSpaceReadmeVo != null && codeSpaceReadmeVo.getFile()!=null) {
+				return new ResponseEntity<>(codeSpaceReadmeVo, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
    	@Override
 	@ApiOperation(value = "Get all workspace security configurations which are in requested and accepted state, waiting for processing.", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
 		"code-server", })

@@ -6,12 +6,75 @@
     position: relative;
   }
 
-  .content {
-    background-color: #252a33;
-  }
-
   >div {
     width: calc(50% - 7px);
+  }
+  
+  .refreshBtn {
+    background: unset;
+    border: 0;
+    padding: 0;
+  }
+
+  .listHeader {
+    margin-top: 10px;
+    float: right;
+    height: 29px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    .iconActive {
+        opacity: 0.5;
+        cursor: default;
+    }
+    .dividerLine {
+        height: 25px;
+        display: inline-block;
+        background-color: #252a33;
+        height: 25px;
+        margin: 0 10px 0 5px;
+        padding: 0;
+        width: 1px;
+    }
+    .iconInactive {
+        &:hover {
+            color: #00adef;
+        }
+    }
+  }
+
+  .createNewArea {
+    margin-top: 15px;
+    button {
+      transition: none;
+      width: 100%;
+      padding: 16px 0;
+      height: auto;
+      font-size: var(--font-size-headline);
+      margin-bottom: 15px;
+      .addCircle {
+        display: inline-block;
+        height: 45px;
+        width: 45px;
+        border-radius: 50%;
+        border: 2px solid #99A5B3;
+        vertical-align: middle;
+        margin-right: 20px;
+        position: relative;
+        i {
+          position: absolute;
+          top: 10px;
+          left: 12px;
+          color: #00adef;
+          font-weight: bold;
+          font-size: var(--font-size-icon);
+        }
+      }
+      &:hover {
+        border-color: #00adef;
+        color: #00adef;
+      }
+    }
   }
 
   .allCodeSpace {
@@ -70,6 +133,71 @@
     }
   }
 }
+.projectsContainer {
+  display: flex;
+  column-gap: 15px;
+  row-gap: 15px;
+  flex-wrap: wrap;
+
+  > div {
+    width: calc(25% - 12px);
+    min-height: 300px;
+  }
+}
+.createNewCard {
+  position: relative;
+  border: 1px solid #383F49;
+  cursor: pointer;
+
+  .addicon {
+    top: calc(50% - 31px);
+    width: 63px;
+    height: 63px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    &:after {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 1px;
+      background-color: #00ADEF;
+      left: 25%;
+      transform: rotate(90deg);
+    }
+    &:before {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 1px;
+      background-color: #00ADEF;
+      left: 25%;
+      margin: 0 auto;
+      transform: rotate(180deg);
+      top: 49%;
+    }
+  }
+  .addlabel {
+    font-size: var(--font-size-headline);
+    line-height: 23px;
+    position: absolute;
+    word-break: break-word;
+    display: block;
+    width: 100%;
+    text-align: center;
+    bottom: 20px;
+  }
+  
+  &:hover {
+    border-color: #00adef;
+    .addlabel {
+      color: #00adef;
+    }
+  }
+}
 #create-security-tabs .scrollable.tabs-wrapper {
   height: 44px;
 }
@@ -106,19 +234,23 @@
   }
 }
 .actionBtns {
-  position: absolute;
-  z-index: 9999;
-  top: 70px;
-  right: 0;
+  border-right: 1px solid #252a33;
+  margin-right: 8px;
+  height: 25px;
 }
 .btnOutline {
   background: none;
   border: none !important;
   color: #c0c8d0;
   height: auto;
-  margin: 0px 10px;
+  margin: 0px 8px;
   outline: none;
-  padding: 0 2px;
+  padding: 0;
+  
+  > i {
+    margin-right: 5px;
+    transform: translateY(-1px);
+  }
 
   &:hover {
       color: #00adef;

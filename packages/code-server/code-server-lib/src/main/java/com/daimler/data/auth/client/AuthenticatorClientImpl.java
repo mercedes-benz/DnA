@@ -318,6 +318,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
 		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
+		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
 		if("prod".equalsIgnoreCase(env)){
@@ -597,6 +598,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 											apiAuthoriserPluginConfigVO.setLogType(logType);
 											apiAuthoriserPluginConfigVO.setPoolID(poolID);
 											apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+											apiAuthoriserPluginConfigVO.setProjectName(projectName.toLowerCase());
 	
 											apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
 											apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
