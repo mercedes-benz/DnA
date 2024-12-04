@@ -460,7 +460,11 @@ const FileExplorer = () => {
               Notification.show('Error while previewing file. Please try again later.', 'alert');
             });
         } else {
-          Notification.show('Preview not supported', 'alert');
+          // Notification.show('Preview not supported', 'alert');
+          data.state.selectedFiles?.forEach((item) => {
+            // if selected multiple items, download each file
+            dispatch(downloadFoldersOrFiles(bucketName, item));
+          });
         }
       } else {
         Notification.show('Open selection is for one file at a time.', 'alert');
