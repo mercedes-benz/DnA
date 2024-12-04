@@ -5,6 +5,74 @@
     width: 100%;
   }
 }
+.statusContainer {
+  .statusItem {
+    height: 40px;
+    display: flex;
+    .requestStatus {
+      margin-bottom: 0;
+      color: #FFEB3B;
+    }
+    button {
+      background: unset;
+      border: unset;
+      color: #99a5b3;
+      outline: 0;
+      padding: 0;
+
+      > div + span {
+        padding-left: 26px;
+      }
+
+      span {
+        display: inline-block;
+      }
+    }
+  }
+}
+.createNewCard {
+  border: 1px solid #383F49 !important;
+  cursor: pointer !important;
+  height: 70px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: calc(25% - 11.3px);
+
+  .addlabel {
+    font-size: var(--font-size-medium);
+    line-height: 23px;
+    word-break: break-word;
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    > div {
+      width: 25px;
+      height: 18px;
+      margin-top: -2px;
+    }
+  }
+
+  i {
+    color: #00adef;
+    margin-top: -8px;
+    margin-left: 5px;
+  }
+  
+  &:hover {
+    border: 1px solid #00adef !important;
+  }
+}
+.label {
+  color: #99a5b3;
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
 .content {
   background: #252a33;
   margin: 15px 0;
@@ -51,23 +119,19 @@
     display: inline-block;
   }
 
-  .flexLayout {
+  .flex {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    flex-wrap: wrap;
+    row-gap: 40px;
     margin: 40px;
-    > div {
+
+    .col2 {
       width: calc(50% - 7px);
     }
-    &.fourColumn {
-      > div {
-        width: calc(25% - 7px);
-      }
-    }
-    &.threeColumn {
-      > div {
-        width: calc(33% - 7px);
-      }
+    .col3 {
+      width: calc(33% - 7px);
     }
   }
 }
@@ -101,11 +165,19 @@
     font-size: 18px;
     margin: 0;
   }
-} 
-.deleteBtn {
-  margin-top: 40px;
+}
+.statusBtns {
+  display: flex;
+  column-gap: 15px;
+}
+.refreshBtn {
+  background: unset;
+  border: 0;
+  padding: 0;
+  float: right;
+  margin-top: -40px;
 
-  button {
-    background-color: #383f49 !important;
+  &:hover {
+    background: unset;
   }
 }

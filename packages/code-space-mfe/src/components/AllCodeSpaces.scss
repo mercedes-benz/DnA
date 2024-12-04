@@ -81,6 +81,14 @@
             }
         }
 
+        .newRecipe {
+            i {
+                color: #676869;
+                margin-left: 8px;
+                margin-right: 1px;
+            }
+        }
+
         i {
             font-size: var(--font-size-icon-content);
             color: #00adef;
@@ -122,7 +130,7 @@
         margin-right: -30px;
 
         .newCodeSpaceCard {
-            width: calc(33% - 15px);
+            width: calc(25% - 15px);
             margin: 0 15px 15px 0;
             min-width: 250px;
             min-height: 300px;
@@ -185,3 +193,45 @@
 .cardsSeparator {
     margin-top: 20px;
 }
+
+.codspaceSearch {
+    margin-left: 200px;
+    .searchInputField {
+        background: none;
+        border: none;
+        border-bottom: 2px solid #383f49;
+        height: 40px;
+        color: #c0c8d0;
+        outline: none;
+        width: 200px;
+        opacity: 1;
+      
+        &::placeholder {
+          color: #697582;
+        }
+      }
+      .searchIcon{
+        margin-left: -14px;
+        color: #acb8c4;
+      }
+}
+
+  .leftHeader{
+    margin-top: 48px;
+    line-height: 2.75;
+  }
+
+  .modalContentWrapper {
+    text-align: left !important;
+    .modalMainTitle {
+        font-size: var(--font-size-section-headline);
+        font-weight: var(--font-weight-bold);
+    }
+    .modalTitle {
+        font-size: var(--font-size-sub-headline);
+        font-weight: var(--font-weight-bold);
+    }
+    p{
+        font-size: var(--font-size-small);
+    }
+  }
