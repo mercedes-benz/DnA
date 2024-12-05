@@ -21,7 +21,7 @@ const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace
     <div className={Styles.projectRow} onClick={handleOpenWorkspace}>
       <div className={Styles.col1}>
         <span>
-          {workspace?.name}
+          {workspace?.name || 'null'}
         </span>
         {workspace?.status?.state === 'IN_PROGRESS' &&
           <button className={Styles.stateBtn} tooltip-data={'Click for more information'} onClick={(e) => { e.stopPropagation(); onSelectWorkspace(workspace) }}>
