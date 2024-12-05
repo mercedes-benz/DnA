@@ -578,8 +578,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 			}
 			LOGGER.info("calling kong to get route details for projectname : {}",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
-			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
-			if(routeResponse.getId()==null){
+			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
+			if(routeResponse == null || routeResponse.getId()==null){
 				if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
 					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 					if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
@@ -591,12 +591,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 						}
 					}
 				}
+				else {
+					LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
+					return;
+				}
+			}else{
+				LOGGER.info("Route name {} already exist. ",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
+				isRouteAlreadyCreated = true;
 			}
-			else {
-				LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
-				return;
-			}
-
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
@@ -1394,13 +1396,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public RouteResponseVO getRouteByName(String serviceName, String routeName) {
+	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider) {
     RouteResponseVO routeResponseVO = new RouteResponseVO();
     try {
-        String kongUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + "/routes/" + routeName;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "application/json");
-        headers.set("Content-Type", "application/json");
+        String kongUri =  (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + "/routes/" + routeName;
+	    HttpHeaders headers = new HttpHeaders();
+	    headers.set("Accept", "application/json");
+	    headers.set("Content-Type", "application/json");
+	    if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+	      if(awsApiKey!=null){
+		headers.set("apikey", awsApiKey);
+	      }
+	    }
         HttpEntity<?> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
         if (response != null && response.hasBody()) {
