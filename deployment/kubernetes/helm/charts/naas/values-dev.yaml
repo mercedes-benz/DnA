@@ -1,0 +1,96 @@
+appName: naas
+namespace: naas
+app:
+  backend:
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
+      tag: '146'
+    replicaCount: 1
+    secrets:
+      name: naas-app-secrets
+      jwtKey: null
+      db:
+        appUserName: null
+        appPassword: null
+    config:
+      api_db_url: null
+      naas_broker: null
+      max_poll_records: null
+      dna_uri: null
+      dna_auth_enable: true
+      mailServerHost: null
+      mailServerPort: null
+      notificationSenderEmail: null
+      poll_time: 5000
+      naas_central_topic: null
+      naas_centralread_topic: null
+      naas_centraldelte_topic: null
+      loggingPath: /tmp/naas/log
+      loggingEnvironment: dev
+      corsOriginUrl: null
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1000Mi
+      cpu: 500m
+  probes:
+    initialDelaySeconds: 900
+    timeoutSeconds: 10
+    periodSeconds: 30
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: api
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: api
+ingress:
+  enabled: false
+  host: naas.dev.dna.app.corpintra.net
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+imagePullSecret:
+  name: imagepullsecret
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: "dna_dev_k8_role"
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/dev/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-truststore.jks: |
+      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.TRUSTSTORE }}
+      {{- end }}
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/dev/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-keystore.p12: |
+      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.KEYSTORE }}
+      {{- end }}      
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/dev/kubernetesSecret/naasService
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "dna_kv/dev/kubernetesSecret/naasService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+        {{- range $k, $v := .Data.data }}
+        {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}        
+        {{- end }}      
+      {{- end }}      
+  saName: default
+  jarName: naas-lib*.jar
