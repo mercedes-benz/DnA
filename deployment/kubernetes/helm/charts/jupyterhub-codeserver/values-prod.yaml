@@ -484,7 +484,7 @@ proxy:
       key: tls.key
       crt: tls.crt
     hosts: 
-      - code-spaces.dna.app.corpintra.net
+      - code-spaces.dna-prod.app.corpintra.net
 
 # singleuser relates to the configuration of KubeSpawner which runs in the hub
 # pod, and its spawning of user pods such as jupyter-myusername.
@@ -880,8 +880,8 @@ prePuller:
       name:
       annotations: {}
   continuous:
-    enabled: false
-  pullProfileListImages: false
+    enabled: true
+  pullProfileListImages: true
   extraImages: {}
   pause:
     containerSecurityContext:
