@@ -37,6 +37,7 @@ hub:
     Authenticator:
       admin_users:
         - palansa
+        - vimhask
       auto_login: true
       allowed_users:
        - ramyrao
