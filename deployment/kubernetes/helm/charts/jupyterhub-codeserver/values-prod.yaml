@@ -51,7 +51,7 @@ hub:
     GenericOAuthenticator:
       client_id: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_secret>
-      oauth_callback_url: https://code-spaces.dna.app.corpintra.net/hub/oauth_callback
+      oauth_callback_url: https://code-spaces.dna-prod.app.corpintra.net/hub/oauth_callback
       authorize_url: https://sso.mercedes-benz.com/as/authorization.oauth2
       token_url: https://sso.mercedes-benz.com/as/token.oauth2  
       userdata_url: https://sso.mercedes-benz.com/idp/userinfo.openid
