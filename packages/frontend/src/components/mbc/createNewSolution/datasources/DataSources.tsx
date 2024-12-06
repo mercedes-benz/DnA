@@ -182,38 +182,31 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
 
   public handleWeightageChange = (index: number) => (val: number) => {
     const dataSources = [...this.state.dataSources];
-      if (dataSources.length === 1) {
-    dataSources[index].weightage = 100; 
-    } else {
-    if (isNaN(val)) {
-      dataSources[index].weightage = 0;
-    } else {
-      dataSources[index].weightage = val;
-    }
-  }
-  const totalWeightage = dataSources.reduce((current, next) => current + next.weightage, 0);
-  const updatedTotalWeightage = dataSources.length === 1 ? 100 : totalWeightage;
-    this.setState({
-      dataSources,
-      totalWeightage:updatedTotalWeightage,
+      if (isNaN(val)) {
+        dataSources[index].weightage = 0;
+      } else {
+        dataSources[index].weightage = val;
+      }
+      const total = dataSources.map((ds) => ds.weightage).reduce((current, next) => current + next);
+      this.setState({
+        dataSources,
+        totalWeightage: total,
     });
-  }
+  };
   protected setDataSources = (arr: string[]) => {
     const dataSources = Array.isArray(this.state.dataSources) ? [...this.state.dataSources] : [];
 
     arr.forEach((element) => {
       const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
       if (!result) {
-        dataSources.push({ dataSource: element, weightage: (dataSources.length === 0 ? 100 : 0) })
+        dataSources.push({ dataSource: element, weightage: dataSources.length === 0 ? 100 : 0 });
       }
     });
 
     const totalWeightage = dataSources.reduce((current, next) => current + next.weightage, 0);
-    const updatedTotalWeightage = dataSources.length === 1 ? 100 : totalWeightage;
     this.setState({
       dataSources,
-      totalWeightage: updatedTotalWeightage,
-
+      totalWeightage,
     });
 
     this.props.modifyDataSources({
