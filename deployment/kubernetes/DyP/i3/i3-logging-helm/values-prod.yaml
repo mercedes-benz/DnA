@@ -295,10 +295,10 @@ opensearch-dashboards:
   extraVolumes: [ ]
 
   ingress:
-    enabled: false
+    enabled: true
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -342,10 +342,10 @@ opensearch:
 
 
   ingress:
-    enabled: false
+    enabled: true
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
