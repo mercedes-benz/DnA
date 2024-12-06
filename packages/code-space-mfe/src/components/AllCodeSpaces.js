@@ -222,7 +222,7 @@ const AllCodeSpaces = (props) => {
             <div className={Styles.modalMainTitle}><i className="icon mbc-icon alert circle" />Heads Up! Codespaces is Moving to DyPCaaS AWS <i className="icon mbc-icon alert circle" /></div>
             <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
             <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
-            <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>Link to DOC-575734</a>).</p>
+            <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>DyP CaaS Moves to AWS</a>).</p>
             <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
             <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
             <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
@@ -241,7 +241,7 @@ const AllCodeSpaces = (props) => {
                 </ol>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
-            <p>Join our Teams channel [<a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Link here</a>] or Mattermost channel [<a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Link here</a>] for help or to discuss any concerns.</p>
+            <p>Join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
         </div>
     );
 
