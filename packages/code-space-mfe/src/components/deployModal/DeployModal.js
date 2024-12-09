@@ -253,7 +253,7 @@ const DeployModal = (props) => {
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
+          Notification.show('Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message, 'alert');
         });
     }
   };
