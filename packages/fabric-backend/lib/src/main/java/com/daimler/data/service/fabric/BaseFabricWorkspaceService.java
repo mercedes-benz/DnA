@@ -3,6 +3,7 @@ package com.daimler.data.service.fabric;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -160,6 +161,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	private String datasourceEncryptionAlgorithm;
 	
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+	
+	@Value("${authoriser.role.fabricRoleName}")
+	private String fabricOperationsRoleName;
 	
 	public BaseFabricWorkspaceService() {
 		super();
@@ -421,6 +425,29 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
 					fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
+					
+					try {
+						String ownerId = vo.getCreatedBy().getId();
+						Date validFromDate = vo.getCreatedOn();
+						String validFrom = formatter.format(validFromDate);
+						Calendar calendar = Calendar.getInstance();
+				        calendar.setTime(validFromDate);
+				        calendar.add(Calendar.YEAR, 1);
+				        Date validToDate = calendar.getTime();
+						String validTo = formatter.format(validToDate);
+						UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
+						roleRequestDto.setValidTo(validTo);
+						roleRequestDto.setValidFrom(validFrom);
+						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName,null);
+						if(status.is2xxSuccessful()){
+				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
+				        }else {
+				        	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
+				        }
+					}catch(Exception e) {
+						log.error("Failed to onboard owner of workspace {} : {} to role {} ",vo.getId(),vo.getName(),fabricOperationsRoleName);
+					}
 					responseData.setData(savedRecord);
 					responseMessage.setSuccess("SUCCESS");
 					responseMessage.setErrors(errors);
@@ -1133,21 +1160,23 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Override
 	@Transactional
-	public GenericMessage delete(String id) {
+	public GenericMessage delete(String id, boolean skipDeleteFabricWorkspace) {
 		FabricWorkspaceVO existingWorkspace = this.getById(id);
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteWorkspace(id);
-			if(deleteResponse!=null && deleteResponse.getMessage() != null) {
-					MessageDescription message = new MessageDescription();
-					message.setMessage(deleteResponse.getMessage());
-					errors.add(message);
-					responseMessage.setErrors(errors);
-					responseMessage.setSuccess("FAILED");
-					log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
-					return responseMessage;
+			if(!skipDeleteFabricWorkspace) {
+				ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteWorkspace(id);
+				if(deleteResponse!=null && deleteResponse.getMessage() != null) {
+						MessageDescription message = new MessageDescription();
+						message.setMessage(deleteResponse.getMessage());
+						errors.add(message);
+						responseMessage.setErrors(errors);
+						responseMessage.setSuccess("FAILED");
+						log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
+						return responseMessage;
+				}
 			}
 			if(existingWorkspace!=null && existingWorkspace.getStatus()!=null ) {
 				if(existingWorkspace.getStatus().getEntitlements()!=null && !existingWorkspace.getStatus().getEntitlements().isEmpty()) {
@@ -1184,6 +1213,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return responseMessage;
 		}
 	}
+	
 
 	@Override
 	@Transactional
@@ -1428,7 +1458,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 	
 	@Override
-    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
+    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken){
         GenericMessage response = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         List<MessageDescription> warnings = new ArrayList<>();
@@ -1440,7 +1470,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
                 roleRequestDto.setReason(roleRequestVO.getData().getReason());
                 roleRequestDto.setValidFrom(role.getValidFrom());
                 roleRequestDto.setValidTo(role.getValidTo());
-                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
+                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID(),authToken);
                 if(!status.is2xxSuccessful()){
                     warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
                 }

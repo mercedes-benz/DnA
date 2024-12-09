@@ -26,8 +26,8 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
@@ -172,7 +172,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage deleteResponse = service.delete(id);
+			GenericMessage deleteResponse = service.delete(id,false);
 			if(deleteResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
 					return new ResponseEntity<>(deleteResponse, HttpStatus.OK);
@@ -644,6 +644,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		UserInfo userInfo = this.userStore.getUserInfo();
+		String authToken = userInfo.getAuthToken();
 		try{
 
 			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
@@ -676,7 +677,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
 					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 				}
-				response = service.requestRoles(roleRequestVO,userInfo.getId());
+				response = service.requestRoles(roleRequestVO,userInfo.getId(),authToken);
 				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
 				return new ResponseEntity<>(response, HttpStatus.OK);
 
