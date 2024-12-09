@@ -138,7 +138,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
-	 
+
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
  
@@ -1453,7 +1453,6 @@ import com.daimler.data.util.ConstantsUtility;
 				if (!workspaceMigrated) {
 					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-						log.info("serviceProviders  "+cloudServiceProvider);
 					} else {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
@@ -1469,7 +1468,6 @@ import com.daimler.data.util.ConstantsUtility;
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
 				}
-				log.info("cloudServiceProvider  "+cloudServiceProvider);
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 } else {
@@ -1548,18 +1546,17 @@ import com.daimler.data.util.ConstantsUtility;
 					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
 					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
-					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					//  } else {
-					// 	 apiRecipe = true;
-					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
-					//  }
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, cloudServiceProvider);
+					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret, cloudServiceProvider);
+					 } else {
+						 apiRecipe = true;
+						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret, cloudServiceProvider);
+					 }
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
@@ -3004,7 +3001,6 @@ import com.daimler.data.util.ConstantsUtility;
 				} else {
 					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 				}
-				log.info("cloudServiceProvider-restart "+ cloudServiceProvider);
 				if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				} else {
