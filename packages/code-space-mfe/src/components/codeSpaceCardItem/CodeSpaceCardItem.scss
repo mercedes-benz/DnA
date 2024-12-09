@@ -331,6 +331,32 @@
       text-decoration: none;
     }
   }
+
+  .manualStart { 
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 30px);
+    }
+  }
+
+  .modalContentWrapper {
+    margin-top: -20px;
+    font-size: var(--font-size-sub-headline);
+    .modalTitle {
+      margin-top: 0px;
+      text-align: center;
+    }
+    .modalContent {
+      margin-top: 20px;
+      font-size: var(--font-size-medium);
+  
+      p {
+        margin: 0 auto;
+        max-width: 650px;
+      }
+    }
+  }
   
   @keyframes OpenNewTab {
     0% {
