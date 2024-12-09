@@ -26,6 +26,4 @@ public interface AuthenticatorClient {
 
 	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider);
 
-	public RouteResponseVO getRouteByName(String serviceName, String routeName);
-
 }
