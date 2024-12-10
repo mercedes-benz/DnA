@@ -266,7 +266,7 @@ const CodeSpace = (props) => {
             handleOIDCLogin(res);
           } else {
             setLoading(true);
-            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false, codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider, false)
+            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false, res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, false)
               .then((response) => {
                 setLoading(false);
                 if (response.data.success === 'SUCCESS') {
