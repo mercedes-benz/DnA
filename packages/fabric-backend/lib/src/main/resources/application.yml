@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.2.6
+    version: 1.2.7
   profile:
     active: production
 
@@ -45,6 +45,7 @@ fabricWorkspaces:
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
+  startup.onboardOwnersToFabricOperationsRole:  ${FABRIC_ONBOARDOWNER_FABRICROLE_ONSTARTUP:true}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
   subgroupPrefix: ${FABRIC_SUB_GROUP_PREFIX:XXXX}
   shortcutNameprefix: ${FABRIC_SHORTCUT_PREFIX:XXXX}
@@ -87,6 +88,7 @@ authoriser:
   identityRoleUrl: ${IDENTITY_ROLE_LINK_PREFIX:XXXX}
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
+  role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
   
 server:
   port: 9292
