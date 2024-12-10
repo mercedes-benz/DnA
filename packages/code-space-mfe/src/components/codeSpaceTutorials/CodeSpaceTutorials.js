@@ -78,7 +78,7 @@ const CodeSpaceTutorials = ({id}) => {
       id: "awsMigration",
       title: "How to migrate your Codespace to AWS",
       url: "code-space-tutorials/Codespace Migration.mp4",
-      description: "steps for migration of your Codespace to DyPCaas AWS "
+      description: "Steps for migration of your Codespace to DyPCaas AWS "
     },
   ];
 
