@@ -229,7 +229,7 @@ const AllCodeSpaces = (props) => {
             <p>
                 <ul>
                     <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
-                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful video guide under tutorials to walk you through it.</li>
+                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
                 </ul>
             </p>
             <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
@@ -487,8 +487,8 @@ const AllCodeSpaces = (props) => {
             )}
             {showTutorialsModel && (
                 <Modal
-                    title={''}
-                    hiddenTitle={true}
+                    title={'Code Space Tutorials'}
+                    hiddenTitle={false}
                     showAcceptButton={false}
                     showCancelButton={false}
                     modalWidth="80%"
@@ -497,7 +497,7 @@ const AllCodeSpaces = (props) => {
                     content={
                         <CodeSpaceTutorials />
                     }
-                    scrollableContent={true}
+                    scrollableContent={false}
                     onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
