@@ -138,7 +138,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
-	 
+
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
  
@@ -1462,7 +1462,6 @@ import com.daimler.data.util.ConstantsUtility;
 				if (!workspaceMigrated) {
 					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-						log.info("serviceProviders  "+cloudServiceProvider);
 					} else {
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
@@ -1478,7 +1477,6 @@ import com.daimler.data.util.ConstantsUtility;
 						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 					}
 				}
-				log.info("cloudServiceProvider  "+cloudServiceProvider);
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 } else {
@@ -2182,7 +2180,7 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				 }
@@ -3014,7 +3012,6 @@ import com.daimler.data.util.ConstantsUtility;
 				} else {
 					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
 				}
-				log.info("cloudServiceProvider-restart "+ cloudServiceProvider);
 				if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
 					deployJobInputDto.setEnvironment(codeServerEnvValue);
 				} else {

@@ -33,4 +33,5 @@ public interface AuthenticatorClient {
 
 	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName);
 
+	
 }
