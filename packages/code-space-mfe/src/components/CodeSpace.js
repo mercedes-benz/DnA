@@ -275,7 +275,7 @@ const CodeSpace = (props) => {
                       res.data.projectDetails?.projectName +
                       ' is requested to start',
                   );
-                  CodeSpaceApiClient.serverStatusFromHub(props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
+                  CodeSpaceApiClient.serverStatusFromHub(res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
                     const data = JSON.parse(e.data);
                     if (data.progress === 100 && data.ready) {
                       setServerProgress(100);
