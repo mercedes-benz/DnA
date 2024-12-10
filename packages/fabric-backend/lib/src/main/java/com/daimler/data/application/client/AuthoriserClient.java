@@ -508,13 +508,22 @@ public class AuthoriserClient {
 	}
 
 
-	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId, String authToken){
 		try {
-			UserInfo userInfo = this.userStore.getUserInfo();
+			String token = "";
+			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
+				token = authToken;
+			}else {
+				token = getToken();
+				if(!Objects.nonNull(token)) {
+					log.error("Failed to fetch token to invoke fabric Apis");
+					return HttpStatus.INTERNAL_SERVER_ERROR;
+				}
+			}
 			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", "Bearer "+userInfo.getAuthToken());
+			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,

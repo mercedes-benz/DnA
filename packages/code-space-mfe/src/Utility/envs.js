@@ -37,4 +37,5 @@ const getInjectedEnv = (key) => {
     AWS_MOVE_DOC_URL: getInjectedEnv('AWS_MOVE_DOC_URL') || process.env.AWS_MOVE_DOC_URL,
     CODESPACE_TEAMS_LINK: getInjectedEnv('CODESPACE_TEAMS_LINK') || process.env.CODESPACE_TEAMS_LINK,
     CODESPACE_MATTERMOST_LINK: getInjectedEnv('CODESPACE_MATTERMOST_LINK') || process.env.CODESPACE_MATTERMOST_LINK,
+    ONE_API_URL: getInjectedEnv('ONE_API_URL') || process.env.ONE_API_URL,
   };
