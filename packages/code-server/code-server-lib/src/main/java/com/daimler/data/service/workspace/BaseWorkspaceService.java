@@ -2169,7 +2169,7 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				 }
