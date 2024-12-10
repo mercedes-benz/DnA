@@ -266,7 +266,7 @@ const CodeSpace = (props) => {
             handleOIDCLogin(res);
           } else {
             setLoading(true);
-            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false)
+            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false, res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, false)
               .then((response) => {
                 setLoading(false);
                 if (response.data.success === 'SUCCESS') {
@@ -275,7 +275,7 @@ const CodeSpace = (props) => {
                       res.data.projectDetails?.projectName +
                       ' is requested to start',
                   );
-                  CodeSpaceApiClient.serverStatusFromHub(props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
+                  CodeSpaceApiClient.serverStatusFromHub(res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
                     const data = JSON.parse(e.data);
                     if (data.progress === 100 && data.ready) {
                       setServerProgress(100);
