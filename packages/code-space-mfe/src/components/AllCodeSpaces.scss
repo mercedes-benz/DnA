@@ -220,3 +220,18 @@
     margin-top: 48px;
     line-height: 2.75;
   }
+
+  .modalContentWrapper {
+    text-align: left !important;
+    .modalMainTitle {
+        font-size: var(--font-size-section-headline);
+        font-weight: var(--font-weight-bold);
+    }
+    .modalTitle {
+        font-size: var(--font-size-sub-headline);
+        font-weight: var(--font-weight-bold);
+    }
+    p{
+        font-size: var(--font-size-small);
+    }
+  }
