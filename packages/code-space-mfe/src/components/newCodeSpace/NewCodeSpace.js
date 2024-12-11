@@ -323,7 +323,7 @@ const NewCodeSpace = (props) => {
 
   const onRecipeChange = (obj) => {
     const selectedOption = obj.id;
-    const recipe = recipesMaster.find((item) => item.id === recipeValue);
+    const recipe = recipesMaster.find((item) => item.id === selectedOption);
     setRecipeValue(selectedOption);
     getRecipeDetails(obj?.id);
     setRecipeError('');
