@@ -326,7 +326,7 @@ const CodeSpace = (props) => {
 
   const handleOIDCLogin = (res) => {
     const loginWindow = window.open(
-      (codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? Envs.CODESPACE_AWS_POPUP_URL : Envs.CODESPACE_OIDC_POPUP_URL) + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
+      (res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? Envs.CODESPACE_AWS_POPUP_URL : Envs.CODESPACE_OIDC_POPUP_URL) + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
       'codeSpaceSessionWindow',
       'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
     );
