@@ -277,7 +277,7 @@ const CodeSpace = (props) => {
             handleOIDCLogin(res);
           } else {
             setLoading(true);
-            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false)
+            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false, res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, false)
               .then((response) => {
                 setLoading(false);
                 if (response.data.success === 'SUCCESS') {
@@ -286,7 +286,7 @@ const CodeSpace = (props) => {
                       res.data.projectDetails?.projectName +
                       ' is requested to start',
                   );
-                  CodeSpaceApiClient.serverStatusFromHub(props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
+                  CodeSpaceApiClient.serverStatusFromHub(res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
                     const data = JSON.parse(e.data);
                     if (data.progress === 100 && data.ready) {
                       setServerProgress(100);
@@ -337,7 +337,7 @@ const CodeSpace = (props) => {
 
   const handleOIDCLogin = (res) => {
     const loginWindow = window.open(
-      (codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? Envs.CODESPACE_AWS_POPUP_URL : Envs.CODESPACE_OIDC_POPUP_URL) + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
+      (res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? Envs.CODESPACE_AWS_POPUP_URL : Envs.CODESPACE_OIDC_POPUP_URL) + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
       'codeSpaceSessionWindow',
       'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
     );
