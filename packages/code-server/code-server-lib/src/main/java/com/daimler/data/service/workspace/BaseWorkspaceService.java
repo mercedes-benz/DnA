@@ -792,6 +792,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			 ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+			 log.info("workBench details: {}",ownerWorkbenchCreateDto );
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 String ownerwsid = vo.getWorkspaceId();
 			 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
