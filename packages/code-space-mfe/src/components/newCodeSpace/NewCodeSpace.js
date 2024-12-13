@@ -957,7 +957,7 @@ const NewCodeSpace = (props) => {
               <div>
                 <label>Environment</label>
               </div>
-              <div>{projectDetails.recipeDetails.cloudServiceProvider || environment}</div>
+              <div>DyP-CaaS AWS</div>
               <div></div>
               <div></div>
             </div>
