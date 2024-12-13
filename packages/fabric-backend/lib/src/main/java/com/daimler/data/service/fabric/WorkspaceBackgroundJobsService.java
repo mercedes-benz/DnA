@@ -62,7 +62,7 @@ public class WorkspaceBackgroundJobsService {
 				for(FabricWorkspaceVO workspaceVO: workspaceVOs) {
 					try {
 						String ownerId = workspaceVO.getCreatedBy().getId();
-						Date validFromDate = workspaceVO.getCreatedOn();
+						Date validFromDate = new Date();//workspaceVO.getCreatedOn();
 						String validFrom = sdf.format(validFromDate);
 						Calendar calendar = Calendar.getInstance();
 				        calendar.setTime(validFromDate);
