@@ -1,6 +1,5 @@
 /* LICENSE START
  * 
- *
  * MIT License
  * 
  * Copyright (c) 2019 Daimler TSS GmbH
