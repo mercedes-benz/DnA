@@ -278,6 +278,7 @@ public class CodeServerClient {
 			+ manageDto.getInputs().getCpu_limit() + ", \"cpu_guarantee\": "
 			+ manageDto.getInputs().getCpu_guarantee() + ",\"extra_containers\": "
 			+ manageDto.getInputs().getExtraContainers() + "}";
+			log.info("CreateGithubUrl "+ manageDto.getInputs().getRepo());
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
