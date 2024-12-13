@@ -785,7 +785,7 @@ const CodeSpaceCardItem = (props) => {
                     setShowOnPremStartModal(true);
                   }}
                   tooltip-data="Start on DyP-CaaS On-Prem (manual)"
-                  className="icon mbc-icon help right"
+                  className="icon mbc-icon worksspace right"
                 />
               </div>
             )}
