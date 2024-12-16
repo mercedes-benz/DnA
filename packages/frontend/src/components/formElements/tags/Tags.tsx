@@ -380,7 +380,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       const chip = value.trim();
 
-      if (chip && this.state.chips.indexOf(chip) < 0) {
+      if (chip && !this.state.chips.some(existingChip => existingChip.toLowerCase() === chip.toLowerCase())) {
         const chips = this.state.chips;
         chips.push(chip);
         this.props.setTags(chips);
