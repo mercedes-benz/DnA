@@ -103,7 +103,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Description of transfered data</label>
                 <br />
-                {providerInformation.classificationOfTransferedData}
+                <pre className={classNames(Styles.formattedText)}>{providerInformation.classificationOfTransferedData}</pre>
               </div>
               <div>
                 <label className="input-label summary">Confidentiality</label>
