@@ -174,7 +174,7 @@ const AllCodeSpaces = (props) => {
                         'Your Codespace for project ' +
                         codeSpace.projectDetails?.projectName +
                         ' is requested to ' +
-                        (serverStarted ? 'stop' : 'start') +
+                        ((serverStarted && !manual) ? 'stop' : 'start') +
                         '.',
                     );
 
