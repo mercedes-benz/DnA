@@ -183,7 +183,8 @@ prometheus:
           static_configs:
           - targets:
             - bat-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
-          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
         - job_name: qilin-api
           metrics_path: /actuator/prometheus
           params:
