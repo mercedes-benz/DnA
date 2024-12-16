@@ -280,7 +280,6 @@ public class CodeServerClient {
 			+ manageDto.getInputs().getExtraContainers() + "}";
 			log.info("CreateGithubUrl "+ manageDto.getInputs().getRepo());
 			HttpEntity<String> entity = new HttpEntity<>(requestJsonString, getHeaders(manageDto.getInputs().getCloudServiceProvider()));
-			log.info("Create entity "+entity.toString());
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(url, HttpMethod.POST, entity,
 					String.class);
 				if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
