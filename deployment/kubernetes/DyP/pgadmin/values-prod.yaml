@@ -125,14 +125,14 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
   hosts:
-    - host: pgadmin.dna-prod.app.corpintra.net/
+    - host: pgadmin.dna-prod.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls: 
    - secretName: pgadmin-prod-aws-dna-tls
      hosts:
-       - pgadmin.dna-prod.app.corpintra.net/
+       - pgadmin.dna-prod.app.corpintra.net
 
 # Additional config maps to be mounted inside a container
 # Can be used to map config maps for sidecar as well
