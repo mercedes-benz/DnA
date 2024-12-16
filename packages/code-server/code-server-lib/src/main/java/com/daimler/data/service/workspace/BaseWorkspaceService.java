@@ -767,6 +767,12 @@ import com.daimler.data.util.ConstantsUtility;
 				  ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			  }
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
+			 if(repoNameWithOrg.endsWith("/")){
+                StringBuffer fixRepoSuffix = new StringBuffer();
+                fixRepoSuffix.append(repoNameWithOrg);
+                fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
+                repoNameWithOrg = fixRepoSuffix.toString();
+             }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){

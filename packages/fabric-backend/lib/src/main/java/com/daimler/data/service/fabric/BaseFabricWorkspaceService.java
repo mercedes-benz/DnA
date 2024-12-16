@@ -1171,11 +1171,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				if(deleteResponse!=null && deleteResponse.getMessage() != null) {
 						MessageDescription message = new MessageDescription();
 						message.setMessage(deleteResponse.getMessage());
-						errors.add(message);
-						responseMessage.setErrors(errors);
-						responseMessage.setSuccess("FAILED");
-						log.error("Error occurred:{} while deleting fabric workspace project {} ", id);
-						return responseMessage;
+						warnings.add(message);
+//						responseMessage.setErrors(errors);
+//						responseMessage.setSuccess("FAILED");
+						log.warn("Error occurred:{} while deleting fabric workspace project {} ", id);
+//						return responseMessage;
 				}
 			}
 			if(existingWorkspace!=null && existingWorkspace.getStatus()!=null ) {
