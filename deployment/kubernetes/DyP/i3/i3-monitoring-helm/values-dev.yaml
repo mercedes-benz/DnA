@@ -174,7 +174,7 @@ prometheus:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
       # Adding Prometheus jobs for BAT API's
         - job_name: bat-api
-          metrics_path: /metrics
+          metrics_path: /actuator/prometheus
           params:
             format:
             - prometheus
@@ -185,7 +185,7 @@ prometheus:
             - bat-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
           bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         - job_name: qilin-api
-          metrics_path: /metrics
+          metrics_path: /actuator/prometheus
           params:
             format:
             - prometheus
