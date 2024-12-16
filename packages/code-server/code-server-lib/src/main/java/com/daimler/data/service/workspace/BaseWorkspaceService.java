@@ -767,6 +767,15 @@ import com.daimler.data.util.ConstantsUtility;
 				  ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			  }
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
+			 if(repoNameWithOrg.endsWith("/")){
+                StringBuffer fixRepoSuffix = new StringBuffer();
+                fixRepoSuffix.append(repoNameWithOrg);
+                fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
+                repoNameWithOrg = fixRepoSuffix.toString();
+             }
+			 if(!repoNameWithOrg.endsWith(".git")){
+				repoNameWithOrg = repoNameWithOrg.concat(".git");
+			 }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
@@ -1061,6 +1070,15 @@ import com.daimler.data.util.ConstantsUtility;
 				 // String url[] = repoNameWithOrg.split(",");
 				 // repoNameWithOrg = url[0];
 				 // pathCheckout = url[1];
+			 }
+			 if(repoNameWithOrg.endsWith("/")){
+                StringBuffer fixRepoSuffix = new StringBuffer();
+                fixRepoSuffix.append(repoNameWithOrg);
+                fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
+                repoNameWithOrg = fixRepoSuffix.toString();
+             }
+			 if(!repoNameWithOrg.endsWith(".git")){
+				repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
