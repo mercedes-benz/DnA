@@ -2718,6 +2718,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 }
 				 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 				 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
+				 ownerWorkbenchCreateInputsDto.setCloudServiceProvider(workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 				 ownerWorkbenchCreateInputsDto.setStorage_capacity(updatedResourceValue.getDiskSpace()+"Gi");
 				 ownerWorkbenchCreateInputsDto.setMem_guarantee(updatedResourceValue.getMinRam()+"M");
 				 ownerWorkbenchCreateInputsDto.setMem_limit(updatedResourceValue.getMaxRam()+"M");
