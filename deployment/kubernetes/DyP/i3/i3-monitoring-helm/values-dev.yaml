@@ -172,6 +172,31 @@ prometheus:
             - cs-hub.dev-dna-cs-workspaces.svc.cluster.local:8081	
           tls_config:	
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
+      # Adding Prometheus jobs for BAT API's
+        - job_name: bat-api
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - bat-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
+        - job_name: qilin-api
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - qilin-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
 
         # A scrape configuration for running Prometheus on a Kubernetes cluster.
         # This uses separate scrape configs for cluster components (i.e. API server, node)
