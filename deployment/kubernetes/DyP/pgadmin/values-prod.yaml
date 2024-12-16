@@ -119,7 +119,7 @@ ingress:
   enabled: true
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
