@@ -309,6 +309,7 @@ const NewCodeSpace = (props) => {
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
+
   const getRecipeDetails = (id) => {
     setShowProgressIndicator(true);
     CodeSpaceApiClient.getCodeSpaceRecipe(id)
@@ -956,7 +957,7 @@ const NewCodeSpace = (props) => {
               <div>
                 <label>Environment</label>
               </div>
-              <div>{projectDetails.recipeDetails.cloudServiceProvider || environment}</div>
+              <div>DyP-CaaS AWS</div>
               <div></div>
               <div></div>
             </div>

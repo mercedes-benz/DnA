@@ -29,6 +29,7 @@ import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -91,12 +92,13 @@ const CodeSpaceCardItem = (props) => {
   useEffect(() => {
 
     handleServerStatusAndProgress();
-
+    Tooltip.defaultSetup();
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('click', handleContextMenuOutside, true);
     return () => {
       document.removeEventListener('touchend', handleContextMenuOutside, true);
       document.removeEventListener('click', handleContextMenuOutside, true);
+      Tooltip.clear();
     };
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -394,6 +396,8 @@ const CodeSpaceCardItem = (props) => {
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
   const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
+  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   const securedWithIAMContent = (
     <svg
@@ -603,10 +607,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {intSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
@@ -633,16 +643,16 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {intDeployed && (
-                          <li>
-                            <span
-                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
-                            >
-                              Restart Deployed Application
-                            </span>
-                          </li>
-                        )}
-                      </>
+                      {intDeployed && (
+                        <li>
+                          <span
+                            onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                          >
+                            Restart Deployed Application
+                          </span>
+                        </li>
+                      )}
+                   </>
                     )}
                     <li>
                       <hr />
@@ -705,10 +715,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {prodDeployed && (
                           <li>
-                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {prodSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -753,6 +769,17 @@ const CodeSpaceCardItem = (props) => {
                 </div>
               </div>
             )}
+            {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && codeSpace?.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
+              <div>
+                <i
+                  onClick={() => {
+                    setShowOnPremStartModal(true);
+                  }}
+                  tooltip-data="Start on DyP-CaaS On-Prem (manual)"
+                  className="icon mbc-icon worksspace right"
+                />
+              </div>
+            )}
           </div>
         </div>
         <hr />
@@ -764,7 +791,7 @@ const CodeSpaceCardItem = (props) => {
             </div>
             <div>
               <div>Environment</div>
-              <div>{projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
+              <div>{(projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
