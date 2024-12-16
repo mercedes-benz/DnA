@@ -11,7 +11,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-mfe
   pullPolicy: IfNotPresent
-  tag: '632'
+  tag: '1040'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -51,7 +51,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_dev_k8_role"
+    vault.hashicorp.com/role: dna_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
