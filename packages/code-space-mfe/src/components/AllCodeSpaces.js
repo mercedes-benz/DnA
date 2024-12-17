@@ -253,7 +253,23 @@ const AllCodeSpaces = (props) => {
                <ol>
                     <li>
                         <div>I am not able to see my code post migrating to AWS</div>
-                        <div className={classNames(Styles.info)}>This situation arises if the pat token that you have used to create the codespace has expired.<br/> Please run the following command &ldquo;<b>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</b>&ldquo; in your terminal for cloning code manually.<br/>If the cloning is not happening with the current token then generate a new token and try again.<br/>Once your code is cloned, please execute the script located in the file <b>.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh</b> in your terminal to install the software.</div>
+                        <div className={classNames(Styles.info)}>
+                            This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
+                            <ul>
+                                <li>Run the following command &ldquo;<strong>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</strong>&ldquo; <span>(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)</span> in your terminal for cloning code manually.
+                                    <br/>You can find your org name and repo name by using the go to code repo option in the context menu.
+                                    <br/>If the cloning is not happening with the current token then generate a new token and try again.
+                                </li>
+                                <li>
+                                    Once your code is cloned, please execute the following commands in the given order in your terminal to install the softwares.
+                                    <ol>
+                                        <li>&nbsp;&nbsp;<strong>cd .codespaces/DO_NOT_DELETE_MODIFY</strong></li>
+                                        <li>&nbsp;&nbsp;<strong>chmod +x pkg-install.sh</strong></li>
+                                        <li>&nbsp;&nbsp;<strong>./pkg-install.sh</strong></li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 </ol> 
             </div> 
