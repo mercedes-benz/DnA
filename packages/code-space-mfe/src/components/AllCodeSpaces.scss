@@ -80,6 +80,14 @@
                 font-size: 12px;
             }
         }
+        .awsFAQ{
+            display: inline;
+            margin-left: 8px;
+            span{
+                margin: 0px;
+                margin-right: 1px;
+            }
+        }
 
         .newRecipe {
             i {
@@ -195,7 +203,7 @@
 }
 
 .codspaceSearch {
-    margin-left: 200px;
+    margin-left: 370px;
     .searchInputField {
         background: none;
         border: none;
@@ -233,5 +241,16 @@
     }
     p{
         font-size: var(--font-size-small);
+    }
+  }
+
+  .modalFAQContentWrapper {
+    font-size: var(--font-size-sub-headline);
+    font-weight: var(--font-weight-bold);
+    .info {
+        margin: 4px;
+        padding: 8px 8px;
+        font-size: var(--font-size-small);
+        font-weight: var(--font-weight-regular);
     }
   }
