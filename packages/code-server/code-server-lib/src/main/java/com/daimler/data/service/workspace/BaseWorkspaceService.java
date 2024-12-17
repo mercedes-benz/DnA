@@ -1531,9 +1531,9 @@ import com.daimler.data.util.ConstantsUtility;
 					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 					 .startsWith("private")){
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						commitId = gitClient.getLatestCommitId(branch,repoDetails.get(1));
+						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
 					}else{
-						commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
+						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
 						
 					}
 					if(commitId == null){
