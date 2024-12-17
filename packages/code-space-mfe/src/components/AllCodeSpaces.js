@@ -253,7 +253,7 @@ const AllCodeSpaces = (props) => {
                <ol>
                     <li>
                         <div>I am not able to see my code post migration to AWS</div>
-                        <div className={classNames(Styles.info)}>This situation arises if the pat token that you have used to create the codespace has expired.<br/> Please run the following command &ldquo;<b>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</b>&ldquo; in your terminal for cloning code manually.<br/>Once your code is cloned, please execute the script located in the file <b>.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh</b> in your terminal to install the software.</div>
+                        <div className={classNames(Styles.info)}>This situation arises if the pat token that you have used to create the codespace has expired.<br/> Please run the following command &ldquo;<b>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</b>&ldquo; in your terminal for cloning code manually.<br/>If the cloning is not happening with the current token then generate a new token and try again.<br/>Once your code is cloned, please execute the script located in the file <b>.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh</b> in your terminal to install the software.</div>
                     </li>
                 </ol> 
             </div> 
