@@ -105,7 +105,7 @@ networkPolicy:
                 app.kubernetes.io/name: traefik
             namespaceSelector:
               matchLabels:
-                kubernetes.io/metadata.name: ingress  
+                kubernetes.io/metadata.name: prod-ingress-intranet  
         ports:
           - protocol: TCP
             port: 8080    
