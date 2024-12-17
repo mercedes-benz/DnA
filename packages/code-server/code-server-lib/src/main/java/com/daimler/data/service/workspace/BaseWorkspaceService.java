@@ -1527,7 +1527,15 @@ import com.daimler.data.util.ConstantsUtility;
 					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					 Date now = isoFormat.parse(isoFormat.format(new Date()));
 					 DeploymentAudit auditLog = new DeploymentAudit();
-					GitLatestCommitIdDto commitId = gitClient.getLatestCommitId(branch,entity.getData().getProjectDetails().getGitRepoName());
+					 GitLatestCommitIdDto commitId =null;
+					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+					 .startsWith("private")){
+						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
+						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+					}else{
+						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+						
+					}
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
 						warning.setMessage("Error while adding commit id to deployment audit log");
