@@ -21,6 +21,7 @@ import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import InfoModal from 'dna-container/InfoModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -44,7 +45,8 @@ const AllCodeSpaces = (props) => {
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
         [showTutorialsModel, setShowTutorialsModel] = useState(false),
         [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
-        [filteredCodeSpaces, setFilteredCodespaces] = useState();
+        [filteredCodeSpaces, setFilteredCodespaces] = useState(),
+        [showAwsFAQModal, setShowAwsFAQModal] = useState(false);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -174,7 +176,7 @@ const AllCodeSpaces = (props) => {
                         'Your Codespace for project ' +
                         codeSpace.projectDetails?.projectName +
                         ' is requested to ' +
-                        (serverStarted ? 'stop' : 'start') +
+                        ((serverStarted && !manual) ? 'stop' : 'start') +
                         '.',
                     );
 
@@ -241,7 +243,37 @@ const AllCodeSpaces = (props) => {
                 </ol>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
-            <p>Join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
+            <p>Please refer to the AWS migration FAQs on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
+            <p><strong>Note:</strong> Upon initiating the migration, only your workspace will be migrated. Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
+        </div>
+    );
+
+    const FAQModalContent = (
+        <div className={Styles.modalFAQContentWrapper}>
+            <div>
+               <ol>
+                    <li>
+                        <div>I am not able to see my code post migrating to AWS</div>
+                        <div className={classNames(Styles.info)}>
+                            This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
+                            <ul>
+                                <li>Run the following command &ldquo;<strong>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</strong>&ldquo; <span>(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)</span> in your terminal for cloning code manually.
+                                    <br/>You can find your org name and repo name by using the go to code repo option in the context menu.
+                                    <br/>If the cloning is not happening with the current token then generate a new token and try again.
+                                </li>
+                                <li>
+                                    Once your code is cloned, please execute the following commands in the given order in your terminal to install the softwares.
+                                    <ol>
+                                        <li>&nbsp;&nbsp;<strong>cd .codespaces/DO_NOT_DELETE_MODIFY</strong></li>
+                                        <li>&nbsp;&nbsp;<strong>chmod +x pkg-install.sh</strong></li>
+                                        <li>&nbsp;&nbsp;<strong>./pkg-install.sh</strong></li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ol> 
+            </div> 
         </div>
     );
 
@@ -303,6 +335,14 @@ const AllCodeSpaces = (props) => {
                             >
                                 <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
                                 <span>Video Tutorials</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.awsFAQ)}
+                                tooltip-data="AWS migration FAQs"
+                                onClick={() => { setShowAwsFAQModal(Envs.SHOW_AWS_MIGRATION_WARNING) }}
+                            >
+                                <i className={classNames('icon mbc-icon alert circle')} />
+                                <span>AWS Migration FAQ&apos;s</span>
                             </button>
                         </div>
                         <div className={classNames(Styles.codspaceSearch)}>
@@ -520,6 +560,18 @@ const AllCodeSpaces = (props) => {
                     onAccept={() => setShowAWSWarningModal(false)}
                     showIcon = {false}
                     showCloseIcon = {true}
+                />
+            )}
+            {showAwsFAQModal && (
+                <InfoModal
+                    title={'AWS migration FAQs'}
+                    modalWidth={'50%'}
+                    modalStyle={{
+                        maxWidth: '60%',
+                    }}
+                    show={showAwsFAQModal}
+                    content={FAQModalContent}
+                    onCancel={() => setShowAwsFAQModal(false)}
                 />
             )}
         </div>
