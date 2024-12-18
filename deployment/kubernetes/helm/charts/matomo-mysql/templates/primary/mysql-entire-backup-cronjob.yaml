@@ -25,7 +25,7 @@ spec:
                 - name: DB_DUMP_DEBUG
                   value: {{ .Values.backupRestore.DB_PASS }}
                 - name: DB_DUMP_TARGET
-                  value: {{ .Values.backupRestore.DB_DUMP_TARGET }}
+                  value: {{ .Values.backupRestore.ENTIRE_DB_DUMP_TARGET }}
                 - name: AWS_ACCESS_KEY_ID
                   value: {{ .Values.backupRestore.AWS_ACCESS_KEY_ID }}
                 - name: AWS_SECRET_ACCESS_KEY

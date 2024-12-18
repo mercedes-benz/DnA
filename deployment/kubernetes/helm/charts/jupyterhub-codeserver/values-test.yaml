@@ -94,7 +94,7 @@ hub:
       selector: {}
       accessModes:
         - ReadWriteOnce
-      storage: 1Gi
+      storage: 10Gi
       subPath:
       storageClassName: dhc-gp3
     url: postgresql+psycopg2://cs-hub-db:64000/jupyterhub
@@ -549,7 +549,7 @@ singleuser:
           set -e
 
           if [ -d "/home/coder/app" ]; then
-              echo "Directory is already present"
+              echo "Directory is already present"            
           else
               mkdir -p /home/coder/app
               echo "Cloning the workspace"
@@ -935,7 +935,7 @@ cull:
   users: false # --cull-users
   adminUsers: true # --cull-admin-users
   removeNamedServers: false # --remove-named-servers
-  timeout: 600 # --timeout
+  timeout: 1800 # --timeout
   every: 0 # --cull-every
   concurrency: 10 # --concurrency
   maxAge: 0 # --max-age

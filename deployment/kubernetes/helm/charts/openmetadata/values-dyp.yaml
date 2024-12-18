@@ -93,8 +93,8 @@ openmetadata:
       - "http://openmetadata:8585/api/v1/system/config/jwks"
       - "https://sso-int.mercedes-benz.com/pf/JWKS"
       authority: "https://sso-int.mercedes-benz.com"
-      clientId: "<path:kv/data/dna/kubernetesSecret/openmetadata#clientId>"
-      callbackUrl: "https://<path:kv/data/dna/kubernetesSecret/openmetadata#domain>/callback"
+      clientId: "<path:dna_kv/data/dev/kubernetesSecret/openmetadata#clientId>"
+      callbackUrl: "https://<path:dna_kv/data/dev/kubernetesSecret/openmetadata#domain>/callback"
       jwtPrincipalClaims:
       - "email"
       - "preferred_username"
@@ -330,14 +330,14 @@ ingress:
       cert-manager.io/cluster-issuer: mercedes-benz-acme   
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
   hosts:
-    - host: <path:kv/data/dna/kubernetesSecret/openmetadata#domain>
+    - host: <path:dna_kv/data/dev/kubernetesSecret/openmetadata#domain>
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls: 
-    - secretName: tls-<path:kv/data/dna/kubernetesSecret/openmetadata#domain>
+    - secretName: tls-<path:dna_kv/data/dev/kubernetesSecret/openmetadata#domain>
       hosts:
-        - <path:kv/data/dna/kubernetesSecret/openmetadata#domain>
+        - <path:dna_kv/data/dev/kubernetesSecret/openmetadata#domain>
 
 extraEnvs: []
 # - name: MY_ENVIRONMENT_VAR

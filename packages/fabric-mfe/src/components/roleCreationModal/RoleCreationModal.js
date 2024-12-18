@@ -4,6 +4,7 @@ import { ReactFlow, Controls, ConnectionLineType, Background, useNodesState, use
 import '@xyflow/react/dist/style.css';
 import Styles from './role-creation-modal.scss';
 import Spinner from "../spinner/Spinner";
+import Notification from "../../common/modules/uilab/js/src/notification";
 import { FLOW_DIAGRAM_STATES, FLOW_DIAGRAM_TYPES } from "../../utilities/constants";
 import { generateNodesAndEdges, getLayoutedElements } from "../../utilities/utils";
 
@@ -55,7 +56,7 @@ const RoleEntitlementNode = ({ data }) => {
             {isGroupStatePending && 'Assigning '}
             {isGroupStateCreated && 'Created '}
             {isGroupStateAssigned && 'Assigned '}
-            <span>{data.name}</span> {data.label}
+            <span>{data.name} <i className={classNames('icon mbc-icon copy', Styles.copyIcon)} onClick={() => navigator.clipboard.writeText(data.name).then(() => Notification.show('Copied to Clipboard'))}></i></span> {data.label}
             {(isUpdateRoleEntitlementCreated || isUpdateRoleEntitlementAssigned) && <a href={data?.link} target="_blank" rel="noreferrer noopener">[Alice Link <i className="icon mbc-icon new-tab"></i>]</a>}
           </div>
         </div>
@@ -80,9 +81,9 @@ const RoleCreationModal = ({workspace, onClose}) => {
         <h3>{workspace?.name}</h3>
         <p>Entitlements, Roles, Microsoft Groups</p>
         <div className={Styles.overallStatusContainer}>
-          <div><Spinner /> <span>Creating Roles & Entitlements</span></div>
-          <div><Spinner /> <span>Updating Roles with Entitlements</span></div>
-          <div><Spinner /> <span>Assigning Roles to Microsoft Groups</span></div>
+          <div>{workspace?.status?.state === 'IN_PROGRESS' ? <Spinner /> : <i className="icon mbc-icon check circle"></i>} <span>Creating Roles & Entitlements</span></div>
+          <div>{workspace?.status?.state === 'IN_PROGRESS' ? <Spinner /> : <i className="icon mbc-icon check circle"></i>} <span>Updating Roles with Entitlements</span></div>
+          <div>{workspace?.status?.state === 'IN_PROGRESS' ? <Spinner /> : <i className="icon mbc-icon check circle"></i>} <span>Assigning Roles to Microsoft Groups</span></div>
         </div>
       </div>
       <div className={Styles.content}>
@@ -93,7 +94,7 @@ const RoleCreationModal = ({workspace, onClose}) => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             fitView
-            fitViewOptions={{ padding: 0.2, minZoom: 0.95 }}
+            fitViewOptions={{ minZoom: 0.1 }}
             connectionLineType={ConnectionLineType.SmoothStep}
             nodeTypes={{ 
               roleEntitlementNode: RoleEntitlementNode

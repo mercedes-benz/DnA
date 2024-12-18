@@ -801,7 +801,7 @@ const CreateBucket = ({ user }) => {
                     defaultValue={division}
                     required={true}
                     required-error={requiredError}
-                    onChange={onDivisionChange}
+                    onChange={(e)=>{onDivisionChange(e)}}
                     value={division}
                   >
                     <option id="divisionOption" value={0}>
@@ -928,7 +928,7 @@ const CreateBucket = ({ user }) => {
                             </strong>
                             {` base URL to read the contents from your bucket.`}
                           </p>
-                          <p>Please make sure that you do not store any confidential data in this bucket as it is publicly accessable.</p>
+                          <p>Please make sure that you do not store any confidential data in this bucket as it is publicly accessible.</p>
                         </div>
                       </div>
                     </div>

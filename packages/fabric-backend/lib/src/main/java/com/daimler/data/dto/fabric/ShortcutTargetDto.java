@@ -15,6 +15,5 @@ import lombok.NoArgsConstructor;
 public class ShortcutTargetDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private String type;
 	private S3CompatibleTargetDto s3Compatible; 
 }

@@ -3,7 +3,7 @@ import React from 'react';
 import { Envs } from '../../utilities/envs';
 import Styles from './shared-development-tou.scss';
 
-const SharedDevelopmentTou = ({ onAccept, hideAccept }) => {
+const SharedDevelopmentTou = ({ onAccept, hideAccept, isEn }) => {
   return (
     <div className={classNames(Styles.form)}>
       <div className={Styles.formHeader}>
@@ -13,7 +13,7 @@ const SharedDevelopmentTou = ({ onAccept, hideAccept }) => {
       <div className={Styles.flex}>
         <div className={Styles.col}>
           <div className={Styles.touContent}>
-            <div dangerouslySetInnerHTML={{__html: Envs.TOU_HTML}}></div>
+            {isEn ? <div dangerouslySetInnerHTML={{__html: Envs.TOU_HTML}}></div> : <div dangerouslySetInnerHTML={{__html: Envs.TOU_GE_HTML}}></div>}
           </div>
         </div>
       </div>

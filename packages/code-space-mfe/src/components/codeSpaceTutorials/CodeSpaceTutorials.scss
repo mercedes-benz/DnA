@@ -1,6 +1,7 @@
 .codeSpaceTutorials {
   display: flex;
   margin-top: 15px;
+  height: 100%;
 
   .leftPlane {
     flex: 0 0 70%;
@@ -8,6 +9,24 @@
 
   .rightPlane {
     flex: 0 0 30%;
+    height: 70vh; 
+    overflow-y: auto;
+
+    
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+
+    &::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
   }
 }
 
@@ -39,10 +58,6 @@
   &:hover {
     cursor: pointer;
     background-color: #1c2026;
-
-    .title {
-      padding-right: 15px;
-    }
   }
 }
 
