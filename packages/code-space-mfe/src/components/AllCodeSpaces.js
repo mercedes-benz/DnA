@@ -244,6 +244,7 @@ const AllCodeSpaces = (props) => {
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
             <p>Please refer to the AWS migration FAQs on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
+            <p><strong>Note:</strong> Upon initiating the migration, only your workspace will be migrated. Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
     );
 
