@@ -2563,8 +2563,6 @@ import org.springframework.beans.factory.annotation.Value;
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				MessageDescription invalidTypeMsg = new MessageDescription();
 				invalidTypeMsg.setMessage(
