@@ -159,10 +159,34 @@ const getCodeSpaceRecipe = (id) => {
     });
 };
 
-const getCodeSpaceRecipesStatus = () => { //not used 
+const getAllRecipes = () => {
+    return server.get(`recipeDetails`, {
+        data: {},
+    });
+};
+
+const getCodeSpaceRecipesStatus = () => { //not used right now
     return server.get(`recipeDetails/recipesByStatus`, {
         data: {},
     });
+};
+
+const getAllSoftware = () => {
+    return server.get(`software`, {
+        data: {},
+    });
+};
+
+const  deleteSoftware = (id) => {
+    return server.delete(`software/${id}`, { 
+        data: {},
+    });
+}
+
+const addSoftware = (data) => {
+    return server.post(`software`, 
+        data,
+    );
 };
 
 const acceptCodeSpaceRecipeRequest = (name) => { //not used 
@@ -321,6 +345,10 @@ export const CodeSpaceApiClient = {
     getCodeSpaceRecipe,
     getRecipeLov,
     deleteCodeSpaceRecipe,
+    getAllRecipes,
+    getAllSoftware,
+    deleteSoftware,
+    addSoftware,
     verifyGitUser,
     getCodeSpaceRecipesStatus,
     acceptCodeSpaceRecipeRequest,

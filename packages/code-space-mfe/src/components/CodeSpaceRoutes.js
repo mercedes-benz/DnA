@@ -15,7 +15,7 @@ import CodeSpace from './CodeSpace';
 import CodeSpaceSecurityConfig from './securityConfig/SecurityConfig';
 import ManageRecipes from './manageRecipes/ManageRecipes';
 import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
-import Tutorials from './codeSpaceTutorials/Tutorials'
+import CodeSpaceAdministration from './codespaceAdministration/CodespaceAdministration';
 
 export const protectedRoutes = [
     {
@@ -54,10 +54,10 @@ export const protectedRoutes = [
         path: '/codespaceRecipes/:id?',
     },
     {
-        component: Tutorials,
-        extact: false,
-        path: '/tutorials/:id?'
-    }
+        component: CodeSpaceAdministration,
+        exact: false,
+        path: '/administration',
+    },
 ];
 
 export const routes = [...protectedRoutes];
