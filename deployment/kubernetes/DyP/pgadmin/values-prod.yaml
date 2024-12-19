@@ -102,10 +102,10 @@ networkPolicy:
       - from:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: traefikv2
+                app.kubernetes.io/name: traefik
             namespaceSelector:
               matchLabels:
-                kubernetes.io/metadata.name: ingress  
+                kubernetes.io/metadata.name: prod-ingress-intranet  
         ports:
           - protocol: TCP
             port: 8080    
@@ -117,22 +117,23 @@ networkPolicy:
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
+  ingressClassName: prod-ingress-intranet
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
   hosts:
-    - host: pgadmin.dna.app.corpintra.net
+    - host: pgadmin.dna-prod.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls: 
-   - secretName: pgadmin-dna-tls
+   - secretName: pgadmin-prod-aws-dna-tls
      hosts:
-       - pgadmin.dna.app.corpintra.net
+       - pgadmin.dna-prod.app.corpintra.net
 
 # Additional config maps to be mounted inside a container
 # Can be used to map config maps for sidecar as well
