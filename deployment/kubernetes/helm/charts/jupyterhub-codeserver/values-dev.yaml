@@ -549,7 +549,7 @@ singleuser:
           set -e
 
           if [ -d "/home/coder/app" ]; then
-              echo "Directory is already present"
+              echo "Directory is already present"           
           else
               mkdir -p /home/coder/app
               echo "Cloning the workspace"

@@ -107,13 +107,13 @@
     }
 
     .col1 {
-      width: 25%;
+      width: 30%;
     }
     .col2 {
-      width: 25%;
+      width: 50%;
     }
     .col3 {
-      width: 50%;
+      width: 20%;
       text-align: right;
     }
 
@@ -148,4 +148,11 @@
     font-weight: bold;
     color: #d8d8d8;
   }
+}
+.disabledBtn {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.warning {
+  color: #FFEB3B;
 }

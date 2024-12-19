@@ -1,6 +1,6 @@
 namespace: test-apisap
 annotations:
-  argocdvault: "dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB"
+  argocdvault: "oneapi_kv/data/staging/kubernetesSecret/apisap-devDB"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -86,13 +86,13 @@ DBName: kong
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#accesskey>
+  accesskey: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#secretkey>
+  secretkey: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#s3.host>
+  host: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -146,7 +146,7 @@ walArchiving:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#bucketName>
+    bucketName: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,31 +201,31 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#backup.password>
+    password: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#backup.password>
   ## the database (not the instance) owner
   dbadm:
     username: kong
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#dbadm.password>
+    password: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false
       # name: customschema  ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#patroni.password>
+    password: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#pgmon.password>
+    password: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#debezium.password>
+    password: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#dataCatalog.password>
+    password: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -242,7 +242,7 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#size>
+  size: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#size>
   # storageClass: dhc-gp3
   # PVCName: name
   wal:
@@ -305,10 +305,10 @@ backup:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#bucketName>
+    bucketName: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#bucketName>
   ## general configuration for backup
   schedule: "1 0 * * *"
-  retention: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#retention>
+  retention: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -390,7 +390,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_aws_kv/data/staging/kubernetesSecret/apisap-devDB#init-db>
+  script: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-devDB#init-db>
 
 
 test:

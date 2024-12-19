@@ -20,6 +20,7 @@ export const HTTP_METHOD = {
   
   export const SESSION_STORAGE_KEYS = {
     PAGINATION_MAX_ITEMS_PER_PAGE : 'paginationMaxItemsPerPage',
+    AUDIT_LOGS_MAX_ITEMS_PER_PAGE : 'auditLogsMaxItemsPerPage',
     JWT: 'jwt',
   }
   

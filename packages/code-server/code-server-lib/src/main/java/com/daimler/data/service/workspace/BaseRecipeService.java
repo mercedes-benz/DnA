@@ -12,6 +12,7 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	private GitClient gitClient;
+
+	@Value("${codeserver.recipe.software.filename}")
+	private String gitFileName;
     
 	@Override
 	@Transactional
@@ -148,7 +152,7 @@ public class BaseRecipeService implements RecipeService{
 			repoOwner = codespaceSplitValues[length-2];
 			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
 			gitUrl = gitUrl.replace("/"+repoName, "");
-			JSONObject jsonResponse = gitClient.getSoftwareFileFromGit(repoName, repoOwner, gitUrl);
+			JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName);
 			if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 				softwareFileName  = jsonResponse.getString("name");
 				SHA =  jsonResponse.has("sha")? jsonResponse.getString("sha") : null;
@@ -248,8 +252,8 @@ public class BaseRecipeService implements RecipeService{
 
 	@Override
 	@Transactional
-	public RecipeVO getByRecipeName(String recipeName) {
-		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+	public RecipeVO getRecipeById(String id) {
+		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findById(id);
 		return recipeAssembler.toVo(entity);
 	}
 
@@ -430,10 +434,10 @@ public class BaseRecipeService implements RecipeService{
 	// }
 
 	@Override
-	public GenericMessage deleteRecipe(String recipeName)
+	public GenericMessage deleteRecipe(String id)
 	{
 		GenericMessage msg = new GenericMessage();
-		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findById(id);
         if (recipe != null) {
 			GenericMessage val =   workspaceCustomRecipeRepo.deleteRecipe(recipe);
             return new GenericMessage("Recipe deleted successfully");

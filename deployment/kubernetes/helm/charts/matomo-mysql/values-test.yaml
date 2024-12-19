@@ -29,7 +29,7 @@ nameOverride: ""
 fullnameOverride: ""
 ## @param namespaceOverride String to fully override common.names.namespace
 ##
-namespaceOverride: matomo
+namespaceOverride: prod-dna-matomo
 ## @param clusterDomain Cluster domain
 ##
 clusterDomain: cluster.local

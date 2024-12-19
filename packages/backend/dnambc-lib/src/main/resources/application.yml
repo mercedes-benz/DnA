@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.4.5
+    version: 3.4.6
   profile:
     active: production
   flyway:
@@ -100,6 +100,7 @@ notification:
       dataLakeNotificationPref: ${DEFAULT_EMAIL_DATALAKE_NOTIFICATION_PREF:false}
       dataEntryNotificationPref: ${DEFAULT_EMAIL_DATAENTRY_NOTIFICATION_PREF:false}
       useCaseOwnerNotificationPref: ${DEFAULT_EMAIL_USE_CASE_OWNER_NOTIFICATION_PREF:true}
+      powerPlatformNotificationPref: ${DEFAULT_EMAIL_POWER_PLATFORM_NOTIFICATION_PREF:false}
   app:
       solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:true}
       notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:true}
@@ -113,6 +114,7 @@ notification:
       dataLakeNotificationPref: ${DEFAULT_APP_DATALAKE_NOTIFICATION_PREF:true}
       dataEntryNotificationPref: ${DEFAULT_APP_DATAENTRY_NOTIFICATION_PREF:true}
       useCaseOwnerNotificationPref: ${DEFAULT_APP_USE_CASE_OWNER_NOTIFICATION_PREF:true}
+      powerPlatformNotificationPref: ${DEFAULT_APP_POWER_PLATFORM_NOTIFICATION_PREF:true}
 graphql:
   servlet:
     mapping: /api/minified

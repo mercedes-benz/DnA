@@ -114,11 +114,11 @@ export const BucketList = (props) => {
   const publicAccessModelContent = (
     <div className={classNames(Styles.accessContent)}>
       <h5>
-      public access for the bucket {currentBucketName} is enabled which makes the bucket publicly accessable without any authentication.<br/>
+      public access for the bucket {currentBucketName} is enabled which makes the bucket publicly accessible without any authentication.<br/>
         You can use &nbsp;
         <strong>{Envs.BUCKET_PUBLIC_ACCESS_BASEURL + currentBucketName}</strong>
         &nbsp;as the base URL to read the contents from the bucket.<br/>
-        Please make sure that you do not store any confidential data in this bucket as it is publicly accessable.
+        Please make sure that you do not store any confidential data in this bucket as it is publicly accessible.
       </h5>
     </div>
   );
@@ -405,7 +405,7 @@ export const BucketList = (props) => {
                               <Link to={`/explorer/${item.bucketName}`}>{item.bucketName}</Link>
                             </div>
                             <div className={classNames(Styles.accessCol)}>
-                              {hasPublicAccess && <span onClick={(e) => { e.stopPropagation; setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
+                              {hasPublicAccess && <span onClick={(e) => { e.preventDefault(); setShowAccessModel(true); setCurrentBucketName(item.bucketName) }} className={classNames(Styles.AccessIndicator,Styles.accessIndicatorList)}>Public</span>}
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {displayPermission(item?.permission)}

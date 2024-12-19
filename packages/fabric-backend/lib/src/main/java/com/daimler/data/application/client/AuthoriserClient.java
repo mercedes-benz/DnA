@@ -2,6 +2,7 @@ package com.daimler.data.application.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,13 +78,16 @@ public class AuthoriserClient {
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-            map.add("client_id", authoriserClientID);
-            map.add("client_secret", authoriserClientSecret);
+            String basicAuthenticationHeader = Base64.getEncoder()
+                    .encodeToString(new StringBuffer(authoriserClientID).append(":").append(authoriserClientSecret).toString().getBytes());
+//            map.add("client_id", authoriserClientID);
+//            map.add("client_secret", authoriserClientSecret);
             map.add("grant_type", "client_credentials");
             map.add("scope", "openid authorization_group entitlement_group scoped_entitlement email profile");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+            headers.set("Authorization", "Basic " + basicAuthenticationHeader);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
             try {
                 ResponseEntity<String> response = proxyRestTemplate.postForEntity(ssoUri, request, String.class);
@@ -151,6 +155,31 @@ public class AuthoriserClient {
 			log.error("Failed to create Entitlement with displayName {} with conflict error {} ", createRequest.getDisplayName(), e.getMessage());
 		}catch(Exception e) {
 			log.error("Failed to create Entitlement with displayName {} with error {} ", createRequest.getDisplayName(), e.getMessage());
+		}
+		return entiltlemetDetailsDto;
+    }
+    
+    public EntiltlemetDetailsDto  getEntitlement(String entitlementName){
+        EntiltlemetDetailsDto entiltlemetDetailsDto = new EntiltlemetDetailsDto();
+        try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return entiltlemetDetailsDto;
+			}
+			String uri = authoriserBaseUrl+"/applications/"+applicationId+"/entitlements"+"/"+entitlementName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<EntiltlemetDetailsDto> response = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, EntiltlemetDetailsDto.class);
+			if (response!=null && response.hasBody()) {
+                entiltlemetDetailsDto = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch Entitlement with displayName {} with error {} ", entitlementName, e.getMessage());
 		}
 		return entiltlemetDetailsDto;
     }
@@ -227,13 +256,37 @@ public class AuthoriserClient {
 		return response;
     }
 
+    public CreateRoleResponseDto  getRole(String roleId){
+        CreateRoleResponseDto roleResponseDto = new CreateRoleResponseDto();
+        try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return roleResponseDto;
+			}
+			String uri = authoriserBaseUrl+"/roles";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<CreateRoleResponseDto> response = proxyRestTemplate.exchange(uri+"/"+roleId, HttpMethod.GET,
+					requestEntity, CreateRoleResponseDto.class);
+			if (response!=null && response.hasBody()) {
+                roleResponseDto = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get Role with Name {} with error {} ", roleId, e.getMessage());
+		}
+		return roleResponseDto;
+    }
+    
     public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest){
         CreateRoleResponseDto roleResponseDto = new CreateRoleResponseDto();
 
         try {
 
 			String token = getToken();
-			System.out.println(token);
 			if(!Objects.nonNull(token)) {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				return roleResponseDto;
@@ -455,13 +508,22 @@ public class AuthoriserClient {
 	}
 
 
-	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId, String authToken){
 		try {
-			UserInfo userInfo = this.userStore.getUserInfo();
+			String token = "";
+			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
+				token = authToken;
+			}else {
+				token = getToken();
+				if(!Objects.nonNull(token)) {
+					log.error("Failed to fetch token to invoke fabric Apis");
+					return HttpStatus.INTERNAL_SERVER_ERROR;
+				}
+			}
 			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", "Bearer "+userInfo.getAuthToken());
+			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,

@@ -25,7 +25,6 @@ export interface ITagsFieldProps {
   placeholder?: string;
   showAllTagsOnFocus?: boolean;
   disableSelfTagAdd?: boolean;
-  isIgnorePath?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -246,9 +245,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldFocus = () => {
     this.setState({ isFocused: true });
-    if(this.props.showAllTagsOnFocus){
-      this.setState({filteredTags: this.props.tags})
-    }
+    this.props.showAllTagsOnFocus && this.setState({
+      filteredTags: [...this.props.tags],
+    });
   };
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {

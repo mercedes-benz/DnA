@@ -1,4 +1,4 @@
-schedule: <path:kv/data/dna/kubernetesSecret/vaultUnseal#schedule>
+schedule: <path:dna_kv/data/dev/kubernetesSecret/vaultUnseal#schedule>
 restartPolicy: OnFailure
 successfulJobsHistoryLimit: 1
 namespace: vault
@@ -8,8 +8,8 @@ image:
   pullPolicy: IfNotPresent
 envs:
   - name: VAULT_ADDR
-    value: <path:kv/data/dna/kubernetesSecret/vaultUnseal#address>
+    value: <path:dna_kv/data/dev/kubernetesSecret/vaultUnseal#address>
   - name: VAULT_TOKEN
-    value: <path:kv/data/dna/kubernetesSecret/vaultBackup#token>
+    value: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#token>
   - name: UNSEAL_KEYS
-    value: <path:kv/data/dna/kubernetesSecret/vaultUnseal#unsealKey1>
+    value: <path:dna_kv/data/dev/kubernetesSecret/vaultUnseal#unsealKey1>
