@@ -29,7 +29,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	ResponseEntity<FabricWorkspaceResponseVO>  createWorkspace(FabricWorkspaceVO vo);
 	
-	GenericMessage delete(String id);
+	GenericMessage delete(String id, boolean skipDeleteFabricWorkspace);
 
 	FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace);
 
@@ -48,7 +48,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList);
 	
-	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId);
+	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken);
 	
 	FabricWorkspaceStatusVO fixBugsInWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
 			String creatorId, String workspaceId);
@@ -63,8 +63,12 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GenericMessage createLakehouse(String id, @Valid FabricLakehouseCreateRequestVO createRequestVO);
 
 	GenericMessage createLakehouseS3Shortcut(String id, String lakehouseId,
-			@Valid ShortcutCreateRequestVO createRequestVO);
+			@Valid ShortcutCreateRequestVO createRequestVO, String email);
 
 	FabricShortcutsCollectionVO getLakehouseS3Shortcuts(String id, String lakehouseId);
+
+	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
+
+	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
 
 }

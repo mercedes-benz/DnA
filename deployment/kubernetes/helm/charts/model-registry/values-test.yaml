@@ -91,7 +91,6 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/staging
     vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
     vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
     vault.hashicorp.com/template-static-secret-render-interval: 10s

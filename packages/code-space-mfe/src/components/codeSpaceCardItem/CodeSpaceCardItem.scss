@@ -1,6 +1,6 @@
 .codeSpaceCard {
     background: #252a33;
-    width: calc(33% - 15px);
+    width: calc(25% - 15px);
     margin: 0 15px 15px 0;
     min-width: 250px;
     position: relative;
@@ -23,18 +23,21 @@
       .cardHeadInfo {
         width: 100%;
         padding: 0 20px;
-        margin-top: 35px;
+        margin-top: 25px;
         display: flex;
         .cardHeadTitle {
           font-size: var(--font-size-headline);
-          line-height: 23px;
           word-break: break-word;
           padding-right: 10px;
           padding-bottom: 5px;
           width: 100%;
           text-align: left;
+          display: flex;
           label, a {
             cursor: pointer;
+          }
+          a {
+            min-width: 24px !important;
           }
         }
   
@@ -74,6 +77,8 @@
       width: 90%;
       margin-left: auto;
       margin-right: auto;
+      margin-top: 13px;
+      margin-bottom: 13px;
     }
     .cardBodySection {
       padding: 15px 20px 20px 20px;
@@ -92,7 +97,7 @@
             margin-bottom: 10px;
           }
           > div:first-child {
-            flex: 1;
+            flex: 0.75;
             font-weight: bold;
             color: #697582;
             font-size: var(--font-size-small);
@@ -153,7 +158,7 @@
       font-size: var(--font-size-icon-small);
       letter-spacing: 1px;
       border-radius: 2px;
-      margin-right: 15px;
+      margin-right: 5px;
   
       &.wsStartStop {
         border: 1px solid #00adef;
@@ -219,7 +224,7 @@
     padding: 0 20px;
     margin-bottom: 10px;
     div:first-child {
-      margin: 7px 0px;
+      margin: 9px 0px;
     }
   }
   .btnGrp {
@@ -231,7 +236,7 @@
       border: 0;
       color: #99a5b3;
       float: right;
-      margin-left: 20px;
+      margin-left: 8px;
       outline: 0;
       padding: 0;
       &:hover {
@@ -264,6 +269,9 @@
     display: block;
     border-radius: 50%;
   }
+  .helpIcon{
+    font-size: 17px;
+  }
 
 
   .collapseIcon{
@@ -292,9 +300,9 @@
   }
   .OpenNewTab {
     display: inline-block;
-    height: 25px;
+    height: 23px;
     position: relative;
-    width: 25px;
+    width: 23px;
     border: 1px solid grey;
     vertical-align: middle;
     margin-left: 10px;
@@ -313,14 +321,40 @@
       text-decoration: none;
     }
     span {
-      width: 16px;
+      width: 15px;
       height: 1px;
       background-color: #c0c8d0;
       position: absolute;
       transform: rotate(314deg);
-      top: 14px;
+      top: 13px;
       left: 1px;
       text-decoration: none;
+    }
+  }
+
+  .manualStart { 
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 30px);
+    }
+  }
+
+  .modalContentWrapper {
+    margin-top: -20px;
+    font-size: var(--font-size-sub-headline);
+    .modalTitle {
+      margin-top: 0px;
+      text-align: center;
+    }
+    .modalContent {
+      margin-top: 20px;
+      font-size: var(--font-size-medium);
+  
+      p {
+        margin: 0 auto;
+        max-width: 650px;
+      }
     }
   }
   
@@ -338,4 +372,3 @@
       top: -2px;
     }
   }
-    

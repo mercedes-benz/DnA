@@ -41,15 +41,16 @@ public class RSAEncryptionUtil {
 
 	private static byte[] algorithmChoices = { Aes256CbcPkcs7, HMACSHA256 };
 	
-//	@Value("${fabricWorkspaces.gateway.encryption.publickey.modulus}")
+	@Value("${fabricWorkspaces.gateway.encryption.publickey.modulus}")
 	private String modulus;
 	
-//	@Value("${fabricWorkspaces.gateway.encryption.publickey.exponent}")
+	@Value("${fabricWorkspaces.gateway.encryption.publickey.exponent}")
 	private String exponent;
 	
-	public String encryptCredentialDetails(String credentialDataJsonString){
+	public String encryptCredentialDetails(String accessKey, String secretKey){
 		try {
-			byte[] plainTextBytes = "{\"credentialData\":[{\"name\":\"username\",\"value\":\"XXXX\"},{\"name\":\"password\",\"value\":\"XXXXX\"}]}".getBytes("UTF-8");
+			String connectionDetailsString = "{\"credentialData\":[{\"name\":\"username\",\"value\":\"" + accessKey + "\"},{\"name\":\"password\",\"value\":\"" + secretKey + "\"}]}";
+			byte[] plainTextBytes = connectionDetailsString.getBytes("UTF-8");
 			byte[] modulusBytes = Base64.getDecoder().decode(modulus);
 			byte[] exponentBytes = Base64.getDecoder().decode(exponent);
 			return Encrypt(plainTextBytes, modulusBytes, exponentBytes);

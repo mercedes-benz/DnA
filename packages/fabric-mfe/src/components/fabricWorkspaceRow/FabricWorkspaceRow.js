@@ -21,11 +21,16 @@ const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace
     <div className={Styles.projectRow} onClick={handleOpenWorkspace}>
       <div className={Styles.col1}>
         <span>
-          {workspace?.name}
+          {workspace?.name || 'null'}
         </span>
         {workspace?.status?.state === 'IN_PROGRESS' &&
           <button className={Styles.stateBtn} tooltip-data={'Click for more information'} onClick={(e) => { e.stopPropagation(); onSelectWorkspace(workspace) }}>
             <Spinner /> <span>&nbsp;</span>
+          </button>
+        }
+        {workspace?.status?.state === 'COMPLETED' && 
+          <button className={Styles.completedStatus}>
+            <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
           </button>
         }
       </div>

@@ -41,8 +41,7 @@ app:
         "vault.hashicorp.com/agent-inject-secret-minio": "dna_aws_kv/prod/minio/DEFAULT",
         "vault.hashicorp.com/agent-inject-template-minio": "{{{{ range secrets \"dna_aws_kv/prod/minio/\" }}}}{{{{ $str := \"{username}\" | toUpper}}}}{{{{- if (eq . $str) }}}}{{{{ with secret (printf \"dna_aws_kv/prod/minio/%s\" .) }}}}{{{{ range $k, $v := .Data.data  }}}}export MINIO_ACCESS_KEY=\"{{{{ $k }}}}\"\nexport MINIO_SECRET_KEY=\"{{{{ $v }}}}\"{{{{ end }}}}{{{{ end }}}}{{{{- end }}}}{{{{ end }}}}",
         "vault.hashicorp.com/agent-pre-populate-only": "true",
-        "vault.hashicorp.com/role": "dna",
-        "vault.hashicorp.com/namespace": "fmas/prod",
+        "vault.hashicorp.com/role": "dna_prod_k8_role",
         "vault.hashicorp.com/tls-skip-verify": "true",
         "traffic.sidecar.istio.io/excludeOutboundPorts": "443"
         }
