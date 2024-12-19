@@ -17,6 +17,7 @@ import FabricWorkspaceRow from '../../components/fabricWorkspaceRow/FabricWorksp
 import FabricWorkspaceForm from '../../components/fabricWorkspaceForm/FabricWorkspaceForm';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import RequestWorkspace from '../../components/requestWorkspace/RequestWorkspace';
+import { Envs } from '../../utilities/envs';
 
 const FabricWorkspaces = ({user}) => {
   const dispatch = useDispatch();
@@ -111,17 +112,17 @@ const FabricWorkspaces = ({user}) => {
         .getFabricWorkspaces(currentPageOffset, maxItemsPerPage)
         .then((res) => {
           if(res.status !== 204) {
-            const sortedProjects = res?.data?.records.sort((x, y) => {
-                let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
-                if (fx < fy) {
-                    return -1;
-                }
-                if (fx > fy) {
-                    return 1;
-                }
-                return 0;
-            });
-            setWorkspaces(sortedProjects);
+            // const sortedProjects = res?.data?.records.sort((x, y) => {
+            //     let fx = x.name.toLowerCase(), fy = y.name.toLowerCase();
+            //     if (fx < fy) {
+            //         return -1;
+            //     }
+            //     if (fx > fy) {
+            //         return 1;
+            //     }
+            //     return 0;
+            // });
+            setWorkspaces(res?.data?.records);
             const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -146,6 +147,11 @@ const FabricWorkspaces = ({user}) => {
       <div className={classNames(Styles.mainPanel)}>
         <Caption title="Fabric Workspaces">
           <div className={classNames(Styles.listHeader)}>
+            <div>
+              <button className={classNames('btn btn-primary', Styles.trackRequestLink)} onClick={() => window.open(Envs.ALICE_URL)}>
+                <i className="icon mbc-icon new-tab"></i> Track your requests
+              </button>
+            </div>
             <div>
               <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspaces}>
                 <i className="icon mbc-icon refresh"></i>

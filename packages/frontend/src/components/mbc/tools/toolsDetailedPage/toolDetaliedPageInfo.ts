@@ -1,5 +1,3 @@
-import { Envs } from "globals/Envs";
-
 export const ToolsDetailedPageElements = [
   {
     "id": "dataikuDSS",
@@ -15,66 +13,53 @@ export const ToolsDetailedPageElements = [
         "description": "eg: bring your excel files into a common format"
       },
       {
-        "icon": "dataAnalysis",
-        "title": "Data Analysis",
-        "description": "Identify patterns in your data through exploration and visualization"
-      },
-      {
         "icon": "machineLearning",
         "title": "Machine Learning",
         "description": "Build predictive Models with your data and share the results with others"
       }
     ],
     "toolPipeLine": {
-      "description": ["Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."],
+      "description": ["With Dataiku you can ingest large amounts of data, clean it up and prepare it for large-scale analyses and ML use cases. You can automate the preparation process by scheduling it or triggering it through events. Dataiku is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are clean, join, transform and enrich datasets for analytics and ML use cases."],
       "connectedTO": [
         {
-          "title": "SAC",
+          "title": "SAP ERPs",
           "icon": "sac",
           "url": "url"
+        },
+        {
+          "title": "Cloud Data Sources",
+          "icon": "afo",
+          "url": "url"
+        },
+        {
+          "title": "On-prem Data Sources",
+          "icon": "data",
+          "url": "url"
         }
+
       ]
     },
     "info": [
       {
         "icon": "doc",
         "name": "Documentation",
-        "description": "Explore all documented information about Dataiku",
+        "description": "Explore all documented information",
         "links": [
           {
-            "title": "GitHub",
-            "link": "https://github.com"
+            "title": "Dataiku SI Page",
+            "link": "YOUR_URL"
           },
           {
-            "title": "confluence",
-            "link": "Link"
+            "title": "Get onboarded",
+            "link": "YOUR_URL"
           },
           {
-            "title": "wiki",
-            "link": "link"
+            "title": "Usefull links ",
+            "link": "YOUR_URL"
           },
           {
-            "title": "Dataiku S1 Page",
-            "link": "link"
-          }
-        ]
-      },
-      {
-        "icon": "tem",
-        "name": "Templates",
-        "description": "Download templates created in-line with our company standards to get started in an instant",
-        "links": [
-          {
-            "title": "Dataiku Template(S1 Page)",
-            "link": "link"
-          },
-          {
-            "title": "How to import templates",
-            "link": "link"
-          },
-          {
-            "title": "Give FeedBack",
-            "link": "link"
+            "title": "Terms of Use (cloud)",
+            "link": "YOUR_URL"
           }
         ]
       },
@@ -84,37 +69,35 @@ export const ToolsDetailedPageElements = [
         "description": "Get tailor-made trainings from experts to master this tool with ease",
         "links": [
           {
-            "title": "Dataiku Trainings Overview (S1 Page)",
-            "link": "link"
+            "title": "Dataiku Academy",
+            "link": "https://academy.dataiku.com/"
           },
           {
-            "title": "Linkedin Learing Playlist",
-            "link": "link"
-          },
-          {
-            "title": "Udemy Playlist",
-            "link": "link"
-          },
-          {
-            "title": "Helpful Links",
-            "link": "link"
+            "title": "Try it out on our free training environment",
+            "link": "YOUR_URL"
           }
         ]
+      },
+      {
+        "icon": "tem",
+        "name": "Costs",
+        "description": " Get familiar with the costs.",
+        "info":["Dataiku reader: cost-free​" ,"Dataiku visual designer: 2700 EUR user/year​","Dataiku designer: 5100 EUR user/year"]
       }
     ],
     "classification": "Confidential",
     "accessSteps": [
       {
         "id": "Step 1",
-        "info": "yet to be given"
+        "info": "If you are not onboarded already follow: **[YOUR_URL](YOUR_URL)**"
       },
       {
         "id": "Step 2",
-        "info": "yet to be given"
+        "info": "Create new Dataiku project (on-prem or cloud) via your application **[YOUR_URL](YOUR_URL)** "
       },
       {
         "id": "Step 3",
-        "info": "yet to be given"
+        "info": "Open Dataiku project via link in your application"
       }
     ]
   },
@@ -201,7 +184,7 @@ export const ToolsDetailedPageElements = [
         "icon": "tem",
         "name": "Costs",
         "description" : "Get familiar with the costs",
-        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 6.70 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
+        "info":["Power BI Desktop RS installation: cost-free (IT-Shop)" ," Azure Power BI Pro licence (for publisher): monthly costs of 5.25 EUR (IT Shop)","Azure PowerBI Free licence (for reader): cost-free (IT Shop)"]
       }
     ],
     "classification" : "Confidential",
@@ -318,7 +301,7 @@ export const ToolsDetailedPageElements = [
         "icon": "tem",
         "name": "Costs",
         "description" : "Get familiar with the costs",
-        "info":["Microsoft Fabric infrastructure and storage: Pay-as-you-use "," Microsoft Fabric operation costs: 4.500 EUR per year (tentative) ","Power BI Desktop RS: cost-free (IT-Shop)"," Azure PowerBI Free licence (viewer): cost-free (IT-Shop) ", "Azure Power BI Pro licence (developer): 6.70 EUR user/month (IT-Shop)"]
+        "info":["Microsoft Fabric infrastructure and storage: Pay-as-you-use "," Microsoft Fabric operation costs ","Power BI Desktop RS: cost-free (IT-Shop)"," Azure PowerBI Free licence (viewer): cost-free (IT-Shop) ", "Azure Power BI Pro licence (developer): 5.25 EUR user/month (IT-Shop)"]
       }
     ],
     "classification" : "Confidential",
@@ -353,38 +336,38 @@ export const ToolsDetailedPageElements = [
         "links": [
           {
             "title": "PL-900: Microsoft Power Platform Fundamentals (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/pl-900-microsoft-power-platform-fundamentals-r/`
+            "link": `UDEMY_URL/course/pl-900-microsoft-power-platform-fundamentals-r/`
           },
           {
             "title": "Power Apps - Complete Guide to Microsoft PowerApps",
-            "link": `${Envs.UDEMY_URL}course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
+            "link": `UDEMY_URL/course/complete-guide-to-microsoft-powerapps-basic-to-advanced/`
           },
           {
             "title": "Build Solutions with Power Apps, Power Automate & SharePoint (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/build-solutions-with-power-platform/`
+            "link": `UDEMY_URL/course/build-solutions-with-power-platform/`
           },
           {
             "title": "PL-200: The follow-up Power Platform course to the PL-100 (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/pl-200-microsoft-power-platform-functional-consultant-course/`
+            "link": `UDEMY_URL/course/pl-200-microsoft-power-platform-functional-consultant-course/`
           },
           {
             "title": "Microsoft Power Automate for Power Apps developers (udemy.com)",
-            "link": `${Envs.UDEMY_URL}course/microsoft-power-automate-for-power-apps-developers/`
+            "link": `UDEMY_URL/course/microsoft-power-automate-for-power-apps-developers/`
           }
         ]
       },
       {
         "icon": "profile",
         "name": "support",
-        "info": ["Feel free to reach out for more information and personal support by team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
+        "info": ["Feel free to reach out for more information and personal support by our team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
         "links": [
           {
             "title": "Contact Email",
-            "link": `${Envs.POWER_PLATFORM_SUPPORT_EMAIL}`
+            "link": "YOUR_URL"
           },
           {
             "title": "Social Intranet Page",
-            "link": `${Envs.POWER_PLATFORM_SOCIAL_INTRANET_URL}`
+            "link": "YOUR_URL"
           },
         ]
       },
@@ -405,7 +388,7 @@ export const ToolsDetailedPageElements = [
         "name": "Terms Of Service",
         "isInfoIcon": "true",
         "moreBtn": true,
-        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by [Your Company Name]. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
+        "info":[`Welcome to the "Power Platform Shared Account" service (the "Service"), provided by Team. Our Service offers a streamlined solution for customers to request and manage environments and licenses necessary for developing on the Power Platform. this innovative service is designed to facilitate your access to a suite of development tools, enabling you to create, collaborate, and deploy applications efficiently.`]
       }
     ]
   }

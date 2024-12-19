@@ -1,7 +1,7 @@
 package com.daimler.data.controller;
 
-import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,16 +26,19 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.fabricWorkspace.*;
+import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 
 import io.swagger.annotations.Api;
@@ -101,9 +104,19 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
 		}
+		workspaceRequestVO.setName(workspaceRequestVO.getName().trim());
 		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && "Admin monitoring".equalsIgnoreCase(workspaceRequestVO.getName())) {
 			log.error("Fabric workspace project name cannot be Admin monitoring, cannot use reserve keyword. Please send valid input");
 			MessageDescription invalidMsg = new MessageDescription("Fabric workspace project name cannot be Admin monitoring, cannot use reserve keyword. Please send valid input");
+			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(workspaceRequestVO);
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		}
+		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && workspaceRequestVO.getName().matches(".*[^a-zA-Z0-9-_].*")) {
+			log.error("Fabric workspace project name {} may only consist of letters, numbers, hyphens, or an underscore. Please send valid input",workspaceRequestVO.getName());
+			MessageDescription invalidMsg = new MessageDescription("Fabric workspace project may only consist of letters, numbers, hyphens, or an underscore. Please send valid input");
 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
 			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(workspaceRequestVO);
@@ -159,7 +172,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage deleteResponse = service.delete(id);
+			GenericMessage deleteResponse = service.delete(id,false);
 			if(deleteResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
 					return new ResponseEntity<>(deleteResponse, HttpStatus.OK);
@@ -284,6 +297,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     public ResponseEntity<FabricShortcutsCollectionVO> getLakehouseS3Shortcut(@ApiParam(value = "Workspace ID",required=true) @PathVariable("id") String id,
     		@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("lakehouseId") String lakehouseId){
 		FabricShortcutsCollectionVO response = service.getLakehouseS3Shortcuts(id,lakehouseId);
+		if(response!=null && response.getTotalCount() == 0) {
+			return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
     }
 	
@@ -314,7 +330,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage createLakehouseS3ShortcutResponse = service.createLakehouseS3Shortcut(id,lakehouseId,createRequestVO);
+			String email = requestUser.getEmail();
+			GenericMessage createLakehouseS3ShortcutResponse = service.createLakehouseS3Shortcut(id,lakehouseId,createRequestVO,email);
 			if(createLakehouseS3ShortcutResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(createLakehouseS3ShortcutResponse.getSuccess())) {
 					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.OK);
@@ -360,7 +377,25 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage createLakehouseS3ShortcutResponse = new GenericMessage(); //service.deleteLakehouseS3Shortcut(id,lakehouseId,shortcutId);
+			String path = "";
+			boolean isPresent = false;
+			FabricShortcutsCollectionVO response = service.getLakehouseS3Shortcuts(id,lakehouseId);
+			if(response!=null && response.getRecords()!= null && !response.getRecords().isEmpty()) {
+				List<ShortcutVO> records = response.getRecords();
+				if(records!=null && !records.isEmpty()){
+					for(ShortcutVO record : records) {
+						if(record!=null && record.getName()!=null && record.getName().equalsIgnoreCase(shortcutId)) {
+							isPresent = true;
+							path = record.getPath() != null ? record.getPath() : "/Files";
+						}
+					}
+				}
+			}
+			if(!isPresent) {
+				log.warn("No Shortcut {} found with workspace id {} and lakehouse {}", shortcutId, id, lakehouseId);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
+			GenericMessage createLakehouseS3ShortcutResponse = service.deleteLakehouseS3Shortcut(id,lakehouseId,path+"/"+shortcutId);
 			if(createLakehouseS3ShortcutResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(createLakehouseS3ShortcutResponse.getSuccess())) {
 					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.OK);
@@ -368,13 +403,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					return new ResponseEntity<>(createLakehouseS3ShortcutResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}else {
-				GenericMessage response = new GenericMessage();
-				response.setSuccess("FAILED");
+				GenericMessage errResponse = new GenericMessage();
+				errResponse.setSuccess("FAILED");
 				List<MessageDescription> errors = new ArrayList<>();
 				MessageDescription errMsg = new MessageDescription("");
 				errors.add(errMsg);
-				response.setErrors(errors);
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+				errResponse.setErrors(errors);
+				return new ResponseEntity<>(errResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		}
     }
@@ -432,16 +467,21 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     		@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
     	FabricWorkspacesCollectionVO collection = new FabricWorkspacesCollectionVO();
 		int defaultLimit = 15;
+		String user = "";
+		List<String> allEntitlementsList = new ArrayList<>();
 		if (offset == null || offset < 0)
 			offset = 0;
-		if (limit == null || limit < 0) {
+		if (limit == null || limit < 0) 
 			limit = defaultLimit;
-		}
+		
+		
+		if(this.userStore.getUserInfo() ==null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) 
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			
 		CreatedByVO requestUser = this.userStore.getVO();
-		UserInfo userInfo = this.userStore.getUserInfo();
-		String user = requestUser.getId();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
-		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
+		allEntitlementsList =  currentUserInfo.getEntitlement_group();
+		user = requestUser.getId();
 		collection = service.getAll(limit, offset, user, allEntitlementsList);
 		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
 		return new ResponseEntity<>(collection, responseCode);
@@ -473,7 +513,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
 		List<String> filteredEntitlements = new ArrayList<>();
 		if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix + id + "_")).collect(Collectors.toList());
+			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 		if(!requestUser.getId().equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty())) {
@@ -585,6 +625,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
+
 	@Override
 	@ApiOperation(value = "request a  fabric workspace role for a user.", nickname = "requestRole", notes = "request a  fabric workspace role for a user.", response = GenericMessage.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
@@ -603,6 +644,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		UserInfo userInfo = this.userStore.getUserInfo();
+		String authToken = userInfo.getAuthToken();
 		try{
 
 			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
@@ -635,7 +677,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
 					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 				}
-				response = service.requestRoles(roleRequestVO,userInfo.getId());
+				response = service.requestRoles(roleRequestVO,userInfo.getId(),authToken);
 				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
 				return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -652,6 +694,48 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		
+	}
+
+	@Override
+	@ApiOperation(value = "create new role from dna application.", nickname = "createRole", notes = "create new role from dna application.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/createrole",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> createRole(@ApiParam(value = "Request Body that contains data required for requesting a workspace role" ,required=true )  @Valid @RequestBody CreateRoleRequestVO roleRequestVO){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		try{
+
+			response = service.createGenericRole(roleRequestVO,userInfo.getId());
+			if("SUCCESS".equalsIgnoreCase(response.getSuccess())){
+				log.info("Sucessfully created role for  user {}",userInfo.getId());
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else if("CONFLICT".equalsIgnoreCase(response.getSuccess())){
+				log.info(" Role Already Exists.");
+				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+			}else{
+				errors.add(new MessageDescription("Failed to create roles with error"));
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		}catch(Exception e){
+			errors.add(new MessageDescription("Failed to create roles for the user  with exception " + e.getMessage()));
+			response.setErrors(errors);
+			response.setWarnings(warnings);
+			response.setSuccess("FAILED");
+			log.error("Failed to create role with exception {} ",e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
     

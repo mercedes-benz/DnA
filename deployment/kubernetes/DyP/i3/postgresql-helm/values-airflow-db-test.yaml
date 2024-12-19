@@ -206,7 +206,6 @@ dbusers:
   dbadm:
     username: airflow
     password: <path:dna_aws_kv/data/staging/kubernetesSecret/airflowdb#dbadm.password>
-
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false

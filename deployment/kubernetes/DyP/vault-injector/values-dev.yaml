@@ -138,10 +138,6 @@ injector:
   # Mount Path of the Vault Kubernetes Auth Method.
   authPath: "auth/k8_auth_dna_aws_dev"
 
-  # Configures the log verbosity of the injector.
-  # Supported log levels include: trace, debug, info, warn, error
-  logLevel: "info"
-
   # Configures the log format of the injector. Supported log formats: "standard", "json".
   logFormat: "standard"
 
@@ -721,7 +717,6 @@ server:
     #     PreferDualStack: Allocates IPv4 and IPv6 cluster IPs for the Service.
     #     RequireDualStack: Allocates Service .spec.ClusterIPs from both IPv4 and IPv6 address ranges.
     ipFamilyPolicy: ""
-
     # Sets the families that should be supported and the order in which they should be applied to ClusterIP as well.
     # Can be IPv4 and/or IPv6.
     ipFamilies: []

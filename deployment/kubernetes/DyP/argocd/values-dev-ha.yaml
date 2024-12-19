@@ -1157,6 +1157,7 @@ dex:
   # -- Environment variables to pass to the Dex server
   env: []
 
+
   # -- envFrom to pass to the Dex server
   # @default -- `[]` (See [values.yaml])
   envFrom: []
