@@ -3,7 +3,7 @@ namespace: dev-dna-chronos
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-be
   pullPolicy: IfNotPresent
-  tag: '352'
+  tag: '981'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
