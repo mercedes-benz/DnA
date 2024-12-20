@@ -9,11 +9,11 @@ prometheus:
     securityContext:
       runAsUser: 65534
       runAsNonRoot: true
-  configmapReload:
-    prometheus:
+    configmapReload:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
-    alertmanager:
+  configmapReload:
+    prometheus:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
   initChownData:
@@ -36,7 +36,7 @@ prometheus:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
       # Limit persistent data size (experimental)
-      storage.tsdb.retention.size: "4GB"
+      storage.tsdb.retention.size: "6GB"
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
@@ -68,7 +68,7 @@ prometheus:
     sidecarContainers:
       reloadAlerts:
         name: reload-alerts
-        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:0.1.151"
+        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:1.26.1"
         imagePullPolicy: IfNotPresent
         env:
           - name: METHOD
@@ -125,11 +125,9 @@ prometheus:
 # Adjust values of grafana Chart to run in DHC CaaS
 grafana:
   enabled: true
-  # See values of upstream chart for details: https://github.com/grafana/helm-charts/tree/main/charts/grafana
-  image:
-    registry: registry-emea.app.corpintra.net
-    repository: dockerhub/grafana/grafana
-    pullSecrets: []
+  global:
+    # -- Overrides the Docker registry globally for all images
+    imageRegistry: registry-emea.app.corpintra.net/dockerhub
 
   ingress:
     enabled: false
@@ -154,9 +152,6 @@ grafana:
   # Enable dashboard sidecar
   # Grafana will watch configmaps and secrets inside the same namespace with the matching label
   sidecar:
-    image:
-      registry: registry-emea.app.corpintra.net
-      repository: dockerhub/kiwigrid/k8s-sidecar
     dashboards:
       enabled: true
       label: grafana_dashboard
@@ -201,7 +196,7 @@ grafana:
   # Provide plugins via initContainer
   extraInitContainers:
   - name: init-plugins
-    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:6.1.0
+    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:6.3.1
     command: ['sh', '-c', 'cp -R /configs/grafana/plugins/. /grafana-plugins/']
     volumeMounts:
     - name: init-plugins
@@ -273,19 +268,4 @@ i3-alerts:
   enabled: true
 
 i3-dashboards:
-  enabled: true
-prom2teams:
-  enabled: true
-  image:
-    repository: registry-emea.app.corpintra.net/dnaplatform/idealista/prom2teams
-    tag: 4.2.1
-    pullPolicy: IfNotPresent
-  prom2teams:
-    connector: 
-    connectors: {}
-    # group_alerts_by can be one of
-    # ("name" | "description" | "instance" | "severity" | "status" | "summary" | "fingerprint" | "runbook_url")
-    group_alerts_by:
-    # loglevel can be one of (DEBUG | INFO | WARNING | ERROR | CRITICAL)
-    loglevel: INFO
-    extraEnv: {}
+  enabled: false

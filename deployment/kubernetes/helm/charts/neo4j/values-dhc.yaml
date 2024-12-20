@@ -83,7 +83,7 @@ volumes:
     # Only used if mode is set to "selector"
     # Will attach to existing volumes that match the selector
     selector:
-      storageClassName: "cinder-retain"
+      storageClassName: "dhc-gp3-retain"
       accessModes:
         - ReadWriteOnce
       requests:
@@ -105,7 +105,7 @@ volumes:
     # Only used if mode is set to "dynamic"
     # Dynamic provisioning using the provided storageClass
     dynamic:
-      storageClassName: "cinder-retain"
+      storageClassName: "dhc-gp3-retain"
       accessModes:
         - ReadWriteOnce
       requests:

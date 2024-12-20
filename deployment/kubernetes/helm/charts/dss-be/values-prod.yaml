@@ -8,7 +8,7 @@ image:
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-be
-namespace: dss
+namespace: prod-dna-dss
 serviceAccount:
   create: false
   annotations: {}
@@ -29,7 +29,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: api.dss.dna.app.corpintra.net
@@ -53,13 +53,12 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_prod_k8_role'
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/prod/kubernetesSecret/dssService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/prod/kubernetesSecret/dssService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/dssService" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/dssService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}

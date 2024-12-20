@@ -1,9 +1,9 @@
 replicaCount: 1
-namespace: kong
+namespace: test-dna-kong
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/authenticator-service
   pullPolicy: IfNotPresent
-  tag: '137'
+  tag: '957'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -14,15 +14,15 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: "dna_staging_k8_role"
+  vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
   vault.hashicorp.com/tls-skip-verify: 'true'
   vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
   vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
   vault.hashicorp.com/template-static-secret-render-interval: 10s
   vault.hashicorp.com/agent-pre-populate-only: 'false'
-  vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/staging/kubernetesSecret/authenticatorService
+  vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/staging/kubernetesSecret/authenticatorService
   vault.hashicorp.com/agent-inject-template-envvar: |
-    {{- with secret "dna_kv/staging/kubernetesSecret/authenticatorService" -}}
+    {{- with secret "dna_aws_kv/staging/kubernetesSecret/authenticatorService" -}}
       {{- range $k, $v := .Data.data }}
           export {{ $k }}="{{ $v }}"
       {{- end }}
@@ -37,10 +37,10 @@ ingress:
   enabled: false
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
   hosts:
     - host: api.auth.test.dna.app.corpintra.net
       paths:

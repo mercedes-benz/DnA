@@ -1,6 +1,6 @@
 namespace: trino
 annotations:
-  argocdvault: "dna_kv/data/prod/kubernetesSecret/hivedb"
+  argocdvault: "dna_aws_kv/data/prod/kubernetesSecret/hivedb"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -86,13 +86,13 @@ DBName: hive
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_kv/data/prod/kubernetesSecret/hivedb#accesskey>
+  accesskey: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_kv/data/prod/kubernetesSecret/hivedb#secretkey>
+  secretkey: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_kv/data/prod/kubernetesSecret/hivedb#s3.host>
+  host: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -146,7 +146,7 @@ walArchiving:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/prod/kubernetesSecret/hivedb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,11 +201,11 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_kv/data/prod/kubernetesSecret/hivedb#backup.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#backup.password>
   ## the database (not the instance) owner
   dbadm:
     username: hive
-    password: <path:dna_kv/data/prod/kubernetesSecret/hivedb#dbadm.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
@@ -213,20 +213,20 @@ dbusers:
       # name: customschema
   ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_kv/data/prod/kubernetesSecret/hivedb#patroni.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_kv/data/prod/kubernetesSecret/hivedb#pgmon.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_kv/data/prod/kubernetesSecret/hivedb#debezium.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_kv/data/prod/kubernetesSecret/hivedb#dataCatalog.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -243,13 +243,13 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_kv/data/prod/kubernetesSecret/hivedb#size>
-  # storageClass: cinder
+  size: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#size>
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -301,15 +301,15 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/prod/kubernetesSecret/hivedb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#bucketName>
   ## general configuration for backup
   schedule: "1 0 * * *"
-  retention: <path:dna_kv/data/prod/kubernetesSecret/hivedb#retention>
+  retention: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -333,7 +333,7 @@ backup:
     ## recommended
     enabled: true
     size: 15Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
   file:
     name: hive-backup
     # label: test
@@ -391,7 +391,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_kv/data/prod/kubernetesSecret/hivedb#init-db>
+  script: <path:dna_aws_kv/data/prod/kubernetesSecret/hivedb#init-db>
 
 test:
   enabled: true

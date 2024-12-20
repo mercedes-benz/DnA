@@ -32,6 +32,9 @@ spec:
   - name: {{ .Values.service.transportPortName | default "transport" }}
     protocol: TCP
     port: {{ .Values.transportPort }}
+  - name: {{ .Values.service.metricsPortName | default "metrics" }}
+    protocol: TCP
+    port: {{ .Values.metricsPort }}
 {{- if .Values.service.loadBalancerIP }}
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}
 {{- end }}

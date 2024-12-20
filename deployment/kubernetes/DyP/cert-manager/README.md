@@ -6,7 +6,7 @@ TLS certificates from various issuing sources.
 It will ensure certificates are valid and up to date periodically, and attempt
 to renew certificates at an appropriate time before expiry.
 
-[daimler-acme](https://git.i.mercedes-benz.com/DHC/CaaS/blob/master/technical-docs/ingress/traefik-tls.md)
+[mercedes-benz-acme](https://git.i.mercedes-benz.com/DHC/CaaS/blob/master/technical-docs/ingress/traefik-tls.md)
 
 ## Prerequisites
 

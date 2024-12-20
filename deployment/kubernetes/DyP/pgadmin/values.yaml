@@ -103,7 +103,7 @@ networkPolicy:
 ingress:
   enabled: true
   annotations: 
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     kubernetes.io/ingress.class: traefik
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure

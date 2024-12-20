@@ -327,7 +327,7 @@ ingress:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme   
+      cert-manager.io/cluster-issuer: mercedes-benz-acme   
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
   hosts:
     - host: <path:dna_kv/data/dev/kubernetesSecret/openmetadata#domain>

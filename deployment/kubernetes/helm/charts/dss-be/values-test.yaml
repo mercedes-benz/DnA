@@ -8,7 +8,7 @@ image:
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: dss-be
-namespace: dss
+namespace: test-dna-dss
 serviceAccount:
   create: false
   annotations: {}
@@ -29,7 +29,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: api.dss.test.dna.app.corpintra.net
@@ -53,15 +53,15 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_staging_k8_role"
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
     vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/staging/kubernetesSecret/dssService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/staging/kubernetesSecret/dssService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/dssService" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/dssService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}

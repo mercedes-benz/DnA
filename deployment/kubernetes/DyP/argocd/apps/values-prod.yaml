@@ -1,10 +1,14 @@
-repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
 server: "https://kubernetes.default.svc"
 # Environment to deploy it  (dev|test|prod)
 env: prod
-branch: main
+branch: migration/aws-prod
 namespace: argocd
+repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
 enableSync: true
+gitRepo:
+  username: <path:dna_aws_kv/data/prod/kubernetesSecret/argocd#username | base64encode>
+  password: <path:dna_aws_kv/data/prod/kubernetesSecret/argocd#password | base64encode>
+
 annotations: 
   notifications.argoproj.io/subscribe.on-created.teams: channelName
   notifications.argoproj.io/subscribe.on-deleted.teams: channelName
@@ -14,30 +18,15 @@ annotations:
   notifications.argoproj.io/subscribe.on-sync-running.teams: channelName
   notifications.argoproj.io/subscribe.on-sync-status-unknown.teams: channelName
   notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
-gitRepo:
-  username: <path:dna_kv/data/prod/kubernetesSecret/argocd#username | base64encode>
-  password: <path:dna_kv/data/prod/kubernetesSecret/argocd#password | base64encode>
-
+  argocd.argoproj.io/manifest-generate-paths: .
 repositories:
-  # - name: chronos-frontend
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-chronos-frontend.git  
-  # - name: dna-dataproduct-frontend
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-dataproduct-frontend.git  
-  # - name: dna-frontend
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-frontend.git
-  # - name: dna-trino
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-trino.git  
-  - name: dna-model-registry
-    url: https://git.i.mercedes-benz.com/DNA/dna-model-registry.git      
-  # - name: dss-be
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-dss-backend.git
-  # - name: dna-codeserver-backend
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-codeserver-backend.git    
   - name: dna-kong
-    url: https://git.i.mercedes-benz.com/DNA/dna-kong.git  
-  - name: prompt-craft
-    url: https://git.i.mercedes-benz.com/DNA/prompt-craft.git
-  # - name: matomo-mfe
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-matomo-frontend.git  
-  # - name: dataentry-backend
-  #   url: https://git.i.mercedes-benz.com/DNA/dna-dataentry-backend.git
+    url: https://git.i.mercedes-benz.com/DNA/dna-kong.git
+    
+  ### Adding BAT Project repos
+  - name: bat-helm-charts
+    url: https://git.i.mercedes-benz.com/BAT/bat-helm-charts.git
+  - name: bat-infra
+    url: https://git.i.mercedes-benz.com/BAT/bat-infra.git
+  - name: bat-i3-postgresql
+    url: https://git.i.mercedes-benz.com/i3/i3-postgresql.git

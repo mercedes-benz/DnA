@@ -633,7 +633,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 										LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-
 										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings(),cloudServiceProvider);
 										//deleteing jwy issuer plugin if any
 										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);

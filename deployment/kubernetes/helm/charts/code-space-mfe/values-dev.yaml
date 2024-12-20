@@ -1,8 +1,8 @@
-namespace: code-server
+namespace: dev-dna-cs-workspaces
 configJs: |
   window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
-    CONTAINER_APP_URL: "https://dev.dna.app.corpintra.net",
-    API_BASEURL: "https://dev.dna.app.corpintra.net/api",
+    CONTAINER_APP_URL: "https://dna-aws.app.corpintra.net",
+    API_BASEURL: "https://dna-aws.app.corpintra.net/api",
     CODE_SPACE_API_BASEURL: "",
   };
 replicaCount: 1
@@ -14,7 +14,7 @@ image:
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
-fullnameOverride: codespace-mfe
+fullnameOverride: cs-mfe
 podSecurityContext:
   runAsUser: 1001
 containerPort: 4000
@@ -25,20 +25,20 @@ ingress:
   enabled: true
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: cs.dev.dna.app.corpintra.net
+    - host: onepc.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - cs.dev.dna.app.corpintra.net
-      secretName: code-space-tls-secret
+        - onepc.dna-aws.app.corpintra.net
+      secretName: cs-mfe-tls
 resources:
   limits:
     cpu: 100m
@@ -50,16 +50,16 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_dev_k8_role
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
+    vault.hashicorp.com/tls-skip-verify: 'true'  
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/dev/kubernetesSecret/codeSpaceMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/dev/kubernetesSecret/codeSpaceMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/codeSpaceMFE" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/codeSpaceMFE" -}}
           window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

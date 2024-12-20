@@ -13,7 +13,7 @@ deployment:
           protocol: TCP
   daemonset: false
   hostNetwork: false
-namespace: kong
+namespace: prod-dna-kong
 env:
   database: postgres
   pg_port: '64000'
@@ -104,7 +104,7 @@ admin:
     tls: kfp-serving-secret
     hostname: serving.kfp.dna.app.corpintra.net
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
@@ -165,7 +165,7 @@ proxy:
     tls: kfp-serving-secret
     hostname: serving.kfp.dna.app.corpintra.net
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
@@ -377,7 +377,7 @@ manager:
     tls: kfp-serving-secret-manager
     hostname: manager.serving.kfp.dna.app.corpintra.net
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
@@ -452,21 +452,21 @@ extraConfigMaps: []
 extraSecrets: []
 kongSettings:
   - key: postgres.host
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#host>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#host>
   - key: postgres.port
     value: '64000'
   - key: postgres.user
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#user>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#user>
   - key: postgres.password
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#password>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#password>
   - key: postgres.db
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#dbname>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#dbname>
   - key: postgres.schema
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#schema>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#schema>
   - key: ONEAPI_GATEWAY_KEY
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#oneapi.key>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#oneapi.key>
   - key: ONEAPI_GATEWAY_SECRET
-    value: <path:dna_kv/data/prod/kubernetesSecret/kong#oneapi.secret>
+    value: <path:dna_aws_kv/data/prod/kubernetesSecret/kong#oneapi.secret>
 extraIngress:
   enabled: true
   hosts:
@@ -637,7 +637,7 @@ konga:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     hosts:
       - host: konga.dna.app.corpintra.net
@@ -658,7 +658,7 @@ konga:
               "node_id": "http://dna-kong-gw-kong-admin:8001",
               "admin": true,
               "active" : true,
-              "password": "<path:dna_kv/data/prod/kubernetesSecret/kong#konga.password>"
+              "password": "<path:dna_aws_kv/data/prod/kubernetesSecret/kong#konga.password>"
           }
       ]
   kong_node_data: |

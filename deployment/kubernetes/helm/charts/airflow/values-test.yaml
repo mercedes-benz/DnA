@@ -1,5 +1,5 @@
 appName: airflow
-namespace: airflow
+namespace: test-dna-airflow
 imagePullSecret:
   name: imagepullsecret
 backend:
@@ -47,7 +47,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 airflow:
   ingress:
@@ -58,20 +58,20 @@ airflow:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-pullSecretData: <path:dna_kv/data/staging/kubernetesSecret/airflow#pullSecretData>
+pullSecretData: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#pullSecretData>
 secret:
-  gitUserName: <path:dna_kv/data/staging/kubernetesSecret/airflow#gitUserName>
-  gitPassword: <path:dna_kv/data/staging/kubernetesSecret/airflow#gitPassword>
+  gitUserName: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#gitUserName>
+  gitPassword: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#gitPassword>
   knownHosts: ''
   postgresql:
-    sqlAlchemyConn: <path:dna_kv/data/staging/kubernetesSecret/airflow#sqlAlchemyConn>
-    sqlAlchemyConnEn: <path:dna_kv/data/staging/kubernetesSecret/airflow#sqlAlchemyConn | base64encode>
-  clientSecret: <path:dna_kv/data/staging/kubernetesSecret/airflow#clientSecret | base64encode>
+    sqlAlchemyConn: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#sqlAlchemyConn>
+    sqlAlchemyConnEn: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#sqlAlchemyConn | base64encode>
+  clientSecret: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#clientSecret | base64encode>
 gitSync:
   image: registry-emea.app.corpintra.net/dnaplatform/git-sync:3.3.2
-  repo: <path:dna_kv/data/staging/kubernetesSecret/airflow#repo>
+  repo: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#repo>
   dest: git-sync
   branch: test
   ssh: 'false'
@@ -109,7 +109,7 @@ configuration:
     workerTimeout: 120
     workerRefreshBatchSize: 1
     workerRefreshInterval: 30
-    secretKey: <path:dna_kv/data/staging/kubernetesSecret/airflow#secretKey>
+    secretKey: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#secretKey>
     numberOfWorkers: 4
     workerClass: sync
     exposeConfig: true
@@ -178,13 +178,13 @@ volumes:
     resourcePolicy: keep
     accessMode: ReadWriteOnce
     storage:
-      className: cinder-retain
+      className: dhc-gp3-retain
       size: 54Gi
 oidc:
   logout:
     uri: https://sso.mercedes-benz.com/idp/startSLO.ping?redirect_uri=
 Storage:
-  storageClass: cinder-retain
+  storageClass: dhc-gp3-retain
   accessModes: ReadWriteOnce
   nfsaccessModes: ReadWriteMany
   nfsstorageClass: nfs-sc
@@ -201,36 +201,36 @@ probes:
     path: /airflow/actuator/health/readiness
     port: api-http
 backendgit:
-  gitCloneurl: <path:dna_kv/data/staging/kubernetesSecret/airflow#backendgitgitCloneurl>
-  gitbranch: <path:dna_kv/data/staging/kubernetesSecret/airflow#backendgitgitbranch>
+  gitCloneurl: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#backendgitgitCloneurl>
+  gitbranch: <path:dna_aws_kv/data/staging/kubernetesSecret/airflow#backendgitgitbranch>
 vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_staging_k8_role"
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/staging/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/staging/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/staging/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/staging/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/staging/kubernetesSecret/airflowService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/staging/kubernetesSecret/airflowService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/airflowService" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/airflowService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"

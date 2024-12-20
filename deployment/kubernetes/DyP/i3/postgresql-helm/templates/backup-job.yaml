@@ -217,6 +217,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: {{ include "postgres.fullname" . }}-backup
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ include "postgres.name" . }}
     helm.sh/chart: {{ include "postgres.chart" . }}
@@ -238,6 +239,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: {{ include "postgres.fullname" . }}-temp-backup
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ include "postgres.name" . }}
     helm.sh/chart: {{ include "postgres.chart" . }}

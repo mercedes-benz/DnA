@@ -1,5 +1,5 @@
 appName: clamav
-namespace: clamav
+namespace: dev-dna-clamav
 securityContext:
   runasUser: 100
 app:
@@ -7,7 +7,7 @@ app:
     name: clamav-rest
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
-      tag: 3ccc860f5cdb125b396c8e7f3358c3a5e9cab344
+      tag: 981
     replicaCount: 1
     secrets:
       name: oneapi-secrets
@@ -61,20 +61,20 @@ image:
   tag: '41'
 ingress:
   enabled: false
-  host: scan.dev.dna.app.corpintra.net
-  certificateIssuer: daimler-acme
+  host: scan.dna-aws.app.corpintra.net
+  certificateIssuer: mercedes-benz-acme
   prefix: /internal
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 imagePullSecret:
   name: imagepullsecret
 Storage:
-  storageClass: cinder
+  storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
 resources:
@@ -88,35 +88,35 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_dev_k8_role
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
+    vault.hashicorp.com/tls-skip-verify: 'true' 
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/dev/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_kv/dev/kubernetesSecret/infra
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-catruststore.jks: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/infra" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/infra" -}}
       {{ base64Decode  .Data.data.CA_TRUSTSTORE }}
-      {{- end }}        
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/dev/kubernetesSecret/kafka
+      {{- end }} 
+    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_aws_kv/dev/kubernetesSecret/infra
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/dev/kubernetesSecret/malwareService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/dev/kubernetesSecret/malwareService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/malwareService" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/malwareService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"

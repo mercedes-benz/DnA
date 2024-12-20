@@ -16,7 +16,7 @@ global:
   imagePullSecrets:
     name: harbor-pull-secret
     key: *************************************************
-  storageClass: "cinder"
+  storageClass: "dhc-gp3"
 
 ## @section Common parameters
 

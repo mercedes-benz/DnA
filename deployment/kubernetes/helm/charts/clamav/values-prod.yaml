@@ -1,5 +1,5 @@
 appName: clamav
-namespace: clamav
+namespace: prod-dna-clamav
 securityContext:
   runasUser: 100
 app:
@@ -56,24 +56,24 @@ app:
       port: api
 image:
   replicaCount: 4
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-28
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
   pullPolicy: Always
 ingress:
   enabled: false
   host: scan.dna.app.corpintra.net
-  certificateIssuer: daimler-acme
+  certificateIssuer: mercedes-benz-acme
   prefix: /internal
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 imagePullSecret:
   name: imagepullsecret
 Storage:
-  storageClass: cinder
+  storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
 resources:
@@ -87,32 +87,32 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_prod_k8_role
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/prod/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/prod/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_kv/prod/kubernetesSecret/infra
+    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_aws_kv/prod/kubernetesSecret/infra
     vault.hashicorp.com/agent-inject-template-catruststore.jks: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/infra" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/infra" -}}
       {{ base64Decode  .Data.data.CA_TRUSTSTORE }}
       {{- end }}        
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/prod/kubernetesSecret/malwareService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/prod/kubernetesSecret/malwareService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/malwareService" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/malwareService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"
