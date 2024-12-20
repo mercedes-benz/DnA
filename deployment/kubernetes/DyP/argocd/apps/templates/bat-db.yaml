@@ -9,8 +9,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: db
-    env: {{ .Values.env }}
-    project: {{ .Values.env }}-dna
+    env: {{ .Values.env }}-bat
 spec:
   destination:
     namespace: {{ .Values.env }}-bat
@@ -24,7 +23,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-bat-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-bat       
-  project: {{ .Values.env }}-dna
+  project: {{- if eq .Values.env "dev" -}}bat-development{{- else if eq .Values.env "test" -}}bat-testing{{- else if eq .Values.env "prod" -}}bat-production{{- end }}
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
