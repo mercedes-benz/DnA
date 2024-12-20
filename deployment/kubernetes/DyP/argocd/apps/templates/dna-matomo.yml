@@ -18,7 +18,7 @@ spec:
   source:
     path: deployment/kubernetes/helm/charts/matomo
     repoURL: {{ .Values.repoURL | squote }}
-    targetRevision: infra/matomosync-fix
+    targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
