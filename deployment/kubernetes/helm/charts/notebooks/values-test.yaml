@@ -1,9 +1,9 @@
 appName: notebooks
-namespace: notebooks
+namespace: test-dna-notebooks
 app:
   jupyter:
     config:
-      configproxy_auth_token: <path:kv/data/dna/kubernetesSecret/notebooks#configproxy_auth_token>
+      configproxy_auth_token: <path:dna_aws_kv/data/staging/kubernetesSecret/notebooks#configproxy_auth_token>
       kf_pipelines_endpoint: http://ml-pipeline-ui.kubeflow
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/test/jupyterhub:2.1.4
@@ -20,8 +20,8 @@ app:
     securitycontext: https://test.dna.app.corpintra.net https://notebook.test.dna.app.corpintra.net login-int.mercedes-benz.com sso-int.mercedes-benz.com *.mercedes-benz.com
     serviceAccount: default-editor
     oauthAuthenticator: GenericOAuthenticator
-    oauthClientId: <path:kv/data/dna/kubernetesSecret/notebooks#oauthClientId>
-    oauthClientSecret: <path:kv/data/dna/kubernetesSecret/notebooks#oauthClientSecret>
+    oauthClientId: <path:dna_aws_kv/data/staging/kubernetesSecret/notebooks#oauthClientId>
+    oauthClientSecret: <path:dna_aws_kv/data/staging/kubernetesSecret/notebooks#oauthClientSecret>
     oauthCallback: https://notebook.test.dna.app.corpintra.net/hub/oauth_callback
     oauthAuthorizeUrl: https://sso-int.mercedes-benz.com/as/authorization.oauth2
     oauthTokenUrl: https://sso-int.mercedes-benz.com/as/token.oauth2
@@ -34,15 +34,15 @@ app:
     vaultStorageAnnotations: |
       c.KubeSpawner.cmd = ['sh', '-c','. /vault/secrets/minio && start-notebook.sh']
 
-      ## Make sure you have dummy secret path called "kv/dna/minio/DEFAULT"
+      ## Make sure you have dummy secret path called "dna_aws_kv/staging/minio/DEFAULT"
       c.KubeSpawner.extra_annotations = {
         "vault.hashicorp.com/agent-init-first": "true",
         "vault.hashicorp.com/agent-inject": "true",
-        "vault.hashicorp.com/agent-inject-secret-minio": "kv/dna/minio/DEFAULT",
-        "vault.hashicorp.com/agent-inject-template-minio": "{{{{ range secrets \"kv/dna/minio/\" }}}}{{{{ $str := \"{username}\" | toUpper}}}}{{{{- if (eq . $str) }}}}{{{{ with secret (printf \"kv/dna/minio/%s\" .) }}}}{{{{ range $k, $v := .Data.data  }}}}export MINIO_ACCESS_KEY=\"{{{{ $k }}}}\"\nexport MINIO_SECRET_KEY=\"{{{{ $v }}}}\"{{{{ end }}}}{{{{ end }}}}{{{{- end }}}}{{{{ end }}}}",
+        "vault.hashicorp.com/agent-inject-secret-minio": "dna_aws_kv/staging/minio/DEFAULT",
+        "vault.hashicorp.com/agent-inject-template-minio": "{{{{ range secrets \"dna_aws_kv/staging/minio/\" }}}}{{{{ $str := \"{username}\" | toUpper}}}}{{{{- if (eq . $str) }}}}{{{{ with secret (printf \"dna_aws_kv/staging/minio/%s\" .) }}}}{{{{ range $k, $v := .Data.data  }}}}export MINIO_ACCESS_KEY=\"{{{{ $k }}}}\"\nexport MINIO_SECRET_KEY=\"{{{{ $v }}}}\"{{{{ end }}}}{{{{ end }}}}{{{{- end }}}}{{{{ end }}}}",
         "vault.hashicorp.com/agent-pre-populate-only": "true",
         "vault.hashicorp.com/role": "dna",
-        "vault.hashicorp.com/namespace": "fmas/staging",
+        "vault.hashicorp.com/namespace": "DnAPlatform/staging",
         "vault.hashicorp.com/tls-skip-verify": "true",
         "traffic.sidecar.istio.io/excludeOutboundPorts": "443"
         }  

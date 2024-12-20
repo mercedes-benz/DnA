@@ -1,4 +1,4 @@
-namespace: trino
+namespace: dev-dna-trino
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-backend
   tag: '104'
@@ -57,10 +57,10 @@ envs:
 containerPort: 7575
 ingress:
   enabled: false
-  host: trino.dev.dna.app.corpintra.net
+  host: trino.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -87,31 +87,30 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/dev
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: kv/dna/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/trinoService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/dev/kubernetesSecret/trinoService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "kv/dna/kubernetesSecret/trinoService" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/trinoService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "kv/dna/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"

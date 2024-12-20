@@ -23,6 +23,8 @@ export interface ITagsFieldProps {
   removeTag?: (index: number) => void;
   isDataSource?: boolean;
   placeholder?: string;
+  showAllTagsOnFocus?: boolean;
+  disableSelfTagAdd?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -33,6 +35,7 @@ export interface ITagsFiledState {
   userInput?: string;
   activeSuggestionIndex: number;
   isFocused: boolean;
+  ignorePathError: boolean;
 }
 
 export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledState> {
@@ -60,6 +63,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       userInput: '',
       activeSuggestionIndex: -1,
       isFocused: false,
+      ignorePathError: false,
     };
   }
 
@@ -160,6 +164,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     });
 
     const missingEntryMessage = '*Missing entry';
+    const ignorePathError = `*path should not include '/' or white spaces`;
     const isMaxReached = this.props.max === this.state.chips.length;
 
     return (
@@ -208,6 +213,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
               className="mbc-scroll"
               style={{
                 overflowY: 'auto',
+                zIndex: '10',
                 ...(this.props.suggestionPopupHeight && { height: this.props.suggestionPopupHeight }),
               }}
             >
@@ -218,6 +224,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
               className={classNames('mbc-scroll', Styles.relativeScroll)}
               style={{
                 overflowY: 'auto',
+                zIndex: '10',
                 ...(this.props.suggestionPopupHeight && { height: this.props.suggestionPopupHeight }),
               }}
             >
@@ -229,19 +236,31 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             {missingEntryMessage}
           </span>
         )}
+        <span className={classNames('error-message', this.state.ignorePathError ? '' : 'hide')}>
+          {ignorePathError}
+        </span>
       </div>
     );
   }
 
   protected onTagFieldFocus = () => {
     this.setState({ isFocused: true });
+    this.props.showAllTagsOnFocus && this.setState({
+      filteredTags: [...this.props.tags],
+    });
   };
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if (!this.props.disableOnBlurAdd) {
+    if (!this.props.disableOnBlurAdd && !this.props.disableSelfTagAdd) {
       if (target.value) {
         this.updateChips(target.value);
+      }
+      else{
+        this.setState({
+          userInput: '',
+          filteredTags: [],
+        });
       }
     } else {
       this.setState({
@@ -310,7 +329,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     // @ts-ignore
     if (keyPressed === this.state.KEY.enter || (keyPressed === this.state.KEY.tab && target.value)) {
       event.preventDefault();
-      this.updateChips(target.value);
+      if(!this.props.disableSelfTagAdd){
+        this.updateChips(target.value);
+      }
     } else if (keyPressed === this.state.KEY.backspace) {
       const chips = this.state.chips;
 
@@ -346,6 +367,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       if (!value) {
         return;
+      }
+
+      if(this.props.isIgnorePath && (value.includes('/')||value.includes(' '))){
+        this.setState({ignorePathError: true});
       }
 
       if (this.props.enableUppercase) {
@@ -386,11 +411,18 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       } else {
         this.props.setTags(chips);
       }
-      this.setState({
-        chips,
-        filteredTags: [],
-        activeSuggestionIndex: -1,
-      });
+      this.setState(
+        {
+          chips,
+          filteredTags: [],
+          activeSuggestionIndex: -1,
+        },
+        () => {
+          if (this.props.isIgnorePath && !chips.some((item) => item.includes('/') || item.includes(' '))) {
+            this.setState({ ignorePathError: false });
+          }
+        },
+      );
     }
   };
 }

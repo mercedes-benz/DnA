@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-configd-files
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
+data:
+  01-clickhouse-01-listen.xml: |
+    <yandex>
+        <!-- Listen wildcard address to allow accepting connections from other containers and host network. -->
+        <listen_host>::</listen_host>
+        <listen_host>0.0.0.0</listen_host>
+        <listen_try>1</listen_try>
+    </yandex>
+  01-clickhouse-02-logger.xml: |
+    <yandex>
+        <logger>
+          {{- with .Values.clickhouseOperator.logger }}
+            <!-- Possible levels: https://github.com/pocoproject/poco/blob/devel/Foundation/include/Poco/Logger.h#L105 -->
+            <level>{{ .level }}</level>
+            <formatting>
+              <type>json</type>
+            </formatting>
+            <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+            <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+            <size>{{ .size }}</size>
+            <count>{{ .count }}</count>
+            <!-- Default behavior is autodetection (log to console if not daemon mode and is tty) -->
+            <console>{{ .console }}</console>
+          {{- end }}
+        </logger>
+    </yandex>
+  01-clickhouse-03-query_log.xml: |
+    <yandex>
+        <query_log replace="1">
+            <database>system</database>
+            <table>query_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.queryLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.queryLog.flushInterval }}</flush_interval_milliseconds>
+        </query_log>
+    </yandex>
+  01-clickhouse-04-part_log.xml: |
+    <yandex>
+        <part_log replace="1">
+            <database>system</database>
+            <table>part_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.partLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.partLog.flushInterval }}</flush_interval_milliseconds>
+        </part_log>
+    </yandex>
+  01-clickhouse-05-trace_log.xml: |-
+    <yandex>
+        <trace_log replace="1">
+            <database>system</database>
+            <table>trace_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.traceLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.traceLog.flushInterval }}</flush_interval_milliseconds>
+        </trace_log>
+    </yandex>
+
+  01-clickhouse-06-asynchronous_insert_log.xml: |
+    <yandex>
+        <asynchronous_insert_log replace="1">
+            <database>system</database>
+            <table>asynchronous_insert_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.asynchronousInsertLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.asynchronousInsertLog.flushInterval }}</flush_interval_milliseconds>
+        </asynchronous_insert_log>
+    </yandex>
+  01-clickhouse-07-asynchronous_metric_log.xml: |
+    <yandex>
+        <asynchronous_metric_log replace="1">
+            <database>system</database>
+            <table>asynchronous_metric_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.asynchronousMetricLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.asynchronousMetricLog.flushInterval }}</flush_interval_milliseconds>
+        </asynchronous_metric_log>
+    </yandex>
+  01-clickhouse-08-backup_log.xml: |
+    <yandex>
+        <backup_log replace="1">
+            <database>system</database>
+            <table>backup_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.backupLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.backupLog.flushInterval }}</flush_interval_milliseconds>
+        </backup_log>
+    </yandex>
+  01-clickhouse-09-blob_storage_log.xml: |
+    <yandex>
+        <blob_storage_log replace="1">
+            <database>system</database>
+            <table>blob_storage_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.blobStorageLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.blobStorageLog.flushInterval }}</flush_interval_milliseconds>
+        </blob_storage_log>
+    </yandex>
+  01-clickhouse-10-crash_log.xml: |
+    <yandex>
+        <crash_log replace="1">
+            <database>system</database>
+            <table>crash_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.crashLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.crashLog.flushInterval }}</flush_interval_milliseconds>
+        </crash_log>
+    </yandex>
+  01-clickhouse-11-metric_log.xml: |
+    <yandex>
+        <metric_log replace="1">
+            <database>system</database>
+            <table>metric_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.metricLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.metricLog.flushInterval }}</flush_interval_milliseconds>
+        </metric_log>
+    </yandex>
+  01-clickhouse-12-query_thread_log.xml: |
+    <yandex>
+        <query_thread_log replace="1">
+            <database>system</database>
+            <table>query_thread_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.queryThreadLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.queryThreadLog.flushInterval }}</flush_interval_milliseconds>
+        </query_thread_log>
+    </yandex>
+  01-clickhouse-13-query_views_log.xml: |
+    <yandex>
+        <query_views_log replace="1">
+            <database>system</database>
+            <table>query_views_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.queryViewsLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.queryViewsLog.flushInterval }}</flush_interval_milliseconds>
+        </query_views_log>
+    </yandex>
+  01-clickhouse-14-session_log.xml: |
+    <yandex>
+        <session_log replace="1">
+            <database>system</database>
+            <table>session_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.sessionLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.sessionLog.flushInterval }}</flush_interval_milliseconds>
+        </session_log>
+    </yandex>
+  01-clickhouse-15-zookeeper_log.xml: |
+    <yandex>
+        <zookeeper_log replace="1">
+            <database>system</database>
+            <table>zookeeper_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.zookeeperLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.zookeeperLog.flushInterval }}</flush_interval_milliseconds>
+        </zookeeper_log>
+    </yandex>
+  01-clickhouse-16-processors_profile_log.xml: |
+    <yandex>
+        <processors_profile_log replace="1">
+            <database>system</database>
+            <table>processors_profile_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.processorsProfileLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.processorsProfileLog.flushInterval }}</flush_interval_milliseconds>
+        </processors_profile_log>
+    </yandex>
+

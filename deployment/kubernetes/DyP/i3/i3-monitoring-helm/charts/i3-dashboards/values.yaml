@@ -23,7 +23,7 @@ dashboards:
   enabled: true
   replace: "${DS_PROMETHEUS}"
   replace_with: "Prometheus"
-- name: i3-k8s-dhc-gp3-disc-usage
+- name: i3-k8s-cinder-disc-usage
   enabled: true
   replace: "${DS_PROMETHEUS}"
   replace_with: "Prometheus"

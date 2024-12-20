@@ -2,19 +2,19 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 formbrickssecret:
-  clientId: "<path:kv/data/dna/kubernetesSecret/formbricks#clientId>"
-  clientSecret: "<path:kv/data/dna/kubernetesSecret/formbricks#clientSecret>"
-  database_url: "<path:kv/data/dna/kubernetesSecret/formbricks#database_url>"
-  encryption_key: "<path:kv/data/dna/kubernetesSecret/formbricks#encryption_key>"
-  nextauth_secret: "<path:kv/data/dna/kubernetesSecret/formbricks#nextauth_secret>"
-  accesskey: "<path:kv/data/dna/kubernetesSecret/formbricks#accesskey>"
-  secretKey: "<path:kv/data/dna/kubernetesSecret/formbricks#secretkey>"
-  endpointUrl: "<path:kv/data/dna/kubernetesSecret/formbricks#s3.host>"
+  clientId: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#clientId>"
+  clientSecret: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#clientSecret>"
+  database_url: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#database_url>"
+  encryption_key: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#encryption_key>"
+  nextauth_secret: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#nextauth_secret>"
+  accesskey: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#accesskey>"
+  secretKey: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#secretkey>"
+  endpointUrl: "<path:dna_aws_kv/data/dev/kubernetesSecret/formbricks#s3.host>"
   
 # see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbricks: 
-  webappUrl: https://survey.dev.dna.app.corpintra.net                               # REQUIRED: Base URL of the site.
-  nextauthUrl: "https://survey.dev.dna.app.corpintra.net"                            # REQUIRED: Location of the auth server.
+  webappUrl: https://survey.dna-aws.app.corpintra.net                               # REQUIRED: Base URL of the site.
+  nextauthUrl: "https://survey.dna-aws.app.corpintra.net"                            # REQUIRED: Location of the auth server.
   # NOTE: these secrets are required and must be created before deployment
   # SEE: https://github.com/nmcclain/formbricks-helm?tab=readme-ov-file#create-formbricks-secret
   databaseUrl:
@@ -199,7 +199,7 @@ ingress:
   className: ""
   annotations:    
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -207,7 +207,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: survey.dev.dna.app.corpintra.net
+    - host: survey.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
@@ -224,9 +224,9 @@ ingress:
       # - path: /favicon.ico
       #   pathType: Exact
   tls: 
-   - secretName: survey.dev.dna.app.corpintra.net-tls
+   - secretName: survey.dna-aws.app.corpintra.net-tls
      hosts:
-       - survey.dev.dna.app.corpintra.net
+       - survey.dna-aws.app.corpintra.net
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

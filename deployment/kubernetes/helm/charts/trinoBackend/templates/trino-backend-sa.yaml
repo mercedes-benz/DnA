@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: trino-backend-sa
+  namespace: {{ .Values.namespace }}
+imagePullSecrets:
+  - name: imagepullsecret

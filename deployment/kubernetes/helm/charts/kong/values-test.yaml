@@ -13,7 +13,7 @@ deployment:
           protocol: TCP
   daemonset: false
   hostNetwork: false
-namespace: kong
+namespace: test-dna-kong
 env:
   database: postgres
   pg_port: '64000'
@@ -452,21 +452,21 @@ extraConfigMaps: []
 extraSecrets: []
 kongSettings:
   - key: postgres.host
-    value: <path:kv/data/dna/kubernetesSecret/kong#host>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#host>
   - key: postgres.port
     value: '64000'
   - key: postgres.user
-    value: <path:kv/data/dna/kubernetesSecret/kong#user>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#user>
   - key: postgres.password
-    value: <path:kv/data/dna/kubernetesSecret/kong#password>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#password>
   - key: postgres.db
-    value: <path:kv/data/dna/kubernetesSecret/kong#dbname>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#dbname>
   - key: postgres.schema
-    value: <path:kv/data/dna/kubernetesSecret/kong#schema>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#schema>
   - key: ONEAPI_GATEWAY_KEY
-    value: <path:kv/data/dna/kubernetesSecret/kong#oneapi.key>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#oneapi.key>
   - key: ONEAPI_GATEWAY_SECRET
-    value: <path:kv/data/dna/kubernetesSecret/kong#oneapi.secret>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/kong#oneapi.secret>
 extraIngress:
   enabled: true
   hosts:
@@ -594,7 +594,7 @@ extraIngress:
       secretName: api-fabric-tls
 konga:
   enabled: true
-  namespace: kong
+  namespace: prod-dna-kong
   ingress:
     enabled: true
     annotations:
@@ -623,7 +623,7 @@ konga:
               "node_id": "http://dna-kong-gw-kong-admin:8001",
               "admin": true,
               "active" : true,
-              "password": "<path:kv/data/dna/kubernetesSecret/kong#konga.password>"
+              "password": "<path:dna_aws_kv/data/staging/kubernetesSecret/kong#konga.password>"
           }
       ]
   kong_node_data: |

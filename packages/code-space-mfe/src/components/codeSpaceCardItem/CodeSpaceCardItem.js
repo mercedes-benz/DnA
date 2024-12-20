@@ -1,11 +1,13 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
   regionalDateAndTimeConversionSolution,
   buildLogViewURL,
   buildGitJobLogViewURL,
+  buildLogViewAWSURL,
+  buildGitJobLogViewAWSURL,
   buildGitUrl,
 } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -20,10 +22,14 @@ import { trackEvent } from '../../Utility/utils';
 import Notification from '../../common/modules/uilab/js/src/notification';
 // import { IUserInfo } from 'globals/types';
 import { IconGear } from 'dna-container/IconGear';
-import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
+// import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import DoraMetrics from '../doraMetrics/DoraMetrics';
 import VaultManagement from '../vaultManagement/VaultManagement';
 import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
+import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
+import { marked } from 'marked';
+import { Envs } from '../../Utility/envs';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -39,7 +45,7 @@ import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 let isTouch = false;
 
 const CodeSpaceCardItem = (props) => {
-  const codeSpace = props.codeSpace;
+  let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   // const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
@@ -55,9 +61,10 @@ const CodeSpaceCardItem = (props) => {
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
-  const disableDeployment =
-    codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
-    DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  // const disableDeployment =
+  //   codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
+  //   DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  const disableDeployment = !codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled;
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const [logsList, setlogsList] = useState([]);
@@ -70,15 +77,28 @@ const CodeSpaceCardItem = (props) => {
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
 
+  const [showStagingActions, setShowStagingActions] = useState(false);
+  const [showProdActions, setShowProdActions] = useState(false);
+  const stagingWrapperRef = useRef(null);
+  const prodWrapperRef = useRef(null);
+  const [showRestartModal, setShowRestartModal] = useState(false);
+  const [env, setEnv] = useState("");
+  const [showReadMeModal, setShowReadMeModal] = useState(false);
+  const [readMeContent, setReadMeContent] = useState('');
+  const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
+  const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
+  const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+
   useEffect(() => {
 
     handleServerStatusAndProgress();
-
+    Tooltip.defaultSetup();
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('click', handleContextMenuOutside, true);
     return () => {
       document.removeEventListener('touchend', handleContextMenuOutside, true);
       document.removeEventListener('click', handleContextMenuOutside, true);
+      Tooltip.clear();
     };
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -129,6 +149,8 @@ const CodeSpaceCardItem = (props) => {
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
+    setRippleAnimation(prodWrapperRef.current);
+    setRippleAnimation(stagingWrapperRef.current);
     setContextMenuOffsetTop(e.currentTarget.offsetTop - 17);
     setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 230);
     setShowContextMenu(!showContextMenu);
@@ -202,6 +224,28 @@ const CodeSpaceCardItem = (props) => {
     }
   };
 
+  const getReadMeFile = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getReadMeFile(codeSpace?.workspaceId)
+      .then((res) => {
+        ProgressIndicator.hide();
+        let htmlContent = '';
+        if(res.status === 200){
+          const base64Data = atob(res.data.file);
+          const decodedText = atob(base64Data);
+          htmlContent = marked(decodedText);
+          setReadMeContent(htmlContent);
+          setShowReadMeModal(true);
+        }else{
+          Notification.show('No content found', 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('something went wrong' + err.message, 'alert');
+      });
+  };
+
   const onRetryCreateClick = () => {
     props.onShowCodeSpaceOnBoard(codeSpace, true);
   };
@@ -209,11 +253,11 @@ const CodeSpaceCardItem = (props) => {
   const onCodeSpaceSecurityConfigClick = (codeSpace) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(
-        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}`,
+        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`,
       );
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`);
   };
 
   const onCodeSpaceDelete = () => {
@@ -229,12 +273,52 @@ const CodeSpaceCardItem = (props) => {
   };
 
   const onStartStopCodeSpace = (codespace) => {
-    props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress);
+    if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
+      props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
+    }
+    else{
+      codespace.serverStatus === 'SERVER_STARTED' ? props.onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS') : setShowMigrateOrStartModal(true);
+    }
   };
+
+  const onMigrateWorkplace = () => {
+    setShowMigrateOrStartModal(false);
+    ProgressIndicator.show();
+    CodeSpaceApiClient.migrateWorkplace(codeSpace.id)
+      .then((res) => {
+        
+        if (res.data.success === 'SUCCESS') {
+          codeSpace.projectDetails.recipeDetails.cloudServiceProvider = 'DHC-CaaS-AWS';
+          ProgressIndicator.hide();
+          Notification.show(
+            'Your Codespace for project ' + codeSpace.projectDetails?.projectName +' is requested to migrate.'
+          );
+          props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
+        } else {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in migrating your code space. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in migrating your code space. Please try again later.'+ err.message,
+          'alert',
+        );
+      });
+
+  }
 
   const handleServerStatusAndProgress = () => {
     codeSpace.serverStatus = 'SERVER_STOPPED';
-    CodeSpaceApiClient.serverStatusFromHub(props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
+    const env = codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? 'DHC-CaaS-AWS' : 'DHC-CaaS';
+    CodeSpaceApiClient.serverStatusFromHub(env,props.userInfo.id.toLowerCase(), codeSpace.workspaceId, (e) => {
       const data = JSON.parse(e.data);
       if (data.progress === 100 && data.ready) {
         setServerProgress(100);
@@ -267,13 +351,13 @@ const CodeSpaceCardItem = (props) => {
     false;
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? intDeploymentDetails?.lastDeployedOn
         : intDeploymentDetails?.deploymentAuditLogs &&
             intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
@@ -281,33 +365,37 @@ const CodeSpaceCardItem = (props) => {
     false;
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
-    regionalDateAndTimeConversionSolution(
+    // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? prodDeploymentDetails?.lastDeployedOn
         : prodDeploymentDetails?.deploymentAuditLogs &&
             prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]
               ?.triggeredOn,
-    ),
+    // ),
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
-  const isAPIRecipe =
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
+  // const isAPIRecipe =
+  //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const isIAMRecipe =
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
     props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+
+  const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
+  const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
 
   const securedWithIAMContent = (
     <svg
@@ -322,6 +410,62 @@ const CodeSpaceCardItem = (props) => {
       {' '}
       <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
     </svg>
+  );
+
+  const RestartContent = (
+    <div>
+      <h3>Are you sure you want to restart your deployed application?</h3>
+      <p>Note: Please refresh and check the application restart status under action audit logs.</p>
+    </div>
+  );
+
+  const migrateOrStartContent = (
+    <div className={Styles.modalContentWrapper}>
+      <div className={Styles.modalTitle}>Do you want to migrate from DyP-CaaS(On-Prem) to DyP-CaaS(AWS) ? </div>
+      <div className={Styles.modalContent}>
+        <p>Note: Before migrating please commit or keep a backup of your changes and untracked files present in your current workspace. On migration your workspace will be requested to start but please note that the initial start may take some time.</p>
+        <br/>
+        <p>If you do not wish to migrate at the moment you can start your workspace by simply clicking on the DyP-CaaS(On-Prem) option.</p>
+      </div>
+    </div>
+  );
+
+  const onRestart = (env) => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
+    .then((res) => {
+      if (res.data.success === 'SUCCESS') {
+        ProgressIndicator.hide();
+        Notification.show("Restart requested successfully")
+      } else {
+          ProgressIndicator.hide();
+          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
+      });
+    setShowRestartModal(false);
+  }
+
+  const onShowOnPremStartModal = (
+    <div>
+      <p>
+        Click on the Start button to start your workspace incase the link is inaccessible. If you have already started before then access your workspace through the link provided. Please note that the link may take some time to be accessible after the start.
+      </p>
+      <div className={Styles.manualStart}>
+        <div>
+          <button
+            className={classNames('btn btn-tertiary')}
+            onClick={() => {props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS', true);}}
+          >
+            Start your old workspace
+          </button>
+        </div>
+        <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id.toLowerCase()+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
+      </div>
+    </div>
   );
 
   return (
@@ -389,72 +533,14 @@ const CodeSpaceCardItem = (props) => {
                         </a>
                       </li>
                     )}
-                    <li>
-                      <hr />
-                    </li>
-                    <li>
-                      <strong>Staging:</strong>{' '}
-                      {intDeploymentDetails?.lastDeployedBranch
-                        ? `[Branch - ${intDeploymentDetails?.lastDeployedBranch}]`
-                        : 'No Deployment'}
-                      <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
-                        (DORA Metrics)
-                      </span>
-                    </li>
-                    {isAPIRecipe && isOwner && (
+                    {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
                       <li>
                         <span
                           onClick={() => {
-                            setShowVaultManagementModal(true);
-                            setIsStaging(true);
+                            setShowOnPremStartModal(true);
                           }}
                         >
-                          Environment variables config
-                        </span>
-                      </li>
-                    )}
-                    {intDeploymentDetails?.gitjobRunID && (
-                      <li>
-                        <a
-                          target="_blank"
-                          href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
-                          rel="noreferrer"
-                        >
-                          Last Build &amp; Deploy Logs{' '}
-                          {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {intDeployed && (
-                      <li>
-                        <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                          Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {intDeploymentDetails?.lastDeploymentStatus && (
-                      <li>
-                        <a
-                          target="_blank"
-                          href={buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
-                          rel="noreferrer"
-                        >
-                          Application Logs <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {intDeploymentDetails?.deploymentAuditLogs && (
-                      <li>
-                        <span
-                          onClick={() => {
-                            setShowAuditLogsModal(true);
-                            setIsStaging(true);
-                            setlogsList(intDeploymentDetails?.deploymentAuditLogs);
-                          }}
-                        >
-                          Deployment Audit Logs
+                          Start on DyP-CaaS On-Prem (manual)
                         </span>
                       </li>
                     )}
@@ -462,73 +548,222 @@ const CodeSpaceCardItem = (props) => {
                       <hr />
                     </li>
                     <li>
-                      <strong>Production:</strong>{' '}
-                      {prodDeploymentDetails?.lastDeployedBranch
-                        ? `[Branch - ${prodDeploymentDetails?.lastDeployedBranch}]`
-                        : 'No Deployment'}
-                      <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
-                        (DORA Metrics)
-                      </span>
+                      <button
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        onClick={() => {
+                          setShowStagingActions(!showStagingActions);
+                        }}
+                      >
+                        <div>
+                          <strong>Staging:</strong>{' '}
+                          {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
+                            (DORA Metrics)
+                          </span>
+                        </div>
+                        <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}>
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                            <>
+                              <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
+                              <i className={classNames("icon down-up-flip")}></i>
+                            </>
+                          )}
+                        </div>
+                      </button>
                     </li>
-                    {isAPIRecipe && isOwner && (
-                      <li>
-                        <span
-                          onClick={() => {
-                            setShowVaultManagementModal(true);
-                            setIsStaging(false);
-                          }}
-                        >
-                          Environment variables config
-                        </span>
-                      </li>
+                    {showStagingActions && (
+                      <>
+                        {intDeploymentDetails?.lastDeployedBranch && (
+                          <li style={{ color: 'var(--color-orange)' }}>
+                            [Branch - {intDeploymentDetails?.lastDeployedBranch}]
+                          </li>
+                        )}
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowVaultManagementModal(true);
+                                setIsStaging(true);
+                              }}
+                            >
+                              Environment variables config
+                            </span>
+                          </li>
+                        )}
+                        {intDeploymentDetails?.gitjobRunID && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                              rel="noreferrer"
+                            >
+                              Last Build &amp; Deploy Logs{' '}
+                              {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {intDeployed && (
+                          <li>
+                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {intDeploymentDetails?.lastDeploymentStatus && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true) :buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                              rel="noreferrer"
+                            >
+                              Application Logs <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {intDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(true);
+                                setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deploy & Action Audit Logs
+                            </span>
+                          </li>
+                        )}
+                        {intDeployed && (
+                          <li>
+                            <span
+                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                            >
+                              Restart Deployed Application
+                            </span>
+                          </li>
+                        )}
+                      </>
                     )}
-                    {prodDeploymentDetails?.gitjobRunID && (
-                      <li>
-                        <a
-                          target="_blank"
-                          href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
-                          rel="noreferrer"
-                        >
-                          Build &amp; Deploy Logs{' '}
-                          {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {prodDeployed && (
-                      <li>
-                        <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                          Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {prodDeploymentDetails?.lastDeploymentStatus && (
-                      <li>
-                        <a
-                          target="_blank"
-                          href={buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
-                          rel="noreferrer"
-                        >
-                          Application Logs <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </li>
-                    )}
-                    {prodDeploymentDetails?.deploymentAuditLogs && (
-                      <li>
-                        <span
-                          onClick={() => {
-                            setShowAuditLogsModal(true);
-                            setIsStaging(false);
-                            setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
-                          }}
-                        >
-                          Deployment Audit Logs
-                        </span>
-                      </li>
+                    <li>
+                      <hr />
+                    </li>
+                    <li>
+                      <button
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        onClick={() => {
+                          setShowProdActions(!showProdActions);
+                        }}
+                      >
+                        <div>
+                          <strong>Production:</strong>{' '}
+                          {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                          <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
+                            (DORA Metrics)
+                          </span>
+                        </div>
+                        <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                            <>
+                              <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
+                              <i className={classNames("icon down-up-flip")}></i>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    </li>
+                    {showProdActions &&(
+                      <>
+                        {prodDeploymentDetails?.lastDeployedBranch && (
+                          <li style={{ color: 'var(--color-orange)' }}>
+                            [Branch - {prodDeploymentDetails?.lastDeployedBranch}]
+                          </li>
+                        )}
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowVaultManagementModal(true);
+                                setIsStaging(false);
+                              }}
+                            >
+                              Environment variables config
+                            </span>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.gitjobRunID && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                              rel="noreferrer"
+                            >
+                              Build &amp; Deploy Logs{' '}
+                              {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeployed && (
+                          <li>
+                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.lastDeploymentStatus && (
+                          <li>
+                            <a
+                              target="_blank"
+                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()) : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                              rel="noreferrer"
+                            >
+                              Application Logs <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
+                        {prodDeploymentDetails?.deploymentAuditLogs && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowAuditLogsModal(true);
+                                setIsStaging(false);
+                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                              }}
+                            >
+                              Deploy & Action Audit Logs
+                            </span>
+                          </li>
+                        )}
+                        {prodDeployed && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setEnv('prod');
+                                setShowRestartModal(true);
+                              }}
+                            >
+                              Restart Deployed Application
+                            </span>
+                          </li>
+                        )}
+                      </>
                     )}
                   </ul>
                 </div>
+              </div>
+            )}
+            {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && codeSpace?.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
+              <div>
+                <i
+                  onClick={() => {
+                    setShowOnPremStartModal(true);
+                  }}
+                  tooltip-data="Start on DyP-CaaS On-Prem (manual)"
+                  className="icon mbc-icon worksspace right"
+                />
               </div>
             )}
           </div>
@@ -538,11 +773,11 @@ const CodeSpaceCardItem = (props) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+projectDetails?.recipeDetails?.ramSize+'GB RAM, '+projectDetails?.recipeDetails?.cpuCapacity+'CPU)' : 'N/A'}</div>
+              <div>{projectDetails?.recipeDetails?.recipeName ? projectDetails?.recipeDetails?.recipeName+'( '+projectDetails?.recipeDetails?.operatingSystem+', '+(resources[3]?.split('M')[0])/1000+'GB RAM, '+resources[4]+'CPU)' : 'N/A'}</div>
             </div>
             <div>
               <div>Environment</div>
-              <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
+              <div>{(projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
@@ -803,10 +1038,11 @@ const CodeSpaceCardItem = (props) => {
                 )}
                 {serverFailed && (
                   <span
-                    title={'Please contact Codespace Admin'}
+                    title={'Server Start Failed: Please contact Codespace Admin'}
                     className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
+                    onClick={() => onStartStopCodeSpace(codeSpace)}
                   >
-                    Server Start Failed
+                    Start Failed
                   </span>
                 )}
                 {createInProgress ? (
@@ -815,10 +1051,13 @@ const CodeSpaceCardItem = (props) => {
                   <>
                     {!creationFailed && deployingInProgress && (
                       <a
-                        href={
-                          intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
+                        href={ (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? 
+                          (intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
+                            ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
+                            : buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)) :
+                          (intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
                             ? buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)
+                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID))
                         }
                         target="_blank"
                         rel="noreferrer"
@@ -839,7 +1078,7 @@ const CodeSpaceCardItem = (props) => {
                             intCodeDeployFailed ? (
                               <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                                 <a
-                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployFailLink}
@@ -860,7 +1099,7 @@ const CodeSpaceCardItem = (props) => {
                             ) : (
                               <span className={Styles.statusIndicator}>
                                 <a
-                                  href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployedLink}
@@ -876,7 +1115,7 @@ const CodeSpaceCardItem = (props) => {
                           ) : prodCodeDeployFailed ? (
                             <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                               <a
-                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployFailLink}
@@ -897,7 +1136,7 @@ const CodeSpaceCardItem = (props) => {
                           ) : (
                             <span className={Styles.statusIndicator}>
                               <a
-                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployedLink}
@@ -957,6 +1196,11 @@ const CodeSpaceCardItem = (props) => {
                       <IconGear size={'18'} />
                     </button>
                   )}
+                {enableReadMe && (
+                  <button className="btn btn-primary" onClick={() =>  getReadMeFile()}>
+                    <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
+                  </button>
+                )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
@@ -1000,6 +1244,7 @@ const CodeSpaceCardItem = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           logsList={logsList}
+          projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
       <ConfirmModal
@@ -1013,6 +1258,21 @@ const CodeSpaceCardItem = (props) => {
         onCancel={deleteCodeSpaceClose}
         onAccept={deleteCodeSpaceAccept}
       />
+
+      {showReadMeModal && (
+        <Modal
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showReadMeModal}
+          content={ <div dangerouslySetInnerHTML={{ __html: readMeContent }} />}
+          scrollableContent={true}
+          onCancel={() => setShowReadMeModal(false)}
+          modalStyle={{
+            width: '90%',
+            maxHeight: '90%',
+          }}
+        />
+      )}
 
       {showDoraMetricsModal && (
         <Modal
@@ -1032,6 +1292,57 @@ const CodeSpaceCardItem = (props) => {
             minWidth: 'unset',
             width: '60%',
           }}
+        />
+      )}
+      { showRestartModal && (
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showRestartModal}
+        content={RestartContent}
+        onCancel={() => {
+          setEnv('');
+          setShowRestartModal(false);
+        }}
+        onAccept={() => {
+          onRestart(env);
+          setShowRestartModal(false);
+        }}
+      />)}
+      { showMigrateOrStartModal && (
+        <ConfirmModal
+          title={''}
+          acceptButtonTitle="Migrate your workspace to DyP-CaaS(AWS)"
+          cancelButtonTitle="Start your workspace on DyP-CaaS(On-Prem)"
+          showAcceptButton={true}
+          showCancelButton={true}
+          show={showMigrateOrStartModal}
+          content={migrateOrStartContent}
+          onCancel={() => {
+            props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS' );
+            setShowMigrateOrStartModal(false);
+          }}
+          onAccept={onMigrateWorkplace}
+        />
+      )}
+      {showOnPremStartModal && (
+        <Modal
+          title={'Manual Start'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+          }}
+          buttonAlignment="center"
+          show={showOnPremStartModal}
+          content={onShowOnPremStartModal}
+          onCancel={() => setShowOnPremStartModal(false)}
         />
       )}
     </>

@@ -52,14 +52,14 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
   hosts:
-    - host: qdrant.dna.app.corpintra.net
+    - host: qdrant.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
           servicePort: 6333
   tls: 
     - hosts:
-       - qdrant.dna.app.corpintra.net
+       - qdrant.dna-aws.app.corpintra.net
       secretName: qdrant-tls
 
 livenessProbe:
@@ -144,7 +144,7 @@ config:
     consensus:
       tick_period_ms: 100
   service:
-    api_key: <path:kv/data/dna/kubernetesSecret/qdrant#api_key>
+    api_key: <path:dna_kv/data/dev/kubernetesSecret/qdrant#api_key>
 sidecarContainers: []
 # sidecarContainers:
 #   - name: my-sidecar

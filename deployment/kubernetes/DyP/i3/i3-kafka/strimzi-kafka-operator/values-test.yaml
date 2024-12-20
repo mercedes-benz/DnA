@@ -94,6 +94,6 @@ resources:
     memory: 512Mi
 persistence:
   kafka: 20Gi
-  kafkaStorageClass: dhc-gp3
+  kafkaStorageClass: cinder
   zookeeper: 1Gi
-  zookeeperStorageClass: dhc-gp3
+  zookeeperStorageClass: cinder

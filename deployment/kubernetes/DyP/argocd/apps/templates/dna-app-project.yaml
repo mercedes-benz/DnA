@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.env }}-dna
+  namespace: {{ .Values.namespace }}
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  destinations:
+    - name: in-cluster
+      namespace: '*'
+      server: {{ .Values.server }}
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  sourceRepos:
+    - {{ .Values.repoURL }}
+    - https://git.i.mercedes-benz.com/DNA/dna-kong.git

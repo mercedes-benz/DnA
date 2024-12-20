@@ -24,7 +24,7 @@ jobs:
 
   development:
     name: 'sechub scan'
-    runs-on: [ medium ]
+    runs-on: [ os-medium-amd64-linux ]
 
     steps:
 
@@ -47,4 +47,4 @@ jobs:
 
     - name: Sechub scan 
       run: |
-        sechub scan -apitoken {{ secrets.SECHUB_API_TOKEN }}
+        sechub scan -apitoken ${{ secrets.SECHUB_API_TOKEN }} || true

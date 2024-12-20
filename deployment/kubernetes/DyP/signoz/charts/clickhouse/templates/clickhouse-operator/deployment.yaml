@@ -1,0 +1,113 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ include "clickhouseOperator.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
+  {{- if .Values.clickhouseOperator.annotations }}
+  annotations:
+    {{- toYaml .Values.clickhouseOperator.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "clickhouseOperator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.clickhouseOperator.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-files.yaml") . | sha256sum }}
+        checksum/confd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-confd-files.yaml") . | sha256sum }}
+        checksum/configd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-configd-files.yaml") . | sha256sum }}
+        checksum/templatesd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-templatesd-files.yaml") . | sha256sum }}
+        checksum/usersd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-usersd-files.yaml") . | sha256sum }}
+      labels:
+        {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "clickhouseOperator.imagePullSecrets" . | indent 6 }}
+      serviceAccountName: {{ include "clickhouseOperator.serviceAccountName" . }}
+      priorityClassName: {{ .Values.clickhouseOperator.priorityClassName | quote }}
+      {{- with .Values.clickhouseOperator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouseOperator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouseOperator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouseOperator.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.clickhouseOperator.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: etc-clickhouse-operator-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-files
+        - name: etc-clickhouse-operator-confd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-confd-files
+        - name: etc-clickhouse-operator-configd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-configd-files
+        - name: etc-clickhouse-operator-templatesd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-templatesd-files
+        - name: etc-clickhouse-operator-usersd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
+      containers:
+        - name: {{ include "clickhouseOperator.fullname" . }}
+          image: {{ template "clickhouseOperator.image" . }}
+          imagePullPolicy: {{ .Values.clickhouseOperator.image.pullPolicy }}
+          volumeMounts:
+            - name: etc-clickhouse-operator-folder
+              mountPath: /etc/clickhouse-operator
+            - name: etc-clickhouse-operator-confd-folder
+              mountPath: /etc/clickhouse-operator/conf.d
+            - name: etc-clickhouse-operator-configd-folder
+              mountPath: /etc/clickhouse-operator/config.d
+            - name: etc-clickhouse-operator-templatesd-folder
+              mountPath: /etc/clickhouse-operator/templates.d
+            - name: etc-clickhouse-operator-usersd-folder
+              mountPath: /etc/clickhouse-operator/users.d
+          env:
+            {{- include "clickhouseOperator.commonEnv" . | nindent 12 }}
+            {{- with .Values.clickhouseOperator.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.clickhouseOperator.resources | nindent 12 }}
+
+        - name: {{ include "metricsExporter.fullname" . }}
+          image: {{ include "metricsExporter.image" . }}
+          imagePullPolicy: {{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
+          volumeMounts:
+            - name: etc-clickhouse-operator-folder
+              mountPath: /etc/clickhouse-operator
+            - name: etc-clickhouse-operator-confd-folder
+              mountPath: /etc/clickhouse-operator/conf.d
+            - name: etc-clickhouse-operator-configd-folder
+              mountPath: /etc/clickhouse-operator/config.d
+            - name: etc-clickhouse-operator-templatesd-folder
+              mountPath: /etc/clickhouse-operator/templates.d
+            - name: etc-clickhouse-operator-usersd-folder
+              mountPath: /etc/clickhouse-operator/users.d
+          env:
+            {{- include "clickhouseOperator.commonEnv" . | nindent 12 }}
+            {{- with .Values.clickhouseOperator.metricsExporter.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.clickhouseOperator.metricsExporter.service.port }}
+              name: metrics
+          resources:
+            {{- toYaml .Values.clickhouseOperator.metricsExporter.resources | nindent 12 }}

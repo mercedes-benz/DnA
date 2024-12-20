@@ -20,11 +20,11 @@ prometheus:
       web.route-prefix: /
     ingress:
       enabled: false
-    ## For instalation outside DHC or when dhc-gp3 is not supported
+    ## For instalation outside DHC or when cinder is not supported
     ## either remove this value (default provisioner will be used)
     ## or provide storageClass name supported.
     persistentVolume:
-      storageClass: dhc-gp3
+      storageClass: cinder
 
 grafana:
   ingress:

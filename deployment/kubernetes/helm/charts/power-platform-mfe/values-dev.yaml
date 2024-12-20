@@ -1,4 +1,4 @@
-namespace: powerplatform
+namespace: dev-dna-power-platform
 configJs: |
   window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
     ENABLE_POWER_PLATFORM_SERVICE=true,
@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe
   pullPolicy: IfNotPresent
-  tag: '41'
+  tag: '322'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -24,19 +24,19 @@ ingress:
   enabled: true
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: power-platform.dev.dna.app.corpintra.net
+    - host: power-platform.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - power-platform.dev.dna.app.corpintra.net
+        - power-platform.dna-aws.app.corpintra.net
       secretName: power-platform-tls-secret
 resources:
   limits:
@@ -49,14 +49,13 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/dev
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/powerPlatformMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/dev/kubernetesSecret/powerPlatformMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "kv/dna/kubernetesSecret/powerPlatformMFE" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/powerPlatformMFE" -}}
           window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

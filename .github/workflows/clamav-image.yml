@@ -16,7 +16,7 @@ jobs:
   
   build:
     name: "Build Clamav Docker Image"
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     outputs:
       date: ${{ steps.date.outputs.date }}
 

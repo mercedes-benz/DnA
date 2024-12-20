@@ -79,6 +79,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailCollectionVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
@@ -104,6 +105,7 @@ import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.db.json.CodeServerRecipe;
 import com.daimler.data.db.json.CodeServerWorkspace;
@@ -152,6 +154,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Value("${codeServer.workspace.apikey}")
 	private String apiKeyValue;
+
+	@Value("${codeServer.run.collab.admin}")
+	 private boolean runCollab;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -362,7 +367,6 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
 		 }
 		if (vo.getStatus().equalsIgnoreCase("CREATED")) {
-
 			Boolean isAdmin =false;
 			List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
 			if(collabList!=null){
@@ -589,8 +593,76 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
  
 		 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
-	 }
+	}
  
+	 @Override
+	 @ApiOperation(value = "Initialize Workbench for user by admin.", nickname = "initializeWorkspaceByAdmin", notes = "Initialize workbench for collab user by admin", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
+	 @ApiResponses(value = { 
+		 @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
+		 @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+		 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		 @ApiResponse(code = 403, message = "Request is not authorized."),
+		 @ApiResponse(code = 405, message = "Method not allowed"),
+		 @ApiResponse(code = 500, message = "Internal error") })
+	 @RequestMapping(value = "/workspaces/{id}/{userId}",
+		 produces = { "application/json" }, 
+		 consumes = { "application/json" },
+		 method = RequestMethod.PUT)
+	 	public ResponseEntity<InitializeWorkspaceResponseVO> initializeWorkspaceByAdmin(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "user ID to be fetched",required=true) @PathVariable("userId") String userId,@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody InitializeCollabWorkspaceRequestVO initializeCollabWSRequestVO){
+			List<MessageDescription> errors = new ArrayList<>();
+			InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
+			if (runCollab) {
+				HttpStatus responseStatus = HttpStatus.OK;
+				CodeServerWorkspaceVO collabUserVO = service.getById(userId, id);
+				List<MessageDescription> warnings = new ArrayList<>();
+				responseMessage.setData(collabUserVO);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				responseMessage.setSuccess("FAILED");
+				if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
+					String status = collabUserVO.getStatus();
+					if (status != null) {
+						if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
+								&& !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
+							MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
+							errors.add(errMsg);
+							responseMessage.setErrors(errors);
+							return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+						}
+					}
+				} else {
+					MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
+					errors.add(errMsg);
+					responseMessage.setErrors(errors);
+					responseMessage.setData(null);
+					return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+				}
+				String pat = initializeCollabWSRequestVO.getPat();
+				if (!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
+					String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
+					String projectName = collabUserVO.getProjectDetails().getProjectName();
+					CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
+					if (ownerCodespaceVO != null && (!ownerCodespaceVO.getStatus().toUpperCase()
+							.equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)
+							&& !ownerCodespaceVO.getWorkspaceId().equalsIgnoreCase(collabUserVO.getWorkspaceId()))) {
+						MessageDescription errMsg = new MessageDescription(
+								"Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+						errors.add(errMsg);
+						responseMessage.setErrors(errors);
+						return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+
+					}
+				}
+				InitializeWorkspaceResponseVO responseData = service.initiateWorkspacewithAdminPat(collabUserVO, pat);
+				return new ResponseEntity<>(responseData, responseStatus);
+			}
+			MessageDescription errMsg = new MessageDescription(
+								"Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+						errors.add(errMsg);
+						responseMessage.setErrors(errors);
+			return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+		}
+
 	 @Override
 	 @ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags = {
 			 "code-server", })
@@ -636,7 +708,9 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		 }
 		 String pat = initializeCollabWSRequestVO.getPat();
-		 
+		 if(ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(collabUserVO.getStatus()) || ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(collabUserVO.getStatus())){
+			collabUserVO.getProjectDetails().getRecipeDetails().setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS);
+		 }
 		 if(!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
 			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
 			 String projectName = collabUserVO.getProjectDetails().getProjectName();
@@ -672,6 +746,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		 CodeServerWorkspaceVO userVo = null;
 		 GenericMessage responseMessage = new GenericMessage();
  
 		 if (userIdDto.getId() == null) {
@@ -685,8 +760,19 @@ import org.springframework.beans.factory.annotation.Value;
 			 emptyResponse.setErrors(errorMessage);
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
 		 }
- 
-		 if (vo == null || vo.getWorkspaceId() == null) {
+		 userVo = service.getByProjectName(userIdDto.getId(), vo.getProjectDetails().getProjectName());
+		if(!(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(userVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider()))){
+			GenericMessage emptyResponse = new GenericMessage();
+			 List<MessageDescription> errorMessage = new ArrayList<>();
+			 MessageDescription msg = new MessageDescription();
+			 msg.setMessage("Ownership cannot be transferred to Collaborator with different CloudService Provider, kindly migrate.");
+			 errorMessage.add(msg);
+			 emptyResponse.addErrors(msg);
+			 emptyResponse.setSuccess("FAILED");
+			 emptyResponse.setErrors(errorMessage);
+			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_ACCEPTABLE);
+		}
+		if (vo == null || vo.getWorkspaceId() == null) {
 			 log.debug("No workspace found, returning empty");
 			 GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errorMessage = new ArrayList<>();
@@ -725,8 +811,6 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
 
 		 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default") ) {
 			 log.error("Invalid recipe type {} for Reassign action. for project {} ", vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
 					 , vo.getProjectDetails().getProjectName());
@@ -804,7 +888,12 @@ import org.springframework.beans.factory.annotation.Value;
 		 CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
 		 CodeServerRecipe recipeData = recipeEntity!=null ? recipeEntity.getData():null;
 		 CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
-		 newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
+		 String cloudServiceProvider =  reqVO.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString();
+		 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)) {
+			newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS);
+		 } else {
+			newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.CAAS);
+		 }
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		 newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		 newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
@@ -813,7 +902,8 @@ import org.springframework.beans.factory.annotation.Value;
 		newRecipeVO.setRecipeName(recipeData.getRecipeName());
 		if(RecipeIdEnum.fromValue(recipeValue)!=null) {
 			newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
-
+		} else if(recipeData.getRecipeType().equals(ConstantsUtility.GENERIC)) {
+			newRecipeVO.setRecipeId(RecipeIdEnum.TEMPLATE);
 		} else {
 			newRecipeVO.setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
 		}
@@ -825,7 +915,12 @@ import org.springframework.beans.factory.annotation.Value;
 		resource+=recipeData.getMaxRam()+"M,"+recipeData.getMaxCpu();
 		newRecipeVO.setResource(resource);
 		newRecipeVO.setSoftware(recipeData.getSoftware());
-		newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		if(recipeData.getToDeployType()!=null){
+			newRecipeVO.setToDeployType(recipeData.getToDeployType());
+		} else {
+			newRecipeVO.setToDeployType("default");
+		}
+		newRecipeVO.setIsDeployEnabled(recipeData.isDeployEnabled());
 		newRecipeVO.setGitPath(recipeData.getGitPath());
 		newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
@@ -947,18 +1042,37 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @PathVariable("id") String id,
 			 @ApiParam(value = "Workspace ID for the project to be deployed", required = true) @Valid @RequestBody ManageDeployRequestDto deployRequestDto) {
 		 try {
+			 boolean isPrivateRecipe = false;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
+			 CodeServerWorkspaceVO ownerVo = null;
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
 				 GenericMessage emptyResponse = new GenericMessage();
-				 List<MessageDescription> warnings = new ArrayList<>();
+				 List<MessageDescription> errors = new ArrayList<>();
 				 MessageDescription msg = new MessageDescription();
 				 msg.setMessage("No workspace found for given id and the user");
-				 warnings.add(msg);
+				 errors.add(msg);
+				 emptyResponse.setErrors(errors);
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
+			 if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
+				ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
+			} else{
+				ownerVo = vo;
+			}
+			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
+				if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
+					GenericMessage emptyResponse = new GenericMessage();
+					List<MessageDescription> errors = new ArrayList<>();
+					MessageDescription msg = new MessageDescription();
+					msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
+					errors.add(msg);
+					emptyResponse.setErrors(errors);
+					return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
+				}
+			} 
 			 List<String> authorizedUsers = new ArrayList<>();
 			 if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
 				 String owner = vo.getProjectDetails().getProjectOwner().getId();
@@ -981,8 +1095,6 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -992,6 +1104,10 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
+				isPrivateRecipe = true;
+				deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 			 }
 			 String environment = "int";
 			 String branch = "main";
@@ -1043,20 +1159,23 @@ import org.springframework.beans.factory.annotation.Value;
 			// 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 			// 	 }
 			//  }
-			 if(deployRequestDto.isValutInjectorEnable()!=null)
-			 {
-				deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			 }
-			 else
-			 {
-				deployRequestDto.setValutInjectorEnable(false);
-			 }
+			//  if(deployRequestDto.isValutInjectorEnable()!=null)
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
+			//  }
+			//  else
+			//  {
+			// 	deployRequestDto.setValutInjectorEnable(false);
+			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.isValutInjectorEnable(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret());
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),isPrivateRecipe);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());
@@ -1125,7 +1244,6 @@ import org.springframework.beans.factory.annotation.Value;
 			 }
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -1223,11 +1341,22 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
  
 		 final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId, offset, limit);
+		 List<CodeServerWorkspaceVO> workspacesWithDeployEnabled = new ArrayList<>();
 		 WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
 		 collection.setTotalCount(service.getCount(userId));
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
-			 collection.setRecords(workspaces);
+			for(CodeServerWorkspaceVO vo :workspaces ){
+				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+					}else{
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+					}
+				}
+				workspacesWithDeployEnabled.add(vo);
+			}
+			 collection.setRecords(workspacesWithDeployEnabled);
 			 return new ResponseEntity<>(collection, HttpStatus.OK);
 		 } else {
 			 return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
@@ -1300,6 +1429,13 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			 }
 			 log.info("Returning workspace details");
+			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+				}else{
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+				}
+			 }
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
 			 log.debug("No workspace found, returning empty");
@@ -1768,7 +1904,7 @@ import org.springframework.beans.factory.annotation.Value;
  
 	 }
 
-	 @Override
+	@Override
 	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigDetailVO.class, tags = {
 			"code-server", })
     @ApiResponses(value = {
@@ -1821,6 +1957,34 @@ import org.springframework.beans.factory.annotation.Value;
 		
 	}
    
+	@Override
+	@ApiOperation(value = "Get how to use codespace instructions from Readme file in git", nickname = "getReadme", notes = "Get how to use codespace instructions from Readme file in git ", response = CodeSpaceReadmeVo.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns readme file from the repo of the codespace", response = CodeSpaceReadmeVo.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/readme",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<CodeSpaceReadmeVo> getReadme(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id) {
+		CodeSpaceReadmeVo codeSpaceReadmeVo = new CodeSpaceReadmeVo();
+		try {
+			codeSpaceReadmeVo = service.getCodeSpaceReadmeFile(id);
+			if (codeSpaceReadmeVo != null && codeSpaceReadmeVo.getFile()!=null) {
+				return new ResponseEntity<>(codeSpaceReadmeVo, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
    	@Override
 	@ApiOperation(value = "Get all workspace security configurations which are in requested and accepted state, waiting for processing.", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
 		"code-server", })
@@ -1956,6 +2120,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 if (Objects.nonNull(data) && data!=null){
 			 	// String userName = data.getProjectDetails().getProjectOwner().getId().toLowerCase();
 				// String wsId = data.getWorkspaceId();
+				String cloudServiceProvider = vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString();
 				String status = service.getServerStatus(vo);
 				if(status.equalsIgnoreCase("true"))
 				{
@@ -1989,7 +2154,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id)
+    public ResponseEntity<GenericMessage> startServer(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "cloudServiceProvider variable to select the target provider to start", required = true, allowableValues = "DHC-CaaS, DHC-CaaS-AWS") @Valid @RequestParam(value = "cloudServiceProvider", required = true) String cloudServiceProvider)
 	{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -2025,7 +2190,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 		String shortId = data.getWorkspaceOwner().getId().toLowerCase();
 		String wsId = data.getWorkspaceId();
-		responseMessage = service.startServer(shortId,wsId);
+		responseMessage = service.startServer(shortId,wsId,cloudServiceProvider);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
@@ -2043,7 +2208,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id)
+    public ResponseEntity<GenericMessage> stopServer(@ApiParam(value = "Workspace ID of server to be deleted",required=true) @PathVariable("id") String id, @NotNull @ApiParam(value = "cloudServiceProvider variable to select the target provider to start", required = true, allowableValues = "DHC-CaaS, DHC-CaaS-AWS") @Valid @RequestParam(value = "cloudServiceProvider", required = true) String cloudServiceProvider)
 	{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -2075,8 +2240,7 @@ import org.springframework.beans.factory.annotation.Value;
 			emptyResponse.setErrors(errorMessage);
 			return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
 		}
-
-		responseMessage = service.stopServer(vo);
+        responseMessage = service.stopServer(vo,cloudServiceProvider);
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
@@ -2238,7 +2402,21 @@ import org.springframework.beans.factory.annotation.Value;
 				}
 			}
 			if(isCollabIdPartOfProject){
-				if(isAdmin){
+				if(isAdmin && vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
+					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+					Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), collabUserId, repoDetails.get(1));
+					if(!isUserAdmin){
+						log.error("collab user is not an admin for the private repo, cannot make user as admin");
+						GenericMessage emptyResponse = new GenericMessage();
+						List<MessageDescription> errors = new ArrayList<>();
+						msg.setMessage("Invalid User, Please make sure that collab user should be an admin of the repo. Bad request");
+						errors.add(msg);
+						emptyResponse.setErrors(errors);
+						emptyResponse.setSuccess("FAILED");
+						return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+					}
+				}
+				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
 					if(!addAdminAccessToGitUser.is2xxSuccessful())
 					{
@@ -2249,7 +2427,8 @@ import org.springframework.beans.factory.annotation.Value;
 						warnings.add(warnMsg);
 						responseMessage.setWarnings(warnings);
 					}
-				}else{
+				}
+				if(!isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
 					HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
 					if(!removeAdminAccessToGitUser.is2xxSuccessful())
 					{
@@ -2330,7 +2509,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 
 		}
-		return null;
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	@Override
@@ -2413,6 +2592,65 @@ import org.springframework.beans.factory.annotation.Value;
 		} catch (Exception e) {
 			log.error("Failed to restart workspace {}, with exception {}", id, e.getLocalizedMessage());
 			MessageDescription exceptionMsg = new MessageDescription("Failed to restart due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "migrate  workspace Project to Aws for a given Id.", nickname = "migrateWorkspace", notes = "migrate workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/migrateworkspace",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> migrateWorkspace(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			CodeServerWorkspaceVO vo = service.getById(userId, id);
+			if (vo == null || vo.getWorkspaceId() == null) {
+				log.debug("No workspace found, returning empty");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> warnings = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("No workspace found for given id and the user");
+				warnings.add(msg);
+				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+			}
+			List<String> authorizedUsers = new ArrayList<>();
+			if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
+				String workspaceOwner = vo.getWorkspaceOwner().getId();
+				authorizedUsers.add(workspaceOwner);
+			}
+			if (!authorizedUsers.contains(userId)) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Not authorized to Migrate project for workspace. User does not have privileges.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				log.info("User {} cannot Migrate project for workspace {}, insufficient privileges.", userId,
+						vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			}
+			GenericMessage responseMsg = service.migrateWorkspace(vo);
+			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+			}
+			log.info("User {} Migrated  workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			return new ResponseEntity<>(responseMsg, HttpStatus.OK); 
+		} catch (Exception e) {
+			log.error("Failed to Migrate workspace {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to Migrate due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);

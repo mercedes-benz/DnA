@@ -6,13 +6,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: i3-postgresql-new
+  name: {{ .Values.env }}-dna-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: dna
+    namespace: {{ .Values.env }}-dna
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -21,9 +23,9 @@ spec:
     plugin:
       name: argocd-vault-plugin-helm
       env:
-        - name: HELM_ARGS         
-          value: -f values-db-dev.yaml               
-  project: dna
+        - name: HELM_ARGS 
+          value: -f values-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna             
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

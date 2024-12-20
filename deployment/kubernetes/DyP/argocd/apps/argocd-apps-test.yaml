@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd-apps
+  name: argocd-apps-test
   namespace: argocd
   labels:
-    name: argocd-apps 
+    name: argocd-apps-test
 spec:
   destination:
     namespace: argocd
@@ -12,7 +12,7 @@ spec:
   source:
     path: deployment/kubernetes/DyP/argocd/apps
     repoURL: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
-    targetRevision: staging
+    targetRevision: migration/aws
     plugin:
       name: argocd-vault-plugin-helm
       env:

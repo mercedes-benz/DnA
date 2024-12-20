@@ -54,7 +54,7 @@ jobs:
 
   build:
     name: 'Build App'
-    runs-on: [road-runner, large]
+    runs-on: [os-large-amd64-linux]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:
@@ -70,7 +70,7 @@ jobs:
         ./utils/gitFileOverride/fileOverride.sh 
 
     - name: Get Current Deployed Version
-      if: ${{ github.ref_name == 'main' }} 
+      if: ${{ github.ref_name == 'main'  ||  inputs.ENVIRONMENT == 'Production'}} 
       id: current
       uses: CumulusDS/get-yaml-paths-action@v1.0.1
       with:
@@ -79,7 +79,7 @@ jobs:
 
     # Uncomment below a task if package is java and update file path
     - name: Get app version from application yml
-      if: ${{ github.ref_name == 'main' && !inputs.IS_REACT_APP }}
+      if: ${{ (github.ref_name == 'main'  ||  inputs.ENVIRONMENT == 'Production') && !inputs.IS_REACT_APP }}
       id: new_version_java
       uses: CumulusDS/get-yaml-paths-action@v1.0.1
       with:
@@ -88,7 +88,7 @@ jobs:
 
     # Uncomment below two task if package is react
     - name: Get app version from package json
-      if: ${{ github.ref_name == 'main' && inputs.IS_REACT_APP  }}
+      if: ${{ (github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production') && inputs.IS_REACT_APP  }}
       id: new_version_react
       uses: notiz-dev/github-action-json-property@release
       with: 
@@ -96,7 +96,7 @@ jobs:
           prop_path: 'version'
 
     - name: Check App version
-      if: ${{ github.ref_name == 'main' }}
+      if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
       id: updated
       run: |
         if [ "${{ inputs.IS_REACT_APP }}" == "true" ]; then
@@ -123,8 +123,7 @@ jobs:
         docker build \
           -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} \
           -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
-        if [ ${{github.ref_name}} == main ]
-        then
+        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
           docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:latest
         fi           
@@ -136,8 +135,7 @@ jobs:
     - name: Publish application containers to registry
       run: |
         docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}
-        if [ ${{github.ref_name}} == main ]
-        then
+        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
           docker push ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker push ${{ inputs.IMAGE_NAME }}:latest
         fi          
@@ -150,7 +148,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ github.ref_name == 'dev' || inputs.ENVIRONMENT == 'Development' }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment:
       name: Development
     steps:
@@ -177,7 +175,7 @@ jobs:
     name: 'Deploy to staging'
     needs: build
     if: ${{ github.ref_name == 'staging' ||  inputs.ENVIRONMENT == 'Staging' }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment:
       name: Staging
     steps:
@@ -204,7 +202,7 @@ jobs:
     name: 'Deploy to Production'
     needs: build
     if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     environment:
       name: Production
     steps:
@@ -246,7 +244,7 @@ jobs:
 
   # quality-check:
   #   name: 'Quality Check'
-  #   runs-on: [road-runner, medium]
+  #   runs-on: [os-medium-amd64-linux]
   #   if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
   #   needs: build
   #   outputs:
@@ -307,7 +305,7 @@ jobs:
   #   name: Static Application secuirty Testing
   #   needs: build
   #   if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}    
-  #   runs-on: [road-runner, medium]
+  #   runs-on: [os-medium-amd64-linux]
     
   #   steps:    
 

@@ -80,7 +80,7 @@
     },
     {
       "cacheTimeout": null,
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -143,7 +143,7 @@
       "pluginVersion": "8.1.0",
       "targets": [
         {
-          "expr": "sum(dhc-gp3_quota_volume_disk_gigabytes{quota_type=\"in-use\"})",
+          "expr": "sum(cinder_quota_volume_disk_gigabytes{quota_type=\"in-use\"})",
           "format": "time_series",
           "intervalFactor": 10,
           "legendFormat": "",
@@ -157,7 +157,7 @@
     },
     {
       "cacheTimeout": null,
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -220,7 +220,7 @@
       "pluginVersion": "8.1.0",
       "targets": [
         {
-          "expr": "sum(dhc-gp3_quota_volume_disk_gigabytes{quota_type=\"limit\"})",
+          "expr": "sum(cinder_quota_volume_disk_gigabytes{quota_type=\"limit\"})",
           "format": "time_series",
           "intervalFactor": 10,
           "legendFormat": "",
@@ -233,7 +233,7 @@
       "type": "stat"
     },
     {
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -296,7 +296,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "dhc-gp3 disk usage",
+      "title": "Cinder disk usage",
       "type": "bargauge"
     },
     {
@@ -304,7 +304,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -350,7 +350,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(dhc-gp3_volume_status) by (status)",
+          "expr": "sum(cinder_volume_status) by (status)",
           "format": "time_series",
           "intervalFactor": 10,
           "legendFormat": "{{ status }}",
@@ -403,7 +403,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -447,7 +447,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum((dhc-gp3_volume_status{status=~\".*ing\"}==1) and (rate(dhc-gp3_volume_status{status=~\".*ing\"}[10m])==0)) by (status)",
+          "expr": "sum((cinder_volume_status{status=~\".*ing\"}==1) and (rate(cinder_volume_status{status=~\".*ing\"}[10m])==0)) by (status)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ status }} 10m",
@@ -518,7 +518,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "decimals": 0,
       "fieldConfig": {
         "defaults": {
@@ -576,7 +576,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "dhc-gp3 disk usage",
+      "title": "Cinder disk usage",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -656,7 +656,7 @@
     ]
   },
   "timezone": "",
-  "title": "I³ K8s dhc-gp3 disk usage",
+  "title": "I³ K8s Cinder disk usage",
   "uid": "5se_mxlny",
   "version": 1
 }

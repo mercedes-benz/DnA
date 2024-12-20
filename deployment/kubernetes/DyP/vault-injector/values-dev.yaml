@@ -22,7 +22,7 @@ global:
 
   # External vault server address for the injector and CSI provider to use.
   # Setting this will disable deployment of a vault server.
-  externalVaultAddr: "https://vault-int.app.corpintra.net/"
+  externalVaultAddr: "https://dnaplatform.service.vault-prod.rd.corpintra.net"
 
   # If deploying to OpenShift
   openshift: false
@@ -48,7 +48,7 @@ injector:
   # @default: global.enabled
   enabled: "-"
 
-  replicas: 1
+  replicas: 3
 
   # Configures the port the injector should listen on
   port: 8080
@@ -136,11 +136,7 @@ injector:
     timeoutSeconds: 5
 
   # Mount Path of the Vault Kubernetes Auth Method.
-  authPath: "auth/kubernetes"
-
-  # Configures the log verbosity of the injector.
-  # Supported log levels include: trace, debug, info, warn, error
-  logLevel: "info"
+  authPath: "auth/k8_auth_dna_aws_dev"
 
   # Configures the log format of the injector. Supported log formats: "standard", "json".
   logFormat: "standard"
@@ -721,7 +717,6 @@ server:
     #     PreferDualStack: Allocates IPv4 and IPv6 cluster IPs for the Service.
     #     RequireDualStack: Allocates Service .spec.ClusterIPs from both IPv4 and IPv6 address ranges.
     ipFamilyPolicy: ""
-
     # Sets the families that should be supported and the order in which they should be applied to ClusterIP as well.
     # Can be IPv4 and/or IPv6.
     ipFamilies: []

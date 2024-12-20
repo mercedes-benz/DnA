@@ -102,59 +102,38 @@ networkPolicy:
       - from:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: traefikv2
+                app.kubernetes.io/name: traefik
             namespaceSelector:
               matchLabels:
-                kubernetes.io/metadata.name: ingress  
+                kubernetes.io/metadata.name: prod-ingress-intranet  
         ports:
           - protocol: TCP
             port: 8080    
   egressRules:
     customRules:   
-      - to:
-          - podSelector:
-              matchLabels:
-                cluster-name: onepc-postgresql-helm-cluster
-            namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: code-server                  
-          - podSelector:
-              matchLabels:
-                cluster-name: fc-cockpit-db-postgresql-helm-cluster
-            namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: codespaces-apps        
-          - podSelector:
-              matchLabels:
-                cluster-name: wbv-postgresql-helm-cluster
-            namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: tools                         
-          - ipBlock:
-              cidr: 53.136.76.23/0       
-          - ipBlock:
-              cidr: 53.137.140.156/0                  
+      - {}        
          
 ## Ingress
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
+  ingressClassName: prod-ingress-intranet
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
   hosts:
-    - host: pgadmin.dna.app.corpintra.net
+    - host: pgadmin.dna-prod.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls: 
-   - secretName: pgadmin-dna-tls
+   - secretName: pgadmin-prod-aws-dna-tls
      hosts:
-       - pgadmin.dna.app.corpintra.net
+       - pgadmin.dna-prod.app.corpintra.net
 
 # Additional config maps to be mounted inside a container
 # Can be used to map config maps for sidecar as well
@@ -207,8 +186,8 @@ secretKeys:
 ## Needed chart reinstall for apply changes
 env:
   # can be email or nickname
-  email: <path:kv/data/dna/kubernetesSecret/pgadmin#email>
-  password: <path:kv/data/dna/kubernetesSecret/pgadmin#password>
+  email: <path:dna_aws_kv/data/prod/kubernetesSecret/pgadmin#email>
+  password: <path:dna_aws_kv/data/prod/kubernetesSecret/pgadmin#password>
   # pgpassfile: /var/lib/pgadmin/storage/pgadmin/file.pgpass
 
   # set context path for application (e.g. /pgadmin4/*)
@@ -335,8 +314,8 @@ extraDeploy:
       name: pgadmin4-oauth2-secret
     type: Opaque
     stringData:
-      OAUTH2_CLIENT_ID: <path:kv/data/dna/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
-      OAUTH2_CLIENT_SECRET: <path:kv/data/dna/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
+      OAUTH2_CLIENT_ID: <path:dna_aws_kv/data/prod/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
+      OAUTH2_CLIENT_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
 
   - apiVersion: v1
     kind: ConfigMap

@@ -3,8 +3,8 @@
 secrets:
   name: myminio-env-configuration
   # MinIO root user and password
-  accessKey: <path:kv/data/dna/kubernetesSecret/minio#MINIO_ROOT_USER>
-  secretKey: <path:kv/data/dna/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+  accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_USER>
+  secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
   ## Set the value for existingSecret to use a pre created secret and dont create default one
   # existingSecret: random-env-configuration
 ## MinIO Tenant Definition
@@ -37,7 +37,7 @@ tenant:
       ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
       volumesPerServer: 4
       ## size specifies the capacity per volume
-      size: 200Gi
+      size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
       storageClassName: dhc-io2-retain
       ## Used to specify annotations for pods
@@ -83,7 +83,7 @@ tenant:
       ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
       volumesPerServer: 4
       ## size specifies the capacity per volume
-      size: 200Gi
+      size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
       storageClassName: dhc-io2-retain
       ## Used to specify annotations for pods
@@ -129,7 +129,7 @@ tenant:
       ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
       volumesPerServer: 4
       ## size specifies the capacity per volume
-      size: 200Gi
+      size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
       storageClassName: dhc-io2-retain
       ## Used to specify annotations for pods

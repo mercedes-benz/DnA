@@ -1,15 +1,15 @@
-namespace: powerplatform
+namespace: prod-dna-power-platform
 configJs: |
   window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
     ENABLE_POWER_PLATFORM_SERVICE=true,
     POWER_PLATFORM_MFE_APP_URL="",
     POWER_PLATFORM_API_BASEURL=""
   };
-replicaCount: 1
+replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe
   pullPolicy: IfNotPresent
-  tag: 4f18f0544568064e99b59c7af8e2e7e8e03226d0
+  tag: 1.0.1
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -49,14 +49,13 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/prod
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/powerPlatformMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/prod/kubernetesSecret/powerPlatformMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "kv/dna/kubernetesSecret/powerPlatformMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/powerPlatformMFE" -}}
           window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

@@ -4,11 +4,11 @@ secret: []
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-backend
   pullPolicy: IfNotPresent
-  tag: 1.0.2
+  tag: '198'
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: matomo-be
-namespace: matomo
+namespace: prod-dna-matomo
 serviceAccount:
   create: false
   annotations: {}
@@ -53,13 +53,12 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/prod
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-envvar: kv/dna/kubernetesSecret/matomoService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/prod/kubernetesSecret/matomoService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "kv/dna/kubernetesSecret/matomoService" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/matomoService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}

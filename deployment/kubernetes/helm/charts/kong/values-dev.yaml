@@ -13,7 +13,7 @@ deployment:
           protocol: TCP
   daemonset: false
   hostNetwork: false
-namespace: kong
+namespace: dev-dna-kong
 env:
   database: postgres
   pg_port: '64000'
@@ -46,8 +46,8 @@ env:
         name: kong-settings
   nginx_worker_processes: '2'
   proxy_access_log: /dev/stdout
-  admin_gui_url: https://manager.serving.kfp.dev.dna.app.corpintra.net
-  admin_api_uri: https://serving.kfp.dev.dna.app.corpintra.net/admin
+  admin_gui_url: https://manager.serving.kfp.dna-aws.app.corpintra.net
+  admin_api_uri: https://serving.kfp.dna-aws.app.corpintra.net/admin
   admin_listen: 0.0.0.0:8001
   admin_gui-listen: 0.0.0.0:8002
   admin_access_log: /dev/stdout
@@ -104,11 +104,11 @@ admin:
     enabled: false
     ingressClassName: null
     tls: kfp-serving-secret
-    hostname: serving.kfp.dev.dna.app.corpintra.net
+    hostname: serving.kfp.dna-aws.app.corpintra.net
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
@@ -165,11 +165,11 @@ proxy:
     enabled: true
     ingressClassName: null
     tls: kfp-serving-secret
-    hostname: serving.kfp.dev.dna.app.corpintra.net
+    hostname: serving.kfp.dna-aws.app.corpintra.net
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
@@ -377,11 +377,11 @@ manager:
     enabled: false
     ingressClassName: null
     tls: kfp-serving-secret-manager
-    hostname: manager.serving.kfp.dev.dna.app.corpintra.net
+    hostname: manager.serving.kfp.dna-aws.app.corpintra.net
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
@@ -454,29 +454,29 @@ extraConfigMaps: []
 extraSecrets: []
 kongSettings:
   - key: postgres.host
-    value: <path:kv/data/dna/kubernetesSecret/kong#host>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#host>
   - key: postgres.port
     value: '64000'
   - key: postgres.user
-    value: <path:kv/data/dna/kubernetesSecret/kong#user>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#user>
   - key: postgres.password
-    value: <path:kv/data/dna/kubernetesSecret/kong#password>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#password>
   - key: postgres.db
-    value: <path:kv/data/dna/kubernetesSecret/kong#dbname>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#dbname>
   - key: postgres.schema
-    value: <path:kv/data/dna/kubernetesSecret/kong#schema>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#schema>
   - key: ONEAPI_GATEWAY_KEY
-    value: <path:kv/data/dna/kubernetesSecret/kong#oneapi.key>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#oneapi.key>
   - key: ONEAPI_GATEWAY_SECRET
-    value: <path:kv/data/dna/kubernetesSecret/kong#oneapi.secret>
+    value: <path:dna_aws_kv/data/dev/kubernetesSecret/kong#oneapi.secret>
 extraIngress:
   enabled: true
   hosts:
-    - host: scan.dev.dna.app.corpintra.net
+    - host: scan.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: dev.dna.app.corpintra.net
+    - host: dna-aws.app.corpintra.net
       paths:
         - path: /malware-scan/api/v1/scan
           pathType: Prefix
@@ -484,27 +484,27 @@ extraIngress:
       paths:
         - path: /
           pathType: Prefix
-    - host: dev.dna.app.corpintra.net
+    - host: dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: api.dss.dev.dna.app.corpintra.net
+    - host: api.dss.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: api.dss.dev.dna.app.corpintra.net
+    - host: api.dss.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: report.dev.dna.app.corpintra.net
+    - host: report.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: naas.dev.dna.app.corpintra.net
+    - host: naas.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: storage.dev.dna.app.corpintra.net
+    - host: storage.dna-aws.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix
@@ -516,7 +516,7 @@ extraIngress:
           pathType: Prefix
         - path: /webjars
           pathType: Prefix
-    - host: chronos.dev.dna.app.corpintra.net
+    - host: chronos.dna-aws.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix
@@ -528,23 +528,23 @@ extraIngress:
           pathType: Prefix
         - path: /webjars
           pathType: Prefix
-    - host: models.kfp.dev.dna.app.corpintra.net
+    - host: models.kfp.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: api.data-product.dev.dna.app.corpintra.net
+    - host: api.data-product.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: api.code-spaces.dev.dna.app.corpintra.net
+    - host: api.code-spaces.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: pipeline.dev.dna.app.corpintra.net
+    - host: pipeline.dna-aws.app.corpintra.net
       paths:
         - path: /airflow
           pathType: Prefix
-    - host: trino.dev.dna.app.corpintra.net
+    - host: trino.dna-aws.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix
@@ -556,15 +556,15 @@ extraIngress:
           pathType: Prefix
         - path: /webjars
           pathType: Prefix
-    - host: code-spaces.dev.dna.app.corpintra.net
+    - host: code-spaces.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: api.matomo.dev.dna.app.corpintra.net
+    - host: api.matomo.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
-    - host: api.workspaces.dev.dna.app.corpintra.net
+    - host: api.workspaces.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
@@ -574,52 +574,52 @@ extraIngress:
           pathType: Prefix
   tls:
     - hosts:
-        - scan.dev.dna.app.corpintra.net
+        - scan.dna-aws.app.corpintra.net
       secretName: clamav-tls
     - hosts:
         - dev.resource360.app.corpintra.net
       secretName: resource-tls
     - hosts:
-        - dev.dna.app.corpintra.net
+        - dna-aws.app.corpintra.net
       secretName: dna
     - hosts:
-        - api.dss.dev.dna.app.corpintra.net
+        - api.dss.dna-aws.app.corpintra.net
       secretName: dss-be
     - hosts:
-        - report.dev.dna.app.corpintra.net
+        - report.dna-aws.app.corpintra.net
       secretName: report-tls
     - hosts:
-        - naas.dev.dna.app.corpintra.net
+        - naas.dna-aws.app.corpintra.net
       secretName: naas-tls
     - hosts:
-        - models.kfp.dev.dna.app.corpintra.net
+        - models.kfp.dna-aws.app.corpintra.net
       secretName: model-kfp-tls
     - hosts:
-        - api.data-product.dev.dna.app.corpintra.net
+        - api.data-product.dna-aws.app.corpintra.net
       secretName: data-product-api-tls
     - hosts:
-        - api.code-spaces.dev.dna.app.corpintra.net
+        - api.code-spaces.dna-aws.app.corpintra.net
       secretName: code-server-api-tls
     - hosts:
-        - code-spaces.dev.dna.app.corpintra.net
+        - code-spaces.dna-aws.app.corpintra.net
       secretName: code-space-tls
     - hosts:
-        - api.matomo.dev.dna.app.corpintra.net
+        - api.matomo.dna-aws.app.corpintra.net
       secretName: api-matomo-tls
     - hosts:
-        - api.workspaces.dev.dna.app.corpintra.net
+        - api.workspaces.dna-aws.app.corpintra.net
       secretName: api-fabric-tls
     - hosts:
         - gateway.dev.dna.app.corpintra.net
       secretName: kong-dna
 konga:
   enabled: true
-  namespace: kong
+  namespace: dev-dna-kong
   ingress:
     enabled: true
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -643,7 +643,7 @@ konga:
               "node_id": "http://dna-kong-gw-kong-admin:8001",
               "admin": true,
               "active" : true,
-              "password": "<path:kv/data/dna/kubernetesSecret/kong#konga.password>"
+              "password": "<path:dna_aws_kv/data/dev/kubernetesSecret/kong#konga.password>"
           }
       ]
   kong_node_data: |

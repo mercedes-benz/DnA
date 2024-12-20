@@ -22,3 +22,58 @@ spec:
     - http01:
         ingress:
           ingressClassName: ingress-traefik
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'          
+    - http01:
+        ingress:
+          ingressClassName: {{ .Values.env }}-ingress-intranet
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-acme-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: dna@mercedes-benz.com
+    privateKeySecretRef:
+      name: letsencrypt-acme-staging
+    solvers:
+    - http01:
+        ingress:
+          class: {{ .Values.env }}-ingress-internet
+    # Adding this for BAT project
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-acme-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: dna@mercedes-benz.com
+    privateKeySecretRef:
+      name: letsencrypt-acme-prod
+    solvers:
+    - http01:
+        ingress:
+          class: {{ .Values.env }}-ingress-internet
+    # Adding this for BAT project
+          ingressTemplate:
+            metadata:
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
+                traefik.ingress.kubernetes.io/router.tls: 'false'

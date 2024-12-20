@@ -52,7 +52,7 @@ global:
 
 installCRDs: false
 
-replicaCount: 1
+replicaCount: 2
 
 strategy: {}
   # type: RollingUpdate
@@ -297,7 +297,7 @@ livenessProbe:
 enableServiceLinks: false
 
 webhook:
-  replicaCount: 1
+  replicaCount: 2
   timeoutSeconds: 10
 
   # Used to configure options for the webhook pod.
@@ -505,7 +505,7 @@ webhook:
 
 cainjector:
   enabled: true
-  replicaCount: 1
+  replicaCount: 2
 
   strategy: {}
     # type: RollingUpdate

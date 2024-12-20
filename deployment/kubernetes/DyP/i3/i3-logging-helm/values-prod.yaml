@@ -1,3 +1,4 @@
+
 # The default values of the subchart already meet the requirements for DHC CaaS
 fluent-bit:
   enabled: true
@@ -8,30 +9,22 @@ fluent-bit:
   podLabels:
     i3-logging-opensearch-master-transport-client: "true"
 
-  # Only deploy one pod per tenant
-  kind: Deployment
-  replicaCount: 1
+  kind: DaemonSet 
 
   image:
     repository: registry-emea.app.corpintra.net/dockerhub/fluent/fluent-bit
     pullPolicy: IfNotPresent
-
-  serviceAccount:
-    create: false
-
-  rbac:
-    create: false
 
   podSecurityPolicy:
     create: false
 
   podSecurityContext:
     runAsUser: 1000
-    runAsGroup: 1000
+    runAsGroup: 0
 
   securityContext:
     runAsUser: 1000
-    runAsGroup: 1000
+    runAsGroup: 0
 
   service:
     type: ClusterIP
@@ -42,13 +35,27 @@ fluent-bit:
     #   prometheus.io/path: "/api/v1/metrics/prometheus"
     #   prometheus.io/port: "2020"
     #   prometheus.io/scrape: "true"
-
-  # add port for forward input. Used by user-fluentd service to forward logs from CaaS
-  extraPorts:
-    - name: forward
-      port: 24284
-      protocol: TCP
-      containerPort: 24284
+  
+  daemonSetVolumeMounts:
+    #https://github.com/kubernetes/kubernetes/issues/53022
+    - name: user-host-logs
+      subPath: pods
+      mountPath: /var/log/pods
+      readOnly: true
+    - name: user-host-logs
+      mountPath: /var/log/containers
+      subPath: containers
+      readOnly: true
+    - mountPath: /db
+      name: db-volume
+    
+  daemonSetVolumes:
+    - name: user-host-logs
+      persistentVolumeClaim:
+        claimName: i3-logging-user-host-logs-claim
+    - name: db-volume
+      emptyDir:
+        sizeLimit: 500Mi
 
   # Info is the default log level of fluent-bit. Please note, that on setting logLevel to "DEBUG", fluent-bit puts multiple logs per second to stdout, therefore creating high cpu usage
   logLevel: info
@@ -73,29 +80,21 @@ fluent-bit:
     ## See documentation/INPUT.md
     ## https://docs.fluentbit.io/manual/pipeline/inputs
     inputs: |
-      # Input type forward is enabled by default, since this is the expected input mode on DHC CaaS.
-      @INCLUDE input_forward.conf
+      # Input type tail is enabled by default, since this is the expected input mode on DHC CaaS. 
+      # see: https://pages.git.i.mercedes-benz.com/DHC/CaaS/docs/technical-guide/logging/user-host-logs
+      @INCLUDE input_tail.conf
 
-      # for explainations, see https://docs.fluentbit.io/manual/input/tail
-      # @INCLUDE input_tail.conf
-
-      [INPUT]
-          Name            tcp
-          Listen          0.0.0.0
-          Port            5170
-          Tag             kong_tcp
-      
-      [INPUT]
-          Name            http
-          Listen          0.0.0.0
-          Port            9880
-          Tag             kong_http
+      # Input for opentelemetry. Opentelemetry endpoint is exposed at port 4318.
+      # @INCLUDE input_opentelemetry.conf
 
     ## See documentation/FILTER.md
     ## https://docs.fluentbit.io/manual/pipeline/filters
     filters: |
       # Kubernetes plugin is inactive by default. Uncomment to enable
-      # @INCLUDE filter_kubernetes.conf
+      @INCLUDE filter_kubernetes.conf
+
+      # Map env variables to log entry
+      @INCLUDE filter_add_to_log_from_env.conf
 
       # Enable filtering of DHC CaaS Kubernetes api server audit logs. Comment to disable.
       # If disabled, you need to enable extraFilters to avoid Opensearch index errors. See /documentation/FILTER.md for hints.
@@ -112,25 +111,8 @@ fluent-bit:
     outputs: |
       @INCLUDE output_opensearch.conf
 
-      [OUTPUT]
-          Name                   http
-          Match                  kong_http
-          Host                   i3-monitoring-prometheus-pushgateway.i3-monitoring.svc.cluster.local
-          Port                   9091
-          URI                    /metrics/job/fluent-bit
-          log_response_payload   true
-
     # extra files, which are included in config above
     extraFiles:
-      input_forward.conf: |
-        [INPUT]
-            Name              forward
-            Listen            0.0.0.0
-            Port              24284
-            Buffer_Chunk_Size 256KB
-            Buffer_Max_Size   10MB
-            Mem_Buf_Limit     8MB
-
       input_tail.conf: |
         # for explainations, see https://docs.fluentbit.io/manual/input/tail
         [INPUT]
@@ -141,6 +123,21 @@ fluent-bit:
             Refresh_Interval 5
             Mem_Buf_Limit    5MB
             Skip_Long_Lines  On
+            Read_from_Head false
+            db      /db/tail.db
+      
+      input_opentelemetry.conf: |
+        # for explainations, see https://docs.fluentbit.io/manual/v/dev-2.2/pipeline/inputs/opentelemetry
+        [INPUT]
+            name opentelemetry
+            listen 127.0.0.1
+            port 4318
+
+      filter_add_to_log_from_env.conf: |
+        [FILTER]
+            Name record_modifier
+            Match *
+            Record HOSTNAME ${HOSTNAME}
 
       filter_kubernetes.conf: |
         [FILTER]
@@ -205,7 +202,7 @@ fluent-bit:
 
       output_opensearch.conf: |
         [OUTPUT]
-          Name  es
+          Name  opensearch
           Match *
           Host  i3-logging-opensearch-master
           Port  9200
@@ -215,37 +212,25 @@ fluent-bit:
           Time_Key @flb-timestamp
           Replace_Dots On
           Logstash_Prefix kubernetes_cluster
-          HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>
+          HTTP_User <path:dna_aws_kv/data/prod/kubernetesSecret/logger#user>
+          HTTP_Passwd <path:dna_aws_kv/data/prod/kubernetesSecret/logger#password>          
 
-        [OUTPUT]
-          Name  opensearch
-          Match kong_http
-          Host  i3-logging-opensearch-master
-          Port  9200
-          Logstash_Format On
-          Retry_Limit 2
-          Suppress_Type_Name On
-          Time_Key @flb-timestamp
-          Replace_Dots On
-          Logstash_Prefix kong_kubernetes_cluster
-          HTTP_User <path:kv/data/dna/kubernetesSecret/logger#user>
-          HTTP_Passwd <path:kv/data/dna/kubernetesSecret/logger#password>              
-
-dhc-forwarder:
-  # Enable user-fluentd service in `default`
-  enabled: true
-  # must match with fluent-bit service name. This is most likely {{ .Release.Name }}-fluent-bit
-  loggingService: "i3-logging-fluent-bit"
+        # [Output]
+        #   name                   loki
+        #   match                  *
+        #   host                   loki-gateway.i3-monitoring
+        #   port                   80
+        #   labels                 Clustername=$(clusterName), namespace=$kubernetes['namespace_name'], pod_name=$kubernetes['pod_name']
+        #   auto_kubernetes_labels on
+        #   Retry_Limit            no_limits
 
 opensearch-dashboards:
-  replicaCount: 2
   enabled: true
   image:
     repository: "registry-emea.app.corpintra.net/dockerhub/opensearchproject/opensearch-dashboards"
     # override image tag, which is .Chart.AppVersion from upstream opensearch-dashboards helm chart by default
-    # if you change this, you also must change OSD_VERSION in lifecycle.postStart.exec.command
-    tag: "2.11.0"
+    # if you change this, you also must change opensearchDashboardVersion in i3-opensearch-config
+    tag: "2.17.1"
 
   # the label is required by OpenSearch networkPolicy to enable access to OpenSearch
   labels:
@@ -260,129 +245,8 @@ opensearch-dashboards:
           - -c
           - |
             #!/bin/bash
-
-
-            OSD_VERSION=2.11.0
-            OSD_URL=http://kibanaserver:<path:kv/data/dna/kubernetesSecret/logger#password>@localhost:5601
-            wait_time=5 
-            max_wait_time=300
-            start_time=$(date +%s)
-
-            until curl --connect-timeout 1 -sw '%{http_code}' -H "content-type: application/json" "$OSD_URL/api/saved_objects/_find?type=search" >> /tmp/state.txt -ne 200; do 
-                current_time=$(date +%s) 
-                elapsed_time=$((current_time - start_time)) 
-                if [ $elapsed_time -gt $max_wait_time ]; then 
-                    echo "OpenSearch did not start in time, killing pod..."  >> /tmp/state.txt
-                    exit 1 
-                fi 
-                echo "OpenSearch not yet ready, waiting for $wait_time seconds before retrying..."  >> /tmp/state.txt
-                sleep $wait_time 
-                wait_time=$((wait_time * 2))
-            done
-
-            echo "Creating Index Pattern" >> /tmp/state.txt
-            curl --request POST -v --fail --url "$OSD_URL/api/saved_objects/index-pattern/kubernetes?overwrite=true" \
-             --header 'content-type: application/json' \
-             --header "osd-version: ${OSD_VERSION}" \
-             --data '{"attributes": {"title": "kubernetes_*","timeFieldName": "@flb-timestamp"}}'
-
-            echo "Creating Application Logs Filter" >> /tmp/state.txt
-            curl --request POST -v --fail --url "$OSD_URL/api/saved_objects/search/application-logs?overwrite=true" \
-            --header 'content-type: application/json' \
-            --header "osd-version: ${OSD_VERSION}"
-            
-            echo "Creating Platform Kubernetes API Audit Logs Filter" >> /tmp/state.txt
-            curl --request POST -v --fail --url "$OSD_URL/api/saved_objects/search/platform-k8s-audit-logs?overwrite=true" \
-            --header 'content-type: application/json' \
-            --header "osd-version: ${OSD_VERSION}"
-            
-            echo "Creating Platform Kubernets Nodes Kubelet Logs Filter" >> /tmp/state.txt
-            curl --request POST -v --fail --url "$OSD_URL/api/saved_objects/search/platform-kubelet-logs?overwrite=true" \
-            --header 'content-type: application/json' \
-            --header "osd-version: ${OSD_VERSION}"
-
-            echo "Creating index management against kubernetes_" >> /tmp/state.txt
-
-            curl -L "$OSD_URL/api/ism/policies/kubernetes" > /tmp/index_response.json
-
-            cat << EOF > /tmp/check_for_index.py
-            import sys, json
-            f = open('/tmp/index_response.json')
-            data = json.load(f)
-            if "error" in data.keys():
-              if data["error"].startswith("[index_not_found_exception]"):
-                sys.exit(30)
-              sys.exit(20)
-            sys.exit(10)                
-            EOF
-            
-            python /tmp/check_for_index.py
-            status=$?
-            echo "Ran Python script with $status status" >> /tmp/state.txt
-
-            if [ "${status}" -eq 30 ]; then
-                echo "Creating ism" >> /tmp/state.txt
-                cat << EOF > /tmp/index-management.json
-                {
-                  "policy": {
-                    "description": "default workflow",
-                    "default_state": "hot",
-                    "schema_version": 1,
-                    "states": [
-                      {
-                        "name": "hot",
-                        "actions": [],
-                        "transitions": [
-                          {
-                            "state_name": "warm",
-                            "conditions": {
-                              "min_index_age": "1d"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "name": "warm",
-                        "actions": [],
-                        "transitions": [
-                          {
-                            "state_name": "delete",
-                            "conditions": {
-                              "min_index_age": "<path:kv/data/dna/kubernetesSecret/logger#retention_age>"
-                            }
-                          },
-                          {
-                            "state_name": "delete",
-                            "conditions": {
-                              "min_size": "<path:kv/data/dna/kubernetesSecret/logger#retention_size>"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "name": "delete",
-                        "actions": [
-                          {
-                            "delete": {}
-                          }
-                        ]
-                      }
-                    ],
-                    "ism_template": {
-                      "index_patterns": ["kubernetes_*"],
-                      "priority": 1
-                    }
-                  }
-                }
-            EOF
-                curl -v --fail -XPUT "$OSD_URL/api/ism/policies/kubernetes" -H 'Content-Type: application/json' -H "osd-version: ${OSD_VERSION}"  -d'@/tmp/index-management.json'
-                echo "Assigning kubernetes index management policy for kubernetes_ index" >> /tmp/state.txt
-                curl --request POST -v --fail "$OSD_URL/api/ism/applyPolicy" -H 'Content-Type: application/json' -H "osd-version: ${OSD_VERSION}" -d '
-                {
-                  "indices": ["kubernetes_*"],
-                  "policyId": "kubernetes"
-                }'
-            fi
+            # /usr/share/opensearch-dashboards/bin/opensearch-dashboards-plugin remove securityDashboards
+            echo "Opensearch"
 
   podSecurityContext:
     runAsUser: 1000
@@ -395,7 +259,10 @@ opensearch-dashboards:
   extraEnvs: []
     # Defines the opensearch-dashboards url path prefix. Should match with server.basePath in opensearch-dashboards.config.opensearch_dashboards.yml
     #- name: SERVER_BASEPATH
-    #  value: /logging 
+    #  value: /logging
+    # - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+    #   value: "true"
+
 
   config:
     opensearch_dashboards.yml: |
@@ -404,7 +271,7 @@ opensearch-dashboards:
       opensearch.hosts: ["http://i3-logging-opensearch-master:9200"]
       opensearch.ssl.verificationMode: none
       opensearch.username: kibanaserver
-      opensearch.password: <path:kv/data/dna/kubernetesSecret/logger#password>
+      opensearch.password: <path:dna_aws_kv/data/prod/kubernetesSecret/logger#password>
       opensearch.requestHeadersWhitelist: [authorization, securitytenant, Authorization]
 
       opensearch_security.multitenancy.enabled: true
@@ -425,18 +292,19 @@ opensearch-dashboards:
 
   extraContainers: [ ]
 
+  extraVolumes: [ ]
 
   ingress:
     enabled: true
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - host: <path:kv/data/dna/kubernetesSecret/logger#host>
+      - host: logs.dna-prod.app.corpintra.net
         paths:
           - path: /
             backend:
@@ -444,7 +312,7 @@ opensearch-dashboards:
               servicePort: 5601
     tls:
       - hosts:
-          - <path:kv/data/dna/kubernetesSecret/logger#host>
+          - logs.dna-prod.app.corpintra.net
         secretName: logs-tls
     #  - secretName: chart-example-tls
     #    hosts:
@@ -467,28 +335,27 @@ opensearch-dashboards:
 
 opensearch:
   enabled: true
-  # extraEnvs:
-  # - name: DISABLE_INSTALL_DEMO_CONFIG
-  #   value: "true"  
+  maxUnavailable: ""
 
   # Provide custom masterService to match with fluent-bit output.host
   masterService: "i3-logging-opensearch-master"
+
 
   ingress:
     enabled: true
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - <path:kv/data/dna/kubernetesSecret/logger#opensearch-host>
+      - api.logs.dna-prod.app.corpintra.net
     path: /
     tls:
       - hosts:
-          - <path:kv/data/dna/kubernetesSecret/logger#opensearch-host>
+          - api.logs.dna-prod.app.corpintra.net
         secretName: logs-opensearch-tls
 
   image:
@@ -518,21 +385,6 @@ opensearch:
   labels:
     i3-logging-opensearch-master-transport-client: "true"
 
-  # lifecycle: 
-  #   postStart:
-  #     exec:
-  #       command:
-  #         - bash
-  #         - -c
-  #         - |
-  #           #!/bin/bash
-  #           # Add a template to adjust number of shards/replicas1
-  #           INDEX_PATTERN="kubernetes_*"
-  #           ES_URL=http://kibanaserver:kibanaserver@localhost:9200
-  #           while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
-  #           echo "Setting limit 10000"
-  #           curl -XPUT "$ES_URL/$INDEX_PATTERN/_settings" -H 'Content-Type: application/json' -d'{"index.mapping.total_fields.limit": 10000 }'
-
   config:
     log4j2.properties: |
       status = info
@@ -545,8 +397,6 @@ opensearch:
 
     opensearch.yml: |
       cluster.name: opensearch-cluster
-      # for curator, we need this, see https://github.com/opensearch-project/OpenSearch/issues/1352
-      compatibility.override_main_response_version: true
       # Bind to all interfaces because we don't know what IP address Docker will assign to us.
       network.host: 0.0.0.0
 
@@ -591,6 +441,10 @@ opensearch:
 
   networkPolicy:
     create: true
+  
+  extraEnvs:
+    - name: plugins.security.ssl.http.enabled
+      value: "false"    
 
   securityConfig:
     enabled: true
@@ -626,22 +480,37 @@ opensearch:
             type: "internalusers"
             config_version: 2
 
+          # Define your internal users here
+          new-user:
+            hash: "<path:dna_aws_kv/data/dev/kubernetesSecret/logger#hashPassword>"
+            reserved: false
+            hidden: false
+            opendistro_security_roles:
+            - "specify-some-security-role-here"
+            backend_roles:
+            - "specify-some-backend-role-here"
+            attributes:
+              attribute1: "value1"
+            static: false
+
+          ## Demo users
+
           admin:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "admin"
             description: "Admin user"
 
           kibanaserver:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "admin"            
             description: "OpenSearch Dashboards server"
 
           kibanaro:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "kibanauser"
@@ -653,21 +522,21 @@ opensearch:
             description: "Demo read-only user for OpenSearch dashboards"
 
           logstash:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "logstash"
             description: "Demo logstash user"
 
           readall:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "readall"
             description: "Demo readall user"
 
           snapshotrestore:
-            hash: "<path:kv/data/dna/kubernetesSecret/logger#hashPassword>"
+            hash: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#hashPassword>"
             reserved: false
             backend_roles:
             - "snapshotrestore"
@@ -834,120 +703,63 @@ opensearch:
 
   persistence:
     enableInitChown: false
-    size: <path:kv/data/dna/kubernetesSecret/logger#size>
-    storageClass: <path:kv/data/dna/kubernetesSecret/logger#storageClass>
+    size: 100Gi
+    storageClass: dhc-gp3
   replicas: 3
   singleNode: false
   opensearchJavaOpts: "-Xmx2048M -Xms2048M"
 
-jaeger:
+i3-opensearch-config:
+  # Apply i3 specific configuration such as ISM policy
   enabled: true
-  networkPolicy:
+
+  # Opensearch Hosts to apply the policy to. Supports comma seperated values.
+  opensearchHosts: "http://i3-logging-opensearch-master:9200"
+
+  # Opensearch Dashboards to apply the policy to.Supports comma seperated values.
+  opensearchDashboardHosts: "http://i3-logging-opensearch-dashboards:5601"
+
+  # Opensearch dashboard version
+  opensearchDashboardVersion: "2.17.1"
+
+  opensearchPassword: "kibanaserver"
+  opensearchUsername: "kibanaserver"
+  
+  # Apply Index management policy
+  ism:
     enabled: true
-  fullnameOverride: "jaeger"
-  provisionDataStore:
-    cassandra: false
-    elasticsearch: false
-    kafka: false
 
-  collector:
-    enabled: true
-    podLabels:
-      i3-logging-opensearch-master-transport-client: "true"
-    networkPolicy:
-      enabled: true
-      ingressRules:
-        customRules: 
-          - {}
-    image:
-      registry: registry-emea.app.corpintra.net
-      repository: dockerhub/jaegertracing/jaeger-collector
-    podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000     
-    extraEnv:
-      - name: ES_TAGS_AS_FIELDS_ALL
-        value: "true"          
-      - name: SPAN_STORAGE_TYPE
-        value: "opensearch"       
-             
-
-  query:
-    enabled: true
-    podLabels:
-      i3-logging-opensearch-master-transport-client: "true"  
-    networkPolicy:
-      enabled: true
-      ingressRules:
-        customRules: 
-          - {}      
-    image:
-      registry: registry-emea.app.corpintra.net
-      repository: dockerhub/jaegertracing/jaeger-query
-    podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000 
-    extraEnv:
-      - name: ES_TAGS_AS_FIELDS_ALL
-        value: "true"      
-      - name: SPAN_STORAGE_TYPE
-        value: "opensearch"
-      - name: METRICS_STORAGE_TYPE
-        value: "prometheus"
-      - name: PROMETHEUS_SERVER_URL
-        value: "http://i3-monitoring-prometheus-server.i3-monitoring.svc.cluster.local"
-      - name: PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR
-        value: "true"
-
-  agent:
-    enabled: true
-    podLabels:
-      i3-logging-opensearch-master-transport-client: "true"    
-    image:
-      registry: registry-emea.app.corpintra.net
-      repository: dockerhub/jaegertracing/jaeger-agent     
-    podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000 
-    extraEnv:
-      - name: ES_TAGS_AS_FIELDS_ALL
-        value: "true"          
-      - name: SPAN_STORAGE_TYPE
-        value: "opensearch"          
-
-  storage:
-    type: elasticsearch
-    elasticsearch:
-      scheme: http
-      host: i3-logging-opensearch-master
-      port: 9200
-      anonymous: false
-      user: <path:kv/data/dna/kubernetesSecret/logger#user>
-      usePassword: true
-      password: <path:kv/data/dna/kubernetesSecret/logger#password>
-      extraEnv:
-        - name: ES_TAGS_AS_FIELDS_ALL
-          value: "true"          
-        - name: SPAN_STORAGE_TYPE
-          value: "opensearch"
-
-  hotrod:
+  # Apply i3-access anomaly detector to Opensearch dashboards.
+  i3AccessAnomaly:
     enabled: false
-    networkPolicy:
-      enabled: true
-    image:
-      repository: registry-emea.app.corpintra.net/dockerhub/jaegertracing/example-hotrod
-    podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000    
-    tracing:
-      host: jaeger-agent
-      port: 6831       
-    extraEnv:
-      - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-        value: http://jaeger-collector:14268/api/traces 
+    
+  # Apply reusable saved objects.Global tenent is used by default
+  savedObjectApi:
+    enabled: false
 
-    kafka:
-      brokers:
-        - broker01.kafka:8001
-      topic: jaeger_v1_test
+    # Path of saved objects api
+    path: "/api/saved_objects/_import"
+
+    # Additional url parameters.
+    #eg ?param1=val1&param2=val2
+    additionalUrlParams: "?overwrite=true"
+
+    # List your configmaps 
+    # Case 1
+    # If you added your ndjson to savedobjects folder those will be installed automatically. 
+    # or Case 2
+    # Create your configmaps! Your configmaps will be instaled after your ndjson in savedobjects folder. List your external configmaps in additionalConfigMapNames.
+    # Your configmap needs to be in the same namespace as the namespace where you installed i3-logging
+    # apiVersion: v1
+    # kind: ConfigMap
+    # metadata:
+    #   name: replaceMeWithANameForYourConfigmap
+    # data:
+    #   replaceMeWithANameForYourSavedObject: |
+    #     <value>
+    #
+    # then in the fild below add those names
+    #
+    # additionalConfigMapNames:
+    #   - replaceMeWithANameForYourConfigmap
+    additionalConfigMapNames: []  

@@ -16,7 +16,7 @@ permissions:
 jobs:
   override-files-sync:
     name: "Override Or Additional Files Sync"
-    runs-on: [ road-runner, medium ]
+    runs-on: [os-medium-amd64-linux ]
     steps:
 
       - name: Check Source Branch

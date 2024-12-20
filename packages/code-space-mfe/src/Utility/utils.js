@@ -15,13 +15,11 @@ export const getParams = () => {
 };
 
 export const getQueryParam = (paramName) => {
-  const hashParts = window.location.hash?.split('?');
-  const queryString = hashParts[1] || "";
-
+  const hash = window.location.hash.slice(1);
+  const queryString = hash.replace(/\?/g, '&');
   const params = new URLSearchParams(queryString);
   return params.get(paramName);
 }
-
 
 export const getPath = () => {
   return window.location.hash;
@@ -44,6 +42,14 @@ export const buildGitJobLogViewURL = (gitJobRunId) => {
     } catch {
       return "Error in building git job log view Url. Please check the git job run id."
     }
+};
+
+export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
+  try {
+    return Envs.CODESPACE_AWS_OPENSEARCH_BUILD_LOGS_URL.replaceAll('$INSTANCE_ID$', gitJobRunId);
+  } catch {
+    return "Error in building git job log view Url. Please check the git job run id."
+  }
 };
 
 export const buildGitUrl = (gitRepoInfo) => {
@@ -71,9 +77,20 @@ export const buildLogViewURL = (deployedInstance, isStagging = false) => { //iss
       return "Error in building log view Url. Please check the deployment Url."
     }
 };
+export const buildLogViewAWSURL = (deployedInstance, isStagging = false) => { //isstagingOptional
+  try {
+    let instanceId = deployedInstance;
+    if(isValidURL(deployedInstance)) {
+      instanceId = new URL(deployedInstance).pathname.split("/")[1];
+    }
+    return Envs.CODESPACE_AWS_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', instanceId + (isStagging ? '-int' : '-prod'));
+  } catch {
+    return "Error in building log view Url. Please check the deployment Url."
+  }
+};
 export const isValidGitUrl = (str) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
-  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\/)?`);
+  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\.git)`);
   return (str == null) ? false : regex.test(str);
 };
 

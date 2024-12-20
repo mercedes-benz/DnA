@@ -1,4 +1,4 @@
-namespace: matomo
+namespace: prod-dna-matomo
 configJs: |
   window["MATOMO_INJECTED_ENVIRONMENT"]={
     ENABLE_MATOMO_SERVICE=true,
@@ -9,7 +9,7 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-mfe
   pullPolicy: IfNotPresent
-  tag: 1.0.1
+  tag: 41
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -49,14 +49,13 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/prod
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/matomoMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/prod/kubernetesSecret/matomoMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "kv/dna/kubernetesSecret/matomoMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/matomoMFE" -}}
           window["MATOMO_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

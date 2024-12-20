@@ -4,7 +4,7 @@ annotations:
     - name: Chart Source
       url: https://github.com/prometheus-community/helm-charts
 apiVersion: v2
-appVersion: v0.26.0
+appVersion: v0.27.0
 description: The Alertmanager handles alerts sent by client applications such as the
   Prometheus server.
 home: https://prometheus.io/
@@ -21,4 +21,4 @@ name: alertmanager
 sources:
 - https://github.com/prometheus/alertmanager
 type: application
-version: 1.7.0
+version: 1.11.0

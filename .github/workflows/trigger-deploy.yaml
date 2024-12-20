@@ -9,6 +9,38 @@ on:
         type: environment
         required: true
         default: 'Development'      
+      service:
+        description: "Service"
+        type: choice
+        default: dna-frontend
+        required: true  
+        options: 
+          - airflow-backend
+          - authenticator-service
+          - chronos-mfe
+          - chronos-be
+          - code-server
+          - code-space-mfe
+          - dashboard-backend
+          - data-product-backend
+          - data-product-mfe
+          - dataentry-mfe          
+          - datalake-mfe
+          - dna-backend
+          - dna-frontend
+          - dss-be
+          - dss-mfe
+          - fabric-backend
+          - fabric-mfe
+          - malware-scanner
+          - matomo-backend
+          - matomo-mfe
+          - naas
+          - power-platform-be
+          - power-platform-mfe
+          - storage-be
+          - storage-mfe
+          - trino-backend 
 
   pull_request:
     types:
@@ -25,7 +57,7 @@ jobs:
           
   select-service:
     name: 'Detect changes in the service files'
-    runs-on: [road-runner, medium]
+    runs-on: [os-medium-amd64-linux]
     outputs:
       code-server: ${{ steps.filter.outputs.code-server }}    
       chronos-mfe: ${{ steps.filter.outputs.chronos-mfe }}
@@ -52,6 +84,7 @@ jobs:
       fabric-backend: ${{ steps.filter.outputs.fabric-backend }}
       fabric-mfe: ${{ steps.filter.outputs.fabric-mfe }}
       power-platform-mfe: ${{ steps.filter.outputs.power-platform-mfe }}
+      power-platform-be: ${{ steps.filter.outputs.power-platform-be }}
 
     permissions:
       pull-requests: read    
@@ -67,6 +100,7 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: dorny/paths-filter@v3.0.2
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: filter
         with:
           filters: |
@@ -144,20 +178,16 @@ jobs:
               - 'deployment/dockerfiles/fabric/fabric-mfe.Dockerfile' 
             power-platform-mfe:
               - 'packages/power-platform-mfe/**'
-              - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'     
-
-      - name: Delete HEAD branche
-        if: ${{ github.ref_name == 'main' }}      
-        uses: dawidd6/action-delete-branch@v3.1.0
-        with:
-          github_token: ${{ secrets.PID_PAT }}
-          branches: ${{ github.head_ref }}                                               
+              - 'deployment/dockerfiles/power-platform/power-platform-mfe.Dockerfile'
+            power-platform-be:
+              - 'packages/powerplatform-backend/**'
+              - 'deployment/dockerfiles/power-platform/power-platform-be.Dockerfile'                                                  
                 
 
   code-server:
         name: Code Server Backend
         needs: select-service
-        if: needs.select-service.outputs.code-server == 'true'
+        if: ${{ needs.select-service.outputs.code-server == 'true' ||  github.event.inputs.service == 'code-server' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/code-server-be'
@@ -174,7 +204,7 @@ jobs:
   chronos-be:
         name: Chronos Backend
         needs: select-service
-        if: needs.select-service.outputs.chronos-be == 'true'
+        if: ${{  needs.select-service.outputs.chronos-be == 'true'  ||  github.event.inputs.service == 'chronos-be' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/chronos-be'
@@ -191,7 +221,7 @@ jobs:
   chronos-mfe:
         name: Chronos MFE
         needs: select-service
-        if: needs.select-service.outputs.chronos-mfe == 'true'
+        if: ${{  needs.select-service.outputs.chronos-mfe == 'true'  ||  github.event.inputs.service == 'chronos-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/chronos-mfe'
@@ -208,7 +238,7 @@ jobs:
   code-space-mfe:
         name: Codespace MFE
         needs: select-service
-        if: needs.select-service.outputs.code-space-mfe == 'true'
+        if: ${{  needs.select-service.outputs.code-space-mfe == 'true'  ||  github.event.inputs.service == 'code-space-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe'
@@ -225,7 +255,7 @@ jobs:
   storage-mfe:
         name: Storage MFE
         needs: select-service
-        if: needs.select-service.outputs.storage-mfe == 'true'
+        if: ${{  needs.select-service.outputs.storage-mfe == 'true'  ||  github.event.inputs.service == 'storage-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/storage-mfe'
@@ -242,7 +272,7 @@ jobs:
   storage-be:
         name: Storage Backend
         needs: select-service
-        if: needs.select-service.outputs.storage-be == 'true'
+        if: ${{  needs.select-service.outputs.storage-be == 'true'  ||  github.event.inputs.service == 'storage-be' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/storage-be'
@@ -259,7 +289,7 @@ jobs:
   dss-be:    ## Code changes are not detected
         name: DSS Backend
         needs: select-service
-        if: needs.select-service.outputs.dss-be == 'true'
+        if: ${{  needs.select-service.outputs.dss-be == 'true'  ||  github.event.inputs.service == 'dss-be' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dss-backend'
@@ -276,7 +306,7 @@ jobs:
   dss-mfe:
         name: DSS MFE
         needs: select-service
-        if: needs.select-service.outputs.dss-mfe == 'true'
+        if: ${{  needs.select-service.outputs.dss-mfe == 'true'  ||  github.event.inputs.service == 'dss-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dss-mfe'
@@ -293,7 +323,7 @@ jobs:
   data-product-mfe:  ## Code changes are not detected
         name: Dataproduct MFE
         needs: select-service
-        if: needs.select-service.outputs.data-product-mfe == 'true'
+        if: ${{  needs.select-service.outputs.data-product-mfe == 'true'  ||  github.event.inputs.service == 'data-product-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/data-product-mfe'
@@ -310,7 +340,7 @@ jobs:
   data-product-backend:
         name: Dataproduct Backend
         needs: select-service
-        if: needs.select-service.outputs.data-product-backend == 'true'
+        if: ${{  needs.select-service.outputs.data-product-backend == 'true'  ||  github.event.inputs.service == 'data-product-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/data-product-be'
@@ -327,7 +357,7 @@ jobs:
   authenticator-service:
         name: Authenticator Service
         needs: select-service
-        if: needs.select-service.outputs.authenticator-service == 'true'
+        if: ${{  needs.select-service.outputs.authenticator-service == 'true'  ||  github.event.inputs.service == 'authenticator-service' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/authenticator-service'
@@ -344,7 +374,7 @@ jobs:
   airflow-backend:
         name: Airflow Backend
         needs: select-service
-        if: needs.select-service.outputs.airflow-backend == 'true'
+        if: ${{  needs.select-service.outputs.airflow-backend == 'true'  ||  github.event.inputs.service == 'airflow-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/airflow-backend'
@@ -361,7 +391,7 @@ jobs:
   trino-backend:
         name: Trino Backend
         needs: select-service
-        if: needs.select-service.outputs.trino-backend == 'true'
+        if: ${{  needs.select-service.outputs.trino-backend == 'true'  ||  github.event.inputs.service == 'trino-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/trino-backend'
@@ -378,7 +408,7 @@ jobs:
   dna-backend:
         name: DNA Backend
         needs: select-service
-        if: needs.select-service.outputs.dna-backend == 'true'
+        if: ${{  needs.select-service.outputs.dna-backend == 'true'  ||  github.event.inputs.service == 'dna-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-backend'
@@ -395,7 +425,7 @@ jobs:
   dna-frontend:   ## Code changes are not detected
         name: DNA Frontend
         needs: select-service
-        if: needs.select-service.outputs.dna-frontend == 'true'
+        if: ${{  needs.select-service.outputs.dna-frontend == 'true'  ||  github.event.inputs.service == 'dna-frontend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dna-frontend'
@@ -412,7 +442,7 @@ jobs:
   dataentry-mfe:
         name: Dataentry MFE
         needs: select-service
-        if: needs.select-service.outputs.dataentry-mfe == 'true'
+        if: ${{  needs.select-service.outputs.dataentry-mfe == 'true'  ||  github.event.inputs.service == 'dataentry-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dataentry-mfe'
@@ -429,7 +459,7 @@ jobs:
   dashboard-backend:
         name: Dashboard Backend
         needs: select-service
-        if: needs.select-service.outputs.dashboard-backend == 'true'
+        if: ${{  needs.select-service.outputs.dashboard-backend == 'true'  ||  github.event.inputs.service == 'dashboard-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/dashboard-backend'
@@ -446,7 +476,7 @@ jobs:
   malware-scanner:
         name: Malware Scanner
         needs: select-service
-        if: needs.select-service.outputs.malware-scanner == 'true'
+        if: ${{  needs.select-service.outputs.malware-scanner == 'true'  ||  github.event.inputs.service == 'malware-scanner' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend'
@@ -463,7 +493,7 @@ jobs:
   naas:
         name: NAAS
         needs: select-service
-        if: needs.select-service.outputs.naas == 'true'
+        if: ${{  needs.select-service.outputs.naas == 'true'  ||  github.event.inputs.service == 'naas' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/naas-backend'
@@ -480,7 +510,7 @@ jobs:
   datalake-mfe:
         name: Datalake MFE
         needs: select-service
-        if: needs.select-service.outputs.datalake-mfe == 'true'
+        if: ${{  needs.select-service.outputs.datalake-mfe == 'true'  ||  github.event.inputs.service == 'datalake-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/datalake-mfe'
@@ -497,7 +527,7 @@ jobs:
   matomo-mfe:   ## Code changes are not detected
         name: Matomo MFE
         needs: select-service
-        if: needs.select-service.outputs.matomo-mfe == 'true'
+        if: ${{  needs.select-service.outputs.matomo-mfe == 'true'  ||  github.event.inputs.service == 'matomo-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/matomo-mfe'
@@ -514,7 +544,7 @@ jobs:
   matomo-backend:
         name: Matomo Backend
         needs: select-service
-        if: needs.select-service.outputs.matomo-backend == 'true'
+        if: ${{  needs.select-service.outputs.matomo-backend == 'true'  ||  github.event.inputs.service == 'matomo-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/matomo-backend'
@@ -531,7 +561,7 @@ jobs:
   fabric-backend:
         name: Fabric Backend
         needs: select-service
-        if: needs.select-service.outputs.fabric-backend == 'true'
+        if: ${{  needs.select-service.outputs.fabric-backend == 'true'  ||  github.event.inputs.service == 'fabric-backend' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/fabric-be'
@@ -548,7 +578,7 @@ jobs:
   fabric-mfe:
         name: Fabric MFE
         needs: select-service
-        if: needs.select-service.outputs.fabric-mfe == 'true'
+        if: ${{  needs.select-service.outputs.fabric-mfe == 'true'  ||  github.event.inputs.service == 'fabric-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/fabric-mfe'
@@ -565,7 +595,7 @@ jobs:
   power-platform-mfe:
         name: PowerPlatform MFE
         needs: select-service
-        if: needs.select-service.outputs.power-platform-mfe == 'true'
+        if: ${{  needs.select-service.outputs.power-platform-mfe == 'true'  ||  github.event.inputs.service == 'power-platform-mfe' }}
         uses: ./.github/workflows/deploy.yaml
         with:
           IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe'
@@ -578,5 +608,21 @@ jobs:
           APP_VERSION_FILE_PATH: 'packages/power-platform-mfe/package.json'
           HELM_FOLDER: 'deployment/kubernetes/helm/charts/power-platform-mfe'
           YML_IMAGE_TAG_PATH: 'image.tag' 
-        secrets: inherit                  
-
+        secrets: inherit
+  power-platform-be:
+        name: PowerPlatform Backend
+        needs: select-service
+        if: ${{  needs.select-service.outputs.power-platform-be == 'true'  ||  github.event.inputs.service == 'power-platform-be' }}
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/power-platform-be'
+          DOCKER_FILE_PATH: 'power-platform/power-platform-be.Dockerfile'
+          DETECT_PROJECT_NAME: 'power-platform-be'
+          IS_OVERRIDE_REQUIRED: true
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IS_REACT_APP: false
+          CODE_FOLDER: 'packages/powerplatform-backend'
+          APP_VERSION_FILE_PATH: 'packages/powerplatform-backend/powerplatform-lib/src/main/resources/application.yml'
+          HELM_FOLDER: 'deployment/kubernetes/helm/charts/power-platform-be'
+          YML_IMAGE_TAG_PATH: 'image.tag'                        
+        secrets: inherit

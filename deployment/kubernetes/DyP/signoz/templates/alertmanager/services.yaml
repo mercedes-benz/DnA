@@ -1,0 +1,58 @@
+{{- if .Values.alertmanager.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "alertmanager.fullname" . }}
+  labels:
+    {{- include "alertmanager.labels" . | nindent 4 }}
+{{- with .Values.alertmanager.service }}
+{{- if .labels }}
+    {{- toYaml .labels | nindent 4 }}
+{{- end }}
+{{- if .annotations }}
+  annotations:
+    {{- toYaml .annotations | nindent 4 }}
+{{- end }}
+spec:
+  type: {{ .type }}
+  ports:
+    - port: {{ .port }}
+      {{- include "signoz.service.ifClusterIP" .type | nindent 6 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+      {{- if (and (eq .type "NodePort") .nodePort) }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+{{- end }}
+  selector:
+    {{- include "alertmanager.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "alertmanager.fullname" . }}-headless
+  labels:
+    {{- include "alertmanager.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+{{- with .Values.alertmanager }}
+  ports:
+    - port: {{ .service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- if or (gt (int .replicaCount) 1) (.additionalPeers) }}
+    - port: {{ .service.clusterPort }}
+      targetPort: {{ .service.clusterPort }}
+      protocol: TCP
+      name: cluster-tcp
+    - port: {{ .service.clusterPort }}
+      targetPort: {{ .service.clusterPort }}
+      protocol: UDP
+      name: cluster-udp
+    {{- end }}
+{{- end }}
+  selector:
+    {{- include "alertmanager.selectorLabels" . | nindent 4 }}
+{{- end }}

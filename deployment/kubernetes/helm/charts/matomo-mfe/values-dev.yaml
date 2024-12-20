@@ -1,4 +1,4 @@
-namespace: matomo
+namespace: dev-dna-matomo
 configJs: |
   window["MATOMO_INJECTED_ENVIRONMENT"]={
     ENABLE_MATOMO_SERVICE=true,
@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-mfe
   pullPolicy: IfNotPresent
-  tag: '9e71e59f06fc27d30cb6724bbab79bb6897dd110'
+  tag: '41'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -24,19 +24,19 @@ ingress:
   enabled: true
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: matomo.dev.dna.app.corpintra.net
+    - host: matomo.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - matomo.dev.dna.app.corpintra.net
+        - matomo.dna-aws.app.corpintra.net
       secretName: matomo-tls-secret
 resources:
   limits:
@@ -49,17 +49,16 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/namespace: fmas/dev
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-configjs: kv/dna/kubernetesSecret/matomoMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/dev/kubernetesSecret/matomoMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "kv/dna/kubernetesSecret/matomoMFE" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/matomoMFE" -}}
           window["MATOMO_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
