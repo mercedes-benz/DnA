@@ -385,7 +385,7 @@ data:
     user: <path:dna_aws_kv/data/dev/kubernetesSecret/officalairflow#airflowdbuser | squote>
     pass: <path:dna_aws_kv/data/dev/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
-    host: airflow-db.airflow.svc.cluster.local
+    host: airflow-db.dev-dna-airflow.svc.cluster.local
     port: 64000
     db: <path:dna_aws_kv/data/dev/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
@@ -560,7 +560,7 @@ workers:
     # Volume size for worker StatefulSet
     size: 1Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName: nfs-sc
+    storageClassName: nfs-sc 
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
     # of local-path provisioner.
@@ -1263,7 +1263,7 @@ triggerer:
     # Enable persistent volumes
     enabled: false
     # Volume size for triggerer StatefulSet
-    size: 3Gi
+    size: 5Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
     storageClassName: nfs-sc
     # Execute init container to chown log directory.

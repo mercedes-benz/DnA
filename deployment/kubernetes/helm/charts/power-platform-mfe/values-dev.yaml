@@ -30,13 +30,13 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: power-platform.dna-aws.app.corpintra.net
+    - host: test.prompt-craft.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - power-platform.dna-aws.app.corpintra.net
+        - test.prompt-craft.dna-aws.app.corpintra.net
       secretName: power-platform-tls-secret
 resources:
   limits:
