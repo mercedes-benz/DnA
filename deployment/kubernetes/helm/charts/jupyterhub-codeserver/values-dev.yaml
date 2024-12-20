@@ -193,7 +193,7 @@ hub:
               'periodSeconds': 60,
               'timeoutSeconds': 5,
               'successThreshold': 1,
-              'failureThreshold': 10
+              'failureThreshold': 8
             }
           }        
 
@@ -935,7 +935,7 @@ cull:
   users: false # --cull-users
   adminUsers: true # --cull-admin-users
   removeNamedServers: false # --remove-named-servers
-  timeout: 43200 # --timeout
+  timeout: 1800 # --timeout
   every: 0 # --cull-every
   concurrency: 10 # --concurrency
   maxAge: 0 # --max-age

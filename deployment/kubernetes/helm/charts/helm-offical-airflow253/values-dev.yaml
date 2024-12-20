@@ -48,7 +48,7 @@ airflowHome: /opt/airflow
 defaultAirflowRepository: registry-emea.app.corpintra.net/dnaplatform/airflow/officalairflow
 
 # Default airflow tag to deploy
-defaultAirflowTag: "promcraft-docs-v2"
+defaultAirflowTag: "promcraft-docs-v2 "
 
 # Default airflow digest. If specified, it takes precedence over tag
 defaultAirflowDigest: ~

@@ -55,7 +55,7 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-03
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
   replicaCount: 1
   pullPolicy: Always
   tag: '41'
