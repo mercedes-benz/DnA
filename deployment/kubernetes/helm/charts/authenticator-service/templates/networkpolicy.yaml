@@ -19,18 +19,18 @@ spec:
             app.kubernetes.io/name: code-server-backend
         namespaceSelector:
           matchLabels:
-            kubernetes.io/metadata.name: dev-dna-kong       
+            kubernetes.io/metadata.name: dev-dna-cs-workspaces       
       - podSelector:
           matchLabels:
             app.kubernetes.io/name: code-server-backend
         namespaceSelector:
           matchLabels:
-            kubernetes.io/metadata.name: test-dna-kong  
+            kubernetes.io/metadata.name: test-dna-cs-workspaces  
       - podSelector:
           matchLabels:
             app.kubernetes.io/name: code-server-backend
         namespaceSelector:
           matchLabels:
-            kubernetes.io/metadata.name: prod-dna-kong                             
+            kubernetes.io/metadata.name: prod-dna-cs-workspaces                          
   policyTypes:
     - Ingress
