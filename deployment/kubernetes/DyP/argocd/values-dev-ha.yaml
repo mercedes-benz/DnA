@@ -185,7 +185,7 @@ configs:
     admin.enabled: true
 
     # -- Timeout to discover if a new manifests version got published to the repository
-    timeout.reconciliation: 180s
+    timeout.reconciliation: 2s
 
     # -- Timeout to refresh application data as well as target manifests cache
     timeout.hard.reconciliation: 180s
