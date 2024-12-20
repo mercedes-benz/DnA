@@ -24,7 +24,8 @@ spec:
         - name: HELM_ARGS
           value: -f values-bat-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-bat       
   project: {{ .Values.env }}-dna
-  syncPolicy:
+  {{- if .Values.enableSync }}
+  syncPolicy: 
     automated:
       prune: true
       selfHeal: true
