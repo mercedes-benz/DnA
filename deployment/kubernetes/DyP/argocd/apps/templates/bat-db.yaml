@@ -23,7 +23,14 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-bat-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-bat       
-  project: {{- if eq .Values.env "dev" -}}bat-development{{- else if eq .Values.env "test" -}}bat-testing{{- else if eq .Values.env "prod" -}}bat-production{{- end }}
+  project: 
+    {{- if eq .Values.env "dev" -}}
+    bat-development
+    {{- else if eq .Values.env "test" -}}
+    bat-testing
+    {{- else if eq .Values.env "prod" -}}
+    bat-production
+    {{- end }}
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
