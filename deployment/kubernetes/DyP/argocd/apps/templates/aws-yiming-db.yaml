@@ -5,7 +5,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: aws-yiming-db
+  name: yiming-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
@@ -13,17 +13,17 @@ metadata:
     project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: zhuyimi-code-server
+    namespace: prod-dna-cs-apps
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
     repoURL: {{ .Values.repoURL | squote }}
-    targetRevision: migration/aws
+    targetRevision: migration/aws-prod
     plugin:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-zhuyimi-db-dev.yaml --set namespace=zhuyimi-code-server
+          value: -f values-zhuyimi-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs-apps
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:

@@ -1,4 +1,4 @@
-namespace: zhuyimi-code-server
+namespace: prod-dna-cs-apps
 annotations:
   argocdvault: "dna_aws_kv/data/dev/kubernetesSecret/yimingDB"
 ## I³ PostgreSQL image version
@@ -16,7 +16,7 @@ image:
 nameOverride: "postgresql"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 

@@ -141,7 +141,7 @@ walArchiving:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-backup-nfs
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     subfolder: dev-db-backups
@@ -244,12 +244,12 @@ service:
 persistence:
   enabled: true
   size: <path:dna_aws_kv/data/prod/kubernetesSecret/csdb#size>
-  # storageClass: cinder
+  storageClass: dhc-gp3-retain
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    storageClass: dhc-gp3-retain
     # PVCName: name
 
 ## Network Policy to be applied
@@ -302,7 +302,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     subfolder: jupyterhub-db-backups
@@ -334,7 +334,7 @@ backup:
     ## recommended
     enabled: true
     size: 1Gi
-    # storageClass: cinder
+    storageClass: dhc-gp3-retain
   file:
     name: jupyterhub-backup
     # label: test
