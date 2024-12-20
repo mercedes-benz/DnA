@@ -303,7 +303,7 @@ backup:
       storageClass: cinder-retain
   s3:
     ## Configuration for S3 storage
-    subfolder: bat-dev-db-backups
+    subfolder: bat-test-db-backups
     ## fill in the bucket name you have ordered!
     bucketName: <path:bat_kv/data/staging/bat-db#bucketName>
   ## general configuration for backup

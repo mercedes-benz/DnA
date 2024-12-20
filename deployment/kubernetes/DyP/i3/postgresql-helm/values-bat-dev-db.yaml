@@ -144,7 +144,7 @@ walArchiving:
       storageClass: dhc-backup-nfs
   s3:
     ## Configuration for S3 storage
-    subfolder: dev-db-backups
+    subfolder: bat-dev-db-backups
     ## fill in the bucket name you have ordered!
     bucketName: <path:bat_kv/data/dev/bat-db#bucketName>
 
