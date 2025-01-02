@@ -92,6 +92,7 @@ public class StorageController implements StorageApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(
 			@ApiParam(value = "Request Body that contains data to create a new bucket", required = true) @Valid @RequestBody BucketRequestVO bucketRequestVO) {
+		Logger.debug("bucketRequestVO :"+ bucketRequestVO);
 		return storageService.createBucket(bucketRequestVO.getData());
 	}
 
