@@ -722,7 +722,7 @@ i3-opensearch-config:
   # Opensearch dashboard version
   opensearchDashboardVersion: "2.17.1"
 
-  opensearchPassword: "kibanaserver"
+  opensearchPassword: "<path:dna_aws_kv/data/prod/kubernetesSecret/logger#password>"
   opensearchUsername: "kibanaserver"
   
   # Apply Index management policy
