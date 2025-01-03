@@ -808,10 +808,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					LOGGER.warn("User:{} not available in vault.", userId);
 				}
 				// Adding new policies to existing one
+				LOGGER.debug("policies "+ policies);
 				for (String policy : policies) {
-					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
+					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy
+										 
 				}
-
+				LOGGER.debug("existingPolicy "+ existingPolicy);
 				// Setting new policy set to user
 				minioAdminClient.setPolicy(userId, false, existingPolicy);
 				LOGGER.info("Success from Minio set policy");
