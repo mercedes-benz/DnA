@@ -9,6 +9,7 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
+  ingressClassName: {{ .Values.extraIngress.className }}
   tls:
     - hosts:
         - {{ .Values.extraIngress.scanHost }}
@@ -35,6 +36,7 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
+  ingressClassName: {{ .Values.extraIngress.className }}
   rules:
     - host: {{ .Values.extraIngress.dnaHost }}
       http:

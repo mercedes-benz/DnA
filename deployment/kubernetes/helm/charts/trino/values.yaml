@@ -15,6 +15,7 @@ image:
 
 ingress:
   enabled: true
+  className: "traefik" 
   host: ""
   annotations:
     traefik.frontend.rule.type: PathPrefix
