@@ -2639,7 +2639,8 @@ import org.springframework.beans.factory.annotation.Value;
 						vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
-			GenericMessage responseMsg = service.migrateWorkspace(vo);
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			GenericMessage responseMsg = service.migrateWorkspace(entity);
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 			}
