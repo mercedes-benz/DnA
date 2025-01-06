@@ -296,9 +296,10 @@ opensearch-dashboards:
 
   ingress:
     enabled: true
+    className: test-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: test-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -343,9 +344,10 @@ opensearch:
 
   ingress:
     enabled: true
+    className: test-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: test-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
