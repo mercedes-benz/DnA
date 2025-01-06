@@ -913,7 +913,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: dev-dna-cs-workspaces-redirectdnacs@kubernetescrd, default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
-  ingressClassName:
+  ingressClassName: test-ingress-intranet
   pathSuffix: hub
   pathType: Prefix
   hosts:
