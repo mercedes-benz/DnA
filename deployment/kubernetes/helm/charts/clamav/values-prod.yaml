@@ -60,6 +60,7 @@ image:
   pullPolicy: Always
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   host: scan.dna.app.corpintra.net
   certificateIssuer: mercedes-benz-acme
   prefix: /internal

@@ -4,6 +4,7 @@ imagePullSecret:
 ingress:
   enabled: false
   namespace: ingress
+  className: prod-ingress-intranet
   host: dna.app.corpintra.net
   lbIP: 53.6.53.65
   annotations:

@@ -41,6 +41,7 @@ backend:
   flywaySchema: public
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   host: pipeline.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
@@ -52,6 +53,7 @@ ingress:
 airflow:
   ingress:
     enabled: false
+    className: prod-ingress-intranet
     host: pipeline.dna.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix

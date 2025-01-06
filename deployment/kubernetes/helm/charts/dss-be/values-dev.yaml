@@ -23,6 +23,7 @@ service:
   port: 7777
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: api.dss.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix

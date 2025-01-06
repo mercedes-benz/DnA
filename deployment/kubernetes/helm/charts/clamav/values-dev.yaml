@@ -61,6 +61,7 @@ image:
   tag: '41'
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: scan.dna-aws.app.corpintra.net
   certificateIssuer: mercedes-benz-acme
   prefix: /internal

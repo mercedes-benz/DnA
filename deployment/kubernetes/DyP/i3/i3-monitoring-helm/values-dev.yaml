@@ -766,12 +766,13 @@ prometheus:
             
     ingress:
       enabled: true
+      ingressClassName: test-ingress-intranet
       path: /
       hosts:
         - metrics.dna-aws.app.corpintra.net
       annotations:
         traefik.frontend.rule.type: PathPrefix
-        kubernetes.io/ingress.class: ingress-traefik
+        kubernetes.io/ingress.class: test-ingress-intranet
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -794,6 +795,7 @@ grafana:
     type: Recreate
   ingress:
     enabled: true
+    ingressClassName: test-ingress-intranet
     # # To expose Grafana, override ingress with the following settings
     # enabled: true
     path: /
@@ -801,7 +803,7 @@ grafana:
        - monitoring.dna-aws.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: test-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
