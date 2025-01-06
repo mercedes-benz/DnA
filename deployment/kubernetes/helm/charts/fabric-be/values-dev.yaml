@@ -3,7 +3,7 @@ namespace: dev-dna-fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
   pullPolicy: IfNotPresent
-  tag: '1044'
+  tag: '1078'
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
