@@ -69,6 +69,7 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVOData;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
@@ -1689,13 +1690,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
     DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
     List<String> roles = new ArrayList<>();
     try {
         List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
         roles = roleList.stream()
                         .filter(role -> role.contains("DNA"))
                         .collect(Collectors.toList());
-        dnaRoleCollection.getData().setRoles(roles);
+		data.setRoles(roles);
+        dnaRoleCollection.setData(data);
     } catch (Exception e) {
         log.error("Error occurred while getting user roles: {}", e.getMessage());
     }
