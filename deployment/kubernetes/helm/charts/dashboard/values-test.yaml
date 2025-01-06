@@ -24,6 +24,7 @@ corsOrigibUrl: https://*.dna.app.corpintra.net
 naasBroker: null
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: report.test.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix

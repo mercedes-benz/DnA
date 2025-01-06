@@ -58,6 +58,7 @@ envs:
 containerPort: 7575
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   host: trino.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix

@@ -24,6 +24,7 @@ service:
   port: 90
 ingress:
   enabled: true
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: test-ingress-intranet

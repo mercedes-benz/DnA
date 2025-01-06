@@ -48,6 +48,7 @@ app:
       port: api
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: naas.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix

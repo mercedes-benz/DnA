@@ -2,6 +2,7 @@ namespace: dev-dna
 imagePullSecrets: null
 ingress:
   enabled: false
+  className: test-ingress-intranet
   namespace: ingress
   host: dna-aws.app.corpintra.net
   lbIP: 53.6.53.65
