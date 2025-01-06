@@ -1,30 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
- name: app.db-app.db
- namespace: {{ .Values.namespace }}
-spec:
- podSelector:
-  matchLabels:
-    zone: db
- ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-         zone: db
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: app.app-app.db
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
 spec:
   podSelector:
     matchLabels:
-      zone: db
+      app: {{ .Release.Name }}
   ingress:
     - ports:
-      - port: 64000
-        protocol: TCP
+        - port: 7171
+          protocol: TCP
   policyTypes:
   - Ingress

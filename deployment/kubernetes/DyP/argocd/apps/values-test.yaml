@@ -1,0 +1,32 @@
+server: "https://kubernetes.default.svc"
+# Environment to deploy it  (dev|test|prod)
+env: test
+branch: migration/aws
+namespace: argocd
+repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
+enableSync: true
+gitRepo:
+  username: <path:dna_aws_kv/data/staging/kubernetesSecret/argocd#username | base64encode>
+  password: <path:dna_aws_kv/data/staging/kubernetesSecret/argocd#password | base64encode>
+
+annotations: 
+  notifications.argoproj.io/subscribe.on-created.teams: channelName
+  notifications.argoproj.io/subscribe.on-deleted.teams: channelName
+  notifications.argoproj.io/subscribe.on-deployed.teams: channelName
+  notifications.argoproj.io/subscribe.on-health-degraded.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-failed.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-running.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-status-unknown.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+  argocd.argoproj.io/manifest-generate-paths: .
+repositories:
+  - name: dna-kong
+    url: https://git.i.mercedes-benz.com/DNA/dna-kong.git
+    
+  ### Adding BAT Project repos
+  - name: bat-helm-charts
+    url: https://git.i.mercedes-benz.com/BAT/bat-helm-charts.git
+  - name: bat-infra
+    url: https://git.i.mercedes-benz.com/BAT/bat-infra.git
+  - name: bat-i3-postgresql
+    url: https://git.i.mercedes-benz.com/i3/i3-postgresql.git

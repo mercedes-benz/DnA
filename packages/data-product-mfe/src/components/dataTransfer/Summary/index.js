@@ -196,7 +196,7 @@ const Summary = ({ history }) => {
                         <div>
                           <label className="input-label summary">Description of transferred data</label>
                           <br />
-                          {data.classificationOfTransferedData}
+                          <pre className={classNames(Styles.formattedText)}>{data.classificationOfTransferedData}</pre>
                         </div>
                         <div>
                           <label className="input-label summary">Confidentiality classification of transferred data (based on Information classification)</label>
@@ -224,18 +224,18 @@ const Summary = ({ history }) => {
                         </div>
                       </div>
                       {data.personalRelatedData === 'Yes' ? (
-                        <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                        <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                           <div>
                             <label className="input-label summary">Description of personal related data</label>
                             <br />
-                            {data.personalRelatedDataDescription}
+                            <pre className={classNames(Styles.formattedText)}>{data.personalRelatedDataTransferingNonetheless}</pre>
                           </div>
                           <div>
                             <label className="input-label summary">
                               Original (business) purpose of processing this personal related data
                             </label>
                             <br />
-                            {data.personalRelatedDataPurpose}
+                            <pre className={classNames(Styles.formattedText)}>{data.personalRelatedDataPurpose}</pre>
                           </div>
                           <div>
                             <label className="input-label summary">
@@ -244,7 +244,6 @@ const Summary = ({ history }) => {
                             <br />
                             {data.personalRelatedDataLegalBasis}
                           </div>
-                          <div></div>
                         </div>
                       ) : null}
                     </div>
@@ -256,7 +255,7 @@ const Summary = ({ history }) => {
                       </div>
                     </div>) : null}
                     {data.personalRelatedData === 'Yes' && data.personalRelatedDataContactAwareTransfer === 'Yes'
-                      ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      ? (<div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
                           <label className="input-label summary">Has s/he any objections to this transfer?</label>
                           <br />
@@ -266,15 +265,14 @@ const Summary = ({ history }) => {
                           <div>
                             <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
                             <br />
-                            {data.personalRelatedDataTransferingNonetheless}
+                            <pre className={classNames(Styles.formattedText)}>{data.personalRelatedDataTransferingNonetheless}</pre>
                           </div>
                           <div>
                             <label className="input-label summary">Please state your objections</label>
                             <br />
-                            {data.personalRelatedDataTransferingObjections}
+                            <pre className={classNames(Styles.formattedText)}>{data.personalRelatedDataTransferingObjections}</pre>
                           </div>
                         </>}
-                        <div></div>
                       </div>) : null}
                   </div>
                 ) : null}
@@ -311,7 +309,7 @@ const Summary = ({ history }) => {
                           </div>
                         </div>) : null}
                       {data?.transnationalDataTransferNotWithinEU === 'Yes' && data?.transnationalDataContactAwareTransfer === 'Yes'
-                        ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                        ? (<div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                           <div>
                             <label className="input-label summary">Has s/he any objections to this transfer?</label>
                             <br />
@@ -321,15 +319,14 @@ const Summary = ({ history }) => {
                             <div>
                               <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
                               <br />
-                              {data?.transnationalDataTransferingNonetheless}
+                              <pre className={classNames(Styles.formattedText)}>{data?.transnationalDataTransferingNonetheless}</pre>
                             </div>
                             <div>
                               <label className="input-label summary">Please state your objections</label>
                               <br />
-                              {data?.transnationalDataTransferingObjections}
+                              <pre className={classNames(Styles.formattedText)}>{data?.transnationalDataTransferingObjections}</pre>
                             </div>
                           </>}
-                          <div></div>
                         </div>) : null}
                     </div>
                   </div>
@@ -359,16 +356,15 @@ const Summary = ({ history }) => {
                           <div>
                             <label className="input-label summary">Describe deletion requirements</label>
                             <br />
-                            {data.deletionRequirementDescription}
+                            <pre className={classNames(Styles.formattedText)}>{data.deletionRequirementDescription}</pre>
                           </div>
                         ) : null}
-                        <div></div>
                       </div>
-                      <div className={Styles.flexLayout}>
+                      <div className={classNames(Styles.flexLayout, Styles.oneColumn)}>
                         <div>
                           <label className="input-label summary">Other relevant information </label>
                           <br />
-                          {data.otherRelevantInfo || '-'}
+                          <pre className={classNames(Styles.formattedText)}>{data.otherRelevantInfo || '-'}</pre>
                         </div>
                       </div>
                     </div>
@@ -470,7 +466,7 @@ const Summary = ({ history }) => {
                                   (Business) purpose of processing this personal related data
                                 </label>
                                 <br />
-                                {data?.consumer?.personalRelatedDataPurpose}
+                                <pre className={classNames(Styles.formattedText)}>{data?.consumer?.personalRelatedDataPurpose}</pre>
                               </div>
                               <div>
                                 <label className="input-label summary">
@@ -491,7 +487,7 @@ const Summary = ({ history }) => {
                                   LCO/LCR comments to data usage of personal data
                                 </label>
                                 <br />
-                                {data?.consumer?.LCOComments}
+                                <pre className={classNames(Styles.formattedText)}>{data?.consumer?.LCOComments}</pre>
                               </div>
                             </div>
                           ) : null}
@@ -503,7 +499,7 @@ const Summary = ({ history }) => {
                             </div>
                           </div>) : null}
                           {data?.consumer?.personalRelatedData === 'Yes' && data?.consumer?.personalRelatedDataContactAwareTransfer === 'Yes'
-                            ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                            ? (<div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                               <div>
                                 <label className="input-label summary">Has s/he any objections to this transfer?</label>
                                 <br />
@@ -513,15 +509,14 @@ const Summary = ({ history }) => {
                                 <div>
                                   <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
                                   <br />
-                                  {data?.consumer?.personalRelatedDataTransferingNonetheless}
+                                  <pre className={classNames(Styles.formattedText)}>{data?.consumer?.personalRelatedDataTransferingNonetheless}</pre>
                                 </div>
                                 <div>
                                   <label className="input-label summary">Please state your objections</label>
                                   <br />
-                                  {data?.consumer?.personalRelatedDataTransferingObjections}
+                                  <pre className={classNames(Styles.formattedText)}>{data?.consumer?.personalRelatedDataTransferingObjections}</pre>
                                 </div>
                               </>}
-                              <div></div>
                             </div>) : null}
                         </div>
                       </div>

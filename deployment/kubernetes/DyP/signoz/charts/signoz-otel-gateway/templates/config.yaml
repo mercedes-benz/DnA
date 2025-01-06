@@ -1,0 +1,11 @@
+{{- if .Values.config.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "signoz-otel-gateway.fullname" . }}
+  labels:
+    {{- include "signoz-otel-gateway.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    {{- omit .Values.config "create" | toYaml | nindent 4 }}
+{{- end }}

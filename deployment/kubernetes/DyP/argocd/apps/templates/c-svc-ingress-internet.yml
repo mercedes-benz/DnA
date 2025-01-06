@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-ingress-internet
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: dyp
+    env: {{ .Values.env }}
+    project: c-svc
+spec:
+  destination:
+    namespace: {{ .Values.env }}-ingress-internet
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/ingress
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: {{ .Values.env }}-ingress-internet
+      skipCrds: false
+      valueFiles:
+        - values-internet-{{ .Values.env }}.yaml    
+  project: c-svc
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}

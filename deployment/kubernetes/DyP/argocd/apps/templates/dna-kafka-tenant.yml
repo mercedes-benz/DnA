@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-dna-kafka
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service
+    project: dna
+spec:
+  destination:
+    namespace: {{ .Values.env }}-dna-i3-kafka
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-tenant
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: {{ .Values.env }}-dna-i3-kafka
+      valueFiles:
+        - values-{{ .Values.env }}.yaml
+  project: dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}

@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.daimler.data.util.CommonUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -356,14 +357,14 @@ public class GitClient {
 		
 	}
 
-	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
+	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName) {
 		GitLatestCommitIdDto commitId = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -427,6 +428,35 @@ public class GitClient {
 		}
 		return isAdmin;
 		
+	}
+
+	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName, String branch) throws Exception {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer "+ personalAccessToken );
+			String url = gitUrl+"/api/v3/repos/"+repoOwner+"/"+repoName+"/contents/"+folderPath+"/"+fileName+"?ref="+branch;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if(response != null && response.getStatusCode()!=null && response.getStatusCode() == (HttpStatus.OK)) {
+				String responseBody = response.getBody();
+				JSONObject jsonResponse = new JSONObject(responseBody);
+				if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+					log.info("Successfully fetched  file from Git repository.");
+					return jsonResponse;
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error occured while fetching file from git url :{}, message: {}", gitUrl,e.getMessage());
+			if(e.getMessage().contains("Not Found")) {
+				return null;
+			} else {
+				throw new Exception(e.getMessage());
+			}
+		}
+		log.info("The  file is not present in the Git repository.");
+		return null;
 	}
 	
 }

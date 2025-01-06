@@ -56,7 +56,7 @@ ingress:
     cert-manager.io/cluster-issuer: ""
 
 Storage:
-  storageClass: cinder
+  storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 1G
 
