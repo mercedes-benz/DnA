@@ -743,7 +743,7 @@ prometheus:
             
     ingress:
       enabled: true
-      className: test-ingress-intranet
+      ingressClassName: test-ingress-intranet
       path: /
       hosts:
         - <path:dna_aws_kv/data/staging/kubernetesSecret/monitoring#pushgateway.domain>
@@ -777,7 +777,7 @@ grafana:
 
   ingress:
     enabled: true
-    className: test-ingress-intranet
+    ingressClassName: test-ingress-intranet
     # # To expose Grafana, override ingress with the following settings
     # enabled: true
     path: /

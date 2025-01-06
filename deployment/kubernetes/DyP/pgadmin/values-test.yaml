@@ -117,7 +117,7 @@ networkPolicy:
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
-  className: test-ingress-intranet
+  ingressClassName: test-ingress-intranet
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     kubernetes.io/ingress.class: test-ingress-intranet

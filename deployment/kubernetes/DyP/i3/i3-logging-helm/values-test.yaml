@@ -296,7 +296,7 @@ opensearch-dashboards:
 
   ingress:
     enabled: true
-    className: test-ingress-intranet
+    ingressClassName: test-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: test-ingress-intranet
@@ -344,7 +344,7 @@ opensearch:
 
   ingress:
     enabled: true
-    className: test-ingress-intranet
+    ingressClassName: test-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: test-ingress-intranet
