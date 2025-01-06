@@ -1,0 +1,650 @@
+global:
+  # -- Overrides the Docker registry globally for all images
+  imageRegistry: &GLOBAL_IMAGE_REGISTRY null
+  # -- Global Image Pull Secrets
+  imagePullSecrets: []
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  # If not set, the default storage class is used.
+  # If set to "-", storageClassName: "", which disables dynamic provisioning
+  storageClass: &GLOBAL_SC null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # Based on the cloud, storage class for the persistent volume is selected.
+  # When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.
+  cloud: other
+
+###
+###
+### ---- ZOOKEEPER ----
+###
+###
+
+# Zookeeper default values
+# Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+#
+# @ignored
+zookeeper:
+  #
+  # Please DO NOT override this value.
+  # This chart installs Zookeeper separately.
+  # Only if you know what you are doing, proceed with overriding.
+  #
+
+  # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
+  enabled: true
+
+  # Zookeeper image
+  image:
+    # -- Zookeeper image registry to use.
+    registry: *GLOBAL_IMAGE_REGISTRY
+    # -- Zookeeper image repository to use.
+    repository: bitnami/zookeeper
+    # -- Zookeeper image tag.
+    # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
+    # Please override the default only if you know what you are doing.
+    tag: 3.7.1
+
+  # -- Name override for zookeeper app
+  nameOverride: ""
+  # -- Fullname override for zookeeper app
+  fullnameOverride: ""
+
+  # -- Whether to install zookeeper into a different namespace than the parent
+  namespaceOverride: ""
+
+  # -- Zookeeper pod(s) annotation.
+  podAnnotations: {}
+
+  autopurge:
+    # -- The time interval (in hours) for which the purge task has to be triggered
+    purgeInterval: 1
+
+  metrics:
+    # -- Enable Prometheus to access ZooKeeper metrics endpoint.
+    enabled: false
+
+    service:
+      # -- ZooKeeper metrics service annotation
+      annotations: {}
+        # signoz.io/scrape: 'true'
+        # signoz.io/port: '9141'
+        # signoz.io/path: /metrics
+
+  # -- Minimal SERVER_ID value, nodes increment their IDs respectively.
+  # Servers increment their ID starting at this minimal value.
+  # Eg. with `minServerId=10` and 3 replicas, server IDs will be 10,
+  # 11, 12 for z-0, z-1 and z-2 respectively.
+  minServerId: 1
+
+  # -- Replica count for zookeeper
+  replicaCount: 1
+
+  # ZooKeeper Pod Disruption Budget
+  # Ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
+  pdb:
+    # -- Specifies whether a Pod Disruption Budget should be created
+    create: false
+
+  # Enable persistence using Persistent Volume Claims
+  #
+  # Ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+  persistence:
+    # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
+    enabled: true
+
+    # -- Name of an existing PVC to use (only when deploying a single replica)
+    existingClaim: ""
+
+    # -- PVC Storage Class for ZooKeeper data volume
+    # If defined, storageClassName: <storageClass>
+    # If set to "-", storageClassName: "", which disables dynamic provisioning
+    # If undefined (the default) or set to null, no storageClassName spec is
+    #   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    #   GKE, AWS & OpenStack)
+    # @default -- See `values.yaml` for defaults
+    storageClass: *GLOBAL_SC
+
+    # -- PVC Access modes
+    accessModes:
+      - ReadWriteOnce
+
+    # -- PVC Storage Request for ZooKeeper data volume
+    size: 8Gi
+
+    # -- Annotations for the PVC
+    annotations: {}
+
+  # -- Resources requests and limits for zookeeper
+  resources:
+    limits: {}
+    requests:
+      memory: 256Mi
+      cpu: 100m
+
+###
+###
+### ---- CLICKHOUSE ----
+###
+###
+
+# -- Name of the clickhouse component
+name: clickhouse
+
+# -- Whether to install clickhouse. If false, `clickhouse.host` must be set
+enabled: true
+
+# -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
+namespace: ""
+# -- Name override for clickhouse
+nameOverride: ""
+# -- Fullname override for clickhouse
+fullnameOverride: ""
+
+# -- Clickhouse cluster
+cluster: cluster
+# -- Clickhouse database
+database: signoz_metrics
+# -- Clickhouse trace database (SigNoz Traces)
+traceDatabase: signoz_traces
+# -- Clickhouse log database (SigNoz Logs)
+logDatabase: signoz_logs
+# -- Clickhouse user
+user: admin
+# -- Clickhouse password
+password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+
+# -- Clickhouse cluster replicas
+replicasCount: 1
+# -- Clickhouse cluster shards
+shardsCount: 1
+
+# -- Clickhouse image
+image:
+  # -- Clickhouse image registry to use.
+  registry: docker.io
+  # -- Clickhouse image repository to use.
+  repository: clickhouse/clickhouse-server
+  # -- Clickhouse image tag.
+  # Note: SigNoz does not support all versions of ClickHouse.
+  # Please override the default only if you know what you are doing.
+  tag: 24.1.2-alpine
+  # -- Clickhouse image pull policy.
+  pullPolicy: IfNotPresent
+
+# -- Image Registry Secret Names for ClickHouse.
+# If global.imagePullSecrets is set as well, it will merged.
+imagePullSecrets: []
+  # - "clickhouse-pull-secret"
+
+# -- ClickHouse instance annotations.
+annotations: {}
+
+# ClickHouse Service Account
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+# Clickhouse service
+service:
+  # -- Annotations to use by service associated to Clickhouse instance
+  annotations: {}
+  # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+  type: ClusterIP
+  # -- Clickhouse HTTP port
+  httpPort: 8123
+  # -- Clickhouse TCP port
+  tcpPort: 9000
+
+# -- Whether to use TLS connection connecting to ClickHouse
+secure: false
+# -- Whether to verify TLS certificate on connection to ClickHouse
+verify: false
+# -- URL for external zookeeper.
+externalZookeeper: {}
+  # servers:
+  #   - host: signoz-zookeeper
+  #     port: 2181
+
+# -- Clickhouse priority class name
+priorityClassName: ""
+# -- Node selector for settings for clickhouse pod
+nodeSelector: {}
+# -- Toleration labels for clickhouse pod assignment
+tolerations: []
+# -- Affinity settings for clickhouse pod
+affinity: {}
+# -- TopologySpreadConstraints describes how clickhouse pods ought to spread
+topologySpreadConstraints: []
+
+# -- Configure resource requests and limits. Update according to your own use
+# case as these values might not be suitable for your workload.
+# Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+#
+# @default -- See `values.yaml` for defaults
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+#   limits:
+#     cpu: 2000m
+#     memory: 4Gi
+
+# -- Security context for Clickhouse node
+securityContext:
+  enabled: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+  fsGroupChangePolicy: OnRootMismatch
+
+# -- An allowlist of IP addresses or network masks the ClickHouse user is
+# allowed to access from. By default anything within a private network will be
+# allowed. This should suffice for most use case although to expose to other
+# networks you will need to update this setting.
+#
+# Refs:
+# - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
+# - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
+allowedNetworkIps:
+  - "10.0.0.0/8"
+  - "100.64.0.0/10"
+  - "172.16.0.0/12"
+  - "192.0.0.0/24"
+  - "198.18.0.0/15"
+  - "192.168.0.0/16"
+
+persistence:
+  # -- Enable data persistence using PVC.
+  enabled: true
+
+  # -- Use a manually managed Persistent Volume and Claim.
+  # If defined, PVC must be created manually before volume will be bound.
+  #
+  existingClaim: ""
+
+  # -- Persistent Volume Storage Class to use.
+  # If defined, `storageClassName: <storageClass>`.
+  # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+  # If undefined (the default) or set to `null`, no storageClassName spec is
+  # set, choosing the default provisioner.
+  #
+  storageClass: null
+
+  # -- Access Modes for persistent volume
+  accessModes:
+    - ReadWriteOnce
+
+  # -- Persistent Volume size
+  size: 20Gi
+
+# -- Clickhouse user profile configuration.
+# You can use this to override profile settings, for example
+# `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
+#
+# For the full list of settings, see:
+# - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
+# - https://clickhouse.com/docs/en/operations/settings/settings/
+#
+profiles: {}
+
+# -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
+# @default -- See `values.yaml` for defaults
+defaultProfiles:
+  default/allow_experimental_window_functions: "1"
+  default/allow_nondeterministic_mutations: "1"
+
+# -- Clickhouse init container to copy histogramQuantile UDF
+# @default -- See `values.yaml` for defaults
+initContainers:
+  enabled: true
+  udf:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: alpine
+      tag: 3.18.2
+      pullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        set -x
+        wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+        mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
+        chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
+  init:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: busybox
+      tag: 1.35
+      pullPolicy: IfNotPresent
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        until curl -s -o /dev/null http://signoz-clickhouse:8123/
+        do sleep 1
+        done
+
+# -- Clickhouse cluster layout. (Experimental, use at own risk)
+# For a full list of options, see
+# https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+# section on clusters and layouts.
+layout:
+  shardsCount: 1
+  replicasCount: 1
+
+# -- ClickHouse settings configuration.
+# You can use this to override settings, for example `prometheus/port: 9363`
+# For the full list of settings, see:
+# - https://clickhouse.com/docs/en/operations/settings/settings/
+settings: {}
+  # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
+  # prometheus/endpoint: /metrics
+  # prometheus/port: 9363
+  # prometheus/metrics: true
+  # prometheus/events: true
+  # prometheus/asynchronous_metrics: true
+
+# -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+# @default -- See `values.yaml` for defaults
+defaultSettings:
+  format_schema_path: /etc/clickhouse-server/config.d/
+  user_scripts_path: /var/lib/clickhouse/user_scripts/
+  user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
+
+# -- ClickHouse pod(s) annotation.
+podAnnotations: {}
+  # Uncomment lines below to enable scraping of ClickHouse metrics.
+  # Be sure to uncomment `settings` to enable built-in Prometheus HTTP endpoint.
+  # signoz.io/scrape: 'true'
+  # signoz.io/port: '9363'
+  # signoz.io/path: /metrics
+
+# -- Topologies on how to distribute the ClickHouse pod.
+# Possible values can be found here:
+# https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
+podDistribution: []
+  # - type: ShardAntiAffinity
+  #   topologyKey: kubernetes.io/hostname
+  # - type: ReplicaAntiAffinity
+  #   topologyKey: kubernetes.io/hostname
+  # - type: MaxNumberPerNode
+  #   number: 2
+  #   topologyKey: kubernetes.io/hostname
+
+# -- Additional volumes for ClickHouse pod
+additionalVolumes: []
+# -- Additional volume mounts for ClickHouse pod
+additionalVolumeMounts: []
+
+# Cold storage configuration
+coldStorage:
+  # -- Whether to enable S3 or GCS cold storage
+  enabled: false
+  # -- Reserve free space on default disk (in bytes)
+  # Default value set below is 10MiB
+  defaultKeepFreeSpaceBytes: "10485760"
+  # -- Type of cold storage: s3 or gcs
+  type: s3
+  # -- Endpoint for S3 or GCS
+  # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
+  #         if region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+  # For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/
+  endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
+  # -- Access Key for S3 or GCS
+  accessKey: <access_key_id>
+  # -- Secret Access Key for S3 or GCS
+  secretAccess: <secret_access_key>
+  # AWS role configuration - to use environment variables instead of passing access and secret keys
+  role:
+    # -- Whether to enable AWS IAM ARN role
+    enabled: false
+    # -- Annotations to use by service account associated to Clickhouse instance
+    annotations:
+      # aws role arn
+      eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+
+# -- Clickhouse configuration files.
+#
+# Refs:
+# - https://clickhouse.com/docs/en/operations/configuration-files/
+# - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+files: {}
+  # config.d/log_rotation.xml: |
+  #   <clickhouse>
+  #     <logger>
+  #       <level>trace</level>
+  #       <console>true</console>
+  #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+  #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+  #       <size>100M</size>
+  #       <count>10</count>
+  #     </logger>
+  #   </clickhouse>
+  # test.xml: |
+  #   <clickhouse>
+  #     <some-setting>some-value</some-setting>
+  #   </clickhouse>
+
+###
+###
+### ---- MISC ----
+###
+###
+
+# -- When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
+# it creates custom storage class with volume expansion permission.
+#
+installCustomStorageClass: false
+
+
+###
+###
+### ---- CLICKHOUSE OPERATOR ----
+###
+###
+clickhouseOperator:
+  # -- name of the component
+  name: operator
+
+  # -- Version of the operator
+  version: 0.21.2
+
+  # -- Clickhouse Operator image
+  image:
+    # -- Clickhouse Operator image registry to use.
+    registry: docker.io
+    # -- Clickhouse Operator image repository to use.
+    repository: altinity/clickhouse-operator
+    # -- Clickhouse Operator image tag.
+    tag: 0.21.2
+    # -- Clickhouse Operator image pull policy.
+    pullPolicy: IfNotPresent
+
+  # -- Image Registry Secret Names for Clickhouse Operator.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouseOperator-pull-secret"
+
+  # ClickHouse Operator Service Account
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  # -- Clickhouse Operator deployment annotations
+  annotations: {}
+
+  # -- Clickhouse Operator pod(s) annotation.
+  podAnnotations: {}
+    # signoz.io/port: '8888'
+    # signoz.io/scrape: 'true'
+
+  # -- Clickhouse Operator pod-level security attributes and common container settings.
+  podSecurityContext: 
+    runAsUser: 101
+    runAsGroup: 101  
+    fsGroup: 101
+
+  # Clickhouse Operator secret for ClickHouse user password
+  secret:
+    # -- Specifies whether a secret should be created
+    create: true
+    # -- User name for Clickhouse Operator
+    username: clickhouse_operator
+    # -- User password for Clickhouse Operator
+    password: clickhouse_operator_password
+
+  # -- Clickhouse Operator priority class name
+  priorityClassName: ""
+  # -- Node selector for settings for Clickhouse Operator pod
+  nodeSelector: {}
+  # -- Toleration labels for Clickhouse Operator pod assignment
+  tolerations: []
+  # -- Affinity settings for Clickhouse Operator pod
+  affinity: {}
+  # -- TopologySpreadConstraints describes how Clickhouse Operator pods ought to spread
+  topologySpreadConstraints: []
+
+  # -- Additional environment variables for Clickhouse Operator container.
+  env: []
+    #  - name: SAMPLE_ENV
+    #    value: "sample-value"
+
+  # -- Clickhouse logging config
+  logger:
+    # -- Logging level. Acceptable values: trace, debug, information, warning, error.
+    level: information
+    # -- Size of the file. Applies to log and errorlog. Once the file reaches size,
+    # ClickHouse archives and renames it, and creates a new log file in its place.
+    size: 1000M
+    # -- The number of archived log files that ClickHouse stores.
+    count: 10
+    # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
+    console: true
+
+  # Query Log table configuration
+  queryLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  # Part Log table configuration
+  partLog:
+    # -- The number of days to keep the data in the part_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the part_log table.
+    flushInterval: 7500
+  # Trace Log table configuration
+  traceLog:
+    # -- The number of days to keep the data in the trace_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the trace_log table.
+    flushInterval: 7500
+
+  asynchronousInsertLog:
+    # -- The number of days to keep the data in the asynchronous_insert_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the asynchronous_insert_log table.
+    flushInterval: 7500
+  asynchronousMetricLog:
+    # -- The number of days to keep the data in the asynchronous_metric_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the asynchronous_metric_log table.
+    flushInterval: 7500
+  backupLog:
+    # -- The number of days to keep the data in the backup_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the backup_log table.
+    flushInterval: 7500
+  blobStorageLog:
+    # -- The number of days to keep the data in the blob_storage_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the blob_storage_log table.
+    flushInterval: 7500
+  crashLog:
+    # -- The number of days to keep the data in the crash_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the crash_log table.
+    flushInterval: 7500
+  metricLog:
+    # -- The number of days to keep the data in the metric_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the metric_log table.
+    flushInterval: 7500
+  queryThreadLog:
+    # -- The number of days to keep the data in the query_thread_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the query_thread_log table.
+    flushInterval: 7500
+  queryViewsLog:
+    # -- The number of days to keep the data in the query_views_log table.
+    ttl: 15
+    # -- Time interval in milliseconds between flushes of the query_views_log table.
+    flushInterval: 7500
+  sessionLog:
+    # -- The number of days to keep the data in the session_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the session_log table.
+    flushInterval: 7500
+  zookeeperLog:
+    # -- The number of days to keep the data in the zookeeper_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the zookeeper_log table.
+    flushInterval: 7500
+  processorsProfileLog:
+    # -- The number of days to keep the data in the processors_profile_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the processors_profile_log table.
+    flushInterval: 7500
+
+
+  # -- Metrics Exporter config.
+  metricsExporter:
+    # -- name of the component
+    name: metrics-exporter
+
+    # -- Metrics Exporter service
+    service:
+      # -- Annotations to use by service associated to Metrics Exporter
+      annotations: {}
+      # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+      type: ClusterIP
+      # -- Metrics Exporter port
+      port: 8888
+
+    # -- Metrics Exporter image
+    image:
+      # -- Metrics Exporter image registry to use.
+      registry: docker.io
+      # -- Metrics Exporter image repository to use.
+      repository: altinity/metrics-exporter
+      # -- Metrics Exporter image tag.
+      tag: 0.21.2
+      # -- Metrics Exporter image pull policy.
+      pullPolicy: IfNotPresent
+
+    # -- Additional environment variables for Metrics Exporter container.
+    env: []
+      #  - name: SAMPLE_ENV
+      #    value: "sample-value"
+
+  # ClickHouse Operator configuration files
+  configs:
+    # -- ClickHouse Operator confd files
+    confdFiles: null

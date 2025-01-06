@@ -1,0 +1,70 @@
+replicaCount: 1
+envs: []
+secret: []
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/dss-backend
+  pullPolicy: IfNotPresent
+  tag: '471'
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: dss-be
+namespace: dev-dna-dss
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ''
+podAnnotations: {}
+podSecurityContext:
+  runAsUser: 1000
+containerPort: 7777
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 7777
+ingress:
+  enabled: false
+  host: api.dss.dna-aws.app.corpintra.net
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: test-ingress-intranet
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: api.dss.dna-aws.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.dss.dna-aws.app.corpintra.net
+      secretName: api-dss-tls-secret
+resources: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity: {}
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
+    vault.hashicorp.com/tls-skip-verify: 'true' 
+    vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+    vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/dev/kubernetesSecret/dssService
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/dssService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}        
+  saName: default
+  jarName: dataiku-backend-lib-1.0.0-all.jar

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-dna-nfssc
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: dhc
+    env: {{ .Values.env }}
+    project: dna
+spec:
+  destination:
+    namespace: {{ .Values.env }}-dna-nfssc
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/nfs-subdir-external-provisioner
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS         
+          value: -f values-{{ .Values.env }}.yaml -n {{ .Values.env }}-dna-nfssc     
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}

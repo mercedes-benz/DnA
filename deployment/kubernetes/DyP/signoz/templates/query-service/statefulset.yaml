@@ -1,0 +1,221 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "queryService.fullname" . }}
+  labels:
+    {{- include "queryService.labels" . | nindent 4 }}
+  {{- if .Values.queryService.annotations }}
+  annotations:
+    {{- toYaml .Values.queryService.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "queryService.fullname" . }}
+  replicas: {{ .Values.queryService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "queryService.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/query-service/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "queryService.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.queryService.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "queryService.serviceAccountName" . }}
+      priorityClassName: {{ .Values.queryService.priorityClassName | quote }}
+      {{- with .Values.queryService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.queryService.podSecurityContext | nindent 8 }}
+      {{- with .Values.queryService.initContainers }}
+      initContainers:
+        {{- if .init.enabled }}
+        - name: {{ include "queryService.fullname" $ }}-init
+          image: {{ include "queryService.initContainers.init.image" $ }}
+          imagePullPolicy: {{ .init.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- with .init.command }}
+          command:
+            - sh
+            - -c
+            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
+          resources:
+            {{- toYaml .init.resources | nindent 12 }}
+        {{- end }}
+        {{- if .migration.enabled }}
+        - name: {{ include "queryService.fullname" $ }}-migration
+          image: {{ include "queryService.initContainers.migration.image" $ }}
+          imagePullPolicy: {{ .migration.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- if .migration.args }}
+          args:
+            {{- toYaml .migration.args | nindent 12 }}
+          {{- end }}
+          {{- if .migration.command }}
+          command:
+            {{- toYaml .migration.command | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .migration.resources | nindent 12 }}
+          volumeMounts:
+          {{- if $.Values.queryService.persistence.enabled }}
+          {{- if $.Values.queryService.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: query-service
+          securityContext:
+            {{- toYaml .Values.queryService.securityContext | nindent 12 }}
+          image: {{ template "queryService.image" . }}
+          imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
+          args:
+            - --config=/root/config/prometheus.yml
+            {{- if .Values.queryService.cache.enabled }}
+            - --experimental.cache-config
+            - /root/config/cache.yaml
+            - --flux-interval
+            - {{ .Values.queryService.cache.fluxInterval }}
+            {{- end }}
+            {{- range .Values.queryService.additionalArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ default 8080  .Values.queryService.service.port }}
+              protocol: TCP
+            - name: http-internal
+              containerPort: {{ default 8085 .Values.queryService.service.internalPort }}
+              protocol: TCP
+            - name: opamp-internal
+              containerPort: {{ default 4320 .Values.queryService.service.opampPort }}
+              protocol: TCP
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+            - name: STORAGE
+              value: {{ .Values.queryService.configVars.storage }}
+            - name: ClickHouseUrl
+            {{- if hasKey .Values.queryService.configVars "clickHouseUrl" }}
+              value: {{ .Values.queryService.configVars.clickHouseUrl }}
+            {{- else }}
+              value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
+            {{- end }}
+            - name: ALERTMANAGER_API_PREFIX
+              value: http://{{ include "alertmanager.url" . }}/api/
+            - name: GODEBUG
+              value: {{ .Values.queryService.configVars.goDebug }}
+            - name: TELEMETRY_ENABLED
+              value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
+            - name: DEPLOYMENT_TYPE
+              value: {{ .Values.queryService.configVars.deploymentType }}
+            {{- range $key, $val := .Values.queryService.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
+          {{- if .Values.queryService.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.queryService.livenessProbe.port }}
+              path: {{ .Values.queryService.livenessProbe.path }}
+            initialDelaySeconds: {{ .Values.queryService.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.queryService.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.queryService.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.queryService.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.queryService.livenessProbe.failureThreshold }}
+          {{- else if .Values.queryService.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.queryService.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.queryService.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.queryService.readinessProbe.port }}
+              path: {{ .Values.queryService.readinessProbe.path }}
+            initialDelaySeconds: {{ .Values.queryService.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.queryService.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.queryService.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.queryService.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.queryService.readinessProbe.failureThreshold }}
+          {{- else if .Values.queryService.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.queryService.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: prometheus
+              mountPath: /root/config
+            - name: dashboards
+              mountPath: /root/config/dashboards
+          {{- if .Values.queryService.persistence.enabled }}
+          {{- if .Values.queryService.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz/
+          resources:
+            {{- toYaml .Values.queryService.resources | nindent 12 }}
+      volumes:
+        - name: prometheus
+          configMap:
+            name: {{ include "queryService.fullname" . }}
+        - name: dashboards
+          emptyDir: {}
+      {{- if (not .Values.queryService.persistence.enabled) }}
+        - name: signoz-db-volume
+          emptyDir: {}
+      {{- else if .Values.queryService.persistence.existingClaim }}
+        - name: signoz-db-existing-claim
+          persistentVolumeClaim:
+            claimName: {{ .Values.queryService.persistence.existingClaim }}
+      {{- end }}
+
+{{- if and (.Values.queryService.persistence.enabled) (not .Values.queryService.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: signoz-db
+      spec:
+        accessModes:
+          {{- toYaml .Values.queryService.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.queryService.persistence.size }}
+      {{- $storageClass := default .Values.queryService.persistence.storageClass .Values.global.storageClass -}}
+      {{- if $storageClass -}}
+      {{- if (eq "-" $storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: {{ $storageClass }}
+      {{- end }}
+      {{- end }}
+{{- end }}

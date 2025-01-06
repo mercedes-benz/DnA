@@ -1,0 +1,20 @@
+apiVersion: v2
+appVersion: v0.0.16
+dependencies:
+- condition: postgresql.enabled
+  name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.0.0
+description: A Helm chart for deploying SigNoz Opentelemetry Gateway
+home: https://signoz.io/
+icon: https://signoz.io/img/SigNozLogo-orange.svg
+maintainers:
+- email: devops@signoz.io
+  name: SigNoz
+  url: https://signoz.io
+- email: prashant@signoz.io
+  name: prashant-shahi
+  url: https://prashantshahi.dev
+name: signoz-otel-gateway
+type: application
+version: 0.0.1

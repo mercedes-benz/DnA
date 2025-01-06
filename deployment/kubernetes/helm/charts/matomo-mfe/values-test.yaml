@@ -1,0 +1,74 @@
+namespace: test-dna-matomo
+configJs: |
+  window["MATOMO_INJECTED_ENVIRONMENT"]={
+    ENABLE_MATOMO_SERVICE=true,
+    MATOMO_MFE_APP_URL="",
+    MATOMO_API_BASEURL=""
+  };
+replicaCount: 1
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/matomo-mfe
+  pullPolicy: IfNotPresent
+  tag: 41
+imagePullSecrets:
+  - name: imagepullsecret
+nameOverride: ''
+fullnameOverride: matomo-mfe
+podSecurityContext:
+  runAsUser: 1001
+containerPort: 8989
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: matomo.test.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - matomo.test.dna.app.corpintra.net
+      secretName: matomo-tls-secret
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
+    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/staging/kubernetesSecret/matomoMFE
+    vault.hashicorp.com/agent-inject-file-configjs: config.js
+    vault.hashicorp.com/agent-inject-template-configjs: |
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/matomoMFE" -}}
+          window["MATOMO_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}   
+  saName: default
+podDisruptionBudget:
+  enabled: false

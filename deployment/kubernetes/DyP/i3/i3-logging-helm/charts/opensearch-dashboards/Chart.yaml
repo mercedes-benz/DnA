@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: 2.17.1
+description: A Helm chart for OpenSearch Dashboards
+maintainers:
+- name: DandyDeveloper
+- name: gaiksaya
+- name: peterzhuamazon
+- name: prudhvigodithi
+- name: TheAlgo
+name: opensearch-dashboards
+type: application
+version: 2.24.0

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-apps-dev
+  namespace: argocd
+  labels:
+    name: argocd-apps-dev
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  source:
+    path: deployment/kubernetes/DyP/argocd/apps
+    repoURL: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
+    targetRevision: migration/aws
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-dev.yaml
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
