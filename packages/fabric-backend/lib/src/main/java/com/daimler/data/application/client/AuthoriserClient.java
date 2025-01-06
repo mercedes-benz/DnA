@@ -587,4 +587,3 @@ public class AuthoriserClient {
 	}
 
 }
-

@@ -172,6 +172,7 @@ export interface IDescriptionRequest {
   requestedFTECount: number;
   additionalResource: string;
   department: string;
+  createdBy?: IUserInfo;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {

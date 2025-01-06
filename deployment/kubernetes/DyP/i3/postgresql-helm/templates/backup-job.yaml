@@ -1,0 +1,256 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "postgres.fullname" . }}-backup
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: {{ .Values.backup.successfulJobsHistoryLimit }}
+  schedule: {{ .Values.backup.schedule | quote }}
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ include "postgres.name" . }}
+            helm.sh/chart: {{ include "postgres.chart" . }}
+            app.kubernetes.io/instance: {{ .Release.Name }}
+            app.kubernetes.io/managed-by: {{ .Release.Service }}
+        spec:
+          containers:
+          - name: backup
+            image: {{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}
+            imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+            {{- if .Values.backup.resources.enabled }}
+            resources:
+              {{- if .Values.backup.resources.limits.enabled }}
+              limits:
+                {{- if .Values.backup.resources.limits.cpu  }}
+                cpu: {{ .Values.backup.resources.limits.cpu | quote }}
+                {{- end }}
+                {{- if .Values.backup.resources.limits.memory  }}
+                memory: {{ .Values.backup.resources.limits.memory | quote }}
+                {{- end }}
+              {{- end }}
+              {{- if .Values.backup.resources.request.enabled }}
+              requests:
+                {{- if .Values.backup.resources.request.cpu  }}
+                cpu: {{ .Values.backup.resources.request.cpu | quote }}
+                {{- end }}
+                {{- if .Values.backup.resources.request.memory  }}
+                memory: {{ .Values.backup.resources.request.memory | quote }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+            env:
+            - name: PGHOST
+              value: {{ include "postgres.servicename" . }}
+            - name: PGPORT
+              value:  {{ .Values.service.port | quote }}
+            - name: ACTION
+              value: "backup"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.secretName" . }}
+                  key: postgres.backupuser.username
+            - name: PGPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.secretName" . }}
+                  key: postgres.backupuser.password
+            {{- if .Values.backup.retention }}
+            - name: RETENTION
+              value: {{ .Values.backup.retention | quote }}
+            {{- end }}
+            - name: CLEANUP_WALARCHIVES
+            {{- if .Values.backup.cleanupWalArchives }}
+              value: {{ .Values.backup.cleanupWalArchives | quote }}
+            {{- else }}
+              value: "false"
+            {{- end }}
+            {{- if .Values.backup.file.label }}
+            - name: LABEL
+              value: {{ .Values.backup.file.label | quote }}
+            {{- end }}
+            {{- if .Values.backup.file.name }}
+            - name: PGBACKUPFILE
+              value: {{ .Values.backup.file.name | quote }}
+            {{- end }}
+            - name: PGBACKUP_ENCRYPT
+              value: {{ .Values.encryptBackupWal.enabled | quote }}
+            {{- if eq .Values.backup.storage "fs" }}
+            - name: PGBACKUPPATH
+              value: "/backup"
+            - name : PGWALARCHPATHNFS
+              value: {{ .Values.walArchiving.fs.targetdir | quote }}
+            {{- end }}
+            - name: S3_BACKUP
+            {{- if eq .Values.backup.storage "s3" }}
+              value: "true"
+            {{- else }}
+              value: "false"
+            {{- end}}
+            {{- if eq .Values.backup.storage "s3" }}
+            - name: S3_HOST_ALIAS
+              value: {{ .Values.s3.hostAlias | quote }}
+            - name: S3_BUCKET_NAME
+              value: {{ .Values.backup.s3.bucketName | quote }}
+            - name: S3_BUCKET_NAME_WAL
+              value: {{ .Values.walArchiving.s3.bucketName | quote }}
+            - name: S3_SUB_FOLDER
+              value: {{ .Values.backup.s3.subfolder | quote }}
+            - name: S3_SUB_FOLDER_WAL
+              value: {{ .Values.walArchiving.s3.subfolder | quote }}
+            - name: S3_HOST
+              value: {{ .Values.s3.host | quote }}
+            {{- if .Values.s3.insecure }}
+            - name: S3_INSECURE
+              value: {{ .Values.s3.insecure | quote }}
+            {{- end}}
+            {{- if .Values.s3.debug }}
+            - name: S3_DEBUG
+              value: {{ .Values.s3.debug | quote }}
+            {{- end}}
+            - name: S3_ACCESS_KEY
+              {{- if .Values.secrets.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.secretName" . }}
+                  key: postgres.s3.accesskey
+              {{- else }}
+              value: {{ .Values.s3.accesskey | quote }}
+              {{- end }}
+            - name: S3_SECRET_KEY
+              {{- if .Values.secrets.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.secretName" . }}
+                  key: postgres.s3.secretkey
+              {{- else }}
+              value: {{ .Values.s3.secretkey | quote }}
+              {{- end }}
+            {{- end }}
+            volumeMounts:
+              {{- if eq .Values.backup.storage "fs" }}
+              - name: {{ include "postgres.fullname" . }}-backup
+                mountPath: "/backup"
+              {{- if .Values.walArchiving.enabled }}
+              - name: {{ include "postgres.name" . }}-walarchiving
+                mountPath: {{ .Values.walArchiving.fs.targetdir | quote }}
+              {{- end }}
+              {{- end }}
+              - name: {{ include "postgres.fullname" . }}-temp-backup
+                mountPath: "/srv/postgresql/volume"
+              {{- if and .Values.decryptBackupWal.enabled .Values.decryptBackupWal.privateKey }}
+              - name: privatekey-volume
+                mountPath: /srv/postgresql/privatekey
+              {{- end }}
+              {{- if and .Values.encryptBackupWal.enabled .Values.encryptBackupWal.publicKey }}
+              - name: publickey-volume
+                mountPath: /srv/postgresql/publickey
+              {{- end }}
+          restartPolicy: Never
+          {{- if or .Values.securityContext.setuid .Values.securityContext.setgid }}
+          securityContext:
+            {{- if .Values.securityContext.setuid}}
+            runAsUser: {{ .Values.securityContext.runAsUser | default 987 }}
+            {{- end }}
+            {{- if .Values.securityContext.setgid }}
+            fsGroup: {{ .Values.securityContext.fsGroup | default 987}}
+            runAsGroup: {{ .Values.securityContext.runAsGroup | default 987 }}
+            {{- end }}
+          {{- end }}
+          volumes:
+          {{- if eq .Values.backup.storage "fs" }}
+          - name: {{ include "postgres.fullname" . }}-backup
+          {{- if .Values.backup.fs.volume.enabled }}
+            persistentVolumeClaim:
+              claimName: {{ include "postgres.fullname" . }}-backup
+          {{- else }}
+            emptyDir: {}
+          {{- end }}
+          {{- if .Values.walArchiving.enabled }}
+          - name: {{ include "postgres.name" . }}-walarchiving
+          {{- if .Values.walArchiving.fs.volume.enabled }}
+            persistentVolumeClaim:
+              claimName: {{ include "postgres.name" . }}-walarchiving
+          {{- else }}
+            emptyDir: {}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          - name: {{ include "postgres.fullname" . }}-temp-backup
+          {{- if .Values.backup.tempPgdataVolume.enabled }}
+            persistentVolumeClaim:
+              claimName: {{ include "postgres.fullname" . }}-temp-backup
+          {{- else }}
+            emptyDir: {}
+          {{- end }}
+          {{- if and .Values.encryptBackupWal.enabled .Values.encryptBackupWal.publicKey }}
+          - name: publickey-volume
+            secret:
+              secretName: {{ include "postgres.secretName" . }}
+              items:
+              - key: encryptBackupWal.keyId
+                path: encryptBackupWal.keyId
+              - key: encryptBackupWal.publicKey
+                path: encryptBackupWal.publicKey
+          {{- end }}
+          {{- if and .Values.decryptBackupWal.enabled .Values.decryptBackupWal.privateKey }}
+          - name: privatekey-volume
+            secret:
+              secretName: {{ include "postgres.gpgSecretName" . }}
+          {{- end }}
+---
+{{- end }}
+{{- if and .Values.backup.enabled (eq .Values.backup.storage "fs" ) .Values.backup.fs.volume.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "postgres.fullname" . }}-backup
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  accessModes:
+  {{- range .Values.backup.fs.volume.accessModes }}
+  - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.backup.fs.volume.size }}
+  storageClassName: {{ .Values.backup.fs.volume.storageClass }}
+---
+{{- end }}
+{{- if and .Values.backup.enabled .Values.backup.tempPgdataVolume.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "postgres.fullname" . }}-temp-backup
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.backup.tempPgdataVolume.size }}
+  {{- if .Values.backup.tempPgdataVolume.storageClass }}
+  storageClassName: {{ .Values.backup.tempPgdataVolume.storageClass }}
+  {{- end }}
+---
+{{- end }}
