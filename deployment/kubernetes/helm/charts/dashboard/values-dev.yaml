@@ -24,11 +24,11 @@ corsOrigibUrl: https://*.dna.app.corpintra.net
 naasBroker: null
 ingress:
   enabled: false
-  className: test-ingress-intranet
-  host: report.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: report.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

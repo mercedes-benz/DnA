@@ -48,11 +48,11 @@ app:
       port: api
 ingress:
   enabled: false
-  className: test-ingress-intranet
-  host: naas.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: naas.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

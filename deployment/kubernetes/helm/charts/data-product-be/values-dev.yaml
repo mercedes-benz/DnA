@@ -90,22 +90,22 @@ service:
   port: 80
 ingress:
   enabled: false
-  className: test-ingress-intranet
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.data-product.dna-aws.app.corpintra.net
+    - host: api.data-product.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.data-product.dna-aws.app.corpintra.net
+        - api.data-product.dev.dna.app.corpintra.net
       secretName: data-product-be-tls
 resources: {}
 nodeSelector: {}
