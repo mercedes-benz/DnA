@@ -37,6 +37,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
+import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
@@ -736,6 +737,39 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			log.error("Failed to create role with exception {} ",e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@ApiOperation(value = "get all dna roles for a user.", nickname = "getAllUserDnaRoles", notes = "get all dna roles for a user", response = DnaRoleCollectionVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = DnaRoleCollectionVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/dnaroles",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<DnaRoleCollectionVO> getAllUserDnaRoles(@ApiParam(value = "",required=true) @PathVariable("id") String id){
+		UserInfo userInfo = this.userStore.getUserInfo();
+		String authToken = userInfo.getAuthToken();
+		DnaRoleCollectionVO roleCollection = new DnaRoleCollectionVO();
+		try{
+
+			roleCollection = service.getAllUserDnaRoles(id,authToken);
+
+			if(roleCollection.getData().getRoles().isEmpty()){
+				return new ResponseEntity<>(roleCollection, HttpStatus.NO_CONTENT);
+			}else{
+				return new ResponseEntity<>(roleCollection, HttpStatus.OK);
+			}
+
+		}catch(Exception e){
+				log.error("Failed to request role  for user {}, Fabric workspace {} with exception {} ",id,userInfo.getId(),e.getMessage());
+				return new ResponseEntity<>(roleCollection, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 	}
 
     

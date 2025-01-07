@@ -1,0 +1,62 @@
+{{- if .Values.serviceAccount.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+  # delete is required only for 'patronictl remove'
+  - delete
+  - deletecollection
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - patch
+  - update
+  # the following three privileges are necessary only when using endpoints
+  - create
+  - list
+  - watch
+  # delete is required only for for 'patronictl remove'
+  - delete
+  - deletecollection
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+ # The following privilege is only necessary for creation of headless service
+ # for patronidemo-config endpoint, in order to prevent cleaning it up by the
+ # k8s master. You can avoid giving this privilege by explicitly creating the
+ # service like it is done in this manifest (lines 2..10)
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+{{- end }}
