@@ -1,10 +1,12 @@
 .projectCard {
   background: #252a33;
-  width: calc(33.33% - 14px);
-  margin: 7px;
-  min-width: 250px;
   position: relative;
-
+  border: 1px solid #383F49;
+  
+  &.disable {
+    opacity: 0.5;
+  }
+  
   .cardHead {
     display: flex;
     justify-content: space-between;
@@ -13,30 +15,28 @@
     position: relative;
     overflow: hidden;
     height: 75px;
-
+  
     .cardHeadInfo {
       width: 100%;
       padding: 15px 20px;
       cursor: pointer;
       margin-top: 35px;
-
-      > div {
-        display: flex;
-        justify-content: space-between;
-      }
       .cardHeadTitle {
         font-size: var(--font-size-headline);
         line-height: 23px;
-        position: relative;
         word-break: break-word;
         padding-right: 10px;
         padding-bottom: 5px;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
       }
-      a {
-        text-decoration: none;
+  
+      &.disable {
+        pointer-events: none;
       }
     }
-
+  
     &:hover .cardHeadTitle {
       color: #00adef;
     }
@@ -47,8 +47,10 @@
     margin-right: auto;
   }
   .cardBodySection {
-    padding: 15px 20px 20px 20px;
-    > div {
+      padding: 15px 20px 20px 20px;
+      margin-bottom: 30px;
+      min-height: 200px;
+      > div {
       display: flex;
       justify-content: space-between;
       flex-grow: 1;
@@ -61,121 +63,71 @@
           margin-bottom: 10px;
         }
         > div:first-child {
-          flex: 2;
-          font-family: 'Roboto-Medium';
+          flex: 1;
+          font-weight: bold;
+          color: #697582;
+          font-size: var(--font-size-small);
         }
         > div:last-child {
           flex: 1;
         }
       }
-      ul {
-        list-style-type: none;
+    }
+  }
+  
+  .cardFooter {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .btnGrp {
+    display: flex;
+    justify-content: flex-end;
+    font-size: var(--font-size-medium);
+    button {
+        background-color: transparent;
+        border: 0;
+        color: #99a5b3;
+        float: right;
+        margin-right: 20px;
+        outline: 0;
         padding: 0;
-        li:not(:last-child) {
-          padding-bottom: 10px;
+        &:hover {
+        background-color: transparent;
+        color: #00adef;
+      }
+    }
+  }
+  .statusContainer {
+    margin-left: 20px;
+    margin-top: -5px;
+    .statusItem {
+      height: 40px;
+      display: flex;
+      .completedStatus {
+        margin-bottom: 0;
+        color: #0ae6ab;
+      }
+      
+      button {
+        background: unset;
+        border: unset;
+        color: #99a5b3;
+        outline: 0;
+        padding: 0;
+  
+        > div + span {
+          padding-left: 26px;
+        }
+  
+        span {
+          display: inline-block;
         }
       }
-    }
-  }
-  .draftIndicator {
-    padding: 2px 8px;
-    border: 1px solid #697582;
-    color: #697582;
-    font-size: var(--font-size-icon-small);
-    letter-spacing: 1px;
-    border-radius: 2px;
-    margin-left: 20px;
-  }
-}
-.cardFooter {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  div:first-child {
-    margin: 7px 0px;
-  }
-}
-.btnGrp {
-  display: flex;
-  justify-content: flex-end;
-  button {
-    background-color: transparent;
-    border: 0;
-    color: #99a5b3;
-    float: right;
-    font-size: 12px;
-    margin-right: 20px;
-    outline: 0;
-    padding: 0;
-    &:hover {
-      background-color: transparent;
-    }
-  }
-  button:disabled {
-    background-color: unset;
-    cursor: not-allowed;
-  }
-}
-.btnDisabled {
-  opacity: 0.7;
-}
-
-
-.deleteForecastResult {
-  margin: 35px 0;
-  text-align: center;
-}
-
-.closeIcon {
-  border: 2px solid #d8d8d8;
-  width: 54px;
-  height: 54px;
-  line-height: 50px;
-  border-radius: 100%;
-  margin: 0 auto 24px;
-
-  i {
-    color: #e94d47;
-    font-size: 18px;
-    margin: 0;
-  }
-} 
-
-.deleteBtn {
-  margin-top: 40px;
-
-  button {
-    background-color: #383f49 !important;
-  }
-}
-
-.cardCollabSection {
-  .cardCollabIcon {
-    display: inline-block;
-    cursor: pointer;
-    color: #00adef;
-    min-width: 40px;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  .collabsList {
-    min-width: 300px;
-    padding: 15px 15px 0!important;
-    font-size: var(--font-size-small);
-    li {
-      border-bottom: 1px solid #2d333b;
-      padding: 5px 0;
-      &:last-child {
-        border: none;
-      }
-      .permission {
-        position: absolute;
-        right: 15px;
-      }
-    }
-    span {
-      white-space: nowrap;
     }
   }
 }

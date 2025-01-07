@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.1.6
+    version: 1.2.8
   profile:
     active: production
 
@@ -45,8 +45,18 @@ fabricWorkspaces:
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
+  startup.onboardOwnersToFabricOperationsRole:  ${FABRIC_ONBOARDOWNER_FABRICROLE_ONSTARTUP:true}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
   subgroupPrefix: ${FABRIC_SUB_GROUP_PREFIX:XXXX}
+  shortcutNameprefix: ${FABRIC_SHORTCUT_PREFIX:XXXX}
+  shortcutLocation: ${FABRIC_SHORTCUT_LOCATION:XXXX}
+  gateway.id: ${FABRIC_GATEWAY_ID:XXXX}
+  gateway.encryption.publickey.modulus: ${FABRIC_ENCRYPTION_PUBLICKEY_MODULUS:XXXX}
+  gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
+  datasource:
+    credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
+    encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}
+    encryptionAlgorithm: ${FABRIC_DS_ENCRYPTEDALGO:RSA-OAEP}
   group:
     identifier:  ${FABRIC_ONBOARD_GROUP_IDENTIFIER:xxxxx}
     displayName:  ${FABRIC_ONBOARD_GROUP_DISPLAYNAME:xxxxx}
@@ -60,6 +70,10 @@ fabricWorkspaces:
     workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}
     capacitiesBase: ${FABRIC_CAPACITY_URL:https://api.fabric.microsoft.com/v1/capacities}
     addUserUrl: ${FABRIC_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/groups/{groupId}/users}
+    lakehouseUrl: ${FABRIC_LAKEHOUSE_URL:https://api.fabric.microsoft.com/v1/workspaces/id/lakehouses}
+    datasourceUrl: ${FABRIC_CREATEDATASOURCE_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources}
+    datasourceUserUrl: ${FABRIC_DATASOURCE_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources/connectionid/users}
+    shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
     
 
 authoriser:
@@ -74,6 +88,7 @@ authoriser:
   identityRoleUrl: ${IDENTITY_ROLE_LINK_PREFIX:XXXX}
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
+  role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
   
 server:
   port: 9292

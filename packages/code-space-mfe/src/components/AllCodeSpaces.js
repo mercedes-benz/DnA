@@ -20,6 +20,9 @@ import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import BuildModal from './buildModal/buildModal';
+import { Envs } from '../Utility/envs';
+import ConfirmModal from 'dna-container/ConfirmModal';
+import InfoModal from 'dna-container/InfoModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -44,10 +47,15 @@ const AllCodeSpaces = (props) => {
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
         [onBuildCodeSpace, setOnBuildCodeSpace] = useState(),
         [showTutorialsModel, setShowTutorialsModel] = useState(false);
+        [showTutorialsModel, setShowTutorialsModel] = useState(false),
+        [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
+        [filteredCodeSpaces, setFilteredCodespaces] = useState(),
+        [showAwsFAQModal, setShowAwsFAQModal] = useState(false);
     const History = useHistory();
     const goback = () => {
         History.goBack();
     };
+    const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
 
     const getCodeSpacesData = () => {
         setLoading(true);
@@ -65,11 +73,13 @@ const AllCodeSpaces = (props) => {
     };
 
     useEffect(() => {
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
     }, []);
 
     useEffect(() => {
         Tooltip.defaultSetup();
+        setFilteredCodespaces(codeSpaces);
     }, [codeSpaces]);
 
     // const onPaginationPreviousClick = () => {
@@ -163,11 +173,11 @@ const AllCodeSpaces = (props) => {
         setShowBuildCodeSpaceModal(true);
     };
 
-    const onStartStopCodeSpace = (codeSpace, startSuccessCB) => {
+    const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
         serverStarted ? setLoading(true) : ProgressIndicator.show();
-        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted)
+        CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env, manual)
             .then((res) => {
                 serverStarted ? setLoading(false) : ProgressIndicator.hide();
                 if (res.data.success === 'SUCCESS') {
@@ -175,11 +185,11 @@ const AllCodeSpaces = (props) => {
                         'Your Codespace for project ' +
                         codeSpace.projectDetails?.projectName +
                         ' is requested to ' +
-                        (serverStarted ? 'stop' : 'start') +
+                        ((serverStarted && !manual) ? 'stop' : 'start') +
                         '.',
                     );
 
-                    startSuccessCB();
+                    !manual && startSuccessCB();
 
                 } else {
                     Notification.show(
@@ -218,6 +228,64 @@ const AllCodeSpaces = (props) => {
         window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
     }
 
+    const AWSWarningModalContent = (
+        <div className={Styles.modalContentWrapper}>
+            <div className={Styles.modalMainTitle}><i className="icon mbc-icon alert circle" />Heads Up! Codespaces is Moving to DyPCaaS AWS <i className="icon mbc-icon alert circle" /></div>
+            <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
+            <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
+            <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>DyP CaaS Moves to AWS</a>).</p>
+            <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
+            <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
+            <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
+            <p>
+                <ul>
+                    <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
+                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
+                </ul>
+            </p>
+            <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
+            <p>
+                <ol>
+                    <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li>
+                    <li><b>Easy Migration:</b> Use our self-service migration flow to move your workspace to DyPCaaS AWS.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 10th, 2025.</li>
+                </ol>
+            </p>
+            <div className={Styles.modalTitle}>Need Assistance?:</div>
+            <p>Please refer to the AWS migration FAQs on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
+            <p><strong>Note:</strong> Upon initiating the migration, only your workspace will be migrated. Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
+        </div>
+    );
+
+    const FAQModalContent = (
+        <div className={Styles.modalFAQContentWrapper}>
+            <div>
+               <ol>
+                    <li>
+                        <div>I am not able to see my code post migrating to AWS</div>
+                        <div className={classNames(Styles.info)}>
+                            This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
+                            <ul>
+                                <li>Run the following command &ldquo;<strong>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</strong>&ldquo; <span>(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)</span> in your terminal for cloning code manually.
+                                    <br/>You can find your org name and repo name by using the go to code repo option in the context menu.
+                                    <br/>If the cloning is not happening with the current token then generate a new token and try again.
+                                </li>
+                                <li>
+                                    Once your code is cloned, please execute the following commands in the given order in your terminal to install the softwares.
+                                    <ol>
+                                        <li>&nbsp;&nbsp;<strong>cd .codespaces/DO_NOT_DELETE_MODIFY</strong></li>
+                                        <li>&nbsp;&nbsp;<strong>chmod +x pkg-install.sh</strong></li>
+                                        <li>&nbsp;&nbsp;<strong>./pkg-install.sh</strong></li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ol> 
+            </div> 
+        </div>
+    );
+
     return (
         <div className={classNames(Styles.mainPanel)}>
             <div className={classNames(Styles.wrapper)}>
@@ -243,40 +311,76 @@ const AllCodeSpaces = (props) => {
                             by Developers for Developers
                         </small>
                     </div>
-                    <div className={classNames(Styles.listHeader)}>
-                        <button
-                            className={'btn btn-primary'}
-                            tooltip-data="Refresh"
-                            onClick={getCodeSpacesData}
-                        >
-                            <i className="icon mbc-icon refresh" />
-                        </button>
-                        <button
-                            className={classNames('btn btn-primary', Styles.newRecipe)}
-                            type="button"
-                            onClick={() => { history.push('/codespaceRecipes/codespace') }}
-                        >
-                            <i className={'icon mbc-icon plus'} />
-                            <span>&nbsp;Add New Recipe</span>
-                        </button>
-                        <button
-                            className={classNames('btn btn-primary', Styles.configIcon)}
-                            type="button"
-                            onClick={onShowSecurityConfigRequest}
-                        >
-                            <IconGear size={'14'} />
-                            <span>&nbsp;Manage Recipes</span>
-                        </button>
+                    <div className={classNames(Styles.leftHeader)}>
+                        <div className={classNames(Styles.listHeader)}>
+                            <button
+                                className={'btn btn-primary'}
+                                tooltip-data="Refresh"
+                                onClick={getCodeSpacesData}
+                            >
+                                <i className="icon mbc-icon refresh" />
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.newRecipe)}
+                                type="button"
+                                onClick={() => { history.push('/codespaceRecipes/codespace') }}
+                            >
+                                <i className={'icon mbc-icon plus'} />
+                                <span>&nbsp;Add New Recipe</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.configIcon)}
+                                type="button"
+                                onClick={onShowSecurityConfigRequest}
+                            >
+                                <IconGear size={'14'} />
+                                <span>&nbsp;Manage Recipes</span>
+                            </button>
 
-                        <button
-                            className={classNames('btn btn-primary', Styles.tutorials)}
-                            tooltip-data="code space video tutorials"
-                            onClick={() => { setShowTutorialsModel(true) }}
-                        >
-                            <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
-                            <span>Video Tutorials</span>
-                        </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.tutorials)}
+                                tooltip-data="code space video tutorials"
+                                onClick={() => { setShowTutorialsModel(true) }}
+                            >
+                                <i className={classNames('icon mbc-icon trainings', Styles.trainingIcon)} />
+                                <span>Video Tutorials</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.awsFAQ)}
+                                tooltip-data="AWS migration FAQs"
+                                onClick={() => { setShowAwsFAQModal(Envs.SHOW_AWS_MIGRATION_WARNING) }}
+                            >
+                                <i className={classNames('icon mbc-icon alert circle')} />
+                                <span>AWS Migration FAQ&apos;s</span>
+                            </button>
+                        </div>
+                        <div className={classNames(Styles.codspaceSearch)}>
+                            <input
+                                type="text"
+                                className={classNames(Styles.searchInputField)}
+                                placeholder="Search CodeSpace"
+                                maxLength={100}
+                                value={codeSpaceSearchTerm}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setCodeSpaceSearchTerm(value);
+                                    const filteredRecipes = codeSpaces.filter((val) => val.projectDetails.projectName.toLowerCase().includes(value.toLowerCase()));
+                                    console.log(codeSpaces);
+                                    setFilteredCodespaces(filteredRecipes)
+                                }}
+                            />
+                            <i
+                                className={classNames('icon mbc-icon', codeSpaceSearchTerm?.length ? 'close circle' : 'search', Styles.searchIcon)}
+                                onClick={()=>{
+                                    if(codeSpaceSearchTerm?.length ){
+                                        setCodeSpaceSearchTerm(""); 
+                                        setFilteredCodespaces(codeSpaces);
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
+                    
                 </div>
                 {loading ? (
                     <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
@@ -310,7 +414,7 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -329,7 +433,7 @@ const AllCodeSpaces = (props) => {
 
                                         </div>
                                     </div>
-                                    {(codeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                                    {(filteredCodeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
                                                
                                         <div className={Styles.cardsSeparator}>
                                             <h5 className="sub-title-text">Collaborated Code Spaces</h5>
@@ -339,7 +443,7 @@ const AllCodeSpaces = (props) => {
                                     )}
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                            {codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={index}
@@ -379,7 +483,7 @@ const AllCodeSpaces = (props) => {
                     hiddenTitle={true}
                     showAcceptButton={false}
                     showCancelButton={false}
-                    modalWidth="800px"
+                    modalWidth="1200px"
                     buttonAlignment="right"
                     show={showNewCodeSpaceModal}
                     content={
@@ -443,8 +547,8 @@ const AllCodeSpaces = (props) => {
             )}
             {showTutorialsModel && (
                 <Modal
-                    title={''}
-                    hiddenTitle={true}
+                    title={'Code Space Tutorials'}
+                    hiddenTitle={false}
                     showAcceptButton={false}
                     showCancelButton={false}
                     modalWidth="80%"
@@ -453,8 +557,41 @@ const AllCodeSpaces = (props) => {
                     content={
                         <CodeSpaceTutorials />
                     }
-                    scrollableContent={true}
+                    scrollableContent={false}
                     onCancel={() => { setShowTutorialsModel(false) }}
+                />
+            )}
+            {showAWSWarningModal && (
+                <ConfirmModal
+                    title={''}
+                    showAcceptButton={false}
+                    acceptButtonTitle="OK"
+                    showCancelButton={false}
+                    modalWidth={'70%'}
+                    modalStyle={{
+                        minWidth: 'unset',
+                        width: '70%',
+                      }}
+                    buttonAlignment="center"
+                    show={showAWSWarningModal}
+                    content={AWSWarningModalContent}
+                    scrollableContent={true}
+                    onCancel={() => setShowAWSWarningModal(false)}
+                    onAccept={() => setShowAWSWarningModal(false)}
+                    showIcon = {false}
+                    showCloseIcon = {true}
+                />
+            )}
+            {showAwsFAQModal && (
+                <InfoModal
+                    title={'AWS migration FAQs'}
+                    modalWidth={'50%'}
+                    modalStyle={{
+                        maxWidth: '60%',
+                    }}
+                    show={showAwsFAQModal}
+                    content={FAQModalContent}
+                    onCancel={() => setShowAwsFAQModal(false)}
                 />
             )}
         </div>

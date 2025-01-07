@@ -1129,7 +1129,7 @@
     &.dashboard::before {
       content: "\e929";
     }
-    &.worksspace {
+    &.worksspace::before {
       content: "\e931";
     }
     &.search::before {
@@ -1494,6 +1494,10 @@
     &.deploy::before {
       content: "\e996";
     }
+    &.localcomplianceofficer::before{
+      content: '\e977'
+    }
+    
   }
 
   .active-status {
