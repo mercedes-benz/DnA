@@ -23,23 +23,23 @@ service:
   port: 7777
 ingress:
   enabled: false
-  className: test-ingress-intranet
-  host: api.dss.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: api.dss.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.dss.dna-aws.app.corpintra.net
+    - host: api.dss.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.dss.dna-aws.app.corpintra.net
+        - api.dss.dev.dna.app.corpintra.net
       secretName: api-dss-tls-secret
 resources: {}
 autoscaling:

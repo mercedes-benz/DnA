@@ -10,17 +10,17 @@ image:
   tag: 419-v1
 ingress:
   enabled: true
-  className: test-ingress-intranet
-  host: trino.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: trino.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
 server:
-  host: trino.dna-aws.app.corpintra.net
+  host: trino.dev.dna.app.corpintra.net
   workers: 1
   node:
     environment: dev

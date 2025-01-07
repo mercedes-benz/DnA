@@ -541,29 +541,29 @@ tenant:
 ingress:
   api:
     enabled: true
-    ingressClassName: test-ingress-intranet
+    ingressClassName: dev-ingress-intranet
     labels: { }
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: test-ingress-intranet
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme   
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd       
     tls:
     - hosts:
-        - api.storage.dna-aws.app.corpintra.net
+        - api.storage.dev.dna.app.corpintra.net
       secretName: minio-tls-api    
-    host: api.storage.dna-aws.app.corpintra.net
+    host: api.storage.dev.dna.app.corpintra.net
     path: /
     pathType: Prefix
   console:
     enabled: true
-    ingressClassName: test-ingress-intranet
+    ingressClassName: dev-ingress-intranet
     labels: { }
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: test-ingress-intranet
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme   

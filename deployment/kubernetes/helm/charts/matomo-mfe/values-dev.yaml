@@ -22,22 +22,22 @@ service:
   port: 80
 ingress:
   enabled: true
-  className: test-ingress-intranet
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: matomo.dna-aws.app.corpintra.net
+    - host: matomo.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - matomo.dna-aws.app.corpintra.net
+        - matomo.dev.dna.app.corpintra.net
       secretName: matomo-tls-secret
 resources:
   limits:

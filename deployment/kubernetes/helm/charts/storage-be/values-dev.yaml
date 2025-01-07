@@ -142,16 +142,16 @@ service:
   port: 80
 ingress:
   enabled: false
-  className: test-ingress-intranet
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: storage.dna-aws.app.corpintra.net
+    - host: storage.dev.dna.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix

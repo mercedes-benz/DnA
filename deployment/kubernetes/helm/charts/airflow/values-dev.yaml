@@ -41,11 +41,11 @@ backend:
   flywaySchema: public
 ingress:
   enabled: false
-  className: test-ingress-intranet
-  host: pipeline.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: pipeline.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: test-ingress-intranet
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -53,11 +53,11 @@ ingress:
 airflow:
   ingress:
     enabled: false
-    className: test-ingress-intranet
-    host: pipeline.dna-aws.app.corpintra.net
+    className: dev-ingress-intranet
+    host: pipeline.dev.dna.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: test-ingress-intranet
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -102,7 +102,7 @@ configuration:
     authenticate: false
     catchupByDefault: true
   webserver:
-    baseUrl: https://pipeline.dna-aws.app.corpintra.net
+    baseUrl: https://pipeline.dev.dna.app.corpintra.net
     path: /
     rbac: true
     host: 0.0.0.0
