@@ -60,6 +60,7 @@
  import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerGovernanceVO;
  import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
+ import com.daimler.data.util.ConstantsUtility;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
@@ -91,6 +92,9 @@
  
 	 @Value("${codeServer.env.value}")
 	 private String codeServerEnvValue;
+
+	 @Value("${codeServer.env.value.aws}")
+	 private String codeServerEnvValueAws;
  
 	 private UserInfoVO toUserInfoVO(UserInfo userInfo) {
 		 UserInfoVO vo = new UserInfoVO();
@@ -582,7 +586,11 @@
 			BeanUtils.copyProperties(vo, recipeDetails);
 			 recipeDetails.setCpuCapacity(vo.getCpuCapacity().toString());
 			 recipeDetails.setCloudServiceProvider(vo.getCloudServiceProvider().toString());
-			 recipeDetails.setEnvironment(codeServerEnvValue);
+			 if(vo.getCloudServiceProvider().equals(ConstantsUtility.DHC_CAAS_AWS)){
+				recipeDetails.setEnvironment(codeServerEnvValueAws);
+			} else {
+				recipeDetails.setEnvironment(codeServerEnvValue);
+			}
 			 recipeDetails.setOperatingSystem(vo.getOperatingSystem().toString());
 			 recipeDetails.setRamSize(vo.getRamSize().toString());
 			 if(vo.getRecipeId()!=null){
@@ -636,6 +644,11 @@
 				 CodeServerWorkspace data = entity.getData();
 				 if (data != null) {
 					 BeanUtils.copyProperties(data, vo);
+					 if(data.getIsWorkspaceMigrated()!= null){
+						vo.setIsWorkspaceMigrated(data.getIsWorkspaceMigrated());
+					 }else{
+						vo.setIsWorkspaceMigrated(false);
+					 }
 					 if (data.getIntiatedOn() != null)
 						 vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 					 UserInfo codespaceUserDetails = data.getWorkspaceOwner();
@@ -731,6 +744,11 @@
 			 CodeServerWorkspace data = new CodeServerWorkspace();
 			 entity.setId(vo.getId());
 			 BeanUtils.copyProperties(vo, data);
+			 if(vo.isIsWorkspaceMigrated()!=null){
+				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
+			 }else{
+				data.setIsWorkspaceMigrated(false);
+			 }
 			 UserInfoVO ownerVO = vo.getWorkspaceOwner();
 			 if (ownerVO != null) {
 				 UserInfo owner = this.toUserInfo(ownerVO);

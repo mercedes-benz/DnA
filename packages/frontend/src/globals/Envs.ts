@@ -112,6 +112,11 @@ export const Envs = {
     getInjectedEnv('ENABLE_STORAGE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_STORAGE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_STORAGE_SERVICE, false),
+  ALICE_BASE_URL:
+    getInjectedEnv('ALICE_BASE_URL') !== undefined
+      ? getInjectedEnv('ALICE_BASE_URL')
+      : EnvParser.parseBool(process.env.ALICE_BASE_URL, false),
+  FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
   ML_PIPELINE_URL: getInjectedEnv('ML_PIPELINE_URL') || process.env.ML_PIPELINE_URL,
   ENABLE_MALWARE_SCAN_ONEAPI:
     getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI') !== undefined
@@ -213,6 +218,8 @@ export const Envs = {
   POWER_PLATFORM_SUPPORT_EMAIL: getInjectedEnv('POWER_PLATFORM_SUPPORT_EMAIL') || process.env.POWER_PLATFORM_SUPPORT_EMAIL,
   POWER_PLATFORM_SOCIAL_INTRANET_URL: getInjectedEnv('POWER_PLATFORM_SOCIAL_INTRANET_URL') || process.env.POWER_PLATFORM_SOCIAL_INTRANET_URL,
   POWER_PLATFORM_TRAINING_URL: getInjectedEnv('POWER_PLATFORM_TRAINING_URL') || process.env.POWER_PLATFORM_TRAINING_URL,
+
+  ALICE_APP_ID:  getInjectedEnv('ALICE_APP_ID') || process.env.ALICE_APP_ID,
   
   TERMS_OF_USE_CONTENT: getInjectedEnv('TERMS_OF_USE_CONTENT') || process.env.TERMS_OF_USE_CONTENT,
   COMING_SOON_CONTENT: getInjectedEnv('COMING_SOON_CONTENT') || process.env.COMING_SOON_CONTENT,

@@ -44,6 +44,14 @@ export const buildGitJobLogViewURL = (gitJobRunId) => {
     }
 };
 
+export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
+  try {
+    return Envs.CODESPACE_AWS_OPENSEARCH_BUILD_LOGS_URL.replaceAll('$INSTANCE_ID$', gitJobRunId);
+  } catch {
+    return "Error in building git job log view Url. Please check the git job run id."
+  }
+};
+
 export const buildGitUrl = (gitRepoInfo) => {
     if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
     return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
@@ -68,6 +76,17 @@ export const buildLogViewURL = (deployedInstance, isStagging = false) => { //iss
     } catch {
       return "Error in building log view Url. Please check the deployment Url."
     }
+};
+export const buildLogViewAWSURL = (deployedInstance, isStagging = false) => { //isstagingOptional
+  try {
+    let instanceId = deployedInstance;
+    if(isValidURL(deployedInstance)) {
+      instanceId = new URL(deployedInstance).pathname.split("/")[1];
+    }
+    return Envs.CODESPACE_AWS_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', instanceId + (isStagging ? '-int' : '-prod'));
+  } catch {
+    return "Error in building log view Url. Please check the deployment Url."
+  }
 };
 export const isValidGitUrl = (str) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
