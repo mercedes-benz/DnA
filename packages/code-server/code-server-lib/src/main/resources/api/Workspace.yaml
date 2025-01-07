@@ -333,6 +333,14 @@ paths:
           description: "Workspace ID of server to be deleted"
           required: true
           type: "string"
+        - name: "cloudServiceProvider"
+          in: query
+          description: cloudServiceProvider variable to select the target provider to stop
+          required: true
+          type: string
+          enum:
+          - DHC-CaaS
+          - DHC-CaaS-AWS
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1020,6 +1028,14 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: "cloudServiceProvider"
+          in: query
+          description: cloudServiceProvider variable to select the target provider to start
+          required: true
+          type: string
+          enum:
+          - DHC-CaaS
+          - DHC-CaaS-AWS
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1099,6 +1115,37 @@ paths:
           enum:
           - int
           - prod
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+  
+  /workspaces/{id}/migrateworkspace:        
+    post:
+      tags:
+        - "code-server"
+      summary: "migrate  workspace Project to Aws for a given Id."
+      description: "migrate workspace Project for a given identifier."
+      operationId: "migrateWorkspace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1249,6 +1296,8 @@ definitions:
       serverStatus:
         type: string
         description: "Status of server - SERVER-STARTED,SERVER-STOPPED"
+      isWorkspaceMigrated:
+        type: boolean
       required:
         -projectDetails
         -workspaceOwner
@@ -1306,6 +1355,8 @@ definitions:
         type: string
       clientSecret:
         type: string
+      repo:
+        type: string
 
 
            
@@ -1360,7 +1411,7 @@ definitions:
         description: "Git URL"      
       cloudServiceProvider:
         type: string
-        enum: [DHC-CaaS]
+        enum: [DHC-CaaS,DHC-CaaS-AWS]
         description: "Cloud services provider. Ex: DHC-CaaS"
       ramSize:
         type: string

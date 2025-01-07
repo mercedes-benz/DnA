@@ -1,15 +1,24 @@
 package com.daimler.data.service.fabric;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspacesCollectionDto;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
@@ -31,6 +40,52 @@ public class WorkspaceBackgroundJobsService {
 	@Autowired
 	private FabricWorkspaceService fabricService;
 
+	@Autowired
+	private AuthoriserClient identityClient;
+	
+	@Value("${authoriser.role.fabricRoleName}")
+	private String fabricOperationsRoleName;
+	
+	@Value("${fabricWorkspaces.startup.onboardOwnersToFabricOperationsRole}")
+	private String enableOwnersOnboardingToFabricRoleOnStartup;
+	
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	
+	@PostConstruct
+	public void initForEnablingExistingOwnersToFabricRole() {
+		if(enableOwnersOnboardingToFabricRoleOnStartup!=null && enableOwnersOnboardingToFabricRoleOnStartup.equalsIgnoreCase("true")) {
+			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
+			List<FabricWorkspaceVO> workspaceVOs = collection!=null ? collection.getRecords() : new ArrayList<>();
+			log.info("Fetched all fabric workspaces from service successfully during scheduled job");
+			if(workspaceVOs!=null && !workspaceVOs.isEmpty()) {
+				log.info("During scheduled job, fetch success. Workspaces available, proceeding with processing user management for each");
+				for(FabricWorkspaceVO workspaceVO: workspaceVOs) {
+					try {
+						String ownerId = workspaceVO.getCreatedBy().getId();
+						Date validFromDate = new Date();//workspaceVO.getCreatedOn();
+						String validFrom = sdf.format(validFromDate);
+						Calendar calendar = Calendar.getInstance();
+				        calendar.setTime(validFromDate);
+				        calendar.add(Calendar.YEAR, 1);
+				        Date validToDate = calendar.getTime();
+						String validTo = sdf.format(validToDate);
+						UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
+						roleRequestDto.setValidTo(validTo);
+						roleRequestDto.setValidFrom(validFrom);
+						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName,null);
+						if(status.is2xxSuccessful()){
+				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
+				        }else {
+				        	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
+				        }
+					}catch(Exception e) {
+						log.error("Failed to onboard owner of workspace {} : {} to role {} ",workspaceVO.getId(),workspaceVO.getName(),fabricOperationsRoleName);
+					}
+				}
+			}
+		}
+	}
 	
 //	@PostConstruct
 //	public void init() {
@@ -60,7 +115,6 @@ public class WorkspaceBackgroundJobsService {
 //		}
 //	}
 	
-	
 	@Scheduled(cron = "0 0/7 * * * *")
 	public void updateWorkspacesJob() {	
 		try {
@@ -88,7 +142,7 @@ public class WorkspaceBackgroundJobsService {
 								updatedDescription = fabricWorkspaceDto.getDescription();
 							}
 						}else {
-							fabricService.delete(workspaceVO.getId());
+							fabricService.delete(workspaceVO.getId(),true);
 							isDeleted = true;
 						}
 					}

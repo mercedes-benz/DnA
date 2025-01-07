@@ -26,6 +26,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
@@ -171,7 +172,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
-			GenericMessage deleteResponse = service.delete(id);
+			GenericMessage deleteResponse = service.delete(id,false);
 			if(deleteResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
 					return new ResponseEntity<>(deleteResponse, HttpStatus.OK);
@@ -643,6 +644,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		UserInfo userInfo = this.userStore.getUserInfo();
+		String authToken = userInfo.getAuthToken();
 		try{
 
 			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
@@ -675,7 +677,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
 					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 				}
-				response = service.requestRoles(roleRequestVO,userInfo.getId());
+				response = service.requestRoles(roleRequestVO,userInfo.getId(),authToken);
 				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
 				return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -692,6 +694,48 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		
+	}
+
+	@Override
+	@ApiOperation(value = "create new role from dna application.", nickname = "createRole", notes = "create new role from dna application.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/createrole",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> createRole(@ApiParam(value = "Request Body that contains data required for requesting a workspace role" ,required=true )  @Valid @RequestBody CreateRoleRequestVO roleRequestVO){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		try{
+
+			response = service.createGenericRole(roleRequestVO,userInfo.getId());
+			if("SUCCESS".equalsIgnoreCase(response.getSuccess())){
+				log.info("Sucessfully created role for  user {}",userInfo.getId());
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else if("CONFLICT".equalsIgnoreCase(response.getSuccess())){
+				log.info(" Role Already Exists.");
+				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+			}else{
+				errors.add(new MessageDescription("Failed to create roles with error"));
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		}catch(Exception e){
+			errors.add(new MessageDescription("Failed to create roles for the user  with exception " + e.getMessage()));
+			response.setErrors(errors);
+			response.setWarnings(warnings);
+			response.setSuccess("FAILED");
+			log.error("Failed to create role with exception {} ",e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
     
