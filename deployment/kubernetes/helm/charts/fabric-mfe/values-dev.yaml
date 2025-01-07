@@ -21,7 +21,7 @@ service:
   type: ClusterIP
   port: 80
 ingress:
-  enabled: true
+  enabled: false
   className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
