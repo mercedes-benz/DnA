@@ -570,9 +570,9 @@ ingress:
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd       
     tls:
     - hosts:
-        - admin.storage.dna-aws.app.corpintra.net
+        - admin.storage.dev.dna.app.corpintra.net
       secretName: minio-tls-admin    
-    host: admin.storage.dna-aws.app.corpintra.net
+    host: admin.storage.dev.dna.app.corpintra.net
     path: /
     pathType: Prefix
 # Use an extraResources template section to include additional Kubernetes resources

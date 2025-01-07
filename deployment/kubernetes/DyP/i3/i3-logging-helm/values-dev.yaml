@@ -305,7 +305,7 @@ opensearch-dashboards:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - host: logs.dna-aws.app.corpintra.net
+      - host: logs.dev.dna.app.corpintra.net
         paths:
           - path: /
             backend:
@@ -313,7 +313,7 @@ opensearch-dashboards:
               servicePort: 5601
     tls:
       - hosts:
-          - logs.dna-aws.app.corpintra.net
+          - logs.dev.dna.app.corpintra.net
         secretName: logs-tls
     #  - secretName: chart-example-tls
     #    hosts:
