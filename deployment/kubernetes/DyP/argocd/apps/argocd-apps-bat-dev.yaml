@@ -1,0 +1,22 @@
+kind: Application
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: dev-bat-argocd-root-app
+  namespace: argocd
+  labels:
+    name: dev-bat-argocd-root-app
+spec:
+  project: 'bat-development'
+  source:
+    repoURL: 'https://git.i.mercedes-benz.com/BAT/bat-infra.git'
+    targetRevision: 'master'
+    path: c82p085-dev
+    plugin:
+      name: argocd-vault-plugin
+  destination:
+    name: 'in-cluster'
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false

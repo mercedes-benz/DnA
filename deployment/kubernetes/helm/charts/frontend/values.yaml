@@ -8,6 +8,7 @@ imagePullSecret:
   key: "docker-config"
 ingress:
   enabled: true
+  className: "traefik" 
   namespace: ingress
   host: "ingress-host"
   lbIP: ""

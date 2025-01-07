@@ -38,6 +38,7 @@ import com.daimler.data.dto.fabric.RoleApproverPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -540,6 +541,50 @@ public class AuthoriserClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+	public List<String> getAllUserManagableRoles(String id, String authToken){
+
+		List<String> roles = new ArrayList<>();
+		try {
+			String token = "";
+			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
+				token = authToken;
+			}else {
+				token = getToken();
+				if(!Objects.nonNull(token)) {
+					log.error("Failed to fetch token to invoke fabric Apis");
+					return roles;
+				}
+			}
+            String uri = authoriserBaseUrl + "/roles";
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.set("Authorization", "Bearer " + token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.GET, requestEntity, String.class);
+            if (response != null && response.getStatusCode() != null) {
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    log.info("Successfully got roles for user {}", id);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode rootNode = objectMapper.readTree(response.getBody());
+                    JsonNode rolesNode = rootNode.path("roles");
+                    if (rolesNode.isArray()) {
+                        for (JsonNode roleNode : rolesNode) {
+                            String roleId = roleNode.path("id").asText();
+                            if (!roleId.isEmpty()) {
+                                roles.add(roleId);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (HttpClientErrorException e) {
+            log.error("Failed to get roles for user :{} with status {}", id, e.getStatusCode());
+        } catch (Exception e) {
+            log.error("Failed to get roles for user :{} with error {} ", id, e.getMessage());
+        }
+        return roles;
+	}
 
 }
 

@@ -1,0 +1,121 @@
+namespace: test-dna
+imagePullSecrets: null
+ingress:
+  enabled: false
+  className: test-ingress-intranet
+  namespace: ingress
+  host: test.dna.app.corpintra.net
+  lbIP: 53.6.53.65
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+app:
+  backend:
+    replicaCount: 1
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/dna-backend
+      tag: '159'
+    secrets:
+      name: app-secrets
+      notebookSecretToken: null
+      oidcClientID: null
+      oidcClientSecret: null
+      drdCertPassword: null
+      jwtSecretKey: null
+      s3AccessKey: null
+      s3SecretKey: null
+      dataikuProdApiKey: null
+      dataikuTrainingApiKey: null
+      avscanApiKey: null
+      appDBUserName: null
+      appDBPassword: null
+    config:
+      enableItsmm: null
+      enableJupyterNotebook: null
+      enableDataiku: null
+      enableAttachmentScan: null
+      enableInternalUser: null
+      redirectUrl: null
+      dbUri: null
+      oidcUserInfoUrl: null
+      oidcTokenIntrospectionUrl: null
+      oidcProvider: null
+      oidcTokenRevocationUrl: null
+      internalUserRequestUrl: null
+      internalCertFile: null
+      oidcDisabled: null
+      s3BucketName: null
+      s3Url: null
+      corosOriginUrl: null
+      jupyterNotebookUrl: null
+      dataikuProdUri: null
+      dataikuProdAdminGroup: null
+      dataikutraininguri: null
+      avscanAppId: null
+      naasBroker: null
+      loggingEnvironment: null
+      loggingPath: null
+      dataikuProjectUri: null
+      apacCorpDir: null
+      emeaCorpDir: null
+      dataikuUserRoleUriPath: null
+      dataikuPermissionUriPath: null
+      dataikuTrainingAdminGroup: null
+      avscanUri: null
+      flywayBaseline: null
+      flywayBaselineOnMigrate: null
+      flywayBaselineVersion: null
+      flywaySchema: null
+      dashboardUri: null
+      dataSourceBulkCreateApiAccessToken: null
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 7171
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 7171
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
+    vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
+    vault.hashicorp.com/template-static-secret-render-interval: 10s
+    vault.hashicorp.com/agent-pre-populate-only: 'false'
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/staging/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-truststore.jks: |
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.TRUSTSTORE }}
+      {{- end }}
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/staging/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-keystore.p12: |
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.KEYSTORE }}
+      {{- end }}      
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/staging/kubernetesSecret/dnaBackend
+    vault.hashicorp.com/agent-inject-template-envvar: |
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/dnaBackend" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
+        {{- range $k, $v := .Data.data }}
+        {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}        
+        {{- end }}      
+      {{- end }}      
+  saName: default
+  jarName: dnambc*.jar

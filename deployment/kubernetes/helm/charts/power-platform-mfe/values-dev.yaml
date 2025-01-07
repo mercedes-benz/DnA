@@ -1,0 +1,72 @@
+namespace: dev-dna-power-platform
+configJs: |
+  window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
+    ENABLE_POWER_PLATFORM_SERVICE=true,
+    POWER_PLATFORM_MFE_APP_URL="",
+    POWER_PLATFORM_API_BASEURL=""
+  };
+replicaCount: 1
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe
+  pullPolicy: IfNotPresent
+  tag: '666'
+imagePullSecrets:
+  - name: imagepullsecret
+nameOverride: ''
+fullnameOverride: powerplatform-mfe
+podSecurityContext:
+  runAsUser: 1001
+containerPort: 8091
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  className: test-ingress-intranet
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: test-ingress-intranet
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: test.prompt-craft.dna-aws.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - test.prompt-craft.dna-aws.app.corpintra.net
+      secretName: power-platform-tls-secret
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+vaultInjector:
+  enable: true
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
+    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/dev/kubernetesSecret/powerPlatformMFE
+    vault.hashicorp.com/agent-inject-file-configjs: config.js
+    vault.hashicorp.com/agent-inject-template-configjs: |
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/powerPlatformMFE" -}}
+          window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}   
+  saName: default
+podDisruptionBudget:
+  enabled: false

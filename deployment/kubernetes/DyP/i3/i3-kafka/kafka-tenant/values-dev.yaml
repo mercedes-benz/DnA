@@ -1,0 +1,5 @@
+persistence:
+  kafka: 20Gi
+  kafkaStorageClass: dhc-gp3
+  zookeeper: 5Gi
+  zookeeperStorageClass: dhc-gp3

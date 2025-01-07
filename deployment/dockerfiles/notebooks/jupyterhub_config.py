@@ -268,7 +268,7 @@ c.KubeSpawner.pvc_name_template = pvc_name_template
 volume_name_template = 'volume-{username}'
 
 c.KubeSpawner.storage_pvc_ensure = True
-c.KubeSpawner.storage_class = 'cinder'
+c.KubeSpawner.storage_class = 'dhc-gp3'
 c.KubeSpawner.storage_access_modes = ['ReadWriteOnce']
 c.KubeSpawner.storage_capacity = '200Mi'
 

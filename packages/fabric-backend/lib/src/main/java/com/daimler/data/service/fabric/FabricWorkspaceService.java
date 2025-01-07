@@ -19,6 +19,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.*;
 import com.daimler.data.service.common.CommonService;
@@ -70,5 +71,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
 
 	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
+
+	DnaRoleCollectionVO getAllUserDnaRoles(String id,String authToken);
 
 }
