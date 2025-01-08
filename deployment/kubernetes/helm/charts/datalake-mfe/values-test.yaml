@@ -8,7 +8,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/datalake-mfe
   pullPolicy: Always
-  tag: '137'
+  tag: '198'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''

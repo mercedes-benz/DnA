@@ -45,7 +45,7 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dna.app.corpintra.net/#/codespaces
-      cookie_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
+      cookie_secret: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -93,9 +93,9 @@ hub:
         - ReadWriteOnce
       storage: 1Gi
       subPath:
-      storageClassName: dhc-gp3
-    url: postgresql+psycopg2://cs-db:64000/jupyterhub
-    password: <path:dna_aws_kv/data/prod/kubernetesSecret/cs#dbadm.password>
+      storageClassName: cinder-retain
+    url: postgresql+psycopg2://jupyterhub-db.code-server.svc.cluster.local:64000/jupyterhub
+    password: <path:dna_kv/data/prod/kubernetesSecret/jupyterhubdb#dbadm.password>
   labels: {}
   annotations: {}
   command: []
@@ -192,7 +192,7 @@ hub:
               'successThreshold': 1,
               'failureThreshold': 10
             }
-          }        
+          }
 
   #   livenessProbe:
   #     httpGet:
@@ -549,6 +549,7 @@ singleuser:
               cp /tmp/.bashrc /home/coder/
               chmod +x /home/coder/.bashrc
 
+              
               # Install SDK and extensions
               TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
               mkdir -pv $TEMP_DIR
@@ -556,7 +557,7 @@ singleuser:
               cd $TEMP_DIR
               chmod +x pkg-install.sh
               ./pkg-install.sh
-
+             
               # Copy extentions
               mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
               mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
@@ -569,8 +570,9 @@ singleuser:
               code-server --install-extension /home/coder/extension/GitHub.copilot-*.vsix
               code-server --install-extension /home/coder/extension/mbos-studio-marketplace-*.vsix
               code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
+              
+          fi 
 
-          fi        
   extraEnv: 
     HTTPS_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
     HTTP_PROXY : http://security-proxy.emea.svc.corpintra.net:3128/
@@ -580,9 +582,9 @@ singleuser:
     NO_PROXY : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     no_proxy : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     ENTRYPOINTD : /home/coder/entrypoint.d    
-    CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
-    CS_MINIO_KEY: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
-    CS_MINIO_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
+    CS_MINIO_ENDPOINT: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
+    CS_MINIO_KEY: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
+    CS_MINIO_SECRET: <path:dna_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
   lifecycleHooks: {}
     # postStart:
     #   exec:
@@ -622,7 +624,7 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.92.2"
+    tag: "4.93.1"
     pullPolicy:
     pullSecrets: 
       - name: imagepullsecret

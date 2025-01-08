@@ -187,7 +187,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Value("${kong.functionPluginsFolderPath}")
 	private String functionPluginsFolderPath;
-	
+  
 	@Value("${kong.preFunctionFrontendFileName}")
 	private String preFunctionFrontendFileName;
 
@@ -578,9 +578,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}
 			LOGGER.info("calling kong to get route details for projectname : {}",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 			RouteResponseVO routeResponse = getRouteByName( env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,  env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
-			if(routeResponse == null || routeResponse.getId()==null){
+			if(routeResponse == null ||  routeResponse.getId()==null){
 				if("success".equalsIgnoreCase(createServiceResponse.getSuccess()) || isServiceAlreadyCreated ) {
-					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName, cloudServiceProvider);
+					createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName,cloudServiceProvider);
 					if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 						List<MessageDescription> responseErrors = createRouteResponse.getErrors();
 						for(MessageDescription error : responseErrors) {
@@ -1436,6 +1436,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
     return routeResponseVO;
 }
   
+	@Override
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
 
 		GenericMessage response = new GenericMessage();
@@ -1447,7 +1448,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
 
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + "/" + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
 
 			HttpEntity<AttachFunctionPluginRequestVO> entity = new HttpEntity<AttachFunctionPluginRequestVO>(attachFunctionPluginRequestVO,headers);			
 			ResponseEntity<String> attachFunctionPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
@@ -1683,7 +1684,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		response.setErrors(errors);
 		return response;
 	}
-	
 	
 
 }

@@ -308,6 +308,8 @@ const NewCodeSpace = (props) => {
     const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
+
+
   const getRecipeDetails = (id) => {
     setShowProgressIndicator(true);
     CodeSpaceApiClient.getCodeSpaceRecipe(id)

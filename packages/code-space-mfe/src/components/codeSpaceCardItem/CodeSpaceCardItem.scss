@@ -346,6 +346,12 @@
     }
   }
 
+  .oneAPILink{
+    color: #99a5b3;
+    &:hover {
+      color: #99a5b3 !important; 
+    }
+  }
   .modalContentWrapper {
     margin-top: -20px;
     font-size: var(--font-size-sub-headline);

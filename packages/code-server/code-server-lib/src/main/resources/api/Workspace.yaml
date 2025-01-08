@@ -1371,8 +1371,6 @@ definitions:
       repo :
         type: string
 
-
-           
   CodeServerDeploymentDetailsVO:
     type: object
     properties:
