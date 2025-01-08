@@ -883,7 +883,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		try {
 			MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 			LOGGER.debug("Fetching user info from minio: {}", userId);
-			Map<String, UserInfo> users = minioAdminClient.listUsers();
+			Map<String, UserInfo> users = this.listUsers();
 			// Creating new secret key for user
 			String userSecretKey = UUID.randomUUID().toString();
 
