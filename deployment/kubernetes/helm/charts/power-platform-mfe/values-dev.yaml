@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe
   pullPolicy: IfNotPresent
-  tag: '322'
+  tag: '666'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -22,21 +22,22 @@ service:
   port: 80
 ingress:
   enabled: true
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: test.prompt-craft.dna-aws.app.corpintra.net
+    - host: power-platform.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - test.prompt-craft.dna-aws.app.corpintra.net
+        - power-platform.dev.dna.app.corpintra.net
       secretName: power-platform-tls-secret
 resources:
   limits:

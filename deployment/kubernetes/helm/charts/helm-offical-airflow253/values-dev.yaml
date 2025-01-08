@@ -48,7 +48,7 @@ airflowHome: /opt/airflow
 defaultAirflowRepository: registry-emea.app.corpintra.net/dnaplatform/airflow/officalairflow
 
 # Default airflow tag to deploy
-defaultAirflowTag: "promcraft-docs-v2"
+defaultAirflowTag: "promcraft-docs-v2 "
 
 # Default airflow digest. If specified, it takes precedence over tag
 defaultAirflowDigest: ~
@@ -128,7 +128,7 @@ ingress:
     # Annotations for the web Ingress
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'    
@@ -153,7 +153,7 @@ ingress:
         secretName: <path:dna_aws_kv/data/dev/kubernetesSecret/officalairflow#dnahostsecret>
 
     # The Ingress Class for the web Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: dev-ingress-intranet
 
     # configs for web Ingress TLS (Deprecated - renamed to `ingress.web.hosts[*].tls`)
     tls:
@@ -195,7 +195,7 @@ ingress:
     #     secretName: ""
 
     # The Ingress Class for the flower Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: dev-ingress-intranet
 
     # configs for flower Ingress TLS (Deprecated - renamed to `ingress.flower.hosts[*].tls`)
     tls:

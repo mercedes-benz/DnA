@@ -10,6 +10,7 @@ image:
   tag: 419-v1
 ingress:
   enabled: true
+  className: test-ingress-intranet
   host: trino.test.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix

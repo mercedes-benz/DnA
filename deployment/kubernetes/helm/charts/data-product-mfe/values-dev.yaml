@@ -3,7 +3,7 @@ configJs: |
   window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
     CONTAINER_APP_URL: "https://dev.dna.app.corpintra.net",
     API_BASEURL: "https://dev.dna.app.corpintra.net/api",
-    DATA_PRODUCT_API_BASEURL: "https://data-product.dna-aws.app.corpintra.net/api",
+    DATA_PRODUCT_API_BASEURL: "https://data-product.dev.dna.app.corpintra.net/api",
     DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="https://localhost" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
     DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>'
   };
@@ -11,7 +11,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-mfe
   pullPolicy: IfNotPresent
-  tag: '632'
+  tag: '1067'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -23,22 +23,23 @@ service:
   type: ClusterIP
   port: 90
 ingress:
-  enabled: true
+  enabled: false
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: data-product.dna-aws.app.corpintra.net
+    - host: data-product.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - data-product.dna-aws.app.corpintra.net
+        - data-product.dev.dna.app.corpintra.net
       secretName: data-product-tls-secret
 resources:
   limits:

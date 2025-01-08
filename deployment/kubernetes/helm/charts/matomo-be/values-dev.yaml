@@ -23,22 +23,23 @@ service:
   port: 8989
 ingress:
   enabled: false
-  host: api.matomo.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: api.matomo.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.matomo.dna-aws.app.corpintra.net
+    - host: api.matomo.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.matomo.dna-aws.app.corpintra.net
+        - api.matomo.dev.dna.app.corpintra.net
       secretName: api-matomo-tls-secret
 resources: {}
 autoscaling:

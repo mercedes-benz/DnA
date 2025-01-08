@@ -1168,7 +1168,7 @@ import org.springframework.beans.factory.annotation.Value;
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),isPrivateRecipe);
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
@@ -2563,8 +2563,6 @@ import org.springframework.beans.factory.annotation.Value;
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				MessageDescription invalidTypeMsg = new MessageDescription();
 				invalidTypeMsg.setMessage(
@@ -2641,7 +2639,8 @@ import org.springframework.beans.factory.annotation.Value;
 						vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
-			GenericMessage responseMsg = service.migrateWorkspace(vo);
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			GenericMessage responseMsg = service.migrateWorkspace(entity);
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 			}

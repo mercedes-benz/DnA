@@ -247,7 +247,7 @@ hub:
               app.kubernetes.io/name: pgadmin4    
       ports:
         - protocol: TCP
-          port: 8081  
+          port: 8081
     egress: []
     egressAllowRules:
       cloudMetadataServer: true
@@ -1355,7 +1355,7 @@ singleuser:
                 valueFrom:
                   secretKeyRef:
                     name: gh-pat
-                    key: GIT_BRANCH   
+                    key: GIT_BRANCH
             volumeMounts:
               - name: "{servername}"
                 mountPath: /home/coder

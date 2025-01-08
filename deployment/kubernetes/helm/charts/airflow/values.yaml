@@ -51,6 +51,7 @@ backend:
 ingress:
   enabled: true
   host: ""
+  className: "traefik"
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik

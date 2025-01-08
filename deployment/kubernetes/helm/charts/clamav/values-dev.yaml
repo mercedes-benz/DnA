@@ -55,18 +55,19 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-03
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
   replicaCount: 1
   pullPolicy: Always
   tag: '41'
 ingress:
   enabled: false
-  host: scan.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: scan.dev.dna.app.corpintra.net
   certificateIssuer: mercedes-benz-acme
   prefix: /internal
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

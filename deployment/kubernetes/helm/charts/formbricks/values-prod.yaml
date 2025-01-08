@@ -186,7 +186,7 @@ service:
 
 ingress:
   enabled: true
-  className: ""
+  className: prod-ingress-intranet
   annotations:    
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik

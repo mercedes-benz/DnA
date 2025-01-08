@@ -3,7 +3,7 @@ namespace: dev-dna-cs-workspaces
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
-  tag: '1065'
+  tag: '1091'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -52,21 +52,22 @@ service:
   port: 80
 ingress:
   enabled: false
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.code-spaces.dna-aws.app.corpintra.net
+    - host: api.code-spaces.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.code-spaces.dna-aws.app.corpintra.net
+        - api.code-spaces.dev.dna.app.corpintra.net
       secretName: cs-tls-secret
 resources: {}
 autoscaling:
