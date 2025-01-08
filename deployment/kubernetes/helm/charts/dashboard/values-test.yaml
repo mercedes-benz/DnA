@@ -1,7 +1,7 @@
 namespace: test-dna-dashboard
 image: 
   repository: registry-emea.app.corpintra.net/dnaplatform/dashboard-backend
-  tag: '137'
+  tag: '385'
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret

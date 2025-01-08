@@ -774,7 +774,7 @@ import com.daimler.data.util.ConstantsUtility;
                 repoNameWithOrg = fixRepoSuffix.toString();
              }
 			 if(!repoNameWithOrg.endsWith(".git")){
-			  	repoNameWithOrg = repoNameWithOrg.concat(".git");
+				  repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
@@ -1425,7 +1425,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto
 						 .setEnvironment(codeServerEnvValue);
-  			if (isprivateRecipe) {
+				if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")) {
 						repoUrl = repoUrl.replaceAll(".git","/");

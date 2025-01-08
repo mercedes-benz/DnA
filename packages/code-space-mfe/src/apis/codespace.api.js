@@ -38,7 +38,7 @@ const deleteCodeSpace = (id) => {
     });
 };
   
-const getCodeSpacesGitBranchList = (repoName) => { 
+const getCodeSpacesGitBranchList = (repoName) => {
     return server.get(`workspaces/branches?repoDetail=${repoName}`, {
         data: {},
     });

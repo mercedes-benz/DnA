@@ -3,7 +3,7 @@ namespace: test-dna-power-platform
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/power-platform-be
   pullPolicy: IfNotPresent
-  tag: '122'
+  tag: '628'
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
