@@ -251,29 +251,63 @@ const AllCodeSpaces = (props) => {
     const FAQModalContent = (
         <div className={Styles.modalFAQContentWrapper}>
             <div>
-               <ol>
+                <ol>
                     <li>
                         <div>I am not able to see my code post migrating to AWS</div>
                         <div className={classNames(Styles.info)}>
                             This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
                             <ul>
-                                <li>Run the following command &ldquo;<strong>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</strong>&ldquo; <span>(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)</span> in your terminal for cloning code manually.
-                                    <br/>You can find your org name and repo name by using the go to code repo option in the context menu.
-                                    <br/>If the cloning is not happening with the current token then generate a new token and try again.
-                                </li>
+                                <br />
                                 <li>
-                                    Once your code is cloned, please execute the following commands in the given order in your terminal to install the softwares.
+                                    Run the following commands in your terminal for cloning code manually
                                     <ol>
-                                        <li>&nbsp;&nbsp;<strong>cd .codespaces/DO_NOT_DELETE_MODIFY</strong></li>
-                                        <li>&nbsp;&nbsp;<strong>chmod +x pkg-install.sh</strong></li>
-                                        <li>&nbsp;&nbsp;<strong>./pkg-install.sh</strong></li>
+                                        <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
+                                        <li><span className={classNames(Styles.list)}>echo &ldquo;Cloning the workspace&ldquo;</span></li>
+                                        <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
+                                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
+                                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                                        <li>
+                                            <span className={classNames(Styles.list)}>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</span>
+                                            <br />(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
+                                            <br />You can find your org name and repo name by using the go to code repo option in the context menu.
+                                            <br />If the cloning is not happening with the current token then generate a new token and try again.
+
+                                        </li>
+                                    </ol>
+                                </li>
+                                <br />
+                                <li>
+                                    Once your code is cloned, run the following commands in terminal to copy .bashrc
+                                    <ol>
+                                        <li><span className={classNames(Styles.list)}>cp /tmp/.bashrc /home/coder/</span></li>
+                                        <li><span className={classNames(Styles.list)}>chmod +x /home/coder/.bashrc</span></li>
+                                    </ol>
+                                </li>
+                                <br />
+                                <li>
+                                    Please execute the following commands in the given order in your terminal to install the softwares
+                                    <ol>
+                                        <li><span className={classNames(Styles.list)}>TEMP_DIR=&ldquo;/tmp/.codespaces/DO_NOT_DELETE_MODIFY/&ldquo;</span></li>
+                                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
+                                        <li><span className={classNames(Styles.list)}>cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span></li>
+                                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
+                                        <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
+                                        <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
+                                    </ol>
+                                </li>
+                                <br />
+                                <li>
+                                    If you have a <span className={classNames(Styles.warning)}>Python FastAPI</span> workspace please run the following additional commands
+                                    <ol>
+                                        <li><span className={classNames(Styles.list)}>echo &ldquo;Installing Poetry...&ldquo;</span></li>
+                                        <li><span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span></li>
                                     </ol>
                                 </li>
                             </ul>
                         </div>
                     </li>
-                </ol> 
-            </div> 
+                </ol>
+            </div>
         </div>
     );
 
@@ -565,9 +599,9 @@ const AllCodeSpaces = (props) => {
             {showAwsFAQModal && (
                 <InfoModal
                     title={'AWS migration FAQs'}
-                    modalWidth={'50%'}
+                    modalWidth={'60%'}
                     modalStyle={{
-                        maxWidth: '60%',
+                        maxWidth: '70%',
                     }}
                     show={showAwsFAQModal}
                     content={FAQModalContent}
