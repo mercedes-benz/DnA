@@ -262,7 +262,6 @@ const AllCodeSpaces = (props) => {
                                     Run the following commands in your terminal for cloning code manually
                                     <ol>
                                         <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
-                                        <li><span className={classNames(Styles.list)}>echo &ldquo;Cloning the workspace&ldquo;</span></li>
                                         <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
                                         <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
                                         <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
