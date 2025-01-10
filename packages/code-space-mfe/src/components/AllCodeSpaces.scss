@@ -252,5 +252,15 @@
         padding: 8px 8px;
         font-size: var(--font-size-small);
         font-weight: var(--font-weight-regular);
+
+        .list {
+            padding-left: 8px;
+            color: #00adef;
+            font-weight: var(--font-weight-bold);
+        }
+
+        .warning {
+            color: #f3e537;
+        }
     }
   }
