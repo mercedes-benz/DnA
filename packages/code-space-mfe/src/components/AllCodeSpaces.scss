@@ -241,6 +241,9 @@
     }
     p{
         font-size: var(--font-size-small);
+        .warning {
+            color: #f3e537;
+        }
     }
   }
 
