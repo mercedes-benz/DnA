@@ -353,11 +353,11 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: true
+      enabled: false
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
