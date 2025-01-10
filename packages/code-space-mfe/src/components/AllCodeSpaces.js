@@ -225,7 +225,7 @@ const AllCodeSpaces = (props) => {
             <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
             <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
             <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>DyP CaaS Moves to AWS</a>).</p>
-            <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
+            {/* <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
             <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
             <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
             <p>
@@ -233,17 +233,17 @@ const AllCodeSpaces = (props) => {
                     <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
                     <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before <span className={classNames(Styles.warning)}>January 20th, 2025</span>. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
                 </ul>
-            </p>
+            </p> */}
             <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
             <p>
                 <ol>
-                    <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li>
-                    <li><b>Easy Migration:</b> Use our self-service migration flow to move your workspace to DyPCaaS AWS.</li>
-                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>January 31st, 2025</span>.</li>
+                    {/* <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li> */}
+                    <li><b>Auto Migration:</b> We have migrated all your existing workspaces to DyPCaaS AWS.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 30th, 2025.</li>
                 </ol>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
-            <p>Please refer to the <span className={Styles.warning}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
+            <p>Please refer to the <span className={classNames(Styles.warning)}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
             <p><strong>Note:</strong> Upon initiating the migration, only your workspace will be migrated. Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
     );
