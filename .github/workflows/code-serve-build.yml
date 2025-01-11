@@ -30,7 +30,7 @@ env:
   RUNNER_ALLOW_RUNASROOT: 1
   ### Imp: Also update the version in code-server-manager.yml in dna-codeserver-backend repo
   ### If you are using jupyterhub, update the image version
-  IMAGE_CODE_SERVER: 4.96.2 # This is the version of the code-server image
+  IMAGE_CODE_SERVER: 4.93.1 # This is the version of the code-server image
 
 jobs:
 
