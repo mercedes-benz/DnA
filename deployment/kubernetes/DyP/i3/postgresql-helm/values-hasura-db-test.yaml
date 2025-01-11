@@ -361,10 +361,10 @@ restore:
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: db-backup
+    bucketName: test-db-restore
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: hasura-backup-2025-01-11_08-28-06.tar.zst
+  recoveryFile: hasura-db/hasura-backup-2025-01-11_09-03-51.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.3.0-2022.11.4
