@@ -286,7 +286,7 @@ decryptBackupWal:
 ## PostgreSQL backup configuration
 ##
 backup:
-  enabled: true
+  enabled: false
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -341,9 +341,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: false
+  createRestoreJob: true
   ## whether to create the list backup job or not
-  createListBackupJob: false
+  createListBackupJob: true
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -353,7 +353,7 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
@@ -361,10 +361,10 @@ restore:
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: postgresql-backup*.tar.gz
+  recoveryFile: hasura-backup-2025-01-11_08-28-06.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.3.0-2022.11.4
@@ -409,7 +409,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: true
+  enabled: false
 
 pgmonitoring:
   enabled: true
