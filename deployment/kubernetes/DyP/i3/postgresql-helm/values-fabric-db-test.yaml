@@ -287,7 +287,7 @@ decryptBackupWal:
 ## PostgreSQL backup configuration
 ##
 backup:
-  enabled: false
+  enabled: true
   successfulJobsHistoryLimit: "1"
 
   ## the storage type, either fs or s3.
@@ -343,9 +343,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: true
+  createRestoreJob: false
   ## whether to create the list backup job or not
-  createListBackupJob: true
+  createListBackupJob: false
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -410,7 +410,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: false
+  enabled: ture
 
 pgmonitoring:
   enabled: true
