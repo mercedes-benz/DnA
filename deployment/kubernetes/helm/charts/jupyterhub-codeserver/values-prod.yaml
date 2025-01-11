@@ -577,10 +577,10 @@ singleuser:
               mc alias remove myminio
 
               #Install Default Plugins
-              code-server --install-extension rangav.vscode-thunder-client
               code-server --install-extension PKief.material-icon-theme
               code-server --install-extension GitHub.vscode-pull-request-github
-              code-server --install-extension /home/coder/extension/GitHub.copilot-*.vsix
+              code-server --install-extension /home/coder/extension/GitHub.copilot-1.160.0.vsix
+              code-server --install-extension /home/coder/extension/GitHub.copilot-chat-0.24.2025011002.vsix
               code-server --install-extension /home/coder/extension/mbos-studio-marketplace-*.vsix
               code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
 
@@ -597,6 +597,7 @@ singleuser:
     CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
     CS_MINIO_KEY: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
     CS_MINIO_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
+    NODE_TLS_REJECT_UNAUTHORIZED: '0'                   
   lifecycleHooks: {}
   initContainers: []
   extraContainers: []
@@ -621,8 +622,8 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.93.1"
-    pullPolicy:
+    tag: "4.96.2"
+    pullPolicy: IfNotPresent
     pullSecrets: 
       - name: imagepullsecret
   startTimeout: 900
@@ -644,7 +645,7 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.93.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.96.2
         image_pull_policy: Always
         start_timeout: 900
         http_timeout: 900
