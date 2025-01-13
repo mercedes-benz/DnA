@@ -231,7 +231,7 @@ const AllCodeSpaces = (props) => {
             <p>
                 <ul>
                     <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
-                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
+                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before <span className={classNames(Styles.warning)}>January 20th, 2025</span>. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
                 </ul>
             </p> */}
             <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
@@ -239,7 +239,7 @@ const AllCodeSpaces = (props) => {
                 <ol>
                     {/* <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li> */}
                     <li><b>Auto Migration:</b> We have migrated all your existing workspaces to DyPCaaS AWS.</li>
-                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 30th, 2025.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>January 31st, 2025</span>.</li>
                 </ol>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
@@ -286,21 +286,23 @@ const AllCodeSpaces = (props) => {
                                 <li>
                                     Please execute the following commands in the given order in your terminal to install the softwares
                                     <ol>
-                                        <li><span className={classNames(Styles.list)}>TEMP_DIR=&ldquo;/tmp/.codespaces/DO_NOT_DELETE_MODIFY/&ldquo;</span></li>
+                                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
                                         <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
-                                        <li><span className={classNames(Styles.list)}>cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span></li>
+                                        <li><span className={classNames(Styles.list)}>cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
+                                            <br/><span className={classNames(Styles.listInfo)}>If you have an additional folder present before .codespaces then please use</span>
+                                            <br/><span className={classNames(Styles.list)}>cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
+                                        </li>
                                         <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
                                         <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
                                         <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
                                     </ol>
                                 </li>
                                 <br />
+                                <li>Please close your terminal and verify the installations on a new terminal.</li>
+                                <br />
                                 <li>
-                                    If you have a <span className={classNames(Styles.warning)}>Python FastAPI</span> workspace please run the following additional commands
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>echo &ldquo;Installing Poetry...&ldquo;</span></li>
-                                        <li><span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span></li>
-                                    </ol>
+                                    If you have a <span className={classNames(Styles.warning)}>Python FastAPI</span> workspace please run the following additional command
+                                    <br/><span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span>
                                 </li>
                             </ul>
                         </div>
