@@ -241,6 +241,9 @@
     }
     p{
         font-size: var(--font-size-small);
+        .warning {
+            color: #f3e537;
+        }
     }
   }
 
@@ -257,6 +260,10 @@
             padding-left: 8px;
             color: #00adef;
             font-weight: var(--font-weight-bold);
+        }
+
+        .listInfo {
+            padding-left: 8px;
         }
 
         .warning {
