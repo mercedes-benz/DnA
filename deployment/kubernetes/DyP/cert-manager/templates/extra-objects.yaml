@@ -18,15 +18,7 @@ spec:
     email: dna@mercedes-benz.com
     privateKeySecretRef:
       name: mercedes-benz-acme
-    solvers:
-    - http01:
-        ingress:
-          ingressClassName: ingress-traefik
-          ingressTemplate:
-            metadata:
-              annotations:
-                traefik.ingress.kubernetes.io/router.entrypoints: 'web'
-                traefik.ingress.kubernetes.io/router.tls: 'false'          
+    solvers:        
     - http01:
         ingress:
           ingressClassName: {{ .Values.env }}-ingress-intranet
