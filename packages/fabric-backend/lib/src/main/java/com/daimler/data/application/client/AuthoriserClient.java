@@ -159,6 +159,31 @@ public class AuthoriserClient {
 		return entiltlemetDetailsDto;
     }
     
+    public EntiltlemetDetailsDto  getEntitlement(String entitlementName){
+        EntiltlemetDetailsDto entiltlemetDetailsDto = new EntiltlemetDetailsDto();
+        try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return entiltlemetDetailsDto;
+			}
+			String uri = authoriserBaseUrl+"/applications/"+applicationId+"/entitlements"+"/"+entitlementName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<EntiltlemetDetailsDto> response = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, EntiltlemetDetailsDto.class);
+			if (response!=null && response.hasBody()) {
+                entiltlemetDetailsDto = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch Entitlement with displayName {} with error {} ", entitlementName, e.getMessage());
+		}
+		return entiltlemetDetailsDto;
+    }
+    
     public GenericMessage deleteEntitlement(String entitlementId){
     	GenericMessage response = new GenericMessage();
     	List<MessageDescription> errors = new ArrayList<>();
@@ -231,6 +256,31 @@ public class AuthoriserClient {
 		return response;
     }
 
+    public CreateRoleResponseDto  getRole(String roleId){
+        CreateRoleResponseDto roleResponseDto = new CreateRoleResponseDto();
+        try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return roleResponseDto;
+			}
+			String uri = authoriserBaseUrl+"/roles";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<CreateRoleResponseDto> response = proxyRestTemplate.exchange(uri+"/"+roleId, HttpMethod.GET,
+					requestEntity, CreateRoleResponseDto.class);
+			if (response!=null && response.hasBody()) {
+                roleResponseDto = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get Role with Name {} with error {} ", roleId, e.getMessage());
+		}
+		return roleResponseDto;
+    }
+    
     public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest){
         CreateRoleResponseDto roleResponseDto = new CreateRoleResponseDto();
 
@@ -458,13 +508,22 @@ public class AuthoriserClient {
 	}
 
 
-	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId, String authToken){
 		try {
-			UserInfo userInfo = this.userStore.getUserInfo();
+			String token = "";
+			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
+				token = authToken;
+			}else {
+				token = getToken();
+				if(!Objects.nonNull(token)) {
+					log.error("Failed to fetch token to invoke fabric Apis");
+					return HttpStatus.INTERNAL_SERVER_ERROR;
+				}
+			}
 			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", "Bearer "+userInfo.getAuthToken());
+			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
