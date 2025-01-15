@@ -333,6 +333,39 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/createrole:
+    post:
+        tags:
+          - "fabric-workspaces"
+        summary: "create new role from dna application."
+        description: "create new role from dna application."
+        operationId: "createRole"
+        parameters:
+          - name: "roleRequestVO"
+            in: "body"
+            description: "Request Body that contains data required for requesting a workspace role"
+            required: true
+            schema:
+              $ref: "#/definitions/createRoleRequestVO"    
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+
 definitions:
   CapacityVO:
     type: object
@@ -747,6 +780,16 @@ definitions:
       validTo:
         type: string
         pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+
+  createRoleRequestVO:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          roleName:
+            type: string
+            pattern: "^[A-Z0-9]+[A-Z0-9._-]{1,60}$"
 
 
     
