@@ -16,7 +16,7 @@ image:
 nameOverride: "postgresql"
 ## PostgreSQL replica count
 ##
-replicaCount: 2
+replicaCount: 4
 
 printEnv: true
 
