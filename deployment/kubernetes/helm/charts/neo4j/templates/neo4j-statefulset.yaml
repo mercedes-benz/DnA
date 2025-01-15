@@ -57,8 +57,10 @@ spec:
       {{- if or $.Values.analytics.enabled $.Values.podSpec.serviceAccountName $clusterEnabled }}
       serviceAccountName: "{{ if kindIs "string" $.Values.podSpec.serviceAccountName | and $.Values.podSpec.serviceAccountName }}{{ $.Values.podSpec.serviceAccountName }}{{ else }}{{ include "neo4j.fullname" . }}{{ end }}"
       {{- end }}
+      dnsPolicy: {{ .Values.podSpec.dnsPolicy | default "ClusterFirst" }}
       securityContext: {{ toYaml .Values.securityContext | nindent 8 }}
-      {{- include "neo4j.tolerations" .Values.podSpec.tolerations | nindent 6 }}
+      {{- include "neo4j.topologySpreadConstraints" . | indent 6 }}
+      {{- include "neo4j.tolerations" .Values.podSpec.tolerations | indent 6 }}
       {{- include "neo4j.priorityClassName" . | nindent 6 }}
       terminationGracePeriodSeconds: {{ if $offlineMaintenanceEnabled  }}0{{ else }}{{ .Values.podSpec.terminationGracePeriodSeconds }}{{ end }}
       {{- $initContainers := .Values.podSpec.initContainers }}
