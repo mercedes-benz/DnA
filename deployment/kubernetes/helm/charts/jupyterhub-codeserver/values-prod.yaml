@@ -597,7 +597,6 @@ singleuser:
     CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
     CS_MINIO_KEY: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
     CS_MINIO_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
-    NODE_TLS_REJECT_UNAUTHORIZED: '0'                   
   lifecycleHooks: {}
   initContainers: []
   extraContainers: []
