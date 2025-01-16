@@ -595,16 +595,6 @@ extraResources:
         - ports:
             - protocol: TCP
               port: 8089
-        - from:
-            - podSelector:
-                matchLabels:
-                  app: traefik
-              namespaceSelector:
-                matchExpressions:
-                  - key: name
-                    operator: In
-                    values:
-                      - ingress
       policyTypes:
         - Ingress
  - |
