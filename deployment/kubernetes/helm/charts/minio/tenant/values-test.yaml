@@ -540,7 +540,7 @@ tenant:
 # Set the keys to conform to the Ingress controller and configuration of your choice.
 ingress:
   api:
-    enabled: false
+    enabled: true
     ingressClassName: test-ingress-intranet
     labels: { }
     annotations: 
@@ -549,7 +549,8 @@ ingress:
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme   
-      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd       
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd  
+      acme.cert-manager.io/http01-ingress-class: test-ingress-intranet     
     tls:
     - hosts:
         - api.storage.dna-aws.app.corpintra.net
@@ -558,7 +559,7 @@ ingress:
     path: /
     pathType: Prefix
   console:
-    enabled: false
+    enabled: true
     ingressClassName: test-ingress-intranet
     labels: { }
     annotations: 
@@ -567,12 +568,13 @@ ingress:
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme   
-      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd       
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd  
+      acme.cert-manager.io/http01-ingress-class: test-ingress-intranet     
     tls:
     - hosts:
-        - admin.storage.test.dna.app.corpintra.net
+        - admin.storage.dna-aws.app.corpintra.net
       secretName: minio-tls-admin    
-    host: admin.storage.test.dna.app.corpintra.net
+    host: admin.storage.dna-aws.app.corpintra.net
     path: /
     pathType: Prefix
 # Use an extraResources template section to include additional Kubernetes resources
