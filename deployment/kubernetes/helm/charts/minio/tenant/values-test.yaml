@@ -1,4 +1,13 @@
-# Root key for MinIO Tenant Chart
+## Secret with default environment variable configurations to be used by MinIO Tenant.
+## Not recommended for production deployments! Create the secret manually instead.
+secrets:
+  name: myminio-env-configuration
+  # MinIO root user and password
+  accessKey: <path:dna_aws_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_USER>
+  secretKey: <path:dna_aws_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+  ## Set the value for existingSecret to use a pre created secret and dont create default one
+  # existingSecret: random-env-configuration
+## MinIO Tenant Definition
 tenant:
   ###
   # The Tenant name
@@ -37,10 +46,8 @@ tenant:
   # An array of Kubernetes secrets to use for pulling images from a private ``image.repository``.
   # Only one array element is supported at this time.
   imagePullSecret: { }
-  ###
-  # The Kubernetes `Scheduler <https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/>`__ to use for dispatching Tenant pods.
-  #
-  # Specify an empty dictionary ``{}`` to dispatch pods with the default scheduler.
+  ## If a scheduler is specified here, Tenant pods will be dispatched by specified scheduler.
+  ## If not specified, the Tenant pods will be dispatched by default scheduler.
   scheduler: { }
   ###
   # The Kubernetes secret name that contains MinIO environment variable configurations.
