@@ -1,13 +1,13 @@
 ## Secret with default environment variable configurations to be used by MinIO Tenant.
 ## Not recommended for production deployments! Create the secret manually instead.
-secrets:
-  name: myminio-env-configuration
-  # MinIO root user and password
-  accessKey: <path:dna_aws_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_USER>
-  secretKey: <path:dna_aws_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
-  ## Set the value for existingSecret to use a pre created secret and dont create default one
-  # existingSecret: random-env-configuration
-## MinIO Tenant Definition
+# secrets:
+#   name: myminio-env-configuration
+#   # MinIO root user and password
+#   accessKey: <path:dna_aws_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_USER>
+#   secretKey: <path:dna_aws_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+#   ## Set the value for existingSecret to use a pre created secret and dont create default one
+#   # existingSecret: random-env-configuration
+# ## MinIO Tenant Definition
 tenant:
   # Tenant name
   name: minio
@@ -19,6 +19,10 @@ tenant:
   ## Customize any private registry image pull secret.
   ## currently only one secret registry is supported
   imagePullSecret: { }
+  configSecret:
+    name: myminio-env-configuration
+    accessKey: <path:dna_aws_kv/data/dev/kubernetesSecret/minio#MINIO_ROOT_USER>
+    secretKey: <path:dna_aws_kv/data/dev/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
   ## If a scheduler is specified here, Tenant pods will be dispatched by specified scheduler.
   ## If not specified, the Tenant pods will be dispatched by default scheduler.
   scheduler: { }
