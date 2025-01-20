@@ -11,7 +11,7 @@ metadata:
     name: db
 spec:
   destination:
-    namespace: power-platform
+    namespace: {{ .Values.env }}-dna-power-platform
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
