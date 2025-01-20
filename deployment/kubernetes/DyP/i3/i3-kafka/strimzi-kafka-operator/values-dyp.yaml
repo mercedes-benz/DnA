@@ -96,5 +96,8 @@ resources:
 watchNamespaces: 
   - i3-kafka
   - dev-dna-i3-kafka
+  - test-dna-i3-kafka
+  - prod-dna-i3-kafka
+  - tools
 # Overwrite default log level to get more detailed output
 loglevel: DEBUG
