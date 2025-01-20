@@ -46,7 +46,6 @@ const AllCodeSpaces = (props) => {
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
         [onBuildCodeSpace, setOnBuildCodeSpace] = useState(),
-        [showTutorialsModel, setShowTutorialsModel] = useState(false);
         [showTutorialsModel, setShowTutorialsModel] = useState(false),
         [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
         [filteredCodeSpaces, setFilteredCodespaces] = useState(),
