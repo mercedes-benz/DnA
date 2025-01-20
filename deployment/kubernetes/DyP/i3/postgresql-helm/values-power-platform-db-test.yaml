@@ -1,6 +1,6 @@
-namespace: power-platform
+namespace: test-dna-power-platform
 annotations:
-  argocdvault: "dna_kv/data/staging/kubernetesSecret/powerPlatformDB"
+  argocdvault: "dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -86,13 +86,13 @@ DBName: powerdb
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#accesskey>
+  accesskey: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#secretkey>
+  secretkey: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#s3.host>
+  host: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -146,7 +146,7 @@ walArchiving:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#bucketName>
+    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,11 +201,11 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#backup.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#backup.password>
   ## the database (not the instance) owner
   dbadm:
     username: powerdb
-    password: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#dbadm.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
@@ -213,20 +213,20 @@ dbusers:
       # name: customschema
   ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#patroni.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#pgmon.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#debezium.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#dataCatalog.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -243,7 +243,7 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#size>
+  size: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#size>
   # storageClass: cinder
   # PVCName: name
   wal:
@@ -287,7 +287,7 @@ decryptBackupWal:
 ## PostgreSQL backup configuration
 ##
 backup:
-  enabled: true
+  enabled: false
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -306,10 +306,10 @@ backup:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#bucketName>
+    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#bucketName>
   ## general configuration for backup
   schedule: "1 0 * * *"
-  retention: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#retention>
+  retention: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -342,9 +342,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: false
+  createRestoreJob: true
   ## whether to create the list backup job or not
-  createListBackupJob: false
+  createListBackupJob: true
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -354,7 +354,7 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
@@ -362,10 +362,10 @@ restore:
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: test-db-restore
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: postgresql-backup*.tar.gz
+  recoveryFile: power-db/power-platform-backup-2025-01-20_10-04-48.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.3.0-2022.11.4
@@ -391,7 +391,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_kv/data/staging/kubernetesSecret/powerPlatformDB#init-db>
+  script: <path:dna_aws_kv/data/staging/kubernetesSecret/powerPlatformDB#init-db>
 
 test:
   enabled: true
@@ -409,7 +409,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: true
+  enabled: false
 
 pgmonitoring:
   enabled: true
