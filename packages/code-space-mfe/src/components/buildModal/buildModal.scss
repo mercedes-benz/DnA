@@ -59,10 +59,24 @@
       position: relative;
       margin-top: 20px;
 
-      .deployBtn {
-        background: #00adef;
-        font-size: 12px;
+      .newLink {
+        i{
+          font-size: var(--font-size-tiny);
+        }
+      }
 
+      .actionBtn {
+        background: none;
+        border: none;
+        padding: 0;
+        
+        i{
+          font-size: var(--font-size-icon-big);
+        }
+
+        &:hover {
+          color: #00adef;
+        }
       }
     }
   }

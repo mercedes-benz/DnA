@@ -15,77 +15,31 @@ import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
+import DeployModal from '../deployModal/DeployModal';
 
 const BuildModal = (props) => {
-  let allLogs = [
-    {
-      triggeredBy: 'abc',
-      triggeredOn: '2024-03-14T06:57:57.609+00:00',
-      buildStatus: 'BUILD_FAILED',
-      branch: 'main',
-      version: null,
-      comment: 'test',
-    },
-    {
-      triggeredBy: 'abc',
-      triggeredOn: '2024-04-02T05:51:03.129+00:00',
-      buildStatus: 'SUCCESS',
-      branch: 'main',
-      version: 'v2.1',
-      comment: 'test',
-    },
-    {
-      triggeredBy: 'abc',
-      triggeredOn: '2024-04-02T05:51:03.129+00:00',
-      buildStatus: 'SUCCESS',
-      branch: 'main',
-      version: 'V2.2',
-      comment: null,
-    },
-    {
-      triggeredBy: 'abc',
-      triggeredOn: '2024-04-02T05:51:03.129+00:00',
-      buildStatus: 'IN_PROGRESS',
-      branch: 'main',
-      version: null,
-      comment: '',
-    },
-    {
-      triggeredBy: 'abc',
-      triggeredOn: '2024-04-02T05:51:03.129+00:00',
-      buildStatus: 'SUCCESS',
-      branch: 'main',
-      version: 'v2.1',
-      comment: 'test',
-    },
-    {
-      triggeredBy: 'abc',
-      triggeredOn: '2024-04-02T05:51:03.129+00:00',
-      buildStatus: 'SUCCESS',
-      branch: 'main',
-      version: 'v2.1',
-      comment: 'test',
-    },
-  ];
 
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
   const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
   // const [buildType, setBuildType] = useState('build');
   const [comment, setComment] = useState('');
-  const totalNumberOfRecords = allLogs.length;
+  const [totalNumberOfRecords, setTotalNumberOfRecords] = useState();
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [paginatedRecords, setPaginatedRecords] = useState([]);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(
     parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE), 10) || 5,
   );
+  const [allLogs, setAllLogs] = useState([]);
+  const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
 
   useEffect(() => {
     Tooltip.defaultSetup();
     ProgressIndicator.show();
+    setAllLogs([]);
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
       .then((res) => {
         ProgressIndicator.hide();
@@ -102,10 +56,18 @@ const BuildModal = (props) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setTotalNumberOfRecords(allLogs.length);
     setTotalNumberOfPages(Math.ceil(allLogs.length / maxItemsPerPage));
     setPaginatedRecords(allLogs.slice(0, 0 + maxItemsPerPage));
     setCurrentPageNumber(1);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [allLogs]);
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [paginatedRecords]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
@@ -159,7 +121,7 @@ const BuildModal = (props) => {
       //   cancelButtonTitle={'Cancel'}
       //   onAccept={onAcceptCodeBuild}
       showCancelButton={false}
-      modalWidth="900px"
+      modalWidth="1000px"
       buttonAlignment="center"
       show={true}
       content={
@@ -239,13 +201,16 @@ const BuildModal = (props) => {
                         <label>Build Status</label>
                       </th>
                       <th>
+                        <label>Artifact ID</label>
+                      </th>
+                      <th>
                         <label>Version</label>
                       </th>
                       <th>
                         <label>Comments</label>
                       </th>
                       <th>
-                        <label>Action</label>
+                        <label>Deploy</label>
                       </th>
                     </tr>
                   </thead>
@@ -255,19 +220,46 @@ const BuildModal = (props) => {
                         <td>{item?.branch}</td>
                         <td>{item?.triggeredBy}</td>
                         <td>{regionalDateAndTimeConversionSolution(item?.triggeredOn)}</td>
-                        <td>{item?.buildStatus}</td>
-                        <td>{item?.version || 'N/A'}</td>
-                        <td>{item?.comment || 'N/A'}</td>
                         <td>
-                          {item?.buildStatus==='SUCCESS' ?
+                          {/* {item?.buildStatus}
+                          <button
+                            className={classNames('btn btn-primary', Styles.actionBtn)}
+                            tooltip-data="Navigate to OpenSearch logs"
+                            onClick={() => {
+                              console.log('logs');
+                            }}
+                          >
+                            <i className="icon mbc-icon new-tab" />
+                          </button> */}
+                          <a
+                            target="_blank"
+                            href={''}
+                            rel="noreferrer"
+                            className={classNames(Styles.newLink)}
+                            style={{ color: item?.buildStatus === 'SUCCESS' ? '#12e7ab' : item?.buildStatus === 'BUILD_FAILED' ? '#e94d47' : '#f3e537' }}
+                          >
+                            {item?.buildStatus === 'SUCCESS' ? 'Success' : item?.buildStatus === 'BUILD_FAILED' ? 'Failed' : 'In Progress'}
+                            <i className="icon mbc-icon new-tab small" />
+                          </a>
+                        </td>
+                        <td>{item?.artifactId || 'N/A'}</td>
+                        <td>{item?.version || 'N/A'}</td>
+                        <td><label>{item?.comment || 'N/A'}</label></td>
+                        <td>
+                          {item?.buildStatus === 'SUCCESS' ? (
                             <button
-                              className={'btn btn-primary ' + classNames(Styles.deployBtn)}
-                              type="button"
-                              onClick={() => {console.log('deploy')}}
+                              className={'btn btn-primary ' + classNames(Styles.actionBtn)}
+                              tooltip-data="Deploy application"
+                              onClick={() => {
+                                console.log('deploy');
+                                setShowDeployCodeSpaceModal(true);
+                              }}
                             >
-                              Deploy
+                              <i className="icon mbc-icon deploy" />
                             </button>
-                           : ''}
+                          ) : (
+                            ''
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -287,6 +279,18 @@ const BuildModal = (props) => {
               startWithFive={true}
             />
           ) : null}
+          {showDeployCodeSpaceModal && (
+            <DeployModal
+            userInfo={props.userInfo}
+            codeSpaceData={props.codeSpaceData}
+            enableSecureWithIAM={props.enableSecureWithIAM}
+            isUIRecipe={props.isUIRecipe}
+            setShowCodeDeployModal={setShowDeployCodeSpaceModal}
+            setCodeDeploying={props.setCodeDeploying}
+            setIsApiCallTakeTime={props.setIsApiCallTakeTime}
+            navigateSecurityConfig={props.navigateSecurityConfig}
+            />
+          )}
         </>
       }
       scrollableContent={false}
