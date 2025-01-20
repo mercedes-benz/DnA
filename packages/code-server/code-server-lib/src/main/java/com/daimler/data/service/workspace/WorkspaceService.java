@@ -61,7 +61,8 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String clientID, String clientSecret);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, 
+		boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
@@ -92,15 +93,17 @@ public interface WorkspaceService {
 
     String getServerStatus(CodeServerWorkspaceVO vo);
 
-	GenericMessage startServer(String userId,String wsId);
+	GenericMessage startServer(String userId,String wsId, String cloudServiceProvider);
 
-    GenericMessage stopServer(CodeServerWorkspaceVO vo);
+    GenericMessage stopServer(CodeServerWorkspaceVO vo, String cloudServiceProvider);
 
     GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo);
 
 	GenericMessage updateResourceValue(CodeServerWorkspaceNsql entity, @Valid ResourceVO updatedResourceValue);
 
 	GenericMessage restartWorkspace(String userId, String id, String env);
+
+	GenericMessage migrateWorkspace(CodeServerWorkspaceVO vo);
 
 	
 }

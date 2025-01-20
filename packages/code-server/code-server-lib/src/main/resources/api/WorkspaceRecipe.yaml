@@ -163,15 +163,15 @@ paths:
         500:
           description: "Internal error"
 
-  /recipeDetails/{recipeName}:
+  /recipeDetails/{id}:
     get:
       tags:
         - "code-server-recipe"
       summary: "Get workspace recipe details for a given Id."
       description: "Get workspace recipe details for a given Id."
-      operationId: "getByRecipeName"
+      operationId: "getRecipeById"
       parameters:
-        - name: "recipeName"
+        - name: "id"
           in: "path"
           description: "Workspace ID to be fetched"
           required: true
@@ -203,7 +203,7 @@ paths:
       description: "Delete recipe for a given identifier."
       operationId: "deleteRecipe"
       parameters:
-        - name: "recipeName"
+        - name: "id"
           in: "path"
           description: "recipe to be deleted"
           required: true
@@ -229,9 +229,9 @@ paths:
     put:
       tags:
         - "code-server-recipe"
-      summary: "Update recipe details for a given recipe name."
-      description: "Update recipe details for a recipe name."
-      operationId: "updateRecipeByName"
+      summary: "Update recipe details for a given id."
+      description: "Update recipe details for a recipe given id."
+      operationId: "updateRecipeById"
       parameters:
         - name: "recipeRequestVO"
           in: "body"
@@ -446,6 +446,9 @@ definitions:
   RecipeVO:
     type: object
     properties:
+      id:
+        type: string
+        description: "ID of recipe"
       recipeId:
         type: string
         description: "recipeId  for recipe managment"
