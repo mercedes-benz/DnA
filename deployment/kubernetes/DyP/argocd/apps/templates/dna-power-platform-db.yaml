@@ -6,7 +6,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   name: power-platform-db
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.env }}-dna-power-platform
   labels:
     name: db
 spec:
