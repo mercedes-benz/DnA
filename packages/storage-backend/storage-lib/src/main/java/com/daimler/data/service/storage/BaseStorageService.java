@@ -1421,10 +1421,10 @@ public class BaseStorageService implements StorageService {
 		params.setRegionOrEndpoint(minioClientApi);
 		params.setHdfsInterface("S3A");
 		params.setEncryptionMode("NONE");
-		params.setChbucket("/"+bucketName);
+		params.setChbucket(bucketName);
 		params.setChroot("/");
 		params.setSwitchToRegionFromBucket(false);
-		params.setUsePathMode(false);
+		params.setUsePathMode(true);
 		params.setMetastoreSynchronizationMode("NO_SYNC");
 
 		requestDTO.setParams(params);

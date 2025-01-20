@@ -11,6 +11,7 @@ import IconWrapper from 'components/icons/IconWrapper';
 import IconNameRenderer from 'components/icons/IconNameRenderer';
 import IconSpire from 'components/icons/IconSpire';
 import IconFabric from 'components/icons/IconFabric';
+import IconSass from 'components/icons/IconSass'
 import IconPowerPlatform from 'components/icons/IconPowerPlatform';
 
 const classNames = cn.bind(Styles);
@@ -79,7 +80,9 @@ const DNACard = (props: IDNACardProps) => {
                   <IconPowerPlatform size='85px' /> :
                   props.svgIcon === 'fabric' ?
                     <IconFabric size='85px' />
-                    : <IconNameRenderer name={props.svgIcon} />
+                    : props.svgIcon === 'sass' ?
+                      <IconSass size='85px' />
+                      : <IconNameRenderer name={props.svgIcon} />
             ) : (
               props.svgIcon
             )

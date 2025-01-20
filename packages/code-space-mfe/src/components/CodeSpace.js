@@ -10,7 +10,7 @@ import Tabs from '../common/modules/uilab/js/src/tabs';
 import { Envs } from '../Utility/envs';
 // import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../store';
-import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, trackEvent } from '../Utility/utils';
+import { buildGitJobLogViewURL, buildGitUrl, buildLogViewURL, trackEvent, buildGitJobLogViewAWSURL, buildLogViewAWSURL } from '../Utility/utils';
 import Modal from 'dna-container/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
@@ -277,7 +277,7 @@ const CodeSpace = (props) => {
             handleOIDCLogin(res);
           } else {
             setLoading(true);
-            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false)
+            CodeSpaceApiClient.startStopWorkSpace(res.data.id, false, res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, false)
               .then((response) => {
                 setLoading(false);
                 if (response.data.success === 'SUCCESS') {
@@ -286,7 +286,7 @@ const CodeSpace = (props) => {
                       res.data.projectDetails?.projectName +
                       ' is requested to start',
                   );
-                  CodeSpaceApiClient.serverStatusFromHub(props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
+                  CodeSpaceApiClient.serverStatusFromHub(res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider, props.user.id.toLowerCase(), res.data.workspaceId, (e) => {
                     const data = JSON.parse(e.data);
                     if (data.progress === 100 && data.ready) {
                       setServerProgress(100);
@@ -337,7 +337,7 @@ const CodeSpace = (props) => {
 
   const handleOIDCLogin = (res) => {
     const loginWindow = window.open(
-      Envs.CODESPACE_OIDC_POPUP_URL + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
+      (res?.data?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' ? Envs.CODESPACE_AWS_POPUP_URL : Envs.CODESPACE_OIDC_POPUP_URL) + `user/${props.user.id.toLowerCase()}/${res.data.workspaceId}/`,
       'codeSpaceSessionWindow',
       'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
     );
@@ -549,6 +549,7 @@ const CodeSpace = (props) => {
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
+  const deploymentMigrated = !(codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
 
   const RestartContent = (
     <div>
@@ -813,7 +814,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                     rel="noreferrer"
                                   >
                                     Last Build &amp; Deploy Logs{' '}
@@ -842,10 +843,15 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildLogViewURL(
-                                      codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
-                                      true,
-                                    )}
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                      buildLogViewAWSURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
+                                      ) :
+                                      buildLogViewURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
+                                      )}
                                     rel="noreferrer"
                                   >
                                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -938,7 +944,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                     rel="noreferrer"
                                   >
                                     Build &amp; Deploy Logs{' '}
@@ -967,8 +973,12 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildLogViewURL(
-                                      prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                      buildLogViewAWSURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      ) :
+                                      buildLogViewURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                     )}
                                     rel="noreferrer"
                                   >
@@ -1061,9 +1071,14 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={buildLogViewURL(
-                                      codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
-                                      true,
+                                    src={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                      buildLogViewAWSURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
+                                      ) :
+                                      buildLogViewURL(
+                                        codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                        true,
                                     )}
                                     height="100%"
                                     width="100%"
@@ -1076,8 +1091,12 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={buildLogViewURL(
-                                      prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                    src={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                      buildLogViewAWSURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      ) :
+                                      buildLogViewURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                     )}
                                     height="100%"
                                     width="100%"
@@ -1118,7 +1137,7 @@ const CodeSpace = (props) => {
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="800px"
+          modalWidth="1200px"
           buttonAlignment="right"
           show={showNewCodeSpaceModal}
           content={

@@ -28,11 +28,17 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
-// const getAllSolutions = () => {
-//   return hostServer.get(`/solutions?limit=0`, {
-//     data: {},
-//   });
-// };
+const getFabricWorkspaceLov = () => {
+  return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
+    data: {},
+  });
+};
+
+const requestRoles = (id, data) => {
+  return server.post(`/fabric-workspaces/${id}/rolerequest`, {
+    data,
+  });
+};
 
 const getAllSolutions = () => {
   const reqQuery = `limit:0,published:true`;
@@ -59,6 +65,46 @@ const getAllReports = () => {
   });
 };
 
+const createLakehouse = (id, data) => {
+  return server.post(`/fabric-workspaces/${id}/lakehouses`, {
+    data,
+  });
+};
+
+const deleteLakehouse = (workspaceId, lakehouseId) => {
+  return server.delete(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}`, {
+    data: {},
+  });
+};
+
+const createShortcut = (workspaceId, lakehouseId, data) => {
+  return server.post(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts/`, data);
+};
+
+const deleteShortcut = (workspaceId, lakehouseId, shortcutId) => {
+  return server.delete(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts/${shortcutId}`, {
+    data: {},
+  });
+};
+
+const getAllShortcuts = (workspaceId, lakehouseId) => {
+  return server.get(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts?limit=0&offset=0`, {
+    data: {},
+  });
+};
+
+const getAllBuckets = () => {
+  return storageServer.get(`/buckets?offset=0&limit=0`, {
+    data: {},
+  });
+};
+
+const getConnectionInfo = (bucketName) => {
+  return storageServer.get(`/buckets/${bucketName}/connect`, { 
+    data: {} 
+  });
+};
+
 const getLovData = () => {
   return Promise.all([
     storageServer.get(`/classifications`, {
@@ -77,7 +123,16 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
+  getFabricWorkspaceLov,
+  createLakehouse,
+  deleteLakehouse,
+  createShortcut,
+  deleteShortcut,
+  getAllShortcuts,
+  requestRoles,
   getAllReports,
   getAllSolutions,
+  getAllBuckets,
+  getConnectionInfo,
   getLovData,
 };
