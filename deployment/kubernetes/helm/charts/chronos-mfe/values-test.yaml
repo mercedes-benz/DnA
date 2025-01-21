@@ -1,12 +1,12 @@
 namespace: test-dna-chronos
 configJs: |
   window["chronos_INJECTED_ENVIRONMENT"]={
-    CONTAINER_APP_URL: "https://test.dna.app.corpintra.net",
-    API_BASEURL: "https://test.dna.app.corpintra.net/api",
+    CONTAINER_APP_URL: "https://dna-aws.app.corpintra.net",
+    API_BASEURL: "https://dna-aws.app.corpintra.net/api",
     CHRONOS_API_BASEURL: "",
   };
 replicaCount: 1
-chronosbackend: http://chronos-be.chronos.svc.cluster.local:80
+chronosbackend: http://chronos-be.dev-dna-chronos.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-mfe
   pullPolicy: IfNotPresent
@@ -26,19 +26,20 @@ ingress:
   className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: chronos.test.dna.app.corpintra.net
+    - host: chronos.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - chronos.test.dna.app.corpintra.net
+        - chronos.dna-aws.app.corpintra.net
       secretName: chronos-tls-secret
 resources:
   limits:
