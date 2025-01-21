@@ -3111,7 +3111,7 @@ import com.daimler.data.util.ConstantsUtility;
 
 	@Override
 	@Transactional
-	public GenericMessage migrateWorkspace(CodeServerWorkspaceVO vo){
+	public GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity){
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -3121,8 +3121,7 @@ import com.daimler.data.util.ConstantsUtility;
 			String ownersWsid = null;
 			String workspaceUrl = null;
 			String shortId=null;
-			if(ConstantsUtility.DHC_CAAS.equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString())){
-				CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			if(ConstantsUtility.DHC_CAAS.equalsIgnoreCase(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString())){
 				recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 				ownersWsid = entity.getData().getWorkspaceId();
 				shortId = entity.getData().getWorkspaceOwner().getId();
@@ -3132,13 +3131,12 @@ import com.daimler.data.util.ConstantsUtility;
 				entity.getData().setWorkspaceUrl(workspaceUrl);
 				jpaRepo.save(entity);
 				status = "SUCCESS";
-			}else{
+			} else {
 				MessageDescription error = new MessageDescription();
-					log.info("workspace already migrated , Bad Request ");
-					error.setMessage("workspace already migrated , Bad Request ");
-					errors.add(error);
+				log.info("workspace already migrated "+ entity.getData().getWorkspaceId());
+				error.setMessage("workspace already migrated , Bad Request ");
+				errors.add(error);
 			}
-
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
 			log.info("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
@@ -3149,7 +3147,6 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
 		return responseMessage;
-		
 	}
 
 }

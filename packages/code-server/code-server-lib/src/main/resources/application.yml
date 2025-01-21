@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.3.9
+    version: 1.3.10
   profile:
     active: production
 
@@ -185,5 +185,5 @@ kong:
    authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
 
 workspace:
-  update: ${UPDATE_WORKSPACEDATA:XXXX}   
+  migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
