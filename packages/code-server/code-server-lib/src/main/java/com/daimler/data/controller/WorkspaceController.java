@@ -2563,8 +2563,6 @@ import org.springframework.beans.factory.annotation.Value;
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
-					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
 					   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				MessageDescription invalidTypeMsg = new MessageDescription();
 				invalidTypeMsg.setMessage(
@@ -2641,7 +2639,8 @@ import org.springframework.beans.factory.annotation.Value;
 						vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
-			GenericMessage responseMsg = service.migrateWorkspace(vo);
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			GenericMessage responseMsg = service.migrateWorkspace(entity);
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 			}
