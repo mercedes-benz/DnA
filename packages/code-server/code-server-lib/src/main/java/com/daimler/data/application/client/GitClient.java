@@ -356,14 +356,14 @@ public class GitClient {
 		
 	}
 
-	public GitLatestCommitIdDto getLatestCommitId( String branch, String repoName) {
+	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName) {
 		GitLatestCommitIdDto commitId = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			ObjectMapper objectMapper = new ObjectMapper();

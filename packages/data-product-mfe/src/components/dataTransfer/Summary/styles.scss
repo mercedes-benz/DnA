@@ -36,6 +36,11 @@
                 width: calc(33% - 7px);
             }
         }
+        &.oneColumn{
+            > div {
+                width: calc(100% - 7px);
+            }
+        }
     }
 
     .formWrapper {
@@ -116,4 +121,8 @@ hr {
         font-size: var(--font-size-small);
         font-weight: bold;
     }
+}
+.formattedText{
+  white-space: pre-wrap; 
+  word-wrap: break-word;
 }
