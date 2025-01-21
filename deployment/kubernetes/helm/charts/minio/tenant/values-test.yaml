@@ -14,7 +14,7 @@ tenant:
   ## Registry location and Tag to download MinIO Server image
   image:
     repository: registry-emea.app.corpintra.net/dnaplatform/minio/minio
-    tag: RELEASE.2023-08-31T15-31-16Z
+    tag: RELEASE.2024-08-17T01-24-54Z
     pullPolicy: IfNotPresent
   ## Customize any private registry image pull secret.
   ## currently only one secret registry is supported
