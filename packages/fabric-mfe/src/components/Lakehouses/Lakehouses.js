@@ -6,6 +6,7 @@ import SelectBox from 'dna-container/SelectBox';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
+import Tags from 'dna-container/Tags';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
@@ -28,7 +29,12 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       fabricApi
         .getAllBuckets()
         .then((res) => {
-          setBuckets(res?.data?.data);
+          if(res.status !== 204) {
+            const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.bucketName} })
+            setBuckets(sortedBuckets);
+          } else {
+            setBuckets([]);
+          }
           SelectBox.defaultSetup(true);
           ProgressIndicator.hide();
         })
@@ -39,8 +45,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
             history.push(`/`);
           } else {
             Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
+              e?.response?.data?.errors?.length
+                ? e?.response?.data?.errors[0]?.message
                 : 'Fetching buckets failed!',
               'alert',
             );
@@ -49,28 +55,30 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
   }, []);
 
   useEffect(() => {
-    ProgressIndicator.show();
-      fabricApi
-        .getConnectionInfo(bucketName?.split('@-@')[1])
-        .then((res) => {
-          setAccessKey(res?.data?.data?.userVO?.accesskey);
-          setSecretKey(res?.data?.data?.userVO?.secretKey);
-          ProgressIndicator.hide();
-        })
-        .catch((e) => {
-          ProgressIndicator.hide();
-          if(e?.response?.status === 403) {
-            Notification.show('Unauthorized to view this page or not found', 'alert');
-            history.push(`/`);
-          } else {
-            Notification.show(
-              e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Fetching bucket connection details failed!',
-              'alert',
-            );
-          }
-        });
+    if(bucketName) {
+      ProgressIndicator.show();
+        fabricApi
+          .getConnectionInfo(bucketName[0])
+          .then((res) => {
+            setAccessKey(res?.data?.data?.userVO?.accesskey);
+            setSecretKey(res?.data?.data?.userVO?.secretKey);
+            ProgressIndicator.hide();
+          })
+          .catch((e) => {
+            ProgressIndicator.hide();
+            if(e?.response?.status === 403) {
+              Notification.show('Unauthorized to view this page or not found', 'alert');
+              history.push(`/`);
+            } else {
+              Notification.show(
+                e.response.data.errors?.length
+                  ? e.response.data.errors[0].message
+                  : 'Fetching bucket connection details failed!',
+                'alert',
+              );
+            }
+          });
+    }
   }, [bucketName]);
 
   const handleCreateShortcut = () => {
@@ -78,8 +86,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       setBucketNameError(true);
     } else {
       const data = {
-        bucketId: bucketName?.includes('@-@') ? bucketName?.split('@-@')[0] : '',
-        bucketname: bucketName?.includes('@-@') ? bucketName?.split('@-@')[1] : '',
+        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName[0])[0]?.id || '',
+        bucketname: bucketName[0],
         accessKey,
         secretKey
       }
@@ -100,27 +108,21 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
 
   return (
     <div className={Styles.lakehouseModalContent}>
-      <div className={classNames('input-field-group include-error', bucketNameError ? 'error' : '')}>
-        <label className={'input-label'}>
-          Select Storage Bucket <sup>*</sup>
-        </label>
-        <div className={classNames('custom-select')}>
-          <select
-            id="storageBucketField"
-            value={bucketName}
-            onChange={(e) => setBucketName(e.target.value)}
-          >
-            <option value={0}>Choose</option>
-            {buckets?.map((bucket) => {
-              return (
-                <option id={bucket?.bucketName} key={bucket?.name} value={bucket?.id + '@-@' + bucket?.bucketName}>
-                  {bucket?.bucketName}
-                </option>
-              )
-            })}
-          </select>
-        </div>
+      <div className={classNames('input-field-group include-error')}>
+        <Tags
+          title={'Select Storage Bucket'}
+          max={1}
+          chips={bucketName}
+          tags={buckets}
+          setTags={(selectedTags) => {
+            setBucketName(selectedTags);
+          }}
+          isMandatory={true}
+          showMissingEntryError={bucketNameError}
+          showAllTagsOnFocus={true}
+        />
       </div>
+      <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
       <button className={classNames('btn btn-tertiary', Styles.submitBtn)} onClick={handleCreateShortcut}>
         Create Shortcut
       </button>
@@ -175,7 +177,11 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
       })
       .catch((e) => {
         ProgressIndicator.hide();
-        Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Shortcut deletion failed', 'alert');
+        if(e?.response?.status === 403) {
+          Notification.show('Permision denied. Only Admins can delete shortcuts.', 'alert');
+        } else {
+          Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Shortcut deletion failed', 'alert');
+        }
       });
   }
 
@@ -226,10 +232,14 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   }, [workspace]);
 
   // Pagination 
-  const [totalNumberOfPages] = useState(1);
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+
+  useEffect(() => {
+    setTotalNumberOfPages(Math.ceil(lakehouses.length / maxItemsPerPage));
+  }, [lakehouses, maxItemsPerPage]);
 
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
@@ -240,16 +250,28 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const paginatedLakehousesTemp = lakehouses?.slice(
+    currentPageOffset,
+    currentPageOffset + maxItemsPerPage
+  );
+
+  const [paginatedLakehouses, setPaginatedLakehouses] = useState(paginatedLakehousesTemp);
+
   const onPaginationPreviousClick = () => {
-    const currentPageNum = currentPageNumber - 1;
-    const currentPageOffsetTemp = (currentPageNum - 1) * maxItemsPerPage;
-    setCurrentPageNumber(currentPageNum);
-    setCurrentPageOffset(currentPageOffsetTemp);
+    if (currentPageNumber > 1) {
+      const newPageNumber = currentPageNumber - 1;
+      const newOffset = (newPageNumber - 1) * maxItemsPerPage;
+      setCurrentPageNumber(newPageNumber);
+      setCurrentPageOffset(newOffset);
+    }
   };
   const onPaginationNextClick = () => {
-    const currentPageOffsetTemp = currentPageNumber * maxItemsPerPage;
-    setCurrentPageNumber(currentPageNumber + 1);
-    setCurrentPageOffset(currentPageOffsetTemp);
+    if (currentPageNumber < totalNumberOfPages) {
+      const newPageNumber = currentPageNumber + 1;
+      const newOffset = newPageNumber * maxItemsPerPage - maxItemsPerPage;
+      setCurrentPageNumber(newPageNumber);
+      setCurrentPageOffset(newOffset);
+    }
   };
   const onViewByPageNum = (pageNum) => {
     setCurrentPageNumber(1);
@@ -258,9 +280,12 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   };
 
   useEffect(() => {
-    // get lakehouses here
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
+    const paginatedData = lakehouses?.slice(
+      currentPageOffset,
+      currentPageOffset + maxItemsPerPage
+    );
+    setPaginatedLakehouses(paginatedData);
+  }, [currentPageNumber, maxItemsPerPage, lakehouses, currentPageOffset]);
 
   const handleCreateLakehouse = () => {
     if(lakehouseName.length === 0) {
@@ -342,13 +367,13 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
             </button>
           </div> */}
         </div>
-        {lakehouses?.length === 0 &&
+        {paginatedLakehouses?.length === 0 &&
           <div className={Styles.noLakehouse}>
             <p>No lakehouse present in this workspace. Please create one.</p>
           </div>
         }
         <div className={Styles.lakehouseContent}>
-          {lakehouses?.length > 0 && lakehouses?.map((lakehouse) =>
+          {paginatedLakehouses?.length > 0 && paginatedLakehouses?.map((lakehouse) =>
             <div key={lakehouse?.id} className={Styles.lakehouse}>
               <h4>
                 <span>
@@ -400,10 +425,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
       { showCreateShortcutModal &&
         <Modal
           title={'Create Shortcut'}
-          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'400px'}
+          modalWidth={'600px'}
+          modalStyle={{maxWidth: '600px', paddingTop: '40px'}}
           buttonAlignment="right"
           show={showCreateShortcutModal}
           content={<CreateShortcutModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} onCreateShortcut={() => setShowCreateShortcutModal(false)} />}

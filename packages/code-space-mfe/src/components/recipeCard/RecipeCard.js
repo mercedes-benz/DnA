@@ -84,7 +84,7 @@ const RecipeCard = ({recipe, additionalServices, onSelectRecipe, onDeleteRecipe}
             <button
               className={'btn btn-primary'}
               type="button"
-              onClick={() => history.push(`/codespaceRecipes/${recipe?.recipeName}`)}
+              onClick={() => history.push(`/codespaceRecipes/${recipe?.id}`)}
             >
               <i className="icon mbc-icon edit"></i>
               <span>Edit</span>

@@ -31,7 +31,7 @@ const RecipeList = ({ recipe, additionalServices, onDeleteRecipe, onSelectRecipe
 
   const handleEditRecipe = (e) => {
     e.stopPropagation();
-    history.push(`/codespaceRecipes/${recipe?.recipeName}`);
+    history.push(`/codespaceRecipes/${recipe?.id}`);
   }
 
   const handleDeleteRecipe = (e) => {
