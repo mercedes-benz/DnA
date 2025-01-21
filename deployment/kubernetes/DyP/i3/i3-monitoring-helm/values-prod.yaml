@@ -125,6 +125,17 @@ prometheus:
             format: [ 'prometheus' ]
           static_configs:
             - targets: [ 'minio.minio.svc.cluster.local:80' ]
+        #Connecting Prometheus with fccockpit for metric sharing
+        - job_name: fccockpit-job
+          metrics_path: '/fc-cocpit-monitoring/int/api/actuator/prometheus'
+          scrape_interval: 5s
+          scheme: https
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          params:
+            format: [ 'prometheus' ]
+          static_configs:
+            - targets: [ 'code-spaces.dna-prod.app.corpintra.net:443' ]            
         - job_name: argocd
           metrics_path: /metrics
           params:
