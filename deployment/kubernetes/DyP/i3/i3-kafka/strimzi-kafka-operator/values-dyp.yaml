@@ -96,6 +96,6 @@ resources:
 watchNamespaces: 
   - i3-kafka
   - prod-dna-i3-kafka
-  - cs-apps-service
+  - cs-apps-services
 # Overwrite default log level to get more detailed output
 loglevel: DEBUG
