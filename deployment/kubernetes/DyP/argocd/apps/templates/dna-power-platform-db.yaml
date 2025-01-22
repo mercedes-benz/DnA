@@ -5,10 +5,12 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: power-platform-db
-  namespace: {{ .Values.env }}-dna-power-platform
+  name: {{ .Values.env }}-power-platform-db
+  namespace: {{ .Values.namespace }}
   labels:
     name: db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: {{ .Values.env }}-dna-power-platform
