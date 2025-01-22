@@ -9,7 +9,7 @@ metadata:
   namespace: cs-apps-services
   labels:
     name: service
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: cs-apps-services
@@ -22,7 +22,7 @@ spec:
       releaseName: {{ .Values.env }}-cs-apps-services
       valueFiles:
         - values-dev-prod.yaml 
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

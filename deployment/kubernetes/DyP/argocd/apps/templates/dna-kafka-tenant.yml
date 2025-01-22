@@ -9,7 +9,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: service
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: {{ .Values.env }}-dna-i3-kafka
@@ -22,7 +22,7 @@ spec:
       releaseName: {{ .Values.env }}-dna-i3-kafka
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
