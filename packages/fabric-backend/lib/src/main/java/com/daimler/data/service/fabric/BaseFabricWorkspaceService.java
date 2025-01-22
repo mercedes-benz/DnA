@@ -1695,7 +1695,7 @@ public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
     try {
         List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
         roles = roleList.stream()
-                        .filter(role -> role.contains("DNA"))
+                        .filter(role -> role.startsWith("DNA_"))
                         .collect(Collectors.toList());
 		data.setRoles(roles);
         dnaRoleCollection.setData(data);
