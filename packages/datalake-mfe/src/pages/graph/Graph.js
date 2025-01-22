@@ -298,11 +298,12 @@ const Graph = ({user, hostHistory}) => {
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
-          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating technical user',
+          error?.response?.data?.errors?.[0]?.message || error?.response?.data?.warnings?.[0]?.message || 'Error while updating technical user.',
           'alert',
         );
       });
     }
+    
   const onAddTableClick = () => {
     dispatch(setBox({ 
       x: 0, 
