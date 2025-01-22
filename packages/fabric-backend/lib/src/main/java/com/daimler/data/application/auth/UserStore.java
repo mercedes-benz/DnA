@@ -118,6 +118,11 @@ public class UserStore {
 			return this.getUserRole().stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
 		}
 
+		public boolean hasProjectAdminAccess(String wsId) {
+			String entitlementName = "FC_"+wsId+"_Admin";
+			return this.getUserRole().stream().anyMatch(n -> entitlementName.equalsIgnoreCase(n.getName()));
+		}
+
 	}
 
 	@Data

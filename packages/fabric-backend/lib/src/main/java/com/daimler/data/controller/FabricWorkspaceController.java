@@ -327,8 +327,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
-				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) || ! userStore.getUserInfo().hasProjectAdminAccess(id)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User or not Admin {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 			String email = requestUser.getEmail();
@@ -374,8 +374,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
-				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) || ! userStore.getUserInfo().hasProjectAdminAccess(id)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User or Admin {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 			String path = "";
