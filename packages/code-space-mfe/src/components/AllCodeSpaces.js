@@ -45,7 +45,6 @@ const AllCodeSpaces = (props) => {
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
         [onEditCodeSpace, setOnEditCodeSpace] = useState(),
         [onDeployCodeSpace, setOnDeployCodeSpace] = useState(),
-        [onBuildCodeSpace, setOnBuildCodeSpace] = useState(),
         [showTutorialsModel, setShowTutorialsModel] = useState(false),
         [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
         [filteredCodeSpaces, setFilteredCodespaces] = useState(),
@@ -168,7 +167,7 @@ const AllCodeSpaces = (props) => {
     };
 
     const onCodeSpaceBuild = (codeSpace) => {
-        setOnBuildCodeSpace(codeSpace);
+        setOnDeployCodeSpace(codeSpace);
         setShowBuildCodeSpaceModal(true);
     };
 
@@ -568,9 +567,8 @@ const AllCodeSpaces = (props) => {
             {showBuildCodeSpaceModal && (
                 <BuildModal
                     userInfo={props.user}
-                    codeSpaceData={onBuildCodeSpace}
+                    codeSpaceData={onDeployCodeSpace}
                     setShowCodeBuildModal={(isVisible) => setShowBuildCodeSpaceModal(isVisible)}
-                    codeSpaceDeployData={onDeployCodeSpace}
                     enableSecureWithIAM={
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||

@@ -12,7 +12,7 @@ import Modal from 'dna-container/Modal';
 // import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from '../../Utility/constants';
 // import { Envs } from '../../Utility/envs';
-import { trackEvent } from '../../Utility/utils';
+import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import { Envs } from '../../Utility/envs';
@@ -95,6 +95,13 @@ const DeployModal = (props) => {
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
+  
+  //details from build
+  const version = props?.buildDetails?.version || '';
+  const triggeredOn = regionalDateAndTimeConversionSolution(props?.buildDetails?.triggeredOn) || '';
+  const buildBranch = props?.buildDetails?.branch || '';
+  const artifactId = props?.buildDetails?.artifactId || '';
+  const triggeredBy = props?.buildDetails?.triggeredBy || '';
 
   useEffect(() => {
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
@@ -269,7 +276,7 @@ const DeployModal = (props) => {
       formValid = false;
       setClientSecretError('*Missing Entry');
     }
-    if(branchValue.length === 0){
+    if(!version?.length && branchValue?.length === 0){
       formValid = false;
       setIsBranchValueMissing(true);
     }
@@ -285,7 +292,8 @@ const DeployModal = (props) => {
         secureWithIAMRequired: secureWithIAMSelected,
         // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
         targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-        branch: branchValue[0],
+        branch: version?.length ? '' : branchValue[0],
+        version: version || '',
         // valutInjectorEnable: vaultEnabled,
         clientID: clientId,
         clientSecret: clientSecret,
@@ -382,6 +390,21 @@ const DeployModal = (props) => {
               </div>
             </div>
             <div>
+              {version?.length ? (
+                <div id="deployVersionContainer" className="input-field-group">
+                  <label className="input-label">Based on previous build</label>
+                  <div>
+                    <label className="chips">
+                      <b>Branch: </b>
+                      {buildBranch} | <b> Triggered By: </b>
+                      {triggeredBy} | <b> Triggered On: </b>
+                      {triggeredOn} | <b> Artifact id: </b>
+                      {artifactId} | <b> Version: </b>
+                      {version}
+                    </label>
+                  </div>
+                </div>
+              ) : (
                 <Tags
                   title={'Code Branch to Deploy'}
                   max={1}
@@ -395,6 +418,7 @@ const DeployModal = (props) => {
                   disableSelfTagAdd={true}
                   suggestionPopupHeight={150}
                 />
+              )}
             </div>
           </div>
           {(props.enableSecureWithIAM || props.isUIRecipe) && (

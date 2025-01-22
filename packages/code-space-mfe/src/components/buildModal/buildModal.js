@@ -33,6 +33,7 @@ const BuildModal = (props) => {
   );
   const [allLogs, setAllLogs] = useState([]);
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
+  const [buildDetails, setBuildDetails] = useState('');
 
   const projectDetails = props.codeSpaceData?.projectDetails;
 
@@ -252,6 +253,7 @@ const BuildModal = (props) => {
                               tooltip-data="Deploy application"
                               onClick={() => {
                                 console.log('deploy');
+                                setBuildDetails(item);
                                 setShowDeployCodeSpaceModal(true);
                               }}
                             >
@@ -289,6 +291,7 @@ const BuildModal = (props) => {
             setCodeDeploying={props.setCodeDeploying}
             setIsApiCallTakeTime={props.setIsApiCallTakeTime}
             navigateSecurityConfig={props.navigateSecurityConfig}
+            buildDetails={buildDetails}
             />
           )}
         </>
