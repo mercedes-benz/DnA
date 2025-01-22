@@ -6,20 +6,20 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   name: {{ .Values.env }}-dna-kafka-cs-apps
-  namespace: {{ .Values.env }}-cs-apps-service
+  namespace: cs-apps-services
   labels:
     name: service
     project: dna
 spec:
   destination:
-    namespace: {{ .Values.env }}-cs-apps-service
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-tenant
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: {{ .Values.env }}-cs-apps-service
+      releaseName: {{ .Values.env }}-cs-apps-services
       valueFiles:
         - values-dev-prod.yaml 
   project: dna
