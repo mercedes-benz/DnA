@@ -55,18 +55,19 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-01-21
   replicaCount: 1
   pullPolicy: Always
 ingress:
   enabled: false
   className: test-ingress-intranet
-  host: scan.test.dna.app.corpintra.net
+  host: scan.dna-aws.app.corpintra.net
   certificateIssuer: mercedes-benz-acme
   prefix: /internal
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -88,7 +89,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_staging_k8_role
+    vault.hashicorp.com/role: dna_aws_staging_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh

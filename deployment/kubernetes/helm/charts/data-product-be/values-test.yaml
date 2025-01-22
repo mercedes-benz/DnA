@@ -3,7 +3,7 @@ image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-be
   pullPolicy: IfNotPresent
   tag: '198'
-namespace: data-product
+namespace: test-dna-data-product
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: data-product-be
@@ -93,19 +93,20 @@ ingress:
   className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.data-product.test.dna.app.corpintra.net
+    - host: api.data-product.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.data-product.test.dna.app.corpintra.net
+        - api.data-product.dna-aws.app.corpintra.net
       secretName: data-product-be-tls
 resources: {}
 nodeSelector: {}

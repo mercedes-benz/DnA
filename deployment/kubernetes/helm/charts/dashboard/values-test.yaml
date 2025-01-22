@@ -5,13 +5,13 @@ image:
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
-dbUrl: null
+dbUrl: <path:dna_aws_kv/data/staging/kubernetesSecret/reportService#API_DB_URL>
 secret:
   name: dashboard-secrets
   appUserName: null
   appPassword: null
   jwtKey: null
-appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+appUrl: null
 enableAuth: true
 loggingPath: /tmp/dashboard/log
 loggingEnvironment: dev
@@ -25,10 +25,11 @@ naasBroker: null
 ingress:
   enabled: false
   className: test-ingress-intranet
-  host: report.test.dna.app.corpintra.net
+  host: report.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

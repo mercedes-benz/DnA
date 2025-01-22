@@ -3,7 +3,7 @@ namespace: test-dna-cs-workspaces
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
-  tag: '1066'
+  tag: '1134'
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
@@ -14,7 +14,7 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: dna_staging_k8_role
+  vault.hashicorp.com/role: dna_aws_staging_k8_role
   vault.hashicorp.com/tls-skip-verify: 'true'
   vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
   vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
@@ -57,18 +57,19 @@ ingress:
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.code-spaces.test.dna.app.corpintra.net
+    - host: api.code-spaces.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.code-spaces.test.dna.app.corpintra.net
+        - api.code-spaces.dna-aws.app.corpintra.net
       secretName: cs-tls-secret
 resources: {}
 autoscaling:
