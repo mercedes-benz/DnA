@@ -1,4 +1,3 @@
-{{- if ne .Values.env "prod" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -6,30 +5,29 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: kafka-ui
-  namespace: {{ .Values.namespace }}
+  name: {{ .Values.env }}-dna-kafka-cs-apps
+  namespace: {{ .Values.env }}-cs-apps-service
   labels:
     name: service
-    project: c-svc
+    project: dna
 spec:
   destination:
-    namespace: i3-kafka
+    namespace: {{ .Values.env }}-cs-apps-service
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-ui
+    path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-tenant
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: kafka-ui
-  project: c-svc
+      releaseName: {{ .Values.env }}-cs-apps-service
+      valueFiles:
+        - values-DyP-prod.yaml 
+  project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
 {{- end }}
-
-{{- end -}}

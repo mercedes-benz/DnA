@@ -95,6 +95,7 @@ resources:
 # the chart will fail because duplicate RoleBindings will be attempted to be created in the same namespace
 watchNamespaces: 
   - i3-kafka
-  - dev-dna-i3-kafka
+  - prod-dna-i3-kafka
+  - cs-apps-service
 # Overwrite default log level to get more detailed output
 loglevel: DEBUG
