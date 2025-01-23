@@ -994,6 +994,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("Cannot delete workspace {} as its not created yet. Bad Request", vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			 if(!userStore.getUserInfo().hasSuperAdminAccess()){
 			 if (vo != null && vo.getProjectDetails().getProjectOwner() != null
 					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)
 					 && vo.getProjectDetails().getProjectCollaborators() != null
@@ -1007,6 +1008,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 "You have collaborators in your project. Please transfer your ownership to any one of the collaborator before deleting this project codespace");
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			}
 			 GenericMessage responseMsg = service.deleteById(userId, id);
 			 log.info("User {} deleted workspace {}", userId, vo.getWorkspaceId());
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
