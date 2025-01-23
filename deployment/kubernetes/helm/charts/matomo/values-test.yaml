@@ -200,11 +200,11 @@ existingSecret: ""
 ## @param smtpPassword SMTP password
 ## @param smtpProtocol SMTP Protocol (options: ssl,tls, nil)
 ##
-smtpHost: ""
-smtpPort: ""
+smtpHost: "<path:dna_aws_kv/data/staging/kubernetesSecret/matomo#smtpHost>"
+smtpPort: "<path:dna_aws_kv/data/staging/kubernetesSecret/matomo#smtpPort>"
 smtpUser: ""
 smtpPassword: ""
-smtpProtocol: ""
+smtpProtocol: "<path:dna_aws_kv/data/staging/kubernetesSecret/matomo#smtpProtocol>"
 ## @param smtpExistingSecret The name of an existing secret with SMTP credentials
 ## NOTE: Must contain key `smtp-password`
 ## NOTE: When it's set, the `smtpPassword` parameter is ignored
@@ -493,7 +493,7 @@ ingress:
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
-  ingressClassName: ""
+  ingressClassName: test-ingress-intranet
   ## @param ingress.hostname Default host for the ingress resource
   ##
   hostname: <path:dna_aws_kv/data/staging/kubernetesSecret/matomo#hostname>	
@@ -515,7 +515,8 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     meta.helm.sh/release-name: matomo
     meta.helm.sh/release-namespace: matomo
     traefik.frontend.rule.type: PathPrefix

@@ -44,12 +44,12 @@ hub:
       admin_access: true
       authenticator_class: generic-oauth
       redirect_to_server: false
-      default_url: https://test.dna.app.corpintra.net/#/codespaces
+      default_url: https://dna-aws.app.corpintra.net/#/codespaces
       cookie_secret: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#client_secret>
-      oauth_callback_url: https://fccockpit.dna-aws.app.corpintra.net/hub/oauth_callback
+      oauth_callback_url: https://code-spaces.dna-aws.app.corpintra.net/hub/oauth_callback
       authorize_url: https://sso-int.mercedes-benz.com/as/authorization.oauth2
       token_url: https://sso-int.mercedes-benz.com/as/token.oauth2  
       userdata_url: https://sso-int.mercedes-benz.com/idp/userinfo.openid
@@ -482,7 +482,7 @@ proxy:
       key: tls.key
       crt: tls.crt
     hosts: 
-      - fccockpit.dna-aws.app.corpintra.net
+      - code-spaces.dna-aws.app.corpintra.net
 
 # singleuser relates to the configuration of KubeSpawner which runs in the hub
 # pod, and its spawning of user pods such as jupyter-myusername.
@@ -1220,9 +1220,9 @@ singleuser:
               - name: KC_HOSTNAME_STRICT
                 value: 'true'
               - name: KC_HOSTNAME_URL
-                value: 'https://code-spaces.test.dna.app.corpintra.net/user/{username}/{servername}/proxy/3000/'
+                value: 'https://code-spaces.dna-aws.app.corpintra.net/user/{username}/{servername}/proxy/3000/'
               - name: KC_HOSTNAME_ADMIN_URL
-                value: 'https://code-spaces.test.dna.app.corpintra.net/user/{username}/{servername}/proxy/3000/'
+                value: 'https://code-spaces.dna-aws.app.corpintra.net/user/{username}/{servername}/proxy/3000/'
               - name: DB_ADDR
                 value: 'localhost'
               - name: DB_PORT
@@ -1305,7 +1305,7 @@ singleuser:
               - name: MINIO_DEFAULT_BUCKETS
                 value: bat
               - name: MINIO_BROWSER_REDIRECT_URL
-                value: 'https://code-spaces.test.dna.app.corpintra.net/user/{username}/{servername}/proxy/9000'
+                value: 'https://code-spaces.dna-aws.app.corpintra.net/user/{username}/{servername}/proxy/9000'
             ports:
               - containerPort: 9000
                 protocol: TCP
@@ -1865,19 +1865,20 @@ ingress:
   enabled: true
   annotations: 
     cert-manager.io/cluster-issuer: mercedes-benz-acme
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: test-dna-cs-workspaces-redirectdnacs@kubernetescrd, default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
-  ingressClassName:
+  ingressClassName: test-ingress-intranet
   pathSuffix: hub
   pathType: Prefix
   hosts:
-    - fccockpit.dna-aws.app.corpintra.net
+    - code-spaces.dna-aws.app.corpintra.net
   tls:
     - hosts:
-        - fccockpit.dna-aws.app.corpintra.net
+        - code-spaces.dna-aws.app.corpintra.net
       secretName: cs-tls-secret  
 
 # cull relates to the jupyterhub-idle-culler service, responsible for evicting

@@ -10,8 +10,8 @@ formbrickssecret:
   encryption_key: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#encryption_key>"
   nextauth_secret: "<path:dna_aws_kv/data/staging/kubernetesSecret/formbricks#nextauth_secret>"
 formbricks: 
-  webappUrl: https://survey.test.dna.app.corpintra.net                               # REQUIRED: Base URL of the site.
-  nextauthUrl: "https://survey.test.dna.app.corpintra.net"                            # REQUIRED: Location of the auth server.
+  webappUrl: https://survey.dna-aws.app.corpintra.net                               # REQUIRED: Base URL of the site.
+  nextauthUrl: "https://survey.dna-aws.app.corpintra.net"                            # REQUIRED: Location of the auth server.
   # NOTE: these secrets are required and must be created before deployment
   # SEE: https://github.com/nmcclain/formbricks-helm?tab=readme-ov-file#create-formbricks-secret
   databaseUrl:
@@ -189,7 +189,8 @@ ingress:
   className: test-ingress-intranet
   annotations:    
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -197,7 +198,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: survey.test.dna.app.corpintra.net
+    - host: survey.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
@@ -214,9 +215,9 @@ ingress:
       # - path: /favicon.ico
       #   pathType: Exact
   tls: 
-   - secretName: survey.test.dna.app.corpintra.net-tls
+   - secretName: survey.dna-aws.app.corpintra.net-tls
      hosts:
-       - survey.test.dna.app.corpintra.net
+       - survey.dna-aws.app.corpintra.net
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
