@@ -1,0 +1,90 @@
+.mainPanel {
+  padding: 32px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+    position: relative;
+    .backButtonWapper{
+      h3{
+        font-size: 24px;
+        color: #dee3e8;
+        margin-bottom: 25px;
+        margin-top: 10px;
+      }
+    }
+  }
+
+  .content {
+    background-color: #252a33;
+    padding: 36px;
+    margin-top: 10px;
+    padding-bottom: 30px; 
+    p{
+      margin-bottom: 13px;
+      font-size: 13px;
+    }
+  }
+  .inputWrapper{
+    display : flex;
+    .roleRequest {
+      width: calc(50% - 7px);
+      display: flex;
+      flex-direction: column; 
+      justify-content: space-between; 
+    
+      .roleSection {
+        display: flex;
+        justify-content: space-between; 
+      }
+    
+      .roleName {
+        width: calc(50% - 9px);
+        margin-right: 20px;
+      }
+    
+      .disabledSection {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      button {
+        align-self: flex-end; 
+        margin-right: 20px; 
+      }
+    }
+    
+    .rolesListSection {
+      width: calc(50% - 7px);
+      border-left: 2px solid #383f49;
+      display: flex;
+      flex-direction: column; 
+      min-height: 200px;
+    }
+    
+    .rolesList {
+      margin-left: 20px;
+    }
+    
+    .noRolesCreated {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%; 
+      margin-top: 0;
+    }
+  }
+}
+
+
+
+.header{
+  margin-bottom: 15px;
+}
+.infoLinks{
+  display: inline-flex;
+  flex-wrap: wrap;
+  word-break: break-all;
+  > div {
+    margin: 5px 5px 5px 0;
+    cursor: pointer;
+  }
+}
