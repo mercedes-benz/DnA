@@ -148,6 +148,10 @@ const CodeSpaceCardItem = (props) => {
     }
   };
 
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [serverStarted]);// eslint-disable-line react-hooks/exhaustive-deps
+
   const toggleContextMenu = (e) => {
     e.stopPropagation();
     setRippleAnimation(prodWrapperRef.current);
@@ -764,15 +768,15 @@ const CodeSpaceCardItem = (props) => {
                 </div>
               </div>
             )}
-            {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && codeSpace?.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
-              <div>
-                <i
-                  onClick={() => {
-                    setShowOnPremStartModal(true);
-                  }}
-                  tooltip-data="Start on DyP-CaaS On-Prem (manual)"
-                  className="icon mbc-icon worksspace right"
-                />
+            {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && serverStarted && (
+                <div>
+                <button
+                  className={classNames('btn btn-primary', Styles.btnOutline)}
+                  tooltip-data="Resource usage" 
+                  onClick={() => window.open(resourceUsageUrl, "_blank")} 
+                >
+                  <i className="icon mbc-icon worksspace right" />
+                </button>
               </div>
             )}
           </div>
