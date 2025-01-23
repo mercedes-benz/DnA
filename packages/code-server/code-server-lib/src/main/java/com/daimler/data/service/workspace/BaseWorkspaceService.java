@@ -188,14 +188,22 @@ import com.daimler.data.util.ConstantsUtility;
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		 CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+		 
+		 if(userStore.getUserInfo().hasSuperAdminAccess()){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
-		 if (projectOwnerId.equalsIgnoreCase(userId)) {
+		 if (projectOwnerId.equalsIgnoreCase(userId) ||userStore.getUserInfo().hasSuperAdminAccess()) {
 			 isProjectOwner = true;
 		 }
+		 
  
 		 if (isProjectOwner) {
 			 log.info("Delete requested by project owner {} ", userId);

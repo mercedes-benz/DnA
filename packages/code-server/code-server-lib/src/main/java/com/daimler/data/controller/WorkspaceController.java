@@ -966,7 +966,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
 			 if (!(vo != null && vo.getWorkspaceOwner() != null
-					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)||userStore.getUserInfo().hasSuperAdminAccess())) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Not authorized to delete workspace. User does not have privileges.");
@@ -994,6 +994,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("Cannot delete workspace {} as its not created yet. Bad Request", vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			 if(!userStore.getUserInfo().hasSuperAdminAccess()){
 			 if (vo != null && vo.getProjectDetails().getProjectOwner() != null
 					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)
 					 && vo.getProjectDetails().getProjectCollaborators() != null
@@ -1007,6 +1008,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 "You have collaborators in your project. Please transfer your ownership to any one of the collaborator before deleting this project codespace");
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			}
 			 GenericMessage responseMsg = service.deleteById(userId, id);
 			 log.info("User {} deleted workspace {}", userId, vo.getWorkspaceId());
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
