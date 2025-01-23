@@ -15,7 +15,7 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: "dna_staging_k8_role"
+  vault.hashicorp.com/role: "dna_aws_staging_k8_role"
   vault.hashicorp.com/tls-skip-verify: 'true'
   vault.hashicorp.com/agent-pre-populate-only: 'true'
   vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/staging/kubernetesSecret/kafka
@@ -53,13 +53,14 @@ ingress:
   className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: daimler-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.power-platform.test.dna.app.corpintra.net 
+    - host: api.power-platform.dna-aws.app.corpintra.net 
       paths:
         - path: /api
           pathType: Prefix

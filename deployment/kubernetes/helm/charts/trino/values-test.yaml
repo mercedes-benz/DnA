@@ -1,7 +1,7 @@
 appName: trino
 namespace: test-dna-trino
 accessRules:
-  endpoint: http://trino-backend-service.trino.svc.cluster.local:7575/service/access
+  endpoint: http://trino-backend-service.test-dna-trino.svc.cluster.local:7575/service/access
 cert:
   certManager: mercedes-benz-acme
 image:
@@ -11,16 +11,17 @@ image:
 ingress:
   enabled: true
   className: test-ingress-intranet
-  host: trino.test.dna.app.corpintra.net
+  host: trino.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
 server:
-  host: trino.test.dna.app.corpintra.net
+  host: trino.dna-aws.app.corpintra.net
   workers: 2
   node:
     environment: test
