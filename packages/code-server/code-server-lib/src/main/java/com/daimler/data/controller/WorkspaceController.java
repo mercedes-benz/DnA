@@ -966,7 +966,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
 			 if (!(vo != null && vo.getWorkspaceOwner() != null
-					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)||userStore.getUserInfo().hasSuperAdminAccess())) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Not authorized to delete workspace. User does not have privileges.");
