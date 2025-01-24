@@ -1,3 +1,4 @@
+{{- if eq .Values.env "not-used" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -33,4 +34,5 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+{{- end }}
 {{- end }}
