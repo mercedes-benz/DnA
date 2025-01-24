@@ -8,10 +8,12 @@ metadata:
   name: power-platform-be
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: backend 
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna 
 spec:
   destination:
-    namespace: power-platform
+    namespace: {{ .Values.env }}-dna-power-platform
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/power-platform-be
@@ -20,7 +22,7 @@ spec:
     helm:
       releaseName: power-platform-be
       valueFiles:
-        - values-{{ .Values.env }}.yaml
+        - values-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-power-platform
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
