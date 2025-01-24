@@ -22,7 +22,7 @@ spec:
     helm:
       releaseName: power-platform-mfe
       valueFiles:
-        - values-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-power-platform
+        - values-{{ .Values.env }}.yaml 
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
