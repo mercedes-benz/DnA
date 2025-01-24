@@ -28,10 +28,10 @@ kubeVersion: ""
 nameOverride: ""
 ## @param fullnameOverride String to fully override matomo.fullname template
 ##
-fullnameOverride: "test-dna-matomo"
+fullnameOverride: ""
 ## @param namespaceOverride String to fully override common.names.namespace
 ##
-namespaceOverride: ""
+namespaceOverride: "test-dna-matomo"
 ## @param commonAnnotations Common annotations to add to all Matomo resources (sub-charts are not considered). Evaluated as a template
 ##
 commonAnnotations: {}
