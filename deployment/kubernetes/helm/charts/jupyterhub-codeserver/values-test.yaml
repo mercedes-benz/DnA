@@ -45,7 +45,7 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dna-aws.app.corpintra.net/#/codespaces
-      cookie_secret: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
+      cookie_secret: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     GenericOAuthenticator:
       client_id: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -593,9 +593,9 @@ singleuser:
     NO_PROXY : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     no_proxy : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     ENTRYPOINTD : /home/coder/entrypoint.d    
-    CS_MINIO_ENDPOINT: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
-    CS_MINIO_KEY: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_key>
-    CS_MINIO_SECRET: <path:dna_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
+    CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
+    CS_MINIO_KEY: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_key>
+    CS_MINIO_SECRET: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
   lifecycleHooks: {}
   initContainers: []
   extraContainers: []
