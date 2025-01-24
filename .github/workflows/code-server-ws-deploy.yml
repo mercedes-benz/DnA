@@ -126,7 +126,7 @@ jobs:
         -f build.Dockerfile --no-cache ../
       env:
         no_proxy: "artifacts.i.mercedes-benz.com"     
-    - name: Check the size of the image if it is more than 3GB
+    - name: Check the size of the image if it is more than 1GB
       run: |
         IMAGE_NAME="registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}"
         IMAGE_SIZE=$(docker images $IMAGE_NAME --format "{{.Size}}")
@@ -135,7 +135,7 @@ jobs:
           SIZE_GB=${IMAGE_SIZE_CLEAN%GB}
           if (( $(bc -l <<< "$SIZE_GB > 1.0") )); then
             echo "The image $IMAGE_NAME size is more than 1G"
-            exit 0
+            exit 1
           fi
         fi  
     - name: Publish application containers to registry
