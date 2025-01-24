@@ -334,7 +334,7 @@ backup:
     size: 1Gi
     # storageClass: dhc-gp3
   file:
-    name: dev-apisap-backup
+    name: test-apisap-backup
     # label: test
 
 ## PostgreSQL restore configuration

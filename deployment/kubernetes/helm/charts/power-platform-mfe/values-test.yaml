@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/powerplatform-mfe
   pullPolicy: IfNotPresent
-  tag: '667'
+  tag: '1155'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
