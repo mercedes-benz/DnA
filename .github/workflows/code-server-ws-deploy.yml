@@ -133,8 +133,8 @@ jobs:
         IMAGE_SIZE_CLEAN="${IMAGE_SIZE//[[:space:]]/}"
         if [[ $IMAGE_SIZE_CLEAN == *GB ]]; then
           SIZE_GB=${IMAGE_SIZE_CLEAN%GB}
-          if (( $(bc -l <<< "$SIZE_GB > 3.0") )); then
-            echo "The image ${{ IMAGE_NAME }} size is more than 3G"
+          if (( $(bc -l <<< "$SIZE_GB > 1.0") )); then
+            echo "The image $IMAGE_NAME size is more than 1G"
             exit 0
           fi
         fi  
