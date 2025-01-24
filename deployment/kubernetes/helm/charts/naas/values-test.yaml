@@ -5,7 +5,7 @@ app:
     replicaCount: 1
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: 171
+      tag: '1141'
     secrets:
       name: naas-app-secrets
       jwtKey: null
@@ -46,9 +46,6 @@ app:
     readinessProbe:
       path: /actuator/health/readiness
       port: api
-image:
-  pullPolicy: Always
-  tag: '69'
 ingress:
   enabled: false
   host: naas.test.dna.app.corpintra.net
@@ -65,7 +62,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_staging_k8_role"
+    vault.hashicorp.com/role: dna_staging_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh

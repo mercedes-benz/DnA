@@ -7,7 +7,7 @@ app:
     name: clamav-rest
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
-      tag: '81'
+      tag: '982'
     replicaCount: 1
     secrets:
       name: oneapi-secrets
@@ -55,7 +55,7 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-08-05
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-01-24
   replicaCount: 1
   pullPolicy: Always
 ingress:
@@ -87,7 +87,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_staging_k8_role"
+    vault.hashicorp.com/role: dna_staging_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh

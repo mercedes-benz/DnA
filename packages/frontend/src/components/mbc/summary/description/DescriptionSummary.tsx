@@ -10,7 +10,8 @@ import { IDescriptionRequest } from '../../createNewSolution/description/Descrip
 import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListItems';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
-import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
+import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -28,6 +29,7 @@ export interface IDescriptionSummaryProps {
   onExportToPDFDocument: JSX.Element;
   canTransferOwnerShip: boolean;
   onTransferOwnershipSolutionConsent: (solutionId: string) => void;
+
 }
 export interface IDescriptionSummaryState {
   showContextMenu: boolean;
@@ -165,12 +167,12 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
     const chips =
       description.tags && description.tags.length
         ? description.tags.map((chip: any, index: any) => {
-            return (
-              <div className="chips read-only" key={index}>
-                <label className="name">{chip}</label>
-              </div>
-            );
-          })
+          return (
+            <div className="chips read-only" key={index}>
+              <label className="name">{chip}</label>
+            </div>
+          );
+        })
         : 'NA';
     const locations: string[] = [];
     description.location.forEach((l) => {
@@ -242,13 +244,13 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productDescription">
                     <label className="input-label summary">Description</label>
-                    <br />                    
+                    <br />
                     <div className={Styles.solutionDescription}>
                       <pre className={Styles.solutionPre}>
                         {description.description}
                       </pre>
                     </div>
-                    
+
                     {/* <div
                       id="descriptionContainer"
                       className={classNames(
@@ -262,7 +264,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                         value={description.description}
                       />
                     </div> */}
-                    
+
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Tags</label>
@@ -290,7 +292,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="locations">
                     <label className="input-label summary">Location</label>
                     <br />
-                    {locations.length === TOTAL_LOCATIONS_COUNT ? 'All' :locations.join(', ')}
+                    {locations.length === TOTAL_LOCATIONS_COUNT ? 'All' : locations.join(', ')}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -331,7 +333,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="dataStrategyDomain">
                     <label className="input-label summary">Data Strategy Domain</label>
                     <br />
-                    {description.dataStrategyDomain ? description.dataStrategyDomain.toLocaleLowerCase() === ""||description.dataStrategyDomain.toLocaleLowerCase() === "choose" ? "NA":description.dataStrategyDomain : 'NA'}
+                    {description.dataStrategyDomain ? description.dataStrategyDomain.toLocaleLowerCase() === "" || description.dataStrategyDomain.toLocaleLowerCase() === "choose" ? "NA" : description.dataStrategyDomain : 'NA'}
                   </div>
                   <div id="createdAt">
                     <label className="input-label summary">Created On</label>
@@ -344,26 +346,36 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     {description.department ? description.department : 'NA'}
                   </div>
                 </div>
-                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />
                     {this.props.lastModifiedDate ? regionalDateAndTimeConversionSolution(this.props.lastModifiedDate) : '-'}
                   </div>
+
+
+                  <div id="createdBy">
+                    <label className="input-label summary">Created By</label>
+                    <br />
+                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX + description?.createdBy?.id}>
+                      {description?.createdBy?.firstName} {description?.createdBy?.lastName}
+                    </a>{' '}
+                  </div>
+
                 </div>
                 <hr className="divider1" />
                 <div className={Styles.flexLayout}>
                   <div id="expectedBenefits">
                     <label className="input-label summary">Expected Benefits</label>
                     <br />
-                    <div> 
+                    <div>
                       <pre className={Styles.solutionPre}>{description.expectedBenefits}</pre>
                     </div>
                   </div>
                   <div id="businessNeeds">
                     <label className="input-label summary">Business Need</label>
                     <br />
-                    <div> 
+                    <div>
                       <pre className={Styles.solutionPre}>{description.businessNeeds}</pre>
                     </div>
                   </div>

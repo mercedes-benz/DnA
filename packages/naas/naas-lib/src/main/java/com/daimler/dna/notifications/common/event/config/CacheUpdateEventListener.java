@@ -214,7 +214,14 @@ public class CacheUpdateEventListener {
 								}
 								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
+									
+									if(record.value().getEventType().contains("Playground_alert")){
+										emailNotificationPreferenceFlag = true;
+									}
+
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
