@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Styles from './AllCodeSpaces.scss';
 // import { ICodeSpaceData } from './CodeSpace';
 import CodeSpaceCardItem from './codeSpaceCardItem/CodeSpaceCardItem';
@@ -22,6 +22,8 @@ import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import AddCodespaceGroupModal from './addCodespaceGroupModal/AddCodespaceGroupModal';
+import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -29,6 +31,7 @@ import InfoModal from 'dna-container/InfoModal';
 
 const AllCodeSpaces = (props) => {
     const [loading, setLoading] = useState(true);
+    const [codeSpaceGroups, setCodeSpaceGroups] = useState([]);
     const [codeSpaces, setCodeSpaces] = useState([]),
         // [codeSpacesListResponse, setCodeSpacesListResponse] = useState([]),
         // [pagination, setPagination] = useState({
@@ -68,9 +71,25 @@ const AllCodeSpaces = (props) => {
         // setCodeSpacesListResponse([]);
     };
 
+    const getCodeSpaceGroupsData = () => {
+        setLoading(true);
+        CodeSpaceApiClient.getCodeSpaceGroups()
+            .then((res) => {
+                setLoading(false);
+                setCodeSpaceGroups(Array.isArray(res.data) ? res.data : (res.data.records) || []);
+                // setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
+            })
+            .catch((err) => {
+                setLoading(false);
+                Notification.show('Error in loading your code spaces - ' + err.message, 'alert');
+            });
+        // setCodeSpacesListResponse([]);
+    };
+
     useEffect(() => {
         setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
+        getCodeSpaceGroupsData();
     }, []);
 
     useEffect(() => {
@@ -312,6 +331,110 @@ const AllCodeSpaces = (props) => {
         </div>
     );
 
+    const [showAddCodespaceModal, setShowAddCodespaceModal] = useState(false);
+    const [showCodespacesModal, setShowCodespacesModal] = useState(false);
+    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState();
+
+    const codespacesModalContent = <>
+    <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
+    {loading ? (
+        <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
+            <div className="progress infinite" />
+        </div>
+    ) : (
+        <div>
+            <div>
+                {selectedCodeSpaceGroup?.codeSpaces?.length === 0 ? (
+                    <div className={classNames(Styles.content)}>
+                        <div className={Styles.listContent}>
+                            <div className={Styles.emptyCodeSpaces}>
+                                <span>
+                                    You don&apos;t have any code space at this time.
+                                    <br /> Please create a new one.
+                                </span>
+                            </div>
+                            <div className={Styles.subscriptionListEmpty}>
+                                <br />
+                                <button className={'btn btn-tertiary'} type="button" onClick={onShowNewCodeSpaceModal}>
+                                    <span>Create new Code Space</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className={Styles.cardsSeparator}>
+                            <h5 className="sub-title-text">My Code Spaces</h5>
+                            <hr />
+                        </div>
+                        <div className={Styles.allCodeSpacesContent}>
+                            <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
+                                {selectedCodeSpaceGroup?.codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                    return (
+                                        <CodeSpaceCardItem
+                                            key={index}
+                                            userInfo={props.user}
+                                            codeSpace={codeSpace}
+                                            toggleProgressMessage={toggleProgressMessage}
+                                            onDeleteSuccess={onDeleteSuccess}
+                                            onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
+                                            onCodeSpaceEdit={onCodeSpaceEdit}
+                                            onShowDeployModal={onCodeSpaceDeploy}
+                                            onStartStopCodeSpace={onStartStopCodeSpace}
+                                        />
+                                    );
+                                })}
+
+                            </div>
+                        </div>
+                        {(selectedCodeSpaceGroup?.codeSpaces?.some(codeSpace => codeSpace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                                   
+                            <div className={Styles.cardsSeparator}>
+                                <h5 className="sub-title-text">Collaborated Code Spaces</h5>
+                                <hr />
+                            </div>
+                                    
+                        )}
+                        <div className={Styles.allCodeSpacesContent}>
+                            <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
+                                {selectedCodeSpaceGroup?.codeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                    return (
+                                        <CodeSpaceCardItem
+                                            key={index}
+                                            userInfo={props.user}
+                                            codeSpace={codeSpace}
+                                            toggleProgressMessage={toggleProgressMessage}
+                                            onDeleteSuccess={onDeleteSuccess}
+                                            onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
+                                            onCodeSpaceEdit={onCodeSpaceEdit}
+                                            onShowDeployModal={onCodeSpaceDeploy}
+                                            onStartStopCodeSpace={onStartStopCodeSpace}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        {/* {codeSpaces?.length ? (
+        <Pagination
+          totalPages={pagination.totalNumberOfPages}
+          pageNumber={pagination.currentPageNumber}
+          onPreviousClick={onPaginationPreviousClick}
+          onNextClick={onPaginationNextClick}
+          onViewByNumbers={onViewByPageNum}
+          displayByPage={true}
+        />
+      ) : null} */}
+                    </>
+                )}
+            </div>
+        </div>
+    )}
+    </>;
+
+    const [showAddCodespaceGroupModal, setShowAddCodespaceGroupModal] = useState(false);
+
+    const draggableItemRef = useRef();
+
     return (
         <div className={classNames(Styles.mainPanel)}>
             <div className={classNames(Styles.wrapper)}>
@@ -408,6 +531,22 @@ const AllCodeSpaces = (props) => {
                     </div>
                     
                 </div>
+                <div className={classNames(Styles.groupContainer)}>
+                    <div className={classNames(Styles.group, Styles.createNew)} onClick={() => setShowAddCodespaceGroupModal(true)}>
+                        <div className={Styles.newCodeSpaceCard}>
+                            <div className={Styles.addicon}> &nbsp; </div>
+                            <label className={Styles.addlabel}>Create new Group</label>
+                        </div>
+                    </div>
+                    {!loading && codeSpaceGroups?.map(group => 
+                        <CodeSpaceGroupCard
+                            key={group?.id}
+                            group={group}
+                            onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
+                            onShowCodeSpaceGroupModal={(show) => setShowAddCodespaceGroupModal(show)}
+                        />
+                    )}
+                </div>
                 {loading ? (
                     <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
                         <div className="progress infinite" />
@@ -434,6 +573,10 @@ const AllCodeSpaces = (props) => {
                                 </div>
                             ) : (
                                 <>
+                                    <div className={Styles.cardsSeparator}>
+                                        <h5 className="sub-title-text">My Code Spaces</h5>
+                                        <hr />
+                                    </div>
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
                                             <div className={Styles.newCodeSpaceCard} onClick={onShowNewCodeSpaceModal}>
@@ -443,6 +586,10 @@ const AllCodeSpaces = (props) => {
                                             {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
+                                                        onDragStartCard={() => {  
+                                                            console.log('draggable', draggableItemRef.current.id);
+                                                        }}
+                                                        ref={draggableItemRef}
                                                         key={index}
                                                         userInfo={props.user}
                                                         codeSpace={codeSpace}
@@ -494,7 +641,7 @@ const AllCodeSpaces = (props) => {
                       onViewByNumbers={onViewByPageNum}
                       displayByPage={true}
                     />
-                  ) : null} */}
+                ) : null} */}
                                 </>
                             )}
                         </div>
@@ -607,6 +754,45 @@ const AllCodeSpaces = (props) => {
                     show={showAwsFAQModal}
                     content={FAQModalContent}
                     onCancel={() => setShowAwsFAQModal(false)}
+                />
+            )}
+            {showAddCodespaceModal && (
+                <Modal
+                    title={'Add Code Space'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="800px"
+                    show={showAddCodespaceModal}
+                    content={<AddCodespaceGroupModal edit={true} />}
+                    scrollableContent={false}
+                    onCancel={() => { setShowAddCodespaceModal(false) }}
+                />
+            )}
+            {showAddCodespaceGroupModal && (
+                <Modal
+                    title={'Add Code Space Group'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="800px"
+                    show={showAddCodespaceGroupModal}
+                    content={<AddCodespaceGroupModal />}
+                    scrollableContent={true}
+                    onCancel={() => { setShowAddCodespaceGroupModal(false) }}
+                />
+            )}
+            {showCodespacesModal && (
+                <Modal
+                    title={'Codespaces'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="90%"
+                    show={showCodespacesModal}
+                    content={codespacesModalContent}
+                    scrollableContent={true}
+                    onCancel={() => { setShowCodespacesModal(false) }}
                 />
             )}
         </div>

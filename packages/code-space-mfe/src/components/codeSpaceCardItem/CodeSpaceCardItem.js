@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
@@ -44,7 +44,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 let isTouch = false;
 
-const CodeSpaceCardItem = (props) => {
+const CodeSpaceCardItem = forwardRef((props, ref) => {
   let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
@@ -472,7 +472,10 @@ const CodeSpaceCardItem = (props) => {
     <>
       <div
         id={'card-' + codeSpace.id}
+        draggable={true}
+        ref={ref}
         key={codeSpace.id}
+        onDragStart={props.onDragStartCard}
         className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}
       >
         <div className={Styles.cardHead}>
@@ -1347,5 +1350,8 @@ const CodeSpaceCardItem = (props) => {
       )}
     </>
   );
-};
+});
+
+// Add a displayName for debugging
+CodeSpaceCardItem.displayName = 'CodeSpaceCardItem';
 export default CodeSpaceCardItem;
