@@ -1,4 +1,4 @@
-{{- if ne .Values.env "test" }}
+{{- if eq .Values.env "prod" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
