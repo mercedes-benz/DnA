@@ -543,7 +543,7 @@ const CodeSpaceCardItem = (props) => {
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>
-                     )}
+                    )}
                     {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
                       <li>
                         <span

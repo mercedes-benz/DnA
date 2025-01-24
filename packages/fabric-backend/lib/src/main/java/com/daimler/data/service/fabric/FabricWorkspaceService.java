@@ -72,4 +72,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
 
+	DnaRoleCollectionVO getAllUserDnaRoles(String id,String authToken);
+
 }
+

@@ -241,6 +241,9 @@
     }
     p{
         font-size: var(--font-size-small);
+        .warning {
+            color: #f3e537;
+        }
     }
   }
 
@@ -252,5 +255,19 @@
         padding: 8px 8px;
         font-size: var(--font-size-small);
         font-weight: var(--font-weight-regular);
+
+        .list {
+            padding-left: 8px;
+            color: #00adef;
+            font-weight: var(--font-weight-bold);
+        }
+
+        .listInfo {
+            padding-left: 8px;
+        }
+
+        .warning {
+            color: #f3e537;
+        }
     }
   }

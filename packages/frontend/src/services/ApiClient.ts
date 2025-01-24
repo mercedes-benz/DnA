@@ -87,7 +87,11 @@ export class ApiClient {
   public static fabricPost(endpoint: string, body?: any) {
     return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.POST, body);
   }
-
+  
+  public static fabricGet(endpoint: string, body?: any) {
+    return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.GET, body);
+  }
+  
   public static postWithFormData(endpoint: string, formData: FormData) {
     return this.fetchWithFormData(getUrl(endpoint), HTTP_METHOD.POST, formData);
   }
@@ -162,10 +166,10 @@ export class ApiClient {
         'Content-Type': 'application/json',
       },
       method,
-    }).then((response) => {
+    }).then((response: any) => {
       let message = '';
       if (!response.ok) {
-        return response.json().then((result) => {
+        return response.json().then((result: any) => {
 
           if (response?.status === 403 && result?.error_description?.includes("JWT is expired")) {
             return refreshToken(jwt).then((newJwt: any) => {
@@ -523,6 +527,10 @@ export class ApiClient {
 
   public static createAliceRole(data: any) {
     return this.fabricPost('fabric-workspaces/createrole', data);
+  }
+  
+  public static getExistingRoles(appId: string) {
+    return this.fabricGet(`fabric-workspaces/${appId}/dnaroles`);
   }
 
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
