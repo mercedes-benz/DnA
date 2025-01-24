@@ -53,19 +53,18 @@ public class WorkspaceMigration {
 							log.info("Workspace Migration Started for Workspace "+ codeserverNsql.getData().getWorkspaceId());
 							migrateWorkspaceMsg = service.migrateWorkspace(codeserverNsql);
 						}
-					}
-				}
-				log.info("old workspace ids for which service is not created yet are: {}", oldWsIds);
-				if (Objects.nonNull(oldWsIds) && oldWsIds.size() > 0) {
-					for (String oldWsId : oldWsIds) {
-						authenticatorClient.callingKongApis(oldWsId,oldWsId,null,false,null,null,null,null,null,null, false,false,null);
-					}
-				}
-				log.info("old workspace ids for which service already created and attaching authorization plugin as migration are: {}", oldWsIdsWithService);
-				if (Objects.nonNull(oldWsIdsWithService) && oldWsIdsWithService.size() > 0) {
-					for (String oldWsIdWithService : oldWsIdsWithService) {
-						authenticatorClient.attachAppAuthoriserPluginToService(null, oldWsIdWithService , ConstantsUtility.DHC_CAAS);
-					}
+						if(Objects.nonNull(migrateWorkspaceMsg)) {
+							if(Objects.nonNull(migrateWorkspaceMsg.getErrors())) {
+							List<MessageDescription> error =	migrateWorkspaceMsg.getErrors();
+							log.info("Error occured for Workspace "+codeserverNsql.getData().getWorkspaceId());
+							for(MessageDescription msg: error){
+								log.info("Error Message " + msg.getMessage());
+							}
+							} else if(Objects.nonNull(migrateWorkspaceMsg.getSuccess())){
+								log.info("Migration of Workspace "+codeserverNsql.getData().getWorkspaceId() +" : "+ migrateWorkspaceMsg.getSuccess().toString());
+							}
+						}
+					}	
 				}
 			} catch (Exception e) {
 				log.error("Exception occured while migrating workspaces ",e);

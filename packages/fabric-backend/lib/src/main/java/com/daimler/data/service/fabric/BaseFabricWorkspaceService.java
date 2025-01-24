@@ -1687,4 +1687,22 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return createRoleVO;
 	}
 
+	@Override
+public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
+    DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
+    List<String> roles = new ArrayList<>();
+    try {
+        List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
+        roles = roleList.stream()
+                        .filter(role -> role.startsWith("DNA_"))
+                        .collect(Collectors.toList());
+		data.setRoles(roles);
+        dnaRoleCollection.setData(data);
+    } catch (Exception e) {
+        log.error("Error occurred while getting user roles: {}", e.getMessage());
+    }
+    return dnaRoleCollection;
+}
+
 }
