@@ -10,7 +10,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: service
-    project: dna
+    project: {{ .Values.env }}-dna
 spec:
   destination:
     namespace: vault-injector

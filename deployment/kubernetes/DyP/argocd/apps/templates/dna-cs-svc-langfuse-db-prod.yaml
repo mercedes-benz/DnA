@@ -12,7 +12,7 @@ metadata:
     name: db
 spec:
   destination:
-    namespace: tools
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -23,7 +23,7 @@ spec:
       env:
         - name: HELM_ARGS
           value: -f values-langfuse-db-prod.yaml             
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

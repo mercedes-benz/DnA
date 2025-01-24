@@ -12,7 +12,7 @@ metadata:
     name: service
 spec:
   destination:
-    namespace: tools
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/paperless-ngx
@@ -22,8 +22,8 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: --namespace tools -f values-{{ .Values.env }}.yaml
-  project: dna
+          value: --namespace cs-apps-services -f values-{{ .Values.env }}.yaml
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

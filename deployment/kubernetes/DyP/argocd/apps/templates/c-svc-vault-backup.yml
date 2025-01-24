@@ -1,38 +1,38 @@
-{{- if ne .Values.env "test" }}
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  {{- with .Values.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  name: vault-backup
-  namespace: {{ .Values.namespace }}
-  labels:
-    name: service
-    env: {{ .Values.env }}
-    project: c-svc
-spec:
-  destination:
-    namespace: vault
-    server: {{ .Values.server | squote }}
-  source:
-    path: deployment/kubernetes/helm/charts/vault-backup
-    repoURL: {{ .Values.repoURL | squote }}
-    targetRevision: {{ .Values.branch }}
-    plugin:
-      name: argocd-vault-plugin-helm
-      env:
-        - name: HELM_ARGS
-          value: -f values-{{ .Values.env }}.yaml
-  project: dna
-{{- if .Values.enableSync }}
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - ApplyOutOfSyncOnly=true
-      - CreateNamespace=true
-{{- end }}
-{{- end -}}
+# {{- if ne .Values.env "test" }}
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   {{- with .Values.annotations }}
+#   annotations:
+#     {{- toYaml . | nindent 4 }}
+#   {{- end }}
+#   name: vault-backup
+#   namespace: {{ .Values.namespace }}
+#   labels:
+#     name: service
+#     env: {{ .Values.env }}
+#     project: c-svc
+# spec:
+#   destination:
+#     namespace: vault
+#     server: {{ .Values.server | squote }}
+#   source:
+#     path: deployment/kubernetes/helm/charts/vault-backup
+#     repoURL: {{ .Values.repoURL | squote }}
+#     targetRevision: {{ .Values.branch }}
+#     plugin:
+#       name: argocd-vault-plugin-helm
+#       env:
+#         - name: HELM_ARGS
+#           value: -f values-{{ .Values.env }}.yaml
+#   project: {{ .Values.env }}-dna
+# {{- if .Values.enableSync }}
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - ApplyOutOfSyncOnly=true
+#       - CreateNamespace=true
+# {{- end }}
+# {{- end -}}
