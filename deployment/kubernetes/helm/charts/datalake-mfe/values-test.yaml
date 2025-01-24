@@ -14,7 +14,7 @@ imagePullSecrets:
 nameOverride: ''
 fullnameOverride: datalake-mfe
 podSecurityContext:
-  runAsUser: 1001
+  runAsUser: 1129
 containerPort: 3000
 service:
   type: ClusterIP
