@@ -131,10 +131,11 @@ jobs:
         IMAGE_NAME="registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}"
         IMAGE_SIZE=$(docker images $IMAGE_NAME --format "{{.Size}}")
         IMAGE_SIZE_CLEAN="${IMAGE_SIZE//[[:space:]]/}"
+        echo "Image size clean is $IMAGE_SIZE_CLEAN"
         if [[ $IMAGE_SIZE_CLEAN == *GB ]]; then
           SIZE_GB=${IMAGE_SIZE_CLEAN%GB}
           if (( $(bc -l <<< "$SIZE_GB > 4.0") )); then
-            echo "The image $IMAGE_NAME size is more than 4GB"
+            echo "The image $IMAGE_NAME size is more than 4GB, current image size is $IMAGE_SIZE"
             exit 1
           fi
         fi  
