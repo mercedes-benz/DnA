@@ -1,4 +1,4 @@
-{{- if ne .Values.env "not-used" }}
+{{- if eq .Values.env "not-used" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
