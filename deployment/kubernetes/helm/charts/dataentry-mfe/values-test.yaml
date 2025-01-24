@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dataentry-mfe
   pullPolicy: IfNotPresent
-  tag: 41de439342ea91c12ba51659dfc970cef8fcb26d
+  tag: 39
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
