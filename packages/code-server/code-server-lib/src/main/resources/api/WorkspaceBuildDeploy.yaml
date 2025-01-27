@@ -1,0 +1,196 @@
+# LICENSE START
+#
+# MIT License
+#
+# Copyright (c) 2019 Daimler TSS GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# LICENSE END
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : BuildDeploy.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  eshaani-bhandary
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+#  -------------------------------------------------------------------------------------------------------
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Code-server build deploy Service"
+host: "localhost:7979"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "code-server-build-deploy-service"
+    description: "This service is used to maintain code-server build and deploy information."
+
+schemes:
+  - "https"
+
+paths:
+
+  /workspaces/{id}/build:        
+    post:
+      tags:
+        - "code-server-build-deploy-service"
+      summary: "Build workspace Project for a given Id."
+      description: "build workspace Project for a given identifier."
+      operationId: "buildWorkspaceProject"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "buildRequestDto"
+          in: "body"
+          description: "request body for the project to be built"
+          required: true
+          schema:
+            $ref: "#/definitions/ManageBuildRequestDto"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  workspace/{projectName}/buildLogs:
+    get:
+      tags:
+        - "code-server-build-deploy-service"
+      summary: "Get build logs for a given project name."
+      description: "Get build logs for a given project name."
+      operationId: "getBuildLogsByProjectName"
+      parameters:
+        - name: "projectName"
+          in: "path"
+          description: "Workspace projectName to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerBuildLogsVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+definitions:
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "message"
+
+  CodeServerBuildLogsVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+      lastBuildBranch:
+        type: string
+        description: "Branch used for last Build"
+      triggeredBy:
+        type: string
+        description: "User who triggered build of codespace"
+      triggeredOn:
+        type: string
+        format: date
+        description: "date on which codespace build is triggred"
+      buildStatus:
+        type: string
+        description: "status of codespace - BUILD_FAILED,SUCCESS,IN_PROGRESS." 
+      buildOn:
+        type: string
+        format: date
+        description: "date on which codespace built."
+      artifactId:
+        type: string
+        description: "artifact id one which codespace is built"
+      version:
+        type: string
+        description: "version of the built workspace"
+      comments:
+        type: string
+        description: "build comments"
+      
+
+  ManageBuildRequestDto:
+    type: object
+    properties:
+      branch:
+        type: string
+      comments:
+        type: string
