@@ -33,13 +33,13 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: cs.dna-aws.app.corpintra.net
+    - host: kfp.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - cs.dna-aws.app.corpintra.net
+        - kfp.dna-aws.app.corpintra.net
       secretName: code-space-tls-secret
 resources:
   limits:
