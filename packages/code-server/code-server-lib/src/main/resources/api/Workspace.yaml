@@ -1846,3 +1846,30 @@ definitions:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
       published:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+  CodeServerUserGroupVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user group"
+      name:
+        type: string
+        description: "Name of user group"
+      description:
+        type: string
+        description: "Description of user group"
+      workspaces:
+        type: array
+        items:
+          $ref: "#/definitions/CodeServerWorkspaceVO"
+  CodeServerUserGroupCollectionVO:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/CodeServerUserGroupVO"
+      userId:
+          type: string
+          description: id of user            
+
