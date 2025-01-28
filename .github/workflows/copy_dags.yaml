@@ -10,7 +10,7 @@ on:
 
 jobs:
   copy-dags:
-    runs-on: [Enterprise]
+    runs-on: [os-medium-amd64-linux ]
 
     steps:
     # - name: Checkout repo-b (ashokpoc branch)
