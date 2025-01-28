@@ -112,6 +112,11 @@ export const Envs = {
     getInjectedEnv('ENABLE_STORAGE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_STORAGE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_STORAGE_SERVICE, false),
+  ALICE_BASE_URL:
+    getInjectedEnv('ALICE_BASE_URL') !== undefined
+      ? getInjectedEnv('ALICE_BASE_URL')
+      : EnvParser.parseBool(process.env.ALICE_BASE_URL, false),
+  FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
   ML_PIPELINE_URL: getInjectedEnv('ML_PIPELINE_URL') || process.env.ML_PIPELINE_URL,
   ENABLE_MALWARE_SCAN_ONEAPI:
     getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI') !== undefined
@@ -212,6 +217,9 @@ export const Envs = {
   POWER_PLATFORM_FULL_DEVELOPER_ACCOUNT_URL: getInjectedEnv('POWER_PLATFORM_FULL_DEVELOPER_ACCOUNT_URL') || process.env.POWER_PLATFORM_FULL_DEVELOPER_ACCOUNT_URL,
   POWER_PLATFORM_SUPPORT_EMAIL: getInjectedEnv('POWER_PLATFORM_SUPPORT_EMAIL') || process.env.POWER_PLATFORM_SUPPORT_EMAIL,
   POWER_PLATFORM_SOCIAL_INTRANET_URL: getInjectedEnv('POWER_PLATFORM_SOCIAL_INTRANET_URL') || process.env.POWER_PLATFORM_SOCIAL_INTRANET_URL,
+  POWER_PLATFORM_TRAINING_URL: getInjectedEnv('POWER_PLATFORM_TRAINING_URL') || process.env.POWER_PLATFORM_TRAINING_URL,
+
+  ALICE_APP_ID:  getInjectedEnv('ALICE_APP_ID') || process.env.ALICE_APP_ID,
   
   TERMS_OF_USE_CONTENT: getInjectedEnv('TERMS_OF_USE_CONTENT') || process.env.TERMS_OF_USE_CONTENT,
   COMING_SOON_CONTENT: getInjectedEnv('COMING_SOON_CONTENT') || process.env.COMING_SOON_CONTENT,
@@ -226,8 +234,9 @@ export const Envs = {
   MATOMO_APP_URL: getInjectedEnv('MATOMO_APP_URL') || process.env.MATOMO_APP_URL,
   SPIRE_URL: getInjectedEnv('SPIRE_URL') || process.env.SPIRE_URL,
   ODIN_URL: getInjectedEnv('ODIN_URL') || process.env.ODIN_URL,
+  SASS_URL: getInjectedEnv('SASS_URL') || process.env.SASS_URL,
   GENAI_DIRECT_CHAT_URL: getInjectedEnv('GENAI_DIRECT_CHAT_URL') || process.env.GENAI_DIRECT_CHAT_URL,
   GENAI_LLM_PROMPT_ENG_URL:getInjectedEnv('GENAI_LLM_PROMPT_ENG_URL') || process.env.GENAI_LLM_PROMPT_ENG_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
-  CODESPACE_SECURITY_APP_ID: getInjectedEnv('CODESPACE_SECURITY_APP_ID' || process.env.CODESPACE_SECURITY_APP_ID)
+  CODESPACE_SECURITY_APP_ID: getInjectedEnv('CODESPACE_SECURITY_APP_ID') || process.env.CODESPACE_SECURITY_APP_ID,
 };

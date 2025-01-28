@@ -36,6 +36,7 @@ import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachOneApiPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
+import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.AttachFunctionPluginVO;
 import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginVO;
@@ -48,7 +49,7 @@ public interface KongClient {
 
 	public GenericMessage createRoute(CreateRouteVO createRouteVO, String serviceName);
 	
-//	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
+	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
 
 	public GenericMessage attachPluginToService(AttachPluginVO attachPluginVO, String serviceName);
 	

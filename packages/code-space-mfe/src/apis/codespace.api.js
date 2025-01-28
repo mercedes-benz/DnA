@@ -1,13 +1,14 @@
 import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import { Envs } from '../Utility/envs';
 
-const getCodeSpacesList = () => { //tested
+const getCodeSpacesList = () => { 
     return server.get(`workspaces`, {
         data: {},
     });
 };
 
-const createCodeSpace = (data) => { //TESTED
+const createCodeSpace = (data) => { 
     return server.post(`workspaces`,
         data,
     );
@@ -19,31 +20,31 @@ const getReadMeFile = (id) => {
     });
 };
 
-const editCodeSpace = (id, data) => { //tested
+const editCodeSpace = (id, data) => { 
     return server.patch(`workspaces/${id}/datagovernance`, 
         data
     );
 };
 
-const getCodeSpaceStatus = (id) => { //tested
+const getCodeSpaceStatus = (id) => { 
     return server.get(`workspaces/status/${id}`, {
         data: {},
     });
 };
   
-const deleteCodeSpace = (id) => { //tested
+const deleteCodeSpace = (id) => { 
     return server.delete(`workspaces/${id}`, {
         data: {},
     });
 };
   
-const getCodeSpacesGitBranchList = (repoName) => { //tested
+const getCodeSpacesGitBranchList = (repoName) => { 
     return server.get(`workspaces/branches?repoDetail=${repoName}`, {
         data: {},
     });
 };
   
-const deployCodeSpace = (id, data) => { //tested
+const deployCodeSpace = (id, data) => { 
     return server.post(`workspaces/${id}/deploy`, 
         data,
     );
@@ -55,25 +56,25 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
     });
 };
   
-const onBoardCollaborator = (id, data) => { //tested
+const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
         data,
     );
 };
 
-const addCollaborator = (id, data) => { //tested
+const addCollaborator = (id, data) => { 
     return server.post(`workspaces/${id}/collaborator`, 
         data,
     );
 };
 
-const deleteCollaborator = (id, userId) => { //tested
+const deleteCollaborator = (id, userId) => {
     return server.delete(`workspaces/${id}/collaborator/${userId}`, {
         data: {},
     });
 };
 
-const transferOwnership = (id, data) => { //tested
+const transferOwnership = (id, data) => { 
     return server.patch(`workspaces/${id}/projectowner`, 
         data,
     );
@@ -86,49 +87,49 @@ const assignAdminRole = (id, userId, data) => {
 };
 
 //   // Usage statistics
-// const getWorkSpacesTransparency = () => { //for frontend. not used here
+// const getWorkSpacesTransparency = () => { // not used 
 //     return server.get(`workspaces/transparency`, {
 //         data: {},
 //     });
 // };
 
-const createOrUpdateCodeSpaceConfig = (id, data, env) => { //tested
+const createOrUpdateCodeSpaceConfig = (id, data, env) => { 
     return server.patch(`workspaces/${id}/config?env=${env}`, 
         data,
     );
 };
 
-const getCodeSpaceConfig = (id, env) => { //tested
+const getCodeSpaceConfig = (id, env) => { 
     return server.get(`/workspaces/${id}/config?env=${env}`, {
         data: {},
     });
 };
 
-const getPublishedConfig = (id, env) => { //tested
+const getPublishedConfig = (id, env) => { 
     return server.get(`/workspaces/${id}/config/publish?env=${env}`, {
         data: {},
     });
 };
 
-const getEntitlements = (id) => { //not needed for now
+const getEntitlements = (id) => { //not used
     return server.get(`/workspaces/${id}/config/entitlements`, {
         data: {},
     });
 };
 
-const getRoles = (id) => { //not needed for now
+const getRoles = (id) => { //not used
     return server.get(`/workspaces/${id}/config/roles`, {
         data: {},
     });
 };
 
-const getRolesMappings = (id) => { //not needed for now
+const getRolesMappings = (id) => { //not used
     return server.get(`/workspaces/${id}/config/mappings`, {
         data: {},
     });
 };
 
-const addCodeSpaceRequest = (id, env) => { //tested
+const addCodeSpaceRequest = (id, env) => { 
     return server.post(`/workspaces/${id}/config/publish?env=${env}`, {
         data: {},
     });
@@ -158,19 +159,19 @@ const getCodeSpaceRecipe = (id) => {
     });
 };
 
-const getCodeSpaceRecipesStatus = () => { //not used right now
+const getCodeSpaceRecipesStatus = () => { //not used 
     return server.get(`recipeDetails/recipesByStatus`, {
         data: {},
     });
 };
 
-const acceptCodeSpaceRecipeRequest = (name) => { //not used right now
+const acceptCodeSpaceRecipeRequest = (name) => { //not used 
     return server.post(`recipeDetails/${name}/accept`, {
         data: {},
     });
 };
 
-const publishCodeSpaceRecipeRequest = (name) => { //not used right now
+const publishCodeSpaceRecipeRequest = (name) => { //not used 
     return server.post(`recipeDetails/${name}/publish`, {
         data: {},
     });
@@ -206,7 +207,7 @@ const getAdditionalServicesLov = () => {
     });
 };
 
-const getLovData = () => { //tested
+const getLovData = () => { 
     return Promise.all([
       storageServer.get(`/classifications`, {
         data: {},
@@ -218,39 +219,39 @@ const getLovData = () => { //tested
     ]);
 };
   
-const getWorkspaceConfigs = () => { //not needed
+const getWorkspaceConfigs = () => { //not used
     return server.get(`/workspaces/configs`, {
         data: {},
     });
 };
 
-const acceptSecurityConfigRequest = (id) => { //not needed
+const acceptSecurityConfigRequest = (id) => { //not used
     return server.post(`/workspaces/${id}/config/accept`, {
         data: {},
     });
 };
 
-const publishSecurityConfigRequest = (id) => { //not needed
+const publishSecurityConfigRequest = (id) => { //not used
     return server.post(`/workspaces/${id}/config/publish`, {
         data: {},
     });
 };
 
-const read_secret = (codeSpaceName, env) => { //tested
+const read_secret = (codeSpaceName, env) => { 
     return vaultServer.get(`/secret/${codeSpaceName}/${env}`, {
         data: {},
     });
 };
 
-const update_secret = (path, secret_value, env) => { //tested
+const update_secret = (path, secret_value, env) => { 
     return vaultServer.put(`/secret/${path}/${env}`, 
         secret_value,
     );
 };
 
-const startStopWorkSpace = (id, serverStarted) => { //tested
-    if (serverStarted) return server.delete(`/workspaces/server/${id}`, {data: {},});
-    return server.post(`/workspaces/startserver/${id}`, {data: {},});
+const startStopWorkSpace = (id, serverStarted, env, manual) => { 
+    if (serverStarted && !manual) return server.delete(`/workspaces/server/${id}?cloudServiceProvider=${env}`, {data: {},});
+    return server.post(`/workspaces/startserver/${id}?cloudServiceProvider=${env}`, {data: {},});
 };
 
 const workSpaceStatus = () => {
@@ -259,12 +260,16 @@ const workSpaceStatus = () => {
     });
 };
 
-const getUrlHub = (endpoint) => { //tested
+const getUrlHub = (endpoint) => { 
     return `${new URL('../hub/api/', baseURL).href}${endpoint}`;
 };
 
-const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => { //tested
-    const sse = new EventSourcePolyfill(getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
+const getAwsUrlHub = (endpoint) => {
+    return `${new URL(Envs.AWS_PROGRESS_API_URL).href}${endpoint}`;
+}
+
+const serverStatusFromHub = (env, userId, workspaceId, onMessageCB, onCloseCB) => { 
+    const sse = new EventSourcePolyfill(env==='DHC-CaaS-AWS' ? getAwsUrlHub(`users/${userId}/servers/${workspaceId}/progress`)  :getUrlHub(`users/${userId}/servers/${workspaceId}/progress`), {
       withCredentials: true,
       headers: { Authorization: readJwt() },
     });
@@ -281,6 +286,10 @@ const serverStatusFromHub = (userId, workspaceId, onMessageCB, onCloseCB) => { /
 
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
+};
+
+const migrateWorkplace = (id) => { 
+    return server.post(`/workspaces/${id}/migrateworkspace`, {data: {},});
 };
 
 export const CodeSpaceApiClient = {
@@ -328,4 +337,5 @@ export const CodeSpaceApiClient = {
     workSpaceStatus,
     serverStatusFromHub,
     restartDeployments,
+    migrateWorkplace,
 };
