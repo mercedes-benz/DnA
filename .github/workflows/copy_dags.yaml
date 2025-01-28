@@ -21,7 +21,7 @@ jobs:
     #     path: repo-b
     - name: Checkout repo-b
       run: |
-        git clone https://${{ secrets.BAT_REPO_USERNAME }}:${{ secrets.BAT_REPO_PASSWORD }}@ghttps://git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-b
+        git clone https://${{ secrets.BAT_REPO_USERNAME }}:${{ secrets.BAT_REPO_PASSWORD }}@git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-b
         cd repo-b
         git checkout ashokpoc
 
@@ -31,7 +31,7 @@ jobs:
 
     - name: Checkout repo-a
       run: |
-        git clone https://${{ secrets.DNA_REPO_USERNAME }}:${{ secrets.DNA_REPO_PASSWORD }}@ghttps://git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-a
+        git clone https://${{ secrets.DNA_REPO_USERNAME }}:${{ secrets.DNA_REPO_PASSWORD }}@git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-a
         cd repo-a
         git checkout dev
 
