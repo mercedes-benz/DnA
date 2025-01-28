@@ -1,0 +1,59 @@
+name: Copy Dags
+
+on:
+  push:
+    branches:
+      - ashokpoc
+    paths:
+      - 'dags/**'
+  workflow_dispatch:
+
+jobs:
+  copy-dags:
+    runs-on: [Enterprise]
+
+    steps:
+    # - name: Checkout repo-b (ashokpoc branch)
+    #   uses: actions/checkout@v2
+    #   with:
+    #     repository: https://git.i.mercedes-benz.com/BAT/airflow-dags.git
+    #     ref: ashokpoc
+    #     path: repo-b
+    - name: Checkout repo-b
+      run: |
+        git clone https://${{ secrets.BAT_REPO_USERNAME }}:${{ secrets.BAT_REPO_PASSWORD }}@ghttps://git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-b
+        cd repo-b
+        git checkout ashokpoc
+
+    - name: Print working directory for repo-b
+      run: pwd
+      working-directory: repo-b
+
+    - name: Checkout repo-a
+      run: |
+        git clone https://${{ secrets.DNA_REPO_USERNAME }}:${{ secrets.DNA_REPO_PASSWORD }}@ghttps://git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-a
+        cd repo-a
+        git checkout dev
+
+    - name: Print working directory for repo-a
+      run: pwd
+      working-directory: repo-a
+
+    - name: Copy files from repo-b/dags to repo-a/dags/bat-dags
+      run: |
+        mkdir -p repo-a/dags/bat-dags
+        find repo-b/dags -maxdepth 1 -type f -exec cp {} repo-a/dags/bat-dags/ \;
+
+    - name: Copy files from repo-b/dags/library to repo-a/dags/bat-library
+      run: |
+        mkdir -p repo-a/dags/bat-library
+        find repo-b/dags/library -maxdepth 1 -type f -exec cp {} repo-a/dags/bat-library/ \;
+
+    - name: Commit and push changes to repo-a
+      run: |
+        cd repo-a
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add dags/bat-dags dags/bat-library
+        git commit -m "Copy dags and library from repo-b"
+        git push
