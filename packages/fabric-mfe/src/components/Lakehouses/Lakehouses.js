@@ -354,7 +354,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-
+  const isAdmin = workspace?.status?.entitlements?.filter(entitlement =>
+    entitlement?.displayName?.split('_')[0]==='FC' && entitlement?.displayName?.split('_')[2]==='Admin'
+  ).length===1;
+  const isOwner = user?.id === workspace?.createdBy?.id; 
   return (
     <>
       <div className={Styles.lakehouseContainer}>
@@ -386,7 +389,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                   </button>
                 }
               </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn, user?.id !== workspace?.createdBy?.id && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
+              <button className={classNames('btn btn-primary', Styles.outlineBtn, !(isAdmin || isOwner) && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
                 <i className="icon mbc-icon plus" />
                 <span>Create Shortcut</span>
               </button>&nbsp;&nbsp;&nbsp;&nbsp;
