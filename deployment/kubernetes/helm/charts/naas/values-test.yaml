@@ -5,7 +5,7 @@ app:
     replicaCount: 1
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: '1141'
+      tag: '1160'
     secrets:
       name: naas-app-secrets
       jwtKey: null
