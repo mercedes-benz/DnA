@@ -107,12 +107,12 @@ hivemetastore:
     memory: 8G
     cpu: 2
   minio:
-    host: minio.dev-dna-minio.svc.cluster.local:80
+    host: minio.test-dna-minio.svc.cluster.local:80
     accessKey: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#minio.accessKey>
     secretKey: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#minio.secretKey>
     warehouseBucketName: datalake
   postgres:
-    host: hive-db.dev-dna-trino.svc.cluster.local:64000
+    host: hive-db.test-dna-trino.svc.cluster.local:64000
     db: hive
     user: hive
     password: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#postgtres.password>

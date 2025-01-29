@@ -151,12 +151,12 @@ hivemetastore:
     cpu: 2
 #Don`t start the minio host name with http:// as http prefix was already present in the metastore-cfg.file
   minio:
-    host: "minio.storage.svc.cluster.local:9000"
+    host: "minio.prod-dna-minio.svc.cluster.local:80"
     accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#minio.accessKey>
     secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#minio.secretKey>
     warehouseBucketName: "datalake"
   postgres:
-    host: "hive-db.trino.svc.cluster.local:64000"
+    host: hive-db.prod-dna-trino.svc.cluster.local:64000
     db: "hive"
     user: "hive"
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/trino#postgtres.password>
