@@ -1329,7 +1329,13 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 return workspaceAssembler.toVo(entity);
 	 }
  
