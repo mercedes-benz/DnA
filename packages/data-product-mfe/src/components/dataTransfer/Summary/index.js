@@ -392,6 +392,18 @@ const Summary = ({ history }) => {
                           <div>
                             <h5>Contact Information</h5>
                           </div>
+                          <span
+                            className={Styles.editicon}
+                            onClick={() => {
+                              const url = `/data/datasharing/consume/${dataTransferId}`;
+                              console.log("url", url)
+                              window.location.href = url;
+                            }}
+                              style={{ cursor: "pointer" }}>
+                              <div>
+                                <i className="icon mbc-icon edit small" />
+                              </div>
+                          </span>
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
