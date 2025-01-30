@@ -183,6 +183,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_POWER_PLATFORM_SERVICE, false),
+  ENABLE_PROMPT_CRAFT_SERVICE:
+    getInjectedEnv('ENABLE_PROMPT_CRAFT_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_PROMPT_CRAFT_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_PROMPT_CRAFT_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
