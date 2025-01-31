@@ -1,0 +1,95 @@
+name: 2. Override Or Additional Files Sync
+on:
+  workflow_dispatch:
+    inputs:
+      sourceBranch:
+        description: 'Private branch name(override/featurename)'
+        required: true    
+      reviewers:
+        description: 'Reviewers for staging and main branch'  
+        default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS,VKURAPA'
+        required: true   
+
+permissions:                    
+  contents: write               
+  pull-requests: write  
+jobs:
+  override-files-sync:
+    name: "Override Or Additional Files Sync"
+    runs-on: [os-medium-amd64-linux ]
+    steps:
+
+      - name: Check Source Branch
+        run: |
+          if [[ "${{ github.event.inputs.sourceBranch }}" == *"override"* || "${{ github.event.inputs.sourceBranch }}" == *"infra"*  ]]; then
+            echo "Override Branch name: ${{ github.event.inputs.sourceBranch }}"
+          else
+            echo "Branch name does not valid"
+            echo "Given Branch name: ${{ github.event.inputs.sourceBranch }}"
+            echo "Branch name should be start with infra/ or override/"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: '${{ github.event.inputs.sourceBranch }}'  
+ 
+      - name: Get Head Commit Message and create branch
+        env:
+          GH_TOKEN: ${{ secrets.PID_PAT }}
+          GH_HOST: git.i.mercedes-benz.com
+        id: get_head_commit_message
+        run: |
+          echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create Staging branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          branch: ${{ github.event.inputs.sourceBranch }}-staging
+          force: true         
+
+      - name: Create Dev branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          branch: ${{ github.event.inputs.sourceBranch }}-dev
+          force: true   
+      
+      - name: Create dev pull request
+        uses: thomaseizinger/create-pull-request@master
+        id: cpr
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.sourceBranch }}-dev
+          base: dev
+          labels: "private,dev,${{ github.event.inputs.sourceBranch }}"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create staging pull request
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.sourceBranch }}-staging
+          base: staging
+          reviewers: ${{ github.event.inputs.reviewers }}
+          labels: "private,staging,${{ github.event.inputs.sourceBranch }}"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Create main pull request
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          head: ${{ github.event.inputs.sourceBranch }}
+          base: main
+          reviewers: ${{ github.event.inputs.reviewers }}
+          labels: "private,main,${{ github.event.inputs.sourceBranch }}"
+          title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
+
+      - name: Print pull request details
+        if: ${{ steps.cpr.outputs.number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"      
+                           

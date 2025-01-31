@@ -1,0 +1,699 @@
+{{- if .Values.statefulSet.enabled }}
+apiVersion: {{ template "k8s.statefulSet.apiVersion" . }}
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/component: "postgresql-node"
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ include "postgres.fullname" . }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "postgres.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      {{- if .Values.pgmonitoring.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        prometheus.io/path: "/metrics"
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "postgres.name" . }}
+        helm.sh/chart: {{ include "postgres.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/component: "postgresql-node"
+        cluster-name: {{ include "postgres.clustername" . }}
+    spec:
+      {{- if .Values.serviceAccount.enabled }}
+      serviceAccountName: {{ include "postgres.fullname" . }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else if .Values.antiAffinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                - "postgresql-node"
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ include "postgres.name" . }}
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - {{ .Release.Name }}
+            topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      initContainers:
+      {{- if .Values.mountPGLibs.enabled }}
+      - name: new-postgres
+        image: {{ .Values.mountPGLibs.image.repository }}:{{ .Values.mountPGLibs.image.tag }}
+        imagePullPolicy: {{ .Values.mountPGLibs.image.pullPolicy }}
+        {{- if .Values.mountPGLibs.resources.enabled }}
+        resources:
+          {{- if .Values.mountPGLibs.resources.limits.enabled }}
+          limits:
+            {{- if .Values.mountPGLibs.resources.limits.cpu  }}
+            cpu: {{ .Values.mountPGLibs.resources.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.mountPGLibs.resources.limits.memory  }}
+            memory: {{ .Values.mountPGLibs.resources.limits.memory | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.mountPGLibs.resources.request.enabled }}
+          requests:
+            {{- if .Values.mountPGLibs.resources.request.cpu  }}
+            cpu: {{ .Values.mountPGLibs.resources.request.cpu | quote }}
+            {{- end }}
+            {{- if .Values.mountPGLibs.resources.request.memory  }}
+            memory: {{ .Values.mountPGLibs.resources.request.memory | quote }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        volumeMounts:
+        - name: new-postgres
+          mountPath: "/new-postgres"
+        command:
+        - cp
+        - -r
+        - /srv/postgresql
+        - /new-postgres/postgresql
+      {{ end }}
+      {{- if and .Values.SSL.enabled .Values.SSL.tlscrt .Values.SSL.tlskey }}
+      # the tls.crt and tls.key are used for SSL, it must not have group or world permissions.
+      # Because there is no way to configure this within the yaml we first start an init container which copies the mounted key          to the data directory and adjusts permissions where the postgres container will find it.
+      - name: database-init
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.resources.enabled }}
+        resources:
+          {{- if .Values.resources.limits.enabled }}
+          limits:
+            {{- if .Values.resources.limits.cpu  }}
+            cpu: {{ .Values.resources.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.limits.memory  }}
+            memory: {{ .Values.resources.limits.memory | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.resources.request.enabled }}
+          requests:
+            {{- if .Values.resources.request.cpu  }}
+            cpu: {{ .Values.resources.request.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.request.memory  }}
+            memory: {{ .Values.resources.request.memory | quote }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        volumeMounts:
+          - name: secret-volume
+            mountPath: /etc/secret-volume
+          - name: certs-volume
+            mountPath: /tmp/certs-volume
+        command:
+          - /bin/bash
+          - -c
+          - |
+            #!/bin/bash
+            set -e
+            cp /etc/secret-volume/postgres.tls.key /tmp/certs-volume/tls.key
+            cp /etc/secret-volume/postgres.tls.crt /tmp/certs-volume/tls.crt
+            chmod 0600 /tmp/certs-volume/tls.key
+            chmod 0600 /tmp/certs-volume/tls.crt
+      {{ end }}
+      containers:
+      - name: database
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.resources.enabled }}
+        resources:
+          {{- if .Values.resources.limits.enabled }}
+          limits:
+            {{- if .Values.resources.limits.cpu  }}
+            cpu: {{ .Values.resources.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.limits.memory  }}
+            memory: {{ .Values.resources.limits.memory | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.resources.request.enabled }}
+          requests:
+            {{- if .Values.resources.request.cpu  }}
+            cpu: {{ .Values.resources.request.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.request.memory  }}
+            memory: {{ .Values.resources.request.memory | quote }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /liveness
+            port: 8008
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /readiness
+            port: 8008
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+        {{- end }}
+        ports:
+        - containerPort: 8008
+          protocol: TCP
+          name: ctl
+        - containerPort: 64000
+          protocol: TCP
+          name: postgresql
+        env:
+        - name: PRINTENV
+          value: {{ .Values.printEnv | quote }}
+        - name: PGSSL
+        {{- if .Values.SSL.enabled}}
+          {{- if and .Values.SSL.tlscrt .Values.SSL.tlskey}}
+          value: "/tmp/certs-volume"
+          {{- else}}
+          value: "YES"
+          {{- end}}
+        {{- else}}
+          value: "NO"
+        {{- end}}
+        {{- if and .Values.SSL.enabled .Values.SSL.tlscrt}}
+        - name: PGSSLCRT
+          value: "tls.crt"
+        {{- end}}
+        {{- if and .Values.SSL.enabled .Values.SSL.tlskey}}
+        - name: PGSSLKEY
+          value: "tls.key"
+        {{- end}}
+        - name: PGBACKUP_ENCRYPT
+          value: {{ .Values.encryptBackupWal.enabled | quote }}
+        {{- if .Values.pg_wal_level }}
+        - name: PG_WAL_LEVEL
+          value: {{ .Values.pg_wal_level | quote }}
+        {{- end }}
+        {{- if and .Values.persistence.enabled .Values.persistence.wal.enabled }}
+        - name: PGWALDIR
+          value: "/srv/postgresql/wal/active"
+        {{- end }}
+        {{- if .Values.parameters }}
+        - name: PARAMETERS
+          value: {{ .Values.parameters | toJson | quote }}
+        {{- end }}
+        {{- if .Values.slots }}
+        - name: SLOTS
+          value: {{ .Values.slots | toJson | quote }}
+        {{- end }}
+        - name: PGWALARCH
+        {{- if .Values.walArchiving.enabled}}
+          value: "YES"
+        {{- else }}
+          value: "NO"
+        {{- end }}
+        {{- if and .Values.walArchiving.enabled (ne .Values.walArchiving.storage "s3")}}
+        - name: PGWALARCHDEST
+          value: {{ .Values.walArchiving.fs.targetdir | quote }}
+        {{- end }}
+        {{- if and .Values.walArchiving.enabled (eq .Values.walArchiving.storage "s3") }}
+        - name: PGWALARCH_S3_ENABLED
+          value: "true"
+        - name: S3_SUB_FOLDER
+          value: {{ .Values.walArchiving.s3.subfolder | quote }}
+        - name: S3_HOST_ALIAS
+          value: {{ .Values.s3.hostAlias | quote }}
+        - name: S3_BUCKET_NAME
+          value: {{ .Values.walArchiving.s3.bucketName | quote }}
+        - name: S3_HOST
+          value: {{ .Values.s3.host | quote }}
+        {{- if .Values.s3.insecure }}
+        - name: S3_INSECURE
+          value: {{ .Values.s3.insecure | quote }}
+        {{- end}}
+        {{- if .Values.s3.debug }}
+        - name: S3_DEBUG
+          value: {{ .Values.s3.debug | quote }}
+        {{- end}}
+        - name: S3_ACCESS_KEY
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.s3.accesskey
+          {{- else }}
+          value: {{ .Values.s3.accesskey | quote }}
+          {{- end }}
+        - name: S3_SECRET_KEY
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.s3.secretkey
+          {{- else }}
+          value: {{ .Values.s3.secretkey | quote }}
+          {{- end }}
+        {{- end }}
+        - name: PGDATABASE
+          value: {{.Values.DBName}}
+        {{- if .Values.initdbScripts.enabled }}
+        - name: PGINIT
+          value: "/srv/postgresql/home/postgres/dbscripts/custom/{{ .Values.initdbScripts.name }}"
+        {{- end }}
+        - name: PGDBADM
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.dbadm.username
+          {{- else}}
+          value: {{ .Values.dbusers.dbadm.username }}
+          {{- end }}
+        - name: PGDBADMPW
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.dbadm.password
+          {{- else}}
+          value: {{ .Values.dbusers.dbadm.password }}
+          {{- end }}
+        - name: PGMON
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.pgmon.username
+          {{- else}}
+          value: {{ .Values.dbusers.pgmon.username }}
+          {{- end }}
+        - name: PGMONPW
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.pgmon.password
+          {{- else}}
+          value: {{ .Values.dbusers.pgmon.password }}
+          {{- end }}
+        {{- if and .Values.dbusers.debezium.username .Values.dbusers.debezium.password }}
+        - name: PGDEBEZIUM
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.debezium.username
+          {{- else}}
+          value: {{ .Values.dbusers.debezium.username }}
+          {{- end }}
+        - name: PGDEBEZIUMPW
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.debezium.password
+          {{- else}}
+          value: {{ .Values.dbusers.debezium.password }}
+          {{- end }}
+        {{- end }}
+        - name: PGAUDIT
+          value: {{ .Values.pgaudit.enabled | quote }}
+        {{- if .Values.dbusers.dataCatalog.password }}
+        - name: PGDATACATALOGPW
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.dataCatalog.password
+          {{- else }}
+          value: {{ .Values.dbusers.dataCatalog.password }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.pgconnectionconfig.enabled }}
+        - name: PGMAXCONNECTIONS
+          value: "{{ .Values.pgconnectionconfig.maxconnections }}"
+        {{- end }}
+        {{- if .Values.pgmemoryresources.enabled }}
+        - name: PGSHAREDBUFFERS
+          value: "{{ .Values.pgmemoryresources.sharedbuffers }}"
+        {{- end }}
+        - name: QUERY_MONITORING
+          value: "{{ .Values.pgmonitoring.queryMonitoring.enabled }}"
+### now mandatory
+        - name: PGBACKUPUSER
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.backupuser.username
+          {{- else }}
+          value: {{ .Values.dbusers.backup.username }}
+          {{- end }}
+        - name: PGBACKUPUSERPW
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.backupuser.password
+          {{- else }}
+          value: {{ .Values.dbusers.backup.password }}
+          {{- end }}
+#### new
+        - name: PATRONIUSERPW
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.patroniuser.password
+          {{- else }}
+          value: {{ .Values.dbusers.patroni.password }}
+          {{- end }}
+
+#### optional
+        {{- if .Values.PGPWENCRYPT }}
+        - name: PGPWENCRYPT
+          value: {{ .Values.PGPWENCRYPT | quote }}
+        {{- end }}
+        {{- if .Values.PGDBCREATEPARAMS }}
+        - name: PGDBCREATEPARAMS
+          value: {{ .Values.PGDBCREATEPARAMS | quote }}
+        {{- end }}
+        {{- if .Values.dbusers.dbadm.createSchema.enabled }}
+        - name: PGSCHEMA
+          {{- if .Values.dbusers.dbadm.createSchema.name }}
+          value: {{ .Values.dbusers.dbadm.createSchema.name | quote }}
+          {{- else }}
+          value: {{ .Values.dbusers.dbadm.username | quote }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.PGNETWORK }}
+        - name: PGNETWORK
+          value: {{ .Values.PGNETWORK | quote }}
+        {{- end }}
+        {{- if .Values.PGBACKUPHOST }}
+        - name: PGBACKUPHOST
+          value: {{ .Values.PGBACKUPHOST | quote }}
+        {{- end }}
+        {{- if .Values.PGHARDPROP }}
+        - name: PGHARDPROP
+          value: {{ .Values.PGHARDPROP | quote }}
+        {{- end }}
+        {{- if .Values.PATRONIADDRESS }}
+        - name: PATRONIADDRESS
+          value: {{ .Values.PATRONIADDRESS | quote }}
+        {{- end }}
+        {{- if .Values.PGENABLECSVLOG }}
+        - name: PGENABLECSVLOG
+          value: {{ .Values.PGENABLECSVLOG | quote }}
+        {{- end }}
+        {{- if .Values.PGSYNCCOMMIT }}
+        - name: PGSYNCCOMMIT
+          value: {{ .Values.PGSYNCCOMMIT | quote }}
+        {{- end }}
+        {{- if .Values.PGSYNCSTANDBYNAMES }}
+        - name: PGSYNCSTANDBYNAMES
+          value: {{ .Values.PGSYNCSTANDBYNAMES | quote }}
+        {{- end }}
+        {{- if .Values.RECOVERY_TIMEOUT }}
+        - name: RECOVERY_TIMEOUT
+          value: {{ .Values.RECOVERY_TIMEOUT | quote }}
+        {{- end }}
+        - name: USE_ENDPOINT
+          value: {{ .Values.endpoints.enabled | quote }}
+        - name: USE_BYPASS_API_SERVICE
+          value: {{ .Values.bypassApiService.enabled | quote }}
+        {{- if .Values.mountPGLibs.enabled }}
+        - name: PG_NEW_VERSION
+          value: {{ .Values.mountPGLibs.pgVersion | quote }}
+        {{- end }}
+### new but inherited
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KUBERNETES_LABELS
+          value: '{cluster-name: {{ include "postgres.clustername" . }}}'
+        - name: CLUSTER_SCOPE
+          value: {{ include "postgres.clustername" . }}
+
+{{- if .Values.env }}
+### additional env variables for dbInitScripts
+{{ .Values.env | toYaml | indent 8 }}
+{{- end }}
+        volumeMounts:
+        {{- if .Values.shmVolume.enabled }}
+        - name: dshm
+          mountPath: /dev/shm
+        {{- end }}
+        {{- if and .Values.walArchiving.enabled (eq .Values.walArchiving.storage "fs") }}
+        - name: {{ include "postgres.name" . }}-walarchiving
+          mountPath: {{ .Values.walArchiving.fs.targetdir | quote }}
+        {{- end }}
+        {{- if .Values.mountPGLibs.enabled }}
+        - name: new-postgres
+          mountPath: "/new-postgres"
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+{{- if .Values.persistence.PVCName }}
+        - name: {{ .Values.persistence.PVCName }}
+{{- else }}
+        - name: {{ include "postgres.fullname" . }}
+{{- end }}
+          mountPath: "/srv/postgresql/volume"
+        {{- end }}
+        {{- if and .Values.persistence.enabled .Values.persistence.wal.enabled }}
+{{- if .Values.persistence.wal.PVCName }}
+        - name: {{ .Values.persistence.wal.PVCName }}
+{{- else }}
+        - name: {{ include "postgres.fullname" . }}-active-wal
+{{- end }}
+          mountPath: "/srv/postgresql/wal"
+        {{- end }}
+        {{- if .Values.initdbScripts.enabled }}
+        - name: initsql
+          mountPath: /srv/postgresql/home/postgres/dbscripts/custom
+        {{- end }}
+        {{- if and .Values.SSL.enabled .Values.SSL.tlscrt .Values.SSL.tlskey }}
+        - name: certs-volume
+          mountPath: /tmp/certs-volume
+        {{- end }}
+        {{- if and .Values.decryptBackupWal.enabled .Values.decryptBackupWal.privateKey }}
+        - name: privatekey-volume
+          mountPath: /srv/postgresql/privatekey
+        {{- end }}
+        {{- if and .Values.encryptBackupWal.enabled .Values.encryptBackupWal.publicKey }}
+        - name: publickey-volume
+          mountPath: /srv/postgresql/publickey
+        {{- end }}
+      {{- if .Values.pgmonitoring.enabled }}
+      - name: pgmonitoring
+        image: {{ .Values.pgmonitoring.image.repository }}:{{ .Values.pgmonitoring.image.tag }}
+        imagePullPolicy: {{ .Values.pgmonitoring.image.pullPolicy }}
+        {{- if .Values.pgmonitoring.resources.enabled }}
+        resources:
+          {{- if .Values.pgmonitoring.resources.limits.enabled }}
+          limits:
+            {{- if .Values.pgmonitoring.resources.limits.cpu  }}
+            cpu: {{ .Values.pgmonitoring.resources.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.pgmonitoring.resources.limits.memory  }}
+            memory: {{ .Values.pgmonitoring.resources.limits.memory | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.pgmonitoring.resources.request.enabled }}
+          requests:
+            {{- if .Values.pgmonitoring.resources.request.cpu  }}
+            cpu: {{ .Values.pgmonitoring.resources.request.cpu | quote }}
+            {{- end }}
+            {{- if .Values.pgmonitoring.resources.request.memory  }}
+            memory: {{ .Values.pgmonitoring.resources.request.memory | quote }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        env:
+        - name: PG_EXPORTER_EXTEND_QUERY_PATH
+          value: "/etc/config/queries.yaml"
+        - name: DATA_SOURCE_URI
+          {{- if .Values.SSL.enabled}}
+          value: "127.0.0.1:64000/{{ .Values.DBName}}?sslmode=require"
+          {{- else}}
+          value: "127.0.0.1:64000/{{ .Values.DBName}}?sslmode=disable"
+          {{- end }}
+        - name: DATA_SOURCE_USER
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.pgmon.username
+          {{- else}}
+          value: {{ .Values.dbusers.pgmon.username }}
+          {{- end }}
+        - name: DATA_SOURCE_PASS
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.pgmon.password
+          {{- else}}
+          value: {{ .Values.dbusers.pgmon.password }}
+          {{- end }}
+        volumeMounts:
+        - name: config-volume
+          readOnly: true
+          mountPath: /etc/config
+      {{- end }}
+
+      {{- if or .Values.securityContext.setuid .Values.securityContext.setgid }}
+      securityContext:
+        {{- if .Values.securityContext.setuid}}
+        runAsUser: {{ .Values.securityContext.runAsUser | default 987 }}
+        {{- end }}
+        {{- if .Values.securityContext.setgid }}
+        fsGroup: {{ .Values.securityContext.fsGroup | default 987}}
+        runAsGroup: {{ .Values.securityContext.runAsGroup | default 987 }}
+        {{- end }}
+        fsGroupChangePolicy: {{ .Values.securityContext.fsGroupChangePolicy | default "OnRootMismatch"}}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      volumes:
+      {{- if .Values.shmVolume.enabled }}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      {{- end }}
+      - name: config-volume
+        configMap:
+          name: {{ include "postgres.clustername" . }}-pg-exporter-queries
+      {{- if and .Values.walArchiving.enabled (eq .Values.walArchiving.storage "fs") }}
+      - name: {{ include "postgres.name" . }}-walarchiving
+      {{- if .Values.walArchiving.fs.volume.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ include "postgres.name" . }}-walarchiving
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      {{- end }}
+      {{- if and .Values.SSL.enabled .Values.SSL.tlscrt .Values.SSL.tlskey }}
+      - name: secret-volume
+        secret:
+          secretName: {{ include "postgres.secretName" . }}
+      - name: certs-volume
+        emptyDir: {}
+      {{- end }}
+      {{- if and .Values.decryptBackupWal.enabled .Values.decryptBackupWal.privateKey }}
+      - name: privatekey-volume
+        secret:
+          secretName: {{ include "postgres.gpgSecretName" . }}
+      {{- end }}
+      {{- if and .Values.encryptBackupWal.enabled .Values.encryptBackupWal.publicKey }}
+      - name: publickey-volume
+        secret:
+          secretName: {{ include "postgres.secretName" . }}
+          items:
+          - key: encryptBackupWal.keyId
+            path: encryptBackupWal.keyId
+          - key: encryptBackupWal.publicKey
+            path: encryptBackupWal.publicKey
+      {{- end }}
+      {{- if .Values.mountPGLibs.enabled }}
+      - name: new-postgres
+        emptyDir: {}
+      {{- end}}
+      {{- if .Values.initdbScripts.enabled }}
+      - name: initsql
+        configMap:
+          name: {{ include "postgres.fullname" . }}
+      {{- end}}
+{{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+{{- if .Values.persistence.PVCName }}
+      name: {{ .Values.persistence.PVCName }}
+{{- else }}
+      name: {{ include "postgres.fullname" . }}
+{{- end }}
+    spec:
+{{- if .Values.persistence.storageClass }}
+      storageClassName: {{ .Values.persistence.storageClass }}
+{{- end }}
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size }}
+{{- if and .Values.persistence.enabled .Values.persistence.wal.enabled }}
+  - metadata:
+{{- if .Values.persistence.wal.PVCName }}
+      name: {{ .Values.persistence.wal.PVCName }}
+{{- else }}
+      name: {{ include "postgres.fullname" . }}-active-wal
+{{- end }}
+    spec:
+{{- if .Values.persistence.wal.storageClass }}
+      storageClassName: {{ .Values.persistence.wal.storageClass }}
+{{- end }}
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ .Values.persistence.wal.size }}
+{{- end }}
+---
+{{- end }}
+{{- if and .Values.walArchiving.enabled (eq .Values.walArchiving.storage "fs") }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "postgres.name" . }}-walarchiving
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+spec:
+  accessModes:
+  {{- range .Values.walArchiving.fs.volume.accessModes }}
+  - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.walArchiving.fs.volume.size }}
+  storageClassName: {{ .Values.walArchiving.fs.volume.storageClass }}
+---
+{{- end }}
+{{- end }}

@@ -1,0 +1,33 @@
+{{- if .Values.external.grafana.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    {{- include "dhc-monitoring-netpols.metadata.labels" . | nindent 4}}
+  name: {{ template "dhc-monitoring-netpols.fullname" . }}-grafana-incoming
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "dhc-monitoring-netpols.grafana.matchLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+{{- if .Values.external.grafana.ingresses }}
+  # Allow from specific ports or namespaces to port 3000
+  ingress:
+  {{- range .Values.external.grafana.ingresses }}
+  - from:
+{{ .from | toYaml | indent 4 }}
+    ports:
+    {{- if .port }}
+      - port: {{.port}}
+    {{- else }}
+      - port: 3000
+    {{- end }}
+  {{- end -}}
+{{- else }}
+  # Allow traffic from all pods to port 3000
+  ingress:
+  - ports: 
+    - port: {{.Values.external.grafana.port}}
+{{- end }}
+{{- end }}
