@@ -282,7 +282,7 @@ public class DataikuController {
 			if(collaborators!= null && !collaborators.isEmpty()) {
 				for(CollaboratorDetailsDto collab : collaborators) {
 					UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
-					if(collabDetails==null ) {
+					if(collabDetails==null || collabDetails.getData()==null || collabDetails.getData().getUserId()==null ) {
 						MessageDescription errMsg = new MessageDescription("Collaborator " + collab.getUserId() + " or privileges not found, cannot add to dataiku project");
 						log.error("Collaborator {} or privileges not found, cannot update dataiku project", collab.getUserId());
 						errors.add(errMsg);
