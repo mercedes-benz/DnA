@@ -385,7 +385,7 @@ data:
     user: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#airflowdbuser | squote>
     pass: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
-    host: airflow-db.airflow.svc.cluster.local
+    host: airflow-db.test-dna-airflow.svc.cluster.local
     port: 64000
     db: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
