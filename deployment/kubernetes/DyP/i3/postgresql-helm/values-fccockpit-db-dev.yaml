@@ -108,7 +108,7 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    cpu: 2
+    cpu: 800m
     memory: 1Gi
   request:
     enabled: true
