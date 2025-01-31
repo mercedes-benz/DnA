@@ -14,7 +14,7 @@ metadata:
     project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: {{ .Values.env }}-dna-cs-apps-services
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
