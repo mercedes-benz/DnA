@@ -133,7 +133,8 @@ ingress:
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'    
-
+      acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
+      
     # The path for the web Ingress
     path: "/"
 
