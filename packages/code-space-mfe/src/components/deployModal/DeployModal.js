@@ -91,7 +91,7 @@ const DeployModal = (props) => {
   const [oneApiVersionShortNameError, setOneApiVersionShortNameError] = useState('');
   const [cookieSelected, setCookieSelected] = useState(false);
   // const [isSecuredWithCookie, setIsSecuredWithCookie] = useState(false);
-  const [deploymentType, setDeploymentType] = useState('api');
+  const [deploymentType, setDeploymentType] = useState('API');
   const [isUiRecipe, setIsUiRecipe] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
@@ -149,8 +149,8 @@ const DeployModal = (props) => {
 
   useEffect(() => {
     setRedirectUriError('');
-    deploymentType==='api' ? setIsUiRecipe(false) : setIsUiRecipe(true);
-    deploymentType==='api'? setRedirectUri('') : setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+    deploymentType==='API' ? setIsUiRecipe(false) : setIsUiRecipe(true);
+    deploymentType==='API'? setRedirectUri('') : setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
   }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -320,7 +320,7 @@ const DeployModal = (props) => {
         redirectUri: redirectUri || '',
         ignorePaths: ignorePath.join(',') || '',
         scope: secureWithIAMSelected ? scope.join(' ') : '',
-        isApiRecipe: deploymentType === 'api',
+        isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         isSecuredWithCookie : cookieSelected || false,
       };
@@ -418,10 +418,10 @@ const DeployModal = (props) => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value="api"
+                        value="API"
                         name="deploymentType"
                         onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
-                        checked={deploymentType === 'api'}
+                        checked={deploymentType === 'API'}
                       />
                     </span>
                     <span className="label">API recipe</span>
@@ -431,10 +431,10 @@ const DeployModal = (props) => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value="ui"
+                        value="UI"
                         name="deploymentType"
                         onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
-                        checked={deploymentType === 'ui'}
+                        checked={deploymentType === 'UI'}
                       />
                     </span>
                     <span className="label">UI recipe</span>
@@ -492,7 +492,7 @@ const DeployModal = (props) => {
                         </span>
                       </label>
                     </div>
-                    {deploymentType === 'api' && (
+                    {deploymentType === 'API' && (
                       <>
                         <div>OR</div>
                         <div>
@@ -735,7 +735,7 @@ const DeployModal = (props) => {
                         </span>
                       </label>
                     </div>
-                    {deploymentType === 'api' && (
+                    {deploymentType === 'API' && (
                       <>
                         <div>OR</div>
                         <div>
@@ -831,7 +831,7 @@ const DeployModal = (props) => {
                           </div>
                           <div>
                             <div className={classNames(Styles.flexLayout)}>
-                              <div>
+                              <div className={classNames(Styles.redirectFlexLayout)}>
                                 <TextBox
                                   type="text"
                                   label={'Redirect Uri'}
@@ -845,7 +845,7 @@ const DeployModal = (props) => {
                                     setRedirectUriError('');
                                   }}
                                 />
-                                <span><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </span>
+                                <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
                               </div>
                               <Tags
                                 title={'Ignore Paths'}
