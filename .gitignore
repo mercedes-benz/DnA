@@ -18,7 +18,6 @@ coverage/
 *.dmg
 *.gz
 *.iso
-*.jar
 #gradle-wrapper.jar
 *.rar
 *.tar

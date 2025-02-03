@@ -1,35 +1,81 @@
 .deployModal {
-    .flexLayout {
-      display: flex;
-      justify-content: space-between;
-  
-      >div {
-        width: calc(50% - 7px);
-      }
+  .wrapper {
+    background: #1C2026 !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+    padding: 20px 20px;
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+
+    >div {
+      width: calc(50% - 7px);
     }
-  
-    .disabledDiv {
-      opacity: 0.6;
-      pointer-events: none;
-    }
-  
-    .configLink {
-      cursor: pointer;
-  
-      a {
-        color: #00ADEF !important;
-      }
-    }
-  
-    .createTechUserWrapper {
-      padding-top: 33px;
-    }
-  
-    .saveSettingsBtn {
-      background-color: #00adef;
-      padding: 0 15px;
-      font-size: var(--font-size-default);
-      letter-spacing: 1px;
-      margin-right: 12px;
+
+    .oneAPILink{
+      align-self: center;
     }
   }
+
+  .threeColumnFlexLayout {
+    display: flex;
+    justify-content: space-between;
+
+    >div:first-child {
+      width: calc(55% - 7px);
+    }
+
+    >div:nth-child(2) {
+      width: calc(5% - 7px);
+      align-self: center;
+    }
+
+    >div:last-child {
+      width: calc(40% - 7px);
+    }
+  }
+
+  .disabledDiv {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .configLink {
+    cursor: pointer;
+
+    a {
+      color: #00ADEF !important;
+    }
+  }
+
+  .createTechUserWrapper {
+    padding-top: 33px;
+  }
+
+  .saveSettingsBtn {
+    background-color: #00adef;
+    padding: 0 15px;
+    font-size: var(--font-size-default);
+    letter-spacing: 1px;
+    margin-right: 12px;
+  }
+
+  .disableText {
+    color: #697582;
+    font-size: var(--font-size-small);
+  }
+
+  .infoIcon {
+    font-size: var(--font-size-icon-medium);
+    i {
+        cursor: pointer;
+        color: #697582 !important;
+
+        &:hover {
+            color: #00adef !important;
+        }
+    }
+  }
+}

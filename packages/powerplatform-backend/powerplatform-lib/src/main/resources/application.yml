@@ -67,7 +67,7 @@ powerapps:
     developerlicense: ${POWERAPP_DEVELOPERLICENSE_DEFAULT:XXXX}
     powerBiApproverKey: ${POWERAPP_APPROVERKEY_DEFAULT:XKEYX}
     powerBiApproverId: ${POWERAPP_APPROVERID_DEFAULT:XIDX}
-    
+
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
