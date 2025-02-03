@@ -107,6 +107,7 @@ codeServer:
   collab.pid: ${COLLAB_PID:YOUR_COLLAB_PID}
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
   codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
+  technical.id: ${CODE_SERVER_TECHNICAL_USER:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
