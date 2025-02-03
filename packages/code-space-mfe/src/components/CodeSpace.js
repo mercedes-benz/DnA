@@ -182,19 +182,19 @@ const CodeSpace = (props) => {
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const isIAMRecipe =
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
+  // const isIAMRecipe =
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const isUIRecipe = 
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
+  // const isUIRecipe = 
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
   
     const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
 
@@ -599,7 +599,7 @@ const CodeSpace = (props) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {(isOwner && !deployingInProgress && isIAMRecipe) && (
+                      {(isOwner && !deployingInProgress) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -1182,8 +1182,8 @@ const CodeSpace = (props) => {
         <DeployModal
           userInfo={props.user}
           codeSpaceData={codeSpaceData}
-          enableSecureWithIAM={isIAMRecipe}
-          isUIRecipe={isUIRecipe}
+          // enableSecureWithIAM={isIAMRecipe}
+          // isUIRecipe={isUIRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}

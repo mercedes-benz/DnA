@@ -16,6 +16,7 @@ import { trackEvent } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import { Envs } from '../../Utility/envs';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 // import TextBox from '../../shared/textBox/TextBox';
 
@@ -71,6 +72,7 @@ const DeployModal = (props) => {
   const [ignorePath, setIgnorePath] = useState([]);
   // const [ignorePathError, setIgnorePathError] = useState(false);
   const [redirectUri, setRedirectUri] = useState('');
+  const [redirectUriError, setRedirectUriError] = useState('');
   const scopes = [
     { id: '1', name: 'openid' },
     { id: '2', name: 'autorization_group' },
@@ -88,7 +90,9 @@ const DeployModal = (props) => {
   const [oneApiVersionShortName, setOneApiVersionShortName] = useState('');
   const [oneApiVersionShortNameError, setOneApiVersionShortNameError] = useState('');
   const [cookieSelected, setCookieSelected] = useState(false);
-  const [isSecuredWithCookie, setIsSecuredWithCookie] = useState(false);
+  // const [isSecuredWithCookie, setIsSecuredWithCookie] = useState(false);
+  const [deploymentType, setDeploymentType] = useState('API');
+  const [isUiRecipe, setIsUiRecipe] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -97,12 +101,14 @@ const DeployModal = (props) => {
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
 
   useEffect(() => {
+    Tooltip.defaultSetup();
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
     setClientId('');
     setClientIdError('');
     setClientSecret('');
     setClientSecretError('');
     setOneApiVersionShortNameError('');
+    setRedirectUriError('');
     setChangeSelected(false);
     // setIAMTechnicalUserID('');
     getPublishedConfig(props?.codeSpaceData?.id, 'int');
@@ -121,7 +127,7 @@ const DeployModal = (props) => {
         setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
         setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
         setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
-        setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
+        // setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -129,6 +135,7 @@ const DeployModal = (props) => {
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
     // setVault();
+    return Tooltip.clear();
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -139,6 +146,16 @@ const DeployModal = (props) => {
       prodDeployLogs.length && setBranchValue([prodDeployLogs[(prodDeployLogs.length)-1]?.branch]);
     }
   }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setRedirectUriError('');
+    deploymentType==='API' ? setIsUiRecipe(false) : setIsUiRecipe(true);
+    deploymentType==='API'? setRedirectUri('') : setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+  }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [secureWithIAMSelected]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
@@ -188,6 +205,7 @@ const DeployModal = (props) => {
     setClientSecret('');
     setClientSecretError('');
     setOneApiVersionShortNameError('');
+    setRedirectUriError('');
     setChangeSelected(false);
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
@@ -198,7 +216,7 @@ const DeployModal = (props) => {
       setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
       // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
       setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
-      setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
+      // setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
     } else {
       setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
       getPublishedConfig(props?.codeSpaceData?.id, 'prod');
@@ -206,7 +224,7 @@ const DeployModal = (props) => {
       setOneApiVersionShortName(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName || '');
       // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
       setCookieSelected(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
-      setIsSecuredWithCookie(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
+      // setIsSecuredWithCookie(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
     }
   };
 
@@ -249,9 +267,9 @@ const DeployModal = (props) => {
     if (
       secureWithIAMSelected &&
       (((deployEnvironment === 'staging'
-        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired && !cookieSelected)
-        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired && !cookieSelected)) ||
-        changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
+        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
+        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
+        changeSelected)) &&
       clientSecret.length === 0
     ) {
       formValid = false;
@@ -260,13 +278,24 @@ const DeployModal = (props) => {
     if (
       secureWithIAMSelected && 
       (((deployEnvironment === 'staging'
-        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired && !cookieSelected)
-        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired && !cookieSelected)) ||
-        changeSelected) || (!cookieSelected && isSecuredWithCookie)) &&
+        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
+        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
+        changeSelected)) &&
       clientSecret.length === 0
     ) {
       formValid = false;
       setClientSecretError('*Missing Entry');
+    }
+    if (
+      secureWithIAMSelected && 
+      (((deployEnvironment === 'staging'
+        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
+        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
+        changeSelected)) && isUiRecipe &&
+      redirectUri.length === 0
+    ) {
+      formValid = false;
+      setRedirectUriError('*Missing Entry');
     }
     if(branchValue.length === 0){
       formValid = false;
@@ -291,7 +320,7 @@ const DeployModal = (props) => {
         redirectUri: redirectUri || '',
         ignorePaths: ignorePath.join(',') || '',
         scope: secureWithIAMSelected ? scope.join(' ') : '',
-        isApiRecipe: props.enableSecureWithIAM,
+        isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         isSecuredWithCookie : cookieSelected || false,
       };
@@ -346,7 +375,7 @@ const DeployModal = (props) => {
             The code from your workspace will be deployed and is run in a container and you will get the access url
             after the deployment.
           </p>
-          <div className={Styles.flexLayout}>
+          <div className={Styles.threeColumnLayout}>
             <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
                 <label className="input-label">Deploy Environment</label>
@@ -381,6 +410,39 @@ const DeployModal = (props) => {
               </div>
             </div>
             <div>
+              <div id="deployTypeContainer" className="input-field-group">
+                <label className="input-label">Deployment Type</label>
+                <div>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="API"
+                        name="deploymentType"
+                        onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
+                        checked={deploymentType === 'API'}
+                      />
+                    </span>
+                    <span className="label">API recipe</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                  <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="UI"
+                        name="deploymentType"
+                        onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
+                        checked={deploymentType === 'UI'}
+                      />
+                    </span>
+                    <span className="label">UI recipe</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div>
               <Tags
                 title={'Code Branch to Deploy'}
                 max={1}
@@ -396,7 +458,7 @@ const DeployModal = (props) => {
               />
             </div>
           </div>
-          {(props.enableSecureWithIAM || props.isUIRecipe) && (
+          {/* {(props.enableSecureWithIAM || props.isUIRecipe) && ( */}
             <>
               {deployEnvironment === 'staging' && (
                 <>
@@ -416,7 +478,7 @@ const DeployModal = (props) => {
                         </span>
                         <span className={classNames('label', oneApiSelected ? Styles.disableText : '')}>
                           Secure with your own IAM Credentials{' '}
-                          {isOwner && !props.isUIRecipe && (
+                          {isOwner && !isUiRecipe && (
                             <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                               <a target="_blank" rel="noreferrer">
                                 {CODE_SPACE_TITLE} (
@@ -430,7 +492,7 @@ const DeployModal = (props) => {
                         </span>
                       </label>
                     </div>
-                    {props.enableSecureWithIAM && (
+                    {deploymentType === 'API' && (
                       <>
                         <div>OR</div>
                         <div>
@@ -452,7 +514,7 @@ const DeployModal = (props) => {
                       </>
                     )}
                   </div>
-                  {!props.isUIRecipe && (
+                  {!isUiRecipe && (
                     <span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
@@ -465,7 +527,7 @@ const DeployModal = (props) => {
                   )}
                   {secureWithIAMSelected && (
                     <div>
-                      {!props.isUIRecipe && (<div className={Styles.flexLayout}>
+                      {!isUiRecipe && (<div className={Styles.flexLayout}>
                         <div className={Styles.infoIcon}>
                           <label className={classNames("switch", cookieSelected ? 'on' : '')}>
                             <span className="label" style={{ marginRight: '5px' }}>
@@ -483,9 +545,9 @@ const DeployModal = (props) => {
                             </span>
                           </label>
                         </div>
-                        <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
+                        <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'OIDC based authentication enabled (default)'}</label></div>
                       </div>)}
-                      {!cookieSelected ? (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected || (!cookieSelected && isSecuredWithCookie) ? (
+                      { (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -526,17 +588,23 @@ const DeployModal = (props) => {
                           </div>
                           <div>
                             <div className={classNames(Styles.flexLayout)}>
-                              <TextBox
-                                type="text"
-                                label={'Redirect Uri'}
-                                placeholder={`eg: /${props.codeSpaceData.workspaceId}/cd`}
-                                value={redirectUri}
-                                required={false}
-                                maxLength={500}
-                                onChange={(e) => {
-                                  setRedirectUri(e.currentTarget.value);
-                                }}
-                              />
+                              <div className={classNames(Styles.redirectFlexLayout)}>
+                                <TextBox
+                                  type="text"
+                                  label={'Redirect Uri'}
+                                  placeholder={`eg: /${projectDetails?.projectName}/int`}
+                                  value={redirectUri}
+                                  required={isUiRecipe}
+                                  errorText={redirectUriError}
+                                  maxLength={200}
+                                  onChange={(e) => {
+                                    setRedirectUri(e.currentTarget.value);
+                                    setRedirectUriError('');
+                                  }}
+                                />
+                                <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
+                              </div>
+                              
                               <Tags
                                 title={'Ignore Paths'}
                                 max={100}
@@ -572,7 +640,7 @@ const DeployModal = (props) => {
                             Change Credentials
                           </button>
                         </div>
-                      )) : ''}
+                      ))}
                     </div>
                   )}
                   {oneApiSelected && (
@@ -653,7 +721,7 @@ const DeployModal = (props) => {
                         </span>
                         <span className={classNames('label', oneApiSelected ? Styles.disableText : '')}>
                           Secure with your own IAM Credentials{' '}
-                          {isOwner && !props.isUIRecipe && (
+                          {isOwner && !isUiRecipe && (
                             <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
                               <a target="_blank" rel="noreferrer">
                                 {CODE_SPACE_TITLE} (
@@ -667,7 +735,7 @@ const DeployModal = (props) => {
                         </span>
                       </label>
                     </div>
-                    {props.enableSecureWithIAM && (
+                    {deploymentType === 'API' && (
                       <>
                         <div>OR</div>
                         <div>
@@ -689,7 +757,7 @@ const DeployModal = (props) => {
                       </>
                     )}
                   </div>
-                  {!props.isUIRecipe && (
+                  {!isUiRecipe && (
                     <span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
@@ -702,7 +770,7 @@ const DeployModal = (props) => {
                   )}
                   {secureWithIAMSelected && (
                     <div>
-                      {!props.isUIRecipe && (<div className={Styles.flexLayout}>
+                      {!isUiRecipe && (<div className={Styles.flexLayout}>
                         <div className={Styles.infoIcon}>
                           <label className={classNames("switch", cookieSelected ? 'on' : '')}>
                             <span className="label" style={{ marginRight: '5px' }}>
@@ -722,7 +790,7 @@ const DeployModal = (props) => {
                         </div>
                         <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
                       </div>)}
-                      {!cookieSelected ? (!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected || (!cookieSelected && isSecuredWithCookie) ? (
+                      {(!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected  ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -763,17 +831,22 @@ const DeployModal = (props) => {
                           </div>
                           <div>
                             <div className={classNames(Styles.flexLayout)}>
-                              <TextBox
-                                type="text"
-                                label={'Redirect Uri'}
-                                placeholder={`eg: /${props.codeSpaceData.workspaceId}/cd`}
-                                value={redirectUri}
-                                required={false}
-                                maxLength={200}
-                                onChange={(e) => {
-                                  setRedirectUri(e.currentTarget.value);
-                                }}
-                              />
+                              <div className={classNames(Styles.redirectFlexLayout)}>
+                                <TextBox
+                                  type="text"
+                                  label={'Redirect Uri'}
+                                  placeholder={`eg: /${projectDetails.projectName}/prod`}
+                                  value={redirectUri}
+                                  required={isUiRecipe}
+                                  errorText={redirectUriError}
+                                  maxLength={200}
+                                  onChange={(e) => {
+                                    setRedirectUri(e.currentTarget.value);
+                                    setRedirectUriError('');
+                                  }}
+                                />
+                                <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
+                              </div>
                               <Tags
                                 title={'Ignore Paths'}
                                 max={100}
@@ -809,7 +882,7 @@ const DeployModal = (props) => {
                             Change Credentials
                           </button>
                         </div>
-                      )) : ''}
+                      ))}
                     </div>
                   )}
                   {oneApiSelected && (
@@ -874,7 +947,7 @@ const DeployModal = (props) => {
                 </>
               )}
             </>
-          )}
+          {/* )} */}
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">

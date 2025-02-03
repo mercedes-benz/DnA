@@ -17,6 +17,35 @@
     .oneAPILink{
       align-self: center;
     }
+
+    .redirectFlexLayout {
+      display: flex;
+      justify-content: space-between;
+  
+      >div:first-child {
+        width: calc(90% - 3px);
+      }
+  
+      >div:last-child {
+        width: calc(10% - 3px);
+        align-self: center;
+      }
+    }
+
+  }
+
+  .threeColumnLayout {
+    display: flex;
+    justify-content: space-between;
+  
+    > div {
+      width: calc(37.5% - 7px); 
+    }
+  
+    // > div:last-child {
+    //   width: calc(25% - 7px);
+    //   align-self: center;
+    // }
   }
 
   .threeColumnFlexLayout {

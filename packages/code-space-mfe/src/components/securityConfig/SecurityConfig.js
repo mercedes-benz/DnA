@@ -328,6 +328,12 @@ export default class SecurityConfig extends React.Component {
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
           <Caption title={title} />
+          <span>
+            <p style={{ color: 'var(--color-orange)' }}>
+              <i className="icon mbc-icon alert circle"></i>
+              Note: These features are currently only enabled for api recipes. They will be made available for the UI recipes in the future.
+            </p>
+          </span>
           <div className={classNames(Styles.publishedConfig)}>
             <button
               className={classNames('btn add-dataiku-container btn-primary', Styles.editOrViewMode)}
