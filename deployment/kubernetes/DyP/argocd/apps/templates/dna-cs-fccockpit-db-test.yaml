@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: fccockpit-db-test
+  name: dna-cs-fccockpit-db-test
   namespace: {{ .Values.namespace }}
   labels:
     name: db
