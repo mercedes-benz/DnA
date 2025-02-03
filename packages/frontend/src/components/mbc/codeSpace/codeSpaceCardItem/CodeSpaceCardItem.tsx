@@ -171,7 +171,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const deleteCodeSpaceAccept = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.deleteCodeSpace(codeSpace.workspaceId)
+    CodeSpaceApiClient.deleteCodeSpace(codeSpace.id)
       .then((res: any) => {
         trackEvent('DnA Code Space', 'Delete', 'Delete code space');
         if (res.success === 'SUCCESS') {
