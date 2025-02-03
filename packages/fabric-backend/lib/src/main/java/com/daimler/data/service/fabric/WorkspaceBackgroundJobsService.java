@@ -115,7 +115,7 @@ public class WorkspaceBackgroundJobsService {
 //		}
 //	}
 	
-	@Scheduled(cron = "0 0/7 * * * *")
+	//@Scheduled(cron = "0 0/7 * * * *")
 	public void updateWorkspacesJob() {	
 		try {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);

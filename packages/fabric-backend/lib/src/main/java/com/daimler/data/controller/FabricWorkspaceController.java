@@ -41,6 +41,7 @@ import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
+import com.daimler.data.service.fabric.WorkspaceBackgroundJobsService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -60,12 +61,18 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private WorkspaceBackgroundJobsService  workspaceBackgroundJobsService;
 	
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
+
+	@Value ("${fabricWorkspaces.technicalUserId}")
+	private String techUserId;
 	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
@@ -770,6 +777,49 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				return new ResponseEntity<>(roleCollection, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
+	}
+
+	@ApiOperation(value = "update all the Workspaces Job.", nickname = "updateWorkspacesJob", notes = "update all the Workspaces Job", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/updateWorkspacesJob",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> updateWorkspacesJob(){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try{
+			CreatedByVO requestUser = this.userStore.getVO();
+			if(!requestUser.getId().equalsIgnoreCase(techUserId)){
+				errors.add(new MessageDescription("Not Authorized to call this API, Bad Request."));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Not Authorized to call this API, Bad Request.");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}else {
+				workspaceBackgroundJobsService.updateWorkspacesJob();
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+		}catch( Exception e){
+			errors.add(new MessageDescription("Exception occured while calling update all the Workspaces Job. "));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Exception occured while calling update all the Workspaces Job : {}", e.getMessage());
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
     

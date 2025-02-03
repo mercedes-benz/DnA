@@ -393,6 +393,29 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/updateWorkspacesJob:
+    post:
+        tags:
+          - "fabric-workspaces"
+        summary: "update all the Workspaces Job."
+        description: "update all the Workspaces Job"
+        operationId: "updateWorkspacesJob"
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
 
 definitions:
   CapacityVO:
