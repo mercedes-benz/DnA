@@ -5,7 +5,7 @@ app:
     replicaCount: 2
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/naas-backend
-      tag: 3.1.12
+      tag: 3.1.13
     secrets:
       name: naas-app-secrets
       jwtKey: null
@@ -65,7 +65,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_prod_k8_role'
+    vault.hashicorp.com/role: dna_prod_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
