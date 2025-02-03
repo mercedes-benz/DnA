@@ -358,6 +358,17 @@ export const ToolsDetailedPageElements = [
         ]
       },
       {
+        "icon": "architecture",
+        "name": "Best Practices",
+        "description": "To plan efficiently and prevent delays, review our connector list early to anticipate risk assessments and streamline your workflow.",
+        "links": [
+          {
+            "title": "Power Platform Available Connectors",
+            "link": `https://fst-confluence.dot.app.corpintra.net/display/FDPDH/Power+Platform+Available+Connectors`
+          },
+        ]
+      },
+      {
         "icon": "profile",
         "name": "support",
         "info": ["Feel free to reach out for more information and personal support by our team. We have a highly skilled and performant team specialized in providing support and development services in the field of Automation, Digitalization and Analytics. We are happy to help you with any open question about the Usage and Costs of the Power Platform. Also we offer a development service."],
