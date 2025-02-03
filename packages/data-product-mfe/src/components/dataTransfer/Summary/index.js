@@ -395,9 +395,7 @@ const Summary = ({ history }) => {
                           <span
                             className={Styles.editicon}
                             onClick={() => {
-                              const url = `/data/datasharing/consume/${dataTransferId}`;
-                              console.log("url", url)
-                              window.location.href = url;
+                              history.push(`/data/datasharing/consume/${dataTransferId}`);
                             }}
                               style={{ cursor: "pointer" }}>
                               <div>
