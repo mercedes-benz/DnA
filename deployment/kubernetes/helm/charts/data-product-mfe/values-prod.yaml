@@ -13,7 +13,7 @@ image:
   pullPolicy: IfNotPresent
   tag: 1.3.4
 imagePullSecrets:
-  - name: imagepullsecret
+  - name: imagepullsecret 
 nameOverride: ''
 fullnameOverride: data-product-mfe
 podSecurityContext:

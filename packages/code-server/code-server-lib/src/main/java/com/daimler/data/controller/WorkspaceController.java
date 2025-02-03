@@ -157,6 +157,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Value("${codeServer.run.collab.admin}")
 	 private boolean runCollab;
+
+	@Value("${codeServer.technical.id}")
+	private String technicalId;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -965,8 +968,8 @@ import org.springframework.beans.factory.annotation.Value;
 				 warnings.add(msg);
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
-			 if (!(vo != null && vo.getWorkspaceOwner() != null
-					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			 if (!((vo != null && vo.getWorkspaceOwner() != null
+					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))|| technicalId.equalsIgnoreCase(userId))) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Not authorized to delete workspace. User does not have privileges.");
@@ -994,6 +997,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("Cannot delete workspace {} as its not created yet. Bad Request", vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			 if(!(technicalId.equalsIgnoreCase(userId) && vo.getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground"))){
 			 if (vo != null && vo.getProjectDetails().getProjectOwner() != null
 					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)
 					 && vo.getProjectDetails().getProjectCollaborators() != null
@@ -1007,6 +1011,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 "You have collaborators in your project. Please transfer your ownership to any one of the collaborator before deleting this project codespace");
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			}
 			 GenericMessage responseMsg = service.deleteById(userId, id);
 			 log.info("User {} deleted workspace {}", userId, vo.getWorkspaceId());
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
@@ -1094,7 +1099,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
-			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public")
 						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
@@ -1168,7 +1173,7 @@ import org.springframework.beans.factory.annotation.Value;
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),isPrivateRecipe);
+					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
