@@ -1,0 +1,42 @@
+{{- if eq .Values.env "prod" }} 
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: matomo-be-db
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: matomo-be-db
+spec:
+  destination:
+    namespace: matomo
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-matomo-be-db-prod.yaml                  
+  project: dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: Endpoints
+      jsonPointers:
+        - /subsets      
+{{- end }}
