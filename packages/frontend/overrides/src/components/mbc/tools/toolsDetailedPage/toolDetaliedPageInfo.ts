@@ -360,7 +360,7 @@ export const ToolsDetailedPageElements = [
       {
         "icon": "architecture",
         "name": "Best Practices",
-        "description": "To plan efficiently and prevent delays, review our connector list early to anticipate risk assessments and streamline your workflow.",
+        "description": "Unlock top Power Platform development tips! Enhance your skills with our expert guide, perfect for both beginners and pros",
         "links": [
           {
             "title": "Power Platform Available Connectors",
