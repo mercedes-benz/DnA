@@ -303,6 +303,7 @@ const Graph = ({user, hostHistory}) => {
         );
       });
     }
+    
   const onAddTableClick = () => {
     dispatch(setBox({ 
       x: 0, 
