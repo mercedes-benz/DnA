@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class CodeServerUserGroupWsDetails {
 
     private String workSpaceId;
-    private String order;
+    private int order;
 
 }

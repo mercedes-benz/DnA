@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,19 +65,26 @@ import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.entities.CodeServerUserGroupNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.CodeServerUserGroupByIdResponseVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupResponseVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
@@ -99,6 +107,7 @@ import com.daimler.data.dto.workspace.RoleCollectionVO;
 import com.daimler.data.dto.workspace.SecurityConfigRequestDto;
 import com.daimler.data.dto.workspace.SecurityConfigResponseDto;
 import com.daimler.data.dto.workspace.TransparencyVO;
+import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
 import com.daimler.data.dto.workspace.UserIdVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
@@ -157,6 +166,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Value("${codeServer.run.collab.admin}")
 	 private boolean runCollab;
+
+	@Autowired
+	 private WorkspaceUserGroupRepository userGroupRepository; 
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -2596,7 +2608,6 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	}
 
-	@Override
 	@ApiOperation(value = "migrate  workspace Project to Aws for a given Id.", nickname = "migrateWorkspace", notes = "migrate workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
@@ -2653,6 +2664,216 @@ import org.springframework.beans.factory.annotation.Value;
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Create new WorkSpace group.", nickname = "createWorkSpaceGroup", notes = "Create new WorkSpace group", response = CodeServerUserGroupResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerUserGroupResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/group/create",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<CodeServerUserGroupResponseVO> createWorkSpaceGroup(@ApiParam(value = "Request Body that contains data required for Create new WorkSpace group " ,required=true )  @Valid @RequestBody CodeServerUserGroupVO request){
+		CodeServerUserGroupResponseVO response = new CodeServerUserGroupResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			if(request.getName() == null || request.getName().isEmpty()){
+				MessageDescription invalidMsg = new MessageDescription("Group name cannot be empty");
+				response.addErrorsItem(invalidMsg);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}else{
+				Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				CodeServerUserGroupNsql entity = entityOptional.get();
+				entity.getData().getGroups().forEach(group -> {
+					if(group.getName().equalsIgnoreCase(request.getName())){
+						MessageDescription invalidMsg = new MessageDescription("Group with name already exists");
+						response.addErrorsItem(invalidMsg);						
+					}
+				});
+				if(response.getErrors() != null && !response.getErrors().isEmpty())
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			}
+			CodeServerUserGroupCollectionVO responsedata = service.createWorkSpaceGroup(request);
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to Create workspcae group");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		} catch (Exception e) {
+			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
+	@Override
+	@ApiOperation(value = "edit  WorkSpace group.", nickname = "editWorkSpaceGroup", notes = "edit WorkSpace group", response = CodeServerUserGroupResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerUserGroupResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/group/edit",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<CodeServerUserGroupResponseVO> editWorkSpaceGroup(@ApiParam(value = "Request Body that contains data required for edit  WorkSpace group " ,required=true )  @Valid @RequestBody UpdateUserGroupRequestVO request){
+		CodeServerUserGroupResponseVO response = new CodeServerUserGroupResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			if(request.getName() == null || request.getName().isEmpty()){
+				MessageDescription invalidMsg = new MessageDescription("Group name cannot be empty");
+				response.addErrorsItem(invalidMsg);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}else{
+				Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				CodeServerUserGroupNsql entity = entityOptional.get();
+				if(!entity.getData().getGroups().stream().anyMatch(i -> i.getGroupId().equalsIgnoreCase(request.getGroupId()))){
+					MessageDescription invalidMsg = new MessageDescription("Group ID does not exist");
+						response.addErrorsItem(invalidMsg);	
+				}
+				entity.getData().getGroups().forEach(group -> {
+					if(group.getName().equalsIgnoreCase(request.getName()) && !group.getGroupId().equalsIgnoreCase(request.getGroupId())){
+						MessageDescription invalidMsg = new MessageDescription("Group with name already exists");
+						response.addErrorsItem(invalidMsg);						
+					}
+				});
+				if(response.getErrors() != null && !response.getErrors().isEmpty())
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			}
+			CodeServerUserGroupCollectionVO responsedata = service.updateWorkSpaceGroup(request);
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to Create workspcae group");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+	@Override
+	@ApiOperation(value = "Get workspace group details.", nickname = "getAllWorkSpaceGroup", notes = "Get workspace group details", response = CodeServerUserGroupResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerUserGroupResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/group/getAll",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<CodeServerUserGroupResponseVO> getAllWorkSpaceGroup(){
+		CodeServerUserGroupResponseVO response = new CodeServerUserGroupResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+						
+			CodeServerUserGroupCollectionVO responsedata = service.getAllWorkSpaceGroup();
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to Create workspcae group");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+	@Override
+	@ApiOperation(value = "Get workspace group details for a given Id.", nickname = "getWorkSpaceGroupById", notes = "Get workspace group details for a given Id.", response = CodeServerUserGroupByIdResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerUserGroupByIdResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/group/get/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<CodeServerUserGroupByIdResponseVO> getWorkSpaceGroupById(@ApiParam(value = "Workspace group ID to be fetched",required=true) @PathVariable("id") String id){
+	 CodeServerUserGroupByIdResponseVO response = new CodeServerUserGroupByIdResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();			
+				Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				CodeServerUserGroupNsql entity = entityOptional.get();
+				if(!entity.getData().getGroups().stream().anyMatch(i -> i.getGroupId().equalsIgnoreCase(id))){
+					MessageDescription invalidMsg = new MessageDescription("Group ID does not exist");
+						response.addErrorsItem(invalidMsg);	
+				}	
+			}
+			if(response.getErrors() != null && !response.getErrors().isEmpty())
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);		
+			CodeServerUserGroupByIdVO responsedata = service.getWorkSpaceGroupById(id);
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to Create workspcae group");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

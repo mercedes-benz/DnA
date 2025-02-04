@@ -47,6 +47,7 @@
      private String createdBy;
      private String updatedBy;
      private String name;
+     private String groupId;
      private int order;
      private List<CodeServerUserGroupWsDetails> workspaces;
 

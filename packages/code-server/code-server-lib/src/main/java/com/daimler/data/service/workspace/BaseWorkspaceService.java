@@ -36,150 +36,171 @@
  import java.util.List;
  import java.util.Map;
  import java.util.Objects;
+ import java.util.Optional;
  import java.util.Set;
- import java.util.regex.Matcher;
- import java.util.regex.Pattern;
- import java.util.stream.Collector;
- import java.util.stream.Collectors;
-
- import org.json.JSONObject;
- import org.springframework.beans.BeanUtils;
- import org.springframework.beans.factory.annotation.Autowired;
- import org.springframework.beans.factory.annotation.Value;
- import org.springframework.http.HttpStatus;
- import org.springframework.stereotype.Service;
- import org.springframework.transaction.annotation.Transactional;
- import org.springframework.util.ObjectUtils;
+import java.util.UUID;
+import java.util.regex.Matcher;
+  import java.util.regex.Pattern;
+  import java.util.stream.Collector;
+  import java.util.stream.Collectors;
  
- import com.daimler.data.application.auth.UserStore;
- import com.daimler.data.application.client.CodeServerClient;
- import com.daimler.data.application.client.GitClient;
- import com.daimler.data.application.client.VaultClient;
+  import org.json.JSONObject;
+  import org.springframework.beans.BeanUtils;
+  import org.springframework.beans.factory.annotation.Autowired;
+  import org.springframework.beans.factory.annotation.Value;
+  import org.springframework.http.HttpStatus;
+  import org.springframework.stereotype.Service;
+  import org.springframework.transaction.annotation.Transactional;
+  import org.springframework.util.ObjectUtils;
+  
+  import com.daimler.data.application.auth.UserStore;
+  import com.daimler.data.application.client.CodeServerClient;
+  import com.daimler.data.application.client.GitClient;
+  import com.daimler.data.application.client.VaultClient;
+ import com.daimler.data.assembler.CodeServerUserGroupassembler;
  import com.daimler.data.assembler.WorkspaceAssembler;
- import com.daimler.data.auth.client.AuthenticatorClient;
- import com.daimler.data.auth.client.DnaAuthClient;
- import com.daimler.data.controller.exceptions.GenericMessage;
- import com.daimler.data.controller.exceptions.MessageDescription;
+  import com.daimler.data.auth.client.AuthenticatorClient;
+  import com.daimler.data.auth.client.DnaAuthClient;
+  import com.daimler.data.controller.exceptions.GenericMessage;
+  import com.daimler.data.controller.exceptions.MessageDescription;
+ import com.daimler.data.db.entities.CodeServerUserGroupNsql;
  import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
- import com.daimler.data.db.json.CodeServerDeploymentDetails;
- import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
- import com.daimler.data.db.json.CodeServerWorkspace;
- import com.daimler.data.db.json.CodespaceSecurityConfig;
- import com.daimler.data.db.json.UserInfo;
- import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
- import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
- import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
- import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+  import com.daimler.data.db.json.CodeServerDeploymentDetails;
+  import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
+import com.daimler.data.db.json.CodeServerUserGroup;
+import com.daimler.data.db.json.CodeServerUserGroupList;
+import com.daimler.data.db.json.CodeServerUserGroupWsDetails;
+import com.daimler.data.db.json.CodeServerWorkspace;
+  import com.daimler.data.db.json.CodespaceSecurityConfig;
+  import com.daimler.data.db.json.UserInfo;
+  import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
+  import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+  import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+ import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
  import com.daimler.data.dto.AdditionalPropertiesDto;
- import com.daimler.data.dto.CodespaceSecurityConfigDto;
- import com.daimler.data.dto.DeploymentManageDto;
- import com.daimler.data.dto.DeploymentManageInputDto;
- import com.daimler.data.dto.GitLatestCommitIdDto;
- import com.daimler.data.dto.WorkbenchManageDto;
- import com.daimler.data.dto.WorkbenchManageInputDto;
- import com.daimler.data.dto.solution.ChangeLogVO;
- import com.daimler.data.dto.userinfo.UsersCollection;
-import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
-import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
- import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
- import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
-import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
-import com.daimler.data.dto.workspace.CreatedByVO;
- import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
- import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
- import com.daimler.data.dto.workspace.ResourceVO;
- import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
-import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
-import com.daimler.data.util.CommonUtils;
-import com.daimler.data.util.ConstantsUtility;
- import com.daimler.dna.notifications.common.producer.KafkaProducerService;
- import com.fasterxml.jackson.databind.ObjectMapper;
- import com.daimler.data.db.json.DeploymentAudit;
- import lombok.extern.slf4j.Slf4j;
- 
- @Service
- @Slf4j
- @SuppressWarnings(value = "unused")
- public class BaseWorkspaceService implements WorkspaceService {
- 
+  import com.daimler.data.dto.CodespaceSecurityConfigDto;
+  import com.daimler.data.dto.DeploymentManageDto;
+  import com.daimler.data.dto.DeploymentManageInputDto;
+  import com.daimler.data.dto.GitLatestCommitIdDto;
+  import com.daimler.data.dto.WorkbenchManageDto;
+  import com.daimler.data.dto.WorkbenchManageInputDto;
+  import com.daimler.data.dto.solution.ChangeLogVO;
+  import com.daimler.data.dto.userinfo.UsersCollection;
+ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
+ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+ import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupWsDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+ import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
+ import com.daimler.data.dto.workspace.CreatedByVO;
+  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
+  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+  import com.daimler.data.dto.workspace.ResourceVO;
+import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
+  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+ import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
+ import com.daimler.data.util.CommonUtils;
+ import com.daimler.data.util.ConstantsUtility;
+  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+  import com.fasterxml.jackson.databind.ObjectMapper;
+  import com.daimler.data.db.json.DeploymentAudit;
+  import lombok.extern.slf4j.Slf4j;
+  
+  @Service
+  @Slf4j
+  @SuppressWarnings(value = "unused")
+  public class BaseWorkspaceService implements WorkspaceService {
+  
 	 @Value("${codeServer.env.ref}")
 	 private String codeServerEnvRef;
- 
+  
 	 @Value("${codeServer.base.uri}")
 	 private String codeServerBaseUri;
-
+ 
 	 @Value("${codeServer.base.uri.aws}")
 	 private String codeServerBaseUriAws;
- 
+  
 	 @Value("${codeServer.git.orgname}")
 	 private String gitOrgName;
- 
+  
 	 @Value("${codeServer.env.value}")
 	 private String codeServerEnvValue;
- 
+  
 	 @Value("${codeServer.env.value.aws}")
 	 private String codeServerEnvValueAws;
-
+ 
 	 @Value("${codeServer.git.orguri}")
 	 private String gitOrgUri;
- 
+  
 	 @Value("${codeServer.git.orgname}")
 	 private String orgName;
- 
+  
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
- 
+  
 	 @Value("${codeServer.workspace.url}")
 	 private String codespaceUrl;
-
+ 
 	 @Value("${codeServer.workspace.url.aws}")
 	 private String codespaceUrlAWS;
-
+ 
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
-
+ 
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
- 
+  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
 	 @Autowired
 	 private WorkspaceCustomRepository workspaceCustomRepository;
 	 @Autowired
 	 private WorkspaceRepository jpaRepo;
- 
+  
 	 @Autowired
 	 private CodeServerClient client;
- 
+  
 	 @Autowired
 	 private GitClient gitClient;
- 
+  
 	 @Autowired
 	 private AuthenticatorClient authenticatorClient;
- 
+  
 	 @Autowired
 	 private KafkaProducerService kafkaProducer;
- 
+  
 	 @Autowired
 	  private UserStore userStore;
 	 
 	 @Autowired
 	 private WorkspaceCustomAdditionalServiceRepo additionalServiceRepo;
- 
+  
 	 @Autowired
 	 private WorkspaceCustomRecipeRepo workspaceCustomRecipeRepo;
- 
+  
 	 @Autowired
 	 private DnaAuthClient dnaAuthClient;
 	
 	 @Autowired
 	 private VaultClient VaultClient;
  
+	 @Autowired
+	 private CodeServerUserGroupassembler groupassembler;
+ 
+	 @Autowired
+	 private WorkspaceUserGroupRepository userGroupRepository;
+ 
+ 
+  
 	 public BaseWorkspaceService() {
 		 super();
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage deleteById(String userId, String id) {
@@ -196,7 +217,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 if (projectOwnerId.equalsIgnoreCase(userId)) {
 			 isProjectOwner = true;
 		 }
- 
+  
 		 if (isProjectOwner) {
 			 log.info("Delete requested by project owner {} ", userId);
 			 // undeploy int if present
@@ -221,7 +242,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(projectOwner);
 				 deployJobInputDto.setTarget_env("int");
- //				deployJobInputDto.setSecure_iam("false");
+  //				deployJobInputDto.setSecure_iam("false");
 				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
 				 } else {
@@ -270,7 +291,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(projectOwner);
 				 deployJobInputDto.setTarget_env("prod");
- //				deployJobInputDto.setSecure_iam("false");
+  //				deployJobInputDto.setSecure_iam("false");
 				 deployJobInputDto.setProjectName(projectOwnerId);
 				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -301,7 +322,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 		 }
- 
+  
 		 String repoName = entity.getData().getProjectDetails().getGitRepoName();
 		 /*
 		  * if(isProjectOwner) {
@@ -383,7 +404,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 responseMessage.setSuccess("FAILED");
 				 responseMessage.setErrors(errors);
 				 return responseMessage;
- 
+  
 			 }
 		 }
 		 // }
@@ -393,7 +414,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 // workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 		 // }else {
 		 entity.getData().setStatus("DELETED");
- 
+  
 		 UserInfo removeUser = new UserInfo();
 		 if (entity.getData().getProjectDetails().getProjectCollaborators() != null) {
 			 for (UserInfo collaborator : entity.getData().getProjectDetails().getProjectCollaborators()) {
@@ -426,7 +447,7 @@ import com.daimler.data.util.ConstantsUtility;
 						 deleteRouteResponse.getErrors().get(0).getMessage());
 			 }
 		 }
- 
+  
 		 // Deleting Kong service
 		 GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId(), cloudServiceProvider);
 		 if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
@@ -439,40 +460,40 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 	 }
 		 // deleting kong route and service if codespace is deployed to staging/production
- //		if (isCodespaceDeployed) {
- //			String serviceName = entity.getData().getWorkspaceId() + "-api";
- //			// Deleting Kong route
- //			GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
- //			if (deployDeleteRouteResponse != null && deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
- //				log.info("Kong route: {} deleted successfully", serviceName);
- //			else {
- //				if (deployDeleteRouteResponse.getErrors() != null
- //						&& deployDeleteRouteResponse.getErrors().get(0) != null) {
- //					log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
- //							deployDeleteRouteResponse.getErrors().get(0).getMessage());
- //				}
- //			}
- //
- //			// Deleting Kong service
- //			GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
- //			if (deployDeleteServiceResponse != null
- //					&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
- //				log.info("Kong service: {} deleted successfully", serviceName);
- //			else {
- //				if (deployDeleteServiceResponse.getErrors() != null
- //						&& deployDeleteServiceResponse.getErrors().get(0) != null) {
- //					log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
- //							deployDeleteServiceResponse.getErrors().get(0).getMessage());
- //				}
- //			}
- //
- //		}
+  //		if (isCodespaceDeployed) {
+  //			String serviceName = entity.getData().getWorkspaceId() + "-api";
+  //			// Deleting Kong route
+  //			GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
+  //			if (deployDeleteRouteResponse != null && deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+  //				log.info("Kong route: {} deleted successfully", serviceName);
+  //			else {
+  //				if (deployDeleteRouteResponse.getErrors() != null
+  //						&& deployDeleteRouteResponse.getErrors().get(0) != null) {
+  //					log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
+  //							deployDeleteRouteResponse.getErrors().get(0).getMessage());
+  //				}
+  //			}
+  //
+  //			// Deleting Kong service
+  //			GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
+  //			if (deployDeleteServiceResponse != null
+  //					&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+  //				log.info("Kong service: {} deleted successfully", serviceName);
+  //			else {
+  //				if (deployDeleteServiceResponse.getErrors() != null
+  //						&& deployDeleteServiceResponse.getErrors().get(0) != null) {
+  //					log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
+  //							deployDeleteServiceResponse.getErrors().get(0).getMessage());
+  //				}
+  //			}
+  //
+  //		}
 		 responseMessage.setSuccess("SUCCESS");
 		 responseMessage.setErrors(errors);
 		 responseMessage.setWarnings(warnings);
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO initiateWorkspacewithAdminPat(CodeServerWorkspaceVO vo, String pat){
@@ -482,7 +503,7 @@ import com.daimler.data.util.ConstantsUtility;
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-
+ 
 			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 			
 			String repoName = "";
@@ -550,7 +571,7 @@ import com.daimler.data.util.ConstantsUtility;
 					}
 				}
 			}
-
+ 
 			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -628,7 +649,7 @@ import com.daimler.data.util.ConstantsUtility;
 					responseVO.setErrors(errors);
 					responseVO.setWarnings(warnings);
 					return responseVO;
-
+ 
 				}
 			}
 			if(vo.getGitUserName()!=null) {
@@ -657,7 +678,7 @@ import com.daimler.data.util.ConstantsUtility;
 			return responseVO;
 		}	 
 	}
-
+ 
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat) {
@@ -667,7 +688,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 try {
- 
+  
 			 CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 			 
 			 String repoName = "";
@@ -735,7 +756,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 }
 				 }
 			 }
- 
+  
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -768,11 +789,11 @@ import com.daimler.data.util.ConstantsUtility;
 			  }
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 if(repoNameWithOrg.endsWith("/")){
-                StringBuffer fixRepoSuffix = new StringBuffer();
-                fixRepoSuffix.append(repoNameWithOrg);
-                fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
-                repoNameWithOrg = fixRepoSuffix.toString();
-             }
+				 StringBuffer fixRepoSuffix = new StringBuffer();
+				 fixRepoSuffix.append(repoNameWithOrg);
+				 fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
+				 repoNameWithOrg = fixRepoSuffix.toString();
+			  }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
@@ -806,7 +827,7 @@ import com.daimler.data.util.ConstantsUtility;
 						 (createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 (createOwnerWSResponse.getWarnings() != null
 								 && !createOwnerWSResponse.getWarnings().isEmpty())) {
- 
+  
 					 MessageDescription errMsg = new MessageDescription(
 							 "Failed to initialize workbench while creating individual codespaces, please retry.");
 					 errors.add(errMsg);
@@ -815,7 +836,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 responseVO.setErrors(errors);
 					 responseVO.setWarnings(warnings);
 					 return responseVO;
- 
+  
 				 }
 			 }
 			 Date initatedOn = new Date();
@@ -842,7 +863,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 return responseVO;
 		 }
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
@@ -861,7 +882,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 //map to store git username and is admin permission to repo
 			 Map<String,Boolean> gitUsers = new HashMap<>();
 			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
- 
+  
 			 String repoName = vo.getProjectDetails().getGitRepoName();
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
 					 .getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
@@ -881,7 +902,7 @@ import com.daimler.data.util.ConstantsUtility;
 						 return responseVO;
 					 }
 				 }
-
+ 
 				 // initialize repo
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .startsWith("private") &&
@@ -909,15 +930,15 @@ import com.daimler.data.util.ConstantsUtility;
 							 responseVO.setErrors(errors);
 							 return responseVO;
 						 }
- //					}
- 
+  //					}
+  
 					 // create repo success, adding collabs
- 
+  
 					 gitUsers.put(owner.getGitUserName(),false);
- //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //							.equalsIgnoreCase("default")
- //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //							.startsWith("bat")) {
+  //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+  //							.equalsIgnoreCase("default")
+  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+  //							.startsWith("bat")) {
 						 collabs = vo.getProjectDetails().getProjectCollaborators();
 						 if (collabs != null && !collabs.isEmpty()) {
 							 // List<String> collabsGitUserNames = collabs.stream().map(n -> n.getGitUserName())
@@ -927,7 +948,7 @@ import com.daimler.data.util.ConstantsUtility;
 								 gitUsers.put(user.getGitUserName(),user.isIsAdmin());
 							 }
 						 }
-						 	for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
+							for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
 								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
 								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
 									log.info("Failed while adding {} as collaborator with status {}",gitUser.getKey(), addGitUser.name());
@@ -990,7 +1011,7 @@ import com.daimler.data.util.ConstantsUtility;
 									}
 								}
 							}
- //					}
+  //					}
 				 }
 			 } else {
 				 // repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
@@ -1019,7 +1040,7 @@ import com.daimler.data.util.ConstantsUtility;
 				}
 			 if(repoName.isEmpty()){
 				  repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
- 
+  
 			 }
 			 vo.getProjectDetails().setGitRepoName(repoName);
 			 // add records to db
@@ -1104,33 +1125,33 @@ import com.daimler.data.util.ConstantsUtility;
 						 (createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 (createOwnerWSResponse.getWarnings() != null
 								 && !createOwnerWSResponse.getWarnings().isEmpty())) {
- //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //							.startsWith("public")
- //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //							.startsWith("private")
- //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
- //							.startsWith("bat")) {
- //						HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
- //						if (!deleteRepoStatus.is2xxSuccessful()) {
- //							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
- //									+ " successfully and added collaborator(s). Failed to initialize workbench, Unable to delete repository, please delete repository manually and retry");
- //							errors.add(errMsg);
- //							errors.addAll(createOwnerWSResponse.getErrors());
- //							warnings.addAll(createOwnerWSResponse.getWarnings());
- //							responseVO.setErrors(errors);
- //							responseVO.setWarnings(warnings);
- //							return responseVO;
- //						} else {
- //							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
- //									+ " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository, please retry creating codespace again");
- //							errors.add(errMsg);
- //							errors.addAll(createOwnerWSResponse.getErrors());
- //							warnings.addAll(createOwnerWSResponse.getWarnings());
- //							responseVO.setErrors(errors);
- //							responseVO.setWarnings(warnings);
- //							return responseVO;
- //						}
- //					}
+  //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+  //							.startsWith("public")
+  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+  //							.startsWith("private")
+  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+  //							.startsWith("bat")) {
+  //						HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
+  //						if (!deleteRepoStatus.is2xxSuccessful()) {
+  //							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
+  //									+ " successfully and added collaborator(s). Failed to initialize workbench, Unable to delete repository, please delete repository manually and retry");
+  //							errors.add(errMsg);
+  //							errors.addAll(createOwnerWSResponse.getErrors());
+  //							warnings.addAll(createOwnerWSResponse.getWarnings());
+  //							responseVO.setErrors(errors);
+  //							responseVO.setWarnings(warnings);
+  //							return responseVO;
+  //						} else {
+  //							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
+  //									+ " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository, please retry creating codespace again");
+  //							errors.add(errMsg);
+  //							errors.addAll(createOwnerWSResponse.getErrors());
+  //							warnings.addAll(createOwnerWSResponse.getWarnings());
+  //							responseVO.setErrors(errors);
+  //							responseVO.setWarnings(warnings);
+  //							return responseVO;
+  //						}
+  //					}
 					 
 					 MessageDescription errMsg = new MessageDescription("Failed to initialize workbench. Please retry creating codespace again");
 					 errors.add(errMsg);
@@ -1141,7 +1162,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 return responseVO;
 				 }
 			 }
- 
+  
 			 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			 Date now = isoFormat.parse(isoFormat.format(new Date()));
 			 String projectName = ownerEntity.getData().getProjectDetails().getProjectName();
@@ -1218,7 +1239,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 return responseVO;
 		 }
 	 }
- 
+  
 	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -1308,14 +1329,14 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 return workspaceUrl;
 	 }
- 
- 
+  
+  
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 		 return workspaceAssembler.toVo(entity);
 	 }
- 
+  
 	 @Override
 	 public CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception {
 		String gitUrl = null;
@@ -1351,8 +1372,8 @@ import com.daimler.data.util.ConstantsUtility;
 		}
 		return codeSpaceReadmeVo;
 	 }
-
-
+ 
+ 
 	 @Override
 	 public List<CodeServerWorkspaceVO> getAll(String userId, int offset, int limit) {
 		 List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findAll(userId, limit, offset);
@@ -1368,15 +1389,15 @@ import com.daimler.data.util.ConstantsUtility;
 				 vo.setServerStatus("SERVER_STOPPED");
 			 }
 		 });
- 
+  
 		 return entities.stream().map(workspaceAssembler::toVo).collect(Collectors.toList());
 	 }
- 
+  
 	 @Override
 	 public Integer getCount(String userId) {
 		 return workspaceCustomRepository.getCount(userId);
 	 }
- 
+  
 	 @Override
 	 public CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value) {
 		 if (value != null) {
@@ -1386,7 +1407,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 } else
 			 return null;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
@@ -1411,8 +1432,8 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto
 						 .setEnvironment(codeServerEnvValue);
-
-  			if (isprivateRecipe) {
+ 
+			if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
 						repoUrl = repoUrl.replaceAll(".git","/");
@@ -1428,18 +1449,18 @@ import com.daimler.data.util.ConstantsUtility;
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
 					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
-
+ 
 				}
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
- //				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
- //						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
- //					deployJobInputDto.setSecure_iam("true");
- //				} else {
- //					deployJobInputDto.setSecure_iam("false");
- //				}
+  //				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
+  //						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
+  //					deployJobInputDto.setSecure_iam("true");
+  //				} else {
+  //					deployJobInputDto.setSecure_iam("false");
+  //				}
 				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
 				 } else {
@@ -1585,7 +1606,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo,
@@ -1597,14 +1618,14 @@ import com.daimler.data.util.ConstantsUtility;
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUser.getId(), vo.getId());
 		boolean isProjectOwner = false;
 		String projectName = entity.getData().getProjectDetails().getProjectName();
-
+ 
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		if (projectOwnerId.equalsIgnoreCase(currentUser.getId())) {
 			isProjectOwner = true;
 		}
-
+ 
 		try {
-
+ 
 			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 					.startsWith("private")) {
 				List<String> repoDetails = CommonUtils
@@ -1621,11 +1642,11 @@ import com.daimler.data.util.ConstantsUtility;
 					return responseMessage;
 				}
 			}
-
+ 
 			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
 			UserInfo newOwner = new UserInfo();
 			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
-
+ 
 			// To update project owner.
 			GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
 					.updateProjectOwnerDetails(projectName, newOwner);
@@ -1654,7 +1675,7 @@ import com.daimler.data.util.ConstantsUtility;
 			// To add current owner as collaborator.
 			GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository
 					.updateCollaboratorDetails(projectName, currentOwnerAsCollab, false);
-
+ 
 			// To remove new owner from collaborator.
 			GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository
 					.updateCollaboratorDetails(projectName, newOwner, true);
@@ -1671,7 +1692,7 @@ import com.daimler.data.util.ConstantsUtility;
 					responseVO.setWarnings(warnings);
 				}
 			}
-
+ 
 			if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
 					|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
 					|| "FAILED".equalsIgnoreCase(removeNewOwnerFromCollab.getSuccess())) {
@@ -1702,15 +1723,15 @@ import com.daimler.data.util.ConstantsUtility;
 			responseMessage.setErrors(errors);
 			return responseMessage;
 		}
-
+ 
 		return responseMessage;
 	}
-
+ 
 	 @Override
 	 public Integer getTotalCountOfWorkSpace() {
 		 return workspaceCustomRepository.getTotalCountOfWorkSpace();
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage removeCollabById(String currentUserUserId, CodeServerWorkspaceVO vo, String removeUserId) {
@@ -1735,7 +1756,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 		 }
- 
+  
 		 if (isProjectOwner || isAdmin) {
 			 String projectName = entity.getData().getProjectDetails().getProjectName();
 			 String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(removeUserId, projectName);
@@ -1757,10 +1778,10 @@ import com.daimler.data.util.ConstantsUtility;
 			 responseMessage.setErrors(errors);
 			 return responseMessage;
 		 }
- 
+  
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage addCollabById(String userId, CodeServerWorkspaceVO vo, UserInfoVO userRequestDto) {
@@ -1796,12 +1817,12 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 		 }
- 
+  
 		 if (isProjectOwner || isAdmin) {
 			 try {
 				 String repoName = entity.getData().getProjectDetails().getGitRepoName();
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
- 
+  
 				 UserInfo collaborator = new UserInfo();
 				 BeanUtils.copyProperties(userRequestDto, collaborator);
 				 if(!userRequestDto.isIsAdmin()){
@@ -1809,9 +1830,9 @@ import com.daimler.data.util.ConstantsUtility;
 				 }else{
 					 collaborator.setIsAdmin(true);
 				 }
- 
+  
 				 String gitUser = userRequestDto.getGitUserName();
-
+ 
 				 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ){
 					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
@@ -1823,11 +1844,11 @@ import com.daimler.data.util.ConstantsUtility;
 						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
 						errors.add(msg);
 						responseMessage.setSuccess("FAILED");
-			 			responseMessage.setErrors(errors); 
+						responseMessage.setErrors(errors); 
 						return responseMessage;
 					}
 				}
-
+ 
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
@@ -1840,7 +1861,7 @@ import com.daimler.data.util.ConstantsUtility;
 										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
 						errors.add(errMsg);
 						responseMessage.setSuccess("FAILED");
-			 			responseMessage.setErrors(errors); 
+						responseMessage.setErrors(errors); 
 						return responseMessage;
 					}
 					 if (!addGitUser.is2xxSuccessful()) {
@@ -1879,7 +1900,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 collabData.setWorkspaceUrl("");
 					 collabEntity.setId(null);
 					 collabEntity.setData(collabData);
- 
+  
 					 jpaRepo.save(collabEntity);
 					 workspaceCustomRepository.updateCollaboratorDetails(projectName, collaborator, false);
 					 responseMessage.setSuccess("SUCCESS");
@@ -1902,10 +1923,10 @@ import com.daimler.data.util.ConstantsUtility;
 			 responseMessage.setErrors(errors);
 			 return responseMessage;
 		 }
- 
+  
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage undeployWorkspace(String userId, String id, String environment, String branch) {
@@ -1947,7 +1968,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 return responseMessage;
 				 }
 				 String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
- //				deployJobInputDto.setWsid(projectOwnerWsId);
+  //				deployJobInputDto.setWsid(projectOwnerWsId);
 				 deployJobInputDto.setWsid(projectName);
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
@@ -1993,7 +2014,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 public CodeServerWorkspaceVO getByProjectName(String userId, String projectName) {
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
@@ -2007,7 +2028,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 }
 	 
 	 
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage update(String userId, String name, String projectName, String existingStatus,
@@ -2036,25 +2057,25 @@ import com.daimler.data.util.ConstantsUtility;
 			 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
 			 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
 			 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
- //			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
- //			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
- //			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
- //			String publicDnaAuthenticatorBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AUTHENTICATOR_BACKEND.toString();
- //			String publicDnaChronosBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_BACKEND.toString();
- //			String publicDnaChronosMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_MFE.toString();
- //			String publicDnaCodespaceBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CODESPACE_BACKEND.toString();
- //			String publicDnaDataProductBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_BACKEND.toString();
- //			String publicDnaDnaDataProductMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_MFE.toString();
- //			String publicDnaDataikuBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATAIKU_BACKEND.toString();
- //			String publicDnaDssMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DSS_MFE.toString();
- //			String publicDnaMalwareScannerRecipeId = RecipeIdEnum.PUBLIC_DNA_MALWARE_SCANNER.toString();
- //			String publicDnaModalRegistryBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_MODAL_REGISTRY_BACKEND.toString();
- //			String publicDnaNassRecipeId = RecipeIdEnum.PUBLIC_DNA_NASS.toString();
- //			String publicDnaReportBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_REPORT_BACKEND.toString();
- //			String publicDnaStorageBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_BACKEND.toString();
- //			String publicDnaStorageMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_MFE.toString();
- //			String publicDnaTrinoBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_TRINO_BACKEND.toString();
- 
+  //			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
+  //			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
+  //			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
+  //			String publicDnaAuthenticatorBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AUTHENTICATOR_BACKEND.toString();
+  //			String publicDnaChronosBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_BACKEND.toString();
+  //			String publicDnaChronosMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_MFE.toString();
+  //			String publicDnaCodespaceBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CODESPACE_BACKEND.toString();
+  //			String publicDnaDataProductBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_BACKEND.toString();
+  //			String publicDnaDnaDataProductMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_MFE.toString();
+  //			String publicDnaDataikuBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATAIKU_BACKEND.toString();
+  //			String publicDnaDssMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DSS_MFE.toString();
+  //			String publicDnaMalwareScannerRecipeId = RecipeIdEnum.PUBLIC_DNA_MALWARE_SCANNER.toString();
+  //			String publicDnaModalRegistryBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_MODAL_REGISTRY_BACKEND.toString();
+  //			String publicDnaNassRecipeId = RecipeIdEnum.PUBLIC_DNA_NASS.toString();
+  //			String publicDnaReportBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_REPORT_BACKEND.toString();
+  //			String publicDnaStorageBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_BACKEND.toString();
+  //			String publicDnaStorageMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_MFE.toString();
+  //			String publicDnaTrinoBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_TRINO_BACKEND.toString();
+  
 			 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			 log.info("projectRecipe: {}", projectRecipe);
@@ -2143,7 +2164,7 @@ import com.daimler.data.util.ConstantsUtility;
 							 case "public-dna-fabric-backend":
 								 workspaceUrl = workspaceUrl + "/" + "packages/fabric-backend";
 								 break;
- 
+  
 						 }
 					 }
 				 }
@@ -2168,18 +2189,18 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 				 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 				 Date now = isoFormat.parse(isoFormat.format(new Date()));
- //				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
- //						projectName);
- //				if (ownerEntity == null || ownerEntity.getData() == null
- //						|| ownerEntity.getData().getWorkspaceId() == null) {
- //					MessageDescription error = new MessageDescription();
- //					error.setMessage(
- //							"Failed while deploying codeserver workspace project, couldnt fetch project owner details");
- //					errors.add(error);
- //					responseMessage.setErrors(errors);
- //					return responseMessage;
- //				}
- //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+  //				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
+  //						projectName);
+  //				if (ownerEntity == null || ownerEntity.getData() == null
+  //						|| ownerEntity.getData().getWorkspaceId() == null) {
+  //					MessageDescription error = new MessageDescription();
+  //					error.setMessage(
+  //							"Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+  //					errors.add(error);
+  //					responseMessage.setErrors(errors);
+  //					return responseMessage;
+  //				}
+  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
 				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
@@ -2300,23 +2321,23 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 return null;
 	 }
- 
+  
 	 @Override
 	 public List<String> getAllWorkspaceIds() {
 		 return workspaceCustomRepository.getAllWorkspaceIds();
 	 }
- 
+  
 	 @Override
 	 public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
 		 return workspaceCustomRepository.validateCodespace(id, userId);
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo , Boolean isPublished, String env) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 try {
- 
+  
 			 List<String> workspaceIds = workspaceCustomRepository
 					 .getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
 			 if (!workspaceIds.isEmpty()) {
@@ -2326,7 +2347,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 CodespaceSecurityConfig config = workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig());
 					 if(entity != null){
 						 entity.getData().getProjectDetails().setSecurityConfig(config);
- 
+  
 						 if(isPublished){
 							 if("int".equalsIgnoreCase(env)){
 								 if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null && !config.getStaging().getDraft().getAppID().isEmpty() && !config.getStaging().getDraft().getEntitlements().isEmpty() ){
@@ -2365,7 +2386,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 jpaRepo.saveAllAndFlush(entities);
 			 }
 			 responseMessage.setSuccess("SUCCESS");
- 
+  
 		 } catch (Exception e) {
 			 log.error("caught exception while saving security config {}", e.getMessage());
 			 MessageDescription msg = new MessageDescription();
@@ -2376,10 +2397,10 @@ import com.daimler.data.util.ConstantsUtility;
 			 responseMessage.setSuccess("FAILED");
 			 responseMessage.setErrors(errorMessage);
 		 }
- 
+  
 		 // CreatedByVO currentUser = this.userStore.getVO();
 		 // String userId = currentUser != null ? currentUser.getId() : null;
- 
+  
 		 // String resourceID = vo.getWorkspaceId();
 		 // List<String> teamMembers = new ArrayList<>();
 		 // List<String> teamMembersEmails = new ArrayList<>();
@@ -2398,7 +2419,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 // }
 		 // String eventType = "Codespace-SecurityConfig Status Update";
 		 // String message = ""; 
- 
+  
 		 // if (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") ||vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED")) {
 		 // 	message = "Codespace " + vo.getProjectDetails().getProjectName() + " is accepted / published by Codespace Admin.";
 		 // 	kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
@@ -2408,29 +2429,29 @@ import com.daimler.data.util.ConstantsUtility;
 		 // 	//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 		 // 	notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
 		 // }
- 
- 
+  
+  
 		 return responseMessage;
- 
+  
 	 }
- 
+  
 	 // @Override
 	 // @Transactional
 	 // public GenericMessage updateSecurityConfigStatus(String projectName, String status, String userId,
 	 // 		CodeServerWorkspaceVO vo) {
 	 // 	GenericMessage responseMessage = new GenericMessage();
- 
+  
 	 // 	try {
- 
+  
 	 // 		responseMessage = workspaceCustomRepository.updateSecurityConfigStatus(projectName, status);
- 
+  
 	 // 		// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 	 // 		// jpaRepo.save(entity);
 	 // 		// MessageDescription msg = new MessageDescription();
 	 // 		// List<MessageDescription> errorMessage = new ArrayList<>();
- 
+  
 	 // 		// responseMessage.setSuccess("SUCCESS");
- 
+  
 	 // 	} catch (Exception e) {
 	 // 		log.error("caught exception while saving security config {}", e.getMessage());
 	 // 		MessageDescription msg = new MessageDescription();
@@ -2441,7 +2462,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 // 		responseMessage.setSuccess("FAILED");
 	 // 		responseMessage.setErrors(errorMessage);
 	 // 	}
- 
+  
 	 // 	String resourceID = vo.getWorkspaceId();
 	 // 	List<String> teamMembers = new ArrayList<>();
 	 // 	List<String> teamMembersEmails = new ArrayList<>();
@@ -2460,7 +2481,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 // 	}
 	 // 	String eventType = "Codespace-SecurityConfig Status Update";
 	 // 	String message = ""; 
- 
+  
 	 // 	if (status.equalsIgnoreCase("ACCEPTED") ||status.equalsIgnoreCase("PUBLISHED")) {
 	 // 		message = "Codespace " + projectName + " is accepted / published by Codespace Admin.";
 	 // 		kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
@@ -2470,14 +2491,14 @@ import com.daimler.data.util.ConstantsUtility;
 	 // 		//kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 	 // 		notifyAllCodespaceAdminUsers(eventType,resourceID,message,userId,changeLogs);
 	 // 	}
- 
+  
 	 // 	return responseMessage;
- 
+  
 	 // }
- 
+  
 	 @Override
 	 public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName) {
- 
+  
 		 List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs(offset,limit,projectName);
 		 CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
 		 if(collectionDtos != null){
@@ -2488,7 +2509,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 return new ArrayList<>();
 		 }
 	 }
- 
+  
 	 // public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
 	 // 		List<ChangeLogVO> changeLogs) {
 	 // 	log.info("Notifying all Codespace Admin users on " + eventType + " for " + message);
@@ -2516,7 +2537,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 // 				eventType, message, e.getMessage());
 	 // 	}
 	 // }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage updateGovernancenceValues(String userId, String id,
@@ -2527,7 +2548,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 		 boolean isProjectOwner = false;
 		 boolean isAdmin = false;
- 
+  
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		 String projectName = entity.getData().getProjectDetails().getProjectName();
 		 if (projectOwnerId.equalsIgnoreCase(userId)) {
@@ -2543,7 +2564,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 			 }
 		 }
- 
+  
 		 if (isProjectOwner || isAdmin) {
 			 try {
 				 CodeServerLeanGovernanceFeilds newGovFeilds = new CodeServerLeanGovernanceFeilds();
@@ -2571,7 +2592,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 responseMessage.setErrors(errors);
 				 return responseMessage;
 			 }
- 
+  
 		 } else {
 			 log.error("Failed to update governance details as requested user is not a project owner "
 					 + entity.getData().getWorkspaceId());
@@ -2583,7 +2604,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 return responseMessage;
 		 }
 		 return responseMessage;
- 
+  
 	 }
 	 @Override
 	 @Transactional
@@ -2595,7 +2616,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 String statusValue = "false";
 			 GenericMessage responseMessage = new GenericMessage();
 			 try {
- 
+  
 				 boolean response = client.serverStatus(userName.toLowerCase(),id, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 				 if (response) {
 					 statusValue = "true";
@@ -2612,7 +2633,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 jpaRepo.save(savedOwnerEntity);
 			 return statusValue;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage startServer(String userId,String wsId, String cloudServiceProvider)
@@ -2621,7 +2642,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 try {
- 
+  
 			 GenericMessage startServer = client.doStartServer(userId.toLowerCase(),wsId,cloudServiceProvider);
 				 if (startServer != null) {
 					 if (!"SUCCESS".equalsIgnoreCase(startServer.getSuccess()) ||
@@ -2635,7 +2656,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 }
 					 responseMessage.setSuccess("SUCCESS");
 				 }
- 
+  
 		 } catch (Exception e) {
 			 log.error("caught exception while saving security config {}", e.getMessage());
 			 MessageDescription msg = new MessageDescription();
@@ -2648,7 +2669,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage stopServer(CodeServerWorkspaceVO vo, String cloudServiceProvider) {
@@ -2658,10 +2679,10 @@ import com.daimler.data.util.ConstantsUtility;
 		 String wsid = vo.getWorkspaceId();
 		 String userName = vo.getWorkspaceOwner().getId().toLowerCase();
 		 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(userName,vo.getProjectDetails().getProjectName());
- 
+  
 		 try {
 			 boolean stopServerResponse = client.stopServer(wsid, userName, cloudServiceProvider);
- 
+  
 			 if (stopServerResponse) {
 				 responseMessage.setSuccess("SUCCESS");
 				 savedOwnerEntity.getData().setServerStatus("SERVER_STOPPED");
@@ -2683,7 +2704,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 return responseMessage;
 	 }
- 
+  
 	 @Override
 	 public GenericMessage updateResourceValue(CodeServerWorkspaceNsql entity,ResourceVO updatedResourceValue)
 	 {
@@ -2816,7 +2837,7 @@ import com.daimler.data.util.ConstantsUtility;
 			 return responseMessage;
 		 }
 	 }
- 
+  
 	 @Override
 	 public GenericMessage moveExistingWorkspace(CodeServerWorkspaceNsql vo)
 	 {
@@ -2939,13 +2960,13 @@ import com.daimler.data.util.ConstantsUtility;
 			 return responseMessage;
 		 }
 	 }
- 
+  
 	 @Override
 	 @Transactional
 	 public GenericMessage makeAdmin(CodeServerWorkspaceVO vo){
 		 GenericMessage responseMessage = new GenericMessage();
 		 try {
- 
+  
 			 List<String> workspaceIds = workspaceCustomRepository
 					 .getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
 			 if (!workspaceIds.isEmpty()) {
@@ -2968,7 +2989,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 jpaRepo.saveAllAndFlush(entities);
 			 }
 			 responseMessage.setSuccess("SUCCESS");
- 
+  
 		 } catch (Exception e) {
 			 log.error("caught exception while making collaborator as admin :{}", e.getMessage());
 			 MessageDescription msg = new MessageDescription();
@@ -2981,7 +3002,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 return responseMessage;
 	 }
- 
+  
 	@Override
 	@Transactional
 	public GenericMessage restartWorkspace(String userId, String id, String env){
@@ -3107,7 +3128,7 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
-
+ 
 	@Override
 	@Transactional
 	public GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity){
@@ -3146,6 +3167,202 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
 		return responseMessage;
+	}
+ 
+	
+	@Override
+	public CodeServerUserGroupCollectionVO createWorkSpaceGroup(CodeServerUserGroupVO vo){
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));			
+			CodeServerUserGroupNsql entity = null;
+			CodeServerUserGroupList data = null;
+			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				entity = entityOptional.get();
+				data = entity.getData();
+			}else{
+				entity = new CodeServerUserGroupNsql();
+				data = new CodeServerUserGroupList();
+				List<CodeServerUserGroup> groupList = new ArrayList<>();
+				data.setGroups(groupList);
+			}
+			CodeServerUserGroup userGroup = new CodeServerUserGroup();
+			String id = UUID.randomUUID().toString();
+				userGroup.setCreatedBy(currentUser.getId());
+				userGroup.setCreatedDate(now);
+				userGroup.setName(vo.getName());
+				userGroup.setOrder(vo.getOrder());
+				userGroup.setGroupId(id);
+				userGroup.setUpdatedBy(currentUser.getId());
+				userGroup.setUpdatedDate(now);
+
+				//remove workspace from other groups
+				if(data.getGroups() != null || !data.getGroups().isEmpty()){
+				data.getGroups().forEach(group ->{
+					vo.getWorkspaces().forEach(workSpaceInReq ->{
+						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+					});
+				});
+				}
+				List<CodeServerUserGroupWsDetails> workspaceList = new ArrayList<>();
+				vo.getWorkspaces().forEach(workSpaceInReq ->{
+					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
+					workSpace.setWorkSpaceId(workSpaceInReq.getWsId());
+					workSpace.setOrder(0);
+					workspaceList.add(workSpace);
+				});
+				userGroup.setWorkspaces(workspaceList);
+
+				data.getGroups().add(userGroup);
+				entity.setData(data);
+				entity.setId(currentUser.getId());
+				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
+				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
+				responseData.getData().forEach(group ->{
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                           
+						if (workspaceVo.getProjectDetails() != null) {
+							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
+						}else{
+							workSpace.setName("");
+						}
+					});
+				});
+
+				return responseData;
+		} catch (Exception e) {
+			log.info("Failed while creating codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+
+
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO updateWorkSpaceGroup(UpdateUserGroupRequestVO vo){
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));
+			String id = "";
+			CodeServerUserGroupNsql entity = null;
+			CodeServerUserGroupList data = null;
+			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				entity = entityOptional.get();
+				data = entity.getData();
+			}
+			CodeServerUserGroup userGroup = data.getGroups().stream().filter(i -> i.getGroupId().equals(vo.getGroupId())).findFirst().orElse(null);
+				userGroup.setName(vo.getName());
+				userGroup.setUpdatedBy(currentUser.getId());
+				userGroup.setUpdatedDate(now);
+
+				//remove newly added workspace from other groups
+				if(data.getGroups() != null || !data.getGroups().isEmpty()){
+				data.getGroups().forEach(group ->{
+					vo.getWsAdded().forEach(workSpaceInReq ->{
+						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+					});
+				});
+				}
+				List<CodeServerUserGroupWsDetails> workspaceList = userGroup.getWorkspaces();
+				vo.getWsAdded().forEach(workSpaceInReq ->{
+					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
+					workSpace.setWorkSpaceId(workSpaceInReq.getWsId());
+					workSpace.setOrder(0);
+					workspaceList.add(workSpace);
+				});
+
+				//remove workspace from exisitng group
+				vo.getWsRemoved().forEach(workSpaceInReq ->{
+					workspaceList.removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+				});
+				userGroup.setWorkspaces(workspaceList);
+				data.getGroups().removeIf(i -> i.getGroupId().equals(vo.getGroupId()));
+				data.getGroups().add(userGroup);
+				entity.setData(data);
+				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
+				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
+				responseData.getData().forEach(group ->{
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                             
+						if (workspaceVo.getProjectDetails() != null) {
+							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
+						}else{
+							workSpace.setName("");
+						}
+					});
+				});
+				return responseData;
+		} catch (Exception e) {
+			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO getAllWorkSpaceGroup(){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			CodeServerUserGroupCollectionVO responseData = null;
+			Optional<CodeServerUserGroupNsql> entity = userGroupRepository.findById(currentUser.getId());
+			if(entity.isPresent()){
+				responseData = groupassembler.toVo(entity.get());
+				responseData.getData().forEach(group ->{
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                            
+						if (workspaceVo.getProjectDetails() != null) {
+							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
+						}else{
+							workSpace.setName("");
+						}
+					});
+				});
+			}
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			CodeServerUserGroupByIdVO responseData = null;
+			List<CodeServerWorkspaceVO> workspaceList = new ArrayList<>();
+			Optional<CodeServerUserGroupNsql> optionalEntity = userGroupRepository.findById(currentUser.getId());
+			if(optionalEntity.isPresent()){
+				responseData = new CodeServerUserGroupByIdVO();
+				CodeServerUserGroupNsql entity = optionalEntity.get();
+				    Optional<CodeServerUserGroup> optionalGroup = entity.getData().getGroups().stream().filter(i -> i.getGroupId().equalsIgnoreCase(id)).findFirst();
+					if(optionalGroup.isPresent()){
+						CodeServerUserGroup group = optionalGroup.get();
+						responseData.setGroupId(group.getGroupId());
+                        responseData.setName(group.getName());
+                        responseData.setOrder(group.getOrder());						
+						group.getWorkspaces().forEach(workSpace ->{                           
+                            CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                             
+                            if(null != workspaceVo && null != workspaceVo.getId())
+								workspaceList.add(workspaceVo);
+                        });
+					}
+					responseData.setWorkspaces(workspaceList);        
+			}
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
 	}
 
 }
