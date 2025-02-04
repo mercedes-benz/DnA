@@ -41,6 +41,7 @@ import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.dto.fabricWorkspace.UpdateWorkspacesJobStatusVO;
+import com.daimler.data.dto.fabricWorkspace.UpdateWorkspacesJobStatusVOData;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 import com.daimler.data.service.fabric.WorkspaceBackgroundJobsService;
 
@@ -838,7 +839,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         method = RequestMethod.GET)
     public ResponseEntity<UpdateWorkspacesJobStatusVO> updateWorkspacesJobStatus(){
 		UpdateWorkspacesJobStatusVO statusVO = new UpdateWorkspacesJobStatusVO();
+		UpdateWorkspacesJobStatusVOData data = new UpdateWorkspacesJobStatusVOData();
 		CreatedByVO requestUser = this.userStore.getVO();
+		statusVO.setData(data);
 		try{
 
 			if(!requestUser.getId().equalsIgnoreCase(techUserId)){
@@ -846,7 +849,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				return new ResponseEntity<>(statusVO, HttpStatus.BAD_REQUEST);
 			}else{
 				String status = workspaceBackgroundJobsService.getJobStatus();
-				statusVO.getData().setStatus(status);
+				data.setStatus(status);
 				return new ResponseEntity<>(statusVO, HttpStatus.OK);
 			}
 		}catch(Exception e){
