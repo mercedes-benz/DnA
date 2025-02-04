@@ -1,0 +1,178 @@
+{{ $majorPGVersion := regexFind "[1-9][0-9]" .Values.image.tag | float64 -}}
+{{ if not .Values.endpoints.enabled }}
+# those configmaps will be created by patroni
+# we have empty scaffolds here to properly delete them on cleanup
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgres.clustername" . }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+data:
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgres.clustername" . }}-leader
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+data:
+{{- end }}
+---
+{{ if .Values.pgmonitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgres.clustername" . }}-pg-exporter-queries
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    cluster-name: {{ include "postgres.clustername" . }}
+data:
+  queries.yaml  : |-
+    pg_replication:
+      query: "SELECT CASE WHEN pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() THEN 0 ELSE EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp()) END as lag"
+      metrics:
+        - lag:
+            usage: "GAUGE"
+            description: "Replication lag behind master in seconds"
+
+    pg_postmaster:
+      query: "SELECT extract(epoch from current_timestamp - pg_postmaster_start_time()) as start_time_seconds"
+      metrics:
+        - start_time_seconds:
+            usage: "GAUGE"
+            description: "Time at which postmaster started"
+
+    pg_is_in_recovery:
+      query: "select pg_is_in_recovery() as database_role"
+      metrics:
+        - database_role:
+            usage: "GAUGE"
+            description: "Show the role of the database, either master or replica"
+
+    pg_database:
+      query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size_bytes FROM pg_database"
+      metrics:
+        - datname:
+            usage: "LABEL"
+            description: "Name of the database"
+        - size_bytes:
+            usage: "GAUGE"
+            description: "Disk space used by the database"
+
+{{- if .Values.pgmonitoring.customQueries }}
+
+    # additional custom queries for pg-exporter
+{{- toYaml .Values.pgmonitoring.customQueries | nindent 4 }}
+{{- end }}
+{{ if .Values.pgmonitoring.queryMonitoring.enabled }}
+    # this metric needs permissions on schema public and view pg_stat_statements!        
+    pg_stat_statements:
+{{- if lt $majorPGVersion 13.0 }}
+      query: "SELECT t2.rolname, t3.datname, queryid, query, calls, total_time / 1000 as total_time_seconds, min_time / 1000 as min_time_seconds, max_time / 1000 as max_time_seconds, mean_time / 1000 as mean_time_seconds, stddev_time / 1000 as stddev_time_seconds, rows, shared_blks_hit, shared_blks_read, shared_blks_dirtied, shared_blks_written, local_blks_hit, local_blks_read, local_blks_dirtied, local_blks_written, temp_blks_read, temp_blks_written, blk_read_time / 1000 as blk_read_time_seconds, blk_write_time / 1000 as blk_write_time_seconds FROM public.pg_stat_statements t1 JOIN pg_catalog.pg_roles t2 ON (t1.userid=t2.oid) JOIN pg_catalog.pg_database t3 ON (t1.dbid=t3.oid)"
+{{- else }}
+      query: "SELECT t2.rolname, t3.datname, queryid, query, calls, total_exec_time / 1000 as total_time_seconds, min_exec_time / 1000 as min_time_seconds, max_exec_time / 1000 as max_time_seconds, mean_exec_time / 1000 as mean_time_seconds, stddev_exec_time / 1000 as stddev_time_seconds, rows, shared_blks_hit, shared_blks_read, shared_blks_dirtied, shared_blks_written, local_blks_hit, local_blks_read, local_blks_dirtied, local_blks_written, temp_blks_read, temp_blks_written, blk_read_time / 1000 as blk_read_time_seconds, blk_write_time / 1000 as blk_write_time_seconds FROM public.pg_stat_statements t1 JOIN pg_catalog.pg_roles t2 ON (t1.userid=t2.oid) JOIN pg_catalog.pg_database t3 ON (t1.dbid=t3.oid)"
+{{- end }}
+      metrics:
+        - rolname:
+            usage: "LABEL"
+            description: "Name of user"
+        - datname:
+            usage: "LABEL"
+            description: "Name of database"
+        - queryid:
+            usage: "LABEL"
+            description: "Query ID"
+        - query:
+            usage: "LABEL"
+            description: "Query text"
+        - calls:
+            usage: "COUNTER"
+            description: "Number of times executed"
+        - total_time_seconds:
+            usage: "COUNTER"
+            description: "Total time spent in the statement, in seconds"
+        - min_time_seconds:
+            usage: "GAUGE"
+            description: "Minimum time spent in the statement, in seconds"
+        - max_time_seconds:
+            usage: "GAUGE"
+            description: "Maximum time spent in the statement, in seconds"
+        - mean_time_seconds:
+            usage: "GAUGE"
+            description: "Mean time spent in the statement, in seconds"
+        - stddev_time_seconds:
+            usage: "GAUGE"
+            description: "Population standard deviation of time spent in the statement, in seconds"
+        - rows:
+            usage: "COUNTER"
+            description: "Total number of rows retrieved or affected by the statement"
+        - shared_blks_hit:
+            usage: "COUNTER"
+            description: "Total number of shared block cache hits by the statement"
+        - shared_blks_read:
+            usage: "COUNTER"
+            description: "Total number of shared blocks read by the statement"
+        - shared_blks_dirtied:
+            usage: "COUNTER"
+            description: "Total number of shared blocks dirtied by the statement"
+        - shared_blks_written:
+            usage: "COUNTER"
+            description: "Total number of shared blocks written by the statement"
+        - local_blks_hit:
+            usage: "COUNTER"
+            description: "Total number of local block cache hits by the statement"
+        - local_blks_read:
+            usage: "COUNTER"
+            description: "Total number of local blocks read by the statement"
+        - local_blks_dirtied:
+            usage: "COUNTER"
+            description: "Total number of local blocks dirtied by the statement"
+        - local_blks_written:
+            usage: "COUNTER"
+            description: "Total number of local blocks written by the statement"
+        - temp_blks_read:
+            usage: "COUNTER"
+            description: "Total number of temp blocks read by the statement"
+        - temp_blks_written:
+            usage: "COUNTER"
+            description: "Total number of temp blocks written by the statement"
+        - blk_read_time_seconds:
+            usage: "COUNTER"
+            description: "Total time the statement spent reading blocks, in seconds (if track_io_timing is enabled, otherwise zero)"
+        - blk_write_time_seconds:
+            usage: "COUNTER"
+            description: "Total time the statement spent writing blocks, in seconds (if track_io_timing is enabled, otherwise zero)"
+{{ end }}
+{{- if .Values.pgmonitoring.dashboard.deploy }}
+{{- range $file := .Values.pgmonitoring.dashboard.file }}
+{{- $filename := regexFind "[^/]+$" $file }}
+{{- $cmname := printf $filename | trimSuffix ".json" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $cmname }}
+  namespace: {{ index $.Values.pgmonitoring.dashboard "i3-monitoring-namespace" }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  {{ $filename }}: |-   # dashboard's JSON content
+{{ $.Files.Get $file | indent 4 -}}
+{{- end  }}
+{{- end }}
+{{- end }}

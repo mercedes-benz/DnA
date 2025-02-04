@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    i3-product: i3-logging
+    i3-version: {{ .Chart.Version }}
+    {{- include "dhc-forwarder.labels" . | nindent 4 }}
+  name: kube-system.fluent-bit-allow.i3-logging-fluent-bit
+  namespace: {{ .Release.Namespace }}
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app: fluent-bit-dhc
+  podSelector: 
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Ingress

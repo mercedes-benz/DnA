@@ -1,0 +1,234 @@
+
+name: Airflow & Gitsync Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target build environment"
+        type: environment
+        required: true
+        default: 'Development'
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot
+  AIRFLOW_VERSION: 1.10.16 
+  GITSYNC_TAG_VERSION: 3.3.2
+  NO_PROXY: ''
+  RUNNER_ALLOW_RUNASROOT: 1
+  AIRFLOW_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/airflow
+  GITSYNC_IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/git-sync
+  AIRFLOW_IMAGE_TAG_PATH: docker.image.tag
+  GITSYNC_IMAGE_TAG_PATH: gitSync.image
+  BLACKDUCK_URL: https://bdscan.i.mercedes-benz.com/
+
+
+jobs: 
+
+  development:
+    name: 'Deploy to Development'
+    needs: build
+    if: ${{ ( github.event.pull_request.merged == true  && github.ref_name == 'dev' ) || ( github.event_name == 'push' && github.ref_name == 'dev' ) || github.event.inputs.environment == 'Development' }}
+    runs-on: [ os-medium-amd64-linux ]
+    environment:
+      name: Development
+      url: https://pipeline.dev.dna.app.corpintra.net/
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: Update Airflow Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-dev.yaml
+        propertyPath: '${{ env.AIRFLOW_IMAGE_TAG_PATH }}'
+        value: '${{ env.AIRFLOW_VERSION }}'
+        branch: dev
+        createPR: false
+        commitChange: false
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+
+    - name: Update gitSync Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-dev.yaml
+        propertyPath: '${{ env.GITSYNC_IMAGE_TAG_PATH }}'
+        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ github.run_number }}'
+        branch: dev
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}    
+
+  staging:
+    name: 'Deploy to staging'
+    if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || github.event.inputs.environment == 'Staging' }}
+    runs-on: [ os-medium-amd64-linux ]
+    needs: build
+    environment:
+      name: Staging
+      url:  https://pipeline.test.dna.app.corpintra.net/
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: Update Airflow Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-test.yaml
+        propertyPath: '${{ env.AIRFLOW_IMAGE_TAG_PATH }}'
+        value: '${{ env.AIRFLOW_VERSION }}'
+        branch: staging
+        createPR: false
+        commitChange: false
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+
+    - name: Update gitSync Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-test.yaml
+        propertyPath: '${{ env.GITSYNC_IMAGE_TAG_PATH }}'
+        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ github.run_number }}'
+        branch: staging
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}  
+
+  production:
+    name: 'Deploy to Production'
+    if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' }}
+    needs: build
+    runs-on: [ os-medium-amd64-linux ]
+    environment:
+      name: Production
+      url:  https://pipeline.dna.app.corpintra.net/
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: Update Airflow Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-prod.yaml
+        propertyPath: '${{ env.AIRFLOW_IMAGE_TAG_PATH }}'
+        value: '${{ env.AIRFLOW_VERSION }}'
+        branch: main
+        createPR: false
+        commitChange: false
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+
+    - name: Update gitSync Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: deployment/kubernetes/helm/charts/airflow/values-prod.yaml
+        propertyPath: '${{ env.GITSYNC_IMAGE_TAG_PATH }}'
+        value: '${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}'
+        branch: main
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}  
+
+  build:
+    name: 'Build App'
+    if: github.event_name == 'push' || github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: [ os-medium-amd64-linux ]
+    outputs:
+      version: ${{ steps.updated.outputs.version }}
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+        
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+
+    # Uncomment the section if you have override files and update src,dest in utils\gitFileOverride\fileOverrideList.csv
+    - name: Override files & Login Registry
+      run: | 
+        chmod +x ./utils/gitFileOverride/fileOverride.sh
+        ./utils/gitFileOverride/fileOverride.sh  
+
+    - name: Build Airflow & gitSync Application Containers
+      working-directory: ./deployment/dockerfiles/airflow
+      run: | 
+        docker build -t $AIRFLOW_IMAGE_NAME:${{ github.run_number }} -f ./airflow.Dockerfile .
+        docker build -t $GITSYNC_IMAGE_NAME:${{ github.run_number }} -f ./git-sync.Dockerfile .
+        if [ ${{github.ref_name}} == main ]
+        then
+          docker tag $AIRFLOW_IMAGE_NAME:${{ github.run_number }} $AIRFLOW_IMAGE_NAME:$AIRFLOW_VERSION
+          docker tag $AIRFLOW_IMAGE_NAME:${{ github.run_number }} $AIRFLOW_IMAGE_NAME:latest
+          docker tag $GITSYNC_IMAGE_NAME:${{ github.run_number }} $GITSYNC_IMAGE_NAME:$GITSYNC_TAG_VERSION
+          docker tag $GITSYNC_IMAGE_NAME:${{ github.run_number }} $GITSYNC_IMAGE_NAME:latest
+        fi             
+
+    - name: CSS Image Scan
+      if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
+      id: scan
+      uses: consec/scan@v3
+      with:
+        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
+        pcc_user: ${{ secrets.CSS_USER }}
+        pcc_pass: ${{ secrets.CSS_PASSWORD }}
+        image_name: ${{ env.AIRFLOW_IMAGE_NAME }}:${{ env.AIRFLOW_VERSION }}
+      env:
+        no_proxy: "consec-img-scan.app.corpintra.net"
+        JOB_NAME: "${{ secrets.CSS_USER }}"    
+
+    - name: CSS Image Scan
+      if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
+      id: scan
+      uses: consec/scan@v3
+      with:
+        pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
+        pcc_user: ${{ secrets.CSS_USER }}
+        pcc_pass: ${{ secrets.CSS_PASSWORD }}
+        image_name: ${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}
+      env:
+        no_proxy: "consec-img-scan.app.corpintra.net"
+        JOB_NAME: "${{ secrets.CSS_USER }}" 
+
+    - name: Publish application containers to registry
+      run: |
+        docker push $AIRFLOW_IMAGE_NAME:${{ github.run_number }}
+        docker push $GITSYNC_IMAGE_NAME:${{ github.run_number }}
+        if [ ${{github.ref_name}} == main ]
+        then
+          docker push $AIRFLOW_IMAGE_NAME:$AIRFLOW_VERSION
+          docker push $AIRFLOW_IMAGE_NAME:latest
+          docker push $GITSYNC_IMAGE_NAME:$GITSYNC_TAG_VERSION
+          docker push $GITSYNC_IMAGE_NAME:latest
+        fi          
+
+
+  css-scan-airflow:
+        name: Container security scan Airflow
+        needs: production
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.AIRFLOW_IMAGE_NAME }}:${{ env.AIRFLOW_VERSION }}'
+        secrets: inherit
+
+
+  css-scan-gitsync:
+        name: Container security scan Gitsync
+        needs: production
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}'
+        secrets: inherit
