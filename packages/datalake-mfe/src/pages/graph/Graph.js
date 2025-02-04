@@ -301,6 +301,7 @@ const Graph = ({user, hostHistory}) => {
           error?.response?.data?.errors[0]?.message || error?.response?.data?.warnings[0]?.message || 'Error while updating technical user',
           'alert',
         );
+        console.log(error)
       });
     }
   const onAddTableClick = () => {
