@@ -115,7 +115,8 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
   }
 
   componentDidMount() {
-    ApiClient.getSkills().then((response) => {
+    ProgressIndicator.show();
+     ApiClient.getSkills().then((response) => {
       if (response) {
         this.setState(
           {
@@ -126,6 +127,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
           () => {
             SelectBox.defaultSetup();
             InputFields.defaultSetup();
+            ProgressIndicator.hide();
           },
         );
       }
@@ -206,7 +208,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
                           </option>
                         ))
                       : ''}
-                  </select>
+                  </select> 
                 </div>
                 <div>
                   <button className={classNames(Styles.roleAddButton)} onClick={this.showAddNeededRoleModalView}>
