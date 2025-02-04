@@ -52,5 +52,10 @@ public class ConstantsUtility {
 	public static final String GROUPPRINCIPAL_GROUP_TYPE = "Group";
 	public static final String GROUPPRINCIPAL_USER_TYPE = "User";
 	public static final String GROUPPRINCIPAL_APP_TYPE = "App";
+
+	public static final String JOB_STATUS_RUNNING = "running";
+	public static final String JOB_STATUS_STOPPED = "stopped";
+	public static final String JOB_STATUS_COMPLETED = "completed";
+	public static final String JOB_STATUS_WAITING = "waiting";
 	
 }

@@ -416,6 +416,29 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/updateWorkspacesJob/status:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the status Workspaces Job."
+        description: "get the status Workspaces Job"
+        operationId: "updateWorkspacesJobStatus"
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/updateWorkspacesJobStatusVO"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
 
 definitions:
   CapacityVO:
@@ -852,6 +875,16 @@ definitions:
             type: array
             items: 
               type: string
+  
+  updateWorkspacesJobStatusVO:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          status:
+            type: string
+
 
 
     

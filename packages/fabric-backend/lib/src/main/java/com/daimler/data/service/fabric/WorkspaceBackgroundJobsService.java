@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +51,9 @@ public class WorkspaceBackgroundJobsService {
 	private String enableOwnersOnboardingToFabricRoleOnStartup;
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-	
+
+	private volatile String jobStatus = ConstantsUtility.JOB_STATUS_WAITING;
+
 	@PostConstruct
 	public void initForEnablingExistingOwnersToFabricRole() {
 		if(enableOwnersOnboardingToFabricRoleOnStartup!=null && enableOwnersOnboardingToFabricRoleOnStartup.equalsIgnoreCase("true")) {
@@ -115,9 +118,10 @@ public class WorkspaceBackgroundJobsService {
 //		}
 //	}
 	
-	//@Scheduled(cron = "0 0/7 * * * *")
+	@Async
 	public void updateWorkspacesJob() {	
 		try {
+			jobStatus = ConstantsUtility.JOB_STATUS_RUNNING;
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
 			WorkspacesCollectionDto collectionFromListWorkspaces = fabricWorkspaceClient.listWorkspaces();
 			List<WorkspaceDetailDto> dtosFromFabric = new ArrayList<>();
@@ -182,9 +186,14 @@ public class WorkspaceBackgroundJobsService {
 				}
 			}
 		}catch(Exception e) {
+			jobStatus = ConstantsUtility.JOB_STATUS_STOPPED;
 			e.printStackTrace();
 			log.error("During scheduled job, failed to process workspaces user management with exception {}", e.getMessage());
 		}
+		jobStatus = ConstantsUtility.JOB_STATUS_COMPLETED;
 	}
 	
+	public String getJobStatus() {
+        return jobStatus;
+    }
 }

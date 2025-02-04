@@ -36,6 +36,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.WebApplicationInitializer;
 
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class, ManagementWebSecurityAutoConfiguration.class })
@@ -43,6 +44,7 @@ import org.springframework.web.WebApplicationInitializer;
 		"com.daimler.data.service", "com.daimler.data.assembler", "com.daimler.data.application.config",
 		"com.daimler.data.application.client", "com.daimler.data.util", "com.daimler.data.application.filter",
 		"com.daimler.data.application.logging" })
+@EnableAsync
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);

@@ -40,6 +40,7 @@ import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.dto.fabricWorkspace.UpdateWorkspacesJobStatusVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 import com.daimler.data.service.fabric.WorkspaceBackgroundJobsService;
 
@@ -822,5 +823,35 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	}
 
-    
+	@Override
+	@ApiOperation(value = "get the status Workspaces Job.", nickname = "updateWorkspacesJobStatus", notes = "get the status Workspaces Job", response = UpdateWorkspacesJobStatusVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = UpdateWorkspacesJobStatusVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/updateWorkspacesJob/status",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<UpdateWorkspacesJobStatusVO> updateWorkspacesJobStatus(){
+		UpdateWorkspacesJobStatusVO statusVO = new UpdateWorkspacesJobStatusVO();
+		CreatedByVO requestUser = this.userStore.getVO();
+		try{
+
+			if(!requestUser.getId().equalsIgnoreCase(techUserId)){
+				log.error("Not Authorized to call this API, Bad Request.");
+				return new ResponseEntity<>(statusVO, HttpStatus.BAD_REQUEST);
+			}else{
+				String status = workspaceBackgroundJobsService.getJobStatus();
+				statusVO.getData().setStatus(status);
+				return new ResponseEntity<>(statusVO, HttpStatus.OK);
+			}
+		}catch(Exception e){
+			log.error("Exception occured while calling status of Workspaces Job : {}", e.getMessage());
+			return new ResponseEntity<>(statusVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }
