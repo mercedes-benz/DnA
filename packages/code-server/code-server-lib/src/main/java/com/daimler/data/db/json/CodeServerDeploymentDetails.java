@@ -23,6 +23,8 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private Boolean secureWithIAMRequired;
 	// private String technicalUserDetailsForIAMLogin;
 	private String gitjobRunID;
+	private String oneApiVersionShortName;
+	private Boolean isSecuredWithCookie;
 	private List<DeploymentAudit> deploymentAuditLogs;
 	
 }
