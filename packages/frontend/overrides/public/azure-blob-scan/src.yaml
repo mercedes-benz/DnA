@@ -1,0 +1,30 @@
+logging:
+  type: syslog
+  level: log_debug
+
+components:
+  - libfuse
+  - file_cache
+  - attr_cache
+  - azstorage
+
+libfuse:
+  attribute-expiration-sec: 120
+  entry-expiration-sec: 120
+  negative-entry-expiration-sec: 240
+
+file_cache:
+  path: /mnt/file-cache
+  timeout-sec: 120
+  max-size-mb: 4096
+
+attr_cache:
+  timeout-sec: 7200
+
+azstorage:
+  type: block
+  account-name: <<account-name>>
+  account-key: <<account-key>>
+  endpoint: https://<<account-name>>.blob.core.windows.net
+  mode: key
+  container: <<container-name>>

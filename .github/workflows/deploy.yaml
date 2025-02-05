@@ -1,0 +1,355 @@
+
+name: 4. Deploy
+
+on:
+  workflow_call:
+    inputs:
+      IMAGE_NAME:
+        required: true
+        type: string
+      YML_IMAGE_TAG_PATH:
+        required: true
+        type: string        
+      DOCKER_FILE_PATH:
+        required: true
+        type: string
+      DETECT_PROJECT_NAME:
+        required: true
+        type: string
+      IS_OVERRIDE_REQUIRED:
+        required: true
+        type: boolean
+      ENVIRONMENT:
+        required: true
+        type: string   
+      IS_REACT_APP:
+        required: true
+        type: boolean         
+      CODE_FOLDER:
+        required: true
+        type: string      
+      HELM_FOLDER:
+        required: true
+        type: string       
+      APP_VERSION_FILE_PATH:
+        required: true
+        type: string                        
+    secrets:
+      PID_PAT:
+        required: true
+      HARBOR_DNA_REPO_SECRET:
+        required: true        
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  NO_PROXY: ''
+  RUNNER_ALLOW_RUNASROOT: 1
+  BLACKDUCK_URL: https://bdscan.i.mercedes-benz.com/
+  # DETECT_SOURCE_PATH: <<<<fill-it>>>>>  # comment the line if path is root
+  SECHUB_USERID: pid6c39
+  SECHUB_SERVER: https://sechub.app.corpintra.net
+
+jobs: 
+
+  build:
+    name: 'Build App'
+    runs-on: [os-large-amd64-linux]
+    outputs:
+      version: ${{ steps.updated.outputs.version }}
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    # Uncomment the section if you have override files and update src,dest in utils\gitFileOverride\fileOverrideList.csv
+    - name: Override files & Login Registry
+      if: ${{ inputs.IS_OVERRIDE_REQUIRED }}
+      run: | 
+        chmod +x ./utils/gitFileOverride/fileOverride.sh
+        ./utils/gitFileOverride/fileOverride.sh 
+
+    - name: Get Current Deployed Version
+      if: ${{ github.ref_name == 'main'  ||  inputs.ENVIRONMENT == 'Production'}} 
+      id: current
+      uses: CumulusDS/get-yaml-paths-action@v1.0.1
+      with:
+        file: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
+        version: ${{ inputs.YML_IMAGE_TAG_PATH }}
+
+    # Uncomment below a task if package is java and update file path
+    - name: Get app version from application yml
+      if: ${{ (github.ref_name == 'main'  ||  inputs.ENVIRONMENT == 'Production') && !inputs.IS_REACT_APP }}
+      id: new_version_java
+      uses: CumulusDS/get-yaml-paths-action@v1.0.1
+      with:
+        file: ${{ inputs.APP_VERSION_FILE_PATH }}
+        version: spring.application.version
+
+    # Uncomment below two task if package is react
+    - name: Get app version from package json
+      if: ${{ (github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production') && inputs.IS_REACT_APP  }}
+      id: new_version_react
+      uses: notiz-dev/github-action-json-property@release
+      with: 
+          path: '${{ inputs.APP_VERSION_FILE_PATH }}'
+          prop_path: 'version'
+
+    - name: Check App version
+      if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
+      id: updated
+      run: |
+        if [ "${{ inputs.IS_REACT_APP }}" == "true" ]; then
+          if [ "${{ steps.current.outputs.version }}" == "${{ steps.new_version_react.outputs.prop }}" ]; then
+            echo "Current version and updated version are the same in package.json"
+            echo "Current: ${{ steps.current.outputs.version }}, Updated: ${{ steps.new_version_react.outputs.prop }}"
+            exit 1
+          fi
+          echo "Current: ${{ steps.current.outputs.version }}, Updated: ${{ steps.new_version_react.outputs.prop }}"
+          echo "version=${{ steps.new_version_react.outputs.prop }}" >> $GITHUB_OUTPUT
+        else
+          if [ "${{ steps.current.outputs.version }}" == "${{ steps.new_version_java.outputs.version }}" ]; then
+            echo "Current version and updated version are the same in application.yml"
+            echo "Current: ${{ steps.current.outputs.version }}, Updated: ${{ steps.new_version_java.outputs.version }}"
+            exit 1
+          fi
+          echo "Current: ${{ steps.current.outputs.version }}, Updated: ${{ steps.new_version_java.outputs.version }}"
+          echo "version=${{ steps.new_version_java.outputs.version }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build Application Containers
+      working-directory: ./deployment/dockerfiles
+      run: | 
+        docker build \
+          -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} \
+          -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
+        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
+          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:latest
+        fi           
+
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+
+    - name: Publish application containers to registry
+      run: |
+        docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}
+        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
+          docker push ${{ inputs.IMAGE_NAME }}:latest
+        fi          
+
+    - name: Docker logout
+      run: |
+        docker logout $REGISTRY 
+
+  development:
+    name: 'Deploy to Development'
+    needs: build
+    if: ${{ github.ref_name == 'dev' || inputs.ENVIRONMENT == 'Development' }}
+    runs-on: [os-medium-amd64-linux]
+    environment:
+      name: Development
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: 'dev'       
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: ${{ inputs.HELM_FOLDER }}/values-dev.yaml
+        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
+        value: ${{ github.run_number }}
+        branch: dev
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}     
+        
+  staging:
+    name: 'Deploy to staging'
+    needs: build
+    if: ${{ github.ref_name == 'staging' ||  inputs.ENVIRONMENT == 'Staging' }}
+    runs-on: [os-medium-amd64-linux]
+    environment:
+      name: Staging
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: 'staging'        
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: ${{ inputs.HELM_FOLDER }}/values-test.yaml
+        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
+        value: ${{ github.run_number }}
+        branch: staging
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ github.run_number }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }} 
+
+  production:
+    name: 'Deploy to Production'
+    needs: build
+    if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
+    runs-on: [os-medium-amd64-linux]
+    environment:
+      name: Production
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: 'main'       
+
+    - name: Update Image Version values.yaml
+      uses: fjogeleit/yaml-update-action@v0.13.1
+      with:
+        valueFile: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
+        propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
+        value: ${{ needs.build.outputs.version }}
+        branch: main
+        createPR: false
+        commitChange: true
+        message: 'Update Image Version to ${{ needs.build.outputs.version }}' 
+        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        token: ${{ secrets.PID_PAT }}
+        
+    - name: Create Release
+      uses: ncipollo/release-action@v1.12.0
+      with:
+        name: "${{ inputs.DETECT_PROJECT_NAME }} v${{ needs.build.outputs.version }}"
+        tag: "${{ inputs.DETECT_PROJECT_NAME }}_${{ needs.build.outputs.version }}"
+        commit: "main"
+        token: ${{ secrets.PID_PAT }} 
+
+  css-scan:
+        name: Container security scan
+        needs: build
+        if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
+        uses: ./.github/workflows/consec.yaml
+        with:
+          FULL_IMAGE_NAME: '${{ inputs.IMAGE_NAME }}:${{ needs.build.outputs.version }}'
+        secrets: inherit
+
+  # quality-check:
+  #   name: 'Quality Check'
+  #   runs-on: [os-medium-amd64-linux]
+  #   if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
+  #   needs: build
+  #   outputs:
+  #     version: ${{ needs.build.outputs.version }}
+  #   steps:
+
+  #   - name: Check out repository code
+  #     uses: actions/checkout@v4
+
+  #   - uses: actions/setup-java@v3
+  #     with:
+  #       distribution: 'adopt' 
+  #       java-version: '17'    
+
+  #   # Uncomment below two task if package is java   
+  #   - name: Setup Gradle
+  #     uses: gradle/gradle-build-action@v2
+  #     with:
+  #       gradle-version: 7.4.1  
+       
+  #   - name: Build with Gradle
+  #     run: |
+  #       gradle build
+
+  #   - name: Blackduck scan
+  #     uses: synopsys-sig/detect-action@v0.3.0
+  #     env:
+  #         DETECT_PROJECT_VERSION_NAME: "${{ github.run_number }}"
+  #         # DETECT_PROJECT_NAME: ${{ env.DETECT_PROJECT_NAME }}
+  #         DETECT_DETECTOR_SEARCH_DEPTH: "2"
+  #         DETECT_EXCLUDED_DETECTOR_TYPES: "GIT"
+  #     with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         detect-version: 7.9.0
+  #         blackduck-url: ${{ env.BLACKDUCK_URL }}
+  #         blackduck-api-token: ${{ secrets.BLACKDUCK_API_TOKEN }} 
+  #         output-path-override: ./  
+  #         fail-on-all-policy-severities: true
+  #         scan-mode: INTELLIGENT
+
+  #   - name: Blackduck scan
+  #     uses: synopsys-sig/detect-action@v0.3.0
+  #     env:
+  #         DETECT_PROJECT_VERSION_NAME: "${{ github.run_number }}"
+  #         # DETECT_PROJECT_NAME: ${{ env.DETECT_PROJECT_NAME }}
+  #         DETECT_DETECTOR_SEARCH_DEPTH: "2"
+  #         DETECT_EXCLUDED_DETECTOR_TYPES: "GIT"
+  #     with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         detect-version: 7.9.0
+  #         blackduck-url: ${{ env.BLACKDUCK_URL }}
+  #         blackduck-api-token: ${{ secrets.BLACKDUCK_API_TOKEN }} 
+  #         output-path-override: ./  
+  #         fail-on-all-policy-severities: true
+
+
+  # sechub-scan:
+  #   name: Static Application secuirty Testing
+  #   needs: build
+  #   if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}    
+  #   runs-on: [os-medium-amd64-linux]
+    
+  #   steps:    
+
+  #   - name: Check out other repo
+  #     uses: actions/checkout@v4
+  #     with:
+  #       repository: ""
+  #       token: ""
+  #       ref: ""
+  #       github-server-url: "https://git.i.mercedes-benz.com/"  
+
+  #   - name: Download tha sechub client 
+  #     run: |
+  #       echo $path
+  #       cd /tmp
+  #       curl -L -o sechub-cli.zip https://github.com/mercedes-benz/sechub/releases/download/v0.31.0-client/sechub-cli-0.31.0.zip
+  #       unzip sechub-cli.zip
+  #       sudo cp platform/linux-amd64/sechub /usr/local/bin
+
+  #   - name: Check if the sechub works 
+  #     run: |
+  #       sechub -version
+      
+  #   - name: Sechub scan 
+  #     run: |
+  #       sechub scan -apitoken ${{ secrets.SECHUB_API_TOKEN }} || true
+    
+  #   - name: Upload report to minio bucket
+  #     run: |
+  #       if [ -d "$HOME/minio-binaries/mc" ]; then
+  #        echo "Minio already present"
+  #       else
+  #         curl https://dl.min.io/client/mc/release/linux-amd64/mc \
+  #           --create-dirs \
+  #           -o $HOME/minio-binaries/mc
+  #         chmod +x $HOME/minio-binaries/mc
+  #         export PATH=$PATH:$HOME/minio-binaries/
+  #       fi
+  #       mc --insecure alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_KEY }} ${{ secrets.MINIO_SECRET }}
+  #       cp sechub_report_dna_platform* $(date +'%Y-%m-%dT%H:%M').json
+  #       mc --insecure cp --recursive $(date +'%Y-%m-%dT%H:%M').json myminio/sechub/${{ inputs.repo }}/${{ inputs.branch }}/
+  #       mc alias remove myminio
+
+  #   - name: Cleanup
+  #     run: |
+  #       rm -rf sechub_report_dna_platform*
+  #       rm -rf $(date +'%Y-%m-%dT%H:%M').json
