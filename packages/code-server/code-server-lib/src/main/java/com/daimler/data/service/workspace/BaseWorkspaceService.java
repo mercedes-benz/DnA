@@ -3329,7 +3329,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 			}
 			return responseData;
 		} catch (Exception e) {
-			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+			log.info("Failed while getAllWorkSpaceGroup codeserver workspace group with exception " + e.getMessage());
 			return  null;
 		}
 	}
@@ -3360,7 +3360,42 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 			}
 			return responseData;
 		} catch (Exception e) {
-			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+			log.info("Failed while getWorkSpaceGroupById codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id){
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			CodeServerUserGroupNsql entity = null;
+			CodeServerUserGroupList data = null;
+			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				entity = entityOptional.get();
+				data = entity.getData();
+			}
+			data.getGroups().removeIf(i -> i.getGroupId().equals(id));
+			entity.setData(data);
+			CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
+			CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
+			responseData.getData().forEach(group ->{
+				group.getWorkspaces().forEach(workSpace ->{                           
+					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                             
+					if (workspaceVo.getProjectDetails() != null) {
+						workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
+					}else{
+						workSpace.setName("");
+					}
+				});
+			});
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while deleting codeserver workspace group with exception " + e.getMessage());
 			return  null;
 		}
 	}

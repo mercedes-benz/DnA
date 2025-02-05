@@ -112,5 +112,7 @@ public interface WorkspaceService {
 	CodeServerUserGroupCollectionVO getAllWorkSpaceGroup();
 
 	CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id);
+
+	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 	
 }

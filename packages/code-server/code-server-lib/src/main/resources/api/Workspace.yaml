@@ -1164,6 +1164,157 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/group/create:        
+    post:
+      tags:
+        - "code-server"
+      summary: "Create new WorkSpace group."
+      description: "Create new WorkSpace group"
+      operationId: "createWorkSpaceGroup"
+      parameters:
+        - name: "CodeServerUserGroupVO"
+          in: "body"
+          description: "Request Body that contains data required for Create new WorkSpace group "
+          required: true
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/group/edit:        
+    patch:
+      tags:
+        - "code-server"
+      summary: "edit  WorkSpace group."
+      description: "edit WorkSpace group"
+      operationId: "editWorkSpaceGroup"
+      parameters:
+        - name: "UpdateUserGroupRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for edit  WorkSpace group "
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateUserGroupRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/group/get/{id}:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get workspace group details for a given Id."
+      description: "Get workspace group details for a given Id."
+      operationId: "getWorkSpaceGroupById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace group ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupByIdResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/group/getAll:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get workspace group details."
+      description: "Get workspace group details"
+      operationId: "getAllWorkSpaceGroup"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/group/delete:
+    delete:
+      tags:
+        - "code-server"
+      summary: "Delete workspace group for a given Id."
+      description: "Delete workspace group for a given identifier."
+      operationId: "deleteWorkspaceGroup"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"                                        
+
           
 definitions:
   CodeSpaceReadmeVo:
@@ -1849,19 +2000,31 @@ definitions:
   CodeServerUserGroupVO:
     type: object
     properties:
-      id:
+      groupId:
         type: string
         description: "ID of user group"
       name:
         type: string
         description: "Name of user group"
-      description:
-        type: string
-        description: "Description of user group"
+      order:
+        type: integer
+        description: "order of user group"
       workspaces:
         type: array
         items:
-          $ref: "#/definitions/CodeServerWorkspaceVO"
+          $ref: "#/definitions/CodeServerUserGroupWsDetailsVO"
+  CodeServerUserGroupWsDetailsVO:
+    type: object
+    properties:
+      wsId:
+        type: string
+        description: "Id of the workspace"
+      order:
+        type: integer
+        description: "order of workspace"
+      name:
+        type: string
+        description: "name of workspace"           
   CodeServerUserGroupCollectionVO:
     type: object
     properties:
@@ -1871,5 +2034,73 @@ definitions:
           $ref: "#/definitions/CodeServerUserGroupVO"
       userId:
           type: string
-          description: id of user            
+          description: id of user
+  CodeServerUserGroupResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CodeServerUserGroupCollectionVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+  UpdateUserGroupRequestVO:
+    type: object
+    properties:
+      groupId:
+        type: string
+        description: "ID of user group"
+      name:
+        type: string
+        description: "Name of user group"
+      order:
+        type: integer
+        description: "order of user group"
+      wsAdded:
+        type: array
+        items:
+          $ref: "#/definitions/CodeServerUserGroupWsDetailsVO"
+      wsRemoved:
+        type: array
+        items:
+          $ref: "#/definitions/CodeServerUserGroupWsDetailsVO" 
+  CodeServerUserGroupByIdVO:
+    type: object
+    properties:
+      groupId:
+        type: string
+        description: "ID of user group"
+      name:
+        type: string
+        description: "Name of user group"
+      order:
+        type: integer
+        description: "order of user group"
+      workspaces:
+        type: array
+        items:
+          $ref: "#/definitions/CodeServerWorkspaceVO"
+  CodeServerUserGroupByIdResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CodeServerUserGroupByIdVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"                           
+          
+
 

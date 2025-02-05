@@ -2774,14 +2774,14 @@ import org.springframework.beans.factory.annotation.Value;
 				response.setSuccess("SUCCESS");
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}else{
-				log.error("Failed to Create workspcae group");
-			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+				log.error("Failed to update workspcae group");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to update group due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
-			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			log.error("Failed to update workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to update group due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -2814,14 +2814,14 @@ import org.springframework.beans.factory.annotation.Value;
 				response.setSuccess("SUCCESS");
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}else{
-				log.error("Failed to Create workspcae group");
-			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+				log.error("Failed to getAllWorkSpaceGroup");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to getAllWorkSpaceGroup due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
-			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			log.error("Failed to getAllWorkSpaceGroup, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to getAllWorkSpaceGroup due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -2864,14 +2864,64 @@ import org.springframework.beans.factory.annotation.Value;
 				response.setSuccess("SUCCESS");
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}else{
-				log.error("Failed to Create workspcae group");
-			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+				log.error("Failed to getWorkSpaceGroupById");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to getWorkSpaceGroupById due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
-			log.error("Failed to Create workspcae group, with exception {}", e.getLocalizedMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to create group due to internal error.");
+			log.error("Failed to getWorkSpaceGroupById , with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to getWorkSpaceGroupById due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Delete workspace group for a given Id.", nickname = "deleteWorkspaceGroup", notes = "Delete workspace group for a given identifier.", response = CodeServerUserGroupResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerUserGroupResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/group/delete/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<CodeServerUserGroupResponseVO> deleteWorkspaceGroup(@ApiParam(value = "Workspace ID to be deleted",required=true) @PathVariable("id") String id){
+		CodeServerUserGroupResponseVO response = new CodeServerUserGroupResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();			
+				Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				CodeServerUserGroupNsql entity = entityOptional.get();
+				if(!entity.getData().getGroups().stream().anyMatch(i -> i.getGroupId().equalsIgnoreCase(id))){
+					MessageDescription invalidMsg = new MessageDescription("Group ID does not exist");
+						response.addErrorsItem(invalidMsg);	
+				}	
+			}
+			if(response.getErrors() != null && !response.getErrors().isEmpty())
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);		
+				CodeServerUserGroupCollectionVO responsedata = service.deleteWorkSpaceGroup(id);
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to delete workspcae group");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		} catch (Exception e) {
+			log.error("Failed to delete workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete group due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
