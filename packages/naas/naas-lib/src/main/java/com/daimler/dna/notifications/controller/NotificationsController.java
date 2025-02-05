@@ -288,6 +288,8 @@ public class NotificationsController implements NotificationsApi {
 									usersEmails.add("");
 								}
 							}
+							record.setSubscribedUsersEmail(usersEmails);
+							record.setMailRequired(true);
 						}
 						LOG.info("Sending custom notification to users {}", data.getSubscribedUsers());
 					}
