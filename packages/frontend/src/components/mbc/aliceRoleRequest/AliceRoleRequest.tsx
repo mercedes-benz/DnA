@@ -87,7 +87,8 @@ const AliceRoleRequest = () => {
     ApiClient.getExistingRoles(Envs.ALICE_APP_ID)
       .then((res: any) => {
         ProgressIndicator.hide();
-        if (res.data) {
+        if(Array.isArray(res)) return;
+        if (res?.data) {
           setRolesCreated(res.data.roles);
         } else {
           if (res?.errors[0]?.message?.length > 0) {
@@ -99,6 +100,7 @@ const AliceRoleRequest = () => {
         }
       })
       .catch((err) => {
+        
         ProgressIndicator.hide();
         Notification.show(
           err?.message || "Something went wrong", 

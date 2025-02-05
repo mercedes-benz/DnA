@@ -156,3 +156,118 @@
 .warning {
   color: #FFEB3B;
 }
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  height: 75px;
+
+  .cardHeadInfo {
+    width: 100%;
+    padding: 15px 20px;
+    cursor: pointer;
+    margin-top: 35px;
+
+    .cardHeadTitle {
+      font-size: var(--font-size-headline);
+      line-height: 23px;
+      word-break: break-word;
+      padding-right: 10px;
+      padding-bottom: 5px;
+      width: 100%;
+      text-align: left;
+    }
+
+    &.disable {
+      pointer-events: none;
+    }
+  }
+}
+
+hr {
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cardBodySection {
+  padding: 15px 20px 20px 20px;
+  margin-bottom: 30px;
+  min-height: 200px;
+
+  >div {
+    display: flex;
+    justify-content: space-between;
+    flex-grow: 1;
+    color: #99a5b3;
+    flex-direction: column;
+
+    >div {
+      display: flex;
+      justify-content: space-between;
+
+      &:not(:last-child) {
+        margin-bottom: 10px;
+      }
+
+      >div:first-child {
+        flex: 1;
+        font-weight: bold;
+        color: #697582;
+        font-size: var(--font-size-small);
+      }
+
+      >div:last-child {
+        flex: 1;
+      }
+    }
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+
+    li:not(:last-child) {
+      padding-bottom: 10px;
+    }
+  }
+}
+
+.cardCollabSection {
+  .cardCollabIcon {
+    display: inline-block;
+    cursor: pointer;
+    color: #00adef;
+    min-width: 40px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .collabsList {
+    min-width: 300px;
+    padding: 15px 15px 0 !important;
+    font-size: var(--font-size-small);
+
+    li {
+      border-bottom: 1px solid #2d333b;
+      padding: 5px 0;
+
+      &:last-child {
+        border: none;
+      }
+
+      .permission {
+        position: absolute;
+        right: 15px;
+      }
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
+}
