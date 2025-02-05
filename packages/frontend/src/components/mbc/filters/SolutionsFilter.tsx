@@ -323,8 +323,8 @@ const SolutionsFilter = ({
               });
 
               if(filterPreferences.dataValueRange) {
-                const prefStartYear = filterPreferences.dataValueRange.split(',')[0],
-                const prefEndYear = filterPreferences.dataValueRange.split(',')[1],
+                const prefStartYear = filterPreferences.dataValueRange.split(',')[0];
+                const prefEndYear = filterPreferences.dataValueRange.split(',')[1];
                 queryParams.dataValueRange.startYear = years.includes(prefStartYear) ? prefStartYear : defaultStartYear;
                 queryParams.dataValueRange.endYear = years.includes(prefEndYear) ? prefEndYear : defaultEndYear;
               } else {
