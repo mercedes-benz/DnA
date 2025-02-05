@@ -100,6 +100,7 @@ const AliceRoleRequest = () => {
         }
       })
       .catch((err) => {
+        
         ProgressIndicator.hide();
         Notification.show(
           err?.message || "Something went wrong", 
