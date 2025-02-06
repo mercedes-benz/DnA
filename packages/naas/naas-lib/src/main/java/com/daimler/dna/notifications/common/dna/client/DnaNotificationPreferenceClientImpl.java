@@ -51,8 +51,10 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 
 			String getUsersUri = dnaBaseUri + usersUri + "?limit=0";
 			if(searchTerm != null && !"".equalsIgnoreCase(searchTerm.trim())){
-				getUsersUri = getUsersUri + "&searchTerm=" + searchTerm;
+				 getUsersUri = getUsersUri + "&searchTerm=" + searchTerm;
 			}
+			System.out.println("Requesting users with URL: " + getUsersUri);
+
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<UsersCollection> response = restTemplate.exchange(getUsersUri, HttpMethod.GET, entity, UsersCollection.class);
 			if (response != null && response.hasBody()) {

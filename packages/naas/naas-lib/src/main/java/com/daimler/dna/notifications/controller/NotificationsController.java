@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.dna.notifications.api.NotificationsApi;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
@@ -279,6 +280,8 @@ public class NotificationsController implements NotificationsApi {
 						if(users!= null && !users.isEmpty()){
 							for(String subscribedusers: users){
 								UsersCollection usersCollection = dnaClient.getAllUsers(subscribedusers);
+								System.out.println("record is " + usersCollection.getRecords());
+								LOG.info("record is" + usersCollection.getRecords());
 								if(usersCollection!=null && usersCollection.getRecords()!= null 
 								&& !usersCollection.getRecords().isEmpty() && usersCollection.getRecords().get(0)!= null
 								&& usersCollection.getRecords().get(0).getEmail()!=null){
@@ -287,9 +290,22 @@ public class NotificationsController implements NotificationsApi {
 								else{
 									usersEmails.add("");
 								}
+								
+								
+								
+								// if(usersCollection!=null && usersCollection.getRecords()!= null 
+								// && !usersCollection.getRecords().isEmpty() && usersCollection.getRecords().get(0)!= null
+								// && usersCollection.getRecords().get(0).getEmail()!=null){
+								// 	usersEmails.add(usersCollection.getRecords().get(0).getEmail());
+								// }
+								// else{
+								// 	usersEmails.add("");
+								// }
 							}
 							record.setSubscribedUsersEmail(usersEmails);
 							record.setMailRequired(true);
+							LOG.info("Email is " + usersEmails);
+							
 						}
 						LOG.info("Sending custom notification to users {}", data.getSubscribedUsers());
 					}
