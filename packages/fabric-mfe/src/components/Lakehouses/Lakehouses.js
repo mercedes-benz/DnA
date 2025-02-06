@@ -153,11 +153,12 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         <div key={'card-'} className={classNames(Styles.storageCard)}>
           <div className={Styles.cardHead}>
             <div className={classNames(Styles.cardHeadInfo)}>
-              <div
-                className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-                onClick={() => window.open(`${Envs.CONTAINER_APP_URL}/storage/explorer/${bucketName}`)}>
-                {bucketName}
-              </div>
+              <a target='_blank' href={`/#/storage/explorer/${bucketName}`} rel="noreferrer">
+                <div
+                  className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}>
+                  {bucketName}
+                </div>
+              </a>
             </div>
           </div>
           <hr />
