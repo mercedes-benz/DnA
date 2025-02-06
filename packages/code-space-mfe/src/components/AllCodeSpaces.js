@@ -239,7 +239,7 @@ const AllCodeSpaces = (props) => {
                 <ol>
                     {/* <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li> */}
                     <li><b>Auto Migration:</b> We have migrated all your existing workspaces to DyPCaaS AWS.</li>
-                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 30th, 2025.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>January 31st, 2025</span>.</li>
                 </ol>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
