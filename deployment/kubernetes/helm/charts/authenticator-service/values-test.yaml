@@ -43,13 +43,13 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
   hosts:
-    - host: api.prompt-craft.dna-aws.app.corpintra.net
+    - host: api.auth.test.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - api.prompt-craft.dna-aws.app.corpintra.net
+        - api.auth.test.dna.app.corpintra.net
       secretName: auth-service-tls
 resources: {}
 autoscaling:
