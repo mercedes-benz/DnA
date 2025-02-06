@@ -24,6 +24,7 @@ const BuildModal = (props) => {
   const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
   // const [buildType, setBuildType] = useState('build');
   const [comment, setComment] = useState('');
+  const [enableVersion, setEnableVersion] = useState(false);
   const [totalNumberOfRecords, setTotalNumberOfRecords] = useState();
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -104,6 +105,9 @@ const BuildModal = (props) => {
     setBranchValue(selectedTags);
     setIsBranchValueMissing(false);
   };
+  const onEnableVersionChange = (evnt) => {
+    setEnableVersion(evnt.currentTarget.checked);
+  };
 
   const onBuildTrigger = () => {
     let formValid = true;
@@ -129,7 +133,7 @@ const BuildModal = (props) => {
         <>
           <div className={Styles.BuildModal}>
             <p>The code from your workspace will be built and you can check the status on the build logs.</p>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+            <div className={classNames(Styles.flexLayout)}>
               <div>
                 <Tags
                   title={'Select Branch'}
@@ -157,6 +161,21 @@ const BuildModal = (props) => {
                   maxLength={60}
                   onChange={onCommentChange}
                 />
+              </div>
+              <div>
+               <label className="checkbox">
+                <span className="wrapper">
+                  <input 
+                    type="checkbox" 
+                    className="ff-only" 
+                    checked={enableVersion}  
+                    onChange={onEnableVersionChange}
+                  />
+                </span>
+                <span className="label">
+                  Enable Version
+                </span>
+               </label>
               </div>
               <div className={Styles.btnGrp}>
                 <button
