@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: fccockpitdb
+DBName: fccockpitdevdb
 
 ## Configure S3 properties if S3 storage will be used
 ##
