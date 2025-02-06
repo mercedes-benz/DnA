@@ -13,6 +13,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -61,7 +62,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
     if(bucketName) {
       ProgressIndicator.show();
         fabricApi
-          .getConnectionInfo(bucketName[0])
+          .getConnectionInfo(bucketName)
           .then((res) => {
             setAccessKey(res?.data?.data?.userVO?.accesskey);
             setSecretKey(res?.data?.data?.userVO?.secretKey);
@@ -89,8 +90,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       setBucketNameError(true);
     } else {
       const data = {
-        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName[0])[0]?.id || '',
-        bucketname: bucketName[0],
+        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName)[0]?.id || '',
+        bucketname: bucketName,
         accessKey,
         secretKey
       }
@@ -109,8 +110,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
     }
   }
 
-  const bucketDetails = buckets?.filter(bucket => bucket?.bucketName === bucketName[0]);
-
+  const bucketDetails = bucketName?.length ? buckets?.filter(bucket => bucket?.bucketName === bucketName) : [];
+  
   const onCollabsIconMouseOver = (e) => {
     const targetElem = e.target;
     tooltipElem = targetElem.nextElementSibling;
@@ -137,10 +138,10 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         <Tags
           title={'Select Storage Bucket'}
           max={1}
-          chips={bucketName}
+          chips={bucketName.length ? [bucketName] : []}
           tags={buckets}
           setTags={(selectedTags) => {
-            setBucketName(selectedTags);
+            setBucketName(selectedTags[0] || '');
           }}
           isMandatory={true}
           showMissingEntryError={bucketNameError}
@@ -149,12 +150,12 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       </div>
       <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
       {bucketDetails.length === 1 && (
-
         <div key={'card-'} className={classNames(Styles.storageCard)}>
           <div className={Styles.cardHead}>
             <div className={classNames(Styles.cardHeadInfo)}>
               <div
-                className={classNames(Styles.cardHeadTitle)}>
+                className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
+                onClick={() => window.open(`${Envs.CONTAINER_APP_URL}/storage/explorer/${bucketName}`)}>
                 {bucketName}
               </div>
             </div>

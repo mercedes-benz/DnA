@@ -265,7 +265,7 @@ public class NotificationsController implements NotificationsApi {
 					record.setPublishingUser(data.getPublishingUser());
 					ServiceUsersTypeEnum serviceType = data.getServiceUsersType();
 					if("All".equalsIgnoreCase(serviceType.name())){
-						UsersCollection usersCollection = dnaClient.getAllUsers();
+						UsersCollection usersCollection = dnaClient.getAllUsers(null);
 						if(usersCollection!=null && usersCollection.getRecords()!= null && !usersCollection.getRecords().isEmpty()) {
 							List<String> allUsers = new ArrayList<>();
 							allUsers = usersCollection.getRecords().stream().map(n -> n.getId()).collect(Collectors.toList());
@@ -274,6 +274,23 @@ public class NotificationsController implements NotificationsApi {
 						}
 					}else {
 						record.setSubscribedUsers(data.getSubscribedUsers());
+						List<String> users = data.getSubscribedUsers();
+						List<String> usersEmails = new ArrayList<>();
+						if(users!= null && !users.isEmpty()){
+							for(String subscribedusers: users){
+								UsersCollection usersCollection = dnaClient.getAllUsers(subscribedusers);
+								if(usersCollection!=null && usersCollection.getRecords()!= null 
+								&& !usersCollection.getRecords().isEmpty() && usersCollection.getRecords().get(0)!= null
+								&& usersCollection.getRecords().get(0).getEmail()!=null){
+									usersEmails.add(usersCollection.getRecords().get(0).getEmail());
+								}
+								else{
+									usersEmails.add("");
+								}
+							}
+							record.setSubscribedUsersEmail(usersEmails);
+							record.setMailRequired(true);
+						}
 						LOG.info("Sending custom notification to users {}", data.getSubscribedUsers());
 					}
 					SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
