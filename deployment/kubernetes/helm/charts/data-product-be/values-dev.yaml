@@ -1,0 +1,115 @@
+replicaCount: 1
+image:
+  repository: registry-emea.app.corpintra.net/dnaplatform/data-product-be
+  pullPolicy: IfNotPresent
+  tag: '104'
+namespace: data-product
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: data-product-be
+envs:
+  - name: FLYWAY_ENABLED
+    value: 'true'
+  - name: FLYWAY_BASELINE_ON_MIGRATE
+    value: 'true'
+  - name: FLYWAY_BASELINEVERSION
+    value: '0'
+  - name: FLYWAY_SCHEMA
+    value: public
+  - name: API_DB_URL
+    value: ''
+  - name: API_DB_USER
+    value: ''
+  - name: API_DB_PASS
+    valueFrom:
+      secretKeyRef:
+        key: db.pass
+        name: data-product-be
+  - name: DNA_URI
+    value: ''
+  - name: DNA_AUTH_ENABLE
+    value: 'true'
+  - name: CORS_ORIGIN_URL
+    value: ''
+  - name: JWT_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        key: jwt.secret.key
+        name: data-product-be
+  - name: LOGGING_ENVIRONMENT
+    value: DEV
+  - name: LOGGING_PATH
+    value: /tmp/log
+secret:
+  - key: jwt.secret.key
+    value: ''
+  - key: db.pass
+    value: ''
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ''
+podAnnotations:
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/role: "dna_dev_k8_role"
+  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
+  vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
+  vault.hashicorp.com/template-static-secret-render-interval: 10s
+  vault.hashicorp.com/agent-pre-populate-only: 'false'
+  vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/dev/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-truststore.jks: |
+    {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.TRUSTSTORE }}
+    {{- end }}
+  vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/dev/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-template-keystore.p12: |
+    {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+    {{ base64Decode  .Data.data.KEYSTORE }}
+    {{- end }}      
+  vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/dev/kubernetesSecret/dataProductService
+  vault.hashicorp.com/agent-inject-template-envvar: |
+    {{- with secret "dna_kv/dev/kubernetesSecret/dataProductService" -}}
+      {{- range $k, $v := .Data.data }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}
+    {{- end }}
+    {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{- range $k, $v := .Data.data }}
+      {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
+          export {{ $k }}="{{ $v }}"
+      {{- end }}        
+      {{- end }}      
+    {{- end }}     
+podSecurityContext:
+  runAsUser: 1000
+securityContext: {}
+containerPort: 7184
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: false
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: daimler-acme
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
+  hosts:
+    - host: api.data-product.dev.dna.app.corpintra.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.data-product.dev.dna.app.corpintra.net
+      secretName: data-product-be-tls
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+vaultInjector:
+  enable: true
+  jarName: data-product*.jar
