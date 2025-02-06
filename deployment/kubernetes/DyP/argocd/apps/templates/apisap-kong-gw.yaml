@@ -18,7 +18,7 @@ spec:
   source:
     path: deployment/helm
     repoURL: https://git.i.mercedes-benz.com/DNA/dna-kong.git
-    targetRevision: migration/aws
+    targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
