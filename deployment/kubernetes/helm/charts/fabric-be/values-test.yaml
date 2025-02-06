@@ -3,7 +3,7 @@ namespace: test-dna-fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
   pullPolicy: IfNotPresent
-  tag: '1138'
+  tag: '1206'
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
@@ -60,7 +60,7 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: api.workspaces.dna-aws.app.corpintra.net
+    - host: api.workspaces.test.dna.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix

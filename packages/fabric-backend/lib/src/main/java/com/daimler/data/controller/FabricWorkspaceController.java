@@ -40,7 +40,10 @@ import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.dto.fabricWorkspace.UpdateWorkspacesJobStatusVO;
+import com.daimler.data.dto.fabricWorkspace.UpdateWorkspacesJobStatusVOData;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
+import com.daimler.data.service.fabric.WorkspaceBackgroundJobsService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -60,12 +63,18 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private WorkspaceBackgroundJobsService  workspaceBackgroundJobsService;
 	
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
+
+	@Value ("${fabricWorkspaces.technicalUserId}")
+	private String techUserId;
 	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
@@ -327,8 +336,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
-				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) || ! userStore.getUserInfo().hasProjectAdminAccess(id)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 			String email = requestUser.getEmail();
@@ -374,8 +383,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
-				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) || ! userStore.getUserInfo().hasProjectAdminAccess(id)) {
+				log.warn("Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 			String path = "";
@@ -739,5 +748,113 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
-    
+	@ApiOperation(value = "get all dna roles for a user.", nickname = "getAllUserDnaRoles", notes = "get all dna roles for a user", response = DnaRoleCollectionVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = DnaRoleCollectionVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/dnaroles",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<DnaRoleCollectionVO> getAllUserDnaRoles(@ApiParam(value = "",required=true) @PathVariable("id") String id){
+		UserInfo userInfo = this.userStore.getUserInfo();
+		String authToken = userInfo.getAuthToken();
+		DnaRoleCollectionVO roleCollection = new DnaRoleCollectionVO();
+		try{
+
+			roleCollection = service.getAllUserDnaRoles(id,authToken);
+
+			if(roleCollection.getData().getRoles().isEmpty()){
+				return new ResponseEntity<>(roleCollection, HttpStatus.NO_CONTENT);
+			}else{
+				return new ResponseEntity<>(roleCollection, HttpStatus.OK);
+			}
+
+		}catch(Exception e){
+				log.error("Failed to request role  for user {}, Fabric workspace {} with exception {} ",id,userInfo.getId(),e.getMessage());
+				return new ResponseEntity<>(roleCollection, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+
+	@ApiOperation(value = "update all the Workspaces Job.", nickname = "updateWorkspacesJob", notes = "update all the Workspaces Job", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/updateWorkspacesJob",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> updateWorkspacesJob(){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try{
+			CreatedByVO requestUser = this.userStore.getVO();
+			if(!requestUser.getId().equalsIgnoreCase(techUserId)){
+				errors.add(new MessageDescription("Not Authorized to call this API, Bad Request."));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Not Authorized to call this API, Bad Request.");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}else {
+				workspaceBackgroundJobsService.updateWorkspacesJob();
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+		}catch( Exception e){
+			errors.add(new MessageDescription("Exception occured while calling update all the Workspaces Job. "));
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				response.setSuccess("FAILED");
+				log.error("Exception occured while calling update all the Workspaces Job : {}", e.getMessage());
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
+	@Override
+	@ApiOperation(value = "get the status Workspaces Job.", nickname = "updateWorkspacesJobStatus", notes = "get the status Workspaces Job", response = UpdateWorkspacesJobStatusVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = UpdateWorkspacesJobStatusVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/updateWorkspacesJob/status",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<UpdateWorkspacesJobStatusVO> updateWorkspacesJobStatus(){
+		UpdateWorkspacesJobStatusVO statusVO = new UpdateWorkspacesJobStatusVO();
+		UpdateWorkspacesJobStatusVOData data = new UpdateWorkspacesJobStatusVOData();
+		CreatedByVO requestUser = this.userStore.getVO();
+		statusVO.setData(data);
+		try{
+
+			if(!requestUser.getId().equalsIgnoreCase(techUserId)){
+				log.error("Not Authorized to call this API, Bad Request.");
+				return new ResponseEntity<>(statusVO, HttpStatus.BAD_REQUEST);
+			}else{
+				String status = workspaceBackgroundJobsService.getJobStatus();
+				data.setStatus(status);
+				return new ResponseEntity<>(statusVO, HttpStatus.OK);
+			}
+		}catch(Exception e){
+			log.error("Exception occured while calling status of Workspaces Job : {}", e.getMessage());
+			return new ResponseEntity<>(statusVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

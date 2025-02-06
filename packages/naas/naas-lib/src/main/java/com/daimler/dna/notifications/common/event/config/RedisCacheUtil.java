@@ -57,7 +57,7 @@ public class RedisCacheUtil {
 		List<NotificationVO> voList = new ArrayList<>();
 		List<String> keys = redisCacheConfig.getKeys(userId);
 		if(keys!=null && !keys.isEmpty()) {
-			log.info("Successfully got lettuceConnection and readKeys");
+			log.debug("Successfully got lettuceConnection and readKeys");
 			for(String key: keys) {
 				if(key!=null) {
 					String[] keySplitArray = key.split(userId+"::");

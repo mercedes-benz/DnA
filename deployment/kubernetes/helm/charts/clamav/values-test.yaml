@@ -7,7 +7,7 @@ app:
     name: clamav-rest
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
-      tag: '982'
+      tag: '1157'
     replicaCount: 1
     secrets:
       name: oneapi-secrets
@@ -55,13 +55,13 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-01-24
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-02-06
   replicaCount: 1
   pullPolicy: Always
 ingress:
   enabled: false
   className: test-ingress-intranet
-  host: scan.dna-aws.app.corpintra.net
+  host: scan.test.dna.app.corpintra.net
   certificateIssuer: mercedes-benz-acme
   prefix: /internal
   annotations:
