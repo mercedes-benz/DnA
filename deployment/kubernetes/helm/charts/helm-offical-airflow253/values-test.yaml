@@ -1354,7 +1354,7 @@ triggerer:
 
   waitForMigrations:
     # Whether to create init container to wait for db migrations
-    enabled: true
+    enabled: false
     env: []
 
 
