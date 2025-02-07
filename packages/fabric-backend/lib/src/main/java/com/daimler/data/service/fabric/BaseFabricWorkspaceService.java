@@ -1697,7 +1697,8 @@ public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
         roles = roleList.stream()
                         .filter(role -> role.startsWith("DNA_"))
                         .collect(Collectors.toList());
-        dnaRoleCollection.getData().setRoles(roles);
+        data.setRoles(roles);
+        dnaRoleCollection.setData(data);
     } catch (Exception e) {
         log.error("Error occurred while getting user roles: {}", e.getMessage());
     }
