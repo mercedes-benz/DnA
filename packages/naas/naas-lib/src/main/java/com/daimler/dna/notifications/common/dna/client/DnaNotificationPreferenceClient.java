@@ -7,6 +7,6 @@ public interface DnaNotificationPreferenceClient {
 
 	UserNotificationPrefVO getUserNotificationPreferences(String userId);
 
-	UsersCollection getAllUsers();
+	UsersCollection getAllUsers(String searchTerm);
 	
 }
