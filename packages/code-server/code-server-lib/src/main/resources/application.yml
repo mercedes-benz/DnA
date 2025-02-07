@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.2.2
+    version: 1.3.10
   profile:
     active: production
 
@@ -60,8 +60,12 @@ codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
     
 authenticator:
-   uri: ${AUTHENTICATOR_URI:XXXX}  
-  
+  uri: ${AUTHENTICATOR_URI:YOUR_AUTHENTICATOR_URI} 
+  uri.aws: ${AUTHENTICATOR_URI_AWS:YOUR_AUTHENTICATOR_URI_AWS} 
+  api.key: ${AUTHENTICATOR_API_KEY:API_KEY}
+  api.aws.key: ${AUTHENTICATOR_API_KEY_AWS:YOUR_AWS_API_KEY}
+
+ 
 kafka:
   centralTopic:
     name: dnaCentralEventTopic  
@@ -81,19 +85,28 @@ codeServer:
   git.orguri: ${CODE_SERVER_ORGURI:XXXXX}
   git.baseuri: ${CODE_SERVER_GIT_BASEURI:XXXXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
+  base.uri.aws: ${CODE_BASE_URI_AWS:YOUR_CODE_BASE_URI_AWS}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
+  env.value.aws: ${CODE_SERVER_GIT_ENV_AWS:YOUR_AWS_ENV}
   env.url: ${CODE_SERVER_ENVURL:XXX}
+  env.url.aws: ${CODE_SERVER_ENVURL_AWS:YOUR_AWS_ENV_URL}
   git.appname: ${CODE_SERVER_APPLICATION_NAME:XXXX}
   jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
   jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
+  jupyter.url.aws: ${CODE_SERVER_JUPYTER_URL_AWS:YOUR_JUPYTER_AWS_URL}
+  jupyter.pat.aws: ${CODE_SERVER_JUPYTER_PAT_AWS:YOUR_PAT_AWS}
   workspace.url: ${CODE_SERVER_WORKSPACE_URL:XXX}
+  workspace.url.aws: ${CODE_SERVER_WORKSPACE_URL_AWS:YOUR_AWS_WORKSPACE_URL}
   workspace.apikey: ${CODE_SERVER_API_KEY:XXX}
   git.pid: ${CODE_SERVER_PID_USER:XXXXX}
   recipe.software.foldername: ${RECIPE_SOFTWARE_NAME:XXXX}
   recipe.software.filename: ${RECIPE_SOFTWARE_FILE_NAME:XXXX}
   run.init: ${RUN_INIT_POST_CONSTRUCT:YOUR_INIT_POST_CONSTRUCT_BOOLEAN}
+  run.collab.admin: ${RUN_COLLAB_ADMIN:YOUR_COLLAB_BOOLEAN}
+  collab.pid: ${COLLAB_PID:YOUR_COLLAB_PID}
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
+  codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -172,5 +185,5 @@ kong:
    authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
 
 workspace:
-  update: ${UPDATE_WORKSPACEDATA:XXXX}   
+  migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}

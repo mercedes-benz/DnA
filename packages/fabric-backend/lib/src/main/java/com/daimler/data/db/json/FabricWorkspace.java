@@ -41,5 +41,6 @@ public class FabricWorkspace implements Serializable{
 	private FabricWorkspaceStatus status;
 	private List<ProjectDetails> relatedSolutions;
 	private List<ProjectDetails> relatedReports;
+	private List<Lakehouse> lakehouses;
 	
 }

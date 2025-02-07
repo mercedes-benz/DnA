@@ -1169,6 +1169,7 @@ export interface INoticationModules {
   airflowNotificationPref: INotificationEnableDisable;
   dataLakeNotificationPref: INotificationEnableDisable;
   dataEntryNotificationPref: INotificationEnableDisable;
+  powerPlatformNotificationPref: INotificationEnableDisable;
   termsOfUse: string;
   userId: string;
 }

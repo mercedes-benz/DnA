@@ -66,7 +66,54 @@ paths:
   #  supprorted http methods GET, POST and DELETE
   #
   # path example ../fabric-workspaces
-
+  /lov/fabric-workspaces:
+    get:
+      tags:
+        - "lovs"
+      summary: "List of values for available workspaces"
+      description: "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records."
+      operationId: "getWorkspacesLov"
+      parameters:            
+        - name: offset
+          in: query
+          description: page number from which listing of workspaces should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of workspaces, Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort workspaces by a given variable like name, createdOn
+          required: false
+          type: string
+          enum: [name, createdOn]
+        - name: sortOrder
+          in: query
+          description: Sort solutions based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/FabricWorkspacesCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
   /fabric-workspaces:
     get:
       tags:
@@ -74,32 +121,7 @@ paths:
       summary: "Get all workspaces for the user."
       description: "Get all workspaces. This endpoints will be used to get all valid available fabric workspace records."
       operationId: "getAll"
-      parameters:
-#        - name: division
-#          in: query
-#          description: List of IDs of divisions and subdivisions under each division of workspaces. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]
-#          required: false
-#          type: string
-#         - name: subDivision
-#           in: query
-#           description: List of IDs of subDivisions of solutions, seperated by comma. Example 1,2,3
-#           required: false
-#           type: string
-#        - name: capacityIds
-#          in: query
-#          description: Capacity-Id to filter available workspaces. capacityIds is comma seperated keywords which are used to filter and fetch workspaces belonging to given ids. Example "capacityId1, capacityId2"
-#          required: false
-#          type: string
-#        - name: departments
-#          in: query
-#          description: Capacity-Id to filter available workspaces. capacityIds is comma seperated keywords which are used to filter and fetch workspaces belonging to given ids. Example "department1, department2"
-#          required: false
-#          type: string
-#        - name: tags
-#          in: query
-#          description: tags to filter available workspaces. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "workspaces, java"
-#          required: false
-#          type: string              
+      parameters:            
         - name: offset
           in: query
           description: page number from which listing of workspaces should start. Offset. Example 2
@@ -274,7 +296,103 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+  
+  /fabric-workspaces/{id}/rolerequest:
+    post:
+        tags:
+          - "fabric-workspaces"
+        summary: "request a  fabric workspace role for a user."
+        description: "request a  fabric workspace role for a user."
+        operationId: "requestRole"
+        parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            type: "string"
+          - name: "roleRequestVO"
+            in: "body"
+            description: "Request Body that contains data required for requesting a workspace role"
+            required: true
+            schema:
+              $ref: "#/definitions/FabricWorkspaceRoleRequestVO"    
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/createrole:
+    post:
+        tags:
+          - "fabric-workspaces"
+        summary: "create new role from dna application."
+        description: "create new role from dna application."
+        operationId: "createRole"
+        parameters:
+          - name: "roleRequestVO"
+            in: "body"
+            description: "Request Body that contains data required for requesting a workspace role"
+            required: true
+            schema:
+              $ref: "#/definitions/createRoleRequestVO"    
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/{id}/dnaroles:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get all dna roles for a user."
+        description: "get all dna roles for a user"
+        operationId: "getAllUserDnaRoles"
+        parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/DnaRoleCollectionVO"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
 
 definitions:
   CapacityVO:
@@ -366,6 +484,10 @@ definitions:
         format: date
       role:
         type: string
+      lakehouses:
+        type: array
+        items:
+          $ref: "#/definitions/FabricLakehouseVO"
   
   FabricWorkspaceStatusVO:
     type: object
@@ -538,8 +660,103 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user"
-
+        
+  FabricLakehousesCollectionVO:
+    description: "Collection of fabric lakehouses."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/FabricLakehouseVO"
  
+
+  FabricLakehouseCreateRequestVO:
+    description: "Lakehouse details of fabric workspace."
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of lakehouse belonging to fabric workspace"
+      description:
+        type: string
+        description: "description of lakehouse belonging to fabric workspace"
+        
+  FabricLakehouseVO:
+    description: "Lakehouse details of fabric workspace."
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Id of lakehouse belonging to fabric workspace"
+      name:
+        type: string
+        description: "Name of lakehouse belonging to fabric workspace"
+      description:
+        type: string
+        description: "description of lakehouse belonging to fabric workspace"
+      sensitivityLabel:
+        type: string
+        description: "sensitivityLabel of lakehouse belonging to fabric workspace"
+      shortcuts:
+        type: array
+        items:
+          $ref: "#/definitions/ShortcutVO"
+
+
+  ShortcutCreateRequestVO:
+    type: object
+    properties:
+      accessKey:
+        type: string
+        description: "Name of shortcut"
+      secretKey:
+        type: string
+        description: "path of shortcut"
+      bucketname:
+        type: string
+        description: "bucketname of shortcut"
+      bucketId:
+        type: string
+        description: "bucketid of shortcut"
+        
+  FabricShortcutsCollectionVO:
+    description: "Collection of fabric lakehouse shortcuts."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/ShortcutVO"
+                        
+  ShortcutVO:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of shortcut"
+      path:
+        type: string
+        description: "path of shortcut"
+      bucketname:
+        type: string
+        description: "bucketname of shortcut"
+      bucketpath:
+        type: string
+        description: "bucketpath of shortcut"
+      connectionId:
+        type: string
+        description: "connectionId of shortcut"
+      connectionName:
+        type: string
+        description: "connection name used for creating shortcut"
+  
   MessageDescription:
     type: object
     properties:
@@ -560,4 +777,58 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
+
+  FabricWorkspaceRoleRequestVO:
+    type: object
+    properties:
+      data:
+        type: object
+        $ref: "#/definitions/RolesListVO"
+      
+  
+
+  RolesListVO:
+    type: object
+    properties:
+      roleList:
+          type: array
+          items:
+            $ref: "#/definitions/RolesVO"
+      reason:
+        type: string
+
+  RolesVO:
+    type: object
+    properties:
+      roleID:
+        type: string
+      validFrom:
+        type: string
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+      validTo:
+        type: string
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+
+  createRoleRequestVO:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          roleName:
+            type: string
+            pattern: "^[A-Z0-9]+[A-Z0-9._-]{1,60}$"
+
+  DnaRoleCollectionVO:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          roles:
+            type: array
+            items: 
+              type: string
+
+
     

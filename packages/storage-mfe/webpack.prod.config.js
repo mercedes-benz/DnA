@@ -68,6 +68,12 @@ const base = {
         ],
       },
       {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false,
+        },
+      },
+      {
         test: /\.js?$/,
         exclude: /node_modules/,
         // To Use babel Loader

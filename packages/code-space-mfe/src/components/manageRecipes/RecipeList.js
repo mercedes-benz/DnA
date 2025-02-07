@@ -1,16 +1,9 @@
 import cn from 'classnames';
-import React, { useState } from 'react';
+import React from 'react';
 import Styles from './RecipeList.scss';
-import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import Notification from '../../common/modules/uilab/js/src/notification';
-import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
-import Modal from 'dna-container/Modal';
-// import { history } from '../../store';
+import { history } from '../../store';
 
-const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+const RecipeList = ({ recipe, additionalServices, onDeleteRecipe, onSelectRecipe }) => {
   const classNames = cn.bind(Styles);
 
   const chips =
@@ -36,35 +29,21 @@ const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
     return ramValue.toString();
   };
 
-  // const handleEditRecipe = (e) => {
-  //   e.stopPropagation();
-  //   history.push(`/codespaceRecipes/${recipe?.recipeName}`);
-  // }
+  const handleEditRecipe = (e) => {
+    e.stopPropagation();
+    history.push(`/codespaceRecipes/${recipe?.id}`);
+  }
 
   const handleDeleteRecipe = (e) => {
     e.stopPropagation();
-    setShowDeleteModal(true)
-  }
-
-  const handleRecipeDelete = () => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.deleteCodeSpaceRecipe(recipe.recipeName)
-      .then(() => {
-        ProgressIndicator.hide();
-        Notification.show("Recipe Deleted Successfully");
-        setShowDeleteModal(false);
-        onRefresh();
-      }).catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
-      });
+    onDeleteRecipe(recipe);
   }
 
   return (
     <React.Fragment>
       <tr 
         className={classNames('data-row', Styles.dataRow)}
-        onClick={() => setShowDetailsModal(true)}>
+        onClick={() => onSelectRecipe(recipe)}>
         <td className={'wrap-text'}>
           <div className={Styles.securityConfigNameDivide}>{recipe.recipeName}</div>
         </td>
@@ -84,54 +63,15 @@ const RecipeList = ({ recipe, additionalServices, onRefresh }) => {
         </td>
         <td className={classNames('wrap-text', Styles.actionColumn)}>
           <div>
-          {/* <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
+            <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditRecipe}>
               <i className='icon edit'></i>
-            </button> */}
+            </button>
             <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleDeleteRecipe}>
               <i className='icon delete'></i>
             </button>
           </div>
         </td>
       </tr>
-      {showDetailsModal && (
-        <Modal
-          title={''}
-          hiddenTitle={true}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth="60vw"
-          show={showDetailsModal}
-          scrollableContent={true}
-          content={<ViewRecipe recipe={recipe} additionalServices={additionalServices} />}
-          onCancel={() => {
-            setShowDetailsModal(false);
-          }}
-        />
-      )}
-      {showDeleteModal && 
-        <Modal
-          title="Delete Recipe"
-          show={showDeleteModal}
-          showAcceptButton={false}
-          showCancelButton={false}
-          scrollableContent={false}
-          hideCloseButton={true}
-          content={
-            <div>
-              <header>
-                <button className="modal-close-button" onClick={() => setShowDeleteModal(false)}><i className="icon mbc-icon close thin"></i></button>
-              </header>
-              <div>
-                <p>The Recipe will be deleted permanently. Are you sure you want to delete it?</p>
-              </div>
-              <div className="btn-set footerRight">
-                <button className="btn btn-primary" type="button" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                <button className="btn btn-tertiary" type="button" onClick={handleRecipeDelete}>Confirm</button>
-              </div>
-            </div>
-          } 
-        />
-      }
     </React.Fragment>
   );
 };

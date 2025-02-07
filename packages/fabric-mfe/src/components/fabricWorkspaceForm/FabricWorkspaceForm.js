@@ -301,9 +301,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={nameOfWorkspace}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d -]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d-_]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain characters only - is allowed. Admin monitoring name is not allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain alphanumeric characters only - and _ are allowed. \'Admin monitoring\' name and spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col}>

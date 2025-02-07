@@ -145,6 +145,48 @@ paths:
   #
   # path example ../workspaces/{id}
 
+  /workspaces/{id}/{userId}:
+    put:
+      tags:
+        - "code-server"
+      summary: "Initialize Workbench for user by admin."
+      description: "Initialize workbench for collab user by admin"
+      operationId: "InitializeWorkspaceByAdmin"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "userId"
+          in: "path"
+          description: "user ID to be fetched"
+          required: true
+          type: "string"
+        - name: "initializeCollabWSRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeCollabWorkspaceRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/InitializeWorkspaceResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/{id}:
     get:
       tags:
@@ -291,6 +333,14 @@ paths:
           description: "Workspace ID of server to be deleted"
           required: true
           type: "string"
+        - name: "cloudServiceProvider"
+          in: query
+          description: cloudServiceProvider variable to select the target provider to stop
+          required: true
+          type: string
+          enum:
+          - DHC-CaaS
+          - DHC-CaaS-AWS
       responses:
         201:
           description: "Returns message of success or failure"
@@ -345,6 +395,37 @@ paths:
         500:
           description: "Internal error"
  
+  /workspaces/{id}/readme:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get how to use codespace instructions from Readme file in git"
+      description: "Get how to use codespace instructions from Readme file in git "
+      operationId: "getReadme"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns readme file from the repo of the codespace"
+          schema:
+            $ref: "#/definitions/CodeSpaceReadmeVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+      
   /workspaces/{id}/collaborator:        
     post:
       tags:
@@ -947,6 +1028,14 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: "cloudServiceProvider"
+          in: query
+          description: cloudServiceProvider variable to select the target provider to start
+          required: true
+          type: string
+          enum:
+          - DHC-CaaS
+          - DHC-CaaS-AWS
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1043,9 +1132,46 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+  
+  /workspaces/{id}/migrateworkspace:        
+    post:
+      tags:
+        - "code-server"
+      summary: "migrate  workspace Project to Aws for a given Id."
+      description: "migrate workspace Project for a given identifier."
+      operationId: "migrateWorkspace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
           
 definitions:
+  CodeSpaceReadmeVo:
+    type: object
+    properties:
+      file:
+        type: string
+        format: binary
 
   RoleCollectionVO:
     type: object
@@ -1170,6 +1296,8 @@ definitions:
       serverStatus:
         type: string
         description: "Status of server - SERVER-STARTED,SERVER-STOPPED"
+      isWorkspaceMigrated:
+        type: boolean
       required:
         -projectDetails
         -workspaceOwner
@@ -1227,6 +1355,8 @@ definitions:
         type: string
       clientSecret:
         type: string
+      repo:
+        type: string
 
 
            
@@ -1281,7 +1411,7 @@ definitions:
         description: "Git URL"      
       cloudServiceProvider:
         type: string
-        enum: [DHC-CaaS]
+        enum: [DHC-CaaS,DHC-CaaS-AWS]
         description: "Cloud services provider. Ex: DHC-CaaS"
       ramSize:
         type: string
