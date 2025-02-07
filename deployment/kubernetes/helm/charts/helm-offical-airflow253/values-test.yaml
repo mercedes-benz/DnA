@@ -2000,6 +2000,7 @@ config:
     dags_folder: '{{ include "airflow_dags" . }}'
     # This is ignored when used with the official Docker image
     load_examples: 'False'
+    enable_xcom_pickling: 'True'
     executor: '{{ .Values.executor }}'
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
@@ -2040,6 +2041,14 @@ config:
     reinit_frequency: '{{ .Values.kerberos.reinitFrequency }}'
     principal: '{{ .Values.kerberos.principal }}'
     ccache: '{{ .Values.kerberos.ccacheMountPath }}/{{ .Values.kerberos.ccacheFileName }}'
+  smtp:
+    smtp_host: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtphost>
+    smtp_starttls: 'True'
+    smtp_ssl: 'false'
+    smtp_user: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpuser>
+    smtp_password: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtppassword>
+    smtp_port: 25
+    smtp_mail_from: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpmailid>
   celery_kubernetes_executor:
     kubernetes_queue: 'kubernetes'
   # The `kubernetes` section is deprecated in Airflow >= 2.5.0 due to an airflow.cfg schema change.
