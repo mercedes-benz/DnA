@@ -1204,7 +1204,7 @@ webserver:
 
   waitForMigrations:
     # Whether to create init container to wait for db migrations
-    enabled: true
+    enabled: false
     env: []
     # Detailed default security context for waitForMigrations for container level
     # securityContexts:
