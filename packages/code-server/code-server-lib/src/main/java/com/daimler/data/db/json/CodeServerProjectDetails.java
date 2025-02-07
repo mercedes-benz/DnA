@@ -21,6 +21,7 @@ public class CodeServerProjectDetails implements Serializable {
 	private Date projectCreatedOn;
 	private String recipeName;
 	private List<UserInfo> projectCollaborators;
+	private CodeServerBuildDetails buildDetails;
 	private CodeServerDeploymentDetails prodDeploymentDetails;
 	private CodeServerDeploymentDetails intDeploymentDetails;
 	private CodeServerRecipeDetails recipeDetails;

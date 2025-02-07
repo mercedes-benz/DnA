@@ -42,6 +42,7 @@
  import com.daimler.data.db.json.DeploymentAudit;
  import com.daimler.data.dto.workspace.RoleCollectionVO;
  import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+ import com.daimler.data.db.json.CodeServerBuildDetails;
  import com.daimler.data.db.json.CodeServerDeploymentDetails;
  import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
  import com.daimler.data.db.json.CodeServerProjectDetails;
@@ -58,6 +59,7 @@
  import com.daimler.data.db.json.UserInfo;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+ import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerGovernanceVO;
  import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
  import com.daimler.data.util.ConstantsUtility;
@@ -260,6 +262,15 @@
 	 // 	}
 	 // 	return ueserRoleMapVO;
 	 // }
+
+	 private CodeServerBuildDetails toBuildDetails(CodeServerBuildDetailsVO vo) {
+		CodeServerBuildDetails buildDetails = new CodeServerBuildDetails();
+		if (vo != null) {
+			BeanUtils.copyProperties(vo, buildDetails);
+			buildDetails.setLastBuildBy(toUserInfo(vo.getLastBuildBy()));
+		}
+		return buildDetails;
+	}
  
 	 private CodeServerDeploymentDetails toDeploymentDetails(CodeServerDeploymentDetailsVO vo) {
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
@@ -309,6 +320,21 @@
 			 log.error("Failed while parsing in assembler");
 		 }
 		 return deployedAuditLogDetails;
+	 }
+
+	 private CodeServerBuildDetailsVO toBuildDetailsVO(CodeServerBuildDetails buildDetails)
+			 throws ParseException {
+		 CodeServerBuildDetailsVO buildDetailsVO = new CodeServerBuildDetailsVO();
+		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		 if (buildDetails != null) {
+			 BeanUtils.copyProperties(buildDetails, buildDetailsVO);
+			 buildDetailsVO.setLastBuildBy(toUserInfoVO(buildDetails.getLastBuildBy()));
+			 if (buildDetails.getLastBuildOn() != null){
+				 buildDetailsVO
+						 .setLastBuildOn(isoFormat.parse(isoFormat.format(buildDetails.getLastBuildOn())));
+			 }
+		 }
+		 return buildDetailsVO;
 	 }
  
 	 private CodeServerDeploymentDetailsVO toDeploymentDetailsVO(CodeServerDeploymentDetails deploymentDetails)
@@ -659,6 +685,9 @@
 					 CodeServerProjectDetails projectDetails = data.getProjectDetails();
 					 CodeServerProjectDetailsVO projectDetailsVO = new CodeServerProjectDetailsVO();
 					 if (projectDetails != null) {
+						 CodeServerBuildDetailsVO buildDetailsVO = toBuildDetailsVO(
+							projectDetails.getBuildDetails());
+						 projectDetailsVO.setBuildDetails(buildDetailsVO);
 						 CodeServerDeploymentDetailsVO intDeployDetailsVO = toDeploymentDetailsVO(
 								 projectDetails.getIntDeploymentDetails());
 						 CodeServerDeploymentDetailsVO prodDeployDetailsVO = toDeploymentDetailsVO(
@@ -778,6 +807,11 @@
 				 if (recipeDetailsVO != null) {
 					 CodeServerRecipeDetails recipeDetails = this.toRecipeDetails(recipeDetailsVO);
 					 projectDetails.setRecipeDetails(recipeDetails);
+				 }
+				 CodeServerBuildDetailsVO buildDetailsVO = projectDetailsVO.getBuildDetails();
+				 if (buildDetailsVO != null) {
+					 CodeServerBuildDetails buildDetails = this.toBuildDetails(buildDetailsVO);
+					 projectDetails.setBuildDetails(buildDetails);
 				 }
 				 CodeServerDeploymentDetailsVO intDeploymentDetailsVO = projectDetailsVO.getIntDeploymentDetails();
 				 if (intDeploymentDetailsVO != null) {

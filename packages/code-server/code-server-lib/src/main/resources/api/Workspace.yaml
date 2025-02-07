@@ -1314,7 +1314,9 @@ definitions:
       projectCollaborators:
         type: array
         items:
-          $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UserInfoVO"
+      buildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -1357,6 +1359,9 @@ definitions:
         type: string
       repo:
         type: string
+      version:
+        type: string
+#if it is from an existing build I will send both version and branch otherwise I'll send only branch.
 
 
            
@@ -1385,10 +1390,33 @@ definitions:
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"
+        #remove in future
       deploymentAuditLogs:
         type: array
         items:
           $ref: "#/definitions/DeploymentAuditVO"
+
+  CodeServerBuildDetailsVO:
+    type: object
+    properties:
+      lastBuildOn:
+        type: string
+        format: date
+        description: "Date of last build"   
+      lastBuildBy:
+        $ref: "#/definitions/UserInfoVO" 
+      lastBuildBranch:
+        type: string
+        description: "Branch used for last build"
+      lastBuildStatus:
+        type: string
+        description: "Status of last build"
+      artifactId :
+        type: string
+        description: "artifact id on which codespace is built"
+      version:
+        type: string
+        description: "version of the last build"
          
   CodeServerRecipeDetailsVO:
     type: object

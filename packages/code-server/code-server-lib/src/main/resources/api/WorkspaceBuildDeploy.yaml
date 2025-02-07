@@ -118,7 +118,7 @@ paths:
         200:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodeServerBuildLogsVO"
+            $ref: "#/definitions/BuildAuditVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -131,6 +131,38 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  workspace/{projectName}/deployLogs:
+    get:
+      tags:
+        - "code-server-build-deploy-service"
+      summary: "Get deployment logs for a given project name."
+      description: "Get deployment logs for a given project name."
+      operationId: "getDeploymentLogsByProjectName"
+      parameters:
+        - name: "projectName"
+          in: "path"
+          description: "Workspace projectName to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DeploymentAuditVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
 
   GenericMessage:
@@ -154,12 +186,12 @@ definitions:
         type: string
         description: "message"
 
-  CodeServerBuildLogsVO:
+  BuildAuditVO:
     type: object
     properties:
-      projectName:
-        type: string
-      lastBuildBranch:
+      # projectName:
+      #   type: string
+      branch:
         type: string
         description: "Branch used for last Build"
       triggeredBy:
@@ -178,13 +210,56 @@ definitions:
         description: "date on which codespace built."
       artifactId:
         type: string
-        description: "artifact id one which codespace is built"
+        description: "artifact id on which codespace is built"
       version:
         type: string
-        description: "version of the built workspace"
+        description: "version of the build"
       comments:
         type: string
         description: "build comments"
+
+  DeploymentAuditVO:
+    type: object
+    properties:
+      triggeredBy:
+        type: string
+        description: "User who triggered deployment of codespace"
+      triggeredOn:
+        type: string
+        format: date
+        description: "date on which codespace is deployed triggred"
+      deploymentStatus:
+        type: string
+        description: "status of codespace - DEPLOY_REQUESTED,DEPLOYED,DEPLOYMENT_FAILED."
+      deployedOn:
+        type: string
+        format: date
+        description: "date on which codespace deployed"
+      branch:
+        type: string
+        description: "branch on which codespace is deployed"
+      commitId:
+        type: string
+        description: "commit id on which codespace is deployed"
+
+  CodeServerBuildDeployVO:
+    type: object
+    properties:
+      id:
+       type: string
+       description: "id"
+      buildAuditLogs:
+        type: array
+        items:
+          $ref: "#/definitions/BuildAuditVO"
+      intDeploymentAuditLogs:
+        type: array
+        items:
+          $ref: "#/definitions/DeploymentAuditVO"
+      prodDeploymentAuditLogs:
+        type: array
+        items:
+          $ref: "#/definitions/DeploymentAuditVO"
       
 
   ManageBuildRequestDto:
@@ -193,4 +268,8 @@ definitions:
       branch:
         type: string
       comments:
+        type: string
+      enableVersion:
+        type: boolean
+      repo:
         type: string
