@@ -2608,6 +2608,7 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	}
 
+	@Override
 	@ApiOperation(value = "migrate  workspace Project to Aws for a given Id.", nickname = "migrateWorkspace", notes = "migrate workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
