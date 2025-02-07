@@ -1,23 +1,21 @@
 package com.daimler.data.dto.usernotificationpref;
 
 import java.util.Objects;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.validation.annotation.Validated;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.dto.usernotificationpref.NotificationPreferenceVO;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.validation.annotation.Validated;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 
 /**
  * UserNotificationPrefVO
  */
 @Validated
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class UserNotificationPrefVO   {
   @JsonProperty("id")
   private String id = null;
@@ -63,6 +61,9 @@ public class UserNotificationPrefVO   {
 
   @JsonProperty("useCaseOwnerNotificationPref")
   private NotificationPreferenceVO useCaseOwnerNotificationPref = null;
+
+  @JsonProperty("powerPlatformNotificationPref")
+  private NotificationPreferenceVO powerPlatformNotificationPref = null;
 
   public UserNotificationPrefVO id(String id) {
     this.id = id;
@@ -387,6 +388,28 @@ public class UserNotificationPrefVO   {
     this.useCaseOwnerNotificationPref = useCaseOwnerNotificationPref;
   }
 
+  public UserNotificationPrefVO powerPlatformNotificationPref(NotificationPreferenceVO powerPlatformNotificationPref) {
+    this.powerPlatformNotificationPref = powerPlatformNotificationPref;
+    return this;
+  }
+
+  /**
+   * Get powerPlatformNotificationPref
+   * @return powerPlatformNotificationPref
+  **/
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
+
+  @Valid
+
+  public NotificationPreferenceVO getPowerPlatformNotificationPref() {
+    return powerPlatformNotificationPref;
+  }
+
+  public void setPowerPlatformNotificationPref(NotificationPreferenceVO powerPlatformNotificationPref) {
+    this.powerPlatformNotificationPref = powerPlatformNotificationPref;
+  }
+
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -411,12 +434,13 @@ public class UserNotificationPrefVO   {
         Objects.equals(this.airflowNotificationPref, userNotificationPrefVO.airflowNotificationPref) &&
         Objects.equals(this.dataLakeNotificationPref, userNotificationPrefVO.dataLakeNotificationPref) &&
         Objects.equals(this.dataEntryNotificationPref, userNotificationPrefVO.dataEntryNotificationPref) &&
-        Objects.equals(this.useCaseOwnerNotificationPref, userNotificationPrefVO.useCaseOwnerNotificationPref);
+        Objects.equals(this.useCaseOwnerNotificationPref, userNotificationPrefVO.useCaseOwnerNotificationPref) &&
+        Objects.equals(this.powerPlatformNotificationPref, userNotificationPrefVO.powerPlatformNotificationPref);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, userId, termsOfUse, solutionNotificationPref, notebookNotificationPref, persistenceNotificationPref, dashboardNotificationPref, dataComplianceNotificationPref, dataProductNotificationPref, chronosNotificationPref, codespaceNotificationPref, airflowNotificationPref, dataLakeNotificationPref, dataEntryNotificationPref, useCaseOwnerNotificationPref);
+    return Objects.hash(id, userId, termsOfUse, solutionNotificationPref, notebookNotificationPref, persistenceNotificationPref, dashboardNotificationPref, dataComplianceNotificationPref, dataProductNotificationPref, chronosNotificationPref, codespaceNotificationPref, airflowNotificationPref, dataLakeNotificationPref, dataEntryNotificationPref, useCaseOwnerNotificationPref, powerPlatformNotificationPref);
   }
 
   @Override
@@ -439,6 +463,7 @@ public class UserNotificationPrefVO   {
     sb.append("    dataLakeNotificationPref: ").append(toIndentedString(dataLakeNotificationPref)).append("\n");
     sb.append("    dataEntryNotificationPref: ").append(toIndentedString(dataEntryNotificationPref)).append("\n");
     sb.append("    useCaseOwnerNotificationPref: ").append(toIndentedString(useCaseOwnerNotificationPref)).append("\n");
+    sb.append("    powerPlatformNotificationPref: ").append(toIndentedString(powerPlatformNotificationPref)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -454,3 +479,4 @@ public class UserNotificationPrefVO   {
     return o.toString().replace("\n", "\n    ");
   }
 }
+

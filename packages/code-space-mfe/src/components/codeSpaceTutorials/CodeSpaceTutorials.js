@@ -5,43 +5,80 @@ import VideoJS from './VideoJS'
 import { Envs } from '../../Utility/envs';
 
 
-const CodeSpaceTutorials = () => {
+const CodeSpaceTutorials = ({id}) => {
+
   const codespaceTutorials = [
     {
-      id: '1',
+      id: 'introduction',
       title: "Introduction to Codespaces",
       url:'code-space-tutorials/Intoduction.mp4',
       description: "An overview of what codespaces are and how they can be used."
     },
     {
-      id: '2',
+      id: 'createCodespace',
       title: "How to create a new Codespace",
       url: "code-space-tutorials/Creation of codespaces.mp4",
       description: "Step-by-step guide on creating a new codespace."
     },
     {
-      id: '3',
+      id: 'deployAndMonitor',
       title: "How to deploy and monitor a Codespace",
       url: "code-space-tutorials/Deployment and View Log.mp4",
       description: "Deploy the code in stagging or production environment and monitoring the build & deployed application logs."
     },
     {
-      id: '4',
+      id: 'manageSecrets',
       title: "How to manage secrets in a Codespace",
       url: "code-space-tutorials/EnvironmentVariableConfig.mp4",
       description: "Configure secrets for your deployed applications using environment variables "
     },
     {
-      id: '5',
+      id: 'securityConfig',
       title: "How to configure security in a Codespace",
       url: "code-space-tutorials/securityConfig.mp4",
       description: "Security configuration in codespaces using IAM authentication and Alice authorization"
     },
     {
-      id: '6',
+      id: 'pythonfastApi',
       title: "E.g. Codespace that uses python fastAPI",
       url: "code-space-tutorials/exampleCodespace-Python.mp4",
       description: "An example codespace that uses python fastAPI"
+    },
+    {
+      id: 'codeSpaceCollab',
+      title: "Collaboration in Codespaces",
+      url: "code-space-tutorials/Codespace Collaboration.mp4",
+      description: "Steps for a collaborator to onboard into a Codespace"
+    },
+    {
+      id: 'createPrivateRecipe',
+      title: "How to create a private recipe",
+      url: "code-space-tutorials/Private Visibility Recipe Creation.mp4",
+      description: "Steps to create a private recipe "
+    },
+    {
+      id: 'createPublicRecipe',
+      title: "How to create a public recipe",
+      url: "code-space-tutorials/Public Visibility Recipe Creation.mp4",
+      description: "Steps to create a public recipe"
+    },
+    {
+      id: 'privateGpt',
+      title: "Create your own private gpt with Codespace",
+      url: "code-space-tutorials/Create your own private gpt with codespace.mp4",
+      description: "Steps to create your own private gpt with Codespace"
+    },
+    {
+      id: 'genratePAT',
+      title: "How to generate GIT PAT token",
+      url: "code-space-tutorials/How to generate GIT PAT token.mp4",
+      description: "Steps to generate GIT PAT token"
+    },
+    {
+      id: "awsMigration",
+      title: "How to migrate your Codespace to AWS",
+      url: "code-space-tutorials/Codespace Migration.mp4",
+      description: "Steps for migration of your Codespace to DyPCaas AWS "
     },
   ];
 
@@ -58,6 +95,14 @@ const CodeSpaceTutorials = () => {
       }]
     }
   );
+
+  useEffect(() => {
+    const tutorialId = id || 'introduction'; 
+    const tutorial = codespaceTutorials.find(tutorial => tutorial.id === tutorialId);
+    if (tutorial) {
+      setSelectedVideo(tutorial);
+    }
+  }, [id]);
   
   useEffect(()=>{
     setVideoJsOptions({
@@ -91,7 +136,6 @@ const CodeSpaceTutorials = () => {
 
   return (
     <div className={classNames(Styles.wrapper)}>
-      <h5 className={classNames(Styles.Modeltitle)}>Code Space Tutorials</h5>
       <div className={classNames(Styles.codeSpaceTutorials)}>
         <div className={classNames(Styles.leftPlane)}>
           <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />

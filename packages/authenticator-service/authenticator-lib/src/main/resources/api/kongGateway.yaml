@@ -250,10 +250,44 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+    get:
+        tags:
+          - "kong"
+        summary: "Get a route by ID."
+        description: "Get a route by ID"
+        operationId: "getRouteByName"
+        parameters:
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which route has to be fetched"
+          required: true
+          type: "string"
+        - name: "routeName"
+          in: "path"
+          description: "Name of the route to be fetched"
+          required: true
+          type: "string"  
+        responses:
+          200:
+            description: "Returns message of success or failure"
+            schema:
+              $ref: "#/definitions/CreateRouteResponseVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
 
           
-# path to delete plugin 
-#  supported http methods DELETE
+# path to upadte plugin 
+#  supported http methods DELETE and PATCH
  /kong/services/{serviceName}/plugins/{pluginName}:
     delete:
       tags:
@@ -293,7 +327,49 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-
+    patch:
+      tags:
+        - "kong"
+      summary: "update status of a  plugin."
+      description: "update status plugin"
+      operationId: "upatePluginStatus"
+      parameters:      
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service"
+          required: true
+          type: "string"
+        - name: "pluginName"
+          in: "path"
+          description: "Name of the plugin to update status"
+          required: true
+          type: "string" 
+        - name: "enable"
+          in: query
+          description: "to enable or disable the plugin"
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 # path to attach a plugin to service 
 #  supported http methods POST
 
@@ -463,6 +539,88 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error" 
+
+ /kong/services/{serviceName}/functionPlugin:
+    post:
+      tags:
+        - "kong" 
+      summary: "Attach functionPlugin to service."
+      description: "Attach functionPlugin to service."
+      operationId: "attachFunctionPlugin"
+      parameters:      
+        - name: "attachFunctionPluginRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for attaching a plugin to service"
+          required: true
+          schema:
+            $ref: "#/definitions/AttachFunctionPluginRequestVO"  
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin has to be attached"
+          required: true
+          type: "string"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"  
+
+ /kong/services/{serviceName}/requestTransformerPlugin:
+    post:
+      tags:
+        - "kong" 
+      summary: "Attach requesttransformerplugin to service."
+      description: "Attach requesttransformerplugin to service."
+      operationId: "attachRequestTransformerPlugin"
+      parameters:      
+        - name: "attachRequestTransformerPluginRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for attaching a plugin to service"
+          required: true
+          schema:
+            $ref: "#/definitions/AttachRequestTransformerPluginRequestVO"  
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin has to be attached"
+          required: true
+          type: "string"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"  
           
 # path to get service 
 #  supported http methods GET    
@@ -738,6 +896,14 @@ definitions:
         type: string  
       recovery_page_path:
         type: string  
+      filters:
+        type: string
+      ignore_auth_filters:
+        type: string
+      access_token_as_bearer:
+        type: string
+      access_token_header_name:
+        type: string
       claims_to_verify:
         type: string  
       key_claim_name:
@@ -881,4 +1047,54 @@ definitions:
         type : boolean     
       env:
         type : string     
- 
+      projectName :
+        type : string
+
+ AttachFunctionPluginRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachFunctionPluginVO"   
+
+ AttachFunctionPluginVO:
+    type: object
+    properties:
+      config:
+        $ref: "#/definitions/AttachFunctionPluginConfigVO"
+      name:
+        type: string
+
+ AttachFunctionPluginConfigVO:
+    type: object
+    properties:
+      access:
+        type: array
+        items: 
+          type: string
+
+ AttachRequestTransformerPluginRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachRequestTransformerPluginVO"   
+
+ AttachRequestTransformerPluginVO:
+    type: object
+    properties:
+      config:
+        $ref: "#/definitions/AttachRequestTransformerPluginConfigVO"
+      name:
+        type: string
+    
+ AttachRequestTransformerPluginConfigVO:
+    type: object
+    properties:
+      remove:
+        type: object
+        properties:
+          headers:
+            type: array
+            items: 
+              type: string
+          
+    

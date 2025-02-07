@@ -13,21 +13,51 @@ import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
 import com.daimler.data.db.json.GroupDetails;
+import com.daimler.data.db.json.Lakehouse;
 import com.daimler.data.db.json.ProjectDetails;
 import com.daimler.data.db.json.RoleDetails;
+import com.daimler.data.db.json.Shortcut;
 import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.dto.fabric.LakehouseDto;
+import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ProjectReferenceDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
-
+	
+	public FabricLakehouseVO toLakehouseVOFromDto(LakehouseDto lakehouseDto) {
+		FabricLakehouseVO vo = new FabricLakehouseVO();
+		if(lakehouseDto!=null) {
+			vo.setId(lakehouseDto.getId());
+			vo.setName(lakehouseDto.getDisplayName());
+			vo.setDescription(lakehouseDto.getDescription());
+			if(lakehouseDto.getDisplayName()!=null && lakehouseDto.getDisplayName().toLowerCase().contains("dev")) {
+				vo.setSensitivityLabel("Internal");
+			}else {
+				vo.setSensitivityLabel("Confidential");
+			}
+		}
+		return vo;
+	}
+	
+	public ShortcutVO toLakehouseShortcutVOFromDto(LakehouseS3ShortcutDto dto) {
+		ShortcutVO vo = new ShortcutVO();
+		vo.setName(dto.getName());
+		vo.setBucketpath(null);
+		vo.setPath(dto.getPath());
+		vo.setBucketname(dto.getName());
+		return vo;
+	}
+	
 	
 	@Override
 	public FabricWorkspaceVO toVo(FabricWorkspaceNsql entity) {
@@ -56,6 +86,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				
 				List<ProjectReferenceDetailsVO> relatedSolutionsVO = toProjectDetailVOs(data.getRelatedSolutions());
 				vo.setRelatedSolutions(relatedSolutionsVO);
+				
+				List<FabricLakehouseVO> lakehouseVOs = new ArrayList<>();
+				List<Lakehouse> lakehouses = data.getLakehouses();
+				if(lakehouses!=null && !lakehouses.isEmpty()) {
+					lakehouseVOs = lakehouses.stream().map(n -> toLakehouseVO(n)).collect(Collectors.toList());
+				}
+				vo.setLakehouses(lakehouseVOs);
 				
 				FabricWorkspaceStatus workspaceStatus = data.getStatus();
 				FabricWorkspaceStatusVO workspaceStatusVO = new FabricWorkspaceStatusVO();
@@ -179,6 +216,57 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		return relatedProjects;
 	}
 	
+	private Lakehouse toLakehouse(FabricLakehouseVO vo) {
+		Lakehouse lakehouse = new Lakehouse();
+		if(vo!=null) {
+			lakehouse.setId(vo.getId());
+			lakehouse.setName(vo.getName());
+			lakehouse.setSensitivityLabel(vo.getSensitivityLabel());
+			lakehouse.setDescription(vo.getDescription());
+			List<ShortcutVO> shortcutVOs = vo.getShortcuts();
+			List<Shortcut> shortcuts = new ArrayList<>();
+			if(shortcutVOs!=null && !shortcutVOs.isEmpty()) {
+				shortcuts = shortcutVOs.stream().map(n -> toShortcut(n)).collect(Collectors.toList());
+			}
+			lakehouse.setShortcuts(shortcuts);
+		}
+		return lakehouse;
+	}
+	
+	private Shortcut toShortcut(ShortcutVO vo) {
+		Shortcut shortcut = new Shortcut();
+		if(vo!=null) {
+			BeanUtils.copyProperties(vo, shortcut);
+		}
+		return shortcut;
+	}
+	
+	private FabricLakehouseVO toLakehouseVO(Lakehouse lakehouse) {
+		FabricLakehouseVO  vo = new FabricLakehouseVO();
+		if(lakehouse!=null) {
+			vo.setId(lakehouse.getId());
+			vo.setName(lakehouse.getName());
+			vo.setSensitivityLabel(lakehouse.getSensitivityLabel());
+			vo.setDescription(lakehouse.getDescription());
+			List<Shortcut> shortcuts = lakehouse.getShortcuts();
+			List<ShortcutVO> shortcutVOs = new ArrayList<>();
+			if(shortcuts!=null && !shortcuts.isEmpty()) {
+				shortcutVOs = shortcuts.stream().map(n -> toShortcutVO(n)).collect(Collectors.toList());
+			}
+			vo.setShortcuts(shortcutVOs);
+		}
+		return vo;
+	}
+	
+	private ShortcutVO toShortcutVO(Shortcut shortcut) {
+		ShortcutVO vo = new ShortcutVO();
+		if(shortcut!=null) {
+			BeanUtils.copyProperties(shortcut,vo);
+		}
+		return vo;
+	}
+	
+	
 	@Override
 	public FabricWorkspaceNsql toEntity(FabricWorkspaceVO vo) {
 		FabricWorkspaceNsql entity = null;
@@ -236,6 +324,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				workspaceStatus.setState(null);
 			}
 			data.setStatus(workspaceStatus);
+			
+			List<FabricLakehouseVO> lakehouseVOs = vo.getLakehouses();
+			List<Lakehouse> lakehouses = new ArrayList<>();
+			if(lakehouseVOs!=null && !lakehouseVOs.isEmpty()) {
+				lakehouses = lakehouseVOs.stream().map(n -> toLakehouse(n)).collect(Collectors.toList());
+			}
+			data.setLakehouses(lakehouses);
 			
 			entity.setData(data);
 		}

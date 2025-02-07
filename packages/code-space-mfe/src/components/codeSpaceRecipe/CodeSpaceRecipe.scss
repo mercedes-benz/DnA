@@ -39,6 +39,10 @@
     position: absolute;
     right: 0px !important;
   }
+  .requestSoft {
+    top: unset;
+    bottom: -10px;
+  }
 
   .saveSoftwareBtn {
     display: flex;

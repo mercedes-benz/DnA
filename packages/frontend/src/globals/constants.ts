@@ -32,10 +32,12 @@ export enum SESSION_STORAGE_KEYS {
   DATAPRODUCT_FILTER_VALUE = 'dataproductFilterValues',
   REPORT_FILTER_VALUES = 'reportFilterValues',
   PAGINATION_MAX_ITEMS_PER_PAGE = 'paginationMaxItemsPerPage',
+  AUDIT_LOGS_MAX_ITEMS_PER_PAGE = 'auditLogsMaxItemsPerPage',
   APPREDIRECT_URL = 'appredirect_url',
   LISTVIEW_MODE_ENABLE = 'listViewModeEnable',
   SOLUTION_SORT_VALUES = 'sortingInfo',
   REPORT_SORT_VALUES = 'reportsSortingInfo',
+  ALICE_ROLES_CREATED = 'aliceRolesCreated'
 }
 
 export enum LOCAL_STORAGE_KEYS {
@@ -144,6 +146,11 @@ export const ToolsPageImagesInfo = {
     },
     {
       id: 'fabric',
+      banner: 'banner.png',
+      toolPipeline:'toolPipeline.png'
+    },
+    {
+      id: 'powerPlatform',
       banner: 'banner.png',
       toolPipeline:'toolPipeline.png'
     }
