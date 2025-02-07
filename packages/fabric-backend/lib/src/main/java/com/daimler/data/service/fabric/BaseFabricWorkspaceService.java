@@ -1690,7 +1690,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
     DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+<<<<<<< HEAD
 	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
+=======
+>>>>>>> 8cff1581f (added getting users dna roles)
     List<String> roles = new ArrayList<>();
     try {
         List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
