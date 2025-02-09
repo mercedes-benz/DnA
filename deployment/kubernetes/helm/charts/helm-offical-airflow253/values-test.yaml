@@ -754,13 +754,13 @@ scheduler:
       maxUnavailable: 1
       # minAvailable: 1
 
-  resources: {}
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  resources:
+   limits:
+    cpu: 2000m
+    memory: 2500Mi
+   requests:
+    cpu: 1800m
+    memory: 2000Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
