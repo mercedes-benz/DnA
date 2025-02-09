@@ -2001,6 +2001,7 @@ config:
     # This is ignored when used with the official Docker image
     load_examples: 'False'
     enable_xcom_pickling: 'True'
+    dagbag_import_timeout: 360
     executor: '{{ .Values.executor }}'
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
