@@ -1,0 +1,15 @@
+groups:
+  - name: Services
+    rules:
+      - alert: PodDisruptionBudgetIsZero
+        expr: kube_poddisruptionbudget_status_pod_disruptions_allowed{namespace!~"(kube|caas)-system"} == 0
+        for: 30m
+        labels:
+          severity: warning
+          kubernetes_source: poddisruptionbudget/{{$labels.poddisruptionbudget}}
+          namespace: "{{$labels.kubernetes_namespace}}"
+        annotations:
+          summary: "PDB `{{$labels.poddisruptionbudget}}` allows no disruption"
+          description: "PDB `{{$labels.poddisruptionbudget}}` in namespace `{{$labels.kubernetes_namespace}}` does not allow any disruptions for more than 30 minutes. This indicates an application with missing redundancy or a badly designed PDB. Not allowing any disruptions will cause cluster changes like node flavor change or upgrades to fail and require notable manual effort in cluster operations. "
+          resolution: "Check why an application replica is not ready or modify allow PDB to allow at least one disruption."
+
