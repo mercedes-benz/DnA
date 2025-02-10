@@ -72,11 +72,21 @@ public class BaseJMailer implements JMailer {
 	        helper.setSubject(subject);
 	         
 	        boolean html = true;
+			if(subject.contains("Playground_alert")){
+				helper.setText("Dear User," +
+				"<br/><br/>" + msgTxt
+				+ "<br><br>Best regards,<br>" +
+				"<p><a href=\"" + dnaBaseUri+"\">DnA Platform Team</a></p>" +
+				"<br/><br/>"
+				+"<p> Email: <a href=\"mailto:dna@mercedes-benz.com\">dna@mercedes-benz.com</a></p>", html);
+     
+			}
+			else{
 	        helper.setText(""	        		
 	        		+ msgTxt
 					+ "<br/>-----<br/>"
 	        		+ "<p> You received this auto-generated email from DNA as per your notification settings. You can change them <a href=\"" + dnaBaseUri + "/#/usersettings" + "\">here</a>. </p>", html);
-	         
+			}
 	        javaMailSender.send(message);
 	        log.info("Mail sent successfully for eventRecord {} , please check notification by this id for more details", eventId);
 	        
