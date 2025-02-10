@@ -805,7 +805,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				response.setWarnings(warnings);
 				response.setSuccess("FAILED");
 				log.error("Not Authorized to call this API, Bad Request.");
-				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 			}else {
 				workspaceBackgroundJobsService.updateWorkspacesJob();
 				response.setErrors(errors);
@@ -846,7 +846,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 			if(!requestUser.getId().equalsIgnoreCase(techUserId)){
 				log.error("Not Authorized to call this API, Bad Request.");
-				return new ResponseEntity<>(statusVO, HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(statusVO, HttpStatus.UNAUTHORIZED);
 			}else{
 				String status = workspaceBackgroundJobsService.getJobStatus();
 				data.setStatus(status);
