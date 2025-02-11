@@ -64,9 +64,9 @@ const CodeSpaceTutorials = ({id}) => {
     },
     {
       id: 'privateGpt',
-      title: "Create your own RAG chatbot using codespaces",
+      title: "Create your own RAG Chatbot using Codespaces",
       url: "code-space-tutorials/Create your own private gpt with codespace.mp4",
-      description: "Create your own RAG chatbot using codespaces"
+      description: "Create your own RAG Chatbot using Codespaces"
     },
     {
       id: 'genratePAT',
