@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: power-platform-db
+  name: {{ .Values.env }}-power-platform-db
   namespace: {{ .Values.namespace }}
   labels:
     name: db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: power-platform
+    namespace: {{ .Values.env }}-dna-power-platform
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -20,13 +22,9 @@ spec:
     plugin:
       name: argocd-vault-plugin-helm
       env:
-        - name: HELM_ARGS
-          {{- if ne .Values.env "prod" }}          
-          value: -f values-power-platform-db-dev.yaml
-          {{ else }}
-          value: -f values-power-platform-db-{{ .Values.env }}.yaml
-          {{- end }}             
-  project: dna
+        - name: HELM_ARGS          
+          value: -f values-power-platform-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-power-platform                     
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
