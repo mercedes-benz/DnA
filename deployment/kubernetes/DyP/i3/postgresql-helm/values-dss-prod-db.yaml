@@ -364,7 +364,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: dss-backup-2025-02-10_06-46-18.tar.zst
+  recoveryFile: dss-backup-2025-02-11_12-09-00.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
