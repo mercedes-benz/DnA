@@ -1392,6 +1392,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
 			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe,
 			 	String oneApiVersionShortName, boolean isSecuredWithCookie , boolean isprivateRecipe) {
+
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1404,6 +1405,9 @@ import com.daimler.data.util.ConstantsUtility;
 			 String repoName = null;
 			 String repoUrl = null;
 			 String gitOrg = null;
+			 if (isApiRecipe != null){
+				is ApiRecipe = true;
+			 }
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
