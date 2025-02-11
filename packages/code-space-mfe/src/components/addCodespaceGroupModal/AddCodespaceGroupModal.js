@@ -13,15 +13,17 @@ const CodespaceItem = ({ codespace }) => {
         <i className="icon mbc-icon workspace"></i>
       </div>
       <div className={Styles.workspaceContent}>
-        <h3>{codespace?.name}Angular-Project</h3>
+        <h3>{codespace?.projectDetails?.projectName}</h3>
       </div>
     </div>
   )
 }
 
-const AddCodespaceGroupModal = ({ edit }) => {
+const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
+  const [groupName, setGroupName] = useState(edit ? group?.name : '');
   const [codeSpaces, setCodeSpaces] = useState([]);
   const [selectedCodeSpaces, setSelectedCodeSpaces] = useState([]);
+  const [errors, setErrors] = useState({ groupName: '', codespaces: [] });
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -29,10 +31,15 @@ const AddCodespaceGroupModal = ({ edit }) => {
 
   useEffect(() => {
     ProgressIndicator.show();
-      CodeSpaceApiClient.getCodeSpaceGroups()
+      CodeSpaceApiClient.getCodeSpacesList()
         .then((res) => {
           if(res.status !== 204) {
             setCodeSpaces(res?.data?.records);
+            const modifiedWorkspaces = edit ? group?.workspaces?.map((workspace) => { return { 
+              projectDetails: { projectName: workspace?.name}, workspaceId: workspace?.wsId
+            }}) : [];
+            setSelectedCodeSpaces(modifiedWorkspaces);
+            SelectBox.defaultSetup();
           } else {
             setCodeSpaces([]);
           }
@@ -47,7 +54,7 @@ const AddCodespaceGroupModal = ({ edit }) => {
             'alert',
           );
         });
-  }, []);
+  }, [edit, group]);
 
   const onCodeSpaceChange = (e) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -59,9 +66,92 @@ const AddCodespaceGroupModal = ({ edit }) => {
         selectedValues.push(temp);
       });
     }
-    const selectedCodespaces = codeSpaces?.filter(codeSpace => selectedValues.includes(codeSpace.name));
+    const selectedCodespaces = codeSpaces?.filter(codeSpace => selectedValues.includes(codeSpace?.projectDetails?.projectName));
     setSelectedCodeSpaces(selectedCodespaces);
+    selectedCodeSpaces.length > 0 && setErrors(prevError => { return {...prevError, codespaces: ''}});
   };
+
+  const getDifferences = (prevCodespaces, currentCodespaces) => {
+    const prevIds = new Set(prevCodespaces.map(cs => cs.wsId));
+    const currentIds = new Set(currentCodespaces.map(cs => cs.wsId));
+    const addedCodespaces = currentCodespaces.filter(cs => !prevIds.has(cs.wsId));
+    const removedCodespaces = prevCodespaces.filter(cs => !currentIds.has(cs.wsId));
+    return { addedCodespaces, removedCodespaces };
+  }
+
+  const validate = () => {
+    let success = true;
+    if(groupName.length === 0) {
+      success = false;
+      setErrors({...errors, groupName: '*Missing entry'});
+    }
+    if(selectedCodeSpaces.length === 0) {
+      success = false;
+      setErrors({...errors, codespaces: '*Missing entry'});
+    }
+    return success;
+  }
+
+  const handleEditGroup = () => {
+    const { addedCodespaces, removedCodespaces } = getDifferences(group?.workspaces, selectedCodeSpaces);
+    const data = {
+      groupId: group?.groupId,
+      name: group?.name,
+      order: 0,
+      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }}),
+      wsRemoved: removedCodespaces
+    }
+    if(validate()) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.editCodeSpaceGroup(data)
+        .then((res) => {
+          Notification.show(`Code Space Group ${res?.data?.data?.name} edited successfully`);
+          onSave();
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            e.response.data.errors?.length
+              ? e.response.data.errors[0].message
+              : 'Editing code space group failed!',
+            'alert',
+          );
+        });
+    }
+  }
+
+  const handleCreateGroup = () => {
+    const data = {
+      groupId: '',
+      name: groupName,
+      order: 0,
+      workspaces: selectedCodeSpaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }})
+    }
+    if(validate()) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.createCodeSpaceGroup(data)
+        .then((res) => {
+          Notification.show(`Code Space Group ${res?.data?.data?.name} created successfully`);
+          onSave();
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            e.response.data.errors?.length
+              ? e.response.data.errors[0].message
+              : 'Creating code space group failed!',
+            'alert',
+          );
+        });
+    }
+  }
+
+  const onGroupNameChange = (e) => {
+    setGroupName(e.target.value);
+    e.target.value.length > 0 && setErrors(prevError => { return {...prevError, groupName: ''}});
+  }
 
   return (
     <div className={classNames(Styles.form)}>
@@ -73,22 +163,22 @@ const AddCodespaceGroupModal = ({ edit }) => {
       <div className={Styles.searchContainer}>
         <div className={Styles.flex}>
           <div className={Styles.col}>
-            <div className={classNames('input-field-group include-error')}>
+            <div className={classNames('input-field-group include-error', errors.groupName?.length > 0 && 'error')}>
               <label className={'input-label'}>
                 Group Name <sup>*</sup>
               </label>
               <input
                 type="text"
                 className={'input-field'}
-                id="workspaceName"d
+                id="groupName"
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={256}
                 disabled={edit}
-                // defaultValue={nameOfWorkspace}
-                // {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d-_]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                defaultValue={groupName}
+                onChange={onGroupNameChange}
               />
-              {/* <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain alphanumeric characters only - and _ are allowed. \'Admin monitoring\' name and spaces are not allowed.'}</span> */}
+              <span className={'error-message'}>{errors.groupName?.length > 0 && '*Missing entry'}</span>
             </div>
           </div>
           <div className={Styles.col}>
@@ -102,22 +192,21 @@ const AddCodespaceGroupModal = ({ edit }) => {
                   multiple={true}
                   required={true}
                   onChange={onCodeSpaceChange}
-                  value={selectedCodeSpaces?.map(codeSpace => codeSpace?.name)}
+                  value={selectedCodeSpaces?.map(codeSpace => codeSpace?.projectDetails?.projectName)}
                 >
                   {codeSpaces?.map(codeSpace => 
-                    <option key={codeSpace?.id} value={codeSpace?.name}>{codeSpace?.name}Angular-Project</option>
+                    <option key={codeSpace?.projectDetails?.projectName} value={codeSpace?.projectDetails?.projectName}>{codeSpace?.projectDetails?.projectName}</option>
                   )}
-                  <option>Angular-Project</option>
-                  <option>Angular-Project</option>
                 </select>
               </div>
+              <span className={'error-message'}>{errors.codespaces?.length > 0 && '*Missing entry'}</span>
             </div>
           </div>
         </div>
         <div className={Styles.codespaceList}>
-          {selectedCodeSpaces.map(codeSpace => <CodespaceItem key={codeSpace?.id} />)}
+          {selectedCodeSpaces?.map(codeSpace => <CodespaceItem key={codeSpace?.workspaceId} codespace={codeSpace} />)}
         </div>
-        <button className={classNames('btn btn-tertiary', Styles.btnSubmit)}>{edit ? 'Update Group' : 'Create Group'}</button>
+        <button className={classNames('btn btn-tertiary', Styles.btnSubmit)} onClick={() => { edit ? handleEditGroup() : handleCreateGroup()}}>{edit ? 'Update Group' : 'Create Group'}</button>
       </div>
     </div>
   );

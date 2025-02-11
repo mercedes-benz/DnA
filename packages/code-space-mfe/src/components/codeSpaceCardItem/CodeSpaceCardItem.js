@@ -336,8 +336,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   };
 
   const projectDetails = codeSpace?.projectDetails;
-  const intDeploymentDetails = projectDetails.intDeploymentDetails;
-  const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
+  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
   const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   // const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
   const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
@@ -349,7 +349,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const intCodeDeployFailed = intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
     // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
@@ -363,7 +363,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
     // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
@@ -375,7 +375,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
+  const isPublicRecipe = projectDetails?.recipeDetails?.recipeId?.startsWith('public');
   // const isAPIRecipe =
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
@@ -486,7 +486,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
-              <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
+              <label onClick={onCardNameClick}>{projectDetails?.projectName}</label>
               {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
@@ -780,11 +780,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
             </div>
             <div>
               <div>Environment</div>
-              <div>{(projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
+              <div>{(projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails?.projectCreatedOn)}</div>
             </div>
             <div>
               <div>Owner</div>
@@ -1145,7 +1145,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                                 className={Styles.deployedLink}
                                 tooltip-data={
                                   'Deployed to Production on ' +
-                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)
                                 }
                               >
                                 Deployed

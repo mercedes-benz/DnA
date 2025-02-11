@@ -36,22 +36,6 @@
           }
       }
   }
-  .btnViewAll {
-      background: unset;
-      border: unset;
-      color: #99a5b3;
-      height: unset;
-      padding: 0;
-      padding-top: 5px;
-      position: absolute;
-      left: 0;
-      bottom: 15px;
-      width: 100%;
-
-      &:hover {
-          color: #00adef;
-      }
-  }
 }
 
 .groupWarning {
@@ -168,4 +152,28 @@
   &:hover h3 {
       color: #00adef;
   }
+}
+
+.btnContainer {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 14px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    > button {
+        margin-left: 15px;
+        background: unset;
+        border: unset;
+        padding: 0;
+        height: unset;
+        color: #99a5b3;
+        font-size: var(--font-size-small);
+
+        &:hover {
+            background-color: unset;
+        }
+    }
 }

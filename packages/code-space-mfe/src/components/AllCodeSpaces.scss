@@ -346,6 +346,26 @@
     margin-bottom: 25px;
 }
 
+.emptyGroup {
+    text-align: center;
+    background-color: #252a33;
+    padding: 20px 0;
+  
+    p {
+      margin-bottom: 20px;
+    }
+}
+.csLoading {
+    min-height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    > div {
+        margin-top: -10px;
+    }
+}
+
 :global {
     .mbc-modal-wrapper .mbc-modal {
         background-color: #1c2026 !important;

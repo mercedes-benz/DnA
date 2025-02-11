@@ -316,6 +316,36 @@ const migrateWorkplace = (id) => {
     return server.post(`/workspaces/${id}/migrateworkspace`, {data: {},});
 };
 
+const getCodeSpaceGroups = () => { 
+    return server.get(`workspaces/group/getAll`, {
+        data: {},
+    });
+};
+
+const getCodeSpaceGroup = (id) => { 
+    return server.get(`/workspaces/group/get/${id}`, {
+        data: {},
+    });
+};
+
+const createCodeSpaceGroup = (data) => { 
+    return server.post(`/workspaces/group/create`, {
+        data,
+    });
+};
+
+const editCodeSpaceGroup = (data) => { 
+    return server.put(`/workspaces/group/edit`, {
+        data,
+    });
+};
+
+const deleteCodeSpaceGroup = () => { 
+    return server.delete(`/workspaces/group/delete`, {
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -366,4 +396,9 @@ export const CodeSpaceApiClient = {
     serverStatusFromHub,
     restartDeployments,
     migrateWorkplace,
+    getCodeSpaceGroups,
+    getCodeSpaceGroup,
+    createCodeSpaceGroup,
+    editCodeSpaceGroup,
+    deleteCodeSpaceGroup
 };

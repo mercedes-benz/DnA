@@ -74,6 +74,7 @@
 .codespaceList {
   display: flex;
   justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 15px;
 }
 
@@ -83,7 +84,7 @@
   padding: 15px 20px;
   column-gap: 15px;
   background-color: #252a33;
-  flex: 0 0 calc(50% - 7px);
+  flex: 0 0 calc(50% - 7.5px);
 
   .workspaceIcon {
     font-size: 20px;
