@@ -881,10 +881,12 @@ public class BaseStorageService implements StorageService {
 			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
 		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			currentUser=entity.getData().getCreatedBy().getId();
+			LOGGER.info("The current user while calling api from technicaluser or admin" + currentUser);
 		}
 		else if(!currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
 		}
+		LOGGER.info("the current user is" + currentUser);
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
