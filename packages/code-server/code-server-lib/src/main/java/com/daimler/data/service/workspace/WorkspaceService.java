@@ -104,5 +104,15 @@ public interface WorkspaceService {
 	GenericMessage restartWorkspace(String userId, String id, String env);
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
+
+	CodeServerUserGroupCollectionVO createWorkSpaceGroup(CodeServerUserGroupVO vo);
+
+	CodeServerUserGroupCollectionVO updateWorkSpaceGroup(UpdateUserGroupRequestVO vo);
+
+	CodeServerUserGroupCollectionVO getAllWorkSpaceGroup();
+
+	CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id);
+
+	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 	
 }
