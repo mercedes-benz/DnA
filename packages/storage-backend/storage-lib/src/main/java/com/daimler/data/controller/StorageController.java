@@ -38,6 +38,7 @@ import com.daimler.data.dto.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,10 @@ import com.daimler.data.api.storage.StorageApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.StorageNsql;
+import com.daimler.data.db.repo.storage.StorageRepository;
 import com.daimler.data.service.storage.StorageService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -77,6 +81,12 @@ public class StorageController implements StorageApi {
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private StorageRepository customRepo;
+
+	@Value("${storage.technical.id}")
+	private String technicalId;
 
 	@Override
 	@ApiOperation(value = "Create new Bucket", nickname = "createBucket", notes = "New Bucket will be created with this api", response = BucketResponseWrapperVO.class, tags = {
@@ -277,8 +287,24 @@ public class StorageController implements StorageApi {
 	public ResponseEntity<GenericMessage> deleteBucket(
 			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName,
 			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue = "true") Boolean live) {
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
 
-		return storageService.deleteBucket(bucketName, live);
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
+			currentUser=entity.getData().getCreatedBy().getId();
+			LOGGER.info("The current user while calling api from technicaluser or admin" + currentUser);
+			return storageService.deleteBucket(bucketName, live);
+		}
+		else if(currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
+			return storageService.deleteBucket(bucketName, live);
+		}
+		else{
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
+		}
+		
 	}
 
 
