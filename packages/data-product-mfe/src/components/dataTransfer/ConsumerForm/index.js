@@ -295,7 +295,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
                       className={
                         savedTabs?.includes('provider-summary') ||
                         provideDataTransfers.selectedDataTransfer?.consumer?.openSegments?.length
-                          ? 'tab valid'
+                          ? 'tab valid active'
                           : 'tab active'
                       }
                     >
