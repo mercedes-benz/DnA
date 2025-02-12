@@ -941,9 +941,6 @@ public class BaseStorageService implements StorageService {
 		 if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			currentUser=entity.getData().getCreatedBy().getId();
 		}
-		 else if(!currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
-			 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
-		 }
 	 	String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 	 	boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
