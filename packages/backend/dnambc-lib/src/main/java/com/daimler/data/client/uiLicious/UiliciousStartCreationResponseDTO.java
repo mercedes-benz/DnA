@@ -25,18 +25,19 @@
  * LICENSE END 
  */
 
-package com.daimler.data.dto;
+ package com.daimler.data.client.uiLicious;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+ import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class VaultGenericResponse {
-
-	private String status;
-	private String message;
-	private VaultDTO data;
-}
+ import org.springframework.http.HttpStatus;
+ 
+ @Data
+ @NoArgsConstructor
+ @AllArgsConstructor
+ public class UiliciousStartCreationResponseDTO {
+     private HttpStatus responseStatus;
+     private String runId;
+ }
+ 
