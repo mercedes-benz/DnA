@@ -126,11 +126,23 @@ jobs:
         -f build.Dockerfile --no-cache ../
       env:
         no_proxy: "artifacts.i.mercedes-benz.com"     
-    
+    - name: Check the size of the image if it is more than 4GB
+      run: |
+        IMAGE_NAME="registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}"
+        IMAGE_SIZE=$(docker images $IMAGE_NAME --format "{{.Size}}")
+        IMAGE_SIZE_CLEAN="${IMAGE_SIZE//[[:space:]]/}"
+        echo "Image size clean is $IMAGE_SIZE_CLEAN"
+        if [[ $IMAGE_SIZE_CLEAN == *GB ]]; then
+          SIZE_GB=${IMAGE_SIZE_CLEAN%GB}
+          if (( $(bc -l <<< "$SIZE_GB > 5.0") )); then
+            echo "The image $IMAGE_NAME size is more than 5GB, current image size is $IMAGE_SIZE"
+            exit 1
+          fi
+        fi  
     - name: Publish application containers to registry
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
-        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}        
+        docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}       
     - name: Deploy App
       uses: vimeda/helm@v1.7.0
       with:
@@ -327,7 +339,8 @@ jobs:
   sonar-qube-js:
     name: Sonar Qube Scan Javascript
     needs: deploy
-    if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' || 
+    if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' ||
+              github.event.inputs.projectName == 'fc-onepc-cpstool' || 
               github.event.inputs.projectName == 'ffclers-wbv-home-fe-prd' || 
               github.event.inputs.projectName == 'ffclers-wbv-tts-fe-prd' || 
               github.event.inputs.projectName == 'ffclers-wbv-jbb-fe-prd' || 
