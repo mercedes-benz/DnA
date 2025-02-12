@@ -1,0 +1,20 @@
+{{- if and .Values.otelCollectorMetrics.clusterRole.create .Values.otelCollectorMetrics.enabled -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "otelCollectorMetrics.clusterRoleBindingName" . }}
+  labels:
+    {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
+  {{- with .Values.otelCollectorMetrics.clusterRole.clusterRoleBinding.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "otelCollectorMetrics.clusterRoleName" . }}
+subjects:
+  - name: {{ include "otelCollectorMetrics.serviceAccountName" . }}
+    kind: ServiceAccount
+    namespace: {{ include "signoz.namespace" . }}
+{{- end }}

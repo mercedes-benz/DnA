@@ -30,6 +30,7 @@ global:
 
 # Allows you to add any config files in {{ .Values.opensearchHome }}/config
 opensearchHome: /usr/share/opensearch
+
 # such as opensearch.yml and log4j2.properties
 config:
   # Values must be YAML literal style scalar / YAML multiline string.
@@ -104,6 +105,10 @@ config:
 extraEnvs: []
 #  - name: MY_ENVIRONMENT_VAR
 #    value: the_value_goes_here
+# Chart version 2.18.0 and App Version OpenSearch 2.12.0 onwards a custom strong password needs to be provided in order to setup demo admin user.
+# Cluster will not spin-up without this unless demo config install is disabled.
+#  - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+#    value: <strong-password>
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
@@ -200,6 +205,8 @@ persistence:
   labels:
     # Add default labels for the volumeClaimTemplate of the StatefulSet
     enabled: false
+    # Add custom labels for the volumeClaimTemplate of the StatefulSet
+    additionalLabels: {}
   # OpenSearch Persistent Volume Storage Class
   # If defined, storageClassName: <storageClass>
   # If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -241,12 +248,22 @@ priorityClassName: ""
 antiAffinityTopologyKey: "kubernetes.io/hostname"
 
 # Hard means that by default pods will only be scheduled if there are enough nodes for them
-# and that they will never end up on the same node. Setting this to soft will do this "best effort"
+# and that they will never end up on the same node. Setting this to soft will do this "best effort".
+# Setting this to custom will use what is passed into customAntiAffinity.
 antiAffinity: "soft"
+
+# Allows passing in custom anti-affinity settings as defined in
+# https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#types-of-inter-pod-affinity-and-anti-affinity
+# Using this parameter requires setting antiAffinity to custom.
+customAntiAffinity: {}
 
 # This is the node affinity settings as defined in
 # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity-beta-feature
 nodeAffinity: {}
+
+# This is the pod affinity settings as defined in
+# https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#types-of-inter-pod-affinity-and-anti-affinity
+podAffinity: {}
 
 # This is the pod topology spread constraints
 # https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
@@ -392,6 +409,7 @@ ingress:
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  ingressLabels: {}
   path: /
   hosts:
     - chart-example.local
@@ -513,3 +531,22 @@ extraObjects: []
   #      selector:
   #        matchLabels:
   #          {{- include "opensearch.selectorLabels" . | nindent 6 }}
+
+# ServiceMonitor Configuration for Prometheus
+# Enabling this option will create a ServiceMonitor resource that allows Prometheus to scrape metrics from the OpenSearch service.
+serviceMonitor:
+  # Set to true to enable the ServiceMonitor resource
+  enabled: false
+
+  # HTTP path where metrics are exposed.
+  # Ensure this matches your OpenSearch service configuration.
+  path: /_prometheus/metrics
+
+  # Frequency at which Prometheus will scrape metrics.
+  # Adjust based on your needs.
+  interval: 10s
+
+  # additional labels to be added to the ServiceMonitor
+  # labels:
+  #  k8s.example.com/prometheus: kube-prometheus
+  labels: {}

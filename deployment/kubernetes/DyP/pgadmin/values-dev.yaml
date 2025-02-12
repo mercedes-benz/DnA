@@ -102,7 +102,7 @@ networkPolicy:
       - from:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: traefikv2
+                app.kubernetes.io/name: traefik
             namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: ingress  
@@ -118,21 +118,21 @@ networkPolicy:
 ingress:
   enabled: true
   annotations: 
-    cert-manager.io/cluster-issuer: daimler-acme
-    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
+    kubernetes.io/ingress.class: ingress-traefik
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: 'true'
   hosts:
-    - host: pgadmin.dev.dna.app.corpintra.net
+    - host: pgadmin.dna-aws.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls: 
    - secretName: pgadmin-dna-tls
      hosts:
-       - pgadmin.dev.dna.app.corpintra.net
+       - pgadmin.dna-aws.app.corpintra.net
 
 # Additional config maps to be mounted inside a container
 # Can be used to map config maps for sidecar as well
@@ -185,8 +185,8 @@ secretKeys:
 ## Needed chart reinstall for apply changes
 env:
   # can be email or nickname
-  email: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#email>
-  password: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#password>
+  email: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#email>
+  password: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#password>
   # pgpassfile: /var/lib/pgadmin/storage/pgadmin/file.pgpass
 
   # set context path for application (e.g. /pgadmin4/*)
@@ -313,8 +313,8 @@ extraDeploy:
       name: pgadmin4-oauth2-secret
     type: Opaque
     stringData:
-      OAUTH2_CLIENT_ID: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
-      OAUTH2_CLIENT_SECRET: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
+      OAUTH2_CLIENT_ID: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
+      OAUTH2_CLIENT_SECRET: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
 
   - apiVersion: v1
     kind: ConfigMap

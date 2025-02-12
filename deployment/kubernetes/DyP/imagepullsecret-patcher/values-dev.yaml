@@ -24,7 +24,7 @@ conf:
   interval: "1"
   # -- Docker credentials secret < .dockerconfigjson = {"auths": {"docker.io": {"auth": "username:password" | b64enc }}} | b64enc >
   secretName: "imagepullsecret"
-  secretValue: <path:dna_kv/data/dev/kubernetesSecret/infra#imagepullsecret | base64encode>
+  secretValue: <path:dna_aws_kv/data/dev/kubernetesSecret/infra#imagepullsecret | base64encode>
 
 imagePullSecrets: 
   - name: imagepullsecret

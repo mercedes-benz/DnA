@@ -1,13 +1,14 @@
 apiVersion: v2
 name: i3-logging-helm
-version: 2.8.0
-appVersion: 2.8.0
+version: 3.2.0
+appVersion: 3.2.0
 description: i3-logging Helm Chart
 home: https://git.i.mercedes-benz.com/i3/i3-logging
 keywords:
   - observabiliy
   - logging
   - kubernetes
+
 maintainers:
   - name: i3
     email: i3.consulting@mercedes-benz.com
@@ -16,20 +17,16 @@ icon: https://opensearch.org/assets/brand/SVG/Mark/opensearch_mark_darkmode.svg
 dependencies:
   - name: opensearch
     condition: opensearch.enabled
-    version: 2.16.1
+    version: 2.26.0
     repository: file://charts/opensearch
   - name: opensearch-dashboards
     condition: opensearch-dashboards.enabled
-    version: 2.14.0
+    version: 2.24.0
     repository: file://charts/opensearch-dashboards
-  - name: dhc-forwarder
-    condition: dhc-forwarder.enabled
-    version: 2.8.0
   - name: fluent-bit
     condition: fluent-bit.enabled
-    version: 0.39.0
+    version: 0.47.10
     repository: file://charts/fluent-bit
-  - name: jaeger
-    condition: jaeger.enabled
-    version: 0.71.5
-    repository: file://charts/jaeger
+  - name: i3-opensearch-config
+    condition: i3-opensearch-config.enabled
+    version: 3.2.0

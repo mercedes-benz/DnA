@@ -1549,15 +1549,15 @@ import com.daimler.data.util.ConstantsUtility;
 					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails);
 					 //calling kong to create service, route and plugins
-					 boolean apiRecipe = false;
+					//  boolean apiRecipe = false;
 					 String serviceName = projectName;
-					 String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					 String reactRecipeId = RecipeIdEnum.REACT.toString();
-					 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					 String dashRecipeId = RecipeIdEnum.DASH.toString();
-					 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+					//  String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					//  String reactRecipeId = RecipeIdEnum.REACT.toString();
+					//  String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+					//  String dashRecipeId = RecipeIdEnum.DASH.toString();
+					//  String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+					//  String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+					//  String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
 					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)

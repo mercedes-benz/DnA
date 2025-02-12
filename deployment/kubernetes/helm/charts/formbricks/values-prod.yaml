@@ -4,11 +4,11 @@
 
 # see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbrickssecret:
-  clientId: "<path:dna_kv/data/prod/kubernetesSecret/formbricks#clientId>"
-  clientSecret: "<path:dna_kv/data/prod/kubernetesSecret/formbricks#clientSecret>"
-  database_url: "<path:dna_kv/data/prod/kubernetesSecret/formbricks#database_url>"
-  encryption_key: "<path:dna_kv/data/prod/kubernetesSecret/formbricks#encryption_key>"
-  nextauth_secret: "<path:dna_kv/data/prod/kubernetesSecret/formbricks#nextauth_secret>"
+  clientId: "<path:dna_aws_kv/data/prod/kubernetesSecret/formbricks#clientId>"
+  clientSecret: "<path:dna_aws_kv/data/prod/kubernetesSecret/formbricks#clientSecret>"
+  database_url: "<path:dna_aws_kv/data/prod/kubernetesSecret/formbricks#database_url>"
+  encryption_key: "<path:dna_aws_kv/data/prod/kubernetesSecret/formbricks#encryption_key>"
+  nextauth_secret: "<path:dna_aws_kv/data/prod/kubernetesSecret/formbricks#nextauth_secret>"
 formbricks: 
   webappUrl: https://survey.dna.app.corpintra.net                               # REQUIRED: Base URL of the site.
   nextauthUrl: "https://survey.dna.app.corpintra.net"                            # REQUIRED: Location of the auth server.
@@ -192,7 +192,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"

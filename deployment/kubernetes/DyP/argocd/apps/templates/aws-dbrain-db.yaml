@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: dbrain-db
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: dbrain
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
+spec:
+  destination:
+    namespace: prod-dna-cs-apps
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: migration/aws-prod
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-dbrain-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs-apps
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}

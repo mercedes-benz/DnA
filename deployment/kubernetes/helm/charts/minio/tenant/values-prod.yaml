@@ -3,8 +3,8 @@
 secrets:
   name: myminio-env-configuration
   # MinIO root user and password
-  accessKey: <path:dna_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_USER>
-  secretKey: <path:dna_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+  accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_USER>
+  secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
   ## Set the value for existingSecret to use a pre created secret and dont create default one
   # existingSecret: random-env-configuration
 ## MinIO Tenant Definition
@@ -39,7 +39,7 @@ tenant:
       ## size specifies the capacity per volume
       size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
-      storageClassName: cinder-retain
+      storageClassName: dhc-io2-retain
       ## Used to specify annotations for pods
       annotations: { }
       ## Used to specify labels for pods
@@ -85,7 +85,7 @@ tenant:
       ## size specifies the capacity per volume
       size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
-      storageClassName: cinder-retain
+      storageClassName: dhc-io2-retain
       ## Used to specify annotations for pods
       annotations: { }
       ## Used to specify labels for pods
@@ -131,7 +131,7 @@ tenant:
       ## size specifies the capacity per volume
       size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
-      storageClassName: cinder-retain
+      storageClassName: dhc-io2-retain
       ## Used to specify annotations for pods
       annotations: { }
       ## Used to specify labels for pods
@@ -350,7 +350,7 @@ ingress:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme   
+      cert-manager.io/cluster-issuer: mercedes-benz-acme   
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd       
     tls:
     - hosts:
@@ -368,7 +368,7 @@ ingress:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme   
+      cert-manager.io/cluster-issuer: mercedes-benz-acme   
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd       
     tls:
     - hosts:

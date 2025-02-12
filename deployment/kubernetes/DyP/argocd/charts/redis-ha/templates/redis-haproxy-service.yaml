@@ -28,6 +28,12 @@ spec:
   {{- if and (eq .Values.haproxy.service.type "LoadBalancer") .Values.haproxy.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges: {{ toYaml .Values.haproxy.service.loadBalancerSourceRanges | nindent 2 }}
   {{- end }}
+  {{- if .Values.haproxy.service.externalIPs }}
+  externalIPs:
+    {{- range $key, $value := .Values.haproxy.service.externalIPs }}
+    - {{ $value }}
+    {{- end }}
+  {{- end }}
   ports:
   - name: tcp-haproxy
     port: {{ .Values.haproxy.servicePort }}

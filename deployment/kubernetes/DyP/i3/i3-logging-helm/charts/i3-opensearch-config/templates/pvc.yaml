@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: i3-logging-user-host-logs-claim
+spec:
+  storageClassName: manual
+  volumeName: user-host-logs
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: "1"

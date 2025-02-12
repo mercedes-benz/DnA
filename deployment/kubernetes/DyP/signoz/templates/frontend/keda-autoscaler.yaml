@@ -1,0 +1,19 @@
+{{- if and .Values.frontend.autoscaling.enabled .Values.frontend.autoscaling.keda.enabled -}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "frontend.fullname" . }}
+spec:
+  scaleTargetRef:
+    apiVersion:    apps/v1  # Optional. Default: apps/v1
+    kind:          Deployment        # Optional. Default: Deployment
+    name:          {{ include "frontend.fullname" . }}     # Mandatory. Must be in the same namespace as the ScaledObject
+  pollingInterval: {{ .Values.frontend.autoscaling.keda.pollingInterval }}    # Optional. Default: 30 seconds
+  cooldownPeriod:  {{ .Values.frontend.autoscaling.keda.cooldownPeriod }}     # Optional. Default: 300 seconds
+  minReplicaCount: {{ .Values.frontend.autoscaling.keda.minReplicaCount }}    # Optional. Default: 0
+  maxReplicaCount: {{ .Values.frontend.autoscaling.keda.maxReplicaCount }}    # Optional. Default: 100
+  {{- with .Values.frontend.autoscaling.keda.triggers }}
+  triggers:
+    {{- toYaml . | nindent 4 }}
+  {{ end }}
+{{ end }}

@@ -16,6 +16,9 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "opensearch.labels" . | nindent 4 }}
+    {{- with .Values.ingress.ingressLabels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 {{- with .Values.ingress.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}

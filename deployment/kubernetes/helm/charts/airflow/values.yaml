@@ -205,7 +205,7 @@ volumes:
     resourcePolicy: keep
     accessMode: ReadWriteOnce
     storage:
-      className: cinder-retain
+      className: dhc-gp3-retain
       size: 10Gi
 
 oidc:
@@ -213,7 +213,7 @@ oidc:
     uri: ""
 
 Storage:
-  storageClass: cinder-retain
+  storageClass: dhc-gp3-retain
   accessModes: ReadWriteOnce
   size: 5Gi
 
