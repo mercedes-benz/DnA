@@ -300,8 +300,6 @@ public class StorageController implements StorageApi {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
-		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
-		LOGGER.info("ChronosUser Token is " + chronosUserToken);
 		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			currentUser=entity.getData().getCreatedBy().getId();
 			LOGGER.info("The current user while calling api from technicaluser or admin " + currentUser);
@@ -309,10 +307,7 @@ public class StorageController implements StorageApi {
 		}
 		else if(currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
 			return storageService.deleteBucket(bucketName, live);
-		}
-		else if(chronosUserToken!=null){
-			return storageService.deleteBucket(bucketName, live);
-		}
+		}	
 		else{
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
 		}
@@ -337,7 +332,27 @@ public class StorageController implements StorageApi {
 			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName,
 			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue = "true") Boolean live) {
 
-		return storageService.deleteBucketCascade(bucketName, live);
+				GenericMessage genericMessage = new GenericMessage();
+				HttpStatus httpStatus;
+		
+				LOGGER.debug("Fetching Current user.");
+				String currentUser = userStore.getUserInfo().getId();
+				StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+				String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+				LOGGER.info("ChronosUser Token is " + chronosUserToken);
+				if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
+					currentUser=entity.getData().getCreatedBy().getId();
+					return storageService.deleteBucket(bucketName, live);
+				}
+				else if(currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
+					return storageService.deleteBucket(bucketName, live);
+				}
+				else if(chronosUserToken!=null){
+					return storageService.deleteBucket(bucketName, live);
+				}
+				else{
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
+				}
 	}
 
 	@Override
