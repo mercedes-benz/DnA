@@ -342,13 +342,13 @@ public class StorageController implements StorageApi {
 				LOGGER.info("ChronosUser Token is " + chronosUserToken);
 				if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 					currentUser=entity.getData().getCreatedBy().getId();
-					return storageService.deleteBucket(bucketName, live);
+					return storageService.deleteBucketCascade(bucketName, live);
 				}
 				else if(currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
-					return storageService.deleteBucket(bucketName, live);
+					return storageService.deleteBucketCascade(bucketName, live);
 				}
 				else if(chronosUserToken!=null){
-					return storageService.deleteBucket(bucketName, live);
+					return storageService.deleteBucketCascade(bucketName, live);
 				}
 				else{
 					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
