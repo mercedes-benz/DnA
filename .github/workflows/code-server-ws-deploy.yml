@@ -232,7 +232,7 @@ jobs:
     with:
       status: '${{ needs.restart.result }}'
       wsid: '${{ github.event.inputs.wsid }}'
-      # shortid: '${{ github.event.inputs.shortid }}'
+      projectName: '${{ github.event.inputs.projectName }}'
       action: ${{ github.event.inputs.action }}
       environment: ${{ github.event.inputs.environment }}
       target_env: ${{ github.event.inputs.target_env }}
