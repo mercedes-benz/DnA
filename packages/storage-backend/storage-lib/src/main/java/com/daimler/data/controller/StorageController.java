@@ -301,6 +301,7 @@ public class StorageController implements StorageApi {
 		String currentUser = userStore.getUserInfo().getId();
 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+		LOGGER.info("ChronosUser Token is " + chronosUserToken);
 		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			currentUser=entity.getData().getCreatedBy().getId();
 			LOGGER.info("The current user while calling api from technicaluser or admin " + currentUser);
@@ -309,7 +310,7 @@ public class StorageController implements StorageApi {
 		else if(currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
 			return storageService.deleteBucket(bucketName, live);
 		}
-		else if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)){
+		else if(chronosUserToken!=null){
 			return storageService.deleteBucket(bucketName, live);
 		}
 		else{
