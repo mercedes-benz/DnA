@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -87,6 +88,12 @@ public class StorageController implements StorageApi {
 
 	@Value("${storage.technical.id}")
 	private String technicalId;
+
+	@Autowired
+	HttpServletRequest httpRequest;
+
+	@Value("${databricks.userauth}")
+	private String dataBricksAuth;
 
 	@Override
 	@ApiOperation(value = "Create new Bucket", nickname = "createBucket", notes = "New Bucket will be created with this api", response = BucketResponseWrapperVO.class, tags = {
@@ -293,12 +300,16 @@ public class StorageController implements StorageApi {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			currentUser=entity.getData().getCreatedBy().getId();
-			LOGGER.info("The current user while calling api from technicaluser or admin" + currentUser);
+			LOGGER.info("The current user while calling api from technicaluser or admin " + currentUser);
 			return storageService.deleteBucket(bucketName, live);
 		}
 		else if(currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
+			return storageService.deleteBucket(bucketName, live);
+		}
+		else if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)){
 			return storageService.deleteBucket(bucketName, live);
 		}
 		else{
