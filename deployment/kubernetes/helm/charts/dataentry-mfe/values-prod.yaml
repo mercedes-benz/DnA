@@ -1,4 +1,4 @@
-namespace: dataentry
+namespace: prod-dna-dataentry
 configJs: |
   window["dataentry_INJECTED_ENVIRONMENT"]={
     ENABLE_dataentry_SERVICE=true,
@@ -27,7 +27,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: dataentry.dna.app.corpintra.net
@@ -49,13 +49,13 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_prod_k8_role'
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/prod/kubernetesSecret/dataentryMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/prod/kubernetesSecret/dataentryMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/dataentryMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/dataentryMFE" -}}
           window["dataentry_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

@@ -3,6 +3,7 @@
 {{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
 {{- $bucketName := .Values.storageCredentials.bucketName }}
 {{- $namespace :=  .Values.namespace }}
+{{- $runAsUser :=  .Values.runAsUser }}
 {{- range $index,$pvc := .Values.pvcs }}
 apiVersion: batch/v1
 kind: Job
@@ -10,6 +11,7 @@ metadata:
   name: {{ $pvc.pvcName }}-bk-job
   namespace: {{ $namespace | quote }}
 spec:
+  ttlSecondsAfterFinished: 60
   template:
     spec:
       initContainers:
@@ -79,10 +81,10 @@ spec:
           persistentVolumeClaim:
             claimName: {{ $pvc.pvcName }}
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
+        runAsUser: {{ $runAsUser }}
+        runAsGroup: {{ $runAsUser }}
         runAsNonRoot: true
-        fsGroup: 1000                
+        fsGroup: {{ $runAsUser }}                
       restartPolicy: OnFailure
 ---
 {{- end }}

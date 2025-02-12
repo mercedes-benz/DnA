@@ -128,7 +128,7 @@ ingress:
 
     # Annotations for the web Ingress
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
       kubernetes.io/ingress.class: traefik
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
@@ -141,17 +141,17 @@ ingress:
     pathType: "ImplementationSpecific"
 
     # The hostname for the web Ingress (Deprecated - renamed to `ingress.web.hosts`)
-    host: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
+    host: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
 
     # The hostnames or hosts configuration for the web Ingress
     hosts: 
-    - name: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
+    - name: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
       # configs for web Ingress TLS
       tls:
         # Enable TLS termination for the web Ingress
         enabled: true
         # the name of a pre-created Secret containing a TLS private key and certificate
-        secretName: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
+        secretName: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
 
     # The Ingress Class for the web Ingress (used only with Kubernetes v1.19 and above)
     ingressClassName: ""
@@ -161,7 +161,7 @@ ingress:
       # Enable TLS termination for the web Ingress
       enabled: true
       # the name of a pre-created Secret containing a TLS private key and certificate
-      secretName: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
+      secretName: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
 
     # HTTP paths to add to the web Ingress before the default path
     precedingPaths: []
@@ -358,7 +358,7 @@ extraEnvFrom: ~
 #       name: '{{ .Release.Name }}-airflow-connections'
 #   - configMapRef:
 #       name: '{{ .Release.Name }}-airflow-variables'
-sqlAlchemyConn: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#sqlAlchemyConn>
+sqlAlchemyConn: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#sqlAlchemyConn>
 # Airflow database & redis config
 data:
   # If secret names are provided, use those secrets
@@ -383,12 +383,12 @@ data:
 
   # Otherwise pass connection values in
   metadataConnection:
-    user: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#airflowdbuser | squote>
-    pass: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#airflowdbpass| squote>
+    user: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdbuser | squote>
+    pass: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
     host: airflow-db.airflow.svc.cluster.local
     port: 64000
-    db: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#airflowdb| squote>
+    db: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
     
   # resultBackendConnection defaults to the same database as metadataConnection
@@ -407,11 +407,11 @@ data:
 
 # Fernet key settings
 # Note: fernetKey can only be set during install, not upgrade
-fernetKey: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#fernetKey>
+fernetKey: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#fernetKey>
 fernetKeySecretName: ~
 
 # Flask secret key for Airflow Webserver: `[webserver] secret_key` in airflow.cfg
-webserverSecretKey: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#webserverSecretKey>
+webserverSecretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#webserverSecretKey>
 webserverSecretKeySecretName: ~
 
 # In order to use kerberos you need to create secret containing the keytab file
@@ -1106,11 +1106,11 @@ webserver:
   defaultUser:
     enabled: false
     role: Admin
-    username: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#adminuser>
+    username: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#adminuser>
     email: admin@example.com
     firstName: admin
     lastName: user
-    password: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#adminpass>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#adminpass>
 
   # Launch additional containers into webserver.
   extraContainers: []
@@ -2116,8 +2116,8 @@ dags:
     # git repo clone url
     # ssh example: git@github.com:apache/airflow.git
     # https example: https://github.com/apache/airflow.git
-    repo: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#repo>
-    branch: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#branch>
+    repo: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#repo>
+    branch: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#branch>
     rev: HEAD
     depth: 1
     # the number of consecutive failures allowed before aborting
@@ -2199,4 +2199,4 @@ logs:
     storageClassName: nfs-sc
     ## the name of an existing PVC to use
     existingClaim:
-clientSecret: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#clientSecret>
+clientSecret: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#clientSecret>

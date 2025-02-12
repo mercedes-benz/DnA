@@ -4,7 +4,7 @@ annotations:
     - name: Chart Source
       url: https://github.com/prometheus-community/helm-charts
 apiVersion: v2
-appVersion: v1.6.2
+appVersion: v1.8.0
 description: A Helm chart for prometheus pushgateway
 home: https://github.com/prometheus/pushgateway
 keywords:
@@ -21,4 +21,4 @@ name: prometheus-pushgateway
 sources:
 - https://github.com/prometheus/pushgateway
 type: application
-version: 2.4.2
+version: 2.13.0

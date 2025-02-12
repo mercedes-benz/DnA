@@ -19,7 +19,7 @@ namespace: "hasura"
 #Add new env as array value with name/value field. Keep one tab indentation.
 envs:
   - name: HASURA_GRAPHQL_DATABASE_URL
-    value: <path:dna_kv/data/staging/kubernetesSecret/hasura#db>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/hasura#db>
   ## enable the console served by server
   - name: HASURA_GRAPHQL_ENABLE_CONSOLE
     value: "true"
@@ -27,7 +27,7 @@ envs:
   - name: HASURA_GRAPHQL_DEV_MODE
     value: "true"
   - name: HASURA_GRAPHQL_ADMIN_SECRET
-    value: <path:dna_kv/data/staging/kubernetesSecret/hasura#secret>
+    value: <path:dna_aws_kv/data/staging/kubernetesSecret/hasura#secret>
 
 serviceAccount:
   # Specifies whether a service account should be created

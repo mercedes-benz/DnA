@@ -9,11 +9,11 @@ prometheus:
     securityContext:
       runAsUser: 65534
       runAsNonRoot: true
-  configmapReload:
-    prometheus:
+    configmapReload:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
-    alertmanager:
+  configmapReload:
+    prometheus:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
   initChownData:
@@ -43,8 +43,8 @@ prometheus:
       runAsNonRoot: true
       fsGroup: 65534
     persistentVolume:
-     storageClass: cinder
-     size: 20Gi
+     storageClass: dhc-gp3
+     size: 30Gi
     #podLabels for adding label for network policy
     retention: "30d"
     podLabels:
@@ -69,7 +69,7 @@ prometheus:
     sidecarContainers:
       reloadAlerts:
         name: reload-alerts
-        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:0.1.151"
+        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:1.26.1"
         imagePullPolicy: IfNotPresent
         env:
           - name: METHOD
@@ -97,8 +97,6 @@ prometheus:
           mountPath: /alerts
   
   serverFiles:
-    # The following is copied from the upstream prometheus Helm chart.
-    # Additions are marked with BEGIN/END CUSTOM
     prometheus.yml:
       rule_files:
         - /etc/config/alerting_rules/*.yaml
@@ -124,7 +122,7 @@ prometheus:
           params:
             format: [ 'prometheus' ]
           static_configs:
-            - targets: [ 'minio.minio.svc.cluster.local:80' ]
+            - targets: [ 'minio.dev-dna-minio.svc.cluster.local:80' ]
         - job_name: argocd
           metrics_path: /metrics
           params:
@@ -134,7 +132,7 @@ prometheus:
           scrape_interval: 5s
           static_configs:
           - targets:
-            - agrocd-application-controller.argocd.svc.cluster.local:8082
+            - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
 
@@ -171,9 +169,34 @@ prometheus:
           scrape_interval: 5s	
           static_configs:	
           - targets:	
-            - cs-hub-hub.code-server.svc.cluster.local:8081	
+            - cs-hub.dev-dna-cs-workspaces.svc.cluster.local:8081	
           tls_config:	
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
+      # Adding Prometheus jobs for BAT API's
+        - job_name: bat-api
+          metrics_path: /actuator/prometheus
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - bat-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
+        - job_name: qilin-api
+          metrics_path: /actuator/prometheus
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - qilin-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
 
         # A scrape configuration for running Prometheus on a Kubernetes cluster.
         # This uses separate scrape configs for cluster components (i.e. API server, node)
@@ -745,17 +768,17 @@ prometheus:
       enabled: true
       path: /
       hosts:
-        - <path:dna_kv/data/dev/kubernetesSecret/monitoring#pushgateway.domain>
+        - metrics.dna-aws.app.corpintra.net
       annotations:
         traefik.frontend.rule.type: PathPrefix
-        kubernetes.io/ingress.class: traefik
+        kubernetes.io/ingress.class: ingress-traefik
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
-        cert-manager.io/cluster-issuer: daimler-acme
+        cert-manager.io/cluster-issuer: mercedes-benz-acme
         traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
       tls:
         - hosts:
-            - <path:dna_kv/data/dev/kubernetesSecret/monitoring#pushgateway.domain>
+            - metrics.dna-aws.app.corpintra.net
           secretName: metrics-pg-tls
   # Disable default network policies of prometheus chart, we'll use our own more fine-grained network policies
   networkPolicy:
@@ -764,47 +787,43 @@ prometheus:
 # Adjust values of grafana Chart to run in DHC CaaS
 grafana:
   enabled: true
-  # See values of upstream chart for details: https://github.com/grafana/helm-charts/tree/main/charts/grafana
-  image:
-    registry: registry-emea.app.corpintra.net
-    repository: dockerhub/grafana/grafana
-    tag: "latest"
-    pullSecrets: []
-
+  global:
+    # -- Overrides the Docker registry globally for all images
+    imageRegistry: registry-emea.app.corpintra.net/dockerhub
   deploymentStrategy:
     type: Recreate
-
   ingress:
     enabled: true
     # # To expose Grafana, override ingress with the following settings
     # enabled: true
     path: /
     hosts:
-       - <path:dna_kv/data/dev/kubernetesSecret/monitoring#grafana.domain>
+       - monitoring.dna-aws.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ingress-traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     tls:
       - hosts:
-          - <path:dna_kv/data/dev/kubernetesSecret/monitoring#grafana.domain>
+          - monitoring.dna-aws.app.corpintra.net
         secretName: grafana-tls
 
   # if the Grafana URL uses a subpath like /grafana, ensure to set the following lines
+  assertNoLeakedSecrets: false
   grafana.ini:
     server:
-      domain: <path:dna_kv/data/dev/kubernetesSecret/monitoring#grafana.domain>
-      root_url: https://<path:dna_kv/data/dev/kubernetesSecret/monitoring#grafana.domain>
+      domain: monitoring.dna-aws.app.corpintra.net
+      root_url: https://monitoring.dna-aws.app.corpintra.net
       serve_from_sub_path: false
     smtp:
       enabled: true
-      host: <path:dna_kv/data/dev/kubernetesSecret/monitoring#mailhost>
+      host: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#mailhost>
       skip_verify: true
-      from_address: <path:dna_kv/data/dev/kubernetesSecret/monitoring#fromaddress>
-      from_name: <path:dna_kv/data/dev/kubernetesSecret/monitoring#fromname>
+      from_address: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#fromaddress>
+      from_name: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#fromname>
     auth.generic_oauth:
       enabled: true
       allow_sign_up: true
@@ -812,12 +831,12 @@ grafana:
       team_ids:
       allowed_organizations:
       name: MB-SSO
-      client_id: <path:dna_kv/data/dev/kubernetesSecret/monitoring#client_id>
-      client_secret: <path:dna_kv/data/dev/kubernetesSecret/monitoring#client_secret>
+      client_id: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#client_id>
+      client_secret: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#client_secret>
       scopes: openid profile email offline_access
-      auth_url: <path:dna_kv/data/dev/kubernetesSecret/monitoring#auth_url>
-      token_url: <path:dna_kv/data/dev/kubernetesSecret/monitoring#token_url>
-      api_url: https://<path:dna_kv/data/dev/kubernetesSecret/monitoring#grafana.domain>/userinfo
+      auth_url: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#auth_url>
+      token_url: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#token_url>
+      api_url: https://monitoring.dna-aws.app.corpintra.net/userinfo
       use_pkce: true
       use_refresh_token: true     
       skip_org_role_sync: true
@@ -839,7 +858,7 @@ grafana:
        send_reminder: true
        frequency: 10h
        settings:
-         addresses: <path:dna_kv/data/dev/kubernetesSecret/monitoring#notifiers.addresses>
+         addresses: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#notifiers.addresses>
      delete_notifiers:
 
   # Enable dashboard sidecar
@@ -847,7 +866,7 @@ grafana:
   sidecar:
     image:
       registry: registry-emea.app.corpintra.net
-      repository: dockerhub/kiwigrid/k8s-sidecar
+      repository: kiwigrid/k8s-sidecar
     dashboards:
       enabled: true
       label: grafana_dashboard
@@ -868,8 +887,8 @@ grafana:
     tag: latest
 
   # # To set admin credentials for login:
-  adminUser: <path:dna_kv/data/dev/kubernetesSecret/monitoring#user>
-  adminPassword: <path:dna_kv/data/dev/kubernetesSecret/monitoring#password>
+  adminUser: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#user>
+  adminPassword: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#password>
 
   # Default DataSource
   datasources:
@@ -883,6 +902,50 @@ grafana:
         isDefault: true
         basic_auth: false
 
+#Adding datasources for BAT Org.
+#       - name: Prometheus
+#         type: prometheus
+#         access: proxy
+#         url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
+#         isDefault: true
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Alertmanager
+#         type: alertmanager
+#         access: proxy
+#         url: "http://prometheus-alertmanager.{{ .Release.Namespace }}.svc.cluster.local:9093"
+#         jsonData:
+#           # Valid options for implementation include mimir, cortex and prometheus
+#           implementation: prometheus
+#           # Whether or not Grafana should send alert instances to this Alertmanager
+#           handleGrafanaManagedAlerts: false
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Postgres
+#         type: postgres
+#         access: proxy
+#         #Authentication
+#         url: "<path:bat/data/bat-dev/bat-postgres#hostname>:443"
+#         user: grafana
+#         secureJsonData:
+#           password: ""
+#           sslmode: 'require' # disable/require/verify-ca/verify-full
+# #          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#         jsonData:
+#           database: db
+#           maxOpenConns: 10 # Grafana v5.4+
+#           maxIdleConns: 2 # Grafana v5.4+
+#           connMaxLifetime: 14400 # Grafana v5.4+
+#           Version: 15   #DB version
+#           timescaledb: false
+
   # Extra mount for plugins
   extraEmptyDirMounts:
   - name: init-plugins
@@ -892,23 +955,60 @@ grafana:
   # Provide plugins via initContainer
   extraInitContainers:
   - name: init-plugins
-    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:6.1.0
+    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:6.3.1
     command: ['sh', '-c', 'cp -R /configs/grafana/plugins/. /grafana-plugins/']
     volumeMounts:
     - name: init-plugins
       mountPath: /grafana-plugins
 
+  # plugins: 
+  #   - yesoreyeram-infinity-datasource
+  # env: 
+  #   HTTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   NO_PROXY: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   HTTPS_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   http_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   https_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   ftp_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
   persistence:
     type: pvc
     enabled: true
-    storageClassName: cinder
+    storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
-    size: 2Gi      
+    size: 4Gi      
 
   imageRenderer:
     deploymentStrategy: 
       type: Recreate
+
+  extraObjects:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-acme-http01-solver
+      spec:
+        podSelector:
+          matchLabels:
+            acme.cert-manager.io/http01-solver: 'true'
+        ingress:
+          - ports:
+              - protocol: TCP
+                port: 8089
+          - from:
+              - podSelector:
+                  matchLabels:
+                    app: traefik
+                namespaceSelector:
+                  matchExpressions:
+                    - key: name
+                      operator: In
+                      values:
+                        - ingress
+        policyTypes:
+          - Ingress
 
 # Enable DHC NetworkPolicies by default
 dhc-monitoring-netpols:
@@ -979,8 +1079,9 @@ i3-dashboards:
   enabled: true
 prom2teams:
   enabled: true
+  fullnameOverride: "prom2teams"
   image:
-    repository: registry-emea.app.corpintra.net/dnaplatform/idealista/prom2teams
+    repository: registry-emea.app.corpintra.net/dockerhub/idealista/prom2teams
     tag: 4.2.1
     pullPolicy: IfNotPresent
   prom2teams:
@@ -1006,8 +1107,8 @@ tempo-distributed:
     persistence:
       enabled: true
       inMemory: false
-      size: 10Gi
-      storageClass: cinder    
+      size: 5Gi
+      storageClass: dhc-gp3    
     complete_block_timeout: 720h
   compactor:    
     config:
@@ -1032,11 +1133,11 @@ tempo-distributed:
   storage:
     trace:
       s3:
-        endpoint: <path:dna_kv/data/dev/kubernetesSecret/monitoring#s3.host>
-        bucket: <path:dna_kv/data/dev/kubernetesSecret/monitoring#traces_bucket>
+        endpoint: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#s3.host>
+        bucket: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#traces_bucket>
         insecure: true
-        access_key: <path:dna_kv/data/dev/kubernetesSecret/monitoring#access_key>
-        secret_key: <path:dna_kv/data/dev/kubernetesSecret/monitoring#secret_key>
+        access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#access_key>
+        secret_key: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#secret_key>
         forcepathstyle: true
   extraObjects: 
     -   apiVersion: networking.k8s.io/v1
@@ -1068,3 +1169,84 @@ tempo-distributed:
                   port: 6831                                                                                  
           policyTypes:
             - Ingress      
+
+
+loki:
+  enabled: false
+  fullnameOverride: "loki"
+  global:
+    image:
+      registry: registry-emea.app.corpintra.net/dockerhub  
+  networkPolicy:
+    enabled: false         
+  sidecar:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar     
+  memcached:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/memcached      
+  memcachedExporter:
+    enabled: true
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
+  write:
+    persistence:
+      size: 30Gi
+  loki:
+    auth_enabled: false
+    limits_config:  
+      retention_period: 48h
+      # enforce_metric_name: false
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      max_cache_freshness_per_query: 10m
+      split_queries_by_interval: 15m
+      # for big logs tune
+      per_stream_rate_limit: 512M
+      per_stream_rate_limit_burst: 1024M
+      cardinality_limit: 200000
+      ingestion_burst_size_mb: 1000
+      ingestion_rate_mb: 10000
+      max_entries_limit_per_query: 1000000
+      max_label_value_length: 20480
+      max_label_name_length: 10240
+      max_label_names_per_series: 300
+    commonConfig:
+      replication_factor: 3
+    schemaConfig:
+      configs:
+      - from: "2024-01-01"
+        store: tsdb
+        index:
+          prefix: loki_index_
+          period: 24h
+        object_store: s3
+        schema: v13
+    storage:
+      type: 's3'
+      bucketNames:
+        chunks: loki-chunks
+        ruler: loki-ruler
+        admin: loki-admin
+      s3:
+        endpoint: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#s3.host>
+        secretAccessKey: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#secret_key>
+        accessKeyId: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#access_key>
+        s3ForcePathStyle: true
+        insecure: true
+        http_config: {}    
+    singleBinary:
+      replicas: 3    
+  extraObjects:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: loki-allow-all
+      spec:
+        podSelector: 
+          matchLabels:
+            app.kubernetes.io/name: loki
+        ingress:
+          - {}
+        policyTypes:
+          - Ingress

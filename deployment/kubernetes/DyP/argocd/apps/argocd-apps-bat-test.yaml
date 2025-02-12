@@ -1,0 +1,22 @@
+kind: Application
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: test-bat-argocd-root-app
+  namespace: argocd
+  labels:
+    name: test-bat-argocd-root-app
+spec:
+  project: 'bat-testing'
+  source:
+    repoURL: 'https://git.i.mercedes-benz.com/BAT/bat-infra.git'
+    targetRevision: 'infra/bat-staging-migration'
+    path: c82p085-test
+    plugin:
+      name: argocd-vault-plugin
+  destination:
+    name: 'in-cluster'
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

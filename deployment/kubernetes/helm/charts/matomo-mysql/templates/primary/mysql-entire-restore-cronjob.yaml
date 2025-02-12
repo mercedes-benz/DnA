@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mysql-entire-restore-cron-job
-  namespace: matomo
+  namespace: {{ include "common.names.namespace" . | quote }}
 spec:
   schedule: 1 0 * * *
   suspend: true

@@ -2564,7 +2564,7 @@
       "pluginVersion": "7.3.3",
       "targets": [
         {
-          "expr": "sum by (pvc_name)(cinder_volume_size{pvc_namespace=\"$namespace\",status=\"in-use\"})",
+          "expr": "sum by (pvc_name)(dhc-gp3_volume_size{pvc_namespace=\"$namespace\",status=\"in-use\"})",
           "format": "time_series",
           "hide": false,
           "instant": true,

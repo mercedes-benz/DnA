@@ -1,9 +1,9 @@
 appName: trino
-namespace: trino
+namespace: test-dna-trino
 accessRules:
   endpoint: http://trino-backend-service.trino.svc.cluster.local:7575/service/access
 cert:
-  certManager: daimler-acme
+  certManager: mercedes-benz-acme
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-immuta/trino-immuta-v2
   pullPolicy: IfNotPresent
@@ -16,7 +16,7 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
 server:
   host: trino.test.dna.app.corpintra.net
@@ -30,7 +30,7 @@ server:
       level: INFO
   config:
     path: /etc/trino
-    internalSharedSecret: <path:dna_kv/data/staging/kubernetesSecret/trino#internalSharedSecret>
+    internalSharedSecret: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#internalSharedSecret>
     http:
       port: 8080
     query:
@@ -80,14 +80,14 @@ authentication:
     authUrl: https://sso-int.mercedes-benz.com/as/authorization.oauth2
     tokenUrl: https://sso-int.mercedes-benz.com/as/token.oauth2
     jwksUrl: https://sso-int.mercedes-benz.com/pf/JWKS
-    clientId: <path:dna_kv/data/staging/kubernetesSecret/trino#clientId>
-    clientSecret: <path:dna_kv/data/staging/kubernetesSecret/trino#clientSecret>
+    clientId: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#clientId>
+    clientSecret: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#clientSecret>
     userInfoUrl: https://sso-int.mercedes-benz.com/idp/userinfo.openid
     scopes: openid
     claim: sub
   password:
     user: immuta
-    bcryptPass: <path:dna_kv/data/staging/kubernetesSecret/trino#bcryptPass>
+    bcryptPass: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#bcryptPass>
 hivemetastore:
   image: registry-emea.app.corpintra.net/dnaplatform/hivemetastore:1.0.1
   server:
@@ -106,18 +106,18 @@ hivemetastore:
     cpu: 2
   minio:
     host: my-release-minio.minio.svc.cluster.local:9000
-    accessKey: <path:dna_kv/data/staging/kubernetesSecret/trino#minio.accessKey>
-    secretKey: <path:dna_kv/data/staging/kubernetesSecret/trino#minio.secretKey>
+    accessKey: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#minio.accessKey>
+    secretKey: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#minio.secretKey>
     warehouseBucketName: datalake
   postgres:
     host: hive-db.trino.svc.cluster.local:64000
     db: hive
     user: hive
-    password: <path:dna_kv/data/staging/kubernetesSecret/trino#postgtres.password>
+    password: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#postgtres.password>
 immuta:
   enabled: true
   name: immuta
-  endpoint: <path:dna_kv/data/staging/kubernetesSecret/trino#immuta.endpoint>
-  apiKey: <path:dna_kv/data/staging/kubernetesSecret/trino#immuta.apikey>
+  endpoint: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#immuta.endpoint>
+  apiKey: <path:dna_aws_kv/data/staging/kubernetesSecret/trino#immuta.apikey>
   listenerName: immuta-event-listener
   nonImmutaUserPermission: READ

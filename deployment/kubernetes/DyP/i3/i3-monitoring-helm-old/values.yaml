@@ -1,0 +1,271 @@
+# Adjust values of prometheus Chart to run in DHC CaaS
+prometheus:
+  enabled: true
+  # See values of upstream chart for details: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
+  alertmanager:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/alertmanager
+    # Adjust securityContext for non-root
+    securityContext:
+      runAsUser: 65534
+      runAsNonRoot: true
+    configmapReload:
+      image:
+        repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
+  configmapReload:
+    prometheus:
+      image:
+        repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
+  initChownData:
+    enabled: false
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/busybox
+  kube-state-metrics:
+    enabled: false
+    image:
+      registry: registry-emea.app.corpintra.net
+      repository: k8scache/kube-state-metrics/kube-state-metrics
+    securityContext:
+      runAsUser: 65534
+      fsGroup: 65534
+  # DHC CaaS already provides nodeExporter
+  prometheus-node-exporter:
+    enabled: false
+  server:
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
+    extraArgs:
+      # Limit persistent data size (experimental)
+      storage.tsdb.retention.size: "6GB"
+    # Adjust securityContext for non-root
+    securityContext:
+      runAsUser: 65534
+      runAsNonRoot: true
+      fsGroup: 65534
+    #persistentVolume:
+    #  storageClass: cinder
+    #  size: 8Gi
+    #podLabels for adding label for network policy
+    podLabels:
+      i3.monitoring.app: prometheus
+    global:
+      # Adjust scrape_interval to 1m
+      scrape_interval: 1m
+      # Adjust scrape_timeout to 20s for scraping kube-system resources which may need > 10s to respond
+      scrape_timeout: 20s
+
+
+    ### BEGIN autoload all alert configmaps
+    extraVolumeMounts:
+      - name: alert-storage-volume
+        mountPath: /etc/config/alerting_rules
+        readOnly: true
+
+    extraVolumes:
+      - name: alert-storage-volume
+        emptyDir: {}
+
+    sidecarContainers:
+      reloadAlerts:
+        name: reload-alerts
+        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:1.26.1"
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: METHOD
+            value: WATCH
+          - name: LABEL
+            value: "prometheus_alert"
+          - name: FOLDER
+            value: "/alerts"
+          - name: RESOURCE
+            value: "configmap"
+          # - name: NAMESPACE
+          #   value: "{{ .Values.sidecar.dashboards.searchNamespace }}"
+          - name: SKIP_TLS_VERIFY
+            value: "true"
+          # Adapt REQ_URL if you change prometheus.server.prefixURL
+          - name: REQ_URL
+            value: "http://127.0.0.1:9090/-/reload"
+          - name: REQ_METHOD
+            value: POST
+        resources:
+          limits:
+            memory: "128Mi"
+        volumeMounts:
+        - name: alert-storage-volume
+          mountPath: /alerts
+  
+  serverFiles:
+    prometheus.yml:
+      rule_files:
+        - /etc/config/alerting_rules/*.yaml
+        - /etc/config/recording_rules.yml
+        - /etc/config/alerting_rules.yml
+      ## Below two files are DEPRECATED will be removed from this default values file
+        - /etc/config/rules
+        - /etc/config/alerts
+  
+    ### END autoload all alert configmaps
+
+  prometheus-pushgateway:
+    enabled: false
+    image:
+      repository: registry-emea.app.corpintra.net/dockerhub/prom/pushgateway
+    # Adjust securityContext for non-root
+    securityContext:
+      runAsUser: 65534
+      fsGroup: 65534
+    #podLabels for adding label for network policy
+    podLabels:
+      i3.monitoring.app: prometheus
+  # Disable default network policies of prometheus chart, we'll use our own more fine-grained network policies
+  networkPolicy:
+    enabled: false
+
+# Adjust values of grafana Chart to run in DHC CaaS
+grafana:
+  enabled: true
+  global:
+    # -- Overrides the Docker registry globally for all images
+    imageRegistry: registry-emea.app.corpintra.net/dockerhub
+
+  ingress:
+    enabled: false
+    # # To expose Grafana, override ingress with the following settings
+    # enabled: true
+    # path: /grafana
+    # hosts:
+    #   - host.example
+    # annotations:
+    # # for traefik ingress use the following annotations:
+    #   kubernetes.io/ingress.class: traefik
+    #   ingress.kubernetes.io/rewrite-target: /
+    # # for nginx ingress use the following annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   ingress.kubernetes.io/rewrite-target: /
+
+  # if the Grafana URL uses a subpath like /grafana, ensure to set the following lines
+  # grafana.ini:
+  #   server:
+  #     root_url: "https://host.example/grafana"
+
+  # Enable dashboard sidecar
+  # Grafana will watch configmaps and secrets inside the same namespace with the matching label
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+  initChownData:
+    enabled: false
+
+  # DHC CaaS forbids settings of container capabilities, so lets disable PodSecurityPolicy
+  rbac:
+    pspEnabled: false
+
+  # Override default image dduportal/bats with one of ours
+  testFramework:
+    enabled: false
+
+  # Override default image appropriate/curl with one of ours
+  downloadDashboardsImage:
+    repository: registry-emea.app.corpintra.net/i3-images/alpine
+    tag: latest
+
+  # # To set admin credentials for login:
+  #adminUser: admin
+  #adminPassword: admin
+
+  # Default DataSource
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: "http://{{ .Release.Name }}-prometheus-server"
+        isDefault: true
+        basic_auth: false
+
+  # Extra mount for plugins
+  extraEmptyDirMounts:
+  - name: init-plugins
+    mountPath: /var/lib/grafana/plugins
+    readOnly: false
+
+  # Provide plugins via initContainer
+  extraInitContainers:
+  - name: init-plugins
+    image: registry-emea.app.corpintra.net/i3-releases/grafana-plugins:latest
+    command: ['sh', '-c', 'cp -R /configs/grafana/plugins/. /grafana-plugins/']
+    volumeMounts:
+    - name: init-plugins
+      mountPath: /grafana-plugins
+
+# Enable DHC NetworkPolicies by default
+dhc-monitoring-netpols:
+  enabled: true
+  internal:
+    enabled: true
+  external:
+    alertmanager:
+      enabled: true
+      # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+      # ingresses:
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra"
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra-internet"
+    prometheus:
+      enabled: true
+      # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+      # ingresses:
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra"
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra-internet"
+    grafana:
+      enabled: true
+      # By default traffic from all sources will be allowed. To filter via podSelectors or namespaceSelectors, enable the following section:
+      # ingresses:
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra"
+      #   - from:
+      #     - podSelector:
+      #         matchLabels:
+      #           k8s-app: "traefik"
+      #       namespaceSelector:
+      #         matchLabels:
+      #           kubernetes.io/metadata.name: "infra-internet"
+      port: 3000
+
+i3-alerts:
+  enabled: true
+
+i3-dashboards:
+  enabled: false

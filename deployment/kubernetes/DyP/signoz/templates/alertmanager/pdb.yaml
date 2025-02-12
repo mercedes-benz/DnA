@@ -1,0 +1,13 @@
+{{- if and .Values.alertmanager.podDisruptionBudget .Values.alertmanager.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "alertmanager.fullname" . }}
+  labels:
+    {{- include "alertmanager.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "alertmanager.selectorLabels" . | nindent 6 }}
+{{ toYaml .Values.alertmanager.podDisruptionBudget | indent 2 }}
+{{- end -}}
