@@ -185,7 +185,7 @@ configs:
     admin.enabled: true
 
     # -- Timeout to discover if a new manifests version got published to the repository
-    timeout.reconciliation: 180s
+    timeout.reconciliation: 2s
 
     # -- Timeout to refresh application data as well as target manifests cache
     timeout.hard.reconciliation: 180s
@@ -2322,18 +2322,18 @@ server:
     ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
     annotations: 
       cert-manager.io/cluster-issuer: mercedes-benz-acme
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
       traefik.ingress.kubernetes.io/router.tls: 'true'
 
     # -- Defines which ingress controller will implement the resource
-    ingressClassName: "ingress-traefik"
+    ingressClassName: "dev-ingress-intranet"
 
     # -- Argo CD server hostname
     # @default -- `""` (defaults to global.domain)
-    hostname: "serving.kfp.dna-aws.app.corpintra.net"
+    hostname: "serving.kfp.dev.dna.app.corpintra.net"
 
     # -- The path to Argo CD server
     path: /
@@ -2382,7 +2382,7 @@ server:
     # @default -- `[]` (See [values.yaml])
     extraTls: 
       - hosts:
-        - serving.kfp.dna-aws.app.corpintra.net
+        - serving.kfp.dev.dna.app.corpintra.net
         secretName: argocd-tls
 
     # AWS specific options for Application Load Balancer

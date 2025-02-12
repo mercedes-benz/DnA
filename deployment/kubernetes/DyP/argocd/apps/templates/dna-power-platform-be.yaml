@@ -5,13 +5,15 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: power-platform-be
+  name: {{ .Values.env }}-power-platform-be
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend  
+    name: backend 
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna 
 spec:
   destination:
-    namespace: power-platform
+    namespace: {{ .Values.env }}-dna-power-platform
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/power-platform-be
@@ -20,8 +22,8 @@ spec:
     helm:
       releaseName: power-platform-be
       valueFiles:
-        - values-{{ .Values.env }}.yaml
-  project: dna
+        - values-{{ .Values.env }}.yaml 
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

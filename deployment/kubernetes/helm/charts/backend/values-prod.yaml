@@ -2,6 +2,7 @@ namespace: prod-dna
 imagePullSecrets: null
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   namespace: ingress
   host: dna.app.corpintra.net
   lbIP: 53.6.53.65

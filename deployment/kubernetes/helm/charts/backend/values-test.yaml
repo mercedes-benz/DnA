@@ -2,12 +2,14 @@ namespace: test-dna
 imagePullSecrets: null
 ingress:
   enabled: false
+  className: test-ingress-intranet
   namespace: ingress
   host: test.dna.app.corpintra.net
-  lbIP: 53.6.53.65
+  # lbIP: 53.6.53.65
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -17,7 +19,7 @@ app:
     replicaCount: 1
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/dna-backend
-      tag: '159'
+      tag: '614'
     secrets:
       name: app-secrets
       notebookSecretToken: null

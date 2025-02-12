@@ -86,6 +86,7 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `d/fe3tblb85d1xce/codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=code-server&var-pod=${codeSpace.workspaceId}&var-container=notebook`
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
@@ -396,6 +397,8 @@ const CodeSpaceCardItem = (props) => {
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
   const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
+  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   const securedWithIAMContent = (
     <svg
@@ -533,6 +536,14 @@ const CodeSpaceCardItem = (props) => {
                         </a>
                       </li>
                     )}
+                     {serverStarted && (
+                      <li>
+                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Resource usage
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
                     {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
                       <li>
                         <span
@@ -605,10 +616,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {intSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
@@ -635,16 +652,16 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {intDeployed && (
-                          <li>
-                            <span
-                              onClick={() => {setEnv("int"); setShowRestartModal(true);}}
-                            >
-                              Restart Deployed Application
-                            </span>
-                          </li>
-                        )}
-                      </>
+                      {intDeployed && (
+                        <li>
+                          <span
+                            onClick={() => {setEnv("int"); setShowRestartModal(true);}}
+                          >
+                            Restart Deployed Application
+                          </span>
+                        </li>
+                      )}
+                   </>
                     )}
                     <li>
                       <hr />
@@ -707,10 +724,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {prodDeployed && (
                           <li>
-                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {prodSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (

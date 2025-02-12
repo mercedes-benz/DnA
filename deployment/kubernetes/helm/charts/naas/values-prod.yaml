@@ -51,6 +51,7 @@ image:
   tag: 3.1.10
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   host: naas.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
@@ -65,7 +66,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_prod_k8_role
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/prod/kubernetesSecret/kafka

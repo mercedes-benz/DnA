@@ -743,12 +743,13 @@ prometheus:
             
     ingress:
       enabled: true
+      ingressClassName: test-ingress-intranet
       path: /
       hosts:
         - <path:dna_aws_kv/data/staging/kubernetesSecret/monitoring#pushgateway.domain>
       annotations:
         traefik.frontend.rule.type: PathPrefix
-        kubernetes.io/ingress.class: traefik
+        kubernetes.io/ingress.class: test-ingress-intranet
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         cert-manager.io/cluster-issuer: daimler-acme
@@ -776,6 +777,7 @@ grafana:
 
   ingress:
     enabled: true
+    ingressClassName: test-ingress-intranet
     # # To expose Grafana, override ingress with the following settings
     # enabled: true
     path: /
@@ -783,7 +785,7 @@ grafana:
        - <path:dna_aws_kv/data/staging/kubernetesSecret/monitoring#grafana.domain>
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: test-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: daimler-acme

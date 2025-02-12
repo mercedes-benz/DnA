@@ -24,6 +24,7 @@ service:
 ingress:
   enabled: false
   host: api.dss.dna.app.corpintra.net
+  className: prod-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik

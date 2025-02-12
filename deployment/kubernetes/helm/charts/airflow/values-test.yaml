@@ -6,7 +6,7 @@ backend:
   replicas: 1
   image:
     repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
-    tag: '137'
+    tag: '198'
   imagePullPolicy: Always
   dbUrl: jdbc:postgresql://airflow-db.airflow.svc.cluster.local:64000/airflow
   secret:
@@ -41,6 +41,7 @@ backend:
   flywaySchema: public
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: pipeline.test.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
@@ -52,6 +53,7 @@ ingress:
 airflow:
   ingress:
     enabled: false
+    className: test-ingress-intranet
     host: pipeline.test.dna.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix

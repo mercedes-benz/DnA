@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dataentry-mfe
   pullPolicy: IfNotPresent
-  tag: 41de439342ea91c12ba51659dfc970cef8fcb26d
+  tag: 39
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -22,9 +22,11 @@ service:
   port: 80
 ingress:
   enabled: true
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

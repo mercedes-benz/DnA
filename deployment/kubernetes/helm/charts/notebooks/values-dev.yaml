@@ -17,12 +17,12 @@ app:
   hubConfig:
     name: hub-config
     KubeSpawnerimage: registry-emea.app.corpintra.net/dnaplatform/dev/pyspark-notebook-default:1.0.10
-    securitycontext: https://dna-aws.app.corpintra.net https://notebook.dna-aws.app.corpintra.net login-int.mercedes-benz.com sso-int.mercedes-benz.com *.mercedes-benz.com
+    securitycontext: https://dev.dna.app.corpintra.net https://notebook.dev.dna.app.corpintra.net login-int.mercedes-benz.com sso-int.mercedes-benz.com *.mercedes-benz.com
     serviceAccount: default-editor
     oauthAuthenticator: GenericOAuthenticator
     oauthClientId: <path:dna_aws_kv/data/dev/kubernetesSecret/notebooks#oauthClientId>
     oauthClientSecret: <path:dna_aws_kv/data/dev/kubernetesSecret/notebooks#oauthClientSecret>
-    oauthCallback: https://notebook.dna-aws.app.corpintra.net/hub/oauth_callback
+    oauthCallback: https://notebook.dev.dna.app.corpintra.net/hub/oauth_callback
     oauthAuthorizeUrl: https://sso-int.mercedes-benz.com/as/authorization.oauth2
     oauthTokenUrl: https://sso-int.mercedes-benz.com/as/token.oauth2
     oauthUserDataUrl: https://sso-int.mercedes-benz.com/idp/userinfo.openid
@@ -49,10 +49,10 @@ app:
     
 ingress:
   enabled: true
-  host: notebook.dna-aws.app.corpintra.net
+  host: notebook.dev.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

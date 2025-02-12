@@ -1,3 +1,4 @@
+{{- if eq .Values.env "prod" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,24 +6,23 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-dna-neo4j
+  name: paperless-ngx
   namespace: {{ .Values.namespace }}
   labels:
     name: service
-    env: {{ .Values.env }}
-    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: {{ .Values.env }}-dna-neo4j
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/neo4j
+    path: deployment/kubernetes/DyP/paperless-ngx
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    helm:
-      releaseName: neo4j-release
-      valueFiles:
-        - values-{{ .Values.env }}.yaml                 
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: --namespace cs-apps-services -f values-{{ .Values.env }}.yaml
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
@@ -33,3 +33,4 @@ spec:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
 {{- end }}
+{{- end }}      

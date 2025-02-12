@@ -188,6 +188,7 @@ public class BaseStorageService implements StorageService {
 	@Override
 	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(BucketVo bucketVo) {
+		LOGGER.debug("bucketVo :"+ bucketVo);
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
 

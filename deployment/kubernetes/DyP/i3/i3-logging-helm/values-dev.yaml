@@ -296,15 +296,16 @@ opensearch-dashboards:
 
   ingress:
     enabled: true
+    ingressClassName: dev-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - host: logs.dna-aws.app.corpintra.net
+      - host: logs.dev.dna.app.corpintra.net
         paths:
           - path: /
             backend:
@@ -312,7 +313,7 @@ opensearch-dashboards:
               servicePort: 5601
     tls:
       - hosts:
-          - logs.dna-aws.app.corpintra.net
+          - logs.dev.dna.app.corpintra.net
         secretName: logs-tls
     #  - secretName: chart-example-tls
     #    hosts:
@@ -343,19 +344,20 @@ opensearch:
 
   ingress:
     enabled: true
+    ingressClassName: dev-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: ingress-traefik
+      kubernetes.io/ingress.class: dev-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
       traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     hosts:
-      - api.logs.dna-aws.app.corpintra.net
+      - api.logs.dev.dna.app.corpintra.net
     path: /
     tls:
       - hosts:
-          - api.logs.dna-aws.app.corpintra.net
+          - api.logs.dev.dna.app.corpintra.net
         secretName: logs-opensearch-tls
 
   image:

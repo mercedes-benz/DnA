@@ -13,8 +13,8 @@ formbrickssecret:
   
 # see: https://formbricks.com/docs/self-hosting/docker#important-run-time-variables
 formbricks: 
-  webappUrl: https://survey.dna-aws.app.corpintra.net                               # REQUIRED: Base URL of the site.
-  nextauthUrl: "https://survey.dna-aws.app.corpintra.net"                            # REQUIRED: Location of the auth server.
+  webappUrl: https://survey.dev.dna.app.corpintra.net                               # REQUIRED: Base URL of the site.
+  nextauthUrl: "https://survey.dev.dna.app.corpintra.net"                            # REQUIRED: Location of the auth server.
   # NOTE: these secrets are required and must be created before deployment
   # SEE: https://github.com/nmcclain/formbricks-helm?tab=readme-ov-file#create-formbricks-secret
   databaseUrl:
@@ -196,10 +196,10 @@ service:
 
 ingress:
   enabled: true
-  className: ""
+  className: dev-ingress-intranet
   annotations:    
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -207,7 +207,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: survey.dna-aws.app.corpintra.net
+    - host: survey.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
@@ -224,9 +224,9 @@ ingress:
       # - path: /favicon.ico
       #   pathType: Exact
   tls: 
-   - secretName: survey.dna-aws.app.corpintra.net-tls
+   - secretName: survey.dev.dna.app.corpintra.net-tls
      hosts:
-       - survey.dna-aws.app.corpintra.net
+       - survey.dev.dna.app.corpintra.net
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

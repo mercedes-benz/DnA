@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-mfe
   pullPolicy: IfNotPresent
-  tag: '162'
+  tag: '1194'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -22,9 +22,11 @@ service:
   port: 80
 ingress:
   enabled: true
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -49,7 +51,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
+    vault.hashicorp.com/role: dna_aws_staging_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/staging/kubernetesSecret/fabricMFE

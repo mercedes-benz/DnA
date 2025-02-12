@@ -8,22 +8,24 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/datalake-mfe
   pullPolicy: Always
-  tag: '137'
+  tag: '1188'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
 fullnameOverride: datalake-mfe
 podSecurityContext:
-  runAsUser: 1001
+  runAsUser: 1129
 containerPort: 3000
 service:
   type: ClusterIP
   port: 80
 ingress:
   enabled: true
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

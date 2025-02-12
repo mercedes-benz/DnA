@@ -10,7 +10,7 @@ codeserverbackend: http://code-server-backend.code-server.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe
   pullPolicy: IfNotPresent
-  tag: '1.2.9'
+  tag: '1060'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -23,22 +23,23 @@ service:
   port: 90
 ingress:
   enabled: true
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: cs.dna-aws.app.corpintra.net
+    - host: gateway.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - cs.dna-aws.app.corpintra.net
-      secretName: code-space-tls-secret
+        - gateway.dev.dna.app.corpintra.net
+      secretName: cs-mfe-tls
 resources:
   limits:
     cpu: 100m

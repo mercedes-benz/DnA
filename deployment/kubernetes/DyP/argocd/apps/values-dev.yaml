@@ -1,7 +1,7 @@
 server: "https://kubernetes.default.svc"
 # Environment to deploy it  (dev|test|prod)
 env: dev
-branch: migration/aws
+branch: dev
 namespace: argocd
 repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
 enableSync: true

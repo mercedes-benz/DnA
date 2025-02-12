@@ -6,11 +6,11 @@ configJs: |
     CHRONOS_API_BASEURL: "",
   };
 replicaCount: 1
-chronosbackend: http://chronos-be.chronos.svc.cluster.local:80
+chronosbackend: http://chronos-be.dev-dna-chronos.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-mfe
   pullPolicy: IfNotPresent
-  tag: '06d6512b7a3711f5bb331a90267b8c262902e0d3'
+  tag: '391'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -23,9 +23,11 @@ service:
   port: 90
 ingress:
   enabled: true
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

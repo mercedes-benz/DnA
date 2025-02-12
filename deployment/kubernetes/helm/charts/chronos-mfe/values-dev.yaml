@@ -23,21 +23,22 @@ service:
   port: 90
 ingress:
   enabled: true
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: chronos.dna-aws.app.corpintra.net
+    - host: chronos.dev.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - chronos.dna-aws.app.corpintra.net
+        - chronos.dev.dna.app.corpintra.net
       secretName: chronos-tls-secret
 resources:
   limits:

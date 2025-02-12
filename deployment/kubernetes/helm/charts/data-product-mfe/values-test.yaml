@@ -11,7 +11,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/data-product-mfe
   pullPolicy: IfNotPresent
-  tag: '137'
+  tag: '1182'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -24,9 +24,11 @@ service:
   port: 90
 ingress:
   enabled: true
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -51,7 +53,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
+    vault.hashicorp.com/role: dna_aws_staging_k8_role
     vault.hashicorp.com/tls-skip-verify: 'true'
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh

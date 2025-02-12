@@ -4,7 +4,7 @@ secret: []
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/matomo-backend
   pullPolicy: IfNotPresent
-  tag: '137'
+  tag: '198'
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: matomo-be
@@ -23,10 +23,12 @@ service:
   port: 8989
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: api.matomo.test.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

@@ -1,4 +1,3 @@
-{{- if ne .Values.env "test" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -6,34 +5,32 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: vault-auto-unseal
+  name: {{ .Values.env }}-bat-db
   namespace: {{ .Values.namespace }}
   labels:
-    name: service
-    env: {{ .Values.env }}
-    project: c-svc
+    name: db
+    env: {{ .Values.env }}-bat
 spec:
   destination:
-    namespace: vault
+    namespace: {{ .Values.env }}-bat
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/vault-auto-unseal
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-dhc.yaml
-  project: c-svc
+          value: -f values-bat-{{ .Values.env }}-db.yaml --set namespace={{ .Values.env }}-bat       
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
-  syncPolicy:
+  syncPolicy: 
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}
-
-{{- end -}}

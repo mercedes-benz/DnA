@@ -7,7 +7,7 @@ app:
     name: clamav-rest
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/malwarescan-backend
-      tag: 41
+      tag: 981
     replicaCount: 1
     secrets:
       name: oneapi-secrets
@@ -55,18 +55,19 @@ app:
       path: /actuator/health/readiness
       port: api
 image:
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-11-03
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
   replicaCount: 1
   pullPolicy: Always
   tag: '41'
 ingress:
   enabled: false
-  host: scan.dna-aws.app.corpintra.net
+  className: dev-ingress-intranet
+  host: scan.dev.dna.app.corpintra.net
   certificateIssuer: mercedes-benz-acme
   prefix: /internal
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -100,6 +101,11 @@ vaultInjector:
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
     vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/dev/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-template-catruststore.jks: |
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/infra" -}}
+      {{ base64Decode  .Data.data.CA_TRUSTSTORE }}
+      {{- end }} 
+    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_aws_kv/dev/kubernetesSecret/infra
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
       {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}

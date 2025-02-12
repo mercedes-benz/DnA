@@ -2,12 +2,13 @@ namespace: dev-dna
 imagePullSecrets: null
 ingress:
   enabled: false
+  className: dev-ingress-intranet
   namespace: ingress
-  host: dna-aws.app.corpintra.net
+  host: dev.dna.app.corpintra.net
   lbIP: 53.6.53.65
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ingress-traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme

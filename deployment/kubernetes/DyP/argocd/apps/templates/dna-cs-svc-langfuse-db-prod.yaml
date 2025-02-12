@@ -1,4 +1,4 @@
-{{- if ne .Values.env "test" }}
+{{- if eq .Values.env "prod" }} 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -6,26 +6,24 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: vault-backup
+  name: langfuse-db
   namespace: {{ .Values.namespace }}
   labels:
-    name: service
-    env: {{ .Values.env }}
-    project: c-svc
+    name: db
 spec:
   destination:
-    namespace: vault
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/helm/charts/vault-backup
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-{{ .Values.env }}.yaml
-  project: dna
+          value: -f values-langfuse-db-prod.yaml             
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:
@@ -34,5 +32,7 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}
-{{- end -}}
+      
+{{- end }}

@@ -10,51 +10,43 @@ export const DEFAULT_WORKBOOK_DATA = {
       type: SheetTypes.GRID,
       id: 'sheet-01',
       cellData: {
-          "0": {
-              "0": {},
-              "1": {
-                  "v": "Column 1",
-                  "t": 1
-              },
-              "2": {
-                  "v": "Column 2",
-                  "t": 1
-              },
-              "3": {
-                  "v": "Column 3",
-                  "t": 1
-              }
-          },
-          "1": {
-              "0": {
-                  "v": "Row 1",
-                  "t": 1
-              },
-              "1": {},
-              "2": {}
-          },
-          "2": {
-              "0": {
-                  "v": "Row 2",
-                  "t": 1
-              }
-          },
-          "3": {
-              "0": {
-                  "v": "Row 3",
-                  "t": 1
-              }
-          }
+        "0": {
+            "0": {
+                "v": "Questions",
+                "t": 1,
+                "s": "0tfFLd"
+            },
+            "1": {
+                "v": "Answers",
+                "t": 1,
+                "s": "0tfFLd"
+            },
+            "2": {},
+            "3": {}
+        }
       },
-      name: 'survey',
+      name: 'Survey',
       hidden: BooleanNumber.FALSE,
-      rowCount: 1000,
-      columnCount: 20,
+      rowCount: 100,
+      columnCount: 2,
+      columnData: {
+        "0": {
+            "w": 416,
+            "hd": 0
+        },
+        "1": {
+            "w": 897,
+            "hd": 0
+        }
+      },
       zoomRatio: 1,
       scrollTop: 200,
       scrollLeft: 100,
-      defaultColumnWidth: 93,
-      defaultRowHeight: 27,
+      defaultColumnWidth: 200,
+      defaultRowHeight: 25,
+      defaultStyle: {
+        tb: 3
+      },
       status: 1,
       showGridlines: 1,
       hideRow: [],
@@ -70,6 +62,29 @@ export const DEFAULT_WORKBOOK_DATA = {
       selections: ['A2'],
       rightToLeft: BooleanNumber.FALSE,
       pluginMeta: {},
+      styles: {
+        "OZkXvs": {
+            "bl": 1,
+            "vt": null
+        },
+        "yWaw8b": {
+            "bl": 1,
+            "vt": 2
+        },
+        "Nfcz58": {
+            "vt": 2
+        }
+      }
     },
+  },
+  styles: {
+    "3PshHC": {
+        "bl": 1,
+        "vt": null
+    },
+    "0tfFLd": {
+        "bl": 1,
+        "vt": 2
+    }
   },
 };

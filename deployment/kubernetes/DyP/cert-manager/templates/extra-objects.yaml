@@ -18,7 +18,7 @@ spec:
     email: dna@mercedes-benz.com
     privateKeySecretRef:
       name: mercedes-benz-acme
-    solvers:        
+    solvers:       
     - http01:
         ingress:
           ingressClassName: {{ .Values.env }}-ingress-intranet

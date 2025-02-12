@@ -296,6 +296,7 @@ opensearch-dashboards:
 
   ingress:
     enabled: true
+    ingressClassName: prod-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: prod-ingress-intranet
@@ -343,6 +344,7 @@ opensearch:
 
   ingress:
     enabled: true
+    ingressClassName: prod-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: prod-ingress-intranet

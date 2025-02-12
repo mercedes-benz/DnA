@@ -1,4 +1,4 @@
-namespace: airflow
+namespace: dev-dna-airflow
 annotations:
   argocdvault: "dna_aws_kv/data/dev/kubernetesSecret/airflowdb"
 ## I³ PostgreSQL image version
@@ -354,21 +354,21 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: true
+      enabled: false
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: postgresql-backup*.tar.gz
+  recoveryFile: airflow-backup-2024-11-01_14-07-29.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false

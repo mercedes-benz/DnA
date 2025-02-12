@@ -128,10 +128,11 @@ ingress:
     # Annotations for the web Ingress
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: test-ingress-intranet
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      traefik.ingress.kubernetes.io/router.tls: 'true'    
+      traefik.ingress.kubernetes.io/router.tls: 'true'
+      acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
 
     # The path for the web Ingress
     path: "/"
@@ -153,7 +154,7 @@ ingress:
         secretName: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#dnahostsecret>
 
     # The Ingress Class for the web Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: test-ingress-intranet
 
     # configs for web Ingress TLS (Deprecated - renamed to `ingress.web.hosts[*].tls`)
     tls:
@@ -195,7 +196,7 @@ ingress:
     #     secretName: ""
 
     # The Ingress Class for the flower Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: test-ingress-intranet
 
     # configs for flower Ingress TLS (Deprecated - renamed to `ingress.flower.hosts[*].tls`)
     tls:
@@ -385,7 +386,7 @@ data:
     user: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#airflowdbuser | squote>
     pass: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
-    host: airflow-db.airflow.svc.cluster.local
+    host: airflow-db.test-dna-airflow.svc.cluster.local
     port: 64000
     db: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
@@ -753,13 +754,13 @@ scheduler:
       maxUnavailable: 1
       # minAvailable: 1
 
-  resources: {}
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  resources:
+   limits:
+    cpu: 2000m
+    memory: 2500Mi
+   requests:
+    cpu: 1800m
+    memory: 2000Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1008,8 +1009,8 @@ migrateDatabaseJob:
   topologySpreadConstraints: []
   # In case you need to disable the helm hooks that create the jobs after install.
   # Disable this if you are using ArgoCD for example
-  useHelmHooks: true
-  applyCustomEnv: true
+  useHelmHooks: false
+  applyCustomEnv: false
 
 # Airflow webserver settings
 webserver:
@@ -1999,6 +2000,8 @@ config:
     dags_folder: '{{ include "airflow_dags" . }}'
     # This is ignored when used with the official Docker image
     load_examples: 'False'
+    enable_xcom_pickling: 'True'
+    dagbag_import_timeout: 360
     executor: '{{ .Values.executor }}'
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
@@ -2039,6 +2042,14 @@ config:
     reinit_frequency: '{{ .Values.kerberos.reinitFrequency }}'
     principal: '{{ .Values.kerberos.principal }}'
     ccache: '{{ .Values.kerberos.ccacheMountPath }}/{{ .Values.kerberos.ccacheFileName }}'
+  smtp:
+    smtp_host: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtphost>
+    smtp_starttls: 'True'
+    smtp_ssl: 'false'
+    smtp_user: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpuser>
+    smtp_password: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtppassword>
+    smtp_port: 25
+    smtp_mail_from: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpmailid>
   celery_kubernetes_executor:
     kubernetes_queue: 'kubernetes'
   # The `kubernetes` section is deprecated in Airflow >= 2.5.0 due to an airflow.cfg schema change.

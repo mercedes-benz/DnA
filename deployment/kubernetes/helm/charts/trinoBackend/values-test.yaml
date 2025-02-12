@@ -1,7 +1,7 @@
 namespace: test-dna-trino
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/trino-backend
-  tag: '137'
+  tag: '198'
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
@@ -58,9 +58,11 @@ containerPort: 7575
 ingress:
   enabled: false
   host: trino.test.dna.app.corpintra.net
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
