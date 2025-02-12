@@ -48,7 +48,7 @@ injector:
   # @default: global.enabled
   enabled: "-"
 
-  replicas: 3
+  replicas: 1
 
   # Configures the port the injector should listen on
   port: 8080

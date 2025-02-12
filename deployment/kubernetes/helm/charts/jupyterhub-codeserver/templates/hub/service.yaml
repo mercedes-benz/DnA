@@ -31,9 +31,6 @@ spec:
       {{- with .Values.hub.service.ports.nodePort }}
       nodePort: {{ . }}
       {{- end }}
-      {{- with .Values.hub.service.ports.appProtocol }}
-      appProtocol: {{ . }}
-      {{- end }}
 
     {{- with .Values.hub.service.extraPorts }}
     {{- . | toYaml | nindent 4 }}

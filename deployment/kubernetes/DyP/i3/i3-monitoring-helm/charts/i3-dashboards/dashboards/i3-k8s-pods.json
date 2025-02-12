@@ -76,7 +76,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -200,7 +200,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -326,7 +326,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -434,7 +434,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -557,7 +557,7 @@
     {
       "cacheTimeout": null,
       "columns": [],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 9,
@@ -684,7 +684,7 @@
     {
       "cacheTimeout": null,
       "columns": [],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fontSize": "100%",
       "gridPos": {
         "h": 9,

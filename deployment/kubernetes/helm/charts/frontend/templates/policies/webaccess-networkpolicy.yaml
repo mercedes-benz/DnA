@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: webaccess
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - port: 3000
+          protocol: TCP
+        - port: 7171
+          protocol: TCP
+  podSelector:
+    matchLabels:
+      zone: web
+  policyTypes:
+    - Ingress

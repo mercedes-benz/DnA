@@ -9,14 +9,14 @@ metadata:
     {{- end }}
   {{- end }}
   name: {{ template "argo-cd.applicationSet.fullname" . }}
-  namespace: {{ include  "argo-cd.namespace" . }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "argo-cd.labels" (dict "context" . "component" .Values.applicationSet.name "name" .Values.applicationSet.name) | nindent 4 }}
 spec:
-  secretName: argocd-applicationset-controller-tls
-  commonName: {{ .Values.applicationSet.certificate.domain | default .Values.global.domain }}
+  secretName: {{ .Values.applicationSet.certificate.secretName }}
+  commonName: {{ .Values.applicationSet.certificate.domain | quote }}
   dnsNames:
-    - {{ .Values.applicationSet.certificate.domain | default .Values.global.domain }}
+    - {{ .Values.applicationSet.certificate.domain | quote }}
     {{- range .Values.applicationSet.certificate.additionalHosts }}
     - {{ . | quote }}
     {{- end }}

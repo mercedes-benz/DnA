@@ -1,3 +1,4 @@
+{{- if .Values.applicationSet.enabled }}
 {{- if and (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") .Values.applicationSet.metrics.enabled .Values.applicationSet.metrics.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -22,9 +23,6 @@ spec:
       {{- with .Values.applicationSet.metrics.serviceMonitor.interval }}
       interval: {{ . }}
       {{- end }}
-      {{- with .Values.applicationSet.metrics.serviceMonitor.scrapeTimeout }}
-      scrapeTimeout: {{ . }}
-      {{- end }}
       path: /metrics
       {{- with .Values.applicationSet.metrics.serviceMonitor.relabelings }}
       relabelings:
@@ -43,8 +41,9 @@ spec:
       {{- end }}
   namespaceSelector:
     matchNames:
-      - {{ include "argo-cd.namespace" . }}
+      - {{ .Release.Namespace }}
   selector:
     matchLabels:
       {{- include "argo-cd.selectorLabels" (dict "context" . "component" .Values.applicationSet.name "name" "metrics") | nindent 6 }}
+{{- end }}
 {{- end }}

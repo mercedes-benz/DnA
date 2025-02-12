@@ -10,10 +10,8 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
-  {{- with .Values.haproxy.deploymentStrategy }}
   strategy:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    type: RollingUpdate
   revisionHistoryLimit: 1
   replicas: {{ .Values.haproxy.replicas }}
   selector:

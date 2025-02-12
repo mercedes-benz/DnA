@@ -1080,4 +1080,3 @@ tempo-distributed:
                   port: 6831                                                                                  
           policyTypes:
             - Ingress      
-

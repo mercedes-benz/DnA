@@ -200,9 +200,6 @@
                 "command": {
                     "type": "array"
                 },
-                "configMapAnnotations": {
-                    "type": "object"
-                },
                 "configMapOverrideName": {
                     "type": "string"
                 },
@@ -395,14 +392,6 @@
                 },
                 "podAnnotations": {
                     "type": "object"
-                },
-                "podAntiAffinity": {
-                    "type": "string",
-                    "enum": ["", "soft", "hard"],
-                    "default": ""
-                },
-                "podAntiAffinityTopologyKey": {
-                    "type": "string"
                 },
                 "podDisruptionBudget": {
                     "type": "object",

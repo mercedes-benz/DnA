@@ -12,7 +12,7 @@ metadata:
   labels:
     {{- include "grafana.labels" . | nindent 4 }}
     {{- with .Values.serviceMonitor.labels }}
-    {{- tpl (toYaml . | nindent 4) $ }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   endpoints:

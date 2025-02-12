@@ -48,6 +48,7 @@
   - commonLabels      | uses appLabel
   - labels            | uses commonLabels
   - matchLabels       | uses labels
+  - podCullerSelector | uses matchLabels
 
 
   ## Example usage
@@ -111,62 +112,31 @@
 {{- /*
   jupyterhub.commonLabels:
     Foundation for "jupyterhub.labels".
-
-    Provides old labels:
-      app
-      release
-      chart (omitted for matchLabels)
-      heritage (omitted for matchLabels)
-    Provides modern labels (omitted for matchLabels):
-      app.kubernetes.io/name ("app")
-      app.kubernetes.io/instance ("release")
-      helm.sh/chart ("chart")
-      app.kubernetes.io/managed-by ("heritage")
+    Provides labels: app, release, (chart and heritage).
 */}}
 {{- define "jupyterhub.commonLabels" -}}
-app: {{ .appLabel | default (include "jupyterhub.appLabel" .) | quote }}
-release: {{ .Release.Name | quote }}
+app: {{ .appLabel | default (include "jupyterhub.appLabel" .) }}
+release: {{ .Release.Name }}
 {{- if not .matchLabels }}
 chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-heritage: {{ .Release.Service }}
-app.kubernetes.io/name: {{ .appLabel | default (include "jupyterhub.appLabel" .) | quote }}
-app.kubernetes.io/instance: {{ .Release.Name | quote }}
-helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+heritage: {{ .heritageLabel | default .Release.Service }}
 {{- end }}
 {{- end }}
 
 
 {{- /*
   jupyterhub.labels:
-    Provides old labels:
-      component
-      app
-      release
-      chart (omitted for matchLabels)
-      heritage (omitted for matchLabels)
-    Provides modern labels (omitted for matchLabels):
-      app.kubernetes.io/component ("component")
-      app.kubernetes.io/name ("app")
-      app.kubernetes.io/instance release ("release")
-      helm.sh/chart ("chart")
-      app.kubernetes.io/managed-by ("heritage")
+    Provides labels: component, app, release, (chart and heritage).
 */}}
 {{- define "jupyterhub.labels" -}}
 component: {{ include "jupyterhub.componentLabel" . }}
-{{- if not .matchLabels }}
-app.kubernetes.io/component: {{ include "jupyterhub.componentLabel" . }}
-{{- end }}
 {{ include "jupyterhub.commonLabels" . }}
 {{- end }}
 
 
 {{- /*
   jupyterhub.matchLabels:
-    Provides old labels:
-      component
-      app
-      release
+    Used to provide pod selection labels: component, app, release.
 */}}
 {{- define "jupyterhub.matchLabels" -}}
 {{- $_ := merge (dict "matchLabels" true) . -}}

@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: minio-pvc
 spec:
-  storageClassName: dhc-gp3
+  storageClassName: cinder
   accessModes:
   - ReadWriteOnce
   resources:

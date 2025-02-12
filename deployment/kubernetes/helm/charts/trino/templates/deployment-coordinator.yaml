@@ -10,7 +10,6 @@ metadata:
     heritage: {{ .Release.Service }}
     component: coordinator
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: {{ template "trino.name" . }}
@@ -41,7 +40,7 @@ spec:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
       {{- end }}
       imagePullSecrets:
-        - name: imagepullsecret
+        - name: registry-credentials
       containers:
         - name: {{ .Chart.Name }}-coordinator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

@@ -13,7 +13,6 @@ rules:
       - pods
       {{- if .Values.rbac.nodeAccess }}
       - nodes
-      - nodes/metrics
       - nodes/proxy
       {{- end }}
       {{- if .Values.rbac.eventsAccess }}

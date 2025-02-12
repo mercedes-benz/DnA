@@ -1,6 +1,3 @@
-
-env: "dev"     # dev,test and prod
-
 global:
   leaderElection:
     namespace: "cert-manager"
@@ -11,12 +8,6 @@ extraArgs:
 extraEnv:
 - name: SSL_CERT_FILE
   value: /etcd/acme-ca/Corp-Issuing-CA01-G2.pem
-- name: http_proxy
-  value: http://security-proxy.emea.svc.corpintra.net:3128
-- name: https_proxy
-  value: http://security-proxy.emea.svc.corpintra.net:3128
-- name: no_proxy
-  value: "192.168.0.0/16,corpintra.net"  
 volumes:
 - name: acme-ca
   secret:
@@ -34,6 +25,3 @@ startupapicheck:
   enabled: false
 
 installCRDs: true
-
-extraObjects:
-  cert: <path:dna_aws_kv/data/dev/kubernetesSecret/infra#croppem | base64encode>

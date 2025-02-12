@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Release.Name }}-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Release.Name }}
+    app: {{ .Release.Name }}-frontend
     zone: web
     
 spec:
   replicas: {{ .Values.appFrontend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: {{ .Release.Name }}-frontend
   template:
     metadata:
       labels:
         zone: web
-        app: {{ .Release.Name }}
+        app: {{ .Release.Name }}-frontend
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
@@ -34,7 +34,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: {{ .Release.Name }}
+              app: {{ .Release.Name }}-frontend
       containers:
         - image: "{{ .Values.appFrontend.image.repository }}:{{ .Values.appFrontend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: Always
@@ -66,11 +66,11 @@ spec:
               path: {{ .Values.probes.readinessProbe.path }}
               port: {{ .Values.probes.readinessProbe.port }}  
           volumeMounts:
-            - name: {{ .Release.Name }}-configmap-ngnix
+            - name: {{ .Release.Name }}-frontend-configmap-ngnix
               mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
             {{- if not .Values.vaultInjector.enable }} 
-            - name: {{ .Release.Name }}-configmap-configjs
+            - name: {{ .Release.Name }}-frontend-configmap-configjs
               mountPath: /usr/share/nginx/html/config.js
               subPath: config.js  
             {{- end }}                
@@ -80,11 +80,11 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       volumes:
-        - name: {{ .Release.Name }}-configmap-ngnix
+        - name: {{ .Release.Name }}-frontend-configmap-ngnix
           configMap:
-            name: {{ .Release.Name }}
+            name: {{ .Release.Name }}-frontend-configmap 
         {{- if not .Values.vaultInjector.enable }}        
-        - name: {{ .Release.Name }}-configmap-configjs
+        - name: {{ .Release.Name }}-frontend-configmap-configjs
           configMap:
-            name: {{ .Release.Name }}  
+            name: {{ .Release.Name }}-frontend-configmap  
         {{- end }}                    

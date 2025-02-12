@@ -5,25 +5,23 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-dna-backend
+  name: dna-backend
   namespace: {{ .Values.namespace }}
   labels:
-    name: backend
-    env: {{ .Values.env }}
-    project: {{ .Values.env }}-dna  
+    name: backend  
 spec:
   destination:
-    namespace: {{ .Values.env }}-dna
+    namespace: dna
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/backend
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: dna-backend
+      releaseName: dna-app-backend
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: {{ .Values.env }}-dna
+  project: dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

@@ -52,7 +52,7 @@ global:
 
 installCRDs: false
 
-replicaCount: 2
+replicaCount: 1
 
 strategy: {}
   # type: RollingUpdate
@@ -297,7 +297,7 @@ livenessProbe:
 enableServiceLinks: false
 
 webhook:
-  replicaCount: 2
+  replicaCount: 1
   timeoutSeconds: 10
 
   # Used to configure options for the webhook pod.
@@ -505,7 +505,7 @@ webhook:
 
 cainjector:
   enabled: true
-  replicaCount: 2
+  replicaCount: 1
 
   strategy: {}
     # type: RollingUpdate
@@ -735,6 +735,3 @@ startupapicheck:
   # injected into pod's environment variables, matching the syntax of Docker
   # links.
   enableServiceLinks: false
-
-extraObjects:
-  cert: ""

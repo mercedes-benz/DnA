@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mysql-entire-db-backup
-  namespace: {{ include "common.names.namespace" . | quote }}
+  namespace: matomo
 spec:
   schedule: 1 0 * * *
   jobTemplate:

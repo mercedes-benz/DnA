@@ -35,7 +35,6 @@ export interface ITagsFiledState {
   userInput?: string;
   activeSuggestionIndex: number;
   isFocused: boolean;
-  ignorePathError: boolean;
 }
 
 export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledState> {
@@ -63,7 +62,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       userInput: '',
       activeSuggestionIndex: -1,
       isFocused: false,
-      ignorePathError: false,
     };
   }
 
@@ -164,7 +162,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     });
 
     const missingEntryMessage = '*Missing entry';
-    const ignorePathError = `*path should not include '/' or white spaces`;
     const isMaxReached = this.props.max === this.state.chips.length;
 
     return (
@@ -236,9 +233,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             {missingEntryMessage}
           </span>
         )}
-        <span className={classNames('error-message', this.state.ignorePathError ? '' : 'hide')}>
-          {ignorePathError}
-        </span>
       </div>
     );
   }
@@ -255,12 +249,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     if (!this.props.disableOnBlurAdd && !this.props.disableSelfTagAdd) {
       if (target.value) {
         this.updateChips(target.value);
-      }
-      else{
-        this.setState({
-          userInput: '',
-          filteredTags: [],
-        });
       }
     } else {
       this.setState({
@@ -369,10 +357,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         return;
       }
 
-      if(this.props.isIgnorePath && (value.includes('/')||value.includes(' '))){
-        this.setState({ignorePathError: true});
-      }
-
       if (this.props.enableUppercase) {
         value = value.toUpperCase();
       }
@@ -411,18 +395,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       } else {
         this.props.setTags(chips);
       }
-      this.setState(
-        {
-          chips,
-          filteredTags: [],
-          activeSuggestionIndex: -1,
-        },
-        () => {
-          if (this.props.isIgnorePath && !chips.some((item) => item.includes('/') || item.includes(' '))) {
-            this.setState({ ignorePathError: false });
-          }
-        },
-      );
+      this.setState({
+        chips,
+        filteredTags: [],
+        activeSuggestionIndex: -1,
+      });
     }
   };
 }

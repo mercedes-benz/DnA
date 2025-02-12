@@ -22,9 +22,6 @@ spec:
       {{- with .Values.server.metrics.serviceMonitor.interval }}
       interval: {{ . }}
       {{- end }}
-      {{- with .Values.server.metrics.serviceMonitor.scrapeTimeout }}
-      scrapeTimeout: {{ . }}
-      {{- end }}
       path: /metrics
       {{- with .Values.server.metrics.serviceMonitor.relabelings }}
       relabelings:
@@ -43,7 +40,7 @@ spec:
       {{- end }}
   namespaceSelector:
     matchNames:
-      - {{ include "argo-cd.namespace" . }}
+      - {{ .Release.Namespace }}
   selector:
     matchLabels:
       {{- include "argo-cd.selectorLabels" (dict "context" . "component" .Values.server.name "name" (printf "%s-metrics" .Values.server.name)) | nindent 6 }}
