@@ -20,5 +20,6 @@ public class DeploymentAudit implements Serializable{
     private String deploymentStatus;
     private Date deployedOn;
     private String branch;
+    private String commitId;
 
 }

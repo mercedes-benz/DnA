@@ -30,6 +30,7 @@ public class WorkbenchManageInputDto {
 	private double cpu_limit;
 	private double cpu_guarantee;
 	private String pathCheckout;
+	private String cloudServiceProvider;
 	private List<String> extraContainers;
 	
 }

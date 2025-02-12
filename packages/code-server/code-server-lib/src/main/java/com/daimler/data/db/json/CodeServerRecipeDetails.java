@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,5 +32,7 @@ public class CodeServerRecipeDetails implements Serializable {
 	private String recipeType;
 	private String gitPath;
 	private String gitRepoLoc;
+	@JsonProperty("isDeployEnabled")
+	private boolean isDeployEnabled;
 	
 }

@@ -177,7 +177,6 @@ export const SingleDataSourceList = ({
                     </div>
                   </td>
                   <td className="wrap-text">{data?.connectionType || 'NA'}</td>
-                  <td className="wrap-text">{data?.dataClassification  || 'NA'}</td>
                   <td>
                     <div
                       className={classNames(

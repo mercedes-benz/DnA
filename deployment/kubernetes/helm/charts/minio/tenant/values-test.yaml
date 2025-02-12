@@ -3,8 +3,8 @@
 secrets:
   name: myminio-env-configuration
   # MinIO root user and password
-  accessKey: <path:kv/data/dna/kubernetesSecret/minio#MINIO_ROOT_USER>
-  secretKey: <path:kv/data/dna/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+  accessKey: <path:dna_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_USER>
+  secretKey: <path:dna_kv/data/staging/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
   ## Set the value for existingSecret to use a pre created secret and dont create default one
   # existingSecret: random-env-configuration
 ## MinIO Tenant Definition

@@ -14,7 +14,6 @@ import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
-import TeamSearch from '../../teamSearch/TeamSearch';
 // import { IconAvatar } from 'components/icons/IconAvatar';
 import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import IconAvatarNew from 'components/icons/IconAvatarNew';
@@ -92,17 +91,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         legalEntity: '',
         division: {id: '', name: '', subdivision: {id: '', name: ''}},
         accessToSensibleData: 'false',
-        processOwner: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        }
+        // processOwner: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // }
       },
       externalCustomerInfo:{
         // name: {
@@ -139,17 +138,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         legalEntity: '',
         division: '',
         accessToSensibleData: 'false',
-        processOwner: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        }
+        // processOwner: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // }
       },
       externalCustomerErrors:{
         // name: {
@@ -205,11 +204,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
-    this.setState({
-      // nameToDisplay: this.state.internalCustomerInfo.name.firstName ? 
-      // (this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName) : '',
-      processOwnerToDisplay: this.state.internalCustomerInfo.processOwner.firstName ? this.state.internalCustomerInfo.processOwner.firstName +' '+ this.state.internalCustomerInfo.processOwner.lastName : ''
-    });
   }
 
   // public onCustomerNameChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -359,7 +353,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     )}
                   >
                     <label id="departmentLabel" htmlFor="departmentField" className="input-label">
-                      Customer E2-Department<sup>*</sup>
+                      Customer Department<sup>*</sup>
                     </label>
                     <div className="custom-select">
                       <select
@@ -625,21 +619,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   onChange={this.onTextOnChange}
                 />
               </div> */}
-                <div className={classNames('input-field-group include-error')}>
-                  <TeamSearch
-                    label={<>Process Owner</>}
-                    fieldMode={true}
-                    fieldValue={this.state.processOwnerToDisplay}
-                    setFieldValue={(val) => this.setState({ processOwnerToDisplay: val })}
-                    onAddTeamMember={(value) => this.addMemberFromTeamSearch(value)}
-                    btnText="Save"
-                    searchTerm={this.state.searchTerm}
-                    setSearchTerm={(value) => this.setState({ searchTerm: value })}
-                    showUserDetails={false}
-                    setShowUserDetails={() => {}}
-                  />
-                  {/* <span className={classNames('error-message')}>{this.state.internalCustomerErrors.processOwner}</span> */}
-                </div>
                 <div></div>
               </div>
             ) : (
@@ -1004,17 +983,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 legalEntity: '',
                 division: '',
                 accessToSensibleData: 'false',
-                processOwner: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                }
+                // processOwner: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // }
               },
               externalCustomerInfo: {
                 ...prevState.externalCustomerInfo,
@@ -1129,17 +1108,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 // },
                 division: '',
                 accessToSensibleData: false,
-                processOwner: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                }
+                // processOwner: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // }
               },
               internalCustomerErrors: {
                 // name: {
@@ -1160,17 +1139,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 legalEntity: '',
                 division: '',
                 accessToSensibleData: 'false',
-                processOwner: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                }
+                // processOwner: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // }
               }
             }
             ),()=>{SelectBox.defaultSetup(true);});
@@ -1185,7 +1164,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       processOwnerToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
       internalCustomerInfo: {
         ...prevState.internalCustomerInfo,
-        processOwner: value
+       // processOwner: value
       },
     }));
   };
@@ -1227,17 +1206,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         legalEntity: '',
         division: '',
         accessToSensibleData: 'false',
-        processOwner: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        }
+        // processOwner: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // }
       },
       externalCustomerInfo:{
         // name: {
@@ -1274,17 +1253,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         legalEntity: '',
         division: '',
         accessToSensibleData: 'false',
-        processOwner: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        }
+        // processOwner: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // }
       },
       externalCustomerErrors:{
         // name: {
@@ -1389,7 +1368,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       customerRelation,
       division,
       accessToSensibleData,
-      processOwner
+     // processOwner
     } = this.state.internalCustomerInfo;
     const { internalCustomers: addedCustomerList } = this.state.customer;
     const selectedValues: IInternalCustomerDetails[] = [];
@@ -1402,7 +1381,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       customerRelation,
       division : division.id ? division : null,
       accessToSensibleData,
-      processOwner
+     // processOwner
     });
 
     const customerExists = this.isCustomerExist(addedCustomerList);
@@ -1440,17 +1419,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             legalEntity: '',
             division: '',
             accessToSensibleData: 'false',
-            processOwner: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            }
+            // processOwner: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // }
           },
           internalCustomerErrors: {
             // name: {
@@ -1471,17 +1450,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             legalEntity: '',
             division: '',
             accessToSensibleData: 'false',
-            processOwner: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            }
+            // processOwner: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // }
           },
         }),
         () => {
@@ -1575,7 +1554,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       customerRelation,
       division,
       accessToSensibleData,
-      processOwner,
+      //processOwner,
      } = customer;
     const { internalCustomers } = this.state.customer;
     const editCustomerIndex = internalCustomers.findIndex(
@@ -1597,13 +1576,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           customerRelation,
           division,
           accessToSensibleData,
-          processOwner
+         // processOwner
         },
       }),
       () => {
         this.setState({
           // nameToDisplay: name?.firstName ? name?.firstName +' '+ name?.lastName : '',
-          processOwnerToDisplay: processOwner?.firstName ? processOwner?.firstName +' '+ processOwner?.lastName : ''
+         // processOwnerToDisplay: processOwner?.firstName ? processOwner?.firstName +' '+ processOwner?.lastName : ''
         });
         SelectBox.defaultSetup();
       },
@@ -1679,7 +1658,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       customerRelation,
       division,
       accessToSensibleData,
-      processOwner 
+     // processOwner 
     } = this.state.internalCustomerInfo;
     const { internalCustomers: addedCustomerList } = this.state.customer;
     const customerExists = this.isCustomerExist(addedCustomerList);
@@ -1698,7 +1677,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           customerRelation,
           division: division.id ? division : null,
           accessToSensibleData,
-          processOwner,
+         // processOwner,
         }; // modify copied array
         const customer = this.props.customer;
         customer.internalCustomers = customerList;

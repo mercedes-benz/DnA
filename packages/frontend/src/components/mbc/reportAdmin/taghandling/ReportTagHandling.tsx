@@ -147,16 +147,16 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         },
         {
           id: 1,
-          name: 'E2-Departments',
+          name: 'Departments',
         },
         {
           id: 2,
           name: 'Description - Front End Technologies',
         },
-        {
-          id: 3,
-          name: 'Description - Integrated In Portal',
-        },
+        // {
+        //   id: 3,
+        //   name: 'Description - Integrated In Portal',
+        // },
         {
           id: 4,
           name: 'Description - Statuses',
@@ -200,10 +200,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         {
           id: 14,
           name: 'Data & Function - Connection Types',
-        },
-        {
-          id: 15,
-          name: 'Data & Function - Data Classifications',
         },
       ],
       datawareHouseItems: {
@@ -1538,7 +1534,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         this.onTagAddCategoryItem('statuses');
       } else if (itemToAddCategories === 'Customers - MB Legal Entities') {
         this.onTagAddCategoryItem('legalentities');
-      } else if (itemToAddCategories === 'E2-Departments') {
+      } else if (itemToAddCategories === 'Departments') {
         this.onTagAddCategoryItem('departments');
       } else if (itemToAddCategories === 'Data & Function - Single Data Source - Data Source') {
         this.onTagAddCategoryItem('datasources');

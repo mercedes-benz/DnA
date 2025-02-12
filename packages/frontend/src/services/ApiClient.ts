@@ -56,6 +56,7 @@ export interface IResponse<T> {
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
 const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7777/api`;
 const baseUrlSimilaritySearch = Envs.SIMILARITY_SEARCH_API_BASEURL ? Envs.SIMILARITY_SEARCH_API_BASEURL : `http://${window.location.hostname}:8000`;
+const fabricUrl = Envs.FABRIC_API_BASEURL ? Envs.FABRIC_API_BASEURL :  `http://${window.location.hostname}:9292/api`;
 
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
@@ -64,6 +65,10 @@ const getUrl = (endpoint: string) => {
 const getDataikuUrl = (endpoint: string) => {
   return `${dataikUrl}/${endpoint}`;
 };
+
+const getFabricUrl = (endpoint: string) => {
+  return `${fabricUrl}/${endpoint}`;
+}
 
 
 const getSimilaritySearchUrl = (endpoint: string) => {
@@ -79,6 +84,14 @@ export class ApiClient {
     return this.fetch(getUrl(endpoint), HTTP_METHOD.POST, body);
   }
 
+  public static fabricPost(endpoint: string, body?: any) {
+    return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.POST, body);
+  }
+  
+  public static fabricGet(endpoint: string, body?: any) {
+    return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.GET, body);
+  }
+  
   public static postWithFormData(endpoint: string, formData: FormData) {
     return this.fetchWithFormData(getUrl(endpoint), HTTP_METHOD.POST, formData);
   }
@@ -153,10 +166,10 @@ export class ApiClient {
         'Content-Type': 'application/json',
       },
       method,
-    }).then((response) => {
+    }).then((response: any) => {
       let message = '';
       if (!response.ok) {
-        return response.json().then((result) => {
+        return response.json().then((result: any) => {
 
           if (response?.status === 403 && result?.error_description?.includes("JWT is expired")) {
             return refreshToken(jwt).then((newJwt: any) => {
@@ -510,6 +523,14 @@ export class ApiClient {
 
   public static getDataikuProjectDetailsByProjectkey(projectKey: any, cloudProfile: any) {
     return this.fetch(getDataikuUrl(`dataiku/${cloudProfile}/${projectKey}`), HTTP_METHOD.GET);
+  }
+
+  public static createAliceRole(data: any) {
+    return this.fabricPost('fabric-workspaces/createrole', data);
+  }
+  
+  public static getExistingRoles(appId: string) {
+    return this.fabricGet(`fabric-workspaces/${appId}/dnaroles`);
   }
 
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {

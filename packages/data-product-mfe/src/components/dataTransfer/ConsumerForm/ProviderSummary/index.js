@@ -103,7 +103,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Description of transfered data</label>
                 <br />
-                {providerInformation.classificationOfTransferedData}
+                <pre className={classNames(Styles.formattedText)}>{providerInformation.classificationOfTransferedData}</pre>
               </div>
               <div>
                 <label className="input-label summary">Confidentiality</label>
@@ -131,27 +131,26 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
             </div>
             {providerInformation.personalRelatedData === 'Yes' ? (
-              <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                 <div>
                   <label className="input-label summary">Description of personal related data</label>
                   <br />
-                  {providerInformation.personalRelatedDataDescription}
+                  <pre className={classNames(Styles.formattedText)}> {providerInformation.personalRelatedDataDescription}</pre>
                 </div>
                 <div>
                   <label className="input-label summary">
                     Original (business) purpose of processing this personal related data
                   </label>
                   <br />
-                  {providerInformation.personalRelatedDataPurpose}
+                  <pre className={classNames(Styles.formattedText)}>{providerInformation.personalRelatedDataPurpose}</pre>
                 </div>
                 <div>
                   <label className="input-label summary">
                     Original legal basis for processing this personal related data
                   </label>
                   <br />
-                  {providerInformation.personalRelatedDataLegalBasis}
+                  <pre className={classNames(Styles.formattedText)}>{providerInformation.personalRelatedDataLegalBasis}</pre>
                 </div>
-                <div></div>
               </div>
             ) : null}
           </div>
@@ -163,7 +162,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             </div>
           </div>) : null}
           {providerInformation.personalRelatedData === 'Yes' && providerInformation.personalRelatedDataContactAwareTransfer === 'Yes'
-            ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+            ? (<div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
               <div>
                 <label className="input-label summary">Has s/he any objections to this transfer?</label>
                 <br />
@@ -173,15 +172,14 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <div>
                   <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
                   <br />
-                  {providerInformation.personalRelatedDataTransferingNonetheless}
+                  <pre className={classNames(Styles.formattedText)}> {providerInformation.personalRelatedDataTransferingNonetheless}</pre>
                 </div>
                 <div>
                   <label className="input-label summary">Please state your objections</label>
                   <br />
-                  {providerInformation.personalRelatedDataTransferingObjections}
+                  <pre className={classNames(Styles.formattedText)}>{providerInformation.personalRelatedDataTransferingObjections}</pre>
                 </div>
               </>}
-              <div></div>
             </div>) : null}
         </div>
       ) : null}
@@ -216,7 +214,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 </div>
               </div>) : null}
             {providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' && providerInformation?.transnationalDataContactAwareTransfer === 'Yes'
-              ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+              ? (<div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                 <div>
                   <label className="input-label summary">Has s/he any objections to this transfer?</label>
                   <br />
@@ -226,14 +224,13 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   <div>
                     <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
                     <br />
-                    {providerInformation?.transnationalDataTransferingNonetheless}
+                    <pre className={classNames(Styles.formattedText)}>{providerInformation?.transnationalDataTransferingNonetheless}</pre>
                   </div>
                   <div>
                     <label className="input-label summary">Please state your objections</label>
                     <br />
-                    {providerInformation?.transnationalDataTransferingObjections}
+                    <pre className={classNames(Styles.formattedText)}>{providerInformation?.transnationalDataTransferingObjections}</pre>
                   </div></>}
-                <div></div>
               </div>) : null}
           </div>
         </div>
@@ -250,27 +247,26 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Does data product contain (potential) insider information?</label>
                 <br />
-                {providerInformation.insiderInformation}
+                <pre className={classNames(Styles.formattedText)}>{providerInformation.insiderInformation}</pre>
               </div>
               <div>
                 <label className="input-label summary">Are there specific deletion requirements for this data?</label>
                 <br />
-                {providerInformation.deletionRequirement}
+                <pre className={classNames(Styles.formattedText)}>{providerInformation.deletionRequirement}</pre>
               </div>
               {providerInformation.deletionRequirement === 'Yes' ? (
                 <div>
                   <label className="input-label summary">Describe deletion requirements</label>
                   <br />
-                  {providerInformation.deletionRequirementDescription}
+                  <pre className={classNames(Styles.formattedText)}> {providerInformation.deletionRequirementDescription}</pre>
                 </div>
               ) : null}
-              <div></div>
             </div>
-            <div className={Styles.flexLayout}>
+            <div className={classNames(Styles.flexLayout, Styles.oneColumn)}>
               <div>
                 <label className="input-label summary">Other relevant information </label>
                 <br />
-                {providerInformation.otherRelevantInfo || '-'}
+                <pre className={classNames(Styles.formattedText)}>{providerInformation.otherRelevantInfo || '-'}</pre>
               </div>
             </div>
           </div>

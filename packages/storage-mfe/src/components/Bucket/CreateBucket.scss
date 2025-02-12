@@ -178,6 +178,22 @@
     }
   }
 }
+.accessSection {
+  min-height: 80px;
+  width: 100%;
+  border: 1px solid #383f49;
+  height: auto;
+  padding:20px;
+  display:grid;
+  .title{
+    color:  #c0c8d0;
+    font-size: 22px;
+    font-size: var(--font-size-icon-highlight);
+  }
+  .accessCheckBox{
+    margin-left: 40px !important;
+  }
+}
 .errorMsg {
   bottom: 0;
   top: 35px;
@@ -229,6 +245,31 @@
 
   button {
     background-color: #383f49 !important;
+  }
+}
+.acccessInfoSection{
+  background-color: #383f49;
+  padding: 35px 45px;
+  display: table;
+  width: 80%;
+  margin: 10px 50px;
+  .accessInfoCheckWrapper{
+      display: table-row;
+      .infoWrapper{
+          display: table-cell;
+          vertical-align: middle;
+          min-width: 60px;
+          i{
+              font-size: 25px;
+          }
+      }
+      .descriptionWrapper{
+          display: table-cell;
+          vertical-align: middle;
+          p{
+              margin-bottom: 0;
+          }
+      }
   }
 }
 

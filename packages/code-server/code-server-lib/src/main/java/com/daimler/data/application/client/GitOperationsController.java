@@ -1,13 +1,14 @@
 package com.daimler.data.application.client;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.dto.GitBranchesCollectionDto;
@@ -41,12 +42,12 @@ public class GitOperationsController {
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{repo}/branches",
+    @RequestMapping(value = "/workspaces/branches",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<GitBranchesCollectionDto> getGitBranches(@ApiParam(value = "git repo name for which branches needed to be fetched",required=true) @PathVariable("repo") String repo){
-		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repo);
+    public ResponseEntity<GitBranchesCollectionDto> getGitBranches(@ApiParam(value = "git repo name for which branches needed to be fetched", required=true) @Valid @RequestParam(value = "repoDetail", required = true) String repoDetail) {
+		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repoDetail);
 		return new ResponseEntity<>(branchesCollection,HttpStatus.OK);
 	}
 	

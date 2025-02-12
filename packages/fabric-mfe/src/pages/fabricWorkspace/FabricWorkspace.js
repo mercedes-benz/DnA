@@ -3,18 +3,123 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import Styles from './fabric-workspace.scss';
 import Caption from 'dna-container/Caption';
+import Modal from 'dna-container/Modal';
 // utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { fabricApi } from '../../apis/fabric.api';
+import Spinner from '../../components/spinner/Spinner';
+import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
+import Lakehouses from '../../components/Lakehouses/Lakehouses';
 
-const FabricWorkspace = () => {
+const WorkspaceDetails = ({ workspace }) => {
+  return (
+    <>
+      <h3>Workspace Details</h3>
+      <div className={Styles.content}>
+        <div className={Styles.firstPanel}>
+          <div className={Styles.formWrapper}>
+            <div className={classNames(Styles.flex)}>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Workspace Name</p> {workspace?.name || 'null'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Created on</p>
+                {workspace?.createdOn !== undefined && regionalDateAndTimeConversionSolution(workspace?.createdOn)}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Created by</p>
+                {workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}
+              </div>
+
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Type of Project</p>
+                {workspace?.typeOfProject ? workspace?.typeOfProject : 'N/A'}
+              </div>
+              <div className={Styles.col2}>
+                <p className={Styles.label}>Description</p>
+                {workspace?.description ? workspace?.description : 'N/A'}
+              </div>
+
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Cost Center</p>
+                {workspace?.costCenter ? workspace?.costCenter : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Internal Order</p>
+                {workspace?.internalOrder ? workspace?.internalOrder : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Related Solutions</p>
+                {workspace?.relatedSolutions.length > 0 ? workspace.relatedSolutions?.map((chip) =>
+                  <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                ) : 'N/A'}
+              </div>
+
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Related Reports</p>
+                {workspace?.relatedReports.length > 0 ? workspace.relatedReports?.map((chip) => 
+                    <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                 ) : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Division</p>
+                {workspace?.division === '0' || !workspace?.division ? 'N/A' : workspace?.division}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Sub Division</p>
+                {workspace?.subDivision === '0' || !workspace?.subDivision ? 'N/A' : workspace?.subDivision}
+              </div>
+
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Department</p>
+                {workspace?.department ? workspace?.department : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Tags</p>
+                {workspace?.tags?.length > 0 ? workspace.tags?.map((chip) =>
+                    <><label className="chips">{chip}</label>&nbsp;&nbsp;</>
+                  ) : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Data Classification</p>
+                {workspace?.dataClassification === '0' || !workspace?.dataClassification ? 'N/A' : workspace?.dataClassification}
+              </div>
+
+              <div className={Styles.col3}>
+                <p className={Styles.label}>PII</p>
+                {workspace?.hasPii === true ? 'Yes' : 'No'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Archer ID</p>
+                {workspace?.archerId ? workspace?.archerId : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>Procedure ID</p>
+                {workspace?.procedureId ? workspace?.procedureId : 'N/A'}
+              </div>
+            
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+const FabricWorkspace = ({ user }) => {
   const { id: workspaceId } = useParams();
   const history = useHistory();
 
   const [loading, setLoading] = useState(true);
   const [workspace, setWorkspace] = useState();
+  const [showStatusModal, setShowStatusModal] = useState(false);
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, []);
 
   useEffect(() => {
     getWorkspace();
@@ -51,149 +156,53 @@ const FabricWorkspace = () => {
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          {!loading ? 
-            <Caption title={workspace?.name}>
-              &nbsp;(<a href={`https://app.fabric.microsoft.com/groups/${workspace?.id}`} target='_blank' rel='noopener noreferrer'>
-                Access Workspace
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>)
-            </Caption> : null
-          }
-          <div className={Styles.content}>
-            <h3 id="productName">Workspace Details</h3>
-            <div className={Styles.firstPanel}>
-              <div className={Styles.formWrapper}>
-                {!loading &&
-                  <>
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="productDescription">
-                        <label className="input-label summary">Workspace Name</label>
-                        <br />
-                        {workspace?.name}
-                      </div>
-                      <div id="tags">
-                        <label className="input-label summary">Created on</label>
-                        <br />
-                        {workspace?.createdOn !== undefined && regionalDateAndTimeConversionSolution(workspace?.createdOn)}
-                      </div>
-                      <div id="isExistingSolution">
-                        <label className="input-label summary">Created by</label>
-                        <br />
-                        {workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="typeOfProjectOption">
-                        <label className="input-label summary">Type of Project</label>
-                        <br />
-                        {workspace?.typeOfProject ? workspace?.typeOfProject : 'N/A'}
-                      </div>
-                      <div id="description">
-                        <label className="input-label summary">Description</label>
-                        <br />
-                        {workspace?.description ? workspace?.description : 'N/A'}
-                      </div>
-                      <div id="divisionField">
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="typeOfProjectOption">
-                        <label className="input-label summary">Cost Center</label>
-                        <br />
-                        {workspace?.costCenter ? workspace?.costCenter : 'N/A'}
-                      </div>
-                      <div id="description">
-                        <label className="input-label summary">Internal Order</label>
-                        <br />
-                        {workspace?.internalOrder ? workspace?.internalOrder : 'N/A'}
-                      </div>
-                      <div id="tags">
-                        <label className="input-label summary">Related Solutions</label>
-                        <br />
-                        {workspace?.relatedSolutions.length > 0 ? workspace.relatedSolutions?.map((chip) => {
-                          return (
-                            <>
-                              <label className="chips">{chip.name}</label>&nbsp;&nbsp;
-                            </>
-                          );
-                        }) : 'N/A'}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="tags">
-                        <label className="input-label summary">Related Reports</label>
-                        <br />
-                        {workspace?.relatedReports.length > 0 ? workspace.relatedReports?.map((chip) => {
-                          return (
-                            <>
-                              <label className="chips">{chip.name}</label>&nbsp;&nbsp;
-                            </>
-                          );
-                        }) : 'N/A'}
-                      </div>
-                      <div id="divisionField">
-                        <label className="input-label summary">Division</label>
-                        <br />
-                        {workspace?.division === '0' || !workspace?.division ? 'N/A' : workspace?.division}
-                      </div>
-                      <div id="subDivisonField">
-                        <label className="input-label summary">Sub Division</label>
-                        <br />
-                        {workspace?.subDivision === '0' || !workspace?.subDivision ? 'N/A' : workspace?.subDivision}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="department">
-                        <label className="input-label summary">Department</label>
-                        <br />
-                        {workspace?.department ? workspace?.department : 'N/A'}
-                      </div>
-                      <div id="tags">
-                        <label className="input-label summary">Tags</label>
-                        <br />
-                        {workspace?.tags ? workspace.tags?.map((chip) => {
-                          return (
-                            <>
-                              <label className="chips">{chip}</label>&nbsp;&nbsp;
-                            </>
-                          );
-                        }) : 'N/A'}
-                      </div>
-                      <div id="dataClassificationField">
-                        <label className="input-label summary">Data Classification</label>
-                        <br />
-                        {workspace?.dataClassification === '0' || !workspace?.dataClassification ? 'N/A' : workspace?.dataClassification}
-                      </div>
-                    </div>
-
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div id="PiiData">
-                        <label className="input-label summary">PII</label>
-                        <br />
-                        {workspace?.hasPii === true ? 'Yes' : 'No'}
-                      </div>
-                      <div id="archerId">
-                        <label className="input-label summary">Archer ID</label>
-                        <br />
-                        {workspace?.archerId ? workspace?.archerId : 'N/A'}
-                      </div>
-                      <div id="procedureId">
-                        <label className="input-label summary">Procedure ID</label>
-                        <br />
-                        {workspace?.procedureId ? workspace?.procedureId : 'N/A'}
-                      </div>
-                    </div>
-                  </>
-                }
+          {!loading && 
+            <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
+              <div>
+                <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
+                  <i className="icon mbc-icon refresh"></i>
+                </button>
               </div>
-            </div>
+            </Caption>    
+          }
+          <div className={Styles.statusBtns}>
+            {workspace?.status?.state === 'IN_PROGRESS' &&
+              <button className={classNames('btn btn-secondary', Styles.createNewCard)} onClick={() => setShowStatusModal(true)}>
+                <p className={Styles.addlabel}><Spinner /> <span>Provisioning in progress</span></p>
+              </button>
+            }
+            {workspace?.status?.state === 'COMPLETED' &&
+              <button className={classNames('btn btn-secondary', Styles.createNewCard)} onClick={() => setShowStatusModal(true)}>
+                <p className={Styles.addlabel}><i className="icon mbc-icon check circle" /> <span>Provisioned</span></p>
+              </button>
+            }
+            <button className={classNames('btn btn-secondary', Styles.createNewCard)} type="button" onClick={() => window.open(`https://app.fabric.microsoft.com/groups/${workspace?.id}`)}>
+              <p className={Styles.addlabel}>Access Workspace <i className="icon mbc-icon new-tab" /></p>
+            </button>
           </div>
+          <Lakehouses 
+            user={user} 
+            workspace={workspace} 
+            lakehouses={workspace?.lakehouses ? workspace?.lakehouses : []} 
+            onDeleteLakehouse={getWorkspace} 
+          />
+          <WorkspaceDetails workspace={workspace} />
         </div>
       </div>
+      { showStatusModal &&
+        <Modal
+          title={'Role Creation Status'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'80%'}
+          buttonAlignment="right"
+          show={showStatusModal}
+          content={<RoleCreationModal workspace={workspace} onClose={() => setShowStatusModal(false)} />}
+          scrollableContent={true}
+          onCancel={() => setShowStatusModal(false)}
+        />
+      }
     </React.Fragment>
   );
 }

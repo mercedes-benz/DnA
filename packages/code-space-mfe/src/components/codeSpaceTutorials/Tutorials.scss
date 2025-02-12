@@ -1,0 +1,65 @@
+.mainPanel {
+  padding: 32px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+    position: relative;
+
+    .header {
+      .breadcrumb {
+
+        ol {
+          list-style-type: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          align-items: center;
+
+          li {
+            color: #c8c9cb;
+            margin-right: 6px;
+            display: flex;
+            align-items: center;
+
+            &::after {
+              font-family: "dna-icons";
+              content: "\e91e";
+              margin-left: 6px;
+            }
+
+            &:last-child::after {
+              display: none;
+            }
+
+            a {
+              color: #c8c9cb;
+            }
+          }
+        }
+      }
+    }
+
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 24px;
+      color: #dee3e8;
+      margin-top: 12px;
+      margin-bottom: 22px;
+      color: #dee3e8;
+    }
+  }
+
+  .content {
+    background-color: #252a33;
+    padding: 10px 30px 30px 30px;
+    height: 650px;
+
+  }
+}

@@ -12,7 +12,7 @@ on:
 jobs:
   create-pr:
     name: "Create and Merge Public PR"
-    runs-on: [ road-runner, medium ]
+    runs-on: [os-medium-amd64-linux ]
     steps:
 
       - name: Create PR on Public Repo

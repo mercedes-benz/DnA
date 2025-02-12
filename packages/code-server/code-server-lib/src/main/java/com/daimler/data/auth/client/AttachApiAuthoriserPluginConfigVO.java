@@ -23,5 +23,6 @@ public class AttachApiAuthoriserPluginConfigVO implements Serializable {
 	private String userinfoIntrospectionUri;
 	private Boolean enableUserinfoIntrospection;
 	private String env;
+	private String projectName;
 
 }

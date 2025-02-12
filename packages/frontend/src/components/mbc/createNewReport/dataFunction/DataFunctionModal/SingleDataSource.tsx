@@ -38,7 +38,6 @@ export const SingleDataSource = ({
     // })
     // ?.toString();
 
-  const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassification;  
 
   const singleSourceDataSourceValue = singleDataSourceInfo.dataSources?.map((item: any) => item.dataSource);
   // ?.map((dataSource: IDataSourceMaster) => {
@@ -120,41 +119,6 @@ export const SingleDataSource = ({
             </div>
           </div>
           <div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  errors.dataClassification ? 'error' : ''
-                )}
-              >
-                <label id="dataClassificationLabel" htmlFor="dataClassificationSelectBox" className="input-label">
-                  Data Classification<sup>*</sup>
-                </label>
-                <div className={`custom-select ${dataClassifications?.length ? '' : ''}`}>
-                  <select
-                    id="dataClassificationSelectBox"
-                    name="dataClassification"
-                    value={singleSourceDataClassificationsValue}
-                    onChange={(e) => onDropdownChange(e)}
-                    required={true}
-                    required-error={requiredError}
-                  >
-                    {<option value="">Choose</option>}
-                    {dataClassifications?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', errors.dataClassification ? '' : 'hide')}>
-                  {errors.dataClassification}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={Styles.flexLayout}>
           <div>
             <div>
               <div className={classNames('input-field-group include-error', 
@@ -183,10 +147,12 @@ export const SingleDataSource = ({
                 {/* <span className={classNames('error-message', errors.connectionType ? '' : 'hide')}>
                   {errors.connectionType}
                 </span> */}
-              </div>
             </div>
           </div>
         </div>
+          </div>
+        </div>
+
       </>
     )
   );

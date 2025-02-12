@@ -14,8 +14,10 @@ public interface RecipeService {
     List<RecipeVO> getAllRecipes(int offset, int limit,String id);
 
 	RecipeVO createRecipe(RecipeVO recipeRequestVO);
+	
+	RecipeVO updateRecipe(RecipeVO recipeRequestVO);
 
-	RecipeVO getByRecipeName(String recipeName);
+	RecipeVO getRecipeById(String id);
 	
 	List<SoftwareCollection> getAllsoftwareLov();
 
@@ -31,7 +33,7 @@ public interface RecipeService {
 	
     GenericMessage validateGitHubUrl(String gitHubUrl);
 
-    GenericMessage deleteRecipe(String recipeName);
+    GenericMessage deleteRecipe(String id);
 
     List<AdditionalServiceLovVo> getAllAdditionalServiceLov();
 }

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "power-platform-be.fullname" . }}-test-connection"
+  labels:
+    {{- include "power-platform-be.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "power-platform-be.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

@@ -68,7 +68,7 @@ export interface IAllReportsState {
   subDivisions: ISubDivisionSolution[];
   arts: IART[];
   departments: IDepartment[];
-  processOwners: ITeams[];
+  //processOwners: ITeams[];
   productOwners: ITeams[];
   reports: IAllReportsListItem[];
   openFilterPanel: boolean;
@@ -116,7 +116,7 @@ interface IDropdownValues {
   departments: IDepartment[];
   divisions: IDivision[];
   subDivisions: ISubDivisionSolution[];
-  processOwners: ITeams[];
+  //processOwners: ITeams[];
   productOwners: ITeams[];
 }
 
@@ -134,7 +134,7 @@ export default class AllReports extends React.Component<
       subDivisions: [],
       arts: [],
       departments: [],
-      processOwners: [],
+      //processOwners: [],
       productOwners: [],
       reports: [],
       openFilterPanel: false,
@@ -157,7 +157,7 @@ export default class AllReports extends React.Component<
         subDivision: [],
         departments: [],
         productOwners: [],
-        processOwners: [],
+        //processOwners: [],
         tag: [],
       },
       showContextMenu: false,
@@ -326,9 +326,9 @@ export default class AllReports extends React.Component<
       departments,
       divisions,
       subDivisions,
-      processOwners,
+      //processOwners,
       productOwners,
-    }: IDropdownValues) => this.setState({ arts, departments, divisions, subDivisions, processOwners, productOwners });
+    }: IDropdownValues) => this.setState({ arts, departments, divisions, subDivisions, productOwners });
 
     return (
       <React.Fragment>
@@ -492,7 +492,7 @@ export default class AllReports extends React.Component<
                                 }
                               >
                                 <i className="icon sort" />
-                                E2-Department
+                                Department
                               </label>
                             </th>
                             {/* <th onClick={this.sortReports.bind(null, 'productOwner', this.state.sortBy.nextSortType)}>
@@ -651,7 +651,7 @@ export default class AllReports extends React.Component<
       this.state.queryParams,
       this.state.arts?.length,
       this.state.departments?.length,
-      this.state.processOwners?.length,
+      //this.state.processOwners?.length,
       this.state.productOwners?.length,
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
@@ -738,7 +738,7 @@ export default class AllReports extends React.Component<
   protected getReports = (getPublished?: boolean) => {
     const queryParams = this.state.queryParams;
     const agileReleaseTrains = queryParams.agileReleaseTrains?.join(',');
-    const processOwners = queryParams.processOwners?.join(',');
+    //const processOwners = queryParams.processOwners?.join(',');
     const productOwners = queryParams.productOwners?.join(',');
     const departments = queryParams.departments?.join(',');
     const tags = queryParams.tag?.join(',');
@@ -748,7 +748,7 @@ export default class AllReports extends React.Component<
       divisionIds,
       agileReleaseTrains,
       departments,
-      processOwners,
+      //processOwners,
       productOwners,
       tags,
       this.state.maxItemsPerPage,
@@ -802,7 +802,7 @@ export default class AllReports extends React.Component<
   };
 
   protected IsFilterApplied = (queryParams: IReportFilterParams) => {
-    const { division, subDivision, agileReleaseTrains, processOwners, productOwners, departments, tag } = queryParams;
+    const { division, subDivision, agileReleaseTrains, productOwners, departments, tag } = queryParams;
     let filterApplied = false;
 
     if (division.length && division.length !== this.state.divisions.length) {
@@ -814,10 +814,6 @@ export default class AllReports extends React.Component<
     }
 
     if (agileReleaseTrains.length && agileReleaseTrains.length !== this.state.arts.length) {
-      filterApplied = true;
-    }
-
-    if (processOwners.length) {
       filterApplied = true;
     }
     

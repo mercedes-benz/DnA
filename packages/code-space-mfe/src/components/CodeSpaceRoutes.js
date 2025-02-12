@@ -13,8 +13,9 @@ import SessionExpired from './SessionExpired';
 import AllCodeSpaces from './AllCodeSpaces';
 import CodeSpace from './CodeSpace';
 import CodeSpaceSecurityConfig from './securityConfig/SecurityConfig';
-import ManageCodeSpaces from './manageCodeSpace/ManageCodeSpace';
+import ManageRecipes from './manageRecipes/ManageRecipes';
 import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
+import Tutorials from './codeSpaceTutorials/Tutorials'
 
 export const protectedRoutes = [
     {
@@ -28,9 +29,9 @@ export const protectedRoutes = [
         path: '/codespace/:id?',
     },
     {
-        component: ManageCodeSpaces,
+        component: ManageRecipes,
         exact: false,
-        path: '/manageCodespace',
+        path: '/manageRecipes',
     },
     {
         component: CodeSpaceSecurityConfig,
@@ -50,8 +51,13 @@ export const protectedRoutes = [
     {
         component: CodeSpaceRecipe,
         exact: false,
-        path: '/codespaceRecipes',
+        path: '/codespaceRecipes/:id?',
     },
+    {
+        component: Tutorials,
+        extact: false,
+        path: '/tutorials/:id?'
+    }
 ];
 
 export const routes = [...protectedRoutes];

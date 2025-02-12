@@ -174,6 +174,10 @@ public class BaseStorageService implements StorageService {
 
 	@Autowired
 	private DataikuClient dataikuClient;
+
+	@Value("${storage.technical.id}")
+	private String technicalId;
+
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm.sss'Z'");
 
@@ -190,6 +194,7 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		String ownerEmail = userStore.getUserInfo().getEmail();
+		List<MessageDescription> warnings = new ArrayList<>();
 
 
 			String chronosUserToken = httpRequest.getHeader("chronos-api-key");
@@ -308,7 +313,20 @@ public class BaseStorageService implements StorageService {
 				} else {
 					LOGGER.info("Failure from onboard bucket owner.");
 				}
-
+				if (bucketVo.isEnablePublicAccess() != null) {
+					if(bucketVo.isEnablePublicAccess()){
+						MinioGenericResponse minioObjectResponse = dnaMinioClient.setBucketPublicDownloadUsingMc(bucketVo.getBucketName(), bucketVo.isEnablePublicAccess());
+						if(minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)){
+							LOGGER.info("Successfully set public download accsess to the storage bucket");
+						}else{
+							bucketVo.setEnablePublicAccess(false);
+							LOGGER.info("Failed to set public download accsess to the storage bucket");
+							MessageDescription msg = new MessageDescription("Failed to update the public access status of storage buckets");
+							warnings.add(msg);
+							responseVO.setWarnings(warnings);
+						}
+					}
+				}
 				//To save bucket info in db
 				BucketVo savedBucketVo = saveBucket(bucketVo);
 				bucketVo.setId(savedBucketVo.getId());
@@ -322,7 +340,6 @@ public class BaseStorageService implements StorageService {
 				responseVO.setErrors(getMessages(createBucketResponse.getErrors()));
 			}
 		}
-
 		responseVO.setData(bucketVo);
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
@@ -861,6 +878,10 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+			currentUser=entity.getData().getCreatedBy().getId();
+		}
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
@@ -911,6 +932,10 @@ public class BaseStorageService implements StorageService {
 
 	 	LOGGER.debug("Fetching Current user.");
 	 	String currentUser = userStore.getUserInfo().getId();
+		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+			currentUser=entity.getData().getCreatedBy().getId();
+		}
 	 	String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 	 	boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
@@ -981,7 +1006,8 @@ public class BaseStorageService implements StorageService {
 		HttpStatus httpStatus;
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-
+		List<MessageDescription> warnings = new ArrayList<>();
+		
 		LOGGER.debug("Validating Bucket before update.");
 
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
@@ -998,6 +1024,23 @@ public class BaseStorageService implements StorageService {
 				BucketVo existingBucketVo = storageAssembler.toBucketVo(entity);
 				bucketVo.setCreatedBy(existingBucketVo.getCreatedBy());
 				bucketVo.setCreatedDate(existingBucketVo.getCreatedDate());
+				if( bucketVo.isEnablePublicAccess() != null ){
+					if (existingBucketVo.isEnablePublicAccess() == null || !(bucketVo.isEnablePublicAccess().equals(existingBucketVo.isEnablePublicAccess()))) {
+						MinioGenericResponse minioObjectResponse = dnaMinioClient
+								.setBucketPublicDownloadUsingMc(bucketVo.getBucketName(), bucketVo.isEnablePublicAccess());
+						if (minioObjectResponse != null
+								&& minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+							LOGGER.info("Successfully updated the public access status of storage bucket");
+						} else {
+							bucketVo.setEnablePublicAccess(false);
+							LOGGER.info("Failed to update the public access status of storage bucket");
+							MessageDescription msg = new MessageDescription(
+									"Failed to update the public access status of storage bucket");
+							warnings.add(msg);
+							responseVO.setWarnings(warnings);
+						}
+					}
+				}
 			}
 			LOGGER.debug("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
@@ -1390,10 +1433,10 @@ public class BaseStorageService implements StorageService {
 		params.setRegionOrEndpoint(minioClientApi);
 		params.setHdfsInterface("S3A");
 		params.setEncryptionMode("NONE");
-		params.setChbucket("/"+bucketName);
+		params.setChbucket(bucketName);
 		params.setChroot("/");
 		params.setSwitchToRegionFromBucket(false);
-		params.setUsePathMode(false);
+		params.setUsePathMode(true);
 		params.setMetastoreSynchronizationMode("NO_SYNC");
 
 		requestDTO.setParams(params);

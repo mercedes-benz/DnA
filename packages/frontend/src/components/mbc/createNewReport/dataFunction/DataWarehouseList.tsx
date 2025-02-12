@@ -134,7 +134,6 @@ export const DataWarehouseList = ({
           </div>
         </td>
         <td className="wrap-text">{datawarehouse?.connectionType || 'NA'}</td>
-        <td className="wrap-text">{datawarehouse?.dataClassification  || 'NA'}</td>
         <td>
           <div
             className={classNames(

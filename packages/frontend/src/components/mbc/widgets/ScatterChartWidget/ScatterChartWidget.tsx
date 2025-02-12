@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as React from 'react';
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
 import { IScatterChartDataItem } from 'globals/types';
@@ -51,6 +52,7 @@ export default class ScatterChartWidget extends React.Component<IScatterChartWid
               tickLine={false}
               tick={axisTextStyle}
             />
+            // @ts-ignore
             <ZAxis dataKey="zAxisValue" range={[100, 400]} />
             <Tooltip content={this.props.tooltipContentComponent} cursor={tooltipCursorBackground} />
             <Scatter data={data} fill="#00ADEF" cursor="pointer" onClick={this.props.onScatterChartBubbleClick} />

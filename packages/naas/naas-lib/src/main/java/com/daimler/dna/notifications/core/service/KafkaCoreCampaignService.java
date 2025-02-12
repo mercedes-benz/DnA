@@ -71,6 +71,9 @@ public class KafkaCoreCampaignService {
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
 	
+	@Value("${dna.notification.enableEmail}")
+	private String enableEmail;
+	
 	@Value("${dna.ui.uri}")
 	private String dnaBaseUri;
 	
@@ -89,6 +92,7 @@ public class KafkaCoreCampaignService {
 	private static String TRINO_DATALAKE_NOTIFICATION_KEY = "Datalake";
 	private static String DATAENTRY_NOTIFICATION_KEY = "Dataentry";
 	private static String USE_CASE_OWNER_NOTIFICATION_KEY = "UseCaseOwners";
+	private static String POWERPLATFORM_NOTIFICATION_KEY = "Power platform";
 	private static String SOLUTION_URI_PATH = "/#/summary/";
 	
 	/*
@@ -145,7 +149,13 @@ public class KafkaCoreCampaignService {
 					}
 					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Playground_alert")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
+						}
+						
 					}
 					if(message.getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
@@ -162,6 +172,10 @@ public class KafkaCoreCampaignService {
 					if(message.getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getUseCaseOwnerNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getUseCaseOwnerNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getPowerPlatformNotificationPref().isEnableEmailNotifications();
 					}
 
 					NotificationVO vo = new NotificationVO();
@@ -224,7 +238,7 @@ public class KafkaCoreCampaignService {
 						LOGGER.info("Skipped message as per user preference, Details: user {}, eventType {}, uuid {} ", user,
 								message.getEventType(), message.getUuid());
 					}
-					if(emailNotificationPreferenceFlag) {
+					if(emailNotificationPreferenceFlag && (enableEmail!=null && "true".equalsIgnoreCase(enableEmail))) {
 						String userEmail = usersEmails.get(userListPivot);
 						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
 							String emailSubject = message.getEventType()+" Email Notification";

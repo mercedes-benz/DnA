@@ -7,7 +7,7 @@ export const getDataForCSV = (
   queryParams: IReportFilterParams,
   numberOfSelectedArts: number,
   numberOfSelectedDepartments: number,
-  numberOfSelectedProcessOwners: number,
+  //numberOfSelectedProcessOwners: number,
   numberOfSelectedProductOwners: number,
   sortByField: string,
   sortType: string,
@@ -18,15 +18,16 @@ export const getDataForCSV = (
   const csvHeaders: string | Data = [
     { label: 'Report ID', key: 'reportId' },
     { label: 'Name', key: 'name' },
-    { label: 'Report Type', key: 'reportType' },
     { label: 'Description', key: 'description' },
     { label: 'Report Link', key: 'reportLink' },
     { label: 'Tags', key: 'tags' },
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
-    { label: 'E2-Department', key: 'department' },
+    { label: 'Department', key: 'department' },
+    { label: 'archerId', key: 'archerId' },
+    { label: 'dataClassification', key: 'dataClassification' },
+    {label: 'relatedSolutions', key: 'relatedSolutions'},
     { label: 'Status', key: 'status' },
-    { label: 'Integrated In Portal', key: 'integratedPortal' },
     { label: 'Agile Release Train', key: 'agileReleaseTrains' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
     { label: 'Internal Customers', key: 'internalCustomers' },
@@ -42,7 +43,7 @@ export const getDataForCSV = (
   ];
 
   let agileReleaseTrains = queryParams.agileReleaseTrains?.join(',');
-  let processOwners = queryParams.processOwners?.join(',');
+  //let processOwners = queryParams.processOwners?.join(',');
   let productOwners = queryParams.productOwners?.join(',');
   let departments = queryParams.departments?.join(',');
   const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
@@ -53,9 +54,9 @@ export const getDataForCSV = (
   if (queryParams.departments.length === numberOfSelectedDepartments) {
     departments = '';
   }
-  if (queryParams.processOwners.length === numberOfSelectedProcessOwners) {
-    processOwners = '';
-  }
+  // if (queryParams.processOwners.length === numberOfSelectedProcessOwners) {
+  //   processOwners = '';
+  // }
 
   if (queryParams.productOwners.length === numberOfSelectedProductOwners) {
     productOwners = '';
@@ -64,7 +65,7 @@ export const getDataForCSV = (
     divisionIds,
     agileReleaseTrains,
     departments,
-    processOwners,
+    //processOwners,
     productOwners,
     sortByField,
     sortType,
@@ -76,7 +77,6 @@ export const getDataForCSV = (
           reportsCSVData.push({
             reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
-            reportType: report.description.reportType && report.description?.reportType != '0' ? sanitize(report.description.reportType) : 'NA',
             description: report.description.productDescription ? sanitize(report.description.productDescription) : 'NA',
             reportLink: report.description.reportLink ? sanitize(report.description.reportLink) : 'NA',
             tags:
@@ -86,10 +86,13 @@ export const getDataForCSV = (
             division: report.description.division?.name ? report.description.division.name : 'NA',
             subdivision: report.description.division?.subdivision ? report.description.division.subdivision.name : 'NA',
             department: report.description.department ? report.description.department : 'NA',
+            archerId: report.description.archerId ? report.description.archerId : 'NA',
+            relatedSolutions:
+              report.description.relatedSolutions && report.description.relatedSolutions.length > 0
+                ? sanitize(report.description.relatedSolutions.map( sol => sol.name).join(', '))
+                : 'NA',
+            dataClassification: report.description.dataClassification ? report.description.dataClassification : 'NA',
             status: report.description.status ? report.description.status : 'NA',
-            integratedPortal: report.description.integratedPortal && report.description?.integratedPortal != '0'
-              ? report.description.integratedPortal
-              : 'NA',
             agileReleaseTrains: report.description.agileReleaseTrain && report?.description.agileReleaseTrain != '0'
               ? report.description.agileReleaseTrain
               : 'NA',
@@ -104,8 +107,7 @@ export const getDataForCSV = (
               + '|' + 'e2-department: ' + customer?.department
               + '|' + 'mbLegalEntity: ' + customer?.legalEntity
               + '|' + 'usRisk: ' + customer?.accessToSensibleData
-              + '|' + 'comment: ' + customer?.comment
-              + '|' + 'processOwner: ' + JSON.parse(JSON.stringify(customer?.processOwner))?.firstName +' '+ JSON.parse(JSON.stringify(customer?.processOwner))?.lastName)
+              + '|' + 'comment: ' + customer?.comment)
               : 'NA'),
             externalCustomers: report.customer?.externalCustomers?.length
               ? report.customer.externalCustomers?.map((customer) =>               
@@ -126,7 +128,6 @@ export const getDataForCSV = (
                   ?.map((datawarehouse) => 
                   'datawarehouse: ' + (datawarehouse?.dataWarehouse)
                   + '|' + 'connectionType: ' + datawarehouse?.connectionType
-                  + '|' + 'dataClassification: ' + datawarehouse?.dataClassification
                   )   
               : 'NA',
             singledatasources: report.dataAndFunctions?.singleDataSources?.length
@@ -134,7 +135,6 @@ export const getDataForCSV = (
                   ?.map((singledatasource) => 
                   'dataSource: ' + (singledatasource?.dataSources.map(item => item.dataSource ))
                   + '|' + 'connectionType: ' + singledatasource?.connectionType
-                  + '|' + 'dataClassification: ' + singledatasource?.dataClassification
                   )
               : 'NA',
             admin: report.members.reportAdmins?.length
@@ -155,3 +155,4 @@ export const getDataForCSV = (
 export const sanitize = (text: string) => {
   return text.replace(/"/g, '""');
 };
+

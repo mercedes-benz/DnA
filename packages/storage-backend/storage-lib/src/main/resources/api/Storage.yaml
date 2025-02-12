@@ -838,6 +838,9 @@ definitions:
       termsOfUse:
         type: boolean
         description: "If user agreeing on terms of use agreement for Bucket."
+      enablePublicAccess:
+        type: boolean
+        description: "If user enables this bucket will be publicly accessable without authentication"
       classificationType:
         type: string
         description: Classification type for bucket.
@@ -885,7 +888,6 @@ definitions:
       department:
         type: string
         description: "department for bucket"
-
     required:
       - bucketName
  

@@ -15,8 +15,8 @@ annotations:
   notifications.argoproj.io/subscribe.on-sync-status-unknown.teams: channelName
   notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
 gitRepo:
-  username: <path:kv/data/dna/kubernetesSecret/argocd#username | base64encode>
-  password: <path:kv/data/dna/kubernetesSecret/argocd#password | base64encode>
+  username: <path:dna_kv/data/prod/kubernetesSecret/argocd#username | base64encode>
+  password: <path:dna_kv/data/prod/kubernetesSecret/argocd#password | base64encode>
 
 repositories:
   # - name: chronos-frontend
@@ -35,6 +35,8 @@ repositories:
   #   url: https://git.i.mercedes-benz.com/DNA/dna-codeserver-backend.git    
   - name: dna-kong
     url: https://git.i.mercedes-benz.com/DNA/dna-kong.git  
+  - name: prompt-craft
+    url: https://git.i.mercedes-benz.com/DNA/prompt-craft.git
   # - name: matomo-mfe
   #   url: https://git.i.mercedes-benz.com/DNA/dna-matomo-frontend.git  
   # - name: dataentry-backend

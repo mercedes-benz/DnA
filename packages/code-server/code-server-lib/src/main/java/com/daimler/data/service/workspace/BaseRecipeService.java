@@ -12,6 +12,7 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	private GitClient gitClient;
+
+	@Value("${codeserver.recipe.software.filename}")
+	private String gitFileName;
     
 	@Override
 	@Transactional
@@ -99,6 +103,24 @@ public class BaseRecipeService implements RecipeService{
 		
 		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
 		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		savedEntity = saveEntity(isoFormat, entity, savedEntity);
+		return recipeAssembler.toVo(savedEntity);
+	}
+
+	@Override
+	@Transactional
+	public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
+		CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findByRecipeName(recipeRequestVO.getRecipeName());
+		recipeEntity.setData(entity.getData());
+		savedEntity = saveEntity(isoFormat, recipeEntity, savedEntity);
+		return recipeAssembler.toVo(savedEntity);
+	}
+
+	private CodeServerRecipeNsql saveEntity(SimpleDateFormat isoFormat, CodeServerRecipeNsql entity,
+			CodeServerRecipeNsql savedEntity) {
 		try {
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
 			entity.getData().setCreatedOn(now);
@@ -106,7 +128,7 @@ public class BaseRecipeService implements RecipeService{
 		} catch (Exception e) {
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
-		return recipeAssembler.toVo(savedEntity);
+		return savedEntity;
 	}
 
 	@Override
@@ -130,7 +152,7 @@ public class BaseRecipeService implements RecipeService{
 			repoOwner = codespaceSplitValues[length-2];
 			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
 			gitUrl = gitUrl.replace("/"+repoName, "");
-			JSONObject jsonResponse = gitClient.getSoftwareFileFromGit(repoName, repoOwner, gitUrl);
+			JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName);
 			if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 				softwareFileName  = jsonResponse.getString("name");
 				SHA =  jsonResponse.has("sha")? jsonResponse.getString("sha") : null;
@@ -139,6 +161,9 @@ public class BaseRecipeService implements RecipeService{
 			for(String software: softwares) {
 				String additionalProperties = workspaceCustomRecipeRepo.findBySoftwareName(software);
 				fileContent.append(additionalProperties);
+			}
+			if(fileContent.toString().contains("dotnet")){
+				fileContent.append("\ncode-server --install-extension ms-dotnettools.vscode-dotnet-runtime\ncode-server --install-extension aliasadidev.nugetpackagemanagergui");
 			}
 			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
 			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
@@ -159,7 +184,13 @@ public class BaseRecipeService implements RecipeService{
 			return responseMessage;
 		} catch(Exception e) {
 			log.error(e.getMessage());
-			responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+			if(e.getMessage().contains("pull request")){
+				responseMessage = getMessageDescrption("Conflict in Git while creating Software File","FAILED");
+			} else {
+				responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+
+			}
+			responseMessage.setSuccess("FAILED");
 		}
 		return responseMessage;
 	}
@@ -221,8 +252,8 @@ public class BaseRecipeService implements RecipeService{
 
 	@Override
 	@Transactional
-	public RecipeVO getByRecipeName(String recipeName) {
-		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+	public RecipeVO getRecipeById(String id) {
+		CodeServerRecipeNsql entity = workspaceCustomRecipeRepo.findById(id);
 		return recipeAssembler.toVo(entity);
 	}
 
@@ -261,8 +292,7 @@ public class BaseRecipeService implements RecipeService{
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
-			log.info("failed while fetching additional properties",e.getMessage());
+			log.error("failed while fetching additional properties",e);
 		}
 		return additionalServiceLovVo ;
 	}
@@ -404,10 +434,10 @@ public class BaseRecipeService implements RecipeService{
 	// }
 
 	@Override
-	public GenericMessage deleteRecipe(String recipeName)
+	public GenericMessage deleteRecipe(String id)
 	{
 		GenericMessage msg = new GenericMessage();
-		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findByRecipeName(recipeName);
+		CodeServerRecipeNsql recipe = workspaceCustomRecipeRepo.findById(id);
         if (recipe != null) {
 			GenericMessage val =   workspaceCustomRecipeRepo.deleteRecipe(recipe);
             return new GenericMessage("Recipe deleted successfully");

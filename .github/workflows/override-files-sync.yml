@@ -1,4 +1,4 @@
-name: Override Or Additional Files Sync
+name: 2. Override Or Additional Files Sync
 on:
   workflow_dispatch:
     inputs:
@@ -10,10 +10,13 @@ on:
         default: 'AMARIAR,BEALURI,RAMYRAO,POOJAMS,VKURAPA'
         required: true   
 
+permissions:                    
+  contents: write               
+  pull-requests: write  
 jobs:
   override-files-sync:
     name: "Override Or Additional Files Sync"
-    runs-on: [ road-runner, medium ]
+    runs-on: [os-medium-amd64-linux ]
     steps:
 
       - name: Check Source Branch
@@ -31,19 +34,35 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: '${{ github.event.inputs.sourceBranch }}'  
-          fetch-depth: 0  
-
-      - name: Get Head Commit Message
+ 
+      - name: Get Head Commit Message and create branch
+        env:
+          GH_TOKEN: ${{ secrets.PID_PAT }}
+          GH_HOST: git.i.mercedes-benz.com
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"
 
+      - name: Create Staging branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          branch: ${{ github.event.inputs.sourceBranch }}-staging
+          force: true         
+
+      - name: Create Dev branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PID_PAT }}
+          branch: ${{ github.event.inputs.sourceBranch }}-dev
+          force: true   
+      
       - name: Create dev pull request
         uses: thomaseizinger/create-pull-request@master
         id: cpr
         with:
           github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.sourceBranch }}
+          head: ${{ github.event.inputs.sourceBranch }}-dev
           base: dev
           labels: "private,dev,${{ github.event.inputs.sourceBranch }}"
           title: "${{ steps.get_head_commit_message.outputs.HEAD_COMMIT_MESSAGE }}"
@@ -52,7 +71,7 @@ jobs:
         uses: thomaseizinger/create-pull-request@master
         with:
           github_token: ${{ secrets.PID_PAT }}
-          head: ${{ github.event.inputs.sourceBranch }}
+          head: ${{ github.event.inputs.sourceBranch }}-staging
           base: staging
           reviewers: ${{ github.event.inputs.reviewers }}
           labels: "private,staging,${{ github.event.inputs.sourceBranch }}"
@@ -72,12 +91,5 @@ jobs:
         if: ${{ steps.cpr.outputs.number }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"
-
-      # - name: Dev pull request merge
-      #   uses: sudo-bot/action-pull-request-merge@v1.2.0
-      #   with:
-      #     github-token: ${{ secrets.PID_PAT }}
-      #     number: ${{ steps.cpr.outputs.number }}
-      #     filter-label: automerge        
+          echo "Pull Request URL - ${{ steps.cpr.outputs.html_url }}"      
                            

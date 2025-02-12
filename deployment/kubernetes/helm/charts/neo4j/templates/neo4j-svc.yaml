@@ -140,8 +140,8 @@ metadata:
   {{- end }}
 spec:
   publishNotReadyAddresses: true
-  clusterIP: None
-  {{- with .spec }}{{ include "neo4j.services.extraSpec" . | nindent 2 }}{{ end }}
+  type: "{{ .spec.type | required "The 'type' field is required in service.internals.spec" }}"
+  {{- with omit .spec "type" }}{{ include "neo4j.services.extraSpec" . | nindent 2 }}{{ end }}
   selector:
     app: "{{ template "neo4j.name" $ }}"
     helm.neo4j.com/instance: "{{ include "neo4j.fullname" $ }}"

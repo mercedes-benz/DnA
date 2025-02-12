@@ -14,6 +14,7 @@ export interface IInfoModalProps {
   moreInfoLink?: string;
   onCancel?: () => void;
   customHeader?: React.ReactNode;
+  modalStyle?: React.CSSProperties;
 }
 
 const InfoModal = (props: IInfoModalProps) => {
@@ -34,6 +35,7 @@ const InfoModal = (props: IInfoModalProps) => {
       title={props.title}
       hiddenTitle={props.hiddenTitle}
       modalWidth={props.modalWidth}
+      modalStyle={props.modalStyle}
       showAcceptButton={false}
       showCancelButton={false}
       buttonAlignment="right"

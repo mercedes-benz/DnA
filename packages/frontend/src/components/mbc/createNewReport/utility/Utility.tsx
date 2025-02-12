@@ -25,7 +25,6 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
     // requestBody.data.description.agileReleaseTrains?.length > 0
     //   ? (requestBody.data.description.agileReleaseTrains?.map((item: IART) => item.name) as any[])
     //   : null;
-  requestBody.data.description.integratedPortal = requestBody.data.description.integratedPortal?.toString() as any;
     // requestBody.data.description.integratedPortal?.length > 0
     //   ? (requestBody.data.description.integratedPortal?.map((item: IIntegratedPortal) => item.name) as any[])
     //   : null;
@@ -61,7 +60,6 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
   requestBody.data.dataAndFunctions.singleDataSources = requestBody.data.dataAndFunctions.singleDataSources?.map(
     (item: ISingleDataSources) => {
       item.dataSources = item.dataSources;
-      item.dataClassification = item.dataClassification
       item.connectionType = item.connectionType;
       return item;
     },

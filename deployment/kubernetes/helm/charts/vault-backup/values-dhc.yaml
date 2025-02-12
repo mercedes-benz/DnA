@@ -1,4 +1,4 @@
-schedule: <path:kv/data/dna/kubernetesSecret/vaultBackup#schedule>
+schedule: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#schedule>
 restartPolicy: OnFailure
 successfulJobsHistoryLimit: 1
 namespace: vault
@@ -14,19 +14,19 @@ backup:
     - name: VAULT_SKIP_VERIFY
       value: "true"
     - name: VAULT_ADDR
-      value: <path:kv/data/dna/kubernetesSecret/vaultBackup#address>
+      value: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#address>
     - name: VAULT_PATH
-      value: <path:kv/data/dna/kubernetesSecret/vaultBackup#path>
+      value: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#path>
     - name: VAULT_TOKEN
-      value: <path:kv/data/dna/kubernetesSecret/vaultBackup#token>
+      value: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#token>
 
 minio:
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/minio/minio-client
     tag: 2022.1.25-debian-10-r2
     pullPolicy: IfNotPresent
-  bucket: <path:kv/data/dna/kubernetesSecret/vaultBackup#bucket>
-  endpoint: <path:kv/data/dna/kubernetesSecret/vaultBackup#endpoint>
-  accessKey: <path:kv/data/dna/kubernetesSecret/vaultBackup#accessKey>
-  secretKey: <path:kv/data/dna/kubernetesSecret/vaultBackup#secretKey>
-  fileName: <path:kv/data/dna/kubernetesSecret/vaultBackup#fileName>
+  bucket: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#bucket>
+  endpoint: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#endpoint>
+  accessKey: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#accessKey>
+  secretKey: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#secretKey>
+  fileName: <path:dna_kv/data/dev/kubernetesSecret/vaultBackup#fileName>
