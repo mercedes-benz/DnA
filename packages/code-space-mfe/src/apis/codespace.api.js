@@ -159,10 +159,34 @@ const getCodeSpaceRecipe = (id) => {
     });
 };
 
-const getCodeSpaceRecipesStatus = () => { //not used 
+const getAllRecipes = () => {
+    return server.get(`recipeDetails`, {
+        data: {},
+    });
+};
+
+const getCodeSpaceRecipesStatus = () => { //not used right now
     return server.get(`recipeDetails/recipesByStatus`, {
         data: {},
     });
+};
+
+const getAllSoftware = () => {
+    return server.get(`software`, {
+        data: {},
+    });
+};
+
+const  deleteSoftware = (id) => {
+    return server.delete(`software/${id}`, { 
+        data: {},
+    });
+}
+
+const addSoftware = (data) => {
+    return server.post(`software`, 
+        data,
+    );
 };
 
 const acceptCodeSpaceRecipeRequest = (name) => { //not used 
@@ -292,6 +316,36 @@ const migrateWorkplace = (id) => {
     return server.post(`/workspaces/${id}/migrateworkspace`, {data: {},});
 };
 
+const getCodeSpaceGroups = () => { 
+    return server.get(`workspaces/group/getAll`, {
+        data: {},
+    });
+};
+
+const getCodeSpaceGroup = (id) => { 
+    return server.get(`/workspaces/group/get/${id}`, {
+        data: {},
+    });
+};
+
+const createCodeSpaceGroup = (data) => { 
+    return server.post(`/workspaces/group/create`, {
+        data,
+    });
+};
+
+const editCodeSpaceGroup = (data) => { 
+    return server.put(`/workspaces/group/edit`, {
+        data,
+    });
+};
+
+const deleteCodeSpaceGroup = () => { 
+    return server.delete(`/workspaces/group/delete`, {
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -321,6 +375,10 @@ export const CodeSpaceApiClient = {
     getCodeSpaceRecipe,
     getRecipeLov,
     deleteCodeSpaceRecipe,
+    getAllRecipes,
+    getAllSoftware,
+    deleteSoftware,
+    addSoftware,
     verifyGitUser,
     getCodeSpaceRecipesStatus,
     acceptCodeSpaceRecipeRequest,
@@ -338,4 +396,9 @@ export const CodeSpaceApiClient = {
     serverStatusFromHub,
     restartDeployments,
     migrateWorkplace,
+    getCodeSpaceGroups,
+    getCodeSpaceGroup,
+    createCodeSpaceGroup,
+    editCodeSpaceGroup,
+    deleteCodeSpaceGroup
 };

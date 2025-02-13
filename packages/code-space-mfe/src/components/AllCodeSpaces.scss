@@ -135,7 +135,7 @@
         flex-wrap: wrap;
         display: flex;
         justify-content: left;
-        margin-right: -30px;
+        // margin-right: -30px;
 
         .newCodeSpaceCard {
             width: calc(25% - 15px);
@@ -271,3 +271,103 @@
         }
     }
   }
+
+.groupContainer {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom:30px;
+    
+    .group.createNew {
+        min-width: calc(25% - 12px);
+        min-height: 300px;
+        position: relative;
+        border: 1px solid #383F49;
+        cursor: pointer;
+        background: unset;
+
+        .addicon {
+            position: absolute;
+            top: calc(50% - 31px);
+            width: 63px;
+            height: 63px;
+            border: 1px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
+
+            &::before {
+                content: "";
+                position: absolute;
+                width: 50%;
+                height: 1px;
+                background-color: #00ADEF;
+                left: 25%;
+                margin: 0 auto;
+                transform: rotate(180deg);
+                top: 49%;
+            }
+            &::after {
+                content: "";
+                position: absolute;
+                width: 50%;
+                height: 1px;
+                background-color: #00ADEF;
+                left: 25%;
+                transform: rotate(90deg);
+            }
+        }
+
+        .addlabel {
+            font-size: var(--font-size-headline);
+            line-height: 23px;
+            position: absolute;
+            word-break: break-word;
+            display: block;
+            width: 100%;
+            text-align: center;
+            bottom: 20px;
+        }
+
+        &:hover {
+            .addlabel {
+                color: #00adef;
+            }
+        }
+    }
+}
+.modalTitle {
+    font-size: 24px;
+    color: #dee3e8;
+    margin-bottom: 25px;
+}
+
+.emptyGroup {
+    text-align: center;
+    background-color: #252a33;
+    padding: 20px 0;
+  
+    p {
+      margin-bottom: 20px;
+    }
+}
+.csLoading {
+    min-height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    > div {
+        margin-top: -10px;
+    }
+}
+
+:global {
+    .mbc-modal-wrapper .mbc-modal {
+        background-color: #1c2026 !important;
+    }
+}

@@ -1,0 +1,23 @@
+.content {
+  background-color: #252a33;
+  padding: 25px 0;
+}
+.actionColumn {
+  text-align: right !important;
+  padding-right: 32px !important;
+}
+.actionBtn {
+  background: none;
+  border: none;
+  color: #c0c8d0;
+  height: auto;
+  margin: 0;
+  outline: none;
+  padding: 0 2px;
+  float: right;
+  margin-top: -35px;
+
+  &:hover {
+      background-color: unset;
+  }
+}
