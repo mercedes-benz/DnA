@@ -787,6 +787,7 @@ prometheus:
       annotations:
         traefik.frontend.rule.type: PathPrefix
         kubernetes.io/ingress.class: prod-ingress-intranet
+        acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -820,6 +821,7 @@ grafana:
     annotations:
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: prod-ingress-intranet
+      acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -1116,7 +1118,7 @@ prom2teams:
       no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com
 
 tempo-distributed:
-  enabled: true
+  enabled: false
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub
