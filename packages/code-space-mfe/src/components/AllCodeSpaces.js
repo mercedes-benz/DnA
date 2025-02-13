@@ -585,17 +585,17 @@ const AllCodeSpaces = (props) => {
                         <Spinner />
                     </div>
                 }
-                {!groupLoading && codeSpaceGroups?.length === 0 && 
+                {!groupLoading && codeSpaces?.length > 0 && codeSpaceGroups?.length === 0 && 
                     <div className={Styles.emptyGroup}>
                         <div>
                             <p>
-                                You don&apos;t have any code space group at this time.
-                                <br /> Please create a new one.
+                                You don&apos;t have any Code Space Group at this time.
+                                <br /> Please create one.
                             </p>
                         </div>
                         <div>
                             <button className={'btn btn-primary'} type="button" onClick={() => setShowAddCodespaceGroupModal(true)}>
-                                <span>Create new Code Space Group</span>
+                                <span>Create Code Space Group</span>
                             </button>
                         </div>
                     </div>
@@ -615,6 +615,7 @@ const AllCodeSpaces = (props) => {
                                 onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
+                                onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
                             />
                         )}
                     </div>
@@ -658,9 +659,6 @@ const AllCodeSpaces = (props) => {
                                             {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
-                                                        onDragStartCard={() => {  
-                                                            console.log('draggable', draggableItemRef.current.id);
-                                                        }}
                                                         ref={draggableItemRef}
                                                         key={index}
                                                         userInfo={props.user}
