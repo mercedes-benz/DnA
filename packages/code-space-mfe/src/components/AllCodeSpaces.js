@@ -340,12 +340,21 @@ const AllCodeSpaces = (props) => {
     const [selectedCodespaces, setSelectedCodespaces] = useState();
 
     useEffect(() => {
-      showCodespacesModal &&
+      if(showCodespacesModal) {
+        ProgressIndicator.show();
         CodeSpaceApiClient.getCodeSpaceGroup(selectedCodeSpaceGroup?.groupId).then((res) => {
-            setSelectedCodespaces(res?.data?.data?.data);
+            setSelectedCodespaces(res?.data?.data);
+            ProgressIndicator.hide();
         }).catch((err) => {
-            console.log(err);
+            ProgressIndicator.hide();
+            Notification.show(
+                err.response.data.errors?.length
+                ? err.response.data.errors[0].message
+                : 'Loading code spaces failed! Please try again.',
+                'alert',
+            );
         });
+    }
     }, [showCodespacesModal, selectedCodeSpaceGroup?.groupId]);
 
     const codespacesModalContent = <>
@@ -455,20 +464,21 @@ const AllCodeSpaces = (props) => {
 
     const deleteCodeSpaceGroupAccept = () => {
         ProgressIndicator.show();
-        CodeSpaceApiClient.createCodeSpaceGroup(selectedCodeSpaceGroup?.groupId)
+        CodeSpaceApiClient.deleteCodeSpaceGroup(selectedCodeSpaceGroup?.groupId)
             .then(() => {
-            Notification.show(`Code Space Group deleted successfully`);
-            getCodeSpaceGroupsData();
-            ProgressIndicator.hide();
+                setShowDeleteCodespaceGroupModal(false);
+                Notification.show(`Code Space Group deleted successfully`);
+                getCodeSpaceGroupsData();
+                ProgressIndicator.hide();
             })
             .catch((e) => {
-            ProgressIndicator.hide();
-            Notification.show(
-                e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Deleting code space group failed!',
-                'alert',
-            );
+                ProgressIndicator.hide();
+                Notification.show(
+                    e.response.data.errors?.length
+                    ? e.response.data.errors[0].message
+                    : 'Deleting code space group failed!',
+                    'alert',
+                );
             });
     }
 
