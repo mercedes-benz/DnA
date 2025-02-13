@@ -483,12 +483,6 @@ const NewCodeSpace = (props) => {
   };
 
   const processDeleteCollaborator = () => {
-    // const collaborator = codeSpaceCollaborators.find(collab => collab.id === collaboratorToDelete.id);
-    // const isOnlyApprover = codeSpaceCollaborators.filter(collab => collab.isApprover).length === 1 && collaborator.isApprover;
-    // if(isOnlyApprover){
-    //   Notification.show("Please add a new approver before deleting the current approver");
-    // }
-    // else{
         CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
         ProgressIndicator.hide();
         if (res.data.success === 'SUCCESS') {
@@ -508,7 +502,6 @@ const NewCodeSpace = (props) => {
         ProgressIndicator.hide();
         Notification.show('Error in removing colloborator from code space. Please try again later.\n' + err.message, 'alert');
       });
-    // }
     
     setCollaboratorToDelete(undefined);
   };
