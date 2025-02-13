@@ -82,6 +82,8 @@ public interface WorkspaceService {
 
 	GenericMessage makeAdmin(CodeServerWorkspaceVO vo);
 
+	GenericMessage makeApprover(CodeServerWorkspaceVO vo);
+
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
 
 	//GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
