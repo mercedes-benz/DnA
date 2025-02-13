@@ -44,9 +44,9 @@ prometheus:
       fsGroup: 65534
     persistentVolume:
      storageClass: dhc-gp3
-     size: 50Gi
+     size: 200Gi
     #podLabels for adding label for network policy
-    retention: "60d"
+    retention: "180d"
     podLabels:
       i3.monitoring.app: prometheus
     global:
@@ -920,6 +920,50 @@ grafana:
         isDefault: true
         basic_auth: false
 
+#Adding datasources for BAT Org.
+#       - name: Prometheus
+#         type: prometheus
+#         access: proxy
+#         url: "http://prometheus-server.{{ .Release.Namespace }}.svc.cluster.local"
+#         isDefault: true
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Alertmanager
+#         type: alertmanager
+#         access: proxy
+#         url: "http://prometheus-alertmanager.{{ .Release.Namespace }}.svc.cluster.local:9093"
+#         jsonData:
+#           # Valid options for implementation include mimir, cortex and prometheus
+#           implementation: prometheus
+#           # Whether or not Grafana should send alert instances to this Alertmanager
+#           handleGrafanaManagedAlerts: false
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#       - name: Postgres
+#         type: postgres
+#         access: proxy
+#         #Authentication
+#         url: "<path:bat/data/bat-dev/bat-postgres#hostname>:443"
+#         user: grafana
+#         secureJsonData:
+#           password: ""
+#           sslmode: 'require' # disable/require/verify-ca/verify-full
+# #          tlsCACertFile: "<path:bat/data/bat-dev/bat-postgres#cert"
+#         isDefault: false
+#         basic_auth: false
+#         orgId: 2
+#         editable: true
+#         jsonData:
+#           database: db
+#           maxOpenConns: 10 # Grafana v5.4+
+#           maxIdleConns: 2 # Grafana v5.4+
+#           connMaxLifetime: 14400 # Grafana v5.4+
+#           Version: 15   #DB version
+#           timescaledb: false
+
   # Extra mount for plugins
   extraEmptyDirMounts:
   - name: init-plugins
@@ -935,17 +979,29 @@ grafana:
     - name: init-plugins
       mountPath: /grafana-plugins
 
+  # plugins: 
+  #   - yesoreyeram-infinity-datasource
+  # env: 
+  #   HTTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   NO_PROXY: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   HTTPS_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   http_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   no_proxy: 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
+  #   https_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   ftp_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
+  #   FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
   persistence:
     type: pvc
     enabled: true
     storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
-    size: 6Gi      
+    size: 10Gi      
 
   imageRenderer:
     deploymentStrategy: 
       type: Recreate
+
   extraObjects:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -1069,7 +1125,7 @@ tempo-distributed:
     persistence:
       enabled: true
       inMemory: false
-      size: 10Gi
+      size: 20Gi
       storageClass: dhc-gp3    
     complete_block_timeout: 720h
   compactor:    
@@ -1128,7 +1184,7 @@ tempo-distributed:
                 - protocol: TCP
                   port: 11211        
                 - protocol: UDP
-                  port: 6831
+                  port: 6831                                                                          
           policyTypes:
             - Ingress      
 
