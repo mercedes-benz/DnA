@@ -468,6 +468,10 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     </div>
   );
 
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(codeSpace));
+  }
+
   return (
     <>
       <div
@@ -475,7 +479,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         draggable={true}
         ref={ref}
         key={codeSpace.id}
-        onDragStart={props.onDragStartCard}
+        onDragStart={handleDragStart}
         className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}
       >
         <div className={Styles.cardHead}>

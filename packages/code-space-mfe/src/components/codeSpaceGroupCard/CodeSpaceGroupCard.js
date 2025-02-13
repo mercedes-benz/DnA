@@ -1,14 +1,44 @@
 import React from 'react';
 import classNames from 'classnames';
 import Styles from './code-space-group-card.scss';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
+import { CodeSpaceApiClient } from '../../apis/codespace.api';
 
-const CodeSpaceGroupCard = ({ group, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal }) => {
+const CodeSpaceGroupCard = ({ group, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped }) => {
+  const handleEditGroup = (codespace) => {
+    const data = {
+      groupId: group?.groupId,
+      name: group?.name,
+      order: 0,
+      wsAdded: [{ name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }],
+      wsRemoved: []
+    }
+    ProgressIndicator.show();
+    CodeSpaceApiClient.editCodeSpaceGroup(data)
+      .then(() => {
+        Notification.show(`Code Space added successfully`);
+        onCodeSpaceDropped();
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          e.response.data.errors?.length
+            ? e.response.data.errors[0].message
+            : 'Adding code space to group failed!',
+          'alert',
+        );
+      });
+  }
+
   return (
     <div
       className={classNames(Styles.group)}
       id={`group-${group?.id}`}
       onDrop={(e) => {
           e.preventDefault();
+          handleEditGroup(JSON.parse(e.dataTransfer.getData("application/json")));
       }}
       onDragOver={(e) => {
           e.preventDefault();
