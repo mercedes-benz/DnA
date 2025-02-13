@@ -28,5 +28,6 @@ public class CodeServerLeanGovernanceFeilds implements Serializable {
 	private List<String> tags;
 	private String typeOfProject;
 	private Boolean piiData;
+	private Boolean enableDeployApproval;
     
 }
