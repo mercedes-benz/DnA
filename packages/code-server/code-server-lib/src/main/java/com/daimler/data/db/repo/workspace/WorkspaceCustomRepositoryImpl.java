@@ -343,6 +343,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
 						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
+						+ " \"isApprover\": " + updatedcollaborators.getIsApprover()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
 						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
@@ -719,6 +720,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ "set data = jsonb_set(data, '{projectDetails,dataGovernance}',\n"
 				+ " '{\"tags\": " + ArrayTagstoJsonb + ","
 				+ " \"piiData\": " + newGovFeilds.getPiiData() + ","
+				+ " \"enableDeployApproval\": " + newGovFeilds.getEnableDeployApproval() + ","
 				+ " \"archerId\": " + addQuotes(newGovFeilds.getArcherId()) + ","
 				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
 				+ " \"department\": " + addQuotes(newGovFeilds.getDepartment()) + ","
