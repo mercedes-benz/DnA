@@ -13,7 +13,8 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-  fullnameOverride: "dss-db"
+#Modified dss-db to dssdb in the full name override to accomdate the pvc name size limitations 
+  fullnameOverride: "dssdb"
 ## PostgreSQL replica count
 ##
 replicaCount: 2
@@ -250,6 +251,7 @@ persistence:
     size: 1Gi
     # storageClass: dhc-gp3
     # PVCName: name
+  name: 
 
 ## Network Policy to be applied
 ## By default an ingress rule which allows the communication between all pods of this application, is already defined in templates/networkpolicies.yaml.
