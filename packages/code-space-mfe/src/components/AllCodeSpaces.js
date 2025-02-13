@@ -78,7 +78,7 @@ const AllCodeSpaces = (props) => {
             .then((res) => {
                 setGroupLoading(false);
                 if(res.status !== 204) {
-                    setCodeSpaceGroups(res?.data?.data);
+                    setCodeSpaceGroups(res?.data?.data?.data);
                 } else {
                     setCodeSpaceGroups([]);
                 }
@@ -341,12 +341,12 @@ const AllCodeSpaces = (props) => {
 
     useEffect(() => {
       showCodespacesModal &&
-        CodeSpaceApiClient.getCodeSpaceGroup(selectedCodeSpaceGroup?.id).then((res) => {
-            setSelectedCodespaces(res.data.data);
+        CodeSpaceApiClient.getCodeSpaceGroup(selectedCodeSpaceGroup?.groupId).then((res) => {
+            setSelectedCodespaces(res?.data?.data?.data);
         }).catch((err) => {
             console.log(err);
         });
-    }, [showCodespacesModal, selectedCodeSpaceGroup?.id]);
+    }, [showCodespacesModal, selectedCodeSpaceGroup?.groupId]);
 
     const codespacesModalContent = <>
     <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
@@ -455,14 +455,10 @@ const AllCodeSpaces = (props) => {
 
     const deleteCodeSpaceGroupAccept = () => {
         ProgressIndicator.show();
-        CodeSpaceApiClient.createCodeSpaceGroup({data: selectedCodeSpaceGroup})
-            .then((res) => {
+        CodeSpaceApiClient.createCodeSpaceGroup(selectedCodeSpaceGroup?.groupId)
+            .then(() => {
             Notification.show(`Code Space Group deleted successfully`);
-            if(res.status !== 204) {
-                setCodeSpaceGroups(res?.data?.data);
-            } else {
-                setCodeSpaceGroups([]);
-            }
+            getCodeSpaceGroupsData();
             ProgressIndicator.hide();
             })
             .catch((e) => {
