@@ -945,8 +945,8 @@ const NewCodeSpace = (props) => {
                 <label>Department</label>
               </div>
               <div>{projectDetails?.dataGovernance?.department ? projectDetails?.dataGovernance?.department : 'N/A'}</div>
-              <div></div>
-              <div></div>
+              <div>Deployment Approval Enabled</div>
+              <div>{projectDetails?.dataGovernance?.enableDeployApproval ? 'Yes' : 'No'}</div>
             </div>
             {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
               <div>
