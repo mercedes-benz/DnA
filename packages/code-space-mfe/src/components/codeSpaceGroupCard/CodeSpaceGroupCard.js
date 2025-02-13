@@ -28,7 +28,7 @@ const CodeSpaceGroupCard = ({ group, onShowCodeSpacesModal, onShowCodeSpaceGroup
       }
       <div className={classNames(Styles.groupBody)}>
         {group?.workspaces?.map((workspace) => 
-          <div key={workspace?.wsId} className={classNames(Styles.codeSpaceItem)}>
+          <div key={workspace?.wsId} className={classNames(Styles.codeSpaceItem)} onClick={() => onShowCodeSpacesModal(true, group)}>
               <div>
                   <h3>{workspace?.name}</h3>
                   {/* ToDo
