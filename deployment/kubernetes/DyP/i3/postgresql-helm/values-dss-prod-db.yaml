@@ -13,8 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-#Modified dss-db to dssdb in the full name override to accomdate the pvc name size limitations 
-fullnameOverride: "dssdb"
+fullnameOverride: "dss-db"
 ## PostgreSQL replica count
 ##
 replicaCount: 2
