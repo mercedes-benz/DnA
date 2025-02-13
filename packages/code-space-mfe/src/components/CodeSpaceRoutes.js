@@ -16,7 +16,7 @@ import CodeSpaceSecurityConfig from './securityConfig/SecurityConfig';
 import ManageRecipes from './manageRecipes/ManageRecipes';
 import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
 import Tutorials from './codeSpaceTutorials/Tutorials';
-import CodeSpaceAdministration from './codespaceAdministration/CodespaceAdministration';
+import CodeSpaceAdministration from './codeSpaceAdministration/CodeSpaceAdministration';
 
 export const protectedRoutes = [
     {
