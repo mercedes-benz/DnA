@@ -1405,9 +1405,9 @@ import com.daimler.data.util.ConstantsUtility;
 			 String repoName = null;
 			 String repoUrl = null;
 			 String gitOrg = null;
-			 if (isApiRecipe != null){
-				is ApiRecipe = true;
-			 }
+			//  if (isApiRecipe != null){
+			// 	is ApiRecipe = true;
+			//  }
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -1579,7 +1579,7 @@ import com.daimler.data.util.ConstantsUtility;
 					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
 					//  }
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired);
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
