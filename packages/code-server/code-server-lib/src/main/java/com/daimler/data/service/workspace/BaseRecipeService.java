@@ -26,6 +26,7 @@ import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepoImpl;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceRecipeRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceSoftwareRepository;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.db.json.CodeServerAdditionalService;
 import com.daimler.data.db.json.CodeServerSoftware;
@@ -45,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import org.springframework.http.HttpStatus;
@@ -58,6 +60,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	private WorkspaceRecipeRepository recipeJpaRepo;
+
+	@Autowired
+	private WorkspaceSoftwareRepository softwareJpaRepo;
 
 	@Autowired
 	private RecipeAssembler recipeAssembler;
@@ -443,6 +448,66 @@ public class BaseRecipeService implements RecipeService{
             return new GenericMessage("Recipe deleted successfully");
         } else {
             return new GenericMessage("Recipe not found");
+        }
+
+	}
+
+    @Override
+	@Transactional
+	public SoftwareCollection createSoftware(SoftwareCollection softwareRequestVO) {
+		UserInfo currentUser = userStore.getUserInfo();
+		Date currentTime = new Date();
+		softwareRequestVO.setCreatedOn(currentTime);
+    	softwareRequestVO.setCreatedBy(currentUser.getId());
+    	softwareRequestVO.setUpdatedOn(currentTime);
+    	softwareRequestVO.setUpdatedBy(currentUser.getId());
+		CodeServerSoftwareNsql softwareEntity = softwareAssembler.toEntity(softwareRequestVO);
+		CodeServerSoftwareNsql savedSoftwareEntity = softwareJpaRepo.save(softwareEntity);
+		return softwareAssembler.toVo(savedSoftwareEntity);
+	}
+
+	@Override
+	@Transactional
+	public SoftwareCollection getSoftwareByName(String softwareName) {
+		CodeServerSoftwareNsql entity = workspaceCustomSoftwareRepo.findBySoftwareName(softwareName);
+		if (entity!=null){
+			return softwareAssembler.toVo(entity);
+		}
+		return null;
+	}
+    
+	@Override
+	@Transactional
+	public SoftwareCollection getSoftwareById(String id) {
+		CodeServerSoftwareNsql entity = workspaceCustomSoftwareRepo.findBySoftwareId(id);
+		if (entity!=null){
+			return softwareAssembler.toVo(entity);
+		}
+		return null;
+	}
+
+	@Override
+	@Transactional
+	public SoftwareCollection updateSoftware(SoftwareCollection softwareRequestVO) {
+		UserInfo currentUser = userStore.getUserInfo();
+		Date currentTime = new Date();
+		softwareRequestVO.setUpdatedOn(currentTime);
+    	softwareRequestVO.setUpdatedBy(currentUser.getId());
+		CodeServerSoftwareNsql softwareEntity = softwareAssembler.toEntity(softwareRequestVO);
+		CodeServerSoftwareNsql savedSoftwareEntity = softwareJpaRepo.save(softwareEntity);
+		return softwareAssembler.toVo(savedSoftwareEntity);
+	}
+
+	@Override
+	public GenericMessage deleteSoftware(String id)
+	{
+		GenericMessage msg = new GenericMessage();
+		CodeServerSoftwareNsql software = workspaceCustomSoftwareRepo.findBySoftwareId(id);
+        if (software != null) {
+			GenericMessage val =  workspaceCustomSoftwareRepo.deleteSoftware(software);
+            return new GenericMessage("Software deleted successfully");
+        } else {
+            return new GenericMessage("Software not found");
         }
 
 	}

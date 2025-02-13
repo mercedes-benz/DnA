@@ -35,7 +35,14 @@ public class SoftwareAssembler implements GenericAssembler<SoftwareCollection, C
         CodeServerSoftware data = entity.getData();
         if(Objects.nonNull(data))
         {
+            vo.setId(entity.getId());
             vo.setSoftwareName(entity.getData().getSoftwareName());
+            vo.setAdditionalProperties(entity.getData().getAdditionalProperties());
+            vo.setCreatedOn(entity.getData().getCreatedOn());
+            vo.setCreatedBy(entity.getData().getCreatedBy());
+            vo.setUpdatedOn(entity.getData().getUpdatedOn());
+            vo.setUpdatedBy(entity.getData().getUpdatedBy());
+
         }
 		return vo;
 	}
@@ -46,8 +53,14 @@ public class SoftwareAssembler implements GenericAssembler<SoftwareCollection, C
         CodeServerSoftware data = new CodeServerSoftware();
         if(vo!=null)
         {
+           entity.setId(vo.getId());
            data.setSoftwareName(vo.getSoftwareName());
-            entity.setData(data);
+           data.setAdditionalProperties(vo.getAdditionalProperties());
+           data.setCreatedOn(vo.getCreatedOn());
+           data.setCreatedBy(vo.getCreatedBy());
+           data.setUpdatedOn(vo.getUpdatedOn());
+           data.setUpdatedBy(vo.getUpdatedBy());
+           entity.setData(data);
         }
         return entity;
 	}
