@@ -144,7 +144,7 @@ public class UiLiciousClient {
             headers.set("AccessKey",accessKey );
 
             HttpEntity<String> entity = new HttpEntity<String>(headers);
-            ResponseEntity<String> httpResponse = restTemplate.exchange(getRunDetailsUri+"?id="+runId, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> httpResponse = restTemplate.exchange(getRunDetailsUri+"?id="+runId, HttpMethod.GET, entity, String.class);
             if (httpResponse != null && httpResponse.getStatusCode() != null) {
                 if (httpResponse.getStatusCode().equals(HttpStatus.OK)) {
                     String httpResponseBody = httpResponse.getBody();
