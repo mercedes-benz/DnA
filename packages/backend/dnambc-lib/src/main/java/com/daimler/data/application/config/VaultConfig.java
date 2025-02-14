@@ -51,6 +51,8 @@ import com.daimler.data.dto.vault.VaultDTO;
  import java.nio.file.Files;
  import java.util.HashMap;
  import java.util.Map;
+
+ import com.fasterxml.jackson.databind.ObjectMapper;
  
  @Configuration
  public class VaultConfig {
@@ -174,8 +176,11 @@ import com.daimler.data.dto.vault.VaultDTO;
              new KubernetesAuthentication(this.getK8sOptions(), this.getrestOperations(this.getVaultEndpoint())));
  
              VaultResponse response = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPath);
-             if (response != null) {
-                subscriptionKeys =(SubscriptionkeysVO) response.getData().get(projectName);
+             if (response != null && response.getData() != null) {
+                
+                Object data = response.getData().get(projectName);
+                ObjectMapper objectMapper = new ObjectMapper();
+                subscriptionKeys = objectMapper.convertValue(data, SubscriptionkeysVO.class);
              }
              return subscriptionKeys;
          } catch (Exception e) {

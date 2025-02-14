@@ -41,6 +41,7 @@ import com.daimler.data.application.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.service.promptCraftSubscriptions.PromptCraftSubscriptionsService;
+import com.daimler.data.service.promptCraftSubscriptions.AsyncService;
 import com.daimler.data.db.repo.promptCraftSubscriptions.PromptCraftSubscriptionsCustomRepository;
 import com.daimler.data.db.repo.promptCraftSubscriptions.PromptCraftSubscriptionsRepository;
 import com.daimler.data.service.common.BaseCommonService;
@@ -84,16 +85,10 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
+
+	@Autowired
+	private AsyncService asyncService;
 	
-
-	@Value("${promptsraftsubscriptions.uiLicious.privateKeyStepNumber}")
-    private String privateKeyStepNumber;
-
-	@Value("${promptsraftsubscriptions.uiLicious.publicKeyStepNumber}")
-    private String publicKeyStepNumber;
-
-	private static final int MAX_RETRIES = 12; // 2 minutes with 10 seconds interval
-    private static final int RETRY_INTERVAL_MS = 10000; // 10 seconds
 
 	public BasePromptCraftSubscriptionsService() {
 		super();
@@ -116,6 +111,7 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 	public PromptCraftSubscriptionsResponseVO createSubscription(PromptCraftSubscriptionsVO vo){
 
 		PromptCraftSubscriptionsResponseVO response = new PromptCraftSubscriptionsResponseVO();
+		PromptCraftSubscriptionsNsql savedSubscription = new PromptCraftSubscriptionsNsql();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try{
@@ -128,7 +124,7 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 			if(uiLiciousResponse != null && uiLiciousResponse.getResponseStatus() == HttpStatus.OK ){
 				vo.setRunId(uiLiciousResponse.getRunId());
 				vo.setStatus("IN_PROGRESS");
-				this.checkForKeysFromUiLicious(vo.getProjectName(),uiLiciousResponse.getRunId());
+				asyncService.checkForKeysFromUiLicious(vo.getProjectName(),uiLiciousResponse.getRunId());
 			}else{
 				response.setData(vo);
 				response.setSuccess("FAILED");
@@ -139,7 +135,7 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 				return response;
 			}
 			PromptCraftSubscriptionsNsql entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-			PromptCraftSubscriptionsNsql savedSubscription = jpaRepo.save(entity);
+			savedSubscription = jpaRepo.save(entity);
 			response.setData(vo);
 			response.getData().setId(savedSubscription.getId());
 			response.setSuccess("SUCCESS");
@@ -151,119 +147,6 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 			return response;
 		}
 	}
-
-	// @Async
-	// public void checkForKeysFromUiLicious(String runId){
-
-	// 	JsonNode jsonResponse = uiLiciousClient.getSubscriptionKeys(runId);
-	// 	if(jsonResponse != null){
-	// 		log.info("Subscription keys are available for the run id {}",runId);
-	// 	}
-	// }
-
-	@Async
-	@Override
-	public void checkForKeysFromUiLicious(String projectName, String runId) {
-        int retries = 0;
-        boolean stepsSizeSufficient = false;
-
-		SubscriptionkeysVO keys = null;
-
-		PromptCraftSubscriptionsNsql entity = null;
-
-		int privateKeyStepNum = Integer.parseInt(privateKeyStepNumber);
-        int publicKeyStepNum = Integer.parseInt(publicKeyStepNumber);
-
-		PromptCraftSubscriptionsVO vo = getByUniqueliteral("projectName",projectName);
-		if("COMPLETED".equalsIgnoreCase(vo.getStatus())){
-
-		
-			while (retries < MAX_RETRIES && !stepsSizeSufficient) {
-				JsonNode jsonResponse = uiLiciousClient.getSubscriptionRunDetails(runId);
-				if (jsonResponse != null) {
-					log.debug("Subscription keys are available for the run id {}", runId);
-
-					JsonNode stepsNode = jsonResponse.path("result").path("result").path("steps");
-					if (stepsNode.isArray() && stepsNode.size() >= 25) {
-						stepsSizeSufficient = true;
-						log.debug("Steps size is sufficient: {}", stepsNode.size());
-
-						for (JsonNode step : stepsNode) {
-							int stepNum = step.path("stepNum").asInt();
-							String status = step.path("status").asText();
-							String description = step.path("description").asText();
-
-							if (stepNum == privateKeyStepNum && "success".equalsIgnoreCase(status)) {
-								keys.setPrivateKey(stepsNode.get(stepNum).path("return").asText());
-								log.debug("PA Key: {}", keys.getPrivateKey());
-							}
-
-							if (stepNum == publicKeyStepNum && "success".equalsIgnoreCase(status)) {
-								keys.setPublicKey(stepsNode.get(stepNum).path("retun").asText());
-								log.debug("PU Key: {}", keys.getPublicKey());
-							}
-							if((stepNum == publicKeyStepNum || stepNum == privateKeyStepNum)  && "failed".equalsIgnoreCase(status)){
-								vo.setStatus("FAILED");
-								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-								jpaRepo.save(entity);
-							}
-						}
-						if(keys.getPrivateKey() != null && keys.getPublicKey() != null){
-
-							// // Convert the object to a JSON string
-							// String keyString = null;
-							// ObjectMapper objectMapper = new ObjectMapper();
-							// try {
-							// 	 keyString = objectMapper.writeValueAsString(keys);
-							// } catch (JsonProcessingException e) {
-							// 	log.error("Error occured whie process json");
-							// 	vo.setStatus("FAILED");
-							// 	entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-							// 	jpaRepo.save(entity);
-							// }
-							// if(keyString != null){
-							GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
-							if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
-								log.error("Sucessfully added subscription keys to vault");
-							vo.setStatus("COMPLETED");
-							entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-							jpaRepo.save(entity);
-								// }
-							}
-							
-						}
-
-
-					} else {
-						log.info("Steps size is insufficient: {}. Retrying...", stepsNode.size());
-						retries++;
-						try {
-							Thread.sleep(RETRY_INTERVAL_MS);
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							log.error("Thread was interrupted", e);
-							break;
-						}
-					}
-				} else {
-					log.warn("Received null response for run id {}", runId);
-					retries++;
-					try {
-						Thread.sleep(RETRY_INTERVAL_MS);
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-						log.error("Thread was interrupted", e);
-						break;
-					}
-				}
-			}
-		}
-
-        if (!stepsSizeSufficient) {
-            log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
-        }
-    }
-
 
 	@Override
 	public SubscriptionkeysVO getProjectKeys( String projectName){

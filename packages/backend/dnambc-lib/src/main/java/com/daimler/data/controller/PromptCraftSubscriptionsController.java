@@ -42,6 +42,7 @@ import com.daimler.data.dto.promptCraftSubscriptions.PromptCraftSubscriptionsVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionRequestVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysResponseVO;
+import com.daimler.data.service.promptCraftSubscriptions.AsyncService;
 import com.daimler.data.service.promptCraftSubscriptions.PromptCraftSubscriptionsService;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +73,9 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
 
     @Autowired
     private PromptCraftSubscriptionsService service;
+
+    @Autowired
+    private AsyncService asyncService;
 
     @Override
     @ApiOperation(value = "Adds a new Subscription.", nickname = "create", notes = "Adds a new Subscriptions.", response = PromptCraftSubscriptionsResponseVO.class, tags={ "promptCraftSubscriptions", })
@@ -244,7 +248,7 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
     @RequestMapping(value = "/promptCraftSubscriptions/{projectName}/refresh",
         produces = { "application/json" }, 
         consumes = { "application/json" },
-        method = RequestMethod.GET)
+        method = RequestMethod.POST)
     public ResponseEntity<GenericMessage> refresh(@ApiParam(value = "",required=true) @PathVariable("projectName") String projectName){
         
         UserInfo currentUser = this.userStore.getUserInfo();
@@ -257,7 +261,7 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
 
             if(isUserHasAdminAccess(currentUser)){
                 PromptCraftSubscriptionsVO existingVO = service.getByUniqueliteral("projectName", projectName);
-                service.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
+                asyncService.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
                 response.setSuccess("SUCCESS");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }else{

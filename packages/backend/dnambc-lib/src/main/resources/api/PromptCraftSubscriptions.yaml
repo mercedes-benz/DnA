@@ -106,7 +106,7 @@ paths:
 
   
   /promptCraftSubscriptions/{projectName}/refresh:
-    get:
+    post:
         tags:
           - "promptCraftSubscriptions"
         summary: "refresh to get  Subscription keys."
