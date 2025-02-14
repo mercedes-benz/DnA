@@ -936,11 +936,7 @@ public class BaseStorageService implements StorageService {
 	 	HttpStatus httpStatus;
 
 	 	LOGGER.debug("Fetching Current user.");
-	 	String currentUser = userStore.getUserInfo().getId();
-			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
-		 if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
-			currentUser=entity.getData().getCreatedBy().getId();
-		}
+	 	String currentUser = userStore.getUserInfo().getId(); 
 	 	String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 	 	boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
@@ -954,7 +950,7 @@ public class BaseStorageService implements StorageService {
 	 	 if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 	 	 	LOGGER.info("Success from minio remove bucket.");
 	 	 	// Fetching bucket info from database
-	 	 	entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+	 	 	StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 	 	 	if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
 	 	 		// To delete dataiku connection if exists
 	 	 		Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(projectAndCloudProfile -> {
