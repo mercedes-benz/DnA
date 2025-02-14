@@ -27,42 +27,21 @@
 
 package com.daimler.data.service.promptCraftSubscriptions;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.daimler.data.assembler.PromptCraftSubscriptionsAssembler;
 import com.daimler.data.application.auth.vault.VaultAuthClientImpl;
+import com.daimler.data.assembler.PromptCraftSubscriptionsAssembler;
+import com.daimler.data.client.uiLicious.UiLiciousClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.service.promptCraftSubscriptions.PromptCraftSubscriptionsService;
+import com.daimler.data.db.entities.PromptCraftSubscriptionsNsql;
 import com.daimler.data.db.repo.promptCraftSubscriptions.PromptCraftSubscriptionsCustomRepository;
 import com.daimler.data.db.repo.promptCraftSubscriptions.PromptCraftSubscriptionsRepository;
-import com.daimler.data.service.common.BaseCommonService;
-
-import com.daimler.data.db.entities.PromptCraftSubscriptionsNsql;
-import com.daimler.data.db.jsonb.PromptCraftSubscriptions;
-import com.daimler.data.client.uiLicious.UiLiciousClient;
-import com.daimler.data.client.uiLicious.UiliciousStartCreationResponseDTO;
-import com.daimler.data.dto.promptCraftSubscriptions.PromptCraftSubscriptionsResponseVO;
 import com.daimler.data.dto.promptCraftSubscriptions.PromptCraftSubscriptionsVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysVO;
-import com.daimler.data.assembler.PromptCraftSubscriptionsAssembler;
 import com.daimler.data.service.promptCraftSubscriptions.PromptCraftSubscriptionsService;
-import com.daimler.data.client.uiLicious.UiLiciousClient;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
