@@ -8,7 +8,7 @@ backend:
     repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
     tag: 3.2.4
   imagePullPolicy: Always
-  dbUrl: jdbc:postgresql://airflow-db.airflow.svc.cluster.local:64000/airflow
+  dbUrl: jdbc:postgresql://airflow-db.prod-dna-airflow.svc.cluster.local:64000/airflow
   secret:
     name: airflow-backend-secrets
     dbPassword: null
@@ -19,11 +19,11 @@ backend:
     oidcClientSecret: null
   containerPort: 7171
   crossOriginUrl: https://*.app.corpintra.net
-  apiUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+  apiUrl: http://dna-backend.prod-dna.svc.cluster.local:80
   dnaAuthEnable: true
-  oidcInfoUrl: https://sso-int.mercedes-benz.com/idp/userinfo.openid
-  oidcIntrospectionUrl: https://sso-int.mercedes-benz.com/as/introspect.oauth2
-  oidcRevocationUrl: https://sso-int.mercedes-benz.com/as/revoke_token.oauth2
+  oidcInfoUrl: https://sso.mercedes-benz.com/idp/userinfo.openid
+  oidcIntrospectionUrl: https://sso.mercedes-benz.com/as/introspect.oauth2
+  oidcRevocationUrl: https://sso.mercedes-benz.com/as/revoke_token.oauth2
   oidcDisabled: false
   gitUrl: null
   gitMountPath: /git/airflow-user-dags
@@ -42,10 +42,11 @@ backend:
 ingress:
   enabled: false
   className: prod-ingress-intranet
-  host: pipeline.dna.app.corpintra.net
+  host: pipeline.dna-aws.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -54,10 +55,10 @@ airflow:
   ingress:
     enabled: false
     className: prod-ingress-intranet
-    host: pipeline.dna.app.corpintra.net
+    host: pipeline.dna-aws.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -102,7 +103,7 @@ configuration:
     authenticate: false
     catchupByDefault: true
   webserver:
-    baseUrl: https://pipeline.dna.app.corpintra.net
+    baseUrl: https://pipeline.dna-aws.app.corpintra.net
     path: /
     rbac: true
     host: 0.0.0.0

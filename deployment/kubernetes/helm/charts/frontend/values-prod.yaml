@@ -5,11 +5,12 @@ ingress:
   enabled: false
   namespace: ingress
   className: prod-ingress-intranet
-  host: dna.app.corpintra.net
-  lbIP: 53.6.53.65
+  host: dna-aws.app.corpintra.net
+#   lbIP: 53.6.53.65
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -108,10 +109,10 @@ appFrontend:
     repository: registry-emea.app.corpintra.net/dnaplatform/dna-frontend
     tag: 3.12.0
   ngnix:
-    backend: http://dna-app-backend-service.dna.svc.cluster.local:80
+    backend: http://dna-backend.prod-dna.svc.cluster.local:80
     grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
     avscanMgwServer: apisap.app.corpintra.net
-    clamav: http://clamav-rest-service.clamav.svc.cluster.local:8181
+    clamav: http://clamav-rest-service.prod-dna-clamav.svc.cluster.local:8181
 vaultInjector:
   enable: true
   annotations:
