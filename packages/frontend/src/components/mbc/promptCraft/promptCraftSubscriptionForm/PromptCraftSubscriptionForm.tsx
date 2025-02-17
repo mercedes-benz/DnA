@@ -187,7 +187,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
             <button
               className="btn btn-tertiary"
               type="button"
-              onClick={handleSubmit((values) => handleCreateSubscription(values))}
+              onClick={handleSubmit((values: any) => handleCreateSubscription(values))}
             >
               Create Subscription
             </button>
