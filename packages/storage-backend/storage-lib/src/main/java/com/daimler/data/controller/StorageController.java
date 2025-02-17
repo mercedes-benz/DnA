@@ -68,6 +68,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Hidden;
 
 @RestController
 @Api(value = "Dna Storage API", tags = { "storage" })
@@ -316,6 +317,7 @@ public class StorageController implements StorageApi {
 
 
 	@Override
+	@Hidden
 	@ApiOperation(value = "Delete bucket.", nickname = "deleteBucketCascade", notes = "Delete bucket identified by bucketName.", response = GenericMessage.class, tags = {
 			"storage", })
 	@ApiResponses(value = {
