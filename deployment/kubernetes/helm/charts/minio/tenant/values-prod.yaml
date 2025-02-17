@@ -459,5 +459,5 @@ extraResources:
       name: crop-cacert
       namespace: {{ .Release.Namespace }}
     data:
-      public.crt: <path:dna_aws_kv/prod/dev/kubernetesSecret/infra#croppem | base64encode>
+      public.crt: <path:dna_aws_kv/data/prod/kubernetesSecret/infra#croppem | base64encode>
     type: Opaque
