@@ -37,6 +37,14 @@
     display: flex;
     align-items: center;
     cursor: pointer;
+    .howTo {
+      background: unset;
+      border: unset;
+      font-size: var(--font-size-default);
+      padding: 0;
+      height: auto;
+      margin-right: 7px;
+    }
     .iconActive {
         opacity: 0.5;
         cursor: default;
@@ -355,4 +363,9 @@
   justify-content: center;
   position: relative;
   width: 100%;
+
+  > button {
+    display: inline-block;
+    margin: 0 10px;
+  }
 }

@@ -322,7 +322,7 @@ export const ToolsLandingPageElements = [
   {
     id: 'promptCraft',
     name: 'Prompt Craft',
-    description: 'Prompt craft description',
+    description: 'Prompt Craft is a fully functional LLM Engineering solution that leverages OpenSource and enables Prompt Engineers to build enterprise grade GenAI Applications.',
     tags: ['Self-Service'],
     url: '/promptcraft',
     isExternalLink: false,

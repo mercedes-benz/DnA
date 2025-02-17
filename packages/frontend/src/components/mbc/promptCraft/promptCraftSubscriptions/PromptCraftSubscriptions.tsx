@@ -9,14 +9,16 @@ import { getQueryParameterByName } from '../../../../services/Query';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import { Envs } from 'globals/Envs';
 import PromptCraftSubscriptionCard from '../promptCraftSubscriptionCard/PromptCraftSubscriptionCard';
 import PromptCraftSubscriptionRow from '../promptCraftSubscriptionRow/PromptCraftSubscriptionRow';
 import PromptCraftSubscriptionForm from '../promptCraftSubscriptionForm/PromptCraftSubscriptionForm';
 import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
+import KeysModal from '../keysModal/KeysModal';
 
 interface ISubscription {
   id: string;
-  name: string;
+  projectName: string;
 }
 
 const PromptCraftSubscriptions = () => {
@@ -27,6 +29,7 @@ const PromptCraftSubscriptions = () => {
   const [createSubscription, setCreateSubscription] = useState(false);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<ISubscription | null>(null);
+  const [showKeysModal, setShowKeysModal] = useState(false);
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -66,7 +69,7 @@ const PromptCraftSubscriptions = () => {
   // delete subscription
   const deleteSubscriptionContent = (
     <div>
-      <h3>Are you sure you want to delete {selectedSubscription?.name}? </h3>
+      <h3>Are you sure you want to delete {selectedSubscription?.projectName}? </h3>
       <h5>It will delete the subscription.</h5>
     </div>
   );
@@ -98,7 +101,7 @@ const PromptCraftSubscriptions = () => {
         .then((res) => {
           console.log('res', res);
           if(res.status !== 204) {
-            setSubscriptions(res?.data?.records);
+            setSubscriptions(res?.data?.data);
             const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -123,6 +126,17 @@ const PromptCraftSubscriptions = () => {
       <div className={classNames(Styles.mainPanel)}>
         <Caption title="Prompt Craft Subscriptions">
           <div className={classNames(Styles.listHeader)}>
+            <div>
+              <button
+                className={classNames('btn btn-primary', Styles.howTo)}
+                type="button"
+                onClick={() => window.open(`${Envs.ONEAPI_PROMPT_CRAFT_USAGE_LINK}`)}
+              >
+                <i className={'icon mbc-icon info'} />
+                <span>&nbsp;How to use?</span>
+              </button>
+            </div>
+            <span className={Styles.dividerLine}> &nbsp; </span>
             <div>
               <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getSubscriptions}>
                 <i className="icon mbc-icon refresh"></i>
@@ -159,11 +173,11 @@ const PromptCraftSubscriptions = () => {
         {subscriptions?.length === 0 && 
           <div className={Styles.noAccounts}>
             <h5>You don&apos;t have any Prompt Craft subscriptions at this time.</h5>
-            <p>Please subscribe one.</p>
+            <p>Please subscribe to one.</p>
             <button
               className={classNames('btn btn-tertiary')}
               type="button"
-              // onClick={() => window.open(`${Envs.CONTAINER_APP_URL}/#/toolDetails/powerPlatform`)}
+              onClick={() => window.open(`${Envs.ONEAPI_SUBSCRIPTION_URL}`)}
             >
               <span>Go to OneAPI</span>
             </button>
@@ -196,12 +210,9 @@ const PromptCraftSubscriptions = () => {
                     <PromptCraftSubscriptionCard
                       key={subscription.id}
                       subscription={subscription}
-                      onSelectSubscription={(subscription: any) => { 
+                      onShowKeys={(subscription: any) => {
                         setSelectedSubscription(subscription);
-                      }}
-                      onDeleteSubscription={(subscription: any) => {
-                        setSelectedSubscription(subscription);
-                        setDeleteModal(true);
+                        setShowKeysModal(true);
                       }}
                     />
                   )}
@@ -270,6 +281,20 @@ const PromptCraftSubscriptions = () => {
           content={<PromptCraftSubscriptionForm onSave={() => {setCreateSubscription(false); getSubscriptions();}} />}
           scrollableContent={true}
           onCancel={() => setCreateSubscription(false)}
+        />
+      }
+      { showKeysModal &&
+        <Modal
+          title={'Subscription Keys'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'800px'}
+          buttonAlignment="right"
+          show={showKeysModal}
+          content={<KeysModal projectName={selectedSubscription?.projectName} onOk={() => {setShowKeysModal(false)}} />}
+          scrollableContent={true}
+          onCancel={() => setShowKeysModal(false)}
         />
       }
       { showDeleteModal &&

@@ -1,4 +1,3 @@
-import { subscriptions } from 'components/mbc/promptCraft/data/mock';
 import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
@@ -30,17 +29,21 @@ export class PromptCraftApiClient {
 
   // Usage statistics
   public static getPromptCraftSubscriptions(offset: number, limit: number): Promise<any> {
-    // return this.get(`promptcraftsubs?offset=${offset}&limit=${limit}`);
-    console.log(offset, limit);
-    return Promise.resolve(subscriptions);
+    return this.get(`promptCraftSubscriptions?offset=${offset}&limit=${limit}`);
+  }
+  public static getSubscriptionKeys(projectName: string): Promise<any> {
+    return this.get(`/promptCraftSubscriptions/${projectName}/getkeys`);
   }
   public static createPromptCraftSubscription(data: any) {
-    return this.post('promptcraftsubs', data);
+    return this.post('promptCraftSubscriptions', { data });
+  }
+  public static refreshSubscriptionKeys(projectName: string) {
+    return this.post(`/promptCraftSubscriptions/${projectName}/refresh`);
   }
   public static editPromptCraftSubscription(id: string, data: any){
-    return this.patch(`promptcraftsubs/${id}`, data);
+    return this.patch(`promptCraftSubscriptions/${id}`, data);
   }
   public static deletePromptCraftSubscription(id: string) {
-    return this.delete(`promptcraftsubs/${id}`);
+    return this.delete(`promptCraftSubscriptions/${id}`);
   }
 }

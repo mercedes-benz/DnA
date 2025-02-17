@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 // styles
 import Styles from './PromptCraftSubscriptionForm.scss';
@@ -8,13 +8,14 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import AddUser from '../../../mbc/addUser/AddUser'; 
 import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
+import { ApiClient } from '../../../../services/ApiClient';
+import { Envs } from 'globals/Envs';
 
 export interface IPromptCraftSubscriptionFormProps {
   onSave: () => void;
 }
 
 const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormProps) => {
-  
   const methods = useForm();
   const {
     register,
@@ -22,64 +23,70 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
     formState: { errors },
   } = methods;
 
-  const [userLincenses, setUserLicenses] = useState([]);
+  const [projectOwner, setProjectOwner] = useState({});
+  const [projectMembers, setProjectMembers] = useState([]);
 
-  const getDevelopers = (developer: any) => {
-    const userLicenseData = {
-      userDetails: {
-        id: developer?.shortId,
-        firstName: developer?.firstName,
-        lastName: developer?.lastName,
-        department: developer?.department,
-        mobileNumber: developer?.mobileNumber,
-        email: developer?.email,
-      },
-      license: 'POWER-APPS-PREMIUM-USER'
+  const getProjectMembers = (member: any) => {
+    const projectMemberData = {
+        id: member?.shortId,
+        firstName: member?.firstName,
+        lastName: member?.lastName,
+        department: member?.department,
+        mobileNumber: member?.mobileNumber,
+        email: member?.email
     };
 
     let duplicateMember = false;
-    duplicateMember = userLincenses?.filter((license) => license.userDetails.id === developer.shortId)?.length ? true : false;
+    duplicateMember = projectMembers?.filter((projectMember) => projectMember.id === member.shortId)?.length ? true : false;
 
     // const isCreator = user?.id === developer?.id;
     const isCreator = false;
 
     if (duplicateMember) {
-        Notification.show('User License already added.', 'warning');
+        Notification.show('Member already added.', 'warning');
     } else if (isCreator) {
         Notification.show(
-            `${developer.givenName} ${developer.surName} is a creator. Creator can't be added to user lincense.`,
+            `${member.firstName} ${member.lastName} is a creator. Creator can't be added to user lincense.`,
             'warning',
         );
     } else {
-        userLincenses?.push(userLicenseData);
-        setUserLicenses([...userLincenses]);
+        projectMembers?.push(projectMemberData);
+        setProjectMembers([...projectMembers]);
     }
   }
 
-  const onUserLicenseClick = (value: any, userId: any) => {
-    const updatedUserLincenses = userLincenses.map(userLicense => {
-      if (userLicense?.userDetails?.id === userId) {
-        return Object.assign({}, userLicense, { license: value });
-      }
-      return userLicense;
-    });
-    setUserLicenses(updatedUserLincenses);
-  };
-
-  const onUserLicenseDelete = (userId: any) => {
+  const onProjectMemberDelete = (userId: any) => {
     return () => {
-      const updatedUserLicenses = userLincenses.filter((userLicense) => {
-        return userLicense?.userDetails?.id !== userId;
+      const updatedProjectMembers = projectMembers.filter((member) => {
+        return member?.id !== userId;
       });
-      setUserLicenses(updatedUserLicenses);
+      setProjectMembers(updatedProjectMembers);
     };
   };
+
+  useEffect(() => {
+    ApiClient.getUsersBySearchTerm(Envs.PC_CREATOR_ID)
+          .then((response) => {
+            if (response) {
+              if (response.records !== undefined) {
+                setProjectOwner(response.records[0]);
+              } else {
+                setProjectOwner({});
+              }
+            }
+          })
+          .catch((error: any) => {
+            Notification.show(error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message ||'Error while fetching project owner details', 'alert');
+          });
+  }, []);
 
   const handleCreateSubscription = (values: any) => {
     ProgressIndicator.show();
     const data = {
-      name: values.name.trim(),
-      orgname: values.orgname.trim()
+      projectName: values.name.trim(),
+      orgname: values.orgname.trim(),
+      projectMembers: projectMembers,
+      projectOwner: projectOwner,
     };
     PromptCraftApiClient.createPromptCraftSubscription(data).then((res) => {
       console.log(res);
@@ -137,79 +144,33 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
             </div>
             <div className={Styles.col}>
               <div className={classNames('input-field-group include-error')}>
-                <AddUser dagId='' getCollabarators={getDevelopers} isRequired={false} isUserprivilegeSearch={false} title={'User Licenses to Add'} />
+                <AddUser dagId='' getCollabarators={getProjectMembers} isRequired={false} isUserprivilegeSearch={false} title={'Project Members'} />
               </div>
-              {userLincenses?.length === 0 &&
+              {projectMembers?.length === 0 &&
                 <div className={Styles.noLincense}>
-                  <p>No User License Selected</p>
+                  <p>No Project Members Selected</p>
                 </div>
               }
               <div>
-                {userLincenses?.length > 0 && (
+                {projectMembers?.length > 0 && (
                   <>
                     <div className={Styles.colHeader}>
                         <div className={Styles.column1}>User ID</div>
                         <div className={Styles.column2}>Name</div>
-                        <div className={Styles.column3}>License</div>
                         <div className={Styles.column4}></div>
                     </div>
                     <div>
-                        {userLincenses?.map((userLicense) => {
+                        {projectMembers?.map((member) => {
                           return (
-                              <div key={userLicense?.userDetails?.id} className={Styles.userRow}>
+                              <div key={member?.id} className={Styles.userRow}>
                                   <div className={Styles.column1}>
-                                    <p>{userLicense?.userDetails?.id}</p>
+                                    <p>{member?.id}</p>
                                   </div>
                                   <div className={Styles.column2}>
-                                    <p>{userLicense?.userDetails?.firstName + ' ' + userLicense?.userDetails?.lastName}</p>
-                                  </div>
-                                  <div className={classNames(Styles.column3, Styles.lincenseContainer)}>
-                                    <div className={classNames(Styles.licenseRadio)}>
-                                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                                        <span className="wrapper">
-                                          <input
-                                            type="radio"
-                                            className="ff-only"
-                                            name={userLicense?.userDetails?.id}
-                                            value="POWER-VIRTUAL-AGENT-USER"
-                                            onChange={() => onUserLicenseClick("POWER-VIRTUAL-AGENT-USER", userLicense?.userDetails?.id)}
-                                          />
-                                        </span>
-                                        <span>Power Virtual Agent User</span>
-                                      </label>
-                                    </div>
-                                    <div className={classNames(Styles.licenseRadio)}>
-                                      <label className={'checkbox'}>
-                                        <span className="wrapper">
-                                          <input
-                                            type="radio"
-                                            className="ff-only"
-                                            name={userLicense?.userDetails?.id}
-                                            value="POWER-AUTOMATE-PREMIUM"
-                                            onChange={() => onUserLicenseClick('POWER-AUTOMATE-PREMIUM', userLicense?.userDetails?.id)}
-                                          />
-                                        </span>
-                                        <span>Power Automate Premium</span>
-                                      </label>
-                                    </div>
-                                    <div className={classNames(Styles.licenseRadio)}>
-                                      <label className={'checkbox'}>
-                                        <span className="wrapper">
-                                          <input
-                                            type="radio"
-                                            className="ff-only"
-                                            name={userLicense?.userDetails?.id}
-                                            value="POWER-APPS-PREMIUM-USER"
-                                            defaultChecked={true}
-                                            onChange={() => onUserLicenseClick('POWER-APPS-PREMIUM-USER', userLicense?.userDetails?.id)}
-                                          />
-                                        </span>
-                                        <span>Power Apps Premium User</span>
-                                      </label>
-                                    </div>
+                                    <p>{member?.firstName + ' ' + member?.lastName}</p>
                                   </div>
                                   <div className={Styles.column4}>
-                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(userLicense?.userDetails?.id)}>
+                                    <div className={Styles.deleteEntry} onClick={onProjectMemberDelete(member?.id)}>
                                       <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
                                     </div>
                                   </div>
