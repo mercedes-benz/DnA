@@ -118,8 +118,9 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
-			vo.setCreatedOn(now);
-
+			if(vo.getCreatedOn()!=null){
+				vo.setCreatedOn(now);
+			}
 			UiliciousStartCreationResponseDTO uiLiciousResponse = uiLiciousClient.startCreation(vo.getOrgname(),vo.getProjectName(),vo.getProjectMembers());
 			if(uiLiciousResponse != null && uiLiciousResponse.getResponseStatus() == HttpStatus.OK ){
 				vo.setRunId(uiLiciousResponse.getRunId());

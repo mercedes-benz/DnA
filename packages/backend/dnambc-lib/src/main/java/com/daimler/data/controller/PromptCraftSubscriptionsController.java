@@ -261,9 +261,29 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
 
             if(isUserHasAdminAccess(currentUser)){
                 PromptCraftSubscriptionsVO existingVO = service.getByUniqueliteral("projectName", projectName);
-                asyncService.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
-                response.setSuccess("SUCCESS");
-                return new ResponseEntity<>(response, HttpStatus.OK);
+                if(!"COMPLETED".equalsIgnoreCase(existingVO.getStatus())){
+                    if(!"FAILED".equalsIgnoreCase(existingVO.getStatus())){
+                        asyncService.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
+                        response.setSuccess("SUCCESS");
+                        return new ResponseEntity<>(response, HttpStatus.OK);
+                    }
+                    else{
+                        PromptCraftSubscriptionsResponseVO createSubscriptionResponse = new PromptCraftSubscriptionsResponseVO();
+                        createSubscriptionResponse = service.createSubscription(existingVO);
+                        response.setSuccess(createSubscriptionResponse.getSuccess());
+                        response.setErrors(createSubscriptionResponse.getErrors());
+                        response.setWarnings(createSubscriptionResponse.getWarnings());
+                        return new ResponseEntity<>(response, HttpStatus.OK);
+                    }
+                }else{
+                    log.info("Already Subscribed for the project {}, cannot refresh ",existingVO.getProjectName());
+                    MessageDescription msg = new MessageDescription("Already Subscribed for the project {}, cannot refresh " + existingVO.getProjectName());
+                    errors.add(msg);
+                    response.setSuccess("FAILED");
+                    response.setErrors(errors);
+                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                }
+                
             }else{
                 log.info("Not Authorized to access create Api for user {}",currentUser.getId());
                 MessageDescription msg = new MessageDescription("Not Authorized to access this Api for user " + currentUser.getId());
