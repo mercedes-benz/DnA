@@ -19,6 +19,7 @@ import KeysModal from '../keysModal/KeysModal';
 interface ISubscription {
   id: string;
   projectName: string;
+  status: any;
 }
 
 const PromptCraftSubscriptions = () => {
@@ -291,7 +292,7 @@ const PromptCraftSubscriptions = () => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={showKeysModal}
-          content={<KeysModal projectName={selectedSubscription?.projectName} onOk={() => {setShowKeysModal(false)}} />}
+          content={<KeysModal projectName={selectedSubscription?.projectName} status={selectedSubscription?.status} onOk={() => {setShowKeysModal(false)}} />}
           scrollableContent={true}
           onCancel={() => setShowKeysModal(false)}
         />

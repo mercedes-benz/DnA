@@ -12,10 +12,11 @@ interface IKeys {
 
 export interface IKeysModalProps {
   projectName: string;
+  status: any;
   onOk: () => void;
 }
 
-const KeysModal = ({projectName, onOk}: IKeysModalProps) => {
+const KeysModal = ({projectName, status, onOk}: IKeysModalProps) => {
   const [keys, setKeys] = useState<IKeys | null>(null);
   const [showSecretKey, setShowSecretKey] = useState(false);
 
@@ -28,7 +29,7 @@ const KeysModal = ({projectName, onOk}: IKeysModalProps) => {
       PromptCraftApiClient
         .getSubscriptionKeys(projectName)
         .then((res: any) => {
-          setKeys(res.data.data);
+          setKeys(res.data);
           ProgressIndicator.hide();
         })
         .catch((e) => {
@@ -54,9 +55,7 @@ const KeysModal = ({projectName, onOk}: IKeysModalProps) => {
         .catch((e) => {
           ProgressIndicator.hide();
           Notification.show(
-            e.response.data.errors?.length
-              ? e.response.data.errors[0].message
-              : 'Refreshing prompt craft subscription keys failed!',
+            e?.response?.data?.errors[0]?.message || e?.response?.errors[0]?.message || 'Refreshing prompt craft subscription keys failed!',
             'alert',
           );
         });
@@ -70,7 +69,7 @@ const KeysModal = ({projectName, onOk}: IKeysModalProps) => {
     <div>
       <header>
         <h3>Secret Keys</h3>
-        <button className={classNames('btn btn-primary', Styles.btnRefresh)} onClick={handleKeysRefresh}><i className="icon mbc-icon refresh" /> Refresh Keys</button>
+        {status !== 'COMPLETED' && <button className={classNames('btn btn-primary', Styles.btnRefresh)} onClick={handleKeysRefresh}><i className="icon mbc-icon refresh" /> Refresh Keys</button>}
       </header>
       <div className={Styles.keysContainer}>
         <div className={Styles.keyItem}>
