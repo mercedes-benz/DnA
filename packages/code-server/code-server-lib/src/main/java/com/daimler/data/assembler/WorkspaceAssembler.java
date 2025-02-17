@@ -83,7 +83,8 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
  import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.DeploymentAuditVO;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.DeploymentTypeEnum;
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import lombok.extern.slf4j.Slf4j;
  
  @Slf4j
@@ -279,6 +280,7 @@
 			}else{
 				deploymentDetails.setIsSecuredWithCookie(false);
 			}
+			deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -341,6 +343,7 @@
 			 }else{
 				deploymentDetailsVO.isSecuredWithCookie(false);
 			 }
+			 deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {
 				 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());

@@ -25,6 +25,11 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private String gitjobRunID;
 	private String oneApiVersionShortName;
 	private Boolean isSecuredWithCookie;
+	private String deploymentType;
+	private String clientId;
+	private String redirectUri;
+	private String ignorePaths;
+	private String scope;
 	private List<DeploymentAudit> deploymentAuditLogs;
 	
 }

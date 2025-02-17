@@ -1584,6 +1584,11 @@ import com.daimler.data.util.ConstantsUtility;
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
 					deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+					deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
+					deploymentDetails.setClientId(clientID);
+					deploymentDetails.setRedirectUri(redirectUri);
+					deploymentDetails.setIgnorePaths(ignorePaths);
+					deploymentDetails.setScope(scope);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
 				 } else {
