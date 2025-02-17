@@ -68,13 +68,13 @@ const KeysModal = ({projectName, status, onOk}: IKeysModalProps) => {
   return (
     <div>
       <header>
-        <h3>Secret Keys</h3>
-        {status !== 'COMPLETED' && <button className={classNames('btn btn-primary', Styles.btnRefresh)} onClick={handleKeysRefresh}><i className="icon mbc-icon refresh" /> Refresh Keys</button>}
+        <h3>Secret Key</h3>
+        {status !== 'COMPLETED' && <button className={classNames('btn btn-primary', Styles.btnRefresh)} onClick={handleKeysRefresh}><i className="icon mbc-icon refresh" /> Refresh Key</button>}
       </header>
       <div className={Styles.keysContainer}>
         <div className={Styles.keyItem}>
           <div>
-            Public Key:
+            Prompt Craft Key:
           </div>
           <div id="secretKey" className={Styles.keys}>
             {showSecretKey
@@ -100,38 +100,6 @@ const KeysModal = ({projectName, status, onOk}: IKeysModalProps) => {
               </React.Fragment>
             )}
             <span className={Styles.copyIcon} onClick={() => copyToClipboard(keys.publicKey)}>
-              <i className="icon mbc-icon copy" />
-            </span>
-          </div>
-        </div>
-        <div className={Styles.keyItem}>
-          <div>
-            Private Key:
-          </div>
-          <div id="secretKey" className={Styles.keys}>
-            {showSecretKey
-              ? keys?.privateKey
-              : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
-          </div>
-          <div>
-            {showSecretKey ? (
-              <React.Fragment>
-                <i
-                  className={classNames('icon mbc-icon visibility-hide ', Styles.visibilityIcon)}
-                  onClick={() => setShowSecretKey(false)}
-                  tooltip-data="Hide"
-                />
-              </React.Fragment>
-            ) : (
-              <React.Fragment>
-                <i
-                  className={classNames('icon mbc-icon visibility-show ', Styles.visibilityIcon)}
-                  onClick={() => setShowSecretKey(true)}
-                  tooltip-data="Show"
-                />
-              </React.Fragment>
-            )}
-            <span className={Styles.copyIcon} onClick={() => copyToClipboard(keys.privateKey)}>
               <i className="icon mbc-icon copy" />
             </span>
           </div>

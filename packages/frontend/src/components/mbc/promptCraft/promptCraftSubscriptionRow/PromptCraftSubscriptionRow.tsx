@@ -8,11 +8,11 @@ import Spinner from '../spinner/Spinner';
 
 export interface IPromptCraftSubscriptionRowProps {
   subscription: any,
-  onSelectSubscription: (subscription: any) => void;
-  onDeleteSubscription: (subscription: any) => void;
+  // onSelectSubscription: (subscription: any) => void;
+  onShowKeys: (subscription: any) => void;
 }
 
-const PromptCraftSubscriptionRow = ({subscription, onSelectSubscription, onDeleteSubscription}: IPromptCraftSubscriptionRowProps) => {
+const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubscriptionRowProps) => {
   const history = useHistory();
 
   useEffect(() => {
@@ -20,50 +20,50 @@ const PromptCraftSubscriptionRow = ({subscription, onSelectSubscription, onDelet
   }, []);
 
   const handleOpenSubscription = () => {
-    history.push(`link here`);
+    history.push(subscription?.subscriptionLink);
   }
 
   return (
     <div className={Styles.projectRow} onClick={handleOpenSubscription}>
       <div className={Styles.col1}>
         <span>
-          {subscription?.name || 'null'}
+          {subscription?.projectName || 'null'}
         </span>
-        {subscription?.status?.state === 'IN_PROGRESS' &&
-          <button className={Styles.stateBtn} tooltip-data={'Click for more information'} onClick={(e) => { e.stopPropagation(); onSelectSubscription(subscription) }}>
+        {subscription?.state !== 'COMPLETED' &&
+          <button className={Styles.stateBtn} tooltip-data={'Subscription Requested'}>
             <Spinner /> <span>&nbsp;</span>
           </button>
         }
-        {subscription?.status?.state === 'COMPLETED' && 
-          <button className={Styles.completedStatus}>
-            <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
+        {subscription?.state === 'COMPLETED' && 
+          <button className={Styles.completedStatus} tooltip-data={'Active'}>
+            <i className={'icon mbc-icon check circle'}></i> <span>&nbsp;</span>
           </button>
         }
       </div>
       <div className={Styles.col2}>
-        <a href={`https://app.fabric.microsoft.com/groups/${subscription.id}`} target='_blank' rel='noopener noreferrer'>
-          Access Workspace
+        <a href={subscription?.subscriptionLink} target='_blank' rel='noopener noreferrer'>
+          Access Subscription
           <i className={classNames('icon mbc-icon new-tab')} />
         </a>
       </div>
       <div className={Styles.col3}>
-        {subscription?.createdBy?.firstName} {subscription?.createdBy?.lastName}
+        {subscription?.orgname || 'NA'}
       </div>
       <div className={Styles.col4}>
         {subscription?.createdOn && regionalDateAndTimeConversionSolution(subscription?.createdOn)}
       </div>
       <div className={Styles.col5}>
-        {subscription?.dataClassification}
+        {subscription?.projectMembers?.map((member:any) => <p key={member?.id}>{member?.firstName} {member?.lastName} - {member?.id}</p>)}
       </div>
       <div className={Styles.col6}>
         {/* {user?.id === subscription?.createdBy?.id && */}
           <div className={Styles.btnTblGrp}>
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
-              onClick={(e) => { e.stopPropagation(); onDeleteSubscription(subscription); }}
+              onClick={(e) => { e.stopPropagation(); onShowKeys(subscription); }}
             >
-              <i className="icon delete"></i>
-              <span>Delete</span>
+              <i className="icon mbc-icon visibility-show"></i>
+              <span>View Keys</span>
             </button>
           </div>
         {/* } */}

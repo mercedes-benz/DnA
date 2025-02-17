@@ -89,7 +89,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
       projectOwner: projectOwner,
     };
     PromptCraftApiClient.createPromptCraftSubscription(data).then((res) => {
-      console.log(res);
+      onSave();
       ProgressIndicator.hide();
       Notification.show('Prompt Craft subscription request successfully placed');
     }).catch(error => {

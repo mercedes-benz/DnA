@@ -60,11 +60,19 @@
     text-align: right;
   }
   .projectLink{
-    color: #00adef;
+    color: #99a5b3;
     background: none;
     border: none;
     padding: unset;
     font-size: 12px;
+
+    > i {
+      margin-right: 10px;
+    }
+
+    &:hover {
+      color: #00adef;
+    }
   }
   .bucketTitleCol {
       flex: 1;

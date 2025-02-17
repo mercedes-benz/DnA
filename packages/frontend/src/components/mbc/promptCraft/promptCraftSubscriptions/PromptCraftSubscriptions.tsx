@@ -22,7 +22,7 @@ interface ISubscription {
   status: any;
 }
 
-const PromptCraftSubscriptions = () => {
+const PromptCraftSubscriptions = ({ user }: any) => {
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
@@ -64,8 +64,14 @@ const PromptCraftSubscriptions = () => {
   }, []);
 
   useEffect(() => {
+    console.log('user: ', user);
+  }, []);
+
+  useEffect(() => {
     getSubscriptions();
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
+
+  const isAdmin = user?.roles[0].id === '3';
 
   // delete subscription
   const deleteSubscriptionContent = (
@@ -101,7 +107,7 @@ const PromptCraftSubscriptions = () => {
         .getPromptCraftSubscriptions(currentPageOffset, maxItemsPerPage)
         .then((res) => {
           if(res.status !== 204) {
-            setSubscriptions(res?.data);
+            setSubscriptions(res?.data ? res?.data : []);
             const totalNumberOfPagesTemp = Math.ceil(res.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -174,13 +180,22 @@ const PromptCraftSubscriptions = () => {
           <div className={Styles.noAccounts}>
             <h5>You don&apos;t have any Prompt Craft subscriptions at this time.</h5>
             <p>Please subscribe to one.</p>
-            <button
-              className={classNames('btn btn-tertiary')}
-              type="button"
-              onClick={() => window.open(`${Envs.ONEAPI_SUBSCRIPTION_URL}`)}
-            >
-              <span>Go to OneAPI</span>
-            </button>
+            { isAdmin ? 
+              <button
+                className={classNames('btn btn-tertiary')}
+                type="button"
+                onClick={() => setCreateSubscription(true)}
+              >
+                <span>Create New Subscription</span>
+              </button> : 
+              <button
+                className={classNames('btn btn-tertiary')}
+                type="button"
+                onClick={() => window.open(`${Envs.ONEAPI_SUBSCRIPTION_URL}`)}
+              >
+                <span>Go to OneAPI</span>
+              </button>
+          }
           </div>
         }
         {listViewMode && (
@@ -223,19 +238,19 @@ const PromptCraftSubscriptions = () => {
               <div className={Styles.projectTable}>
                 <div className={Styles.tableHeader}>
                   <div className={Styles.col1}>
-                    <span>Name</span>
+                    <span>Project Name</span>
                   </div>
                   <div className={Styles.col2}>
                     <span>Subscription Link</span>
                   </div>
                   <div className={Styles.col3}>
-                    <span>Created by</span>
+                    <span>Organization Name</span>
                   </div>
                   <div className={Styles.col4}>
                     <span>Created on</span>
                   </div>
                   <div className={Styles.col5}>
-                    <span>Data Classification</span>
+                    <span>Project Members</span>
                   </div>
                   <div className={Styles.col6}>
                     <span>Action</span>
@@ -245,12 +260,9 @@ const PromptCraftSubscriptions = () => {
                   <PromptCraftSubscriptionRow
                     key={subscription.id}
                     subscription={subscription}
-                    onSelectSubscription={(subscription: any) => { 
-                      setSelectedSubscription(subscription);  
-                    }}
-                    onDeleteSubscription={(subscription: any) => {
+                    onShowKeys={(subscription: any) => {
                       setSelectedSubscription(subscription);
-                      setDeleteModal(true);
+                      setShowKeysModal(true);
                     }}
                   />
                 )}
