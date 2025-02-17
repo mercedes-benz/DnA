@@ -99,10 +99,9 @@ const PromptCraftSubscriptions = () => {
       PromptCraftApiClient
         .getPromptCraftSubscriptions(currentPageOffset, maxItemsPerPage)
         .then((res) => {
-          console.log('res', res);
           if(res.status !== 204) {
-            setSubscriptions(res?.data?.data);
-            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            setSubscriptions(res?.data);
+            const totalNumberOfPagesTemp = Math.ceil(res.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
           } else {
