@@ -261,6 +261,15 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
 
             if(isUserHasAdminAccess(currentUser)){
                 PromptCraftSubscriptionsVO existingVO = service.getByUniqueliteral("projectName", projectName);
+                if (existingVO == null) {
+                    response.setData(existingVO);
+                    response.setSuccess("FAILED");
+                    MessageDescription msg = new MessageDescription("subscription for this Project {} not exists"+ projectName);
+                    errors.add(msg);
+                    response.setErrors(errors);
+                    log.info("subscription for this Project {} not exists", requestVO.getProjectName());
+                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                }
                 if(!"COMPLETED".equalsIgnoreCase(existingVO.getStatus())){
                     if(!"FAILED".equalsIgnoreCase(existingVO.getStatus())){
                         asyncService.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
