@@ -375,8 +375,7 @@ ingress:
     labels: { }
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: prod-ingress-intranet
-      acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
+      kubernetes.io/ingress.class: prod-ingress-intranet      
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme   
@@ -394,8 +393,7 @@ ingress:
     labels: { }
     annotations: 
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: prod-ingress-intranet
-      acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
+      kubernetes.io/ingress.class: prod-ingress-intranet      
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: mercedes-benz-acme   
