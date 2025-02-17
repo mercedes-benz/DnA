@@ -296,6 +296,7 @@ export interface IUserInfo {
   favoriteUsecases?: IUserFavoriteUseCase[];
   roles?: IRole[];
   divisionAdmins?: string[];
+  entitlementGroup?: string[];
 }
 export interface IUserRequestVO {
   data: IUserInfo;
