@@ -78,17 +78,17 @@ public class BaseJMailer implements JMailer {
 	        helper.setSubject(subject);
 	         
 	        boolean html = true;
-			if(subject.contains("Codespace Playground_alert")){
+			if(subject.contains("Codespace Playground Project Alert")){
+				helper.setSubject("ACTION REQUIRED:" + subject);
 				helper.setText("Dear User," +
-				"<br/><br/>" + msgTxt
-				+"<br/><br/>" +
+				"<br/>" +
+				"IMPORTANT!!!"+ "<br/>" + msgTxt
+				+"<br/>" +
 				"<h3>Need Assistance?</h3>" +
-				"<p>join our <a href=\""+ TeamsUri+ "\">Teams channel</a> or <a href=\""+ MattermostUri+ "\">Mattermost channel</a> for help or to discuss any concerns.</p>"
-				+ "<br/><br/>"
-				+ "<p>Thank you for your attention, and we look forward to providing you with an enhanced Codespaces experience!</p>"
-				+ "<br><br>Best regards,<br>" +
-				"<p><a href=\"" + dnaBaseUri+"\">DnA TEAM</a></p>" +
-				"<br/><br/>"
+				"<p>Join our <a href=\""+ TeamsUri+ "\">Teams channel</a> or <a href=\""+ MattermostUri+ "\">Mattermost channel</a> for help or to discuss any concerns.</p>"
+				+ "<br/>" + "<p>Thank you for your attention. We look forward to providing you with an enhanced Codespace experience!</p>"
+				+ "<br>Best regards," +
+				"<p><a href=\"" + dnaBaseUri+"\">DnA TEAM</a></p>" 
 				+"<p> Email: <a href=\"mailto:dna@mercedes-benz.com\">dna@mercedes-benz.com</a></p>", html);
      
 			}
