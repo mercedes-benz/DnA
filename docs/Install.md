@@ -1,41 +1,47 @@
-## **Install with docker-compose**
+## **Installing with Docker Compose**
 
-Docker Compose will help to start the application locally on your computer and provides support to develop and debug the docker containers in the local machine.
+Docker Compose helps start the application locally on your computer and supports the development and debugging of the docker containers on your local machine.
+
+*Note: Except for the JWT, which is generated rather than installed, if you do not already have the following software prerequisites installed on your computer, please click their associated links for instructions on how to install them on your specific machine.*
 
 Software Prerequisites:
 
-* Git 2.35.1+
-* Docker 20.10.13+
-* Docker Compose v2.3.3+
-* JWT token
+* [Docker 20.10.13+](https://docs.docker.com/get-docker/))
+* [Docker Compose v2.3.3+](https://docs.docker.com/compose/install/)
+* [Git 2.35.1+](https://www.git-scm.com/)
+* JSON Web Token (JWT)
 
 Hardware Prerequisites :
 
-* Recommend 6GB free RAM
+* 6GB of free RAM is recommended
   
 #### **Note**
   
-  * *For windows user, enable WSL engine in Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
-  * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
+  * *For Windows users*:
+    * You must enable the Windows Subsystem for Linux (WSL) engine in Docker Desktop; please consult our [FAQ](./FAQ.md) for the steps to enable the WSL engine.
+  * *For all users*:
+    * Make sure your firewall settings are not restricting the npm and gradle packages of the docker files.
 
-#### **JWT Token**
+#### **JSON Web Token (JWT)**
 
-JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml).
-
-* [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
+The JWT is used for the internal communication between microservices. You can generate this token by using a JWT generator, for which there are many providers who can be found through a simple internet search. Next, copy the generated JWT and update the value in the `jwtKey` and `jwtSecretKey` parameters found in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml) file.
 
 #### **Git Cloning** 
 
-Clone the Git Repo in your local computer. (this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop)).
+Clone the Git Repo on your local computer.
+
+*Note*: This can be done by executing the following command via a command prompt, terminal, or a visual git client such as [GitHub Desktop](https://desktop.github.com/).
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace <`<Cloned Folder>`> with actual location path of your computer).
+Once cloning has finished, you will then have a copy of the entire repository on your local machine. Next, go to the deployment folder by executing the the following command: 
+
+*Note*: You must replace <`<Cloned Folder>`> with the actual location path of your computer.
 ```
-cd <<Clonned Folder Path>>/deployment/
+cd <<Cloned Folder Path>>/deployment/
 ```
 #### **Docker Compose**
-Execute the below docker-compose command to create the DnA application.
+Execute the following Docker Compose command to create the DnA application.
 ```
 docker-compose -f docker-compose-local-basic.yml up -d
 ```
@@ -43,67 +49,95 @@ For Reference:
 
 ![This is an image](./images/Docker-compose-sucess.png)
 
-Open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md).
+In your web browser, open the following website: http://localhost:8080. If you have made any changes in the source files, then you must add `--build --force-recreate` args to the Docker Compose command. If you face any issues with Docker Compose, please refer to our [FAQ](./FAQ.md).
 
-To stop the application.
+To stop the application, use the following command:
 ```
 docker-compose -f docker-compose-local-basic.yml down
 ```
 -------------------------------------------------------------------------------------------------------
-## **Install with Helm**
+## **Installing with Helm**
 
-Helm helps you to deploy and manage Kubernetes applications in an easier way.
+Helm helps you deploy and manage Kubernetes applications in an easier way.
 
-Prerequisites :
+*Note 1: Except for the JWT, which is generated rather than installed, if you do not already have the following software prerequisites installed on your computer, please click their associated links for instructions on how to install them on your specific machine.*
 
-* Kubernetes Cluster 1.22+
-* Helm v3.8.1+
-* kubectl 1.22+
-* Kafka [Refer here](https://github.com/apache/kafka)
-* Docker Image Regitsry
-* JWT token
-* Minio Username/Password
+*Note 2: If you do not currently have Kubernetes installed on your computer, it is best to first consult the [Kubernetes setup page](https://kubernetes.io/docs/setup/) before installing any Kubernetes tools such as Kubectl because you must first choose the type of Kubernetes installation that you want, and then you can choose to install tools such as Kubectl.*
 
-#### **JWT Token**
+Software Prerequisites:
 
-JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml) 
+* [Docker Image Registry](https://hub.docker.com/_/registry)
+* [Helm v3.8.1+](https://helm.sh/docs/intro/install/)
+* JSON Web Token (JWT)
+* [Kafka](https://github.com/apache/kafka) 
+* [Kubectl 1.22+](https://kubernetes.io/docs/tasks/tools/)
+* [Kubernetes Cluster 1.22+](https://kubernetes.io/docs/setup/)
+* [Minio Username/Password](https://min.io/)
 
-* [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
+#### **JSON Web Token (JWT)**
+
+The JWT is used for the internal communication between microservices. You can generate this token by using a JWT generator, for which there are many providers who can be found through a simple internet search. Next, copy the generated JWT and update the value within the `jwtKey` and `jwtSecretKey` parameters found in the [values.yaml](../kubernetes/helm/values.yaml) file.
 
 #### **Minio Username And Password**
 
-Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of your wish and update the value to the parameters `minioAccessKey`,`s3AccessKey` , `minioSecretKey`,`s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml).
+Go to the [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify your chosen username and password. Then, in the the parent [values.yaml](../kubernetes/helm/values.yaml) file, update the values in the following parameters:
 
-Password should be a min length of  8 or more characters with a mix of letters, numbers & symbols.
+* `minioAccessKey`
+* `minioSecretKey`
+* `s3AccessKey`
+* `s3SecretKey`
+
+*Note: Your chosen password must be at least eight or more characters in length and include a combination of letters, numbers, and symbols.*
 
 #### **Git Cloning** 
 
-Clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
+Clone the Git Repo on your local computer.
+
+*Note*: This can be done by executing the following command via a command prompt, terminal, or a visual git client such as [GitHub Desktop](https://desktop.github.com/).
 
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command.  (replace <`<Cloned Folder>`> with actual location path of your computer).
-```
-cd <<Clonned Folder Path>>/deployment/
-```
-#### **Build & push images**
+Once cloning has finished, you will then have a copy of the entire repository on your local machine. Next, go to the deployment folder by executing the the following command: 
 
-Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .
-
-Refer [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
+*Note*: You must replace <`<Cloned Folder>`> with the actual location path of your computer.
 ```
-cd <<Clonned Folder Path>>/deployment/
+cd <<Cloned Folder Path>>/deployment/
+```
+#### **Building and Pushing Images**
+
+The following images will be created when executing the command below them:
+
+* Bitnami-postgress
+* Broker
+* Clamav
+* Dashboard
+* DnA-backend
+* DnA-frontend
+* Malware
+* Minio
+* NaaS-backend
+* Storage-be
+* Storage-mfe
+* Vault
+* ZooKeeper
+
+```
+cd <<Cloned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
-Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values.
+*For details on this basic deployment, please refer to this file:* [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
+
+Next, execute the following commands to push the images to your repository. 
+
+*Note: You must replace the contents that are enclosed within these brackets <<...>> to their respective values.*
 ```
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
 ```
 #### **Namespaces**
 
-Execute the below commands to create namespaces.
+Execute the following commands to create namespaces.
 ```
 kubectl create ns dna
 kubectl create ns clamav
@@ -116,47 +150,45 @@ kubectl create ns storage
 
 Update the image names of the respective services in the values.yaml.
 
-  * Refer [values.yaml](../kubernetes/helm/values.yaml)
+  * Please refer to the [values.yaml](../kubernetes/helm/values.yaml) file.
 
-Eg: To update the image name of frontend-service , refer the below screenshot .Just like the below update the image names for every service in the [values.yaml](../kubernetes/helm/values.yaml).
+<ins>Example</ins>: To update the image name of frontend-service, please refer to the screenshot below. As in the screenshot below, update the image names for every service in the [values.yaml](../kubernetes/helm/values.yaml) file.
 
 ![This is an image](./images/frontend_image_update.PNG)
 
-For pulling the images from the registry, update the .dockerconfigjson value in the [values.yaml](../kubernetes/helm/values.yaml).
+To pull images from the registry, update the .dockerconfigjson value in the [values.yaml](../kubernetes/helm/values.yaml) file.
 
-For more info on kubernetes secret for pulling the images.
-
-  * Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
+For more information on the Kubernetes Secret for pulling images, please refer to the [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml).
 
 
-#### **Helm**
+#### **Helm Services**
 
-We are offering mutiple services via this helm chart , Have a look into those by clicking the link [Readme.md](../README.md).
+We are offering mutiple services via this Helm Chart, of which you can learn more about by consulting our [Readme.md](../README.md).
 
-In order to use our helm charts you should have kafka service . you can install by referring the [Kafka Service](https://github.com/apache/kafka).
+In order to use our Helm charts, you must have Kafka installed on your local machine, which you can install by consulting the [Kafka GitHub repository](https://github.com/apache/kafka).
 
-After installing the kafka, update the `naasBroker` parameter value in [Values.yaml](../deployment/kubernetes/helm/values.yaml) to the Fully qualified domain name of the kafka service.
+After installing kafka, you must then update the `naasBroker` parameter value in the [Values.yaml](../deployment/kubernetes/helm/values.yaml) file to the fully qualified domain name of the kafka service.
 
-Execute the below commands to deploy application on the kubernetes cluster using helm.
+Execute the following commands to deploy the application on a Kubernetes cluster using Helm.
 ```
-cd <<Clonned Folder Path>>\deployment\kubernetes\helm
+cd <<Cloned Folder Path>>\deployment\kubernetes\helm
 helm install dna . -f ./charts/values.yaml
 ```
-Execute the below command to list out the helm releases.
+Execute the following command to list out the Helm releases.
 ```
 helm list
 ```
-**Vault service**
+**Vault Service**
 
-We are providing vault service to store the API keys that were generated in the malware scan service.
+We are providing the vault service to store the API keys that were generated in the malware scan service.
 
-After installating the application with helm , vault service will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`.
+After installing the application with Helm, vault service will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`.
 
-To resolve this , intialize the vault service and unseal the root key .
+To resolve this error, intialize the vault service and unseal the root key by executing the following command:
 ```
 kubectl exec vault-0 -n vault  -- vault operator init
 ```
-After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the [values.yaml](../deployment/kubernetes/helm/values.yaml).
+After executing the above command, it will give us the root token and five keys. Save the root token and mention it in the storagebe and backend sections of the [values.yaml](../deployment/kubernetes/helm/values.yaml).
 
 We can unseal the vault service with any of the `3 keys out of 5`.
 ```
@@ -164,22 +196,22 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_01>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_02>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ```
-For reference 
+For reference:
 
 ![This is an image](./images/vault-unsealed.PNG)
 
-Execute the below commands to enable the kv engine for storing the secrets:
+Execute the following commands to enable the kv engine for storing the secrets:
 ```
 kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
 kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
-**Attachment scan**
+**Attachment Scan**
 
-To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav).
+You can verify that the attachments are free from malicious code by scanning them with the malware scan service. We are creating the malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav).
 
-To use this service, set the respective values to the below parameters in the [values.yaml](../deployment/kubernetes/helm/values.yaml).
+To use this service, set the respective values to the following parameters in the [values.yaml](../deployment/kubernetes/helm/values.yaml) file.
 
-Open the website http://localhost:7179 in your browser and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id.
+In your web browser, open the website, http://localhost:7179, and go to `myservices -> malwarescan` and then click `Generate new API Key` and copy the application key and application id.
 ```
 avscanApiKey:   
 avscanAppId: 
@@ -191,34 +223,35 @@ For reference:
 
 **Upgrading**
 
-Do Helm Upgrade, if you made changes on helm files.
+If you made changes within any Helm files, you must upgrade Helm via the following command:
 ```
 helm upgrade dna . -f ./charts/values.yaml
 ```
 
-**Accessing the application with localhost**
+**Accessing the Application with Localhost**
 
-Port-forward the dna-frontend and storage-mfe service to any port_of_your_wish.
+Port-forward the dna-frontend and storage-mfe service to any port of your choice.
 
+<ins>Example:</ins>
 ```
 kubectl port-forward service/storage-mfe 7175:80
 kubectl port-forward service/dna-frontend-service 7179:3000
 ```
-After executing the above step , you can access the application by opening the (http://localhost:7179) in your browser.
+After executing the above commands, you can access the application by opening the http://localhost:7179 port address in your web browser.
 
 **Production Environemnt**
 
-We are already providing ingress manifest files for every microservice. So install any kubernetes ingress controller to install the application directly in the production environment.
+We are already providing ingress manifest files for every microservice. Thus, you can install any kubernetes ingress controller in order to install the application directly in the production environment.
 
-By default, we are disabling the ingress in [values.yaml](../deployment/kubernetes/helm/values.yaml)* . If you are using in the production env then set the parameter `enabled: true` in the ingress section.
+By default, we are disabling the ingress in the [values.yaml](../deployment/kubernetes/helm/values.yaml) file. If you are using ingress in the production environment, then set the parameter to `enabled: true` in the ingress section.
 
-Eg : Please refer the below image and enable the ingress for every microservice.
+<ins>Example</ins>: Please refer to the image below and enable the ingress for every microservice.
 
 ![enabling the ingress for frontend service](./images/ingress_enabled_true.PNG)
 
 **Note**
 
-* *If you are not using 7175 and 7179 ports then change the below parameter values in [values.yaml](../deployment/kubernetes/helm/values.yaml)*. 
+*If you are not using the 7175 and 7179 ports, then change the following parameter values in the [values.yaml](../deployment/kubernetes/helm/values.yaml) file*. 
 ```
 storageMFEAppURL:
 PROJECTSMO_CONTAINER_APP_URL:
@@ -226,22 +259,22 @@ PROJECTSMO_CONTAINER_APP_URL:
 
 **Uninstalling**
 
-To uninstall the helm app
+To uninstall the Helm app, execute the following command:
 
 ```
 helm uninstall dna
 ```
 -------------------------------------------------------------------------------------------------------
-DnA Platform can be configured quite a lot, have a look at possible config parameters:
+The DnA Platform can be configured extensively, so please have a look at some possible configuration parameters via the following link:
 
 * [Environment Variables](./APP-ENV-CONFIG.md)
 
-Follow simple instructions on how to use simple and free Open ID Connect identity provider
+For information on the DnA Authentication process and how to use the simple and free Open ID Connect service via the Okta provider, please consult the following link:
 
 * [OpenId Connect with OKTA](./OPENID-CONNECT.md)
 ##### FAQ
 
-* [About GIT](https://git-scm.com/doc)
+* [About Git](https://git-scm.com/doc)
 * [Docker installation.](https://docs.docker.com/get-docker/)
 * [About docker-compose.](https://docs.docker.com/compose/)
 * [Helm installation](https://helm.sh/docs/intro/install/)
@@ -249,4 +282,4 @@ Follow simple instructions on how to use simple and free Open ID Connect identit
 
 **Troubleshooting**
 
-* *If you face any issue with helm installation, refer [FAQ](./FAQ.md)*.
+* *If you face any issues with the Helm installation, please refer to our [FAQ](./FAQ.md)*.
