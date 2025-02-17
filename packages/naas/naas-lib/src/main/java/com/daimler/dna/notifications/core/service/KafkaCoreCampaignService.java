@@ -149,7 +149,7 @@ public class KafkaCoreCampaignService {
 					}
 					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
-						if(message.getEventType().contains("Playground_alert")){
+						if(message.getEventType().contains("Playground Project Alert")){
 							emailNotificationPreferenceFlag = true;
 						}
 						else{
