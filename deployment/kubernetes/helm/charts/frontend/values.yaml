@@ -78,6 +78,7 @@ configJs: |
       ENABLE_FABRIC_SERVICE: "false",
       ENABLE_DATA_ENTRY_SERVICE: "false",
       ENABLE_POWER_PLATFORM_SERVICE: "false",
+      ENABLE_PROMPT_CRAFT_SERVICE: "false",
       CHRONOS_MFE_APP_URL:"http://localhost:8085",
       ENABLE_MATOMO_SERVICE:"true",
       MATOMO_MFE_APP_URL:"http://localhost:8089",
