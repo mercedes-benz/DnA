@@ -78,4 +78,4 @@ Please visit (https://www.mercedes-benz-techinnovation.com/en/imprint/) for info
 
 Before using the DnA program in production, please take all of the necessary
 precautions such as testing and verifying the program regarding your specific use case.
-The program was tested solely for our own use cases, which may differ from yours.
+The source code has been tested solely for our own use cases, which might differ from yours
