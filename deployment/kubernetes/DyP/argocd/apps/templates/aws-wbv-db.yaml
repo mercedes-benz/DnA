@@ -1,4 +1,4 @@
-{{- if eq .Values.env "prod" }} 
+# {{- if eq .Values.env "prod" }} 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,8 +10,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: db
-    env: {{ .Values.env }}
-    project: {{ .Values.env }}-dna
+    env: prod
+    project: prod-dna
 spec:
   destination:
     namespace: cs-apps-services
@@ -36,4 +36,4 @@ spec:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
 {{- end }}
-{{- end }}
+# {{- end }}
