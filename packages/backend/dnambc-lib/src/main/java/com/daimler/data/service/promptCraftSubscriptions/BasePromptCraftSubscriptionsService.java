@@ -125,6 +125,8 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 			if(uiLiciousResponse != null && uiLiciousResponse.getResponseStatus() == HttpStatus.OK ){
 				vo.setRunId(uiLiciousResponse.getRunId());
 				vo.setStatus("IN_PROGRESS");
+				PromptCraftSubscriptionsNsql entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+				savedSubscription = jpaRepo.save(entity);
 				asyncService.checkForKeysFromUiLicious(vo.getProjectName(),uiLiciousResponse.getRunId());
 			}else{
 				response.setData(vo);
@@ -135,8 +137,6 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 				response.setErrors(errors);
 				return response;
 			}
-			PromptCraftSubscriptionsNsql entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-			savedSubscription = jpaRepo.save(entity);
 			response.setData(vo);
 			response.getData().setId(savedSubscription.getId());
 			response.setSuccess("SUCCESS");
