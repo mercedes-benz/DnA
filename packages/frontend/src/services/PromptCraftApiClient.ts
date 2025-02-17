@@ -35,7 +35,7 @@ export class PromptCraftApiClient {
     return this.get(`/promptCraftSubscriptions/${projectName}/getkeys`);
   }
   public static createPromptCraftSubscription(data: any) {
-    return this.post('promptCraftSubscriptions', { data });
+    return this.post('promptCraftSubscriptions/create', { data });
   }
   public static refreshSubscriptionKeys(projectName: string) {
     return this.post(`/promptCraftSubscriptions/${projectName}/refresh`);
