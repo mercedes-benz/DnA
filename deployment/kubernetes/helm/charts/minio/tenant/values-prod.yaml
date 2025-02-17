@@ -1,11 +1,11 @@
 ## Secret with default environment variable configurations to be used by MinIO Tenant.
 ## Not recommended for production deployments! Create the secret manually instead.
-secrets:
-  name: myminio-env-configuration
-  # MinIO root user and password
-  accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_USER>
-  secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
-  ## Set the value for existingSecret to use a pre created secret and dont create default one
+# secrets:
+#   name: myminio-env-configuration
+#   # MinIO root user and password
+#   accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_USER>
+#   secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>
+#   ## Set the value for existingSecret to use a pre created secret and dont create default one
   # existingSecret: random-env-configuration
 ## MinIO Tenant Definition
 tenant:
@@ -26,6 +26,12 @@ tenant:
   ## The secret is expected to have a key named config.env containing environment variables exports.
   configuration:
     name: myminio-env-configuration
+  configSecrets:
+    name: myminio-env-configuration
+    # MinIO root user and password
+    accessKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_USER>
+    secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/minio#MINIO_ROOT_PASSWORD>  
+    
   ## Specification for MinIO Pool(s) in this Tenant.
   pools:
     ## Servers specifies the number of MinIO Tenant Pods / Servers in this pool.
