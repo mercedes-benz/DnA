@@ -21,7 +21,7 @@ spec:
     solvers:       
     - http01:
         ingress:
-          ingressClassName: {{ .Values.env }}-ingress-intranet
+          # ingressClassName: {{ .Values.env }}-ingress-intranet
           ingressTemplate:
             metadata:
               annotations:
