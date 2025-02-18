@@ -42,6 +42,9 @@ import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
 
 @Repository
 public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserInfoNsql, String>
@@ -168,4 +171,13 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 		return result.intValue();
 	}
 
+	@Override
+	public boolean deleteById(String id) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaDelete<UserInfoNsql> delete = cb.createCriteriaDelete(UserInfoNsql.class);
+		Root<UserInfoNsql> root = delete.from(UserInfoNsql.class);
+		delete.where(cb.equal(root.get("id"), id));
+		int rowsDeleted = em.createQuery(delete).executeUpdate();
+		return rowsDeleted > 0;
+	}
 }
