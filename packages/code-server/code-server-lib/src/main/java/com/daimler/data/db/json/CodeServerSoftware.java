@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import com.daimler.data.db.json.CodeServerSoftware;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -45,5 +46,9 @@ public class CodeServerSoftware implements Serializable {
 
 	private String softwareName;
 	private String additionalProperties;
-    
+	private String id;
+	private Date createdOn;
+	private Date updatedOn;
+	private String createdBy;
+	private String updatedBy;
 }
