@@ -78,7 +78,7 @@ const AllCodeSpaces = (props) => {
             .then((res) => {
                 setGroupLoading(false);
                 if(res.status !== 204) {
-                    setCodeSpaceGroups(res?.data?.data);
+                    setCodeSpaceGroups(res?.data?.data?.data);
                 } else {
                     setCodeSpaceGroups([]);
                 }
@@ -340,13 +340,22 @@ const AllCodeSpaces = (props) => {
     const [selectedCodespaces, setSelectedCodespaces] = useState();
 
     useEffect(() => {
-      showCodespacesModal &&
-        CodeSpaceApiClient.getCodeSpaceGroup(selectedCodeSpaceGroup?.id).then((res) => {
-            setSelectedCodespaces(res.data.data);
+      if(showCodespacesModal) {
+        ProgressIndicator.show();
+        CodeSpaceApiClient.getCodeSpaceGroup(selectedCodeSpaceGroup?.groupId).then((res) => {
+            setSelectedCodespaces(res?.data?.data);
+            ProgressIndicator.hide();
         }).catch((err) => {
-            console.log(err);
+            ProgressIndicator.hide();
+            Notification.show(
+                err.response.data.errors?.length
+                ? err.response.data.errors[0].message
+                : 'Loading code spaces failed! Please try again.',
+                'alert',
+            );
         });
-    }, [showCodespacesModal, selectedCodeSpaceGroup?.id]);
+    }
+    }, [showCodespacesModal, selectedCodeSpaceGroup?.groupId]);
 
     const codespacesModalContent = <>
     <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
@@ -455,24 +464,21 @@ const AllCodeSpaces = (props) => {
 
     const deleteCodeSpaceGroupAccept = () => {
         ProgressIndicator.show();
-        CodeSpaceApiClient.createCodeSpaceGroup({data: selectedCodeSpaceGroup})
-            .then((res) => {
-            Notification.show(`Code Space Group deleted successfully`);
-            if(res.status !== 204) {
-                setCodeSpaceGroups(res?.data?.data);
-            } else {
-                setCodeSpaceGroups([]);
-            }
-            ProgressIndicator.hide();
+        CodeSpaceApiClient.deleteCodeSpaceGroup(selectedCodeSpaceGroup?.groupId)
+            .then(() => {
+                setShowDeleteCodespaceGroupModal(false);
+                Notification.show(`Code Space Group deleted successfully`);
+                getCodeSpaceGroupsData();
+                ProgressIndicator.hide();
             })
             .catch((e) => {
-            ProgressIndicator.hide();
-            Notification.show(
-                e.response.data.errors?.length
-                ? e.response.data.errors[0].message
-                : 'Deleting code space group failed!',
-                'alert',
-            );
+                ProgressIndicator.hide();
+                Notification.show(
+                    e.response.data.errors?.length
+                    ? e.response.data.errors[0].message
+                    : 'Deleting code space group failed!',
+                    'alert',
+                );
             });
     }
 
@@ -579,17 +585,17 @@ const AllCodeSpaces = (props) => {
                         <Spinner />
                     </div>
                 }
-                {!groupLoading && codeSpaceGroups?.length === 0 && 
+                {!groupLoading && codeSpaces?.length > 0 && codeSpaceGroups?.length === 0 && 
                     <div className={Styles.emptyGroup}>
                         <div>
                             <p>
-                                You don&apos;t have any code space group at this time.
-                                <br /> Please create a new one.
+                                You don&apos;t have any Code Space Group at this time.
+                                <br /> Please create one.
                             </p>
                         </div>
                         <div>
                             <button className={'btn btn-primary'} type="button" onClick={() => setShowAddCodespaceGroupModal(true)}>
-                                <span>Create new Code Space Group</span>
+                                <span>Create Code Space Group</span>
                             </button>
                         </div>
                     </div>
@@ -609,6 +615,7 @@ const AllCodeSpaces = (props) => {
                                 onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
+                                onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
                             />
                         )}
                     </div>
@@ -652,9 +659,6 @@ const AllCodeSpaces = (props) => {
                                             {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
                                                 return (
                                                     <CodeSpaceCardItem
-                                                        onDragStartCard={() => {  
-                                                            console.log('draggable', draggableItemRef.current.id);
-                                                        }}
                                                         ref={draggableItemRef}
                                                         key={index}
                                                         userInfo={props.user}

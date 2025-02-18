@@ -329,19 +329,15 @@ const getCodeSpaceGroup = (id) => {
 };
 
 const createCodeSpaceGroup = (data) => { 
-    return server.post(`/workspaces/group/create`, {
-        data,
-    });
+    return server.post(`/workspaces/group/create`, data);
 };
 
 const editCodeSpaceGroup = (data) => { 
-    return server.put(`/workspaces/group/edit`, {
-        data,
-    });
+    return server.put(`/workspaces/group/edit`, data);
 };
 
-const deleteCodeSpaceGroup = () => { 
-    return server.delete(`/workspaces/group/delete`, {
+const deleteCodeSpaceGroup = (id) => { 
+    return server.delete(`/workspaces/group/delete/${id}`, {
         data: {},
     });
 };
