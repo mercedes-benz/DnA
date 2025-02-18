@@ -48,7 +48,7 @@ airflowHome: /opt/airflow
 defaultAirflowRepository: registry-emea.app.corpintra.net/dnaplatform/airflow/officalairflow
 
 # Default airflow tag to deploy
-defaultAirflowTag: "promcraft-docs-v3"
+defaultAirflowTag: "promcraft-docs-v2"
 
 # Default airflow digest. If specified, it takes precedence over tag
 defaultAirflowDigest: ~
@@ -125,11 +125,10 @@ ingress:
   web:
     # Enable web ingress resource
     enabled: true
-
     # Annotations for the web Ingress
     annotations:
       cert-manager.io/cluster-issuer: mercedes-benz-acme
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'    
@@ -155,7 +154,7 @@ ingress:
         secretName: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
 
     # The Ingress Class for the web Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: prod-ingress-intranet
 
     # configs for web Ingress TLS (Deprecated - renamed to `ingress.web.hosts[*].tls`)
     tls:
@@ -197,7 +196,7 @@ ingress:
     #     secretName: ""
 
     # The Ingress Class for the flower Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: prod-ingress-intranet
 
     # configs for flower Ingress TLS (Deprecated - renamed to `ingress.flower.hosts[*].tls`)
     tls:
@@ -387,7 +386,7 @@ data:
     user: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdbuser | squote>
     pass: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
-    host: airflow-db.airflow.svc.cluster.local
+    host: airflow-db.prod-dna-airflow.svc.cluster.local
     port: 64000
     db: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
@@ -755,13 +754,13 @@ scheduler:
       maxUnavailable: 1
       # minAvailable: 1
 
-  resources: {}
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  resources:
+   limits:
+    cpu: 3000m
+    memory: 3500Mi
+   requests:
+    cpu: 2500m
+    memory: 3000Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1265,7 +1264,7 @@ triggerer:
     # Enable persistent volumes
     enabled: false
     # Volume size for triggerer StatefulSet
-    size: 3Gi
+    size: 5Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
     storageClassName: nfs-sc
     # Execute init container to chown log directory.
@@ -2001,6 +2000,8 @@ config:
     dags_folder: '{{ include "airflow_dags" . }}'
     # This is ignored when used with the official Docker image
     load_examples: 'False'
+    enable_xcom_pickling: 'True'
+    dagbag_import_timeout: 360   
     executor: '{{ .Values.executor }}'
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
@@ -2043,6 +2044,14 @@ config:
     reinit_frequency: '{{ .Values.kerberos.reinitFrequency }}'
     principal: '{{ .Values.kerberos.principal }}'
     ccache: '{{ .Values.kerberos.ccacheMountPath }}/{{ .Values.kerberos.ccacheFileName }}'
+  smtp:
+    smtp_host: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtphost>
+    smtp_starttls: 'True'
+    smtp_ssl: 'false'
+    smtp_user: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpuser>
+    smtp_password: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtppassword>
+    smtp_port: 25
+    smtp_mail_from: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpmailid>
   celery_kubernetes_executor:
     kubernetes_queue: 'kubernetes'
   # The `kubernetes` section is deprecated in Airflow >= 2.5.0 due to an airflow.cfg schema change.
@@ -2164,7 +2173,7 @@ dags:
     # interval between git sync attempts in seconds
     # high values are more likely to cause DAGs to become out of sync between different components
     # low values cause more traffic to the remote git repository
-    wait: 1
+    wait: 5
     containerName: git-sync
     uid: 65533
 
