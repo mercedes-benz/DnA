@@ -34,6 +34,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         .then((res) => {
           if(res.status !== 204) {
             const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.bucketName} })
+            .sort((a, b) => a.name.localeCompare(b.name));
             setBuckets(sortedBuckets);
           } else {
             setBuckets([]);
@@ -145,6 +146,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
           isMandatory={true}
           showMissingEntryError={bucketNameError}
           showAllTagsOnFocus={true}
+          disableSelfTagAdd={true}
         />
       </div>
       <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
