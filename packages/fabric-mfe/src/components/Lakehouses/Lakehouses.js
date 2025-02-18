@@ -13,6 +13,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -450,8 +451,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-  const isAdmin = user?.entitlementGroup?.filter(entitlement =>
-    entitlement?.split('_')[2]==='Admin').length===1;
+  const isAdmin = user?.entitlementGroup?.some(entitlement =>
+    entitlement.includes(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}_Admin`)
+  );
   const isOwner = user?.id === workspace?.createdBy?.id; 
   return (
     <>
