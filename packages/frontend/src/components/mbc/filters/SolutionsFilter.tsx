@@ -339,14 +339,26 @@ const SolutionsFilter = ({
               setFilterApplied(true);
             }
             userPreferenceDataId = userPreference.id;
+          } else {
+            queryParams.dataValueRange.startYear = defaultStartYear;
+            queryParams.dataValueRange.endYear = defaultEndYear;
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
-          if(queryParams.dataValueRange.startYear < years[0]){
-            queryParams.dataValueRange.startYear = years[0];
+          if (queryParams.dataValueRange.startYear < years[0]) {
+            if (years.includes(Number(defaultStartYear))) {
+              queryParams.dataValueRange.startYear = defaultStartYear;
+            } else {
+              queryParams.dataValueRange.startYear = years[0];
+            }
           }
-          if(queryParams.dataValueRange.endYear > years[years.length -1]){
-            queryParams.dataValueRange.endYear = years[years.length -1];
+          if (queryParams.dataValueRange.endYear > years[years.length - 1]) {
+            if (years.includes(Number(defaultEndYear))) {
+              queryParams.dataValueRange.endYear = defaultEndYear;
+            } else {
+              queryParams.dataValueRange.endYear = years[years.length - 1];
+            }
           }
+
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
