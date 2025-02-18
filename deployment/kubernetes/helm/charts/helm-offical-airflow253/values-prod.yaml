@@ -2045,13 +2045,13 @@ config:
     principal: '{{ .Values.kerberos.principal }}'
     ccache: '{{ .Values.kerberos.ccacheMountPath }}/{{ .Values.kerberos.ccacheFileName }}'
   smtp:
-    smtp_host: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtphost>
+    smtp_host: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtphost>
     smtp_starttls: 'True'
     smtp_ssl: 'false'
-    smtp_user: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpuser>
-    smtp_password: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtppassword>
+    smtp_user: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtpuser>
+    smtp_password: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtppassword>
     smtp_port: 25
-    smtp_mail_from: <path:dna_aws_kv/data/staging/kubernetesSecret/officalairflow#smtpmailid>
+    smtp_mail_from: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtpmailid>
   celery_kubernetes_executor:
     kubernetes_queue: 'kubernetes'
   # The `kubernetes` section is deprecated in Airflow >= 2.5.0 due to an airflow.cfg schema change.
