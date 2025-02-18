@@ -18,32 +18,6 @@ import Tags from 'dna-container/Tags';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
-// import TextBox from '../../shared/textBox/TextBox';
-
-// export interface IBranch {
-//   name: string;
-// }
-
-// export interface IDeployRequest {
-//   targetEnvironment: string; // int or prod
-//   branch: string;
-//   secureWithIAMRequired?: boolean;
-//   technicalUserDetailsForIAMLogin?: string;
-//   valutInjectorEnable?: boolean;
-//   clientID?: string;
-//   clientSecret?: string;
-// }
-
-// interface DeployModalProps {
-//   codeSpaceData: ICodeSpaceData;
-//   enableSecureWithIAM: boolean;
-//   setShowCodeDeployModal: (show: boolean) => void;
-//   startDeployLivelinessCheck?: (workspaceId: string, deployEnvironment: string) => void;
-//   setCodeDeploying: (codeDeploying: boolean) => void;
-//   setIsApiCallTakeTime: (apiCallTakeTime: boolean) => void;
-//   navigateSecurityConfig: () => void;
-// }
-
 const DeployModal = (props) => {
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState(true);
   const [branches, setBranches] = useState([]);
@@ -93,6 +67,8 @@ const DeployModal = (props) => {
   // const [isSecuredWithCookie, setIsSecuredWithCookie] = useState(false);
   const [deploymentType, setDeploymentType] = useState('API');
   const [isUiRecipe, setIsUiRecipe] = useState(false);
+  const [deploymentDetails, setDeploymentDetails] = useState();
+  const [resetRequired, setResetRequired] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -103,7 +79,6 @@ const DeployModal = (props) => {
   useEffect(() => {
     Tooltip.defaultSetup();
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
-    setClientId('');
     setClientIdError('');
     setClientSecret('');
     setClientSecretError('');
@@ -122,11 +97,18 @@ const DeployModal = (props) => {
           element.id = element.name;
         });
         setBranches(branches);
+        const deploymentDetails = projectDetails?.intDeploymentDetails;
+        setDeploymentDetails(deploymentDetails);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-        setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-        setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
-        setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
-        setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
+        setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
+        setOneApiSelected(deploymentDetails?.oneApiVersionShortName?.length || false);
+        setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
+        setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+        setClientId(deploymentDetails?.clientId || '');
+        setRedirectUri(deploymentDetails?.redirectUri || '');
+        deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
+        deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
+        setDeploymentType(deploymentDetails?.deploymentType || 'API');
         // setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
         SelectBox.defaultSetup();
       })
@@ -149,13 +131,35 @@ const DeployModal = (props) => {
 
   useEffect(() => {
     setRedirectUriError('');
+    const shouldReset = (cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
+      (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie) ||
+      (deploymentDetails?.deploymentType?.length && deploymentType!== deploymentDetails?.deploymentType);
+    setResetRequired(shouldReset);
     deploymentType==='API' ? setIsUiRecipe(false) : setIsUiRecipe(true);
     deploymentType==='API'? setRedirectUri('') : setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
   }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     Tooltip.defaultSetup();
-  }, [secureWithIAMSelected]);// eslint-disable-line react-hooks/exhaustive-deps
+    const shouldReset = (cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
+      (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie);
+    setResetRequired(shouldReset);
+  }, [secureWithIAMSelected, cookieSelected]);// eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (resetRequired) {
+      setClientId('');
+      setClientSecret('');
+      setRedirectUri('');
+      setIgnorePath([]);
+      setScope(['openid', 'offline_access']);
+    } else {
+      setClientId(deploymentDetails?.clientId || '');
+      setRedirectUri(deploymentDetails?.redirectUri || '');
+      deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
+      deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
+    }
+  },[resetRequired]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
@@ -200,100 +204,49 @@ const DeployModal = (props) => {
   };
 
   const onDeployEnvironmentChange = (evnt) => {
-    setClientId('');
     setClientIdError('');
     setClientSecret('');
     setClientSecretError('');
     setOneApiVersionShortNameError('');
     setRedirectUriError('');
     setChangeSelected(false);
+  
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
-    if (deployEnv === 'staging') {
-      setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-      getPublishedConfig(props?.codeSpaceData?.id, 'int');
-      setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
-      setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
-      // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-      setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
-      // setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
-    } else {
-      setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-      getPublishedConfig(props?.codeSpaceData?.id, 'prod');
-      setOneApiSelected(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false);
-      setOneApiVersionShortName(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName || '');
-      // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-      setCookieSelected(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
-      // setIsSecuredWithCookie(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
-    }
+  
+    const deploymentDetails = deployEnv === 'staging' 
+      ? projectDetails?.intDeploymentDetails 
+      : projectDetails?.prodDeploymentDetails;
+    setDeploymentDetails(deploymentDetails);
+  
+    setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
+    getPublishedConfig(props?.codeSpaceData?.id, deployEnv === 'staging' ? 'int' : 'prod');
+    setOneApiSelected(deploymentDetails?.oneApiVersionShortName?.length || false);
+    setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
+    setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+    setClientId(deploymentDetails?.clientId || '');
+    setRedirectUri(deploymentDetails?.redirectUri || '');
+    deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
+    deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
+    setDeploymentType(deploymentDetails?.deploymentType || 'API');
   };
 
-  // const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-  //   const iamUserID = evnt.currentTarget.value.trim();
-  //   setIAMTechnicalUserID(iamUserID);
-  //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
-  // };
-
-  // const setVault = () => {
-  //   ProgressIndicator.show();
-  //   CodeSpaceApiClient.read_secret(
-  //     projectDetails?.projectName.toLowerCase(),
-  //     deployEnvironment === 'staging' ? 'int' : 'prod',
-  //   )
-  //     .then((response) => {
-  //       ProgressIndicator.hide();
-  //       Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-  //     })
-  //     .catch(() => {
-  //       ProgressIndicator.hide();
-  //       // if (err?.response?.data?.errors?.length > 0) {
-  //       //   err?.response?.data?.errors.forEach((err: any) => {
-  //       //     Notification.show(err?.message || 'Something went wrong.', 'alert');
-  //       //   });
-  //       // } else {
-  //       //   Notification.show(err?.message || 'Something went wrong.', 'alert');
-  //       // }
-  //     });
-  // };
-
   const onAcceptCodeDeploy = () => {
-    // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
-    //   setIAMTechnicalUserIDError(requiredError);
-    //   return;
-    // } else {
-    //   setIAMTechnicalUserIDError('');
-    // }
     let formValid = true;
-    if (
-      secureWithIAMSelected &&
+    const secureWithIAMValidation = secureWithIAMSelected &&
       (((deployEnvironment === 'staging'
         ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
         : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
-        changeSelected)) &&
-      clientSecret.length === 0
-    ) {
+        changeSelected || resetRequired));
+    if (secureWithIAMValidation && clientId.length === 0) {
       formValid = false;
       setClientIdError('*Missing Entry');
     }
-    if (
-      secureWithIAMSelected && 
-      (((deployEnvironment === 'staging'
-        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
-        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
-        changeSelected)) &&
-      clientSecret.length === 0
-    ) {
+    if (secureWithIAMValidation && clientSecret.length === 0) {
       formValid = false;
       setClientSecretError('*Missing Entry');
     }
-    if (
-      secureWithIAMSelected && 
-      (((deployEnvironment === 'staging'
-        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
-        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
-        changeSelected)) && isUiRecipe &&
-      redirectUri.length === 0
-    ) {
+    if (secureWithIAMValidation && isUiRecipe && redirectUri.length === 0) {
       formValid = false;
       setRedirectUriError('*Missing Entry');
     }
@@ -315,11 +268,11 @@ const DeployModal = (props) => {
         targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
         branch: branchValue[0],
         // valutInjectorEnable: vaultEnabled,
-        clientID: clientId,
+        clientID: secureWithIAMSelected ? clientId : '',
         clientSecret: clientSecret,
-        redirectUri: redirectUri || '',
-        ignorePaths: ignorePath.join(',') || '',
-        scope: secureWithIAMSelected ? scope.join(' ') : '',
+        redirectUri: secureWithIAMSelected && redirectUri?.length ? redirectUri : '',
+        ignorePaths: secureWithIAMSelected && ignorePath?.length ? ignorePath?.join(',') : '',
+        scope: secureWithIAMSelected ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         isSecuredWithCookie : cookieSelected || false,
@@ -547,7 +500,7 @@ const DeployModal = (props) => {
                         </div>
                         <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'OIDC based authentication enabled (default)'}</label></div>
                       </div>)}
-                      { (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
+                      { (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -673,34 +626,6 @@ const DeployModal = (props) => {
                       </span>
                     </>
                   )}
-                  {/* {secureWithIAMSelected && (
-                <div
-                  className={classNames(
-                    Styles.flexLayout,
-                    projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
-                  )}
-                >
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'iamTechnicalUserID'}
-                      labelId={'iamTechnicalUserIDLabel'}
-                      label={'Technical User ID'}
-                      placeholder={'IAM Technical User Id'}
-                      value={iamTechnicalUserID}
-                      errorText={iamTechnicalUserIDError}
-                      required={true}
-                      maxLength={7}
-                      onChange={onIAMTechnicalUserIDOnChange}
-                    />
-                  </div>
-                  <div className={Styles.createTechUserWrapper}>
-                    <a href={IAM_URL} target="_blank" rel="noreferrer">
-                      Create a new technical user in IAM (Enabled only with Production IAM)
-                    </a>
-                  </div>
-                </div>
-              )} */}
                 </>
               )}
               {deployEnvironment === 'production' && (
@@ -790,7 +715,7 @@ const DeployModal = (props) => {
                         </div>
                         <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
                       </div>)}
-                      {(!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected  ? (
+                      {(!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired  ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -916,38 +841,10 @@ const DeployModal = (props) => {
                     </>
                   )}
                   
-                  {/* {secureWithIAMSelected && (
-                <div
-                  className={classNames(
-                    Styles.flexLayout,
-                    projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
-                  )}
-                >
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'iamTechnicalUserID'}
-                      labelId={'iamTechnicalUserIDLabel'}
-                      label={'Technical User ID'}
-                      placeholder={'IAM Technical User Id'}
-                      value={iamTechnicalUserID}
-                      errorText={iamTechnicalUserIDError}
-                      required={true}
-                      maxLength={7}
-                      onChange={onIAMTechnicalUserIDOnChange}
-                    />
-                  </div>
-                  <div className={Styles.createTechUserWrapper}>
-                    <a href={IAM_URL} target="_blank" rel="noreferrer">
-                      Create a new technical user in IAM (Enabled only with Production IAM)
-                    </a>
-                  </div>
-                </div>
-              )} */}
                 </>
               )}
             </>
-          {/* )} */}
+
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">
