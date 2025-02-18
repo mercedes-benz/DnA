@@ -326,4 +326,15 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
 	}
 
+	@Override
+	public boolean deleteById(String id){
+		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
+		if (userInfo.isPresent()) {
+			customRepo.deleteById(id);
+			return true;
+		}
+		return false;
+	}
+	
+
 }

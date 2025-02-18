@@ -51,6 +51,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import javax.persistence.EntityNotFoundException;
+import com.daimler.data.controller.exceptions.GenericMessage;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -298,6 +300,65 @@ public class UserInfoController implements UsersApi {
 		}
 
 	}
+
+	@Override
+	@ApiOperation(value = "Delete specific user for a given userid", nickname = "deleteById", notes = "Delete specific user for a given userid. This endpoints will be used to Delete specific user for a given userid.", response = GenericMessage.class, tags={ "users", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/users/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "Id of the user for which information to be fetched",required=true) @PathVariable("id") String id){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO(); // take user info from jwt
+			String userId = currentUser != null ? currentUser.getId() : "";// set to userID
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId); // taking userinfo from database
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();// getting roles from db returned vo objet
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || !isAdmin) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete User Record. User does not have admin privileges.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							log.debug("User {} cannot delete User Record, insufficient privileges", userId);
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			UserInfoVO userinfo = userInfoService.getById(id);// from db, where getById converts entity to vo 
+			userInfoService.deleteById(id);
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			log.debug("User Record {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.error("No Record found with id {}, failed to delete", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to delete User Record {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 
 	@Override
 	public ResponseEntity<BookmarkResponseVO> updateBookmark(@Valid BookmarkRequestVO bookmarkRequestVO) {
