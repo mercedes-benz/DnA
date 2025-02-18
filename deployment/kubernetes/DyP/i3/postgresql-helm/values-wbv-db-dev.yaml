@@ -204,7 +204,7 @@ dbusers:
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/wbvdevDB#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: db
+    username: wbv
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/wbvdevDB#dbadm.password>
 
     createSchema:
