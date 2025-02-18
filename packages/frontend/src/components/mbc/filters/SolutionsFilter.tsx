@@ -344,6 +344,7 @@ const SolutionsFilter = ({
             queryParams.dataValueRange.endYear = defaultEndYear;
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
+
           if (queryParams.dataValueRange.startYear < years[0]) {
             if (years.includes(Number(defaultStartYear))) {
               queryParams.dataValueRange.startYear = defaultStartYear;
