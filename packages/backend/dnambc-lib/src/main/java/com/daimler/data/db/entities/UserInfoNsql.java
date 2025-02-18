@@ -40,7 +40,7 @@ import java.util.UUID;
 
 @Entity
 @TypeDefs({ @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class) })
-@Table(name = "userinfo_nsql_backup")
+@Table(name = "userinfo_nsql")
 public class UserInfoNsql implements Serializable {
 
 	private static final long serialVersionUID = -6342864256804097049L;
