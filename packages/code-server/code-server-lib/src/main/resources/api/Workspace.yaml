@@ -1452,6 +1452,9 @@ definitions:
       required:
         -projectDetails
         -workspaceOwner
+      activeInGroup:
+        type: boolean
+        description: "Workspace is active in group or not"  
 
   CodeServerProjectDetailsVO:
     type: object
@@ -2024,7 +2027,19 @@ definitions:
         description: "order of workspace"
       name:
         type: string
-        description: "name of workspace"           
+        description: "name of workspace"
+      status:
+        type: string
+        description: "Status of workspace - COLLABORATION_REQUESTED,CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
+        DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
+      serverStatus:
+        type: string
+        description: "Status of server - SERVER-STARTED,SERVER-STOPPED"
+      cloudServiceProvider:
+        type: string        
+        description: "Cloud services provider. Ex: DHC-CaaS"
+      projectOwner:
+        $ref: "#/definitions/UserInfoVO"                 
   CodeServerUserGroupCollectionVO:
     type: object
     properties:
