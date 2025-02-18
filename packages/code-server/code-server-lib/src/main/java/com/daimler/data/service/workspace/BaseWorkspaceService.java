@@ -1809,6 +1809,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 }else{
 					 collaborator.setIsAdmin(true);
 				 }
+				 if(!userRequestDto.isIsApprover()){
+					collaborator.setIsApprover(false);
+				}else{
+					collaborator.setIsApprover(true);
+				}
  
 				 String gitUser = userRequestDto.getGitUserName();
 
@@ -2551,6 +2556,9 @@ import com.daimler.data.util.ConstantsUtility;
 				 if (dataGovernanceInfo.getData().isPiiData() != null) {
 					 newGovFeilds.setPiiData(dataGovernanceInfo.getData().isPiiData());
 				 }
+				 if (dataGovernanceInfo.getData().isEnableDeployApproval() != null) {
+					newGovFeilds.setEnableDeployApproval(dataGovernanceInfo.getData().isEnableDeployApproval());
+				}
 				 GenericMessage updateLeanGovernanceFeilds = workspaceCustomRepository
 						 .updateGovernanceDetails(projectName, newGovFeilds);
 				 if ("SUCCESS".equalsIgnoreCase(updateLeanGovernanceFeilds.getSuccess())) {
@@ -2974,6 +2982,48 @@ import com.daimler.data.util.ConstantsUtility;
 			 MessageDescription msg = new MessageDescription();
 			 List<MessageDescription> errorMessage = new ArrayList<>();
 			 msg.setMessage("caught exception while making collaborator as admin");
+			 errorMessage.add(msg);
+			 responseMessage.addErrors(msg);
+			 responseMessage.setSuccess("FAILED");
+			 responseMessage.setErrors(errorMessage);
+		 }
+		 return responseMessage;
+	 }
+
+	 @Override
+	 @Transactional
+	 public GenericMessage makeApprover(CodeServerWorkspaceVO vo){
+		 GenericMessage responseMessage = new GenericMessage();
+		 try {
+ 
+			 List<String> workspaceIds = workspaceCustomRepository
+					 .getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
+			 if (!workspaceIds.isEmpty()) {
+				 List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+				 for (String id : workspaceIds) {
+					 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
+					 List<UserInfoVO> projectCollabsVO = vo.getProjectDetails().getProjectCollaborators();
+					 List<UserInfo> projectCollabs = new ArrayList<UserInfo>();
+					 if (projectCollabsVO != null && !projectCollabsVO.isEmpty()) {
+						  projectCollabs = projectCollabsVO.stream().map(n -> workspaceAssembler.toUserInfo(n))
+							  .collect(Collectors.toList());
+					 }
+					 if(entity != null){
+						 if(vo.getProjectDetails().getProjectCollaborators()!=null){
+							 entity.getData().getProjectDetails().setProjectCollaborators(projectCollabs);
+							 entities.add(entity);
+						 }
+					 }
+				 }
+				 jpaRepo.saveAllAndFlush(entities);
+			 }
+			 responseMessage.setSuccess("SUCCESS");
+ 
+		 } catch (Exception e) {
+			 log.error("caught exception while making collaborator as approver :{}", e.getMessage());
+			 MessageDescription msg = new MessageDescription();
+			 List<MessageDescription> errorMessage = new ArrayList<>();
+			 msg.setMessage("caught exception while making collaborator as approver");
 			 errorMessage.add(msg);
 			 responseMessage.addErrors(msg);
 			 responseMessage.setSuccess("FAILED");
