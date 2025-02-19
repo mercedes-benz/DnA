@@ -33,8 +33,7 @@ const DeployModal = (props) => {
   const [clientSecret, setClientSecret] = useState('');
   const [clientSecretError, setClientSecretError] = useState('');
   const [changeSelected, setChangeSelected] = useState(false);
-  const [disableIntIAM, setDisableIntIAM] = useState(true);
-  const [disableProdIAM, setDisableProdIAM] = useState(true);
+  const [disableIAM, setDisableIAM] = useState(true);
   const ignorePaths = [
     { id: '1', name: '/favicon.ico' },
     { id: '2', name: '/manifest.json' },
@@ -79,13 +78,6 @@ const DeployModal = (props) => {
   useEffect(() => {
     Tooltip.defaultSetup();
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
-    setClientIdError('');
-    setClientSecret('');
-    setClientSecretError('');
-    setOneApiVersionShortNameError('');
-    setRedirectUriError('');
-    setChangeSelected(false);
-    // setIAMTechnicalUserID('');
     getPublishedConfig(props?.codeSpaceData?.id, 'int');
     ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.recipeDetails?.recipeId === "private-user-defined" ? projectDetails?.recipeDetails?.repodetails : projectDetails?.gitRepoName)
@@ -121,6 +113,7 @@ const DeployModal = (props) => {
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    setResetRequired(false);
     if(deployEnvironment === 'staging'){
       intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
     }
@@ -131,20 +124,24 @@ const DeployModal = (props) => {
 
   useEffect(() => {
     setRedirectUriError('');
-    const shouldReset = (cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
-      (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie) ||
-      (deploymentDetails?.deploymentType?.length && deploymentType!== deploymentDetails?.deploymentType);
-    setResetRequired(shouldReset);
-    deploymentType==='API' ? setIsUiRecipe(false) : setIsUiRecipe(true);
-    deploymentType==='API'? setRedirectUri('') : setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+    if(deploymentType==='API'){
+      setIsUiRecipe(false);
+      setRedirectUri('');
+    }
+    else{
+      setIsUiRecipe(true);
+      setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+      setOneApiSelected(false);
+    }
   }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    const shouldReset = (cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
-      (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie);
+    const shouldReset = (!deploymentType==='UI' && cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
+      (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie) || 
+      (deploymentDetails?.deploymentType?.length ? deploymentType!== deploymentDetails?.deploymentType : deploymentType==='UI');
     setResetRequired(shouldReset);
-  }, [secureWithIAMSelected, cookieSelected]);// eslint-disable-line react-hooks/exhaustive-deps
+  }, [secureWithIAMSelected, cookieSelected, deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (resetRequired) {
@@ -168,11 +165,7 @@ const DeployModal = (props) => {
     CodeSpaceApiClient.getPublishedConfig(id, env).then((res) => {
       appId = res.data.appID || '';
       entitlements = res.data.entitlements || [];
-      if (env === 'int') {
-        appId.length !== 0 && entitlements.length !== 0 ? setDisableIntIAM(false) : setDisableIntIAM(true);
-      } else if (env === 'prod') {
-        appId.length !== 0 && entitlements.length !== 0 ? setDisableProdIAM(false) : setDisableProdIAM(true);
-      }
+      appId.length !== 0 && entitlements.length !== 0 ? setDisableIAM(false) : setDisableIAM(true);
     });
   };
 
@@ -275,7 +268,7 @@ const DeployModal = (props) => {
         scope: secureWithIAMSelected ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
-        isSecuredWithCookie : cookieSelected || false,
+        isSecuredWithCookie : (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -413,8 +406,6 @@ const DeployModal = (props) => {
           </div>
           {/* {(props.enableSecureWithIAM || props.isUIRecipe) && ( */}
             <>
-              {deployEnvironment === 'staging' && (
-                <>
                   <div className={classNames(Styles.threeColumnFlexLayout)}>
                     <div>
                       <label className="checkbox">
@@ -471,7 +462,7 @@ const DeployModal = (props) => {
                     <span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
-                        className={classNames(disableIntIAM && secureWithIAMSelected ? '' : 'hide')}
+                        className={classNames(disableIAM && secureWithIAMSelected ? '' : 'hide')}
                       >
                         <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
                         Configuration and therefore no authorization checks would happen.
@@ -500,7 +491,7 @@ const DeployModal = (props) => {
                         </div>
                         <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'OIDC based authentication enabled (default)'}</label></div>
                       </div>)}
-                      { (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired ? (
+                      { (!deploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -626,223 +617,6 @@ const DeployModal = (props) => {
                       </span>
                     </>
                   )}
-                </>
-              )}
-              {deployEnvironment === 'production' && (
-                <>
-                  <div className={classNames(Styles.threeColumnFlexLayout)}>
-                    <div>
-                      <label className="checkbox">
-                        <span className="wrapper">
-                          <input
-                            type="checkbox"
-                            className="ff-only"
-                            checked={secureWithIAMSelected}
-                            onChange={onChangeSecureWithIAM}
-                            disabled={oneApiSelected}
-                            // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                            // disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          />
-                        </span>
-                        <span className={classNames('label', oneApiSelected ? Styles.disableText : '')}>
-                          Secure with your own IAM Credentials{' '}
-                          {isOwner && !isUiRecipe && (
-                            <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
-                              <a target="_blank" rel="noreferrer">
-                                {CODE_SPACE_TITLE} (
-                                {projectDetails?.publishedSecuirtyConfig?.status ||
-                                  projectDetails?.securityConfig?.status ||
-                                  'New'}
-                                )
-                              </a>
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    </div>
-                    {deploymentType === 'API' && (
-                      <>
-                        <div>OR</div>
-                        <div>
-                          <label className="checkbox">
-                            <span className="wrapper">
-                              <input
-                                type="checkbox"
-                                className="ff-only"
-                                checked={oneApiSelected}
-                                onChange={onChangeOpenApi}
-                                disabled={secureWithIAMSelected}
-                                // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                                // disabled={disableIntIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                              />
-                            </span>
-                            <span className={classNames('label', secureWithIAMSelected ? Styles.disableText : '')}>Provision your api through oneAPI</span>
-                          </label>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  {!isUiRecipe && (
-                    <span>
-                      <p
-                        style={{ color: 'var(--color-orange)' }}
-                        className={classNames(disableProdIAM && secureWithIAMSelected ? '' : 'hide')}
-                      >
-                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
-                        Configuration and therefore no authorization checks would happen.
-                      </p>
-                    </span>
-                  )}
-                  {secureWithIAMSelected && (
-                    <div>
-                      {!isUiRecipe && (<div className={Styles.flexLayout}>
-                        <div className={Styles.infoIcon}>
-                          <label className={classNames("switch", cookieSelected ? 'on' : '')}>
-                            <span className="label" style={{ marginRight: '5px' }}>
-                              Switch to cookie based authentication
-                            </span>
-                            <span className="wrapper">
-                              <input
-                                value={cookieSelected}
-                                type="checkbox"
-                                className="ff-only"
-                                onChange={() => {setCookieSelected(!cookieSelected);}}
-                                checked={cookieSelected}
-                                maxLength={63}
-                              />
-                            </span>
-                          </label>
-                        </div>
-                        <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
-                      </div>)}
-                      {(!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired  ? (
-                        <>
-                          <div className={classNames(Styles.wrapper)}>
-                            <span className="label">
-                              <p>Authorization Code Flow</p>
-                            </span>
-                            <div className={classNames(Styles.flexLayout)}>
-                              <TextBox
-                                type="text"
-                                controlId={'Client ID'}
-                                labelId={'clientIdLabel'}
-                                label={'Client ID'}
-                                placeholder={'Client ID as per IAM used with Alice'}
-                                value={clientId}
-                                errorText={clientIdError}
-                                required={true}
-                                maxLength={200}
-                                onChange={(e) => {
-                                  setClientId(e.currentTarget.value);
-                                  setClientIdError('');
-                                }}
-                              />
-                              <TextBox
-                                type="text"
-                                controlId={'Client Secret'}
-                                labelId={'clientSecretLabel'}
-                                label={'Client Secret'}
-                                placeholder={'Client Secret as per IAM used with Alice'}
-                                value={clientSecret}
-                                errorText={clientSecretError}
-                                required={true}
-                                maxLength={200}
-                                onChange={(e) => {
-                                  setClientSecret(e.currentTarget.value);
-                                  setClientSecretError('');
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <div className={classNames(Styles.flexLayout)}>
-                              <div className={classNames(Styles.redirectFlexLayout)}>
-                                <TextBox
-                                  type="text"
-                                  label={'Redirect Uri'}
-                                  placeholder={`eg: /${projectDetails.projectName}/prod`}
-                                  value={redirectUri}
-                                  required={isUiRecipe}
-                                  errorText={redirectUriError}
-                                  maxLength={200}
-                                  onChange={(e) => {
-                                    setRedirectUri(e.currentTarget.value);
-                                    setRedirectUriError('');
-                                  }}
-                                />
-                                <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
-                              </div>
-                              <Tags
-                                title={'Ignore Paths'}
-                                max={100}
-                                chips={ignorePath}
-                                placeholder={'Type root path here....'}
-                                tags={ignorePaths}
-                                setTags={onIgnorePathChange}
-                                isMandatory={false}
-                                isIgnorePath={true}
-                                showAllTagsOnFocus={true}
-                              />
-                            </div>
-                            <Tags
-                              title={'Scope'}
-                              max={100}
-                              chips={scope}
-                              fixedChips={fixedScope}
-                              tags={scopes}
-                              setTags={onScopeChnage}
-                              isMandatory={false}
-                              disableSelfTagAdd={true}
-                              suggestionPopupHeight={150}
-                              showAllTagsOnFocus={true}
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <div className={classNames(Styles.actionWrapper)}>
-                          <button
-                            className={classNames('btn btn-primary', Styles.saveSettingsBtn)}
-                            onClick={() => setChangeSelected(true)}
-                          >
-                            Change Credentials
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {oneApiSelected && (
-                    <>
-                      <div className={classNames(Styles.flexLayout)}>
-                        <TextBox
-                          type="text"
-                          label={'Api version shortname'}
-                          placeholder={'Api version shortname in oneAPI'}
-                          value={oneApiVersionShortName}
-                          errorText={oneApiVersionShortNameError}
-                          required={true}
-                          maxLength={200}
-                          onChange={(e) => {
-                            setOneApiVersionShortName(e.currentTarget.value);
-                            setOneApiVersionShortNameError('');
-                          }}
-                        />
-                        <div className={Styles.oneAPILink}>
-                          <a href={Envs.ONE_API_URL} target="_blank" rel="noreferrer">
-                            where to provision your api ? 
-                          </a>
-                        </div>
-                      </div>
-                      <span>
-                        <p
-                          style={{ color: 'var(--color-orange)' }}>
-                          <i className="icon mbc-icon alert circle"></i> We are supporting only GAS/OIDC. Please ensure that GAS/OIDC is selected as the identity provider under API management in the oneAPI portal.
-                        </p>
-                      </span>
-                    </>
-                  )}
-                  
-                </>
-              )}
             </>
 
           {props.startDeployLivelinessCheck && (
