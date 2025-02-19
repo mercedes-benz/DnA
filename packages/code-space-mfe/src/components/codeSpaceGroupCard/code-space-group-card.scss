@@ -177,3 +177,49 @@
         }
     }
 }
+
+.statusIndicator {
+    padding: 2px 8px;
+    border: 1px solid #0AE6AB;
+    color: #0AE6AB;
+    font-size: var(--font-size-icon-small);
+    letter-spacing: 1px;
+    border-radius: 2px;
+    margin-right: 5px;
+
+    &.wsStartStop {
+        border: 1px solid #00adef;
+        color: #00adef;
+        cursor: pointer;
+
+        &.wsStarted {
+        border: 1px solid #e84d47;
+        color: #e84d47;
+        }
+    }
+
+    &.colloboration {
+        border: 1px solid #35ADAC;
+        color: #35ADAC;
+    }
+
+    &.deploying {
+        border: 1px solid #f3e537;
+        color: #f3e537;
+    }
+
+    &.deployFailed {
+        border: 1px solid #e84d47;
+        color: #e84d47;
+    }
+
+    &.deleting {
+        border: 1px solid #e84d47;
+        color: #e84d47;
+    }
+
+    &.creating {
+        border: 1px solid #00adef;
+        color: #00adef;
+    }
+}

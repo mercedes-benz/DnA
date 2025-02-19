@@ -4,8 +4,9 @@ import Styles from './code-space-group-card.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
+import CodeSpaceGCard from './CodeSpaceGCard';
 
-const CodeSpaceGroupCard = ({ group, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped }) => {
+const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped }) => {
   const handleEditGroup = (codespace) => {
     const data = {
       groupId: group?.groupId,
@@ -58,38 +59,7 @@ const CodeSpaceGroupCard = ({ group, onShowCodeSpacesModal, onShowCodeSpaceGroup
       }
       <div className={classNames(Styles.groupBody)}>
         {group?.workspaces?.slice(0, 3).map((workspace) => 
-          <div key={workspace?.wsId} className={classNames(Styles.codeSpaceItem)} onClick={() => onShowCodeSpacesModal(true, group)}>
-              <div>
-                  <h3>{workspace?.name}</h3>
-                  {/* ToDo
-                      1. Add elements to show different codespace states
-                  */}
-                  {/* <a href="#" target="_blank" rel="noreferrer" tooltip-data="Deployed to Staging on 11/25/2024, 09:53:10">Deployed <i className="icon mbc-icon new-tab"></i></a> */}
-              </div>
-              {/* {!createInProgress && !creationFailed && !serverFailed && (
-                <span
-                  onClick={() => onStartStopCodeSpace(codeSpace)}
-                  tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
-                  className={classNames(
-                    Styles.statusIndicator,
-                    Styles.wsStartStop,
-                    serverStarted ? Styles.wsStarted : '',
-                  )}
-                >
-                  {serverStarted ? 'Stop' : 'Start'}
-                  {!serverStarted && serverProgress > 0 ? `ing... ${serverProgress}%` : ''}
-                </span>
-              )}
-              {serverFailed && (
-                <span
-                  title={'Server Start Failed: Please contact Codespace Admin'}
-                  className={classNames(Styles.statusIndicator, Styles.wsStartStop, Styles.wsStarted)}
-                  onClick={() => onStartStopCodeSpace(codeSpace)}
-                >
-                  Start Failed
-                </span>
-              )} */}
-          </div>
+          <CodeSpaceGCard key={workspace?.wsId} codeSpace={workspace} userInfo={userInfo} onStartStopCodeSpace={onStartStopCodeSpace} />
           )}
           <div className={Styles.btnContainer}>
             <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpaceGroupModal(true)}>
