@@ -65,7 +65,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
     ProgressIndicator.show();
     const data = {
       projectName: values.name.trim(),
-      orgname: values.orgname.trim(),
+      orgName: values.orgName.trim(),
       projectMembers: projectMembers,
     };
     PromptCraftApiClient.createPromptCraftSubscription(data).then((res) => {
@@ -107,7 +107,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
               </div>
             </div>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error', errors?.orgname ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.orgName ? 'error' : '')}>
                 <label className={'input-label'}>
                   Name of Organization <sup>*</sup>
                 </label>
@@ -117,9 +117,9 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('orgname', { required: '*Missing entry' })}
+                  {...register('orgName', { required: '*Missing entry' })}
                 />
-                <span className={'error-message'}>{errors?.orgname?.message}</span>
+                <span className={'error-message'}>{errors?.orgName?.message}</span>
               </div>
             </div>
             <div className={Styles.col}>
