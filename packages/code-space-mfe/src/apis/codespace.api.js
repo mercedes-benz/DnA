@@ -333,7 +333,7 @@ const createCodeSpaceGroup = (data) => {
 };
 
 const editCodeSpaceGroup = (data) => { 
-    return server.put(`/workspaces/group/edit`, data);
+    return server.patch(`/workspaces/group/edit`, data);
 };
 
 const deleteCodeSpaceGroup = (id) => { 

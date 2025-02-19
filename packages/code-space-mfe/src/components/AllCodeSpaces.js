@@ -612,10 +612,12 @@ const AllCodeSpaces = (props) => {
                             <CodeSpaceGroupCard
                                 key={group?.id}
                                 group={group}
+                                userInfo={props.user}
                                 onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
                                 onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
+                                onStartStopCodeSpace={onStartStopCodeSpace}
                             />
                         )}
                     </div>
