@@ -41,6 +41,7 @@ public interface PromptCraftSubscriptionsService extends CommonService<PromptCra
     List<PromptCraftSubscriptionsVO> getAll(int offset, int limit, String  userId);
     PromptCraftSubscriptionsResponseVO createSubscription(PromptCraftSubscriptionsVO promptCraftSubscriptionsVO);
     SubscriptionkeysVO getProjectKeys( String projectName);
+    String getPromptCraftSubscriptionUserID( String publicKey, String privateKey);
     //void checkForKeysFromUiLicious(String projectName, String runId);
 
 }

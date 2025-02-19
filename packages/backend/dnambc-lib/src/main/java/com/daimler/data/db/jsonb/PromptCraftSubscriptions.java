@@ -35,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Date;
  
 @Data
 @NoArgsConstructor
@@ -47,7 +49,7 @@ public class PromptCraftSubscriptions implements Serializable {
     private String projectName;
     private String orgName;
     private String subscriptionLink;
-    private String createdOn;
+    private Date createdOn;
     private MemberInfo projectOwner;
     private List<MemberInfo> projectMembers;
     private String status;

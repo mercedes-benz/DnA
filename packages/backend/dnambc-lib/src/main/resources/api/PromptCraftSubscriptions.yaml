@@ -229,7 +229,7 @@ definitions:
         type: string
       projectName:  
         type: string
-      orgname:
+      orgName:
         type: string
       subscriptionLink:
         type: string
@@ -296,5 +296,7 @@ definitions:
       privateKey:
         type: string
       publicKey:
+        type: string
+      userID:
         type: string
     

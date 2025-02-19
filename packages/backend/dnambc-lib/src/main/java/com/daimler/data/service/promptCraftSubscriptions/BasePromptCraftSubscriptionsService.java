@@ -48,6 +48,7 @@ import com.daimler.data.service.common.BaseCommonService;
 
 import com.daimler.data.db.entities.PromptCraftSubscriptionsNsql;
 import com.daimler.data.db.jsonb.PromptCraftSubscriptions;
+import com.daimler.data.client.promptCraft.PromptCraftClient;
 import com.daimler.data.client.uiLicious.UiLiciousClient;
 import com.daimler.data.client.uiLicious.UiliciousStartCreationResponseDTO;
 import com.daimler.data.dto.promptCraftSubscriptions.PromptCraftSubscriptionsResponseVO;
@@ -60,6 +61,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.net.http.HttpHeaders;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,6 +88,9 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
+
+	@Autowired
+	private PromptCraftClient promptCraftClient;
 
 	@Autowired
 	private AsyncService asyncService;
@@ -118,10 +124,8 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
-			if(vo.getCreatedOn()!=null){
-				vo.setCreatedOn(now);
-			}
-			UiliciousStartCreationResponseDTO uiLiciousResponse = uiLiciousClient.startCreation(vo.getOrgname(),vo.getProjectName(),vo.getProjectMembers());
+			vo.setCreatedOn(now);
+			UiliciousStartCreationResponseDTO uiLiciousResponse = uiLiciousClient.startCreation(vo.getOrgName(),vo.getProjectName(),vo.getProjectMembers());
 			if(uiLiciousResponse != null && uiLiciousResponse.getResponseStatus() == HttpStatus.OK ){
 				vo.setRunId(uiLiciousResponse.getRunId());
 				vo.setStatus("IN_PROGRESS");
@@ -162,4 +166,13 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 		return keys;
 	}
 
+	
+	public String getPromptCraftSubscriptionUserID( String publicKey, String privateKey) {
+		String response = null;
+		JsonNode jsonResponse = promptCraftClient.promptCraftRegisterUser( publicKey, privateKey);
+		if( jsonResponse != null) {
+			response = jsonResponse.path("promptcraft-user-id").asText();
+		}
+		return response;
+	}
 }
