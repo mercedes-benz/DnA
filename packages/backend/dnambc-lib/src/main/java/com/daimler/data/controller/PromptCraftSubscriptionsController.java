@@ -30,7 +30,6 @@ package com.daimler.data.controller;
 import com.daimler.data.api.promptCraftSubscriptions.PromptCraftSubscriptionsApi;
 
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.client.promptCraft.PromptCraftClient;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.LoginController.UserInfo;
 import com.daimler.data.controller.LoginController.UserRole;
@@ -43,11 +42,16 @@ import com.daimler.data.dto.promptCraftSubscriptions.PromptCraftSubscriptionsVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionRequestVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysResponseVO;
+import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysResponseVOData;
 import com.daimler.data.service.promptCraftSubscriptions.AsyncService;
 import com.daimler.data.service.promptCraftSubscriptions.PromptCraftSubscriptionsService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.dto.userinfo.UserInfoVO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -79,7 +83,10 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
     private AsyncService asyncService;
 
     @Autowired
-    public PromptCraftClient promptCraftClient;
+	private UserInfoService userInfoService;
+
+    @Value("${promptsraftsubscriptions.uiLicious.pidUser}")
+    private String pidUser;
 
     @Override
     @ApiOperation(value = "Adds a new Subscription.", nickname = "create", notes = "Adds a new Subscriptions.", response = PromptCraftSubscriptionsResponseVO.class, tags={ "promptCraftSubscriptions", })
@@ -104,6 +111,11 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
         List<MessageDescription> warnings = new ArrayList<>();
 
         try{
+
+            MemberInfoVO projectOwner = new MemberInfoVO();
+            UserInfoVO userInfoVO = userInfoService.getById(pidUser);
+            BeanUtils.copyProperties(userInfoVO, projectOwner);
+            requestVO.setProjectOwner(projectOwner);
            
             if(isUserHasAdminAccess(currentUser)){
                 PromptCraftSubscriptionsVO existingVO = service.getByUniqueliteral("projectName", requestVO.getProjectName());
@@ -213,6 +225,7 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
     public ResponseEntity<SubscriptionkeysResponseVO> getkeys(@ApiParam(value = "",required=true) @PathVariable("projectName") String projectName){
         UserInfo currentUser = this.userStore.getUserInfo();
         SubscriptionkeysResponseVO response = new SubscriptionkeysResponseVO();
+        SubscriptionkeysResponseVOData responseData = new SubscriptionkeysResponseVOData();
         
         try{
 
@@ -221,12 +234,14 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
             if(isUserHasAdminAccess(currentUser)||isUserMemberOfTheProject(existingVO, currentUser.getId()) ){
 
                 SubscriptionkeysVO keys = service.getProjectKeys(projectName);
+                
                 if(keys!= null) {
-                    response.setData(keys);
+                    responseData.setPromptCraftKey(keys.getUserID());
+                    response.setData(responseData);
                     log.info("successfully got key for project {}.", projectName);
                     return new ResponseEntity<>(response, HttpStatus.OK);
                 }
-                response.setData(keys);
+                response.setData(responseData);
                 return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
 
             }else{
