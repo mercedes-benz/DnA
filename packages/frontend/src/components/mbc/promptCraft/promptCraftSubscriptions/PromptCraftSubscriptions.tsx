@@ -119,8 +119,8 @@ const PromptCraftSubscriptions = ({ user }: any) => {
         .catch((e) => {
           ProgressIndicator.hide();
           Notification.show(
-            e.response.data.errors?.length
-              ? e.response.data.errors[0].message
+            e?.response?.data?.errors?.length
+              ? e?.response?.data?.errors[0]?.message
               : 'Fetching prompt craft subscriptions failed!',
             'alert',
           );

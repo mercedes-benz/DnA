@@ -75,7 +75,7 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
           </div>
           <div>
             <div>Organization</div>
-            <div>{subscription?.orgname || 'N/A'}</div>
+            <div>{subscription?.orgName || 'N/A'}</div>
           </div>
           <div>
             <div>Project Members</div>
@@ -112,9 +112,16 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
         <>
           <div className={Styles.statusContainer}>
             <div className={Styles.statusItem}>
-              <p>
-                {subscription?.status !== 'COMPLETED' && <><i className={'icon mbc-icon info'}></i> <span>Subscription Requested</span></>}
-              </p>
+              {(subscription?.status !== 'COMPLETED' || subscription?.status !== 'FAILED') &&
+                <p>
+                  <i className={'icon mbc-icon info'}></i> <span>Subscription Requested</span>
+                </p>
+              }
+              {subscription?.status === 'FAILED' &&
+                <p>
+                  <i className={'icon mbc-icon warning'}></i> <span>Failed</span>
+                </p>
+              }
               {subscription?.status === 'COMPLETED' && 
                 <p className={Styles.completedStatus}>
                   <i className={'icon mbc-icon check circle'}></i> <span>Active</span>
@@ -139,7 +146,7 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
                 onClick={() => onShowKeys(subscription)}
               >
                 <i className="icon mbc-icon visibility-show"></i>&nbsp;
-                <span>View Keys</span>
+                <span>View Key</span>
               </button>
             </div>
           {/* } */}

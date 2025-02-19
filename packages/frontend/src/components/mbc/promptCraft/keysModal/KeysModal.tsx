@@ -6,8 +6,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
 
 interface IKeys {
-  privateKey: string;
-  publicKey: string;
+  promptCraftKey: string;
 }
 
 export interface IKeysModalProps {
@@ -35,8 +34,8 @@ const KeysModal = ({projectName, status, onOk}: IKeysModalProps) => {
         .catch((e) => {
           ProgressIndicator.hide();
           Notification.show(
-            e.response.data.errors?.length
-              ? e.response.data.errors[0].message
+            e?.response?.data?.errors?.length
+              ? e?.response?.data?.errors[0]?.message
               : 'Fetching prompt craft subscription keys failed!',
             'alert',
           );
@@ -78,7 +77,7 @@ const KeysModal = ({projectName, status, onOk}: IKeysModalProps) => {
           </div>
           <div id="secretKey" className={Styles.keys}>
             {showSecretKey
-              ? keys?.publicKey
+              ? keys?.promptCraftKey
               : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
           </div>
           <div>
@@ -99,7 +98,7 @@ const KeysModal = ({projectName, status, onOk}: IKeysModalProps) => {
                 />
               </React.Fragment>
             )}
-            <span className={Styles.copyIcon} onClick={() => copyToClipboard(keys.publicKey)}>
+            <span className={Styles.copyIcon} onClick={() => copyToClipboard(keys.promptCraftKey)}>
               <i className="icon mbc-icon copy" />
             </span>
           </div>

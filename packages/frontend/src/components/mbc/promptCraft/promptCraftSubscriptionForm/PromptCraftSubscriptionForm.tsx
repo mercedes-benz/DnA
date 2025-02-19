@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 // styles
 import Styles from './PromptCraftSubscriptionForm.scss';
@@ -8,8 +8,6 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import AddUser from '../../../mbc/addUser/AddUser'; 
 import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
-import { ApiClient } from '../../../../services/ApiClient';
-import { Envs } from 'globals/Envs';
 
 export interface IPromptCraftSubscriptionFormProps {
   onSave: () => void;
@@ -23,7 +21,6 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
     formState: { errors },
   } = methods;
 
-  const [projectOwner, setProjectOwner] = useState({});
   const [projectMembers, setProjectMembers] = useState([]);
 
   const getProjectMembers = (member: any) => {
@@ -64,29 +61,12 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
     };
   };
 
-  useEffect(() => {
-    ApiClient.getUsersBySearchTerm(Envs.PC_CREATOR_ID)
-          .then((response) => {
-            if (response) {
-              if (response.records !== undefined) {
-                setProjectOwner(response.records[0]);
-              } else {
-                setProjectOwner({});
-              }
-            }
-          })
-          .catch((error: any) => {
-            Notification.show(error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message ||'Error while fetching project owner details', 'alert');
-          });
-  }, []);
-
   const handleCreateSubscription = (values: any) => {
     ProgressIndicator.show();
     const data = {
       projectName: values.name.trim(),
       orgname: values.orgname.trim(),
       projectMembers: projectMembers,
-      projectOwner: projectOwner,
     };
     PromptCraftApiClient.createPromptCraftSubscription(data).then((res) => {
       onSave();
@@ -144,7 +124,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
             </div>
             <div className={Styles.col}>
               <div className={classNames('input-field-group include-error')}>
-                <AddUser dagId='' getCollabarators={getProjectMembers} isRequired={false} isUserprivilegeSearch={false} title={'Project Members'} />
+                <AddUser dagId='' getCollabarators={getProjectMembers} isRequired={true} isUserprivilegeSearch={false} title={'Project Members'} />
               </div>
               {projectMembers?.length === 0 &&
                 <div className={Styles.noLincense}>
