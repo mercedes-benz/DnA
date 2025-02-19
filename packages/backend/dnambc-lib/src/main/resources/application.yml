@@ -243,6 +243,8 @@ promptsraftsubscriptions:
     filePath: ${UILICIOUS_PROJECT_FILE_PATH:XXXX}
     privateKeyStepNumber: ${UILICIOUS_PRIVATE_KEY_STEP_NUMBER:XXXX}
     publicKeyStepNumber: ${UILICIOUS_PUBLIC_KEY_STEP_NUMBER:XXXX}
+  promotCraftBaseUrl: ${PROMPT_CRAFT_BASE_URL:XXX}
+  xApiKey: ${PROMPT_CRAFT_X_API_KEY:XXX}
 
 
 

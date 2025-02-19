@@ -67,8 +67,8 @@ public class AsyncService {
 	@Autowired
 	private PromptCraftSubscriptionsService service;
 
-	private static final int MAX_RETRIES = 12; // 2 minutes with 10 seconds interval
-    private static final int RETRY_INTERVAL_MS = 10000; // 10 seconds
+	private static final int MAX_RETRIES = 8; // 2 minutes with 10 seconds interval
+    private static final int RETRY_INTERVAL_MS = 15000; // 10 seconds
 
 
 	@Async
@@ -100,10 +100,12 @@ public class AsyncService {
 							String status = step.path("status").asText();
 							String description = step.path("description").asText();
 							String cmd = step.path("cmd").asText();
+							String error = step.path("error").asText();
 						
 							// Normalize for case-insensitive checks
 							String lowerDescription = description.toLowerCase();
 							String lowerStatus = status.toLowerCase();
+							String lowerError = error.toLowerCase();
 						
 							// Check for Private Key condition
 							if (lowerDescription.startsWith("i get text") 
@@ -127,25 +129,47 @@ public class AsyncService {
 									&& (lowerDescription.contains("secret key") 
 									||lowerDescription.contains("public key"))
 									&& "grabText".equalsIgnoreCase(cmd) 
-									&& "failed".equalsIgnoreCase(status)) {
+									&& "failure".equalsIgnoreCase(status)) {
 
 										vo.setStatus("FAILED");
 										entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 										jpaRepo.save(entity);
+										log.info("Failed while prompt craft keys");
 								}
+
+								if (lowerError.startsWith("I don't see") 
+								&& (lowerError.contains("secret key") 
+								||lowerError.contains("public key"))
+								&& "grabText".equalsIgnoreCase(cmd) 
+								&& "failure".equalsIgnoreCase(status)) {
+
+									vo.setStatus("FAILED");
+									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+									jpaRepo.save(entity);
+									log.info("Failed while prompt craft keys");
+							}
 						
 						}
 		
 						if(keys.getPrivateKey() != null && keys.getPublicKey() != null){
 
-							GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
-							if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
-								log.info("Sucessfully added subscription keys to vault");
-								vo.setStatus("COMPLETED");
+							String userID = service.getPromptCraftSubscriptionUserID( keys.getPublicKey(), keys.getPrivateKey());
+							if( userID != null) {
+								keys.setUserID(userID);
+								GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
+								if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
+									log.info("Successfully added subscription keys to vault");
+									vo.setStatus("COMPLETED");
+									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+									jpaRepo.save(entity);
+								}
+							}
+							else {
+								vo.setStatus("FAILED");
 								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 								jpaRepo.save(entity);
-							}
-							
+								log.info("Failed while getting prompt craft userID");
+							}							
 						}
 
 
@@ -180,5 +204,3 @@ public class AsyncService {
 	}
     
 }
-
-

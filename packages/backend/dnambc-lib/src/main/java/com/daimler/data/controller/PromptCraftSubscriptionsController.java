@@ -30,6 +30,7 @@ package com.daimler.data.controller;
 import com.daimler.data.api.promptCraftSubscriptions.PromptCraftSubscriptionsApi;
 
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.client.promptCraft.PromptCraftClient;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.LoginController.UserInfo;
 import com.daimler.data.controller.LoginController.UserRole;
@@ -76,6 +77,9 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
 
     @Autowired
     private AsyncService asyncService;
+
+    @Autowired
+    public PromptCraftClient promptCraftClient;
 
     @Override
     @ApiOperation(value = "Adds a new Subscription.", nickname = "create", notes = "Adds a new Subscriptions.", response = PromptCraftSubscriptionsResponseVO.class, tags={ "promptCraftSubscriptions", })
@@ -174,7 +178,7 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
             }else{
                 collection = service.getAll(limit,offset,currentUser.getId());
             }
-            if (collection != null) {
+            if (collection != null && collection.size() > 0) {
                 for (PromptCraftSubscriptionsVO subscription : collection) {
                     response.addDataItem(subscription);
                 }

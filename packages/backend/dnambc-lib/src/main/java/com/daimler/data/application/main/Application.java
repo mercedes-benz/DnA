@@ -47,7 +47,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 		"com.daimler.data.application.intercepter", "com.daimler.dna.notifications",
 		"com.daimler.data.application.logging", "com.daimler.data.client.dashboard",
 		"com.daimler.data.adapter.hasura","com.daimler.data.client.teamsApi", "com.daimler.data.client.dnaDss","com.daimler.data.client.uiLicious",
-		"com.daimler.data.application.auth.vault"})
+		"com.daimler.data.application.auth.vault,com.daimler.data.client.promptCraft"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
