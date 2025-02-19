@@ -189,7 +189,7 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
   const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
-  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `d/fe3tblb85d1xce/codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
