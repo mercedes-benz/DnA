@@ -286,7 +286,11 @@ definitions:
     type: object
     properties:
       data:
-        $ref: "#/definitions/SubscriptionkeysVO"
+        type: object
+        properties:
+          promptCraftKey:
+            type: string
+
       success:
       
 
@@ -299,4 +303,6 @@ definitions:
         type: string
       userID:
         type: string
+
+  
     

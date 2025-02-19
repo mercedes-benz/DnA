@@ -43,6 +43,7 @@ import com.daimler.data.dto.promptCraftSubscriptions.PromptCraftSubscriptionsVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionRequestVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysVO;
 import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysResponseVO;
+import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysResponseVOData;
 import com.daimler.data.service.promptCraftSubscriptions.AsyncService;
 import com.daimler.data.service.promptCraftSubscriptions.PromptCraftSubscriptionsService;
 import io.swagger.annotations.*;
@@ -213,6 +214,7 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
     public ResponseEntity<SubscriptionkeysResponseVO> getkeys(@ApiParam(value = "",required=true) @PathVariable("projectName") String projectName){
         UserInfo currentUser = this.userStore.getUserInfo();
         SubscriptionkeysResponseVO response = new SubscriptionkeysResponseVO();
+        SubscriptionkeysResponseVOData responseData = new SubscriptionkeysResponseVOData();
         
         try{
 
@@ -221,12 +223,14 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
             if(isUserHasAdminAccess(currentUser)||isUserMemberOfTheProject(existingVO, currentUser.getId()) ){
 
                 SubscriptionkeysVO keys = service.getProjectKeys(projectName);
+                
                 if(keys!= null) {
-                    response.setData(keys);
+                    responseData.setPromptCraftKey(keys.getUserID());
+                    response.setData(responseData);
                     log.info("successfully got key for project {}.", projectName);
                     return new ResponseEntity<>(response, HttpStatus.OK);
                 }
-                response.setData(keys);
+                response.setData(responseData);
                 return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
 
             }else{
