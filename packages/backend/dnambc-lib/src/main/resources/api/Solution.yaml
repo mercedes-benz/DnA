@@ -612,8 +612,10 @@ definitions:
         description: "Total Number of FTE requested for the needed Roles/Skills."
         type: number
         minimum: 0    
-      leanIXID:
+      appId:
         type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
     required:
       - productName
       - description
