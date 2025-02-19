@@ -6,7 +6,7 @@ configJs: |
     CODE_SPACE_API_BASEURL: "",
   };
 replicaCount: 2
-codeserverbackend: http://code-server-backend.code-server.svc.cluster.local:80
+codeserverbackend: http://cs-backend.prod-dna-cs-apps.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe
   pullPolicy: IfNotPresent
