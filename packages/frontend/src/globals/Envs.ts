@@ -252,8 +252,4 @@ export const Envs = {
     getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK') !== undefined
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
-  PC_CREATOR_ID:
-    getInjectedEnv('PC_CREATOR_ID') !== undefined
-      ? getInjectedEnv('PC_CREATOR_ID')
-      : EnvParser.parseBool(process.env.PC_CREATOR_ID, false),
 };
