@@ -42,6 +42,8 @@ import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModa
 import { history } from '../../../../router/History';
 import { isSolutionFixedTagIncluded, isSolutionFixedTagIncludedInArray } from '../../../../services/utils';
 import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
+import TypeAheadBox from 'components/mbc/shared/typeAheadBox/TypeAheadBox';
+import { debounce } from 'lodash';
 
 const classNames = cn.bind(Styles);
 
@@ -128,6 +130,8 @@ export interface IDescriptionState {
   lastSearchedProductNameInput: string;
   similarSolutionsBasedOnProductName: ISimilarSearchListItem[];
   similarSolutionstoShow: ISimilarSearchListItem[];
+  leanIXList: any;
+  leanIXDetails: any;
 }
 
 export interface IDescriptionRequest {
@@ -242,6 +246,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       lastSearchedProductNameInput: '',
       similarSolutionsBasedOnProductName: [],
       similarSolutionstoShow: [],
+      leanIXList: [],
+      leanIXDetails: [],
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -639,6 +645,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
+    const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
+      if (searchTerm.length > 3) {
+        showSpinner(true);
+        ApiClient
+          .getLeanIX(searchTerm)
+          .then((res) => {
+            this.onSetLeanIXList(res.data || []);
+            showSpinner(false);
+          })
+          .catch((e) => {
+            showSpinner(false);
+            Notification.show(
+              e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+              'alert',
+            );
+          });
+      }
+    }, 500);
+
     return (
       <React.Fragment>
         <ConfirmModal
@@ -991,7 +1016,47 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                             </div>
                           </div>
                         </div>
-                        <div></div>
+                        <div>
+                        <TypeAheadBox
+                          label={'LeanIX App-ID'}
+                          controlId={'leanix-app-id'}
+                          placeholder={'Select App-ID (Enter minimum 4 characters)'}
+                          defaultValue={this.state.leanIXDetails.appId}
+                          list={this.state.leanIXList}
+                          setSelected={(selectedTags) => {
+                            const leanIXData = {
+                              appId: selectedTags.id,
+                              leanIXDetails: {
+                                objectState: selectedTags.ObjectState,
+                                appReferenceStr: selectedTags.appReferenceStr,
+                                name: selectedTags.name,
+                                providerOrgDeptid: selectedTags.providerOrgDeptid,
+                                providerOrgId: selectedTags.providerOrgId,
+                                providerOrgRefstr: selectedTags.providerOrgRefstr,
+                                providerOrgShortname: selectedTags.providerOrgShortname,
+                                shortName: selectedTags.shortName,
+                              },
+                            };
+                            console.log("leanIXData",leanIXData);
+                            this.onSetLeanIXDetails(selectedTags || {});
+                          }}
+                          onInputChange={handlePlanningITSearch}
+                          required={false}
+                          // showError={errors.leanIX?.message}
+                          showError={false}
+                          render={(item) => (
+                            <div className={Styles.optionContainer}>
+                              <div>
+                                <span className={Styles.optionText}>
+                                  {item?.id} {item.shortName ? `(${item?.shortName})` : null}
+                                </span>
+                                <span className={Styles.suggestionListBadge}>{item?.providerOrgShortname}</span>
+                              </div>
+                              <span className={Styles.optionText}>{item?.name}</span>
+                            </div>
+                          )}
+                        />
+                        </div>
                       </div>
                     </>
                   )}
@@ -1325,5 +1390,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.department = arr?.map((item) => item.toUpperCase())[0];
     // this.setState({ showDepartmentMissingError: arr.length === 0 });
+  };
+
+  protected onSetLeanIXList = (item: any) => {
+    this.setState({ leanIXList: item });
+  };
+
+  protected onSetLeanIXDetails = (item: any) => {
+    this.setState({ leanIXDetails: item });
   };
 }
