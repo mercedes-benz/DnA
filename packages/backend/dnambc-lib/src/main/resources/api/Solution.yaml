@@ -612,6 +612,8 @@ definitions:
         description: "Total Number of FTE requested for the needed Roles/Skills."
         type: number
         minimum: 0    
+      leanIXID:
+        type: string
     required:
       - productName
       - description
