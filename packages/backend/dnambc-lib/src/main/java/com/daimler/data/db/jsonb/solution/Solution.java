@@ -120,5 +120,7 @@ public class Solution {
 	private String dataStrategyDomain;
 	private String additionalResource;
 	private BigDecimal requestedFTECount;
+
+	private String leanIXID;
 	
 }
