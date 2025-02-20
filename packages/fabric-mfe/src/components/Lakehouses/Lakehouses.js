@@ -12,6 +12,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
+import Popper from 'popper.js';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -19,6 +20,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
   const [buckets, setBuckets] = useState([]);
   const [accessKey, setAccessKey] = useState('');
   const [secretKey, setSecretKey] = useState('');
+
+  let popperObj, tooltipElem = null;
 
   useEffect(() => {
     SelectBox.defaultSetup(true);
@@ -58,7 +61,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
     if(bucketName) {
       ProgressIndicator.show();
         fabricApi
-          .getConnectionInfo(bucketName[0])
+          .getConnectionInfo(bucketName)
           .then((res) => {
             setAccessKey(res?.data?.data?.userVO?.accesskey);
             setSecretKey(res?.data?.data?.userVO?.secretKey);
@@ -86,8 +89,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       setBucketNameError(true);
     } else {
       const data = {
-        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName[0])[0]?.id || '',
-        bucketname: bucketName[0],
+        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName)[0]?.id || '',
+        bucketname: bucketName,
         accessKey,
         secretKey
       }
@@ -106,16 +109,38 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
     }
   }
 
+  const bucketDetails = bucketName?.length ? buckets?.filter(bucket => bucket?.bucketName === bucketName) : [];
+  
+  const onCollabsIconMouseOver = (e) => {
+    const targetElem = e.target;
+    tooltipElem = targetElem.nextElementSibling;
+    if (tooltipElem) {
+      tooltipElem.classList.add('tooltip', 'show');
+      tooltipElem.classList.remove('hide');
+      popperObj = new Popper(targetElem, tooltipElem, {
+        placement: 'top',
+      });
+    }
+  };
+
+  const onCollabsIconMouseOut = () => {
+    if (tooltipElem) {
+      tooltipElem.classList.add('hide');
+      tooltipElem.classList.remove('tooltip', 'show');
+    }
+    popperObj?.destroy();
+  };
+
   return (
     <div className={Styles.lakehouseModalContent}>
       <div className={classNames('input-field-group include-error')}>
         <Tags
           title={'Select Storage Bucket'}
           max={1}
-          chips={bucketName}
+          chips={bucketName.length ? [bucketName] : []}
           tags={buckets}
           setTags={(selectedTags) => {
-            setBucketName(selectedTags);
+            setBucketName(selectedTags[0] || '');
           }}
           isMandatory={true}
           showMissingEntryError={bucketNameError}
@@ -123,13 +148,82 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         />
       </div>
       <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
+      {bucketDetails.length === 1 && (
+        <div key={'card-'} className={classNames(Styles.storageCard)}>
+          <div className={Styles.cardHead}>
+            <div className={classNames(Styles.cardHeadInfo)}>
+              <a target='_blank' href={`/#/storage/explorer/${bucketName}`} rel="noreferrer">
+                <div
+                  className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}>
+                  {bucketName}
+                </div>
+              </a>
+            </div>
+          </div>
+          <hr />
+          <div className={Styles.cardBodySection}>
+            <div>
+              <div>
+                <div>Created on</div>
+                <div>{bucketDetails[0]?.createdDate ? new Date(bucketDetails[0].createdDate).toLocaleString() : 'N/A'}</div>
+              </div>
+              <div>
+                <div>Last modified</div>
+                <div>{bucketDetails[0]?.lastModifiedDate ? new Date(bucketDetails[0].lastModifiedDate).toLocaleString() : 'N/A'}</div>
+              </div>
+              <div>
+                <div>Classification</div>
+                <div>{bucketDetails[0]?.classificationType}</div>
+              </div>
+              <div>
+                <div>Permission</div>
+                <div>{bucketDetails[0]?.permission ? `${bucketDetails[0].permission.read ? 'Read' : ''} ${bucketDetails[0].permission.write ? '/ Write' : ''}`.trim() : 'None'}</div>
+              </div>
+              <div>
+                <div>Created By</div>
+                <div>{bucketDetails[0]?.createdBy?.id}</div>
+              </div>
+
+              <div className={Styles.cardCollabSection}>
+                <div>Collaborators</div>
+                {bucketDetails[0]?.collaborators?.length > 0 ? (
+                  <div>
+                    <i className="icon mbc-icon profile" />
+                    <span className={Styles.cardCollabIcon} onMouseOver={onCollabsIconMouseOver} onMouseOut={onCollabsIconMouseOut}>
+                      {bucketDetails[0]?.collaborators?.length}
+                    </span>
+                    <div className={classNames(Styles.collabsList, 'hide')}>
+                      <ul>
+                        {bucketDetails[0]?.collaborators?.map((bucketItem, bucketIndex) => {
+                          // Check if lastName is more than 12 characters
+                          let lastName = bucketItem.lastName || '-';
+                          if (lastName?.length > 12) {
+                            lastName = lastName.substring(0, 12) + " ...";
+                          }
+                          const details = bucketItem?.accesskey + ' (' + bucketItem?.firstName + ' ' + lastName + ')';
+                          return (
+                            <li key={'collab' + bucketIndex}>
+                              <span>
+                                {bucketItem.firstName ? details : bucketItem?.accesskey}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
+                ) : <div>None</div>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <button className={classNames('btn btn-tertiary', Styles.submitBtn)} onClick={handleCreateShortcut}>
         Create Shortcut
       </button>
     </div>
   )
 }
-
 const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   const [shortcuts, setShortcuts] = useState([]);
 
@@ -354,7 +448,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-
+  const isAdmin = workspace?.status?.entitlements?.filter(entitlement =>
+    entitlement?.displayName?.split('_')[0]==='FC' && entitlement?.displayName?.split('_')[2]==='Admin'
+  ).length===1;
+  const isOwner = user?.id === workspace?.createdBy?.id; 
   return (
     <>
       <div className={Styles.lakehouseContainer}>
@@ -386,7 +483,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                   </button>
                 }
               </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn, user?.id !== workspace?.createdBy?.id && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
+              <button className={classNames('btn btn-primary', Styles.outlineBtn, !(isAdmin || isOwner) && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
                 <i className="icon mbc-icon plus" />
                 <span>Create Shortcut</span>
               </button>&nbsp;&nbsp;&nbsp;&nbsp;
