@@ -106,6 +106,12 @@
 			 else{
 				vo.setIsAdmin(false);
 			 }
+			 if(userInfo.getIsApprover()!=null){
+				vo.setIsApprover(userInfo.getIsApprover());
+			 }
+			 else{
+				vo.setIsApprover(false);
+			 }
 		 }
 		 return vo;
 	 }
@@ -119,6 +125,12 @@
 			 }
 			 else{
 				entity.setIsAdmin(false);
+			 }
+			 if(userInfo.isIsApprover()!=null){
+				entity.setIsApprover(userInfo.isIsApprover());
+			 }
+			 else{
+				entity.setIsApprover(false);
 			 }
 		 }
 		
@@ -681,6 +693,12 @@
 											 else{
 												user.setIsAdmin(n.getIsAdmin());
 											 }
+											 if(n.getIsApprover()==null){
+												user.setIsApprover(false);
+											 }
+											 else{
+												user.setIsApprover(n.getIsApprover());
+											 }
 											 return user;
 									 }).collect(Collectors.toList());
 							 projectDetailsVO.setProjectCollaborators(collabsVO);
@@ -732,6 +750,13 @@
 			 {
 				 governanceVo.setPiiData(false);
 			 }
+			 if (governance.getEnableDeployApproval() != null) {
+				governanceVo.setEnableDeployApproval(governance.getEnableDeployApproval());
+			}
+			else
+			{
+				governanceVo.setEnableDeployApproval(false);
+			}
 		 }
 		 return governanceVo;
 	 }
@@ -818,6 +843,13 @@
 			 {
 				 governanceFeilds.setPiiData(false);
 			 }
+			 if (governanceVO.isEnableDeployApproval()) {
+				governanceFeilds.setEnableDeployApproval(governanceVO.isEnableDeployApproval());
+			}
+			else
+			{
+				governanceFeilds.setEnableDeployApproval(false);
+			}
 		 }
 		 return governanceFeilds;
 	 }
