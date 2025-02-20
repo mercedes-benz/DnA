@@ -253,7 +253,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       similarSolutionsBasedOnProductName: [],
       similarSolutionstoShow: [],
       leanIXList: [],
-      leanIXDetails: [],
+      leanIXDetails: {},
       leanIXData: {},
       appId: '',
     };
@@ -1029,7 +1029,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           label={'LeanIX App-ID'}
                           controlId={'leanix-app-id'}
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                          defaultValue={this.state.leanIXDetails.appId}
+                          defaultValue={this.state.appId}
                           list={this.state.leanIXList}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
@@ -1406,18 +1406,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({ leanIXList: item });
   };
 
-  protected onSetLeanIXDetails = (details: any) => {
-    console.log('leanIXDetails set', details);
-    this.setState({ leanIXDetails: details });
+  protected onSetLeanIXDetails = (leanIXDetails: any) => {
+    const description = this.props.description;
+    description.leanIXDetails = leanIXDetails;  
+    this.setState({ leanIXDetails });
   };
 
   protected onSetAppId = (appId: any) => {
-    console.log('appid set', appId);
-    this.setState({ appId: appId });
+    const description = this.props.description;
+    description.appId = appId;  
+    this.setState({ appId });
   };
 
   protected onSetLeanIXData = (data: any) => {
-    console.log('leanix data set', data);
     this.setState({ leanIXData: data });
   };
 }
