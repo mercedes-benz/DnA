@@ -121,6 +121,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           additionalResource: '',
           department: '',
           leanIXDetails: {},
+          appId: '',
         },
         openSegments: [],
         team: { team: [] },

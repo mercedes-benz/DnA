@@ -134,6 +134,7 @@ export interface IDescriptionRequest {
   additionalResource: string;
   department: string;
   leanIXDetails: any;
+  appId: string;
 }
 
 export default class Provisionsolution extends React.Component<IProvisionSolutionProps, IProvisionSolutionState> {
@@ -205,6 +206,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           additionalResource: '',
           department: '',
           leanIXDetails: {},
+          appId: '',
         },
         openSegments: [],
         team: [],
@@ -555,6 +557,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         additionalResource: solution.description.additionalResource,
         department: solution.description.department,
         leanIXDetails: solution.description.leanIXDetails,
+        appId: solution.description.appId,
       },
     };
     ProgressIndicator.show();

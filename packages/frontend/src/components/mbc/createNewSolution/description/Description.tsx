@@ -131,7 +131,9 @@ export interface IDescriptionState {
   similarSolutionsBasedOnProductName: ISimilarSearchListItem[];
   similarSolutionstoShow: ISimilarSearchListItem[];
   leanIXList: any;
+  leanIXData: any;
   leanIXDetails: any;
+  appId: string;
 }
 
 export interface IDescriptionRequest {
@@ -153,6 +155,8 @@ export interface IDescriptionRequest {
   requestedFTECount: number;
   additionalResource: string;
   department: string,
+  appId: string;
+  leanIXDetails: any,
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
@@ -180,6 +184,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       numberOfRequestedFTE: props.description.requestedFTECount,
       additionalResource: props.description.additionalResource,
       departmentTags: props.description.department ? [props.description.department] : [],
+      appId: props.description.appId,
+      leanIXDetails: props.description.leanIXDetails,
     };
   }
 
@@ -248,6 +254,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       similarSolutionstoShow: [],
       leanIXList: [],
       leanIXDetails: [],
+      leanIXData: {},
+      appId: '',
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -645,7 +653,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
-    const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
+    const handleLeanIXSearch = debounce((searchTerm, showSpinner) => {
       if (searchTerm.length > 3) {
         showSpinner(true);
         ApiClient
@@ -1038,9 +1046,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                               },
                             };
                             console.log("leanIXData",leanIXData);
-                            this.onSetLeanIXDetails(selectedTags || {});
+                            this.onSetLeanIXData(leanIXData);
+                            this.onSetAppId(leanIXData.appId)
+                            this.onSetLeanIXDetails(leanIXData.leanIXDetails)
                           }}
-                          onInputChange={handlePlanningITSearch}
+                          onInputChange={handleLeanIXSearch}
                           required={false}
                           // showError={errors.leanIX?.message}
                           showError={false}
@@ -1396,7 +1406,15 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({ leanIXList: item });
   };
 
-  protected onSetLeanIXDetails = (item: any) => {
-    this.setState({ leanIXDetails: item });
+  protected onSetLeanIXDetails = (details: any) => {
+    this.setState({ leanIXDetails: details });
+  };
+
+  protected onSetAppId = (appId: any) => {
+    this.setState({ appId: appId });
+  };
+
+  protected onSetLeanIXData = (data: any) => {
+    this.setState({ leanIXData: data });
   };
 }

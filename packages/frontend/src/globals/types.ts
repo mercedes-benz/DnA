@@ -597,6 +597,7 @@ export interface ICreateNewSolution {
   additionalResource: string;
   department: string;
   leanIXDetails: any;
+  appId: string;
 }
 
 export interface INeededRoleObject {
