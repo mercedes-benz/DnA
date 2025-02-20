@@ -108,7 +108,7 @@ tenant:
       # If using Amazon Elastic Block Store (EBS) CSI driver
       # Please make sure to set xfs for "csi.storage.k8s.io/fstype" parameter under StorageClass.parameters.
       # Docs: https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/parameters.md
-      storageClassName: dhc-io2      
+      storageClassName: dhc-gp3      
       ###
       # Specify `storageAnnotations <https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/>`__ to associate to PVCs.
       storageAnnotations: { }
@@ -194,7 +194,7 @@ tenant:
       ## size specifies the capacity per volume
       size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
-      storageClassName: dhc-io2-retain
+      storageClassName: dhc-gp3-retain
       ## Used to specify annotations for pods
       annotations: { }
       ## Used to specify labels for pods
@@ -253,7 +253,7 @@ tenant:
       # If using Amazon Elastic Block Store (EBS) CSI driver
       # Please make sure to set xfs for "csi.storage.k8s.io/fstype" parameter under StorageClass.parameters.
       # Docs: https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/parameters.md
-      storageClassName: dhc-io2
+      storageClassName: dhc-gp3
       ###
       # Specify `storageAnnotations <https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/>`__ to associate to PVCs.
       storageAnnotations: { }
