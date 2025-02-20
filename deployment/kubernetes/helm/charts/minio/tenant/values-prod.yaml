@@ -194,7 +194,7 @@ tenant:
       ## size specifies the capacity per volume
       size: 300Gi
       ## storageClass specifies the storage class name to be used for this pool
-      storageClassName: dhc-gp3-retain-retain
+      storageClassName: dhc-gp3-retain
       ## Used to specify annotations for pods
       annotations: { }
       ## Used to specify labels for pods
