@@ -1047,8 +1047,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                             };
                             console.log("leanIXData",leanIXData);
                             this.onSetLeanIXData(leanIXData);
-                            this.onSetAppId(leanIXData.appId)
-                            this.onSetLeanIXDetails(leanIXData.leanIXDetails)
+                            this.onSetAppId(leanIXData.appId);
+                            this.onSetLeanIXDetails(leanIXData.leanIXDetails);
                           }}
                           onInputChange={handleLeanIXSearch}
                           required={false}
@@ -1407,14 +1407,17 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   };
 
   protected onSetLeanIXDetails = (details: any) => {
+    console.log('leanIXDetails set', details);
     this.setState({ leanIXDetails: details });
   };
 
   protected onSetAppId = (appId: any) => {
+    console.log('appid set', appId);
     this.setState({ appId: appId });
   };
 
   protected onSetLeanIXData = (data: any) => {
+    console.log('leanix data set', data);
     this.setState({ leanIXData: data });
   };
 }
