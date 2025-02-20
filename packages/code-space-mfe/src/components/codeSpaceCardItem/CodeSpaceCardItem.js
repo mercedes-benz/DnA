@@ -30,6 +30,7 @@ import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import DeployApprovalModal from '../DeployApprovalModal/DeployApprovalModal';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -60,6 +61,7 @@ const CodeSpaceCardItem = (props) => {
   // const recipes = recipesMaster;
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
+  const isApprover = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   // const disableDeployment =
   //   codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
@@ -89,6 +91,7 @@ const CodeSpaceCardItem = (props) => {
   const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `d/fe3tblb85d1xce/codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+  const [showDeployApprovalModal, setShowDeployApprovalModal] = useState(false);
 
   useEffect(() => {
 
@@ -148,6 +151,10 @@ const CodeSpaceCardItem = (props) => {
     }
   };
 
+  const handleDeployApprovalClick = () => {
+    setShowDeployApprovalModal(true); 
+  };
+  
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [serverStarted]);// eslint-disable-line react-hooks/exhaustive-deps
@@ -1219,6 +1226,15 @@ const CodeSpaceCardItem = (props) => {
                     <i className="icon mbc-icon edit"></i>
                   </button>
                 )}
+                 {isApprover && (
+                    <button
+                      className={classNames('btn btn-primary', Styles.tutorials)}
+                      tooltip-data="Deployment Approval"
+                      onClick={handleDeployApprovalClick}
+                    >
+                      <i className={classNames('icon mbc-icon back_files', Styles.trainingIcon)} />
+                    </button>
+                  )}
                 {!creationFailed && !deleteInProgress && !createInProgress && !deployingInProgress && (
                   <button className="btn btn-primary" onClick={onCodeSpaceDelete}>
                     <i className="icon delete"></i>
@@ -1325,6 +1341,14 @@ const CodeSpaceCardItem = (props) => {
           setShowRestartModal(false);
         }}
       />)}
+
+      {showDeployApprovalModal && (
+        <DeployApprovalModal
+          show={showDeployApprovalModal}
+          setShowDeployApprovalModal={setShowDeployApprovalModal}
+        />
+      )}
+
       { showMigrateOrStartModal && (
         <ConfirmModal
           title={''}
