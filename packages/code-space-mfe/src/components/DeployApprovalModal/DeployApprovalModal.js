@@ -46,7 +46,7 @@ const DeployApprovalModal = (props) => {
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Triggered By</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>FAFATHI</label>
+                      <label className={classNames('chips', Styles.Chips)}>N/A</label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
