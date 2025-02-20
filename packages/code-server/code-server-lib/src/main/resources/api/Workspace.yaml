@@ -2039,7 +2039,10 @@ definitions:
         type: string        
         description: "Cloud services provider. Ex: DHC-CaaS"
       projectOwner:
-        $ref: "#/definitions/UserInfoVO"                 
+        $ref: "#/definitions/UserInfoVO"
+      workspaceUrl:
+        type: string
+        description: "Workspace url"                   
   CodeServerUserGroupCollectionVO:
     type: object
     properties:

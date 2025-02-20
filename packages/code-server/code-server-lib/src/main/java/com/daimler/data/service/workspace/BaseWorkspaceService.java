@@ -3240,6 +3240,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 							workSpace.setServerStatus(workspaceVo.getServerStatus());
 							workSpace.setStatus(workspaceVo.getStatus());
 							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
+							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
 						}else{
 							workSpace.setName("");
 							workSpace.setCloudServiceProvider("");
@@ -3333,6 +3334,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 							workSpace.setServerStatus(workspaceVo.getServerStatus());
 							workSpace.setStatus(workspaceVo.getStatus());
 							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
+							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
 						}else{
 							workSpace.setName("");
 							workSpace.setCloudServiceProvider("");
@@ -3368,6 +3370,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 							workSpace.setServerStatus(workspaceVo.getServerStatus());
 							workSpace.setStatus(workspaceVo.getStatus());
 							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
+							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
 						}else{
 							workSpace.setName("");
 							workSpace.setCloudServiceProvider("");
@@ -3456,6 +3459,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 						workSpace.setServerStatus(workspaceVo.getServerStatus());
 						workSpace.setStatus(workspaceVo.getStatus());
 						workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
+						workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
 					}else{
 						workSpace.setName("");
 						workSpace.setCloudServiceProvider("");
