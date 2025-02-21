@@ -538,7 +538,7 @@ const CodeSpaceCardItem = (props) => {
                         </a>
                       </li>
                     )}
-                     {serverStarted && (
+                      {serverStarted && (
                       <li>
                          <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
                           Resource usage

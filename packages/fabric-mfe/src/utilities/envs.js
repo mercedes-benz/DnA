@@ -32,4 +32,5 @@ export const Envs = {
   DNA_BRAND_LOGO_URL: getDNAInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL,
   DNA_APP_LOGO_URL: getDNAInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
   TOU_HTML: getInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
+  FABRIC_ENTITLEMENT_PREFIX: getInjectedEnv('FABRIC_ENTITLEMENT_PREFIX') || process.env.FABRIC_ENTITLEMENT_PREFIX,
 };
