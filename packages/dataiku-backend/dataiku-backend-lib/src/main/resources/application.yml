@@ -1,7 +1,7 @@
 micronaut:
   application:
     name: dataiku
-    version: 1.0.8
+    version: 1.0.9
   environments: production
   security:
     enabled: false

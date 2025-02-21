@@ -1,0 +1,35 @@
+.form {  
+  width: 950px;
+  margin: 0 auto 20px;
+  .formHeader {
+    margin-bottom: 20px;
+    text-align: center;
+    h3 {
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .formFooter {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  > .col {
+    width: 100%;
+  }
+  > .col2 {
+    width: calc(50% - 7px);
+  }
+  > .col3 {
+    width: calc(33.33% - 7px);
+  }
+}
