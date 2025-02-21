@@ -5,6 +5,7 @@ import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
+import { Envs } from '../../utilities/envs';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
@@ -16,6 +17,10 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
   const handleOpenWorkspace = () => {
     history.push(`/workspace/${workspace?.id}`);
   }
+
+  const userRoles = user?.entitlementGroup
+    ?.filter(ent => ent.startsWith(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}`))
+    ?.map(ent => ent.split('_').at(-1)) || ['N/A'];
 
   return (
     <div className={classNames(Styles.projectCard)}>
@@ -49,10 +54,10 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Created by</div>
             <div>{workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}</div>
           </div>
-          {/* <div>
+          <div>
             <div>Role</div>
-            <div>{workspace?.role || 'N/A'}</div>
-          </div> */}
+            <div>{userRoles.join(', ')}</div>
+          </div>
           <div>
             <div>Classification</div>
             <div>{workspace?.dataClassification || 'N/A'}</div>
