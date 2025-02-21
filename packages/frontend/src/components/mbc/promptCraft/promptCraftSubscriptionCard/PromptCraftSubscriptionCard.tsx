@@ -12,9 +12,9 @@ export interface IPromptCraftSubscriptionFormProps {
   onShowKeys: (subscription: any) => void;
 }
 
-const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSubscriptionFormProps) => {
+const PromptCraftSubscriptionForm = ({ subscription, onShowKeys }: IPromptCraftSubscriptionFormProps) => {
   const history = useHistory();
-  
+
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
@@ -23,7 +23,7 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
     history.push(subscription?.subscriptionLink);
   }
 
-  let popperObj:any, tooltipElem:any = null;
+  let popperObj: any, tooltipElem: any = null;
 
   const onCollabsIconMouseOver = (e: any) => {
     const targetElem = e.target;
@@ -81,18 +81,18 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
             <div>Project Members</div>
             {subscription?.projectMembers?.length > 0 ? (
               <div>
-                <i className="icon mbc-icon profile"/>
+                <i className="icon mbc-icon profile" />
                 <span className={Styles.cardCollabIcon} onMouseOver={onCollabsIconMouseOver} onMouseOut={onCollabsIconMouseOut}>
                   {subscription?.projectMembers?.length}
                 </span>
                 <div className={classNames(Styles.membersList, 'hide')}>
                   <ul>
                     {subscription?.projectMembers?.map((member: any, index: any) => {
-                        // Check if lastName is more than 12 characters
-                        let lastName = member.lastName;
-                        if (lastName?.length > 12) {
-                          lastName = lastName.substring(0, 12) + " ...";
-                        }
+                      // Check if lastName is more than 12 characters
+                      let lastName = member.lastName;
+                      if (lastName?.length > 12) {
+                        lastName = lastName.substring(0, 12) + " ...";
+                      }
                       return (
                         <li key={'collab' + index}>
                           <span>
@@ -112,17 +112,17 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
         <>
           <div className={Styles.statusContainer}>
             <div className={Styles.statusItem}>
-              {(subscription?.status !== 'COMPLETED' || subscription?.status !== 'FAILED') &&
+              {(subscription?.status !== 'COMPLETED' && subscription?.status !== 'FAILED') &&
                 <p>
                   <i className={'icon mbc-icon info'}></i> <span>Subscription Requested</span>
                 </p>
               }
               {subscription?.status === 'FAILED' &&
-                <p>
-                  <i className={'icon mbc-icon warning'}></i> <span>Failed</span>
+                <p className={Styles.failedStatus}>
+                  <i className={'icon mbc-icon alert circle'}></i> <span>Failed</span>
                 </p>
               }
-              {subscription?.status === 'COMPLETED' && 
+              {subscription?.status === 'COMPLETED' &&
                 <p className={Styles.completedStatus}>
                   <i className={'icon mbc-icon check circle'}></i> <span>Active</span>
                 </p>
@@ -131,8 +131,8 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
             </div>
           </div>
           {/* {user?.id === subscription?.createdBy?.id && */}
-            <div className={Styles.btnGrp}>
-              {/* <button
+          <div className={Styles.btnGrp}>
+            {/* <button
                 className={'btn btn-primary'}
                 type="button"
                 onClick={() => onDeleteSubscription(subscription)}
@@ -140,15 +140,15 @@ const PromptCraftSubscriptionForm = ({subscription, onShowKeys}: IPromptCraftSub
                 <i className="icon delete"></i>
                 <span>Delete</span>
               </button> */}
-              <button
-                className={'btn btn-primary'}
-                type="button"
-                onClick={() => onShowKeys(subscription)}
-              >
-                <i className="icon mbc-icon visibility-show"></i>&nbsp;
-                <span>View Key</span>
-              </button>
-            </div>
+            <button
+              className={'btn btn-primary'}
+              type="button"
+              onClick={() => onShowKeys(subscription)}
+            >
+              <i className="icon mbc-icon visibility-show"></i>&nbsp;
+              <span>View Key</span>
+            </button>
+          </div>
           {/* } */}
         </>
       </div>
