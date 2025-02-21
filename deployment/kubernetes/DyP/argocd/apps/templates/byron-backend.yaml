@@ -6,10 +6,10 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ .Values.env }}-byron-chat-frontend
+  name: {{ .Values.env }}-byron-chat-backend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend
+    name: backend
     env: {{ .Values.env }}
     project: {{ .Values.env }}-dna  
 spec:
@@ -17,7 +17,7 @@ spec:
     namespace: {{ .Values.env }}-byron-chat
     server: {{ .Values.server | squote }}
   source:
-    path: deploy/helm/charts/frontend
+    path: deploy/helm/charts/backend
     repoURL: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
     targetRevision: main
     helm:
@@ -35,3 +35,4 @@ spec:
       - CreateNamespace=true
 {{- end }}
 {{- end }}
+
