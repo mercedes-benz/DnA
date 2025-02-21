@@ -887,6 +887,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 reqVO.setWorkspaceOwner(currentUserVO);
 		 reqVO.setId(null);
 		 reqVO.setWorkspaceId(null);
+		 reqVO.setActiveInGroup(Boolean.FALSE);
 		 reqVO.setWorkspaceUrl("");
 		 reqVO.setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 		 reqVO.setServerStatus("SERVER_STOPPED");
