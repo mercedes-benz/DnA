@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: openmetadata
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service  
+spec:
+  destination:
+    namespace: openmetadata
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/helm/charts/openmetadata
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: --namespace openmetadata -f values-dyp.yaml          
+  project: dna
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true

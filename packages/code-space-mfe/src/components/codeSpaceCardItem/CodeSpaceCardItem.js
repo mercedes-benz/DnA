@@ -86,6 +86,7 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
@@ -146,6 +147,10 @@ const CodeSpaceCardItem = (props) => {
       event.stopPropagation();
     }
   };
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [serverStarted]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
@@ -533,6 +538,14 @@ const CodeSpaceCardItem = (props) => {
                         </a>
                       </li>
                     )}
+                     {serverStarted && (
+                      <li>
+                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Resource usage
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
                     {codeSpace.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
                       <li>
                         <span
@@ -755,15 +768,15 @@ const CodeSpaceCardItem = (props) => {
                 </div>
               </div>
             )}
-            {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && codeSpace?.isWorkspaceMigrated && Envs.SHOW_ON_PREM_START && (
-              <div>
-                <i
-                  onClick={() => {
-                    setShowOnPremStartModal(true);
-                  }}
-                  tooltip-data="Start on DyP-CaaS On-Prem (manual)"
-                  className="icon mbc-icon worksspace right"
-                />
+            {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && serverStarted && (
+                <div>
+                <button
+                  className={classNames('btn btn-primary', Styles.btnOutline)}
+                  tooltip-data="Resource usage" 
+                  onClick={() => window.open(resourceUsageUrl, "_blank")} 
+                >
+                  <i className="icon mbc-icon worksspace right" />
+                </button>
               </div>
             )}
           </div>
