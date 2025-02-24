@@ -91,6 +91,10 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
                 }
                 additionalServiceLovVo.setAdditionalProperties(additionalPropertiesVO);
             }
+            additionalServiceLovVo.setCreatedOn(entity.getData().getCreatedOn());
+            additionalServiceLovVo.setCreatedBy(entity.getData().getCreatedBy());
+            additionalServiceLovVo.setUpdatedOn(entity.getData().getUpdatedOn());
+            additionalServiceLovVo.setUpdatedBy(entity.getData().getUpdatedBy());
         
         }
         catch(Exception e){
@@ -102,11 +106,70 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
     @Override
     public CodeServerAdditionalServiceNsql toEntity(AdditionalServiceLovVo vo) {
         CodeServerAdditionalServiceNsql entity = new CodeServerAdditionalServiceNsql();
-        AdditionalPropertiesDto additionalPropertiesDto =  new AdditionalPropertiesDto();
-        CodeServerAdditionalService data =  new CodeServerAdditionalService();
-        if(Objects.nonNull(vo)) {
-            //To implement for entity creation
-            data.setAdditionalProperties(additionalPropertiesDto);
+        if (Objects.nonNull(vo)) {
+            CodeServerAdditionalService data = new CodeServerAdditionalService();
+            AdditionalPropertiesDto additionalProperties = new AdditionalPropertiesDto();
+
+            data.setServiceName(vo.getServiceName());
+            data.setVersion(vo.getVersion());
+
+            if (Objects.nonNull(vo.getAdditionalProperties())) {
+                AdditionalPropertiesVO propertiesVO = (AdditionalPropertiesVO) vo.getAdditionalProperties();
+
+                if (Objects.nonNull(propertiesVO.getEnv())) {
+                    List<EnvironmentVariable> envList = new ArrayList<>();
+                    for (EnvVO envVo : propertiesVO.getEnv()) {
+                        EnvironmentVariable env = new EnvironmentVariable();
+                        env.setName(envVo.getName());
+                        env.setValue(envVo.getValue());
+                        envList.add(env);
+                    }
+                    additionalProperties.setEnv(envList);
+                }
+
+                additionalProperties.setArgs(propertiesVO.getArgs());
+
+                if (Objects.nonNull(propertiesVO.getPorts())) {
+                    List<Port> portList = new ArrayList<>();
+                    for (PortVO portVo : propertiesVO.getPorts()) {
+                        Port port = new Port();
+                        port.setContainerPort(portVo.getContainerPort());
+                        port.setProtocol(portVo.getProtocol());
+                        portList.add(port);
+                    }
+                    additionalProperties.setPorts(portList);
+                }
+
+                if (Objects.nonNull(propertiesVO.getVolumeMounts())) {
+                    List<VolumeMount> volumeMountList = new ArrayList<>();
+                    for (VolumeMountsVO volMountVo : propertiesVO.getVolumeMounts()) {
+                        VolumeMount volumeMount = new VolumeMount();
+                        volumeMount.setName(volMountVo.getName());
+                        volumeMount.setMountPath(volMountVo.getMountPath());
+                        volumeMountList.add(volumeMount);
+                    }
+                    additionalProperties.setVolumeMounts(volumeMountList);
+                }
+
+                if (Objects.nonNull(propertiesVO.getSecurityContext())) {
+                    SecurityContext securityContext = new SecurityContext();
+                    securityContext.setRunAsUser(propertiesVO.getSecurityContext().getRunAsUser());
+                    additionalProperties.setSecurityContext(securityContext);
+                }
+
+                additionalProperties.setImage(propertiesVO.getImage());
+                additionalProperties.setName(propertiesVO.getName());
+                additionalProperties.setImagePullPolicy(propertiesVO.getImagePullPolicy());
+
+                data.setAdditionalProperties(additionalProperties);
+            }
+
+            data.setCreatedOn(vo.getCreatedOn());
+            data.setCreatedBy(vo.getCreatedBy());
+            data.setUpdatedOn(vo.getUpdatedOn());
+            data.setUpdatedBy(vo.getUpdatedBy());
+
+            entity.setId(vo.getId()); 
             entity.setData(data);
         }
         return entity;
