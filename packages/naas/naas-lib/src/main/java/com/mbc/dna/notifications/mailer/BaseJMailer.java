@@ -78,7 +78,7 @@ public class BaseJMailer implements JMailer {
 	        helper.setSubject(subject);
 	         
 	        boolean html = true;
-			if(subject.contains("Codespace Playground Project Alert")){
+			if(subject.contains("Codespace Playground Project")){
 				helper.setSubject("ACTION REQUIRED:" + subject);
 				helper.setText("Dear User," +
 				"<br/>" +
