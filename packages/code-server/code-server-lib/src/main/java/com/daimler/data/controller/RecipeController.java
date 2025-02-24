@@ -21,6 +21,7 @@ import com.daimler.data.api.workspace.recipe.CodeServerRecipeApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.dto.workspace.recipe.ResponseSoftwareVO;
+import com.daimler.data.dto.workspace.recipe.ResponseServiceVO;
 import com.daimler.data.service.workspace.RecipeService;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeVo;
@@ -29,8 +30,10 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerSoftwareNsql;
+import com.daimler.data.db.entities.CodeServerAdditionalServiceNsql;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomSoftwareRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -67,6 +70,10 @@ public class RecipeController implements CodeServerRecipeApi {
 
 	 @Autowired
 	 private WorkspaceCustomSoftwareRepo workspaceCustomSoftwareRepo;	
+
+	 @Autowired
+	 private WorkspaceCustomAdditionalServiceRepo workspaceCustomAdditionalServiceRepo;	
+
 
 	@Override
 	@ApiOperation(value = "Initialize/Create recipe for user in code-server-recipe.", nickname = "createRecipe", notes = "Create recipe for user in code-server with given password", response = RecipeVO.class, tags = {
@@ -660,5 +667,111 @@ public class RecipeController implements CodeServerRecipeApi {
 		GenericMessage response = service.deleteSoftware(id);
 		return ResponseEntity.ok(response);
 	}
+
+	@ApiOperation(value = "Create additional services in recipe workspace. ", nickname = "createAdditionalService", notes = "Create a new additional services entry in code-server recipe workspace.", response = ResponseServiceVO.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = ResponseServiceVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request.", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/adminService",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<ResponseServiceVO> createAdditionalService(@ApiParam(value = "Request body containing data required to create a software entry in the recipe workspace." ,required=true )  @Valid @RequestBody AdditionalServiceLovVo addServiceRequestVO){
+		String serviceName = addServiceRequestVO.getServiceName();
+		ResponseServiceVO responseMessage = new ResponseServiceVO();
+    	if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			if (service.getServiceByName(serviceName) != null) {
+				MessageDescription invalidMsg = new MessageDescription("Adiitional Service name already exists. Kindly provide a unique name.");
+				responseMessage.addErrorsItem(invalidMsg);
+				responseMessage.setSuccess("CONFLICT");
+				return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+			}
+			AdditionalServiceLovVo addservice = service.createAdditionalService(addServiceRequestVO);
+            responseMessage.setData(addservice);
+            responseMessage.setSuccess("SUCCESS");
+            return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+		}else {
+				
+			responseMessage.setData(null);
+			responseMessage.setSuccess("FAILED");
+			log.info(" user is unauthorized to access additional services" + userStore.getUserInfo().getId());
+			return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
+	   }
+	}
+
+	@ApiOperation(value = "Update additional service in recipe workspace for a given id.", nickname = "updateServiceById", notes = "Update existing additional service entry in code-server recipe workspace for a given id.", response = ResponseServiceVO.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure.", response = ResponseServiceVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal error.") })
+    @RequestMapping(value = "/recipeDetails/adminService/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity<ResponseServiceVO> updateServiceById(@ApiParam(value = "Request Body that contains data required to update additional service" ,required=true )  @Valid @RequestBody AdditionalServiceLovVo addServiceRequestVO){
+		String serviceName = addServiceRequestVO.getServiceName() != null ? addServiceRequestVO.getServiceName() : null;
+		ResponseServiceVO responseMessage = new ResponseServiceVO();
+    	if (!userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			responseMessage.setSuccess("FAILED");
+			log.info("User is unauthorized to update additional service: " + userStore.getUserInfo().getId());
+			return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
+		}
+		AdditionalServiceLovVo existingAddService = service.getServiceByName(serviceName);
+		if (existingAddService == null) {
+			responseMessage.setSuccess("FAILED");
+			log.info("Cannot find the Additional Service to update");
+			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		}
+		AdditionalServiceLovVo serviceVO = service.updateAddService(addServiceRequestVO);
+		if (Objects.nonNull(serviceVO)) {
+			responseMessage.setData(serviceVO);
+			responseMessage.setSuccess("SUCCESS");
+			log.info("The additional service has been updated successfully with the name: "+serviceName);
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}
+		responseMessage.setSuccess("FAILED");
+    	return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@ApiOperation(value = "Delete additional service with given Id.", nickname = "deleteAddService", notes = "Delete additional service for a given identifier.", response = GenericMessage.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Not found - Additional service ID does not exist."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/adminService/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteAddService(@ApiParam(value = "additional service to be deleted",required=true) @PathVariable("id") String id){
+		CodeServerAdditionalServiceNsql entity = workspaceCustomAdditionalServiceRepo.findByAddServiceId(id);
+		if (entity == null){
+			GenericMessage response = new GenericMessage();
+			response.setSuccess("FAILED");
+			log.info("Cannot find the Additional Service to delete");
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		}
+		if (!userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			GenericMessage response = new GenericMessage();
+			response.setSuccess("FAILED");
+			log.info("User is unauthorized to delete additional service: " + userStore.getUserInfo().getId());
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
+		GenericMessage response = service.deleteAddService(id);
+		return ResponseEntity.ok(response);
+	}
+
 
 }

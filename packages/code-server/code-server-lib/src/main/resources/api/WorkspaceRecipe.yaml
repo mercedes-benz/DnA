@@ -407,6 +407,104 @@ paths:
         500:
           description: "Internal error"
 
+  /recipeDetails/adminService:
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "Create additional services in recipe workspace. "
+      description: "Create a new additional services entry in code-server recipe workspace."
+      operationId: "createAdditionalService"
+      parameters:
+          - name: "addServiceRequestVO"
+            in: "body"
+            description: "Request body containing data required to create a service entry in the recipe workspace."
+            required: true
+            schema:
+              $ref: "#/definitions/AdditionalServiceLovVo"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ResponseServiceVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /recipeDetails/adminService/{id}:
+    put:
+      tags:
+        - "code-server-recipe"
+      summary: "Update additional service in recipe workspace for a given id."
+      description: "Update existing additional service entry in code-server recipe workspace for a given id."
+      operationId: "updateServiceById"
+      parameters:
+        - name: "addServiceRequestVO"
+          in: "body"
+          description: "Request Body that contains data required to update additional service"
+          required: true
+          schema:
+            $ref: "#/definitions/AdditionalServiceLovVo"
+      responses:
+          201:
+            description: "Returns message of success or failure."
+            schema:
+              $ref: "#/definitions/ResponseServiceVO"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed."
+          500:
+            description: "Internal error."
+
+    delete:
+      tags:
+        - "code-server-recipe"
+      summary: "Delete additional service with given Id."
+      description: "Delete additional service for a given identifier."
+      operationId: "deleteAddService"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "additional service to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Not found - Additional service ID does not exist."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /recipeDetails/recipelov:
     get:
       tags:
@@ -738,9 +836,42 @@ definitions:
         type: string
         description: "version of additional service"
       additionalProperties:
+        $ref: "#/definitions/AdditionalPropertiesVO"
+      id:
+        type: string
+        description: "additional service ID"
+      createdOn:
+        type: string
+        format: date
+        description: "created date for additional software"
+      createdBy:
+        type: string
+        description: "Created by user name"
+      updatedOn:
+        type: string
+        format: date
+        description: "updated date for additional software"
+      updatedBy:
+        type: string
+        description: "Updated by user name"
+
+  ResponseServiceVO:
+    type: object
+    properties:
+      data:
         type: object
         items:
-          $ref: "#/definitions/AdditionalPropertiesVO"
+          $ref: "#/definitions/AdditionalServiceLovVo"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
 
   PortVO:
     type: object

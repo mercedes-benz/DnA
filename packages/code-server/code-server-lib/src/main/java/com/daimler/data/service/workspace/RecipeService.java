@@ -47,4 +47,11 @@ public interface RecipeService {
 
 	GenericMessage deleteSoftware(String id);
 
+	AdditionalServiceLovVo createAdditionalService(AdditionalServiceLovVo addServiceRequestVO);
+
+	AdditionalServiceLovVo updateAddService(AdditionalServiceLovVo addServiceRequestVO);
+
+	AdditionalServiceLovVo getServiceByName(String serviceName);
+
+	GenericMessage deleteAddService(String id);
 }
