@@ -996,6 +996,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 				if(technicalId.equalsIgnoreCase(userId) && vo.getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
 					CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+					entity = workspaceCustomRepository.findByWorkspaceId(id);
 					entity.getData().setStatus("DELETED");
 					jpaRepo.save(entity);
 					GenericMessage message = new GenericMessage();
