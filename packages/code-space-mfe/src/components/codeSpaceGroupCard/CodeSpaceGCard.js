@@ -50,7 +50,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace }) => {
             {codeSpace?.name}
             {!enableOnboard && !creationFailed && serverStarted && (
               <a
-                className={Styles.OpenNewTab}
+                className={Styles.csOpenNewTab}
                 tooltip-data="Open workspace in new tab"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -59,11 +59,10 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace }) => {
                 }}
               >
                 <i className="icon mbc-icon arrow small right" />
-                <span> &nbsp; </span>
               </a>
             )}
           </h3>
-          {/* <p>Shared</p> */}
+          <p className={Styles.workspaceType}>{codeSpace?.projectOwner?.id === userInfo.id ? 'Own' : 'Shared'}</p>
       </div>
       {!createInProgress && !creationFailed && !serverFailed && (
         <span

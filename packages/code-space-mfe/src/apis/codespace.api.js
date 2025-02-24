@@ -172,19 +172,49 @@ const getCodeSpaceRecipesStatus = () => { //not used right now
 };
 
 const getAllSoftware = () => {
-    return server.get(`software`, {
+    return server.get(`recipeDetails/softwareLov`, {
         data: {},
     });
 };
 
 const  deleteSoftware = (id) => {
-    return server.delete(`software/${id}`, { 
+    return server.delete(`recipeDetails/adminSoftware/${id}`, { 
         data: {},
     });
 }
 
 const addSoftware = (data) => {
-    return server.post(`software`, 
+    return server.post(`recipeDetails/adminSoftware`, 
+        data,
+    );
+};
+
+const updateSoftware = (id, data) => {
+    return server.put(`recipeDetails/adminSoftware/${id}`, 
+        data,
+    );
+};
+
+const getAllAdditionalServices = () => {
+    return server.get(`recipeDetails/additionalServiceLov`, {
+        data: {},
+    });
+};
+
+const  deleteAdditionalService = (id) => {
+    return server.delete(`recipeDetails/adminService/${id}`, { 
+        data: {},
+    });
+}
+
+const addAdditionalService = (data) => {
+    return server.post(`recipeDetails/adminService`, 
+        data,
+    );
+};
+
+const updateAdditionalService = (id, data) => {
+    return server.put(`recipeDetails/adminService/${id}`, 
         data,
     );
 };
@@ -374,7 +404,12 @@ export const CodeSpaceApiClient = {
     getAllRecipes,
     getAllSoftware,
     deleteSoftware,
+    updateSoftware,
     addSoftware,
+    getAllAdditionalServices,
+    deleteAdditionalService,
+    addAdditionalService,
+    updateAdditionalService,
     verifyGitUser,
     getCodeSpaceRecipesStatus,
     acceptCodeSpaceRecipeRequest,
