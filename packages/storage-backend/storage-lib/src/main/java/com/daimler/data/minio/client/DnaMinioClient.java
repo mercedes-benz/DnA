@@ -216,6 +216,6 @@ public interface DnaMinioClient {
 	MinioGenericResponse getBucketObjectsUsingMC(String userId, String bucketName, String prefix);
 	MinioGenericResponse setBucketPublicDownloadUsingMc(String bucketName, boolean isEnablePublicAccess);
 	String detachPolicyFromUser(String userId, String policyName, boolean isAdmin);
-	String attachPolicyFromUser(String userId, String policyName, boolean isAdmin);
-	
+	String attachPolicyToUser(String userId, String policyName, boolean isAdmin);
+
 }

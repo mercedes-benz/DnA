@@ -810,7 +810,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Adding new policies to existing one
 				for (String policy : policies) {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
-					Logger.info("mc attach policy response: "+ policyResponse);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
 
@@ -842,7 +842,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				LOGGER.debug("Setting policy for user:{}", userId);
 				//minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
 				String policyResponse = this.attachPolicyToUser(userId, policy, false);
-				Logger.info("mc attach policy response: "+ policyResponse);
+				LOGGER.info("mc attach policy response: "+ policyResponse);
 
 				LOGGER.debug("Adding user: {} credentials to vault",userId);
 				vaultConfig.addUserVault(userId, userSecretKey);
@@ -1287,8 +1287,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						if (StringUtils.hasText(userPolicy)) {
 							LOGGER.info("Unlinking policy from user:{}", userId);
 							//minioAdminClient.setPolicy(userId, false, userPolicy);
-							String policyResponse = this.detachPolicyToUser(userId, policy, false);
-							Logger.info("mc detach policy response: "+ policyResponse);
+							String policyResponse = this.detachPolicyFromUser(userId, policy, false);
+							LOGGER.info("mc detach policy response: "+ policyResponse);
 							// Update user's policy in minio cache
 							UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
 									userInfo.memberOf());
@@ -1345,7 +1345,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 			// LOGGER.info("Success from minio set policy");
 			String policyResponse = this.attachPolicyToUser(userId, policyName, false);
-			Logger.info("mc attach policy response: "+ policyResponse);
+			LOGGER.info("mc attach policy response: "+ policyResponse);
 
 			// updating cache
 			UserInfo userInfo = users.get(userOrGroupName);
