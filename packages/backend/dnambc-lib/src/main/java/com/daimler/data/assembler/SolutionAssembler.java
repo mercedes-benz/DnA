@@ -65,6 +65,7 @@ import com.daimler.data.dto.attachment.FileDetailsVO;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
 import com.daimler.data.dto.datavolume.DataVolumeVO;
 import com.daimler.data.dto.language.LanguageVO;
+import com.daimler.data.dto.LeanIXDetails;
 import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.result.ResultVO;
@@ -80,6 +81,7 @@ import com.daimler.data.dto.solution.CostRampUpYearVO;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.DataSourceSummaryVO;
 import com.daimler.data.dto.solution.DataValueCalculatorVO;
+import com.daimler.data.dto.solution.LeanIXDetailsVO;
 import com.daimler.data.dto.solution.LinkVO;
 import com.daimler.data.dto.solution.LogoDetailsVO;
 import com.daimler.data.dto.solution.MarketingRoleSummaryVO;
@@ -827,6 +829,13 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				vo.setSkills(skillsVO);
 			}
 
+			//setting leanIX Details
+			if (!ObjectUtils.isEmpty(solution.getLeanIXDetails())) {
+				LeanIXDetailsVO  leanIXDetails = new LeanIXDetailsVO();
+				BeanUtils.copyProperties(solution.getLeanIXDetails(),leanIXDetails);
+				vo.setLeanIXDetails(leanIXDetails);
+			}
+
 			vo.setId(entity.getId());
 		}
 		return vo;
@@ -1550,6 +1559,15 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				List<SkillSummary> skills = vo.getSkills().stream().map(n -> toSkillSummary(n))
 						.collect(Collectors.toList());
 				solution.setSkills(skills);
+			}
+
+			//setting leanIX details
+
+			if(!ObjectUtils.isEmpty(vo.getLeanIXDetails())) {
+				LeanIXDetails leanIXDetails  = new LeanIXDetails();
+				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
+				solution.setLeanIXDetails(leanIXDetails);
+				
 			}
 
 			entity.setData(solution);
