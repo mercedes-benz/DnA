@@ -1359,7 +1359,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.debug("Updating {}.", ConstantsUtility.MINIO_USERS_CACHE);
 			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
 
-		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+		} catch (Exception e) {
 			LOGGER.error("Error occured while updating policy for user:{}", userOrGroupName);
 		}
 	}
