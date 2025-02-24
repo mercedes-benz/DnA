@@ -364,7 +364,7 @@ const AllCodeSpaces = (props) => {
             <div className="progress infinite" />
         </div>
     ) : (
-        <div>
+        <div className={Styles.csCardsContainer}>
             <div>
                 {selectedCodespaces?.workspaces?.length === 0 ? (
                     <div className={classNames(Styles.content)}>
