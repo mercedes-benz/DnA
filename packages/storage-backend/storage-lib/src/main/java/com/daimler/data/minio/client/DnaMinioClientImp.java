@@ -841,7 +841,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// setting policy to user
 				LOGGER.debug("Setting policy for user:{}", userId);
 				//minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
-				String policyResponse = this.attachPolicyToUser(userId, policy, false);
+				String policyResponse = this.attachPolicyToUser(userId, commaSeparatedPolicies, false);
 				LOGGER.info("mc attach policy response: "+ policyResponse);
 
 				LOGGER.debug("Adding user: {} credentials to vault",userId);
@@ -1344,7 +1344,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
 			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 			// LOGGER.info("Success from minio set policy");
-			String policyResponse = this.attachPolicyToUser(userId, policyName, false);
+			String policyResponse = this.attachPolicyToUser(userOrGroupName, policyName, false);
 			LOGGER.info("mc attach policy response: "+ policyResponse);
 
 			// updating cache
