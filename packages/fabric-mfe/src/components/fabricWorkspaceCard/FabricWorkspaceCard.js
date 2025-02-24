@@ -20,7 +20,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
 
   const userRoles = user?.entitlementGroup
     ?.filter(ent => ent.startsWith(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}`))
-    ?.map(ent => ent.split('_').at(-1)) || ['N/A'];
+    ?.map(ent => ent.split('_').at(-1));
 
   return (
     <div className={classNames(Styles.projectCard)}>
@@ -56,7 +56,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           </div>
           <div>
             <div>Role</div>
-            <div>{userRoles.join(', ')}</div>
+            <div>{userRoles.length ? userRoles.join(', ') : 'N/A'}</div>
           </div>
           <div>
             <div>Classification</div>
