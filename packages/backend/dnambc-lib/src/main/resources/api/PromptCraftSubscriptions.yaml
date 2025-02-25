@@ -231,8 +231,7 @@ definitions:
         type: string
       orgName:
         type: string
-      subscriptionLink:
-        type: string
+        minLength: 3
       createdOn:
         type: string
         format: date
@@ -246,6 +245,10 @@ definitions:
         type: string
       runId:
         type: string
+    required:
+      - projectName
+      - orgName
+      - projectMembers
 
   MemberInfoVO:
     type: object

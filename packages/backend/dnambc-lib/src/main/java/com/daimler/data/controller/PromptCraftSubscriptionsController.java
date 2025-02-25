@@ -129,6 +129,15 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
                     log.info("projectName {} already exists ", requestVO.getProjectName());
                     return new ResponseEntity<>(response, HttpStatus.CONFLICT);
                 }
+                if(requestVO.getProjectMembers().isEmpty()){
+                    log.info("Atleast one member should be added to the project, Bad Request");
+                    MessageDescription msg = new MessageDescription("Atleast one member should be added to the project, Bad Request");
+                    errors.add(msg);
+                    response.setSuccess("FAILED");
+                    response.setErrors(errors);
+                    response.setData(null);
+                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                }
                  response = service.createSubscription(requestVO);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }else{
