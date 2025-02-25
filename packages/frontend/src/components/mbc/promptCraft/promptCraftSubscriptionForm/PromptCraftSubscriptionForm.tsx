@@ -10,10 +10,11 @@ import AddUser from '../../../mbc/addUser/AddUser';
 import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
 
 export interface IPromptCraftSubscriptionFormProps {
+  user: any;
   onSave: () => void;
 }
 
-const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormProps) => {
+const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionFormProps) => {
   const methods = useForm();
   const {
     register,
@@ -36,8 +37,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
     let duplicateMember = false;
     duplicateMember = projectMembers?.filter((projectMember) => projectMember.id === member.shortId)?.length ? true : false;
 
-    // const isCreator = user?.id === developer?.id;
-    const isCreator = false;
+    const isCreator = user?.id === member?.shortId;
 
     if (duplicateMember) {
         Notification.show('Member already added.', 'warning');
@@ -86,7 +86,7 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
       <FormProvider {...methods}>
         <div className={classNames(Styles.form)}>
           <div className={Styles.formHeader}>
-            <h3>Create Prompt Craft Subscription</h3>
+            <h3>Approve Prompt Craft Subscripton</h3>
             <p>Enter the information to start creating!</p>
           </div>
           <div className={Styles.flex}>
@@ -101,9 +101,9 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('name', { required: '*Missing entry' })}
+                  {...register('name', { required: '*Missing entry', minLength: 3 })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors?.name?.type === 'minLength' && 'Min 3 characters required'}</span>
               </div>
             </div>
             <div className={Styles.col}>
@@ -117,9 +117,9 @@ const PromptCraftSubscriptionForm = ({ onSave }: IPromptCraftSubscriptionFormPro
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('orgName', { required: '*Missing entry' })}
+                  {...register('orgName', { required: '*Missing entry', minLength: 3 })}
                 />
-                <span className={'error-message'}>{errors?.orgName?.message}</span>
+                <span className={'error-message'}>{errors?.orgName?.message}{errors?.orgName?.type === 'minLength' && 'Min 3 characters required'}</span>
               </div>
             </div>
             <div className={Styles.col}>

@@ -15,6 +15,7 @@ import PromptCraftSubscriptionRow from '../promptCraftSubscriptionRow/PromptCraf
 import PromptCraftSubscriptionForm from '../promptCraftSubscriptionForm/PromptCraftSubscriptionForm';
 import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
 import KeysModal from '../keysModal/KeysModal';
+import { USER_ROLE } from 'globals/constants';
 
 interface ISubscription {
   id: string;
@@ -71,7 +72,7 @@ const PromptCraftSubscriptions = ({ user }: any) => {
     getSubscriptions();
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
-  const isAdmin = user?.roles[0].id === '3';
+  const isAdmin = user.roles.find((role:any) => role.id === USER_ROLE.ADMIN) !== undefined;
 
   // delete subscription
   const deleteSubscriptionContent = (
@@ -186,7 +187,7 @@ const PromptCraftSubscriptions = ({ user }: any) => {
                 type="button"
                 onClick={() => setCreateSubscription(true)}
               >
-                <span>Create New Subscription</span>
+                <span>Approve Prompt Craft Subscripton</span>
               </button> : 
               <button
                 className={classNames('btn btn-tertiary')}
@@ -200,13 +201,13 @@ const PromptCraftSubscriptions = ({ user }: any) => {
         }
         {listViewMode && (
           <>
-            {subscriptions && subscriptions?.length ? (
+            {subscriptions && subscriptions?.length && isAdmin ? (
               <div className={Styles.createNewArea}>
                 <button className={'btn btn-secondary'} type="button" onClick={() => setCreateSubscription(true)}>
                   <span className={Styles.addCircle}>
                     <i className="icon mbc-icon plus" />
                   </span>
-                  <span>Create new Prompt Craft subscription</span>
+                  <span>Approve Prompt Craft Subscripton</span>
                 </button>
               </div>
             ) : null}
@@ -217,10 +218,12 @@ const PromptCraftSubscriptions = ({ user }: any) => {
             {cardViewMode &&
               <>
                 <div className={classNames(Styles.projectsContainer)}>
-                  <div className={Styles.createNewCard} onClick={() => setCreateSubscription(true)}>
-                    <div className={Styles.addicon}> &nbsp; </div>
-                    <label className={Styles.addlabel}>Create new Prompt Craft subscription</label>
-                  </div>
+                  {isAdmin &&
+                    <div className={Styles.createNewCard} onClick={() => setCreateSubscription(true)}>
+                      <div className={Styles.addicon}> &nbsp; </div>
+                      <label className={Styles.addlabel}>Approve Prompt Craft Subscripton</label>
+                    </div>
+                  }
                   {subscriptions.map((subscription) => 
                     <PromptCraftSubscriptionCard
                       key={subscription.id}
@@ -283,14 +286,14 @@ const PromptCraftSubscriptions = ({ user }: any) => {
       </div>
       { createSubscription &&
         <Modal
-          title={'Create Prompt Craft Subscription'}
+          title={'Approve Prompt Craft Subscripton'}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'800px'}
           buttonAlignment="right"
           show={createSubscription}
-          content={<PromptCraftSubscriptionForm onSave={() => {setCreateSubscription(false); getSubscriptions();}} />}
+          content={<PromptCraftSubscriptionForm user={user} onSave={() => {setCreateSubscription(false); getSubscriptions();}} />}
           scrollableContent={true}
           onCancel={() => setCreateSubscription(false)}
         />
@@ -304,7 +307,7 @@ const PromptCraftSubscriptions = ({ user }: any) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={showKeysModal}
-          content={<KeysModal projectName={selectedSubscription?.projectName} status={selectedSubscription?.status} onOk={() => {setShowKeysModal(false)}} />}
+          content={<KeysModal projectName={selectedSubscription?.projectName} onOk={() => {setShowKeysModal(false)}} />}
           scrollableContent={true}
           onCancel={() => setShowKeysModal(false)}
         />

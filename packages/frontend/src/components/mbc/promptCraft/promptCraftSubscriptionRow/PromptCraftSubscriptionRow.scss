@@ -40,6 +40,14 @@
       color: #0ae6ab;
     }
   }
+  .failed {
+    margin-bottom: 0;
+    color: #e84d47;
+    
+    &:hover {
+      color: #e84d47;
+    }
+  }
   .col1 {
     min-width: 20%;
   }
