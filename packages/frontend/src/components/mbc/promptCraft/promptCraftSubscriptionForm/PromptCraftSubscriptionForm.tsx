@@ -101,9 +101,9 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  {...register('name', { required: '*Missing entry' })}
+                  {...register('name', { required: '*Missing entry', minLength: 3 })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}</span>
+                <span className={'error-message'}>{errors?.name?.message}{errors?.name?.type === 'minLength' && 'Min 3 characters required'}</span>
               </div>
             </div>
             <div className={Styles.col}>
