@@ -197,6 +197,7 @@ const CodeSpace = (props) => {
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
 
   const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -750,11 +751,19 @@ const CodeSpace = (props) => {
                                   <i className="icon mbc-icon new-tab" />
                                 </a>
                               </li>
-                              <li>
-                                <hr />
-                              </li>
                             </>
                           )}
+                          {serverStarted && (
+                      <li>
+                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Resource usage
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
+                    <li>
+                      <hr />
+                    </li>
                           <li>
                             <button
                               className={classNames(
