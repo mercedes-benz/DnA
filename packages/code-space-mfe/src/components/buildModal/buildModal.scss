@@ -5,14 +5,9 @@
     margin: 10px;
   
     > div {
-      width: calc(32.5% - 7px); 
+      width: calc(40% - 7px); 
     }
 
-    >div:nth-child(3) {
-      width: calc(15% - 7px);
-      align-self: center;
-    }
-  
     > div:last-child {
       width: calc(20% - 7px);
       align-self: center;

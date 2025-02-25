@@ -544,20 +544,20 @@ const AllCodeSpaces = (props) => {
                 <DeployModal
                     userInfo={props.user}
                     codeSpaceData={onDeployCodeSpace}
-                    enableSecureWithIAM={
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
-                    }
-                    isUIRecipe={
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
-                    }
+                    // enableSecureWithIAM={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    // }
+                    // isUIRecipe={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
@@ -569,20 +569,20 @@ const AllCodeSpaces = (props) => {
                     userInfo={props.user}
                     codeSpaceData={onDeployCodeSpace}
                     setShowCodeBuildModal={(isVisible) => setShowBuildCodeSpaceModal(isVisible)}
-                    enableSecureWithIAM={
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
-                    }
-                    isUIRecipe={
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
-                    }
+                    // enableSecureWithIAM={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    // }
+                    // isUIRecipe={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
