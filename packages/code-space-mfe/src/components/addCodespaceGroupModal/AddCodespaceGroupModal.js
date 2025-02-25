@@ -33,11 +33,11 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
     ProgressIndicator.show();
       CodeSpaceApiClient.getCodeSpacesList()
         .then((res) => {
-          if(res.status !== 204) {
-            setCodeSpaces(res?.data?.records);
+          if(res?.data?.records) {
             const modifiedWorkspaces = edit ? group?.workspaces?.map((workspace) => { return { 
               projectDetails: { projectName: workspace?.name}, workspaceId: workspace?.wsId
             }}) : [];
+            setCodeSpaces([...res.data.records, ...modifiedWorkspaces]);
             setSelectedCodeSpaces(modifiedWorkspaces);
             SelectBox.defaultSetup();
           } else {
