@@ -39,7 +39,7 @@ public class PromptCraftClient {
             headers.set("promptcraft-secret-key",privateKey);
 
             HttpEntity<String> entity = new HttpEntity<String>(headers);
-            ResponseEntity<String> httpResponse = restTemplate.exchange(promptCraftBaseUrl+"/register_user", HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> httpResponse = restTemplate.exchange(promptCraftBaseUrl+"/register_user", HttpMethod.POST, entity, String.class);
             if (httpResponse != null && httpResponse.getStatusCode() != null) {
                 if (httpResponse.getStatusCode().equals(HttpStatus.OK)) {
                     ObjectMapper objectMapper = new ObjectMapper();

@@ -48,7 +48,6 @@ public class PromptCraftSubscriptions implements Serializable {
 
     private String projectName;
     private String orgName;
-    private String subscriptionLink;
     private Date createdOn;
     private MemberInfo projectOwner;
     private List<MemberInfo> projectMembers;
