@@ -25,11 +25,11 @@ const SoftwareRow = ({ software, onDeleteSoftware, onSelectSoftware, onEditSoftw
         </td>
         <td className={'wrap-text'}>
           <span>
-            {software?.name}
+            {software?.softwareName}
           </span>
         </td>
         <td className={'wrap-text'}>
-          <span>{software?.script}</span>
+          <span>{software?.createdBy}</span>
         </td>
         <td className={classNames('wrap-text', Styles.actionColumn)}>
           <div>

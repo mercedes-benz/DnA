@@ -21,6 +21,7 @@ const SoftwareTab = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddSoftwareModal, setShowAddSoftwareModal] = useState(false);
+  const [showEditSoftwareModal, setShowEditSoftwareModal] = useState(false);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -133,7 +134,7 @@ const SoftwareTab = () => {
                         </th>
                         <th className={Styles.softwareColumn} >
                           <label>
-                            Script
+                            Created by
                           </label>
                         </th>
                         <th className={Styles.actionColumn}>
@@ -145,7 +146,7 @@ const SoftwareTab = () => {
                       {software.map((softwareItem) =>
                         <SoftwareRow
                           key={softwareItem?.id}
-                          software={software}
+                          software={softwareItem}
                           onRefresh={getAllSoftware}
                           onSelectSoftware={(software) => { 
                             setSelectedSoftware(software);
@@ -153,7 +154,7 @@ const SoftwareTab = () => {
                           }
                           onEditSoftware={(software) => {
                             setSelectedSoftware(software);
-                            setShowDeleteModal(true);
+                            setShowEditSoftwareModal(true);
                           }}
                           onDeleteSoftware={(software) => {
                             setSelectedSoftware(software);
@@ -206,6 +207,20 @@ const SoftwareTab = () => {
           content={<AddSoftwareForm onAddSoftware={() => { setShowAddSoftwareModal(false); getAllSoftware() }} />}
           scrollableContent={true}
           onCancel={() => { setShowAddSoftwareModal(false) }}
+        />
+      )}
+      {showEditSoftwareModal && (
+        <Modal
+          title={'Edit Software'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'1100px'}
+          buttonAlignment="right"
+          show={showEditSoftwareModal}
+          content={<AddSoftwareForm edit={true} software={selectedSoftware} onAddSoftware={() => { setShowEditSoftwareModal(false); getAllSoftware() }} />}
+          scrollableContent={true}
+          onCancel={() => { setShowEditSoftwareModal(false) }}
         />
       )}
       {showDeleteModal && 
