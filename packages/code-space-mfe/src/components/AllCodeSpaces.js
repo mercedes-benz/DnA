@@ -836,7 +836,7 @@ const AllCodeSpaces = (props) => {
                     showCancelButton={false}
                     modalWidth="800px"
                     show={showAddCodespaceGroupModal}
-                    content={<AddCodespaceGroupModal onSave={() => { setShowAddCodespaceGroupModal(false); getCodeSpaceGroupsData(); }}/>}
+                    content={<AddCodespaceGroupModal onSave={() => { setShowAddCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
                     scrollableContent={true}
                     onCancel={() => { setShowAddCodespaceGroupModal(false) }}
                 />
@@ -849,7 +849,7 @@ const AllCodeSpaces = (props) => {
                     showCancelButton={false}
                     modalWidth="800px"
                     show={showEditCodespaceGroupModal}
-                    content={<AddCodespaceGroupModal edit={true} group={selectedCodeSpaceGroup} onSave={() => { setShowEditCodespaceGroupModal(false); getCodeSpaceGroupsData(); }}/>}
+                    content={<AddCodespaceGroupModal edit={true} group={selectedCodeSpaceGroup} onSave={() => { setShowEditCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
                     scrollableContent={true}
                     onCancel={() => { setShowEditCodespaceGroupModal(false) }}
                 />

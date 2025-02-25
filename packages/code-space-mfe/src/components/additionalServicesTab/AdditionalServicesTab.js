@@ -132,11 +132,11 @@ const AdditionalServicesTab = () => {
                             Service Name
                           </label>
                         </th>
-                        <th className={Styles.softwareColumn} >
+                        {/* <th className={Styles.softwareColumn} >
                           <label>
                             Configuration
                           </label>
-                        </th>
+                        </th> */}
                         <th className={Styles.actionColumn}>
                           <label>Action</label>
                         </th>
@@ -154,7 +154,7 @@ const AdditionalServicesTab = () => {
                           }
                           onEditAdditionalService={(additionalService) => {
                             setSelectedAdditionalService(additionalService);
-                            setShowDeleteModal(true);
+                            setShowEditAdditionalServiceModal(true);
                           }}
                           onDeleteAdditionalService={(additionalService) => {
                             setSelectedAdditionalService(additionalService);
