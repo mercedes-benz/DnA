@@ -597,6 +597,8 @@ export interface ICreateNewSolution {
   skills: INeededRoleObject[];
   additionalResource: string;
   department: string;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export interface INeededRoleObject {
