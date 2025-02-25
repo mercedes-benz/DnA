@@ -57,6 +57,7 @@ const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.
 const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7777/api`;
 const baseUrlSimilaritySearch = Envs.SIMILARITY_SEARCH_API_BASEURL ? Envs.SIMILARITY_SEARCH_API_BASEURL : `http://${window.location.hostname}:8000`;
 const fabricUrl = Envs.FABRIC_API_BASEURL ? Envs.FABRIC_API_BASEURL :  `http://${window.location.hostname}:9292/api`;
+const dataProductUrl = Envs.DATA_PRODUCT_API_BASEURL ? Envs.DATA_PRODUCT_API_BASEURL :  `http://${window.location.hostname}:7184/api`;
 
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
@@ -70,6 +71,9 @@ const getFabricUrl = (endpoint: string) => {
   return `${fabricUrl}/${endpoint}`;
 }
 
+const getDataProductUrl = (endpoint: string) => {
+  return `${dataProductUrl}/${endpoint}`;
+}
 
 const getSimilaritySearchUrl = (endpoint: string) => {
   return `${baseUrlSimilaritySearch}/${endpoint}`;
@@ -90,6 +94,10 @@ export class ApiClient {
   
   public static fabricGet(endpoint: string, body?: any) {
     return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.GET, body);
+  }
+
+  public static dataProductGet(endpoint: string, body?: any) {
+    return this.fetch(getDataProductUrl(endpoint), HTTP_METHOD.GET, body);
   }
   
   public static postWithFormData(endpoint: string, formData: FormData) {
@@ -1203,6 +1211,10 @@ export class ApiClient {
 
     return this.post('minified', apiQuery);
   }
+
+  public static getLeanIX = (searchTerm = '') => {
+    return this.dataProductGet(`/planningit?searchTerm=${searchTerm}`);
+  };
 
   // Usage statistics
   public static getNotebooksTransparency(): Promise<any> {
