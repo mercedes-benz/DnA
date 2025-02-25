@@ -1,0 +1,50 @@
+
+name: Sechub-scan
+
+on:
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry-emea.app.corpintra.net
+  REGISTRY_DNA_USER: robot_dnaplatform+cicdbot 
+  NO_PROXY: ''
+  RUNNER_ALLOW_RUNASROOT: 1
+  IMAGE_NAME: registry-emea.app.corpintra.net/dnaplatform/storage-mfe
+  IMAGE_TAG_PATH: image.tag
+  DOCKER_FILE_PATH: storage-mfe.Dockerfile
+  BLACKDUCK_URL: https://bdscan.i.mercedes-benz.com/
+  BLACKDUCK_PROJECT_NAME: StorageMFE
+  SECHUB_USERID: pid6c39
+  SECHUB_SERVER: https://sechub.app.corpintra.net
+
+
+
+
+jobs: 
+
+  development:
+    name: 'sechub scan'
+    runs-on: [ os-medium-amd64-linux ]
+
+    steps:
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'      
+
+    - name: Download tha sechub client 
+      run: |
+        echo $path
+        cd /tmp
+        curl -L -o sechub-cli.zip https://github.com/mercedes-benz/sechub/releases/download/v0.31.0-client/sechub-cli-0.31.0.zip
+        unzip sechub-cli.zip
+        sudo cp platform/linux-amd64/sechub /usr/local/bin
+
+    - name: Check if the sechub works 
+      run: |
+        sechub -version
+
+    - name: Sechub scan 
+      run: |
+        sechub scan -apitoken {{ secrets.SECHUB_API_TOKEN }}

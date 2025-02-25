@@ -1,0 +1,76 @@
+prometheus:
+  alertmanager:
+    enabled: true
+    baseURL: "<REPLACE_HOST>/<REPLACE_NAMESPACE>/alertmanager"
+    podLabels:
+      access-jwt-proxy-to-backend: "true"
+    extraArgs:
+      web.route-prefix: /
+    ingress:
+      enabled: false
+
+  pushgateway:
+    enabled: false
+
+  server:
+    baseURL: "<REPLACE_HOST>/<REPLACE_NAMESPACE>/prometheus"
+    podLabels:
+      access-jwt-proxy-to-backend: "true"
+    extraArgs:
+      web.route-prefix: /
+    ingress:
+      enabled: false
+    ## For instalation outside DHC or when cinder is not supported
+    ## either remove this value (default provisioner will be used)
+    ## or provide storageClass name supported.
+    persistentVolume:
+      storageClass: cinder
+
+grafana:
+  ingress:
+    enabled: false
+
+  podLabels:
+    access-jwt-proxy-to-backend: "true"
+  admin:
+    existingSecret: "i3-monitoring-grafana-login"
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://<REPLACE_NAMESPACE>-prometheus-server
+        isDefault: true
+        basic_auth: false
+
+  grafana.ini:
+    server:
+      # TODO: replace host
+      root_url: "<REPLACE_HOST>/<REPLACE_NAMESPACE>/grafana"
+    users:
+      allow_sign_up: "false"
+      auto_assign_org: "true"
+      auto_assign_org_role: "Editor"
+    auth:
+      disable_signout_menu: "true"
+    auth.proxy:
+      enabled: "true"
+      header_name: "X-WEBAUTH-USER"
+      header_property: "username"
+      auto_sign_up: "true"
+    dashboards:
+      default_home_dashboard_path: "/tmp/dashboards/i3-access-v4.json"
+
+dhc-monitoring-netpols:
+  grafana:
+    port: 3000
+  external:
+    prometheus:
+      enabled: false
+    alertmanager:
+      enabled: false
+    grafana:
+      enabled: false

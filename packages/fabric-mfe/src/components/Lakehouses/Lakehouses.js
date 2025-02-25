@@ -13,6 +13,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -34,6 +35,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         .then((res) => {
           if(res.status !== 204) {
             const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.bucketName} })
+            .sort((a, b) => a.name.localeCompare(b.name));
             setBuckets(sortedBuckets);
           } else {
             setBuckets([]);
@@ -145,6 +147,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
           isMandatory={true}
           showMissingEntryError={bucketNameError}
           showAllTagsOnFocus={true}
+          disableSelfTagAdd={true}
         />
       </div>
       <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
@@ -448,9 +451,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-  const isAdmin = workspace?.status?.entitlements?.filter(entitlement =>
-    entitlement?.displayName?.split('_')[0]==='FC' && entitlement?.displayName?.split('_')[2]==='Admin'
-  ).length===1;
+  const isAdmin = user?.entitlementGroup?.includes(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}_Admin`);
   const isOwner = user?.id === workspace?.createdBy?.id; 
   return (
     <>
