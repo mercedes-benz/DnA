@@ -18,7 +18,7 @@ const AliceRoleRequest = () => {
 
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const roleNameVal = e.currentTarget.value;
-    setRoleName(roleNameVal.toUpperCase());
+    setRoleName(roleNameVal);
     setRoleNameError('');
   }
 
@@ -32,7 +32,7 @@ const AliceRoleRequest = () => {
       setRoleNameError('Role name cannot contain spaces');
       return false;
     }
-    if (specialCharPattern.test(roleName.toUpperCase())) {
+    if (specialCharPattern.test(roleName)) {
       setRoleNameError('Role name can only contain letters, numbers, and the following characters: . _ -');
       return false;
     }

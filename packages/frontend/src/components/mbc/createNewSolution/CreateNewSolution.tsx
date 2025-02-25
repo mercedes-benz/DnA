@@ -172,6 +172,8 @@ export interface IDescriptionRequest {
   requestedFTECount: number;
   additionalResource: string;
   department: string;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
@@ -258,6 +260,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           requestedFTECount: 0,
           additionalResource: '',
           department: '',
+          leanIXDetails: {},
+          appId: '',
         },
         openSegments: [],
         team: { team: [] },
@@ -524,6 +528,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.dataStrategyDomain = res.dataStrategyDomain;
               solution.description.additionalResource = res.additionalResource;
               solution.description.department = res.department;
+              solution.description.leanIXDetails = res.leanIXDetails;
+              solution.description.appId = res.appId;
               // solution.description.neededRoles = res.skills;
               solution.description.requestedFTECount = res.requestedFTECount;
               solution.milestones = res.milestones;
@@ -1207,6 +1213,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         logoDetails: solution.description.logoDetails,
         attachments: solution.description.attachments,
         department: solution.description.department,
+        leanIXDetails: solution.description.leanIXDetails,
         team: solution.team.team,
         currentPhase: solution.currentPhase,
         milestones: solution.milestones,
@@ -1223,6 +1230,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
         additionalResource: solution.description.additionalResource,
+        appId: solution.description.appId,
       },
     };
     ProgressIndicator.show();
