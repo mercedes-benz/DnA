@@ -392,11 +392,11 @@ const CodeSpaceCardItem = (props) => {
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
-  const isIAMRecipe =
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  // const isIAMRecipe =
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
@@ -1218,7 +1218,6 @@ const CodeSpaceCardItem = (props) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
-                  isIAMRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />
