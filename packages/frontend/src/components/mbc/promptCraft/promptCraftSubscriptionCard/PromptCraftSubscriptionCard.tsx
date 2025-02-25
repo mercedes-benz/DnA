@@ -5,6 +5,9 @@ import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import Popper from 'popper.js';
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
+import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
 
 export interface IPromptCraftSubscriptionFormProps {
   subscription: any,
@@ -12,7 +15,7 @@ export interface IPromptCraftSubscriptionFormProps {
   onShowKeys: (subscription: any) => void;
 }
 
-const PromptCraftSubscriptionForm = ({ subscription, onShowKeys }: IPromptCraftSubscriptionFormProps) => {
+const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftSubscriptionFormProps) => {
   const history = useHistory();
 
   useEffect(() => {
@@ -44,6 +47,24 @@ const PromptCraftSubscriptionForm = ({ subscription, onShowKeys }: IPromptCraftS
     }
     popperObj?.destroy();
   };
+
+  const handleRefreshSubscription = () => {
+    ProgressIndicator.show();
+      PromptCraftApiClient
+        .refreshSubscriptionKeys(subscription?.projectName)
+        .then(() => {
+          Notification.show('Prompt Craft subscription refreshed');
+          // getKeys(projectName);
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            e?.response?.data?.errors[0]?.message || e?.response?.errors[0]?.message || 'Refreshing prompt craft subscription keys failed!',
+            'alert',
+          );
+        });
+  }
 
   return (
     <div className={classNames(Styles.projectCard)}>
@@ -140,14 +161,25 @@ const PromptCraftSubscriptionForm = ({ subscription, onShowKeys }: IPromptCraftS
                 <i className="icon delete"></i>
                 <span>Delete</span>
               </button> */}
-            <button
-              className={'btn btn-primary'}
-              type="button"
-              onClick={() => onShowKeys(subscription)}
-            >
-              <i className="icon mbc-icon visibility-show"></i>&nbsp;
-              <span>View Key</span>
-            </button>
+            {subscription?.status !== 'COMPLETED' ?
+              <button
+                className={'btn btn-primary'}
+                type="button"
+                onClick={handleRefreshSubscription}
+              >
+                <i className="icon mbc-icon refresh"></i>&nbsp;
+                <span>Refresh Susbscription</span>
+              </button>
+              :
+              <button
+                className={'btn btn-primary'}
+                type="button"
+                onClick={() => onShowKeys(subscription)}
+              >
+                <i className="icon mbc-icon visibility-show"></i>&nbsp;
+                <span>View Key</span>
+              </button>
+            }
           </div>
           {/* } */}
         </>
@@ -155,4 +187,4 @@ const PromptCraftSubscriptionForm = ({ subscription, onShowKeys }: IPromptCraftS
     </div>
   );
 };
-export default PromptCraftSubscriptionForm;
+export default PromptCraftSubscriptionCard;

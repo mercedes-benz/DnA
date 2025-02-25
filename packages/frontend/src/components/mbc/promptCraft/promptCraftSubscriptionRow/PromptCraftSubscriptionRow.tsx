@@ -5,6 +5,9 @@ import Styles from './PromptCraftSubscriptionRow.scss';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Spinner from '../spinner/Spinner';
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
+import { PromptCraftApiClient } from '../../../../services/PromptCraftApiClient';
 
 export interface IPromptCraftSubscriptionRowProps {
   subscription: any,
@@ -23,18 +26,41 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
     history.push(subscription?.subscriptionLink);
   }
 
+  const handleRefreshSubscription = () => {
+    ProgressIndicator.show();
+      PromptCraftApiClient
+        .refreshSubscriptionKeys(subscription?.projectName)
+        .then(() => {
+          Notification.show('Prompt Craft subscription refreshed');
+          // getKeys(projectName);
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            e?.response?.data?.errors[0]?.message || e?.response?.errors[0]?.message || 'Refreshing prompt craft subscription failed!',
+            'alert',
+          );
+        });
+  }
+
   return (
     <div className={Styles.projectRow} onClick={handleOpenSubscription}>
       <div className={Styles.col1}>
         <span>
           {subscription?.projectName || 'null'}
         </span>
-        {subscription?.state !== 'COMPLETED' &&
+        {(subscription?.status !== 'COMPLETED' && subscription?.status !== 'FAILED') &&
           <button className={Styles.stateBtn} tooltip-data={'Subscription Requested'}>
             <Spinner /> <span>&nbsp;</span>
           </button>
         }
-        {subscription?.state === 'COMPLETED' && 
+        {subscription?.status === 'FAILED' && 
+          <button className={classNames(Styles.completedStatus, Styles.failed)} tooltip-data={'Failed'}>
+            <i className={classNames('icon mbc-icon alert circle') }></i> <span>&nbsp;</span>
+          </button>
+        }
+        {subscription?.status === 'COMPLETED' && 
           <button className={Styles.completedStatus} tooltip-data={'Active'}>
             <i className={'icon mbc-icon check circle'}></i> <span>&nbsp;</span>
           </button>
@@ -47,7 +73,7 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
         </a>
       </div>
       <div className={Styles.col3}>
-        {subscription?.orgname || 'NA'}
+        {subscription?.orgName || 'NA'}
       </div>
       <div className={Styles.col4}>
         {subscription?.createdOn && regionalDateAndTimeConversionSolution(subscription?.createdOn)}
@@ -56,17 +82,25 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
         {subscription?.projectMembers?.map((member:any) => <p key={member?.id}>{member?.firstName} {member?.lastName} - {member?.id}</p>)}
       </div>
       <div className={Styles.col6}>
-        {/* {user?.id === subscription?.createdBy?.id && */}
           <div className={Styles.btnTblGrp}>
+            {subscription?.status !== 'COMPLETED' ?
+            <button
+              className={classNames('btn btn-primary', Styles.projectLink)}
+              onClick={(e) => { e.stopPropagation(); handleRefreshSubscription(); }}
+            >
+              <i className="icon mbc-icon refresh"></i>
+              <span>Refresh Subscription</span>
+            </button>
+            :
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
               onClick={(e) => { e.stopPropagation(); onShowKeys(subscription); }}
             >
               <i className="icon mbc-icon visibility-show"></i>
-              <span>View Keys</span>
+              <span>View Key</span>
             </button>
+          }
           </div>
-        {/* } */}
       </div>
     </div>
   );
