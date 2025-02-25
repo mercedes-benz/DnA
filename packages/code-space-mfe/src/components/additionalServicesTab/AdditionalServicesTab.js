@@ -21,6 +21,7 @@ const AdditionalServicesTab = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAdditionalService, setSelectedAdditionalService] = useState({});
   const [showAddAdditionalServiceModal, setShowAddAdditionalServiceModal] = useState(false);
+  const [showEditAdditionalServiceModal, setShowEditAdditionalServiceModal] = useState(false);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -208,9 +209,23 @@ const AdditionalServicesTab = () => {
           onCancel={() => { setShowAddAdditionalServiceModal(false) }}
         />
       )}
+      {showEditAdditionalServiceModal && (
+        <Modal
+          title={'Edit Additional Service'}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'1100px'}
+          buttonAlignment="right"
+          show={showEditAdditionalServiceModal}
+          content={<AddAdditionalServiceForm edit={true} additionalService={selectedAdditionalService} onAddAdditionalService={() => { setShowEditAdditionalServiceModal(false); getAllAdditionalServices() }} />}
+          scrollableContent={true}
+          onCancel={() => { setShowEditAdditionalServiceModal(false) }}
+        />
+      )}
       {showDeleteModal && 
         <Modal
-          title="Delete Recipe"
+          title="Delete Additional Service"
           show={showDeleteModal}
           showAcceptButton={false}
           showCancelButton={false}
@@ -222,7 +237,7 @@ const AdditionalServicesTab = () => {
                 <button className="modal-close-button" onClick={() => setShowDeleteModal(false)}><i className="icon mbc-icon close thin"></i></button>
               </header>
               <div>
-                <p>The Recipe will be deleted permanently. Are you sure you want to delete it?</p>
+                <p>The Additional service will be deleted permanently. Are you sure you want to delete it?</p>
               </div>
               <div className="btn-set footerRight">
                 <button className="btn btn-primary" type="button" onClick={() => setShowDeleteModal(false)}>Cancel</button>

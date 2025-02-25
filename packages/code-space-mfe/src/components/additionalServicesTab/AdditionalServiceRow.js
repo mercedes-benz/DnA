@@ -21,7 +21,7 @@ const AdditionalServiceRow = ({ service, onDeleteAdditionalService, onSelectAddi
         className={classNames('data-row', Styles.dataRow)}
         onClick={() => onSelectAdditionalService(service)}>
         <td className={'wrap-text'}>
-          <div>{service?.id}</div>
+          <div>{service?.id}-{service?.version}</div>
         </td>
         <td className={'wrap-text'}>
           <span>{service?.serviceName}</span>

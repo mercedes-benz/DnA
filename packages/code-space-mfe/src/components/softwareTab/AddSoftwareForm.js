@@ -12,12 +12,12 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 
-const AddSoftwareForm = ({ onAddSoftware }) => {
-  const [scriptContent, setScriptContent] = useState('');
+const AddSoftwareForm = ({ edit, software, onAddSoftware }) => {
+  const [scriptContent, setScriptContent] = useState(edit ? software.additionalProperties : '');
 
   const methods = useForm({ 
     defaultValues: {
-      name: '',
+      softwareName: edit ? software.softwareName : '',
     }
   });
   const {
@@ -29,8 +29,8 @@ const AddSoftwareForm = ({ onAddSoftware }) => {
   const handleAddSoftware = (values) => {
     ProgressIndicator.show();
     const data = {
-      name: values?.name?.trim(),
-      script: scriptContent,
+      softwareName: values?.softwareName?.trim(),
+      additionalProperties: scriptContent,
     };
     CodeSpaceApiClient.addSoftware(data).then(() => {
       ProgressIndicator.hide();
@@ -45,36 +45,55 @@ const AddSoftwareForm = ({ onAddSoftware }) => {
     });
   };
 
+  const handleEditSoftware = (values) => {
+    ProgressIndicator.show();
+    const data = {
+      softwareName: values?.softwareName?.trim(),
+      additionalProperties: scriptContent,
+    };
+    CodeSpaceApiClient.editSoftware(software?.id, data).then(() => {
+      ProgressIndicator.hide();
+      onAddSoftware();
+      Notification.show('Software edited successfully');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.data?.response?.errors?.[0]?.message | error?.response?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while editing software',
+        'alert',
+      );
+    });
+  };
+
   return (
     <>
       <FormProvider {...methods}>
         <div className={classNames(Styles.form)}>
           <div className={Styles.formHeader}>
-            <h3>Add Software</h3>
+            <h3>{edit ? 'Edit Software' : 'Add Software'}</h3>
             <p>Enter following information to add!</p>
           </div>
           <div className={Styles.flex}>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.softwareName ? 'error' : '')}>
                 <label className={'input-label'}>
                   Name <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="name"
+                  id="softwareName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={100}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
+                  {...register('softwareName', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.softwareName?.message}{errors.softwareName?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col}>
               <div className={classNames('input-field-group')}>
                 <label className={'input-label'}>
-                  Script <sup>*</sup>
+                  Additional Properties <sup>*</sup>
                 </label>
                 <div>
                   <AceEditor
@@ -111,10 +130,10 @@ const AddSoftwareForm = ({ onAddSoftware }) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                handleAddSoftware(values);
+                edit ? handleEditSoftware(values) : handleAddSoftware(values);
               })}
             >
-              Add Software
+              {edit ? 'Edit Software' : 'Add Software'}
             </button>
           </div>
         </div>
