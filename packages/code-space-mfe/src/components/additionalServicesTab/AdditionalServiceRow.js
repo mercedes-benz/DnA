@@ -21,14 +21,14 @@ const AdditionalServiceRow = ({ service, onDeleteAdditionalService, onSelectAddi
         className={classNames('data-row', Styles.dataRow)}
         onClick={() => onSelectAdditionalService(service)}>
         <td className={'wrap-text'}>
-          <div>{service?.id}-{service?.version}</div>
+          <div>{service?.id}</div>
         </td>
         <td className={'wrap-text'}>
-          <span>{service?.serviceName}</span>
+          <span>{service?.serviceName}-{service?.version}</span>
         </td>
-        <td className={'wrap-text'}>
+        {/* <td className={'wrap-text'}>
           {service?.configuration}
-        </td>
+        </td> */}
         <td className={classNames('wrap-text', Styles.actionColumn)}>
           <div>
             <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditAdditionalService}>

@@ -43,7 +43,7 @@ const initialContent = {
 };
 
 const AddAdditionalServiceForm = ({ edit, additionalService, onAddAdditionalService }) => {
-  const [scriptContent, setScriptContent] = useState(edit ? JSON.stringify(additionalService.additionalProperties) : JSON.stringify(initialContent));
+  const [scriptContent, setScriptContent] = useState(edit ? JSON.stringify(additionalService.additionalProperties) : JSON.stringify(initialContent, null, '\t'));
 
   const methods = useForm({ 
     defaultValues: {
