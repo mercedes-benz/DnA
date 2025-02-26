@@ -1226,7 +1226,7 @@ const CodeSpaceCardItem = (props) => {
                     <i className="icon mbc-icon edit"></i>
                   </button>
                 )}
-                 {isApprover && (
+                 {isApprover && !disableDeployment && (
                     <button
                       className={classNames('btn btn-primary', Styles.tutorials)}
                       tooltip-data="Deployment Approval"
@@ -1346,6 +1346,7 @@ const CodeSpaceCardItem = (props) => {
         <DeployApprovalModal
           show={showDeployApprovalModal}
           setShowDeployApprovalModal={setShowDeployApprovalModal}
+          codeSpaceData = {codeSpace}
         />
       )}
 
