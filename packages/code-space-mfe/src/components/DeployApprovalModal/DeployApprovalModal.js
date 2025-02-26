@@ -1,26 +1,30 @@
 import classNames from 'classnames';
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import Styles from '../DeployApprovalModal/DeployApprovalModal.scss';
 import Modal from 'dna-container/Modal';
 import TextBox from 'dna-container/TextBox';
+import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 
 const DeployApprovalModal = (props) => {
-  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  const codeSpace = props.codeSpaceData;
 
+  const auditLogs = [...(codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentAuditLogs || [])].reverse();
+
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
   const [clientSecretError, setClientSecretError] = useState('');
 
   const handleApproveClick = () => {
-    console.log("Approve button clicked");
-    setShowCredentialsModal(true); 
+    console.log('Approve button clicked');
+    setShowCredentialsModal(true);
   };
 
   const handleCloseCredentialsModal = () => {
-    setShowCredentialsModal(false); 
+    setShowCredentialsModal(false);
   };
 
   const handleFinalApproveClick = () => {
-    console.log("Final Approve button clicked");
+    console.log('Final Approve button clicked');
   };
 
   return (
@@ -30,72 +34,81 @@ const DeployApprovalModal = (props) => {
         hiddenTitle={false}
         modalWidth={'65%'}
         modalStyle={{ minHeight: '50%' }}
-        show={props.show} 
+        show={props.show}
         content={
           <>
             <div className={classNames(Styles.allCodeSpace)}>
               <div className={classNames(Styles.allcodeSpaceListviewContent)}>
-                {/* First row (4 items) */}
                 <div className={classNames(Styles.flexLayout)}>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Branch</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>main</label>
+                      <label className={classNames('chips', Styles.Chips)}>{auditLogs?.[0]?.branch || 'N/A'}</label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Triggered By</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>N/A</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {auditLogs?.[0]?.triggeredBy || 'N/A'}
+                      </label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Triggered On</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>27/02/25</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {regionalDateAndTimeConversionSolution(auditLogs?.[0]?.triggeredOn) || 'N/A'}
+                      </label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Deployment Type</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>DEPLOYED</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentType || 'N/A'}
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                {/* Second row (next 4 items) */}
                 <div className={classNames(Styles.flexLayout)}>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Client ID</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>270223010203</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {codeSpace?.projectDetails?.prodDeploymentDetails?.clientId || 'N/A'}
+                      </label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
-                    <label className={classNames(Styles.label)}>Redirect URL</label>
+                    <label className={classNames(Styles.label)}>Redirect URI</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>NA</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {codeSpace?.projectDetails?.prodDeploymentDetails?.redirectUri || 'N/A'}
+                      </label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Ignore Paths</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>NA</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {codeSpace?.projectDetails?.prodDeploymentDetails?.ignorePaths || 'N/A'}
+                      </label>
                     </div>
                   </div>
                   <div className={classNames(Styles.itemWrapper)}>
                     <label className={classNames(Styles.label)}>Scope Options</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>NA</label>
+                      <label className={classNames('chips', Styles.Chips)}>
+                        {codeSpace?.projectDetails?.prodDeploymentDetails?.scope || 'N/A'}
+                      </label>
                     </div>
                   </div>
                 </div>
               </div>
               <div className={Styles.approveBtnWrapper}>
-                <button
-                  className={'btn btn-tertiary'} 
-                  onClick={handleApproveClick} 
-                >
+                <button className={'btn btn-tertiary'} onClick={handleApproveClick}>
                   Approve
                 </button>
               </div>
@@ -103,28 +116,29 @@ const DeployApprovalModal = (props) => {
           </>
         }
         scrollableContent={true}
-        onCancel={() => props.setShowDeployApprovalModal(false)}  
+        onCancel={() => props.setShowDeployApprovalModal(false)}
       />
 
       {showCredentialsModal && (
         <Modal
           title={'Please enter the client secret associated with the client ID'}
           hiddenTitle={false}
-          modalWidth={'30%'} 
-          modalStyle={{ minHeight: '30%' }}  
+          modalWidth={'30%'}
+          modalStyle={{ minHeight: '30%' }}
           show={showCredentialsModal}
           content={
             <div className={classNames(Styles.newCredentialsModalContent)}>
               <div className={classNames(Styles.flexLayout)}>
-
-                  <div className={classNames(Styles.clientIdWrapper)}>
-                    <label className={classNames(Styles.label)}>Client ID <sup>*</sup></label>
-                    <div>
-                      <label className={classNames('chips', Styles.Chips)}>
-                        270223010203
-                      </label>
-                    </div>
+                <div className={classNames(Styles.clientIdWrapper)}>
+                  <label className={classNames(Styles.label)}>
+                    Client ID <sup>*</sup>
+                  </label>
+                  <div>
+                    <label className={classNames('chips', Styles.Chips)}>
+                      {codeSpace?.projectDetails?.clientId || 'N/A'}
+                    </label>
                   </div>
+                </div>
                 <div className={classNames(Styles.textboxWrapper)}>
                   <TextBox
                     type="text"
