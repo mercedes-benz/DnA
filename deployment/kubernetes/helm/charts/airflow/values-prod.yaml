@@ -3,7 +3,7 @@ namespace: prod-dna-airflow
 imagePullSecret:
   name: imagepullsecret
 backend:
-  replicas: 2
+  replicas: 1
   image: 
     repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
     tag: 198
