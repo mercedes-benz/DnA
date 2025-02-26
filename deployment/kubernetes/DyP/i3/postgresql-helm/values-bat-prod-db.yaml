@@ -248,7 +248,7 @@ persistence:
   wal:
     enabled: false
     size: 1Gi
-    storageClass: dhc-gp3-retain
+    #storageClass: dhc-gp3-retain
     # PVCName: name
 
 ## Network Policy to be applied
@@ -300,7 +300,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     subfolder: bat-prod-db-backups
@@ -331,7 +331,7 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 1Gi
+    size: 25Gi
     # storageClass: cinder
   file:
     name: bat-dev-backup
@@ -367,7 +367,7 @@ restore:
   recoveryFile: postgresql-backup*.tar.gz
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false
