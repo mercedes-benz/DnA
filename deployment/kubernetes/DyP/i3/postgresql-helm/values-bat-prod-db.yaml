@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "bat-db"
+fullnameOverride: "bat-db-prod"
 ## PostgreSQL replica count
 ##
 replicaCount: 2
