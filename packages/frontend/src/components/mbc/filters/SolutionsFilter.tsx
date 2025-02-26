@@ -344,20 +344,16 @@ const SolutionsFilter = ({
             queryParams.dataValueRange.endYear = defaultEndYear;
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
-
-          if (queryParams.dataValueRange.startYear < years[0]) {
-            if (years.includes(Number(defaultStartYear))) {
-              queryParams.dataValueRange.startYear = defaultStartYear;
-            } else {
-              queryParams.dataValueRange.startYear = years[0];
-            }
+        
+          if (!years.includes(queryParams.dataValueRange.startYear)) {
+            queryParams.dataValueRange.startYear = years.includes(Number(defaultStartYear))
+              ? defaultStartYear
+              : years[0];
           }
-          if (queryParams.dataValueRange.endYear > years[years.length - 1]) {
-            if (years.includes(Number(defaultEndYear))) {
-              queryParams.dataValueRange.endYear = defaultEndYear;
-            } else {
-              queryParams.dataValueRange.endYear = years[years.length - 1];
-            }
+          if (!years.includes(queryParams.dataValueRange.endYear)) {
+            queryParams.dataValueRange.endYear = years.includes(Number(defaultEndYear))
+              ? defaultEndYear
+              : years[years.length - 1];
           }
 
           setQueryParams(queryParams);
