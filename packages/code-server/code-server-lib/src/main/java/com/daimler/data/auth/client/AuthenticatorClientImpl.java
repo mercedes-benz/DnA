@@ -621,7 +621,47 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
 					attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
-					
+					//if deployment type changed then delete all the plugin available.
+					if( "int".equalsIgnoreCase(env) && intDeploymentDetails.getDeploymentType()!=null || "prod".equalsIgnoreCase(env) && prodDeploymentDetails.getDeploymentType()!=null){
+						
+						Boolean deleteAllPlugin = false;
+
+						if("int".equalsIgnoreCase(env)){
+							if( apiRecipe && "UI".equalsIgnoreCase(intDeploymentDetails.getDeploymentType()) ||  !apiRecipe && "API".equalsIgnoreCase(intDeploymentDetails.getDeploymentType()))
+								deleteAllPlugin = true;
+						}else{
+							if( apiRecipe && "UI".equalsIgnoreCase(prodDeploymentDetails.getDeploymentType()) ||  !apiRecipe && "API".equalsIgnoreCase(prodDeploymentDetails.getDeploymentType()))
+								deleteAllPlugin = true;
+						}
+						
+						if(deleteAllPlugin){
+
+							//delete oneapi plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+							//deleting OIDC  and Authorizer plugin if already available
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings(),cloudServiceProvider);
+
+							//delete post and prefunction plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+						}
+
+
+					}
 					
 					if(apiRecipe){
 						if(intSecureIAM  || prodSecureIAM) {
@@ -772,6 +812,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 									LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
+									//attaching request transformer plugin 
+									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
 									//attaching oneapi plugin
 									AttachOneApiPluginRequestVO requestVO = new AttachOneApiPluginRequestVO();
