@@ -40,7 +40,7 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 	RestTemplate restTemplate;
 
 	@Override
-	public UsersCollection getAllUsers() {
+	public UsersCollection getAllUsers(String searchTerm) {
 		UsersCollection collection = new UsersCollection();
 		try {
 			String userinfo = httpRequest.getHeader("dna-request-userdetails");
@@ -50,6 +50,9 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 			headers.set("dna-request-userdetails", userinfo);
 
 			String getUsersUri = dnaBaseUri + usersUri + "?limit=0";
+			if(searchTerm != null && !"".equalsIgnoreCase(searchTerm.trim())){
+				getUsersUri = getUsersUri + "&searchTerm=" + searchTerm;
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<UsersCollection> response = restTemplate.exchange(getUsersUri, HttpMethod.GET, entity, UsersCollection.class);
 			if (response != null && response.hasBody()) {

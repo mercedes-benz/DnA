@@ -65,6 +65,9 @@ const prodConfig = {
       chunks: 'async',
     },
   },
+  resolve: {
+    fallback: { crypto: false },
+  },
 };
 
 module.exports = merge(base, prodConfig);
