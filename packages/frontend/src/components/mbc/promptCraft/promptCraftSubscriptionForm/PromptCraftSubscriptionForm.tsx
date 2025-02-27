@@ -1,6 +1,6 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 // styles
 import Styles from './PromptCraftSubscriptionForm.scss';
 // App components
@@ -17,8 +17,10 @@ export interface IPromptCraftSubscriptionFormProps {
 const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionFormProps) => {
   const methods = useForm();
   const {
+    control,
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = methods;
 
@@ -37,20 +39,17 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
     let duplicateMember = false;
     duplicateMember = projectMembers?.filter((projectMember) => projectMember.id === member.shortId)?.length ? true : false;
 
-    const isCreator = user?.id === member?.shortId;
-
     if (duplicateMember) {
         Notification.show('Member already added.', 'warning');
-    } else if (isCreator) {
-        Notification.show(
-            `${member.firstName} ${member.lastName} is a creator. Creator can't be added to user lincense.`,
-            'warning',
-        );
     } else {
         projectMembers?.push(projectMemberData);
         setProjectMembers([...projectMembers]);
     }
   }
+
+  useEffect(() => {
+    setValue('', projectMembers);
+  }, [projectMembers]);
 
   const onProjectMemberDelete = (userId: any) => {
     return () => {
@@ -75,7 +74,7 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while placing Prompt Craft subscription request',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.errors?.[0]?.message || 'Error while placing Prompt Craft subscription request',
         'alert',
       );
     });
@@ -123,8 +122,20 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
               </div>
             </div>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error')}>
-                <AddUser dagId='' getCollabarators={getProjectMembers} isRequired={true} isUserprivilegeSearch={false} title={'Project Members'} />
+              <div className={classNames('input-field-group include-error', errors?.projectMembers && 'error')}>
+                <Controller
+                  control={control}
+                  name="projectMembers"
+                  rules={{
+                    validate: (value) => {
+                      return value?.length > 0 || '*Missing entry';
+                    },
+                  }}
+                  render={() => (
+                    <AddUser dagId='' getCollabarators={getProjectMembers} isRequired={true} isUserprivilegeSearch={false} title={'Project Members'} />
+                  )}
+                />
+                <span className={'error-message'}>{errors?.projectMembers?.message}</span>
               </div>
               {projectMembers?.length === 0 &&
                 <div className={Styles.noLincense}>
