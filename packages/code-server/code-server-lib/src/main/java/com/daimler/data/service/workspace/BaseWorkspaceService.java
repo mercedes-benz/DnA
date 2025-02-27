@@ -423,10 +423,11 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 //remove from group
 		 List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
 		 log.info("groupEntity {}",groupEntity.toString());
+		 String wsId = entity.getData().getWorkspaceId();
 		 groupEntity.forEach( i ->{
 			 CodeServerUserGroupNsql group = userGroupRepository.findById(i).get();
 			 group.getData().getGroups().forEach( g -> {
-				 g.getWorkspaces().removeIf( w -> w.getWorkSpaceId().equalsIgnoreCase(entity.getData().getWorkspaceId()));
+				 g.getWorkspaces().removeIf( w -> w.getWorkSpaceId().equalsIgnoreCase(wsId));
 			 });
 			 userGroupRepository.save(group);
 		 });
