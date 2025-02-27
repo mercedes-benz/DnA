@@ -21,6 +21,7 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
     register,
     handleSubmit,
     setValue,
+    trigger,
     formState: { errors },
   } = methods;
 
@@ -49,6 +50,7 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
 
   useEffect(() => {
     setValue('projectMembers', projectMembers);
+    projectMembers?.length > 0 && trigger('projectMembers');
   }, [projectMembers]);
 
   const onProjectMemberDelete = (userId: any) => {
