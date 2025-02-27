@@ -1167,11 +1167,29 @@ import org.springframework.beans.factory.annotation.Value;
 			//  {
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
-			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),isPrivateRecipe);
+			//if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
+			GenericMessage responseMsg;
+			Boolean deploymentApprovalEnabled = false;
+			deploymentApprovalEnabled = Boolean.TRUE
+					.equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
+			if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+					&& !"APPROVAL_PENDING".equalsIgnoreCase(status)) {
+				responseMsg = service.approveRequestWorkspace(userId, id, environment, branch,
+						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
+						deployRequestDto.getClientSecret(), isPrivateRecipe);
+				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+				log.info("workspace deployment requires approval");
+			} else {
+				responseMsg = service.deployWorkspace(userId, id, environment, branch,
+						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
+						deployRequestDto.getClientSecret(), isPrivateRecipe);
+				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			}
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+//				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+//						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);

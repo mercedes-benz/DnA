@@ -312,6 +312,7 @@
 					 }
 					 auditDetails.setBranch(audit.getBranch());
 					 auditDetails.setCommitId(audit.getCommitId());
+					 auditDetails.setApprovedBy(audit.getApprovedBy());
 					 deployedAuditLogDetails.add(auditDetails);
 				 }
 			 }
@@ -368,6 +369,7 @@
 							 auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
 						 auditDetails.setBranch(audit.getBranch());
 						 auditDetails.setCommitId(audit.getCommitId());
+						 auditDetails.setApprovedBy(audit.getApprovedBy());
 						 auditDetailsVO.add(auditDetails);
 				 }
 			 }

@@ -1868,6 +1868,9 @@ definitions:
       commitId:
         type: string
         description: "commit id one which codespace is deployed"
+      approvedBy:
+        type: string
+        description: "User who approved the deployment"
 
   CodespaceSecurityConfigDetailVO:
     type: object  
