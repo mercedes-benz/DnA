@@ -45,7 +45,7 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
   }
 
   return (
-    <div className={Styles.projectRow} onClick={handleOpenSubscription}>
+    <div className={Styles.projectRow} onClick={subscription?.subscriptionLink ? handleOpenSubscription : undefined}>
       <div className={Styles.col1}>
         <span>
           {subscription?.projectName || 'null'}
@@ -67,10 +67,12 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
         }
       </div>
       <div className={Styles.col2}>
+      {subscription?.subscriptionLink !== null ?
         <a href={subscription?.subscriptionLink} target='_blank' rel='noopener noreferrer'>
           Access Subscription
           <i className={classNames('icon mbc-icon new-tab')} />
-        </a>
+        </a> : 'NA'
+      }
       </div>
       <div className={Styles.col3}>
         {subscription?.orgName || 'NA'}
@@ -83,23 +85,24 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
       </div>
       <div className={Styles.col6}>
           <div className={Styles.btnTblGrp}>
-            {subscription?.status !== 'COMPLETED' ?
-            <button
-              className={classNames('btn btn-primary', Styles.projectLink)}
-              onClick={(e) => { e.stopPropagation(); handleRefreshSubscription(); }}
-            >
-              <i className="icon mbc-icon refresh"></i>
-              <span>Refresh Subscription</span>
-            </button>
-            :
-            <button
-              className={classNames('btn btn-primary', Styles.projectLink)}
-              onClick={(e) => { e.stopPropagation(); onShowKeys(subscription); }}
-            >
-              <i className="icon mbc-icon visibility-show"></i>
-              <span>View Key</span>
-            </button>
-          }
+            {subscription?.status === 'FAILED' &&
+              <button
+                className={classNames('btn btn-primary', Styles.projectLink)}
+                onClick={(e) => { e.stopPropagation(); handleRefreshSubscription(); }}
+              >
+                <i className="icon mbc-icon refresh"></i>
+                <span>Refresh Subscription</span>
+              </button>
+            }
+            {subscription?.status === 'COMPLETED' &&
+              <button
+                className={classNames('btn btn-primary', Styles.projectLink)}
+                onClick={(e) => { e.stopPropagation(); onShowKeys(subscription); }}
+              >
+                <i className="icon mbc-icon visibility-show"></i>
+                <span>View Key</span>
+              </button>
+            }
           </div>
       </div>
     </div>

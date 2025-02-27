@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import Styles from './PromptCraftSubscriptionCard.scss';
-import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import Popper from 'popper.js';
@@ -16,14 +15,13 @@ export interface IPromptCraftSubscriptionFormProps {
 }
 
 const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftSubscriptionFormProps) => {
-  const history = useHistory();
 
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
 
   const handleOpenSubscription = () => {
-    history.push(subscription?.subscriptionLink);
+    window.open(subscription?.subscriptionLink, '_blank');
   }
 
   let popperObj: any, tooltipElem: any = null;
@@ -72,7 +70,7 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
         <div className={classNames(Styles.cardHeadInfo)}>
           <div
             className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-            onClick={handleOpenSubscription}
+            onClick={subscription?.subscriptionLink ? handleOpenSubscription : undefined}
           >
             {subscription?.projectName || 'null'}
           </div>
@@ -81,15 +79,17 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
       <hr />
       <div className={Styles.cardBodySection}>
         <div>
-          <div>
-            <div>Subscription Link</div>
+          {subscription?.subscriptionLink !== null &&
             <div>
-              <a href={subscription?.subscriptionLink} target='_blank' rel='noopener noreferrer'>
-                Access Subscription
-                <i className={classNames('icon mbc-icon new-tab')}></i>
-              </a>
+              <div>Subscription Link</div>
+              <div>
+                <a href={subscription?.subscriptionLink} target='_blank' rel='noopener noreferrer'>
+                  Access Subscription
+                  <i className={classNames('icon mbc-icon new-tab')}></i>
+                </a>
+              </div>
             </div>
-          </div>
+          }
           <div>
             <div>Created on</div>
             <div>{subscription?.createdOn && regionalDateAndTimeConversionSolution(subscription?.createdOn)}</div>
@@ -161,7 +161,7 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
                 <i className="icon delete"></i>
                 <span>Delete</span>
               </button> */}
-            {subscription?.status !== 'COMPLETED' ?
+            {subscription?.status === 'FAILED' &&
               <button
                 className={'btn btn-primary'}
                 type="button"
@@ -170,7 +170,8 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
                 <i className="icon mbc-icon refresh"></i>&nbsp;
                 <span>Refresh Susbscription</span>
               </button>
-              :
+            }
+            {subscription?.status === 'COMPLETED' &&
               <button
                 className={'btn btn-primary'}
                 type="button"
