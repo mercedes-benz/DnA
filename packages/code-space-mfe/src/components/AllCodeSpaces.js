@@ -225,25 +225,28 @@ const AllCodeSpaces = (props) => {
             <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
             <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
             <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>DyP CaaS Moves to AWS</a>).</p>
-            <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
+            {/* <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
             <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
             <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
             <p>
                 <ul>
                     <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
-                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before January 10th, 2025. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
+                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before <span className={classNames(Styles.warning)}>January 20th, 2025</span>. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
                 </ul>
-            </p>
+            </p> */}
             <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
             <p>
                 <ol>
-                    <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li>
-                    <li><b>Easy Migration:</b> Use our self-service migration flow to move your workspace to DyPCaaS AWS.</li>
-                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until January 10th, 2025.</li>
+                    {/* <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li> */}
+                    <li><b>Auto Migration:</b> We have migrated all your existing workspaces to DyPCaaS AWS.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>February 28th, 2025</span>.</li>
                 </ol>
+                <div className={Styles.modalTitle}>Migrating your Deployed Applications:</div>
+                <p> Please be aware that you must migrate your deployed applications before <span className={classNames(Styles.warning)}> March 31st, 2025</span>.
+                For migration, please reach out to us.</p>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
-            <p>Please refer to the AWS migration FAQs on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
+            <p>Please refer to the <span className={classNames(Styles.warning)}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
             <p><strong>Note:</strong> Upon initiating the migration, only your workspace will be migrated. Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
     );
@@ -251,29 +254,64 @@ const AllCodeSpaces = (props) => {
     const FAQModalContent = (
         <div className={Styles.modalFAQContentWrapper}>
             <div>
-               <ol>
+                <ol>
                     <li>
                         <div>I am not able to see my code post migrating to AWS</div>
                         <div className={classNames(Styles.info)}>
                             This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
                             <ul>
-                                <li>Run the following command &ldquo;<strong>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</strong>&ldquo; <span>(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)</span> in your terminal for cloning code manually.
-                                    <br/>You can find your org name and repo name by using the go to code repo option in the context menu.
-                                    <br/>If the cloning is not happening with the current token then generate a new token and try again.
-                                </li>
+                                <br />
                                 <li>
-                                    Once your code is cloned, please execute the following commands in the given order in your terminal to install the softwares.
+                                    Run the following commands in your terminal for cloning code manually
                                     <ol>
-                                        <li>&nbsp;&nbsp;<strong>cd .codespaces/DO_NOT_DELETE_MODIFY</strong></li>
-                                        <li>&nbsp;&nbsp;<strong>chmod +x pkg-install.sh</strong></li>
-                                        <li>&nbsp;&nbsp;<strong>./pkg-install.sh</strong></li>
+                                        <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
+                                        <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
+                                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
+                                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                                        <li>
+                                            <span className={classNames(Styles.list)}>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</span>
+                                            <br />(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
+                                            <br />You can find your org name and repo name by using the go to code repo option in the context menu.
+                                            <br />If the cloning is not happening with the current token then generate a new token and try again.
+
+                                        </li>
                                     </ol>
+                                </li>
+                                <br />
+                                <li>
+                                    Once your code is cloned, run the following commands in terminal to copy .bashrc
+                                    <ol>
+                                        <li><span className={classNames(Styles.list)}>cp /tmp/.bashrc /home/coder/</span></li>
+                                        <li><span className={classNames(Styles.list)}>chmod +x /home/coder/.bashrc</span></li>
+                                    </ol>
+                                </li>
+                                <br />
+                                <li>
+                                    Please execute the following commands in the given order in your terminal to install the softwares
+                                    <ol>
+                                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
+                                        <li><span className={classNames(Styles.list)}>cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
+                                            <br/><span className={classNames(Styles.listInfo)}>If you have an additional folder present before .codespaces then please use</span>
+                                            <br/><span className={classNames(Styles.list)}>cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
+                                        </li>
+                                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
+                                        <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
+                                        <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
+                                    </ol>
+                                </li>
+                                <br />
+                                <li>Please close your terminal and verify the installations on a new terminal.</li>
+                                <br />
+                                <li>
+                                    If you have a <span className={classNames(Styles.warning)}>Python FastAPI</span> workspace please run the following additional command
+                                    <br/><span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span>
                                 </li>
                             </ul>
                         </div>
                     </li>
-                </ol> 
-            </div> 
+                </ol>
+            </div>
         </div>
     );
 
@@ -565,9 +603,9 @@ const AllCodeSpaces = (props) => {
             {showAwsFAQModal && (
                 <InfoModal
                     title={'AWS migration FAQs'}
-                    modalWidth={'50%'}
+                    modalWidth={'60%'}
                     modalStyle={{
-                        maxWidth: '60%',
+                        maxWidth: '70%',
                     }}
                     show={showAwsFAQModal}
                     content={FAQModalContent}

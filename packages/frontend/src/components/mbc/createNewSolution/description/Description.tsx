@@ -43,6 +43,8 @@ import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModa
 import { history } from '../../../../router/History';
 import { isSolutionFixedTagIncluded, isSolutionFixedTagIncludedInArray } from '../../../../services/utils';
 import SimilarSearchListModal from 'components/mbc/shared/similarSearchListModal/SimilarSearchListModal';
+import TypeAheadBox from 'components/mbc/shared/typeAheadBox/TypeAheadBox';
+import { debounce } from 'lodash';
 
 const classNames = cn.bind(Styles);
 
@@ -129,6 +131,10 @@ export interface IDescriptionState {
   lastSearchedProductNameInput: string;
   similarSolutionsBasedOnProductName: ISimilarSearchListItem[];
   similarSolutionstoShow: ISimilarSearchListItem[];
+  leanIXList: any;
+  leanIXData: any;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export interface IDescriptionRequest {
@@ -150,6 +156,8 @@ export interface IDescriptionRequest {
   requestedFTECount: number;
   additionalResource: string;
   department: string,
+  appId: string;
+  leanIXDetails: any,
   createdBy?: IUserInfo;
 }
 
@@ -178,6 +186,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       numberOfRequestedFTE: props.description.requestedFTECount,
       additionalResource: props.description.additionalResource,
       departmentTags: props.description.department ? [props.description.department] : [],
+      appId: props.description.appId,
+      leanIXDetails: props.description.leanIXDetails,
     };
   }
 
@@ -244,6 +254,10 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       lastSearchedProductNameInput: '',
       similarSolutionsBasedOnProductName: [],
       similarSolutionstoShow: [],
+      leanIXList: [],
+      leanIXDetails: {},
+      leanIXData: {},
+      appId: '',
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -641,6 +655,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
+    const handleLeanIXSearch = debounce((searchTerm, showSpinner) => {
+      if (searchTerm.length > 3) {
+        showSpinner(true);
+        ApiClient
+          .getLeanIX(searchTerm)
+          .then((res) => {
+            this.onSetLeanIXList(res.data || []);
+            showSpinner(false);
+          })
+          .catch((e) => {
+            showSpinner(false);
+            Notification.show(
+              e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+              'alert',
+            );
+          });
+      }
+    }, 500);
+
     return (
       <React.Fragment>
         <ConfirmModal
@@ -993,7 +1026,49 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                             </div>
                           </div>
                         </div>
-                        <div></div>
+                        <div>
+                        <TypeAheadBox
+                          label={'LeanIX App-ID'}
+                          controlId={'leanix-app-id'}
+                          placeholder={'Select App-ID (Enter minimum 4 characters)'}
+                          defaultValue={this.state.appId}
+                          list={this.state.leanIXList}
+                          setSelected={(selectedTags) => {
+                            const leanIXData = {
+                              appId: selectedTags.id,
+                              leanIXDetails: {
+                                objectState: selectedTags.ObjectState,
+                                appReferenceStr: selectedTags.appReferenceStr,
+                                name: selectedTags.name,
+                                providerOrgDeptid: selectedTags.providerOrgDeptid,
+                                providerOrgId: selectedTags.providerOrgId,
+                                providerOrgRefstr: selectedTags.providerOrgRefstr,
+                                providerOrgShortname: selectedTags.providerOrgShortname,
+                                shortName: selectedTags.shortName,
+                              },
+                            };
+                            console.log("leanIXData",leanIXData);
+                            this.onSetLeanIXData(leanIXData);
+                            this.onSetAppId(leanIXData.appId);
+                            this.onSetLeanIXDetails(leanIXData.leanIXDetails);
+                          }}
+                          onInputChange={handleLeanIXSearch}
+                          required={false}
+                          // showError={errors.leanIX?.message}
+                          showError={false}
+                          render={(item) => (
+                            <div className={Styles.optionContainer}>
+                              <div>
+                                <span className={Styles.optionText}>
+                                  {item?.id} {item.shortName ? `(${item?.shortName})` : null}
+                                </span>
+                                <span className={Styles.suggestionListBadge}>{item?.providerOrgShortname}</span>
+                              </div>
+                              <span className={Styles.optionText}>{item?.name}</span>
+                            </div>
+                          )}
+                        />
+                        </div>
                       </div>
                     </>
                   )}
@@ -1327,5 +1402,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.department = arr?.map((item) => item.toUpperCase())[0];
     // this.setState({ showDepartmentMissingError: arr.length === 0 });
+  };
+
+  protected onSetLeanIXList = (item: any) => {
+    this.setState({ leanIXList: item });
+  };
+
+  protected onSetLeanIXDetails = (leanIXDetails: any) => {
+    const description = this.props.description;
+    description.leanIXDetails = leanIXDetails;  
+    this.setState({ leanIXDetails });
+  };
+
+  protected onSetAppId = (appId: any) => {
+    const description = this.props.description;
+    description.appId = appId;  
+    this.setState({ appId });
+  };
+
+  protected onSetLeanIXData = (data: any) => {
+    this.setState({ leanIXData: data });
   };
 }
