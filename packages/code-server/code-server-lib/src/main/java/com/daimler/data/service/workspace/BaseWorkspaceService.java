@@ -76,7 +76,8 @@ import com.daimler.data.db.json.CodeServerWorkspace;
   import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
   import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
   import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
-  import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomUserGroupRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
  import com.daimler.data.dto.AdditionalPropertiesDto;
   import com.daimler.data.dto.CodespaceSecurityConfigDto;
@@ -194,6 +195,9 @@ import com.daimler.data.dto.workspace.UserInfoVO;
  
 	 @Autowired
 	 private WorkspaceUserGroupRepository userGroupRepository;
+
+	 @Autowired
+	 private WorkspaceCustomUserGroupRepo workspaceCustomUserGroupRepo;
  
  
   
@@ -414,6 +418,18 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 // workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 		 // }else {
 		 entity.getData().setStatus("DELETED");
+		 entity.getData().setActiveInGroup(Boolean.FALSE);
+
+		 //remove from group
+		 List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
+		 log.info("groupEntity {}",groupEntity.toString());
+		 groupEntity.forEach( i ->{
+			 CodeServerUserGroupNsql group = userGroupRepository.findById(i).get();
+			 group.getData().getGroups().forEach( g -> {
+				 g.getWorkspaces().removeIf( w -> w.getWorkSpaceId().equalsIgnoreCase(entity.getData().getWorkspaceId()));
+			 });
+			 userGroupRepository.save(group);
+		 });
   
 		 UserInfo removeUser = new UserInfo();
 		 if (entity.getData().getProjectDetails().getProjectCollaborators() != null) {
@@ -3243,12 +3259,14 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 							workSpace.setStatus(workspaceVo.getStatus());
 							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
 							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
+							workSpace.setId(workspaceVo.getId());
 						}else{
 							workSpace.setName("");
 							workSpace.setCloudServiceProvider("");
 							workSpace.setServerStatus("");
 							workSpace.setStatus("");
 							workSpace.setProjectOwner(null);
+							workSpace.setId("");
 						}
 					});
 				});
@@ -3337,12 +3355,14 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 							workSpace.setStatus(workspaceVo.getStatus());
 							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
 							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
+							workSpace.setId(workspaceVo.getId());
 						}else{
 							workSpace.setName("");
 							workSpace.setCloudServiceProvider("");
 							workSpace.setServerStatus("");
 							workSpace.setStatus("");
 							workSpace.setProjectOwner(null);
+							workSpace.setId("");
 						}
 					});
 				});
@@ -3365,20 +3385,23 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				responseData = groupassembler.toVo(entity.get());
 				responseData.getData().forEach(group ->{
 					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                            
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                            						
 						if (workspaceVo != null) {
+							log.info("workspaceVo {},workspace id {}",workspaceVo.toString(),workSpace.getWsId());
 							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
 							workSpace.setCloudServiceProvider(workspaceVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 							workSpace.setServerStatus(workspaceVo.getServerStatus());
 							workSpace.setStatus(workspaceVo.getStatus());
 							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
 							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
+							workSpace.setId(workspaceVo.getId());
 						}else{
 							workSpace.setName("");
 							workSpace.setCloudServiceProvider("");
 							workSpace.setServerStatus("");
 							workSpace.setStatus("");
 							workSpace.setProjectOwner(null);
+							workSpace.setId("");
 						}
 					});
 				});
@@ -3462,12 +3485,14 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 						workSpace.setStatus(workspaceVo.getStatus());
 						workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
 						workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
+						workSpace.setId(workspaceVo.getId());
 					}else{
 						workSpace.setName("");
 						workSpace.setCloudServiceProvider("");
 						workSpace.setServerStatus("");
 						workSpace.setStatus("");
 						workSpace.setProjectOwner(null);
+						workSpace.setId("");
 					}
 				});
 			});

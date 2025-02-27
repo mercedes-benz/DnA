@@ -2042,7 +2042,10 @@ definitions:
         $ref: "#/definitions/UserInfoVO"
       workspaceUrl:
         type: string
-        description: "Workspace url"                   
+        description: "Workspace url"
+      id:
+        type: string
+        description: "Workspace id"                     
   CodeServerUserGroupCollectionVO:
     type: object
     properties:
