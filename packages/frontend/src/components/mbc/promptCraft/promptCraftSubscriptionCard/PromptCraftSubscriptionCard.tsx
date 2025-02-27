@@ -79,7 +79,7 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
       <hr />
       <div className={Styles.cardBodySection}>
         <div>
-          {subscription?.subscriptionLink !== null &&
+          {/* {subscription?.subscriptionLink !== null &&
             <div>
               <div>Subscription Link</div>
               <div>
@@ -89,7 +89,7 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
                 </a>
               </div>
             </div>
-          }
+          } */}
           <div>
             <div>Created on</div>
             <div>{subscription?.createdOn && regionalDateAndTimeConversionSolution(subscription?.createdOn)}</div>
@@ -161,17 +161,17 @@ const PromptCraftSubscriptionCard = ({ subscription, onShowKeys }: IPromptCraftS
                 <i className="icon delete"></i>
                 <span>Delete</span>
               </button> */}
-            {subscription?.status === 'FAILED' &&
+            {subscription?.status !== 'COMPLETED' ?
               <button
                 className={'btn btn-primary'}
                 type="button"
                 onClick={handleRefreshSubscription}
+                tooltip-data={'Refresh Subscription if it is taking too long or is Failed.'}
               >
                 <i className="icon mbc-icon refresh"></i>&nbsp;
-                <span>Refresh Susbscription</span>
+                <span>Refresh</span>
               </button>
-            }
-            {subscription?.status === 'COMPLETED' &&
+              :
               <button
                 className={'btn btn-primary'}
                 type="button"

@@ -66,14 +66,14 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
           </button>
         }
       </div>
-      <div className={Styles.col2}>
+      {/* <div className={Styles.col2}>
       {subscription?.subscriptionLink !== null ?
         <a href={subscription?.subscriptionLink} target='_blank' rel='noopener noreferrer'>
           Access Subscription
           <i className={classNames('icon mbc-icon new-tab')} />
         </a> : 'NA'
       }
-      </div>
+      </div> */}
       <div className={Styles.col3}>
         {subscription?.orgName || 'NA'}
       </div>
@@ -85,7 +85,7 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
       </div>
       <div className={Styles.col6}>
           <div className={Styles.btnTblGrp}>
-            {subscription?.status === 'FAILED' &&
+            {subscription?.status !== 'COMPLETED' ?
               <button
                 className={classNames('btn btn-primary', Styles.projectLink)}
                 onClick={(e) => { e.stopPropagation(); handleRefreshSubscription(); }}
@@ -93,8 +93,7 @@ const PromptCraftSubscriptionRow = ({subscription, onShowKeys}: IPromptCraftSubs
                 <i className="icon mbc-icon refresh"></i>
                 <span>Refresh Subscription</span>
               </button>
-            }
-            {subscription?.status === 'COMPLETED' &&
+              :
               <button
                 className={classNames('btn btn-primary', Styles.projectLink)}
                 onClick={(e) => { e.stopPropagation(); onShowKeys(subscription); }}

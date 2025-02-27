@@ -243,9 +243,9 @@ const PromptCraftSubscriptions = ({ user }: any) => {
                   <div className={Styles.col1}>
                     <span>Project Name</span>
                   </div>
-                  <div className={Styles.col2}>
+                  {/* <div className={Styles.col2}>
                     <span>Subscription Link</span>
-                  </div>
+                  </div> */}
                   <div className={Styles.col3}>
                     <span>Organization Name</span>
                   </div>
