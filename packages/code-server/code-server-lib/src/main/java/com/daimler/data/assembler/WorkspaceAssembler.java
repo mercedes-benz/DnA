@@ -280,7 +280,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			}else{
 				deploymentDetails.setIsSecuredWithCookie(false);
 			}
-			deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
+			if(vo.getDeploymentType()!=null){
+				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
+			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -343,7 +345,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 }else{
 				deploymentDetailsVO.isSecuredWithCookie(false);
 			 }
-			 deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
+			 if(deploymentDetails.getDeploymentType()!=null){
+				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
+			 }
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {
 				 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
