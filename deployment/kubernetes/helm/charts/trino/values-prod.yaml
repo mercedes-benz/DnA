@@ -1,7 +1,7 @@
 appName: trino
 namespace: prod-dna-trino
-access-rules:
-  endpoint: http://trino-backend-service.trino.svc.cluster.local:7575/service/access
+accessRules:
+  endpoint: http://trino-backend-service.prod-dna-trino.svc.cluster.local:7575/service/access
 cert:
   certManager: mercedes-benz-acme
 image:
