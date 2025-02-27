@@ -48,7 +48,7 @@ const PromptCraftSubscriptionForm = ({ user, onSave }: IPromptCraftSubscriptionF
   }
 
   useEffect(() => {
-    setValue('', projectMembers);
+    setValue('projectMembers', projectMembers);
   }, [projectMembers]);
 
   const onProjectMemberDelete = (userId: any) => {
