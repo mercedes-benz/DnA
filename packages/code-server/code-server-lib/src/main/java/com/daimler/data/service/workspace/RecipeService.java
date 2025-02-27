@@ -36,4 +36,15 @@ public interface RecipeService {
     GenericMessage deleteRecipe(String id);
 
     List<AdditionalServiceLovVo> getAllAdditionalServiceLov();
+
+    SoftwareCollection createSoftware(SoftwareCollection softwareRequestVO);
+
+	SoftwareCollection getSoftwareByName(String softwareName);
+
+	SoftwareCollection getSoftwareById(String id);
+
+	SoftwareCollection updateSoftware(SoftwareCollection softwareRequestVO);
+
+	GenericMessage deleteSoftware(String id);
+
 }

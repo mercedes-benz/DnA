@@ -1,0 +1,106 @@
+.form {  
+  width: 650px;
+  margin: 0 auto 20px;
+  height: 60vh;
+  max-height: 60vh;
+  
+  h3 {
+    font-size: 16px;
+  }
+  .formHeader {
+    margin-bottom: 20px;
+    text-align: center;
+    h3 {
+     font-size: var(--font-size-headline-medium);
+     margin-bottom: 10px;
+    }
+    p {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .formFooter {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+      margin-left: 10px;
+    }
+  }
+}
+
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  > .col {
+    width: 100%;
+  }
+  > .col2 {
+    width: calc(50% - 7px);
+  }
+  > .col3 {
+    width: calc(33.33% - 7px);
+  }
+}
+
+// h3 {
+//   font-size: var(--font-size-medium);
+// }
+
+.searchContainer {
+  h3 {
+    margin-bottom: 20px;
+  }
+}
+
+.searchBox {
+  .searchBtn {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background-color: unset;
+    border-left: 0;
+    border-color: #697582;
+    padding: 0 10px;
+  }
+  > input:focus + button {
+    border-color: #00adef;
+  }
+}
+
+.codespaceList {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.workspaceItemContainer {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  column-gap: 15px;
+  background-color: #252a33;
+  flex: 0 0 calc(50% - 7.5px);
+
+  .workspaceIcon {
+    font-size: 20px;
+    color: #99a5b3;
+  }
+  .workspaceContent {
+    flex: 1;
+    h3 {
+      font-size: 14px;
+      line-height: 1.2rem;
+      margin: 0;
+    }
+  }
+}
+
+.btnSubmit {
+  float: right;
+  margin-top: 20px;
+}

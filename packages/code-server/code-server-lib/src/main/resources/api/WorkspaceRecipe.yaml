@@ -257,6 +257,102 @@ paths:
         500:
           description: "Internal error"
 
+  /recipeDetails/adminSoftware:
+    post:
+        tags:
+          - "code-server-recipe"
+        summary: "Create software in recipe workspace."
+        description: "Create a new softwareentry in code-server recipe workspace."
+        operationId: "createSoftware"
+        parameters:
+          - name: "softwareRequestVO"
+            in: "body"
+            description: "Request body containing data required to create a software entry in the recipe workspace."
+            required: true
+            schema:
+              $ref: "#/definitions/SoftwareCollection"
+        responses:
+          201:
+            description: "Returns message of success or failure."
+            schema:
+              $ref: "#/definitions/ResponseSoftwareVO"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed."
+          500:
+            description: "Internal error."
+        
+  /recipeDetails/adminSoftware/{id}:
+    put:
+      tags:
+        - "code-server-recipe"
+      summary: "Update software in recipe workspace for a given id."
+      description: "Update existing softwareentry in code-server recipe workspace for a given id."
+      operationId: "updateSoftwareById"
+      parameters:
+        - name: "softwareRequestVO"
+          in: "body"
+          description: "Request Body that contains data required to update software"
+          required: true
+          schema:
+            $ref: "#/definitions/SoftwareCollection"
+      responses:
+          201:
+            description: "Returns message of success or failure."
+            schema:
+              $ref: "#/definitions/ResponseSoftwareVO"
+          400:
+            description: "Bad Request"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed."
+          500:
+            description: "Internal error."
+
+    delete:
+      tags:
+        - "code-server-recipe"
+      summary: "Delete software with given Id."
+      description: "Delete software for a given identifier."
+      operationId: "deleteSoftware"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "software to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Not found - Software ID does not exist."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /recipeDetails/softwareLov:
     get:
       tags:
@@ -747,9 +843,49 @@ definitions:
         items:
           $ref: "#/definitions/AdditionalPropertiesVO"
 
+
+  ResponseSoftwareVO:
+    type: object
+    properties:
+      data:
+        type: object
+        items:
+          $ref: "#/definitions/SoftwareCollection"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
   SoftwareCollection:
     type: object
     properties: 
       softwareName:
         type: string
         description: "version of the software"
+      additionalProperties:
+        type: string
+        description: "addtional properties mentioned"
+      id:
+        type: string
+        description: "software ID"
+      createdOn:
+        type: string
+        format: date
+        description: "created date for software"
+      createdBy:
+        type: string
+        description: "Created by user name"
+      updatedOn:
+        type: string
+        format: date
+        description: "updated date for software"
+      updatedBy:
+        type: string
+        description: "Updated by user name" 
+      
