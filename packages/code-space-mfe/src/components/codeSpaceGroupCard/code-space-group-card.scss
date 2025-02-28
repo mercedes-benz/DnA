@@ -3,6 +3,7 @@
   padding: 25px 20px 50px 20px;
   position: relative;
   background: #252a33;
+  border: 1px solid #252a33;
 
   .groupHeader {
       display: flex;
@@ -241,4 +242,8 @@
         border: 1px solid #00adef;
         color: #00adef;
     }
+}
+
+.highlight {
+    border-color: #00adef;
 }

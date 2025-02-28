@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classNames from 'classnames';
 import Styles from './code-space-group-card.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -7,6 +7,8 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import CodeSpaceGCard from './CodeSpaceGCard';
 
 const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped }) => {
+  const [highlight, setHighlight] = useState(false);
+  
   const handleEditGroup = (codespace) => {
     const data = {
       groupId: group?.groupId,
@@ -35,15 +37,20 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowCodeS
 
   return (
     <div
-      className={classNames(Styles.group)}
+      className={classNames(Styles.group, highlight && Styles.highlight)}
       id={`group-${group?.id}`}
       onDrop={(e) => {
           e.preventDefault();
           handleEditGroup(JSON.parse(e.dataTransfer.getData("application/json")));
+          setHighlight(false);
       }}
       onDragOver={(e) => {
           e.preventDefault();
-          e.dataTransfer.dropEffect = "move";
+          setHighlight(true);
+      }}
+      onDragLeave={(e) => {
+          e.preventDefault();
+          setHighlight(false);
       }}
     >
       <div className={classNames(Styles.groupHeader)}>
