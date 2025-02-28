@@ -35,9 +35,15 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
         .then((res) => {
           if(res?.data?.records) {
             const modifiedWorkspaces = edit ? group?.workspaces?.map((workspace) => { return { 
-              projectDetails: { projectName: workspace?.name}, workspaceId: workspace?.wsId
+              ...workspace,
+              projectDetails: { projectName: workspace?.name}, 
+              workspaceId: workspace?.wsId
             }}) : [];
-            setCodeSpaces([...res.data.records, ...modifiedWorkspaces]);
+            const modifiedRecords = edit ? res.data.records?.map((record) => { return { 
+              ...record,
+              wsId: record?.workspaceId
+            }}) : [...res.data.records];
+            setCodeSpaces([...modifiedRecords, ...modifiedWorkspaces]);
             setSelectedCodeSpaces(modifiedWorkspaces);
             SelectBox.defaultSetup();
           } else {
@@ -71,11 +77,16 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
     selectedCodeSpaces.length > 0 && setErrors(prevError => { return {...prevError, codespaces: ''}});
   };
 
-  const getDifferences = (prevCodespaces, currentCodespaces) => {
-    const prevIds = new Set(prevCodespaces.map(cs => cs.wsId));
-    const currentIds = new Set(currentCodespaces.map(cs => cs.wsId));
-    const addedCodespaces = currentCodespaces.filter(cs => !prevIds.has(cs.wsId));
-    const removedCodespaces = prevCodespaces.filter(cs => !currentIds.has(cs.wsId));
+  const findCodespaceChanges = (codespaceList, codespaces, selectedCodespaces) => {
+    const codespaceSet = new Set(codespaces.map(cs => cs.wsId));
+    const selectedSet = new Set(selectedCodespaces.map(cs => cs.wsId));
+
+    // Find added codespaces (in selected but not in original codespaces)
+    const addedCodespaces = codespaceList.filter(cs => selectedSet.has(cs.wsId) && !codespaceSet.has(cs.wsId));
+
+    // Find removed codespaces (in original codespaces but not in selected)
+    const removedCodespaces = codespaceList.filter(cs => codespaceSet.has(cs.wsId) && !selectedSet.has(cs.wsId));
+
     return { addedCodespaces, removedCodespaces };
   }
 
@@ -93,7 +104,7 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
   }
 
   const handleEditGroup = () => {
-    const { addedCodespaces, removedCodespaces } = getDifferences(group?.workspaces, selectedCodeSpaces);
+    const { addedCodespaces, removedCodespaces } = findCodespaceChanges(codeSpaces, group?.workspaces, selectedCodeSpaces);
     const data = {
       groupId: group?.groupId,
       name: group?.name,

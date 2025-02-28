@@ -469,6 +469,7 @@ const AllCodeSpaces = (props) => {
                 setShowDeleteCodespaceGroupModal(false);
                 Notification.show(`Code Space Group deleted successfully`);
                 getCodeSpaceGroupsData();
+                getCodeSpacesData();
                 ProgressIndicator.hide();
             })
             .catch((e) => {
