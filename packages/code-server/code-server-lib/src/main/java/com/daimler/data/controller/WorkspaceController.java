@@ -1182,8 +1182,7 @@ import org.springframework.beans.factory.annotation.Value;
 				log.info("workspace deployment requires approval");
 			} else {
 				responseMsg = service.deployWorkspace(userId, id, environment, branch,
-						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
-						deployRequestDto.getClientSecret(), isPrivateRecipe);
+				deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
 				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			}

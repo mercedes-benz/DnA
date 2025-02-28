@@ -64,8 +64,8 @@ public interface WorkspaceService {
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, 
 		boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, 
-		boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
+		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
