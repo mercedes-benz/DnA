@@ -83,7 +83,8 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
  import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.DeploymentAuditVO;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.DeploymentTypeEnum;
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import lombok.extern.slf4j.Slf4j;
  
  @Slf4j
@@ -285,6 +286,15 @@
 			 {
 				deploymentDetails.setSecureWithIAMRequired(false);
 			 }
+
+			if(vo.isIsSecuredWithCookie()!=null){
+				deploymentDetails.setIsSecuredWithCookie(vo.isIsSecuredWithCookie());
+			}else{
+				deploymentDetails.setIsSecuredWithCookie(false);
+			}
+			if(vo.getDeploymentType()!=null){
+				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
+			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -341,6 +351,15 @@
 			 if (deploymentDetails.getLastDeployedOn() != null){
 				 deploymentDetailsVO
 						 .setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
+			 }
+
+			 if(deploymentDetails.getIsSecuredWithCookie()!=null){
+				deploymentDetailsVO.isSecuredWithCookie(deploymentDetails.getIsSecuredWithCookie());
+			 }else{
+				deploymentDetailsVO.isSecuredWithCookie(false);
+			 }
+			 if(deploymentDetails.getDeploymentType()!=null){
+				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
 			 }
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {
