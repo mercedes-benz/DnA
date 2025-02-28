@@ -1046,6 +1046,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
+			 Boolean isOwner = false;
 			 CodeServerWorkspaceVO ownerVo = null;
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
@@ -1061,6 +1062,7 @@ import org.springframework.beans.factory.annotation.Value;
 				ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
 			} else{
 				ownerVo = vo;
+				isOwner = true;
 			}
 			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
 				if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
@@ -1169,20 +1171,38 @@ import org.springframework.beans.factory.annotation.Value;
 			//  }
 			//if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
 			GenericMessage responseMsg;
+			Boolean isApprover =false;
+			List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+			if(collabList!=null){
+				for(UserInfoVO user : collabList){
+					if(userId.equalsIgnoreCase(user.getId())){
+						if(user.isIsApprover()){
+							isApprover = true;
+						}
+					}
+				}
+			}
 			Boolean deploymentApprovalEnabled = false;
 			deploymentApprovalEnabled = Boolean.TRUE
 					.equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
 			if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
-					&& !"APPROVAL_PENDING".equalsIgnoreCase(status)) {
+					&& !"APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
 				responseMsg = service.approveRequestWorkspace(userId, id, environment, branch,
 						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
-						deployRequestDto.getClientSecret(), isPrivateRecipe);
+						deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
+						deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
+						deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
+						deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
 				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 				log.info("workspace deployment requires approval");
 			} else {
 				responseMsg = service.deployWorkspace(userId, id, environment, branch,
-				deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),deployRequestDto.getRedirectUri(),deployRequestDto.getIgnorePaths(),deployRequestDto.getScope(), deployRequestDto.isIsApiRecipe(),deployRequestDto.getOneApiVersionShortName(), deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
+						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
+						deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
+						deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
+						deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
+						deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
 				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			}
