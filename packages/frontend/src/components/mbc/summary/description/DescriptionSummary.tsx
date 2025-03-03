@@ -313,15 +313,6 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <br />
                     {description.appId}
                   </div>
-                  <div id="businessGoal">
-                    <label className="input-label summary">Business Goals</label>
-                    <br />
-                    {description.businessGoal
-                      ? description.businessGoal.length > 0
-                        ? description.businessGoal.join(', ')
-                        : 'NA'
-                      : 'NA'}
-                  </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   {/* <div id="neededRoles">
@@ -333,6 +324,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                         : 'N/A'
                       : 'N/A'}
                   </div> */}
+                  <div id="businessGoal">
+                    <label className="input-label summary">Business Goals</label>
+                    <br />
+                    {description.businessGoal
+                      ? description.businessGoal.length > 0
+                        ? description.businessGoal.join(', ')
+                        : 'NA'
+                      : 'NA'}
+                  </div>
                   <div id="dataStrategyDomain">
                     <label className="input-label summary">Data Strategy Domain</label>
                     <br />
@@ -343,13 +343,13 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <br />
                     {this.props.createdDate ? regionalDateAndTimeConversionSolution(this.props.createdDate) : '-'}
                   </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  
                   <div id="department">
                     <label className="input-label summary">Department</label>
                     <br />
                     {description.department ? description.department : 'NA'}
                   </div>
-                </div>
-                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />
