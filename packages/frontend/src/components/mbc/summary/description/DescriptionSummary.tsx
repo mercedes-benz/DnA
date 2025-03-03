@@ -311,7 +311,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="LeanIX App ID">
                     <label className="input-label summary">LeanIX App ID</label>
                     <br />
-                    {description.appId}
+                    {description.appId || 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
