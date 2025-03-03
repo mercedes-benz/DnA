@@ -18,7 +18,6 @@ const SoftwareTab = () => {
   const [loading, setLoading] = useState(true);
   const [software, setSoftware] = useState([]);
   const [selectedSoftware, setSelectedSoftware] = useState();
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddSoftwareModal, setShowAddSoftwareModal] = useState(false);
   const [showEditSoftwareModal, setShowEditSoftwareModal] = useState(false);
@@ -37,7 +36,7 @@ const SoftwareTab = () => {
         setLoading(false);
         ProgressIndicator.hide();
         if(Array.isArray(res?.data?.data)) {
-          const totalNumberOfPagesInner = Math.ceil(res?.data?.count / maxItemsPerPage);
+          const totalNumberOfPagesInner = Math.ceil(res?.data?.data?.length / maxItemsPerPage);
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesInner);
           setSoftware(res?.data?.data);
@@ -57,6 +56,9 @@ const SoftwareTab = () => {
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+
+  const startIndex = (currentPageNumber - 1) * maxItemsPerPage;
+  const currentItems = software?.slice(startIndex, startIndex + maxItemsPerPage);
 
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
@@ -114,7 +116,7 @@ const SoftwareTab = () => {
           <div>
             {!loading && (
               software?.length === 0 &&
-                <div className={Styles.empty}>Software are not available</div>
+                <div className={Styles.csempty}>Software are not available. Add one.</div>
             )}
             {!loading && software?.length > 0 &&
               <>
@@ -122,11 +124,11 @@ const SoftwareTab = () => {
                   <table className={classNames('ul-table')}>
                     <thead>
                       <tr className={classNames('header-row')}>
-                        <th className={Styles.softwareColumn}>
+                        {/* <th className={Styles.softwareColumn}>
                           <label>
                             ID
                           </label>
-                        </th>
+                        </th> */}
                         <th>
                           <label>
                             Software Name
@@ -143,15 +145,15 @@ const SoftwareTab = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {software.map((softwareItem) =>
+                      {currentItems.map((softwareItem) =>
                         <SoftwareRow
                           key={softwareItem?.id}
                           software={softwareItem}
                           onRefresh={getAllSoftware}
                           onSelectSoftware={(software) => { 
                             setSelectedSoftware(software);
-                            setShowDetailsModal(true);}
-                          }
+                            setShowEditSoftwareModal(true);
+                          }}
                           onEditSoftware={(software) => {
                             setSelectedSoftware(software);
                             setShowEditSoftwareModal(true);
@@ -165,7 +167,7 @@ const SoftwareTab = () => {
                     </tbody>
                   </table>
                 </div>
-                {!loading && software?.length > 0 &&
+                {!loading && currentItems?.length > 0 &&
                   <Pagination
                     totalPages={totalNumberOfPages}
                     pageNumber={currentPageNumber}
@@ -180,21 +182,6 @@ const SoftwareTab = () => {
           </div>
         </div>
       </div>
-      {showDetailsModal && (
-        <Modal
-          title={''}
-          hiddenTitle={true}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth="60vw"
-          show={showDetailsModal}
-          scrollableContent={true}
-          content={'Details'}
-          onCancel={() => {
-            setShowDetailsModal(false);
-          }}
-        />
-      )}
       {showAddSoftwareModal && (
         <Modal
           title={'Add Software'}

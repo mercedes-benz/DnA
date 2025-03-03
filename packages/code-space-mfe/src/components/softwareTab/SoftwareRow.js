@@ -20,9 +20,9 @@ const SoftwareRow = ({ software, onDeleteSoftware, onSelectSoftware, onEditSoftw
       <tr 
         className={classNames('data-row', Styles.dataRow)}
         onClick={() => onSelectSoftware(software)}>
-        <td className={'wrap-text'}>
+        {/* <td className={'wrap-text'}>
           <div>{software?.id}</div>
-        </td>
+        </td> */}
         <td className={'wrap-text'}>
           <span>
             {software?.softwareName}

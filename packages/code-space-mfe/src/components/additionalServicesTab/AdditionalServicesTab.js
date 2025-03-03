@@ -37,7 +37,7 @@ const AdditionalServicesTab = () => {
         setLoading(false);
         ProgressIndicator.hide();
         if(Array.isArray(res?.data?.data)) {
-          const totalNumberOfPagesInner = Math.ceil(res?.data?.count / maxItemsPerPage);
+          const totalNumberOfPagesInner = Math.ceil(res?.data?.data?.length / maxItemsPerPage);
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesInner);
           setAdditionalServices(res?.data?.data);
@@ -57,6 +57,9 @@ const AdditionalServicesTab = () => {
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+  
+  const startIndex = (currentPageNumber - 1) * maxItemsPerPage;
+  const currentItems = additionalServices?.slice(startIndex, startIndex + maxItemsPerPage);
 
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
@@ -103,6 +106,65 @@ const AdditionalServicesTab = () => {
       });
   }
 
+  const handleCopyJson = (json) => {
+    navigator.clipboard.writeText(JSON.stringify(json, null, 2)).then(() => {
+      Notification.show('Copied to Clipboard');
+    });
+  }
+
+  const moreInfoContent = (
+    <div className={Styles.modal}>
+      <div className={Styles.header}>
+        <h3>{selectedAdditionalService?.serviceName} <span>v{selectedAdditionalService?.version}</span></h3>
+        <div className={Styles.copyJSON} onClick={() => handleCopyJson(selectedAdditionalService?.additionalProperties)}><i className="icon mbc-icon copy"></i> Copy JSON</div>
+      </div>
+      <div className={Styles.content}>
+        {selectedAdditionalService?.additionalProperties?.env &&
+          <div className={classNames(Styles.itemContainer)}>
+            <p className={classNames(Styles.itemTitle)}>Env(s)</p>
+            {selectedAdditionalService?.additionalProperties?.env?.map(item => 
+              <div key={item.name} className={classNames(Styles.item)}>
+                <p className={classNames(Styles.name)}>
+                  {item.name}
+                </p>
+                <p className={classNames(Styles.value)}>
+                  {item.value}
+                </p>
+              </div>
+            )}
+          </div>
+        }
+
+        {selectedAdditionalService?.additionalProperties?.ports &&
+          <div className={classNames(Styles.itemContainer)}>
+            <p className={classNames(Styles.itemTitle)}>Port(s)</p>
+            {selectedAdditionalService?.additionalProperties?.ports?.map((item, index) => {
+              return ( 
+                <div key={index} className={classNames(Styles.item)}>
+                  <p className={classNames(Styles.name)}>
+                    Protocol: {item.protocol}
+                  </p>
+                  <p className={classNames(Styles.value)}>
+                    Container Port: {item.containerPort}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        }
+      </div>
+      <div className={Styles.footer}>
+        <button
+          className="btn btn-tertiary"
+          type="button"
+          onClick={() => setShowDetailsModal(false)}
+        >
+          Okay
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <React.Fragment>
       <button className={classNames('btn btn-primary', Styles.actionBtn)} onClick={() => setShowAddAdditionalServiceModal(true)}>
@@ -114,7 +176,7 @@ const AdditionalServicesTab = () => {
           <div>
             {!loading && (
               additionalServices?.length === 0 &&
-                <div className={Styles.empty}>Additional Services are not available</div>
+                <div className={Styles.csempty}>Additional Services are not available. Add one.</div>
             )}
             {!loading && additionalServices?.length > 0 &&
               <>
@@ -122,11 +184,11 @@ const AdditionalServicesTab = () => {
                   <table className={classNames('ul-table')}>
                     <thead>
                       <tr className={classNames('header-row')}>
-                        <th className={Styles.softwareColumn}>
+                        {/* <th className={Styles.softwareColumn}>
                           <label>
                             ID
                           </label>
-                        </th>
+                        </th> */}
                         <th>
                           <label>
                             Service Name
@@ -143,7 +205,7 @@ const AdditionalServicesTab = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {additionalServices.map((service) =>
+                      {currentItems.map((service) =>
                         <AdditionalServiceRow
                           key={service?.id}
                           service={service}
@@ -165,7 +227,7 @@ const AdditionalServicesTab = () => {
                     </tbody>
                   </table>
                 </div>
-                {!loading && additionalServices?.length > 0 &&
+                {!loading && currentItems?.length > 0 &&
                   <Pagination
                     totalPages={totalNumberOfPages}
                     pageNumber={currentPageNumber}
@@ -182,17 +244,16 @@ const AdditionalServicesTab = () => {
       </div>
       {showDetailsModal && (
         <Modal
-          title={''}
+          title={'Software Details'}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="60vw"
+          modalWidth={'800px'}
+          buttonAlignment="right"
           show={showDetailsModal}
+          content={moreInfoContent}
           scrollableContent={true}
-          content={'Additional services'}
-          onCancel={() => {
-            setShowDetailsModal(false);
-          }}
+          onCancel={() => setShowDetailsModal(false)}
         />
       )}
       {showAddAdditionalServiceModal && (
