@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
-// import Button from '../../../common/modules/uilab/js/src/button';
-// @ts-ignore
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
-
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-solarized_dark';
 import Styles from './Entitlement.scss';
 // @ts-ignore
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
@@ -12,47 +12,11 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import EntitlementSubList from './EntitlementSubList';
-// import Pagination from 'components/mbc/pagination/Pagination';
 import { SESSION_STORAGE_KEYS } from '../../../Utility/constants';
 import EditOrCreateEntitlement from './EditOrCreateEntitlement';
 import SelectBox from 'dna-container/SelectBox';
 
 const classNames = cn.bind(Styles);
-
-// export interface IEntitlementProps {
-//   onSaveDraft: (tabToBeSaved: string, config: any) => void;
-//   onPublish: (config: any, env: string) => void;
-//   env: string;
-//   id: string;
-//   config: any;
-//   readOnlyMode: boolean;
-//   projectName?: string;
-// }
-
-// export interface IEntitlementState {
-//   showContextMenu: boolean;
-//   entitlementName: string;
-//   entitlemenPath: string;
-//   httpMethod: string;
-//   entitelmentList: any;
-//   contextMenuOffsetTop: number;
-//   contextMenuOffsetLeft: number;
-//   isCreateOrEditEntitlementModal: boolean;
-//   editEntitlementModal: boolean;
-//   entitlementNameErrorMessage: string;
-//   entitlementPathErrorMessage: string;
-//   entitlementHttpMethodErrorMessage: string;
-//   isDnAProtectModal: boolean;
-//   showDeleteModal: boolean;
-//   deleteEntitlementName: string;
-//   totalNumberOfPages: number;
-//   currentPageNumber: number;
-//   maxItemsPerPage: number;
-//   entitelmentListResponse: any;
-//   config: any;
-//   appId: string;
-//   appIdErrorMessage: string;
-// }
 
 export default class Entitlement extends React.Component {
   constructor(props) {
@@ -75,19 +39,44 @@ export default class Entitlement extends React.Component {
       deleteEntitlementName: '',
       totalNumberOfPages: 1,
       currentPageNumber: 1,
-      maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE)) || 10,
+      maxItemsPerPage:
+        parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE)) || 10,
       entitelmentListResponse: [],
       config: {},
       appId: '',
       appIdErrorMessage: '',
+      showDiscardModal: false, // Controls discard confirmation modal
+
+      // JSON view state:
+      showJson: false,
+      publishedData: '', // The environment-specific published data
+      jsonData: JSON.stringify(
+        {
+          appId: (props.config && props.config.appId) || '',
+          entitlements: (props.config && props.config.entitlements) || [],
+        },
+        null,
+        2
+      ),
+      jsonError: '',
+      isJsonTouched: false,
+      toggleError: ''
     };
 
-    // Bind the method to the class instance in the constructor
     this.handleEntitementEdit = this.handleEntitementEdit.bind(this);
+    this.handleToggle = this.handleToggle.bind(this);
+    this.handleJsonChange = this.handleJsonChange.bind(this);
+    this.onSave = this.onSave.bind(this);
+    this.onDiscard = this.onDiscard.bind(this);
+    this.confirmDiscard = this.confirmDiscard.bind(this);
   }
 
-  componentDidUpdate(prevProps) {
-    // Check if the parent component has updated
+  componentDidMount() {
+    SelectBox.defaultSetup();
+    Tooltip.defaultSetup();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
@@ -106,17 +95,156 @@ export default class Entitlement extends React.Component {
         });
       }
     }
-  }
 
-  componentDidMount() {
-    SelectBox.defaultSetup();
-    Tooltip.defaultSetup();
+    if (
+      !this.state.isJsonTouched &&
+      (prevState.appId !== this.state.appId ||
+        prevState.entitelmentListResponse !== this.state.entitelmentListResponse)
+    ) {
+      const jsonData = JSON.stringify(
+        {
+          appId: this.state.appId,
+          entitlements: this.state.entitelmentListResponse,
+        },
+        null,
+        2
+      );
+      if (jsonData !== this.state.jsonData) {
+        this.setState({ jsonData });
+      }
+    }
   }
-
   showErrorNotification(message) {
     ProgressIndicator.hide();
     Notification.show(message, 'alert');
   }
+
+  
+  handleToggle() {
+   
+    const envKey =
+      this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
+    const storedPublishedData = localStorage.getItem(envKey);
+
+    
+    this.setState((prevState) => ({
+      showJson: !prevState.showJson,
+      jsonData: this.props.readOnlyMode
+        ? storedPublishedData || '// No Published Data Available'
+        : this.state.jsonData,
+      publishedData: storedPublishedData || '',
+      isJsonTouched: false,
+    }));
+  }
+
+  handleJsonChange(newValue) {
+    try {
+      this.setState({ isJsonTouched: true, jsonData: newValue });
+  
+      let parsedData;
+      try {
+        parsedData = JSON.parse(newValue);
+      } catch (e) {
+        throw new Error('Invalid JSON format: ' + e.message);
+      }
+  
+      let errors = [];
+      if (parsedData.entitlements) {
+        parsedData.entitlements.forEach((entitlement, index) => {
+          const { apiPattern, httpMethod } = entitlement;
+  
+          if (apiPattern && !apiPattern.startsWith('/api/')) {
+            errors.push(`Error in entitlement ${index + 1}: API Path should start with '/api/'`);
+          }
+  
+   
+          if (
+            httpMethod &&
+            !['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE', 'CONNECT'].includes(
+              httpMethod
+            )
+          ) {
+            errors.push(`Error in entitlement ${index + 1}: Invalid HTTP Method`);
+          }
+        });
+  
+        if (errors.length === 0) {
+          
+          this.setState({
+            entitelmentList: [...parsedData.entitlements], 
+            entitelmentListResponse: [...parsedData.entitlements], 
+          });
+        } else {
+          this.setState({ jsonError: errors });
+        }
+      }
+    } catch (error) {
+      console.error('Error during JSON change:', error);
+      this.setState({ jsonError: [error.message] });
+    }
+  }
+  
+
+  onSave() {
+    
+    if (this.state.jsonError?.length === 0) {
+      try {
+        const parsedData = JSON.parse(this.state.jsonData);
+        const newAppId = parsedData.appId;
+        const newEntitlements = parsedData.entitlements;
+
+        
+        this.setState({
+          appId: newAppId,
+          entitelmentListResponse: newEntitlements,
+          entitelmentList: newEntitlements,
+          isJsonTouched: false,
+          toggleError: '',
+        });
+
+        Notification.show('JSON changes saved successfully');
+
+        if (this.props.onSaveDraft) {
+          this.props.onSaveDraft(this.props.env, {
+            ...this.state.config,
+            entitlements: newEntitlements,
+            appId: newAppId,
+          });
+        }
+      } catch (e) {
+        Notification.show('Invalid JSON. Please correct the errors.', 'alert');
+      }
+    } else {
+      Notification.show('Please fix the JSON errors before saving.', 'alert');
+    }
+  }
+
+  onDiscard() {
+    this.setState({ showDiscardModal: true });
+  }
+
+  confirmDiscard() {
+    
+    const jsonData = JSON.stringify(
+      {
+        appId: this.state.appId,
+        entitlements: this.state.entitelmentListResponse,
+      },
+      null,
+      2
+    );
+
+    this.setState({
+      jsonData,
+      isJsonTouched: false,
+      jsonError: '',
+      toggleError: '',
+      showDiscardModal: false,
+    });
+
+    Notification.show('Changes discarded successfully');
+  }
+
 
   editCreateEditEntitlementModal = () => {
     this.setState({
@@ -132,19 +260,20 @@ export default class Entitlement extends React.Component {
 
   validateEntitementForm = () => {
     let formValid = true;
-    const errorMissingEntry = '*Missing entry';
+    const errorMissing = '*Missing entry';
+
     if (this.state.entitlementName?.trim()?.length === 0) {
-      this.setState({ entitlementNameErrorMessage: errorMissingEntry });
+      this.setState({ entitlementNameErrorMessage: errorMissing });
       formValid = false;
     }
 
     if (this.state.entitlemenPath?.trim()?.length === 0) {
-      this.setState({ entitlementPathErrorMessage: errorMissingEntry });
+      this.setState({ entitlementPathErrorMessage: errorMissing });
       formValid = false;
     }
 
     if (this.state.httpMethod === '0' || this.state.httpMethod?.trim()?.length === 0) {
-      this.setState({ entitlementHttpMethodErrorMessage: errorMissingEntry });
+      this.setState({ entitlementHttpMethodErrorMessage: errorMissing });
       formValid = false;
     }
 
@@ -152,8 +281,9 @@ export default class Entitlement extends React.Component {
   };
 
   handleDeleteEntitlement = () => {
+    
     const updatedList = this.state.entitelmentList.filter(
-      (item) => item.entitlementName !== this.state.deleteEntitlementName,
+      (item) => item.entitlementName !== this.state.deleteEntitlementName
     );
     this.setState({
       entitelmentList: updatedList,
@@ -165,32 +295,30 @@ export default class Entitlement extends React.Component {
   handleEntitementAdd = (type) => {
     if (this.validateEntitementForm()) {
       const { entitelmentList, entitlementName, entitlemenPath, httpMethod } = this.state;
-
-      // Check if the item already exists in the list
       const existingItem = entitelmentList.find((item) => item.entitlementName === entitlementName);
 
       if (type === 'Update' && existingItem) {
         // Update the existing item
         const updatedList = entitelmentList.map((item) =>
-          item.entitlementName === entitlementName ? { ...item, entitlementName, entitlemenPath, httpMethod } : item,
+          item.entitlementName === entitlementName
+            ? { ...item, entitlementName, entitlemenPath, httpMethod }
+            : item
         );
-
         this.setState({
           entitelmentList: updatedList,
           isCreateOrEditEntitlementModal: false,
           entitlementName: '',
           entitlemenPath: '',
           httpMethod: '',
-          editEntitlementModal: false, // Set edit mode to false
+          editEntitlementModal: false,
         });
       } else {
-        // Add a new item
+      
         const updatedList = entitelmentList.concat({
           entitlementName,
           entitlemenPath,
           httpMethod,
         });
-
         this.setState({
           entitelmentList: updatedList,
           isCreateOrEditEntitlementModal: false,
@@ -202,7 +330,7 @@ export default class Entitlement extends React.Component {
     }
   };
 
-  handleEntitementEdit = (editEntitlement) => {
+  handleEntitementEdit(editEntitlement) {
     this.setState({
       editEntitlementModal: true,
       isCreateOrEditEntitlementModal: true,
@@ -210,10 +338,9 @@ export default class Entitlement extends React.Component {
       entitlemenPath: editEntitlement.entitlemenPath,
       httpMethod: editEntitlement.httpMethod,
     });
-  };
+  }
 
   getRefreshedDagPermission = () => {};
-
   getProjectSorted = (entitel) => {
     this.setState({
       entitelmentList: entitel,
@@ -226,12 +353,13 @@ export default class Entitlement extends React.Component {
     });
   };
 
+ 
   onPaginationPreviousClick = () => {
     const currentPageNumberTemp = this.state.currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * this.state.maxItemsPerPage;
     const modifiedData = this.state.entitelmentListResponse.slice(
       currentPageOffset,
-      this.state.maxItemsPerPage * currentPageNumberTemp,
+      this.state.maxItemsPerPage * currentPageNumberTemp
     );
     this.setState({
       entitelmentList: modifiedData,
@@ -245,7 +373,7 @@ export default class Entitlement extends React.Component {
     currentPageNumberTemp = this.state.currentPageNumber + 1;
     const modifiedData = this.state.entitelmentListResponse.slice(
       currentPageOffset,
-      this.state.maxItemsPerPage * currentPageNumberTemp,
+      this.state.maxItemsPerPage * currentPageNumberTemp
     );
     this.setState({
       entitelmentList: modifiedData,
@@ -265,12 +393,8 @@ export default class Entitlement extends React.Component {
   };
 
   updateEntitlement = (entitlementData) => {
-    // Flag to indicate if the entitlement already exists
     let entitlementExists = false;
-
-    // Iterate over each object in entitelmentListResponse
     for (const responseItem of this.state.entitelmentListResponse) {
-      // Check if the entitlement name exists in the current responseItem
       if (responseItem.name === entitlementData.name) {
         entitlementExists = true;
         break;
@@ -278,172 +402,463 @@ export default class Entitlement extends React.Component {
     }
 
     if (entitlementExists) {
-      // If the entitlement exists, set an error message
       this.setState({
         entitlementNameErrorMessage: 'An entitlement with this name already exists.',
       });
     } else {
-      // If the entitlement is new, add it to the list
       const updatedEntitlementList = [...this.state.entitelmentList, entitlementData];
-
-      // Decide how to add the new entitlement to entitelmentListResponse
       const updatedEntitelmentListListResponse = [
         ...this.state.entitelmentListResponse,
-        {
-          ...entitlementData,
-        },
+        { ...entitlementData },
       ];
-
-      // Update the state with the new entitlement list and close the modal.
       this.setState({
         entitelmentList: updatedEntitlementList,
         entitelmentListResponse: updatedEntitelmentListListResponse,
         isCreateOrEditEntitlementModal: false,
         editEntitlementModal: false,
-        entitlementNameErrorMessage: '', // Clear any previous error message
+        entitlementNameErrorMessage: '',
       });
     }
   };
 
+
+  onEntitlementSubmit = () => {
+    let formValid = true;
+    if (this.state.appId.trim().length === 0) {
+      formValid = false;
+      this.showErrorNotification('Application Id is Missing');
+    }
+
+    if (formValid) {
+      let newAppId = this.state.appId;
+      let newEntitlements = this.state.entitelmentListResponse;
+
+      
+      if (this.state.showJson) {
+        try {
+          const parsedData = JSON.parse(this.state.jsonData);
+          newAppId = parsedData.appId || newAppId;
+          newEntitlements = parsedData.entitlements || newEntitlements;
+
+          this.setState({
+            appId: newAppId,
+            entitelmentListResponse: newEntitlements,
+            entitelmentList: newEntitlements,
+            isJsonTouched: false,
+          });
+        } catch (e) {
+          this.showErrorNotification('Invalid JSON. Please correct the errors before saving.');
+          return;
+        }
+      }
+      this.setState(
+        {
+          config: {
+            ...this.state.config,
+            entitlements: newEntitlements,
+            appId: newAppId,
+          },
+        },
+        () => {
+          this.props.onSaveDraft(
+            this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement',
+            this.state.config
+          );
+          Notification.show(
+            this.props.env === 'int'
+              ? 'Staging Saved Successfully'
+              : 'Production Saved Successfully'
+          );
+        }
+      );
+    }
+  };
+
+  
+  onEntitlementPublish = () => {
+    let formValid = true;
+    if (!this.state.appId) {
+      formValid = false;
+      this.showErrorNotification('Application Id is Missing');
+    }
+
+    if (formValid) {
+      
+      const newPublishData = {
+        appId: this.state.appId,
+        entitlements: this.state.entitelmentListResponse,
+      };
+
+      
+      const envKey = this.props.env === 'int'
+        ? 'publishedData_staging'
+        : 'publishedData_production';
+
+      const publishedJson = JSON.stringify(newPublishData, null, 2);
+      localStorage.setItem(envKey, publishedJson);
+
+     
+      this.setState(
+        {
+          config: {
+            ...this.state.config,
+            entitlements: newPublishData.entitlements,
+            appId: this.state.appId,
+          },
+          publishedData: publishedJson,
+          jsonData: publishedJson, 
+          isJsonTouched: false,
+        },
+        () => {
+          
+          this.props.onPublish(this.state.config, this.props.env);
+          Notification.show(
+            this.props.env === 'int'
+              ? 'Staging Published Successfully'
+              : 'Production Published Successfully'
+          );
+        }
+      );
+    }
+  };
+
+
   render() {
     return (
       <React.Fragment>
-        <div className={classNames(Styles.provisionStyles)}>
-          <div className={classNames(Styles.wrapper)}>
-            <div className={classNames('decriptionSection', 'mbc-scroll')}>
-              <h3 className={classNames(Styles.title)}>
-                {this.props.env === 'int'
-                  ? 'Entitlements for your Staging application authorization'
-                  : 'Entitlements for your Production application authorization'}
-              </h3>
-              <div className={Styles.parentEntitlement}>
-                <div className={Styles.checkboxWrapper}>
-                  <div
-                    className={classNames(
-                      ' input-field-group include-error ',
-                      this.state?.appIdErrorMessage?.length ? 'error' : '',
-                    )}
-                  >
-                    <label id="PrjName" htmlFor="PrjId" className="input-label">
-                      {this.props.env === 'int' ? 'Staging ' : 'Production '} Application Id<sup>*</sup>
-                    </label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      required={this.props.readOnlyMode ? false : true}
-                      id="AppId"
-                      maxLength={50}
-                      placeholder="Application id registered in Alice"
-                      autoComplete="off"
-                      onChange={(e) => {
-                        e.target.value.length !== 0
-                          ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
-                          : this.setState({ appId: e.target.value, appIdErrorMessage: '*Missing entry' });
-                      }}
-                      value={this.state.appId}
-                      readOnly={this.props.readOnlyMode}
-                    />
-                    <p
-                    style={{ color: 'var(--color-orange)' }}
-                    className={classNames(this.state?.appId === this.props?.config?.appId || !this.props?.config?.appId ? ' hide' : '')}
-                  >
-                    <i className="icon mbc-icon alert circle"></i> Please redeploy with the new client id and client secret for the application id changes to be reflected. Note that the old credentials will be used until then.
-                  </p>
-                    <span className={classNames('error-message', this.state?.appIdErrorMessage?.length ? '' : 'hide')}>
-                      {this.state?.appIdErrorMessage}
-                    </span>
-                  </div>
-                </div>
-                {!this.props.readOnlyMode && this?.state?.appId?.length ? (
-                  <div className={classNames(Styles.createEntitlementButton)}>
+        
+        <div className={classNames(Styles.toggleSwitch)}>
+          <label className={classNames('switch', this.state.showJson ? 'on' : '')}>
+            <span className="label" style={{ marginRight: '5px' }}>Show JSON</span>
+            <span className="wrapper">
+              <input
+                type="checkbox"
+                onChange={this.handleToggle}
+                checked={this.state.showJson}
+              />
+            </span>
+          </label>
+        </div>
+
+     
+        {!this.state.showJson ? (
+          <div className={classNames(Styles.provisionStyles)}>
+            <div className={classNames(Styles.wrapper)}>
+              <div className={classNames('decriptionSection', 'mbc-scroll')}>
+                
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '10px',
+                  }}
+                >
+                 <h3 className={classNames(Styles.title)} style={{ marginRight: 'auto', padding: '25px' }}>
+  {this.props.env === 'int'
+    ? 'Entitlements for your Staging application authorization'
+    : 'Entitlements for your Production application authorization'}
+</h3>
+
+                  {!this.props.readOnlyMode && !this.state.showJson && (
                     <button
-                      className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)}
+                      className="btn btn-primary"
                       type="button"
-                      onClick={() => {
+                      onClick={() =>
                         this.setState({
                           isCreateOrEditEntitlementModal: true,
-                        });
+                          editEntitlementModal: false,
+                        })
+                      }
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: 'white',
+                        padding: '16px 20px',
+                        fontSize: '16px',
+                        borderRadius: '5px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        marginLeft: 'auto',
                       }}
                     >
-                      <i className="icon mbc-icon plus" />
-                      <span>Create New Entitlement</span>
+                      + Create New Entitlement
                     </button>
+                  )}
+                </div>
+
+            
+                <div className={Styles.parentEntitlement}>
+                  <div className={Styles.checkboxWrapper}>
+                    <div
+                      className={classNames(
+                        'input-field-group include-error',
+                        this.state?.appIdErrorMessage?.length ? 'error' : ''
+                      )}
+                    >
+                      <label htmlFor="AppId" className="input-label">
+                        {this.props.env === 'int'
+                          ? 'Staging '
+                          : 'Production '}
+                        Application Id<sup>*</sup>
+                      </label>
+                      <input
+                        type="text"
+                        className="input-field"
+                        required={!this.props.readOnlyMode}
+                        id="AppId"
+                        maxLength={50}
+                        placeholder="Application id registered in Alice"
+                        autoComplete="off"
+                        onChange={(e) => {
+                          e.target.value.length !== 0
+                            ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
+                            : this.setState({
+                                appId: e.target.value,
+                                appIdErrorMessage: '*Missing entry',
+                              });
+                        }}
+                        value={this.state.appId}
+                        readOnly={this.props.readOnlyMode}
+                      />
+                      <span
+                        className={classNames(
+                          'error-message',
+                          this.state?.appIdErrorMessage?.length ? '' : 'hide'
+                        )}
+                      >
+                        {this.state?.appIdErrorMessage}
+                      </span>
+                    </div>
                   </div>
+                </div>
+
+<p style={{ color: 'var(--color-orange)', marginTop: '10px', paddingLeft: '25px' }}>
+  <i className="icon mbc-icon alert circle"></i> Please redeploy with the new
+  client id and client secret for the application id changes to be reflected.
+  Note that the old credentials will be used until then.
+</p>
+
+
+               
+                {this.state.entitelmentListResponse?.length > 0 ? (
+                  <div className={classNames(Styles.subList)} style={{ padding: '25px' }}>
+                  <EntitlementSubList
+                    readOnlyMode={this.props.readOnlyMode}
+                    entitelmentListResponse={this.state.entitelmentListResponse}
+                    listOfProject={this.state.entitelmentList}
+                    getRefreshedDagPermission={this.getRefreshedDagPermission}
+                    updatedFinalEntitlementList={this.updatedFinalEntitlementList}
+                    getProjectSorted={this.getProjectSorted}
+                    projectName={this.props.projectName}
+                    env={this.props.env}
+                  />
+                </div>
+                
                 ) : (
-                  ''
+                  <div className={classNames('no-data', Styles.noData)}>
+                    No Entitlements found
+                  </div>
                 )}
               </div>
-              {this.state.entitelmentListResponse?.length > 0 ? (
-                <>
-                  <div className={classNames(Styles.subList)}>
-                    <EntitlementSubList
-                      readOnlyMode={this.props.readOnlyMode}
-                      entitelmentListResponse={this.state.entitelmentListResponse}
-                      listOfProject={this.state.entitelmentList}
-                      getRefreshedDagPermission={this.getRefreshedDagPermission}
-                      updatedFinalEntitlementList={this.updatedFinalEntitlementList}
-                      getProjectSorted={this.getProjectSorted}
-                      projectName={this.props.projectName}
-                      env={this.props.env}
-                    />
-                  </div>
-                  {/* <Pagination
-                    totalPages={this.state.totalNumberOfPages}
-                    pageNumber={this.state.currentPageNumber}
-                    onPreviousClick={this.onPaginationPreviousClick}
-                    onNextClick={this.onPaginationNextClick}
-                    onViewByNumbers={this.onViewByPageNum}
-                    displayByPage={true}
-                  /> */}
-                </>
-              ) : (
-                <div className={classNames('no-data', Styles.noData)}> No Entitlements found</div>
+            </div>
+          </div>
+        ) : (
+         
+          <div className={classNames(Styles.jsonView)} style={{ display: 'flex', justifyContent: 'center' }}>
+            <div className={classNames(Styles.wrapper)} style={{ maxWidth: '100%', width: '100%' }}>
+              
+              <div
+                className={classNames(Styles.titleWrapper)}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <h3 className={classNames(Styles.title)} style={{ margin: 0 }}>
+                    {this.props.env === 'int'
+                      ? 'Entitlements for your Staging application authorization'
+                      : 'Entitlements for your Production application authorization'}
+                  </h3>
+                  {!this.props.readOnlyMode && !this.state.showJson && (
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      onClick={() =>
+                        this.setState({
+                          isCreateOrEditEntitlementModal: true,
+                          editEntitlementModal: false,
+                        })
+                      }
+                      style={{
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        padding: '16px 20px',
+                        fontSize: '14px',
+                        borderRadius: '5px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        marginLeft: 'auto',
+                      }}
+                    >
+                      + Create Entitlement
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(this.state.jsonData).then(() => {
+                      Notification.show('Copied to Clipboard');
+                    });
+                  }}
+                  className={classNames('btn btn-primary', Styles.actionBtn)}
+                  type="button"
+                  title="Copy JSON"
+                  style={{ backgroundColor: 'transparent', border: 'none', marginLeft: '10px' }}
+                >
+                  <i className={classNames('icon mbc-icon copy', Styles.copyIcon)} />
+                </button>
+              </div>
+
+            
+              <AceEditor
+                mode="json"
+                theme="solarized_dark"
+                readOnly={this.props.readOnlyMode}
+                onChange={this.props.readOnlyMode ? undefined : this.handleJsonChange}
+                value={
+                  this.props.readOnlyMode
+                    ? this.state.publishedData || '// No Published Data Available'
+                    : this.state.jsonData
+                }
+                fontSize={15}
+                name="json_editor"
+                editorProps={{ $blockScrolling: true }}
+                width="100%"
+                height="400px"
+                showPrintMargin={false}
+                setOptions={{
+                  useWorker: false,
+                  showLineNumbers: true,
+                  tabSize: 2,
+                  indentUnit: 2,
+                  wrap: true,
+                  softTabs: true,
+                  lineHeight: 1.5,
+                }}
+                style={{ marginTop: '5px', textAlign: 'left' }}
+              />
+
+              
+              {this.state.jsonError && this.state.jsonError.length > 0 && (
+                <div style={{ color: 'red', fontWeight: 'bold', marginTop: '10px', fontSize: '16px' }}>
+                  {this.state.jsonError.map((error, idx) => (
+                    <div key={idx}>{error}</div>
+                  ))}
+                </div>
+              )}
+
+            
+              <div style={{ marginTop: '15px', fontSize: '14px', color: '#A9A9A9' }}>
+                <ul style={{ listStyleType: 'disc' }}>
+                  <li>
+                    Ensure the <strong>appId</strong> field is unique and identifies the application.
+                  </li>
+                  <li>
+                    Always start the <strong>apiPattern</strong> with <code>/api/</code>.
+                  </li>
+                  <li>
+                    Use only valid HTTP methods:{' '}
+                    <strong>GET</strong>, <strong>POST</strong>, <strong>PUT</strong>, <strong>DELETE</strong>,{' '}
+                    <strong>PATCH</strong>, <strong>HEAD</strong>, <strong>OPTIONS</strong>, <strong>TRACE</strong>,{' '}
+                    <strong>CONNECT</strong>.
+                  </li>
+                  <li>
+                    Each entitlement name should be an <strong>array of strings</strong>.
+                  </li>
+                </ul>
+              </div>
+
+             
+              {!this.props.readOnlyMode && this.state.isJsonTouched && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    marginTop: '15px',
+                    marginBottom: '20px',
+                    marginRight: '20px',
+                  }}
+                >
+                  <button
+                    onClick={() => this.setState({ showDiscardModal: true })}
+                    className={classNames('btn', Styles.discardBtn)}
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: '#1E90FF',
+                      border: '2px solid #1E90FF',
+                      padding: '6px 12px',
+                      fontSize: '14px',
+                    }}
+                  >
+                    Discard Changes
+                  </button>
+                </div>
+              )}
+
+              {this.state.showDiscardModal && (
+                <ConfirmModal
+                  title="Discard Changes"
+                  showAcceptButton={false}
+                  showCancelButton={false}
+                  show={this.state.showDiscardModal}
+                  showIcon={false}
+                  showCloseIcon={true}
+                  content={
+                    <div>
+                      <p>Are you sure you want to discard changes?</p>
+                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                        <button
+                          className="btn btn-secondary"
+                          type="button"
+                          onClick={() => this.setState({ showDiscardModal: false })}
+                          style={{ marginRight: '10px' }}
+                        >
+                          No
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          onClick={this.confirmDiscard}
+                        >
+                          Yes
+                        </button>
+                      </div>
+                    </div>
+                  }
+                />
               )}
             </div>
           </div>
-        </div>
-
-        {this.state.showDeleteModal && (
-          <ConfirmModal
-            title={'Delete'}
-            showAcceptButton={false}
-            showCancelButton={false}
-            show={this.state.showDeleteModal}
-            removalConfirmation={true}
-            showIcon={false}
-            showCloseIcon={true}
-            content={
-              <div className={Styles.deleteForecastResult}>
-                <div className={Styles.closeIcon}>
-                  <i className={classNames('icon mbc-icon close thin')} />
-                </div>
-                <div>
-                  You are going to delete the Entitlement which will be removed from roles and role-mappings as well.
-                  <br />
-                  Are you sure you want to proceed?
-                </div>
-                <br />
-                <div className={Styles.deleteBtn}>
-                  <button className={'btn btn-secondary'} type="button" onClick={this.handleDeleteEntitlement}>
-                    Delete
-                  </button>
-                </div>
-              </div>
-            }
-          />
         )}
 
+     
         {this.state.isCreateOrEditEntitlementModal && (
           <Modal
-            title={'Create a new Entitlement'}
+            title={this.state.editEntitlementModal ? 'Edit Entitlement' : 'Create New Entitlement'}
             showAcceptButton={false}
             showCancelButton={false}
-            modalWidth={'80%'}
-            buttonAlignment="right"
             show={this.state.isCreateOrEditEntitlementModal}
             content={
               <EditOrCreateEntitlement
-                submitEntitlement={(entitlementData) => this.updateEntitlement(entitlementData)}
+                submitEntitlement={this.updateEntitlement}
                 editEntitlementModal={this.state.editEntitlementModal}
                 entitlementNameErrorMessage={this.state.entitlementNameErrorMessage}
                 projectName={this.props.projectName}
@@ -451,20 +866,25 @@ export default class Entitlement extends React.Component {
               />
             }
             scrollableContent={true}
-            onCancel={this.editCreateEditEntitlementModal}
+            onCancel={() => this.setState({ isCreateOrEditEntitlementModal: false })}
           />
         )}
-        {!this.props.readOnlyMode && (
-          <div className="btnConatiner">
-            <div className="btn-set">
-              <button className="btn btn-primary" type="button" onClick={this.onEntitlementSubmit}>
+{!this.props.readOnlyMode && (
+          <div className="btn-set" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div className="btnConatiner">
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={this.onEntitlementSubmit}
+                style={{ marginLeft: '10px' }}
+              >
                 {this.props.env === 'int' ? 'Save Staging' : 'Save Production'}
               </button>
               <button
                 className={'btn btn-primary ' + classNames(Styles.publishBtn)}
                 type="button"
-                disabled={this.state.entitelmentListResponse.length === 0 || this.state.appId.length === 0 }
                 onClick={this.onEntitlementPublish}
+                style={{ marginLeft: '10px' }}
               >
                 {this.props.env === 'int' ? 'Publish Staging' : 'Publish Production'}
               </button>
@@ -474,66 +894,4 @@ export default class Entitlement extends React.Component {
       </React.Fragment>
     );
   }
-
-  onEntitlementSubmit = () => {
-    let formValid = true;
-    const isMissingApiList = false;
-    let isMissingAppId = false;
-    if (isMissingApiList) {
-      this.showErrorNotification('API Path/Pattern and HTTP Method for Entitlements is Missing');
-    }
-    if (this.state.appId.length === 0) {
-      formValid = false;
-      isMissingAppId = true;
-    }
-    if (isMissingAppId) {
-      this.showErrorNotification('Application Id is Missing');
-    }
-    if (formValid) {
-      this.setState(
-        {
-          config: {
-            ...this.state.config,
-            entitlements: this.state.entitelmentListResponse,
-            appId: this.state.appId,
-          },
-        },
-        () => {
-          this.props.onSaveDraft(
-            this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement',
-            this.state.config,
-          );
-        },
-      );
-    }
-  };
-  onEntitlementPublish = () => {
-    let formValid = true;
-    const isMissingApiList = false;
-    let isMissingAppId = false;
-    if (isMissingApiList) {
-      this.showErrorNotification('API Path/Pattern and HTTP Method for Entitlements is Missing');
-    }
-    if (this.state.appId.length === 0) {
-      formValid = false;
-      isMissingAppId = true;
-    }
-    if (isMissingAppId) {
-      this.showErrorNotification('Application Id is Missing');
-    }
-    if (formValid) {
-      this.setState(
-        {
-          config: {
-            ...this.state.config,
-            entitlements: this.state.entitelmentListResponse,
-            appId: this.state.appId,
-          },
-        },
-        () => {
-          this.props.onPublish(this.state.config, this.props.env);
-        },
-      );
-    }
-  };
 }
