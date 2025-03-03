@@ -864,6 +864,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text>NA</Text>
             )}
           </View>
+          <View style={[styles.flexCol2, styles.firstCol, { marginRight: 20 }]}>
+            <Text style={styles.sectionTitle}>LeanIX App ID</Text>
+            {props.solution.description.appId}
+          </View>
           <View style={[styles.flexCol2]}>
             <Text style={styles.sectionTitle}>Business Goals</Text>
             {props.solution.description.businessGoal ? (
