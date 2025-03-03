@@ -575,7 +575,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 				} else if (prevDataTransferVO.isPublish() && currDataTransferVO.isPublish()) {
 					eventType = "DataTransfer_Update";
-					eventMessage = "DataTransfer " + existingDataTransferName + " is updated by user " + userName
+					eventMessage = "DataTransfer " + existingDataTransferName + " is updated by user " + userName 
 							+ ". You can view the details [here](" + dataTransferBaseUrl + "datasharing/consume/"
 							+ resourceID + ")";
 					changeLogs = dataTransferAssembler.jsonObjectCompare(currDataTransferVO, prevDataTransferVO,
