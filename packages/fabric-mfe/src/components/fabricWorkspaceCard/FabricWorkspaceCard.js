@@ -54,10 +54,12 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Created by</div>
             <div>{workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}</div>
           </div>
-          <div>
-            <div>Role</div>
-            <div>{userRoles.length ? userRoles.join(', ') : 'N/A'}</div>
-          </div>
+          {userRoles.length > 0 && (
+            <div>
+              <div>Role</div>
+              <div>{userRoles.join(', ')}</div>
+            </div>
+          )}
           <div>
             <div>Classification</div>
             <div>{workspace?.dataClassification || 'N/A'}</div>
