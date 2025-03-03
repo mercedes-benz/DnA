@@ -345,12 +345,12 @@ const SolutionsFilter = ({
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
         
-          if (!years.includes(queryParams.dataValueRange.startYear)) {
+          if (!years.includes(Number(queryParams.dataValueRange.startYear))) {
             queryParams.dataValueRange.startYear = years.includes(Number(defaultStartYear))
               ? defaultStartYear
               : years[0];
           }
-          if (!years.includes(queryParams.dataValueRange.endYear)) {
+          if (!years.includes(Number(queryParams.dataValueRange.endYear))) {
             queryParams.dataValueRange.endYear = years.includes(Number(defaultEndYear))
               ? defaultEndYear
               : years[years.length - 1];
