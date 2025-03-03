@@ -580,7 +580,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 							currentUser);
 					LOGGER.info("Publishing message on update for dataTransfer {} by userId {}", existingDataTransferName,
 							userId);
-				} else if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
+				} else if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {  
 					eventType = "DataTransfer - Provider Form Submitted";
 					eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
 							+ dataTransferBaseUrl + "consume/" + resourceID + ")"
