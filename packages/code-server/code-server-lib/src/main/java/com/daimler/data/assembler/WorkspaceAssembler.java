@@ -85,7 +85,8 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
  import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.DeploymentAuditVO;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.DeploymentTypeEnum;
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import lombok.extern.slf4j.Slf4j;
  
  @Slf4j
@@ -108,6 +109,12 @@
 			 else{
 				vo.setIsAdmin(false);
 			 }
+			 if(userInfo.getIsApprover()!=null){
+				vo.setIsApprover(userInfo.getIsApprover());
+			 }
+			 else{
+				vo.setIsApprover(false);
+			 }
 		 }
 		 return vo;
 	 }
@@ -121,6 +128,12 @@
 			 }
 			 else{
 				entity.setIsAdmin(false);
+			 }
+			 if(userInfo.isIsApprover()!=null){
+				entity.setIsApprover(userInfo.isIsApprover());
+			 }
+			 else{
+				entity.setIsApprover(false);
 			 }
 		 }
 		
@@ -284,6 +297,15 @@
 			 {
 				deploymentDetails.setSecureWithIAMRequired(false);
 			 }
+
+			if(vo.isIsSecuredWithCookie()!=null){
+				deploymentDetails.setIsSecuredWithCookie(vo.isIsSecuredWithCookie());
+			}else{
+				deploymentDetails.setIsSecuredWithCookie(false);
+			}
+			if(vo.getDeploymentType()!=null){
+				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
+			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -311,6 +333,7 @@
 					 }
 					 auditDetails.setBranch(audit.getBranch());
 					 auditDetails.setCommitId(audit.getCommitId());
+					 auditDetails.setApprovedBy(audit.getApprovedBy());
 					 deployedAuditLogDetails.add(auditDetails);
 				 }
 			 }
@@ -355,6 +378,15 @@
 				 deploymentDetailsVO
 						 .setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
 			 }
+
+			 if(deploymentDetails.getIsSecuredWithCookie()!=null){
+				deploymentDetailsVO.isSecuredWithCookie(deploymentDetails.getIsSecuredWithCookie());
+			 }else{
+				deploymentDetailsVO.isSecuredWithCookie(false);
+			 }
+			 if(deploymentDetails.getDeploymentType()!=null){
+				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
+			 }
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {
 				 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
@@ -382,6 +414,7 @@
 							 auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
 						 auditDetails.setBranch(audit.getBranch());
 						 auditDetails.setCommitId(audit.getCommitId());
+						 auditDetails.setApprovedBy(audit.getApprovedBy());
 						 auditDetailsVO.add(auditDetails);
 				 }
 			 }
@@ -710,6 +743,12 @@
 											 else{
 												user.setIsAdmin(n.getIsAdmin());
 											 }
+											 if(n.getIsApprover()==null){
+												user.setIsApprover(false);
+											 }
+											 else{
+												user.setIsApprover(n.getIsApprover());
+											 }
 											 return user;
 									 }).collect(Collectors.toList());
 							 projectDetailsVO.setProjectCollaborators(collabsVO);
@@ -761,6 +800,13 @@
 			 {
 				 governanceVo.setPiiData(false);
 			 }
+			 if (governance.getEnableDeployApproval() != null) {
+				governanceVo.setEnableDeployApproval(governance.getEnableDeployApproval());
+			}
+			else
+			{
+				governanceVo.setEnableDeployApproval(false);
+			}
 		 }
 		 return governanceVo;
 	 }
@@ -852,6 +898,13 @@
 			 {
 				 governanceFeilds.setPiiData(false);
 			 }
+			 if (governanceVO.isEnableDeployApproval()) {
+				governanceFeilds.setEnableDeployApproval(governanceVO.isEnableDeployApproval());
+			}
+			else
+			{
+				governanceFeilds.setEnableDeployApproval(false);
+			}
 		 }
 		 return governanceFeilds;
 	 }

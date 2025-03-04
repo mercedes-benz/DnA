@@ -1094,6 +1094,46 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/collaborator/{collabUserId}/approver:
+    post:
+      tags:
+        - "code-server"
+      summary: "make or remove collaborator approver for workspace project ."
+      description: "make or remove collaborator approver for workspace project."
+      operationId: "makeApprover"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "collabUserId"
+          in: "path"
+          description: "Collaborator user id"
+          required: true
+          type: "string"
+        - name: isApprover
+          in: query
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/{id}/restart:        
     post:
       tags:
@@ -1348,8 +1388,8 @@ definitions:
         type: string
       secureWithIAMRequired:
         type: boolean
-      technicalUserDetailsForIAMLogin:
-        type: string
+      # technicalUserDetailsForIAMLogin:
+      #   type: string
       # valutInjectorEnable:  # Corrected property name
       #   type: boolean
         default: false  # This should now work as expected
@@ -1357,7 +1397,20 @@ definitions:
         type: string
       clientSecret:
         type: string
-      repo:
+      redirectUri:
+        type: string
+      ignorePaths:
+        type: string
+      scope:
+        type: string
+      isApiRecipe:
+        type: boolean
+        required: true
+      oneApiVersionShortName:
+        type: string
+      isSecuredWithCookie :
+        type: boolean
+      repo :
         type: string
       version:
         type: string
@@ -1390,7 +1443,21 @@ definitions:
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"
-        #remove in future
+      oneApiVersionShortName:
+        type: string
+      isSecuredWithCookie:
+        type: boolean
+      deploymentType:
+        type: string
+        enum: [API, UI]
+      clientId:
+        type: string
+      redirectUri:
+        type: string
+      ignorePaths:
+        type: string
+      scope:
+        type: string
       deploymentAuditLogs:
         type: array
         items:
@@ -1666,6 +1733,10 @@ definitions:
         type: boolean
         description: "is the user has Admin rights"
         default: false
+      isApprover:
+        type: boolean
+        description: "does the user have approver rights"
+        default: false
       required:
         -id
         -gitUserName
@@ -1816,6 +1887,9 @@ definitions:
       piiData:
         type: boolean
         description: "If codespace contains personally identifiable information"
+      enableDeployApproval:
+        type: boolean
+        description: "If deployment approval workflow is enabled for the codespace"
       required:
         -description
         - division
@@ -1849,6 +1923,9 @@ definitions:
       commitId:
         type: string
         description: "commit id one which codespace is deployed"
+      approvedBy:
+        type: string
+        description: "User who approved the deployment"
 
   CodespaceSecurityConfigDetailVO:
     type: object  

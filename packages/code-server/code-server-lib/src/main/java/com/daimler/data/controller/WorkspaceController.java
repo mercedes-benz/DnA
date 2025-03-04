@@ -1046,6 +1046,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";
 			 CodeServerWorkspaceVO vo = service.getById(userId, id);
+			 Boolean isOwner = false;
 			 CodeServerWorkspaceVO ownerVo = null;
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
@@ -1061,6 +1062,7 @@ import org.springframework.beans.factory.annotation.Value;
 				ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
 			} else{
 				ownerVo = vo;
+				isOwner = true;
 			}
 			if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
 				if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
@@ -1167,11 +1169,46 @@ import org.springframework.beans.factory.annotation.Value;
 			//  {
 			// 	deployRequestDto.setValutInjectorEnable(false);
 			//  }
-			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
-					 deployRequestDto.isSecureWithIAMRequired(),deployRequestDto.getClientID(),deployRequestDto.getClientSecret(),isPrivateRecipe);
+			//if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
+			GenericMessage responseMsg;
+			Boolean isApprover =false;
+			List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+			if(collabList!=null){
+				for(UserInfoVO user : collabList){
+					if(userId.equalsIgnoreCase(user.getId())){
+						if(user.isIsApprover()){
+							isApprover = true;
+						}
+					}
+				}
+			}
+			Boolean deploymentApprovalEnabled = false;
+			deploymentApprovalEnabled = Boolean.TRUE
+					.equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
+			if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+					&& !"APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
+				responseMsg = service.approveRequestWorkspace(userId, id, environment, branch,
+						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
+						deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
+						deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
+						deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
+						deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
+				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+				log.info("workspace deployment requires approval");
+			} else {
+				responseMsg = service.deployWorkspace(userId, id, environment, branch,
+						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
+						deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
+						deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
+						deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
+						deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
+				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			}
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+//				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+//						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 //			 }
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -2463,6 +2500,113 @@ import org.springframework.beans.factory.annotation.Value;
 			responseMessage.setErrors(errorMessage);
 
 		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+	}
+
+	@Override
+	@ApiOperation(value = "make or remove collaborator approver for workspace project .", nickname = "makeApprover", notes = "make or remove collaborator approver for workspace project.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/collaborator/{collabUserId}/approver",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> makeApprover(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "Collaborator user id",required=true) @PathVariable("collabUserId") String collabUserId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "isApprover", required = true) Boolean isApprover) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String currentUserId = currentUser != null ? currentUser.getId() : null;
+
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		MessageDescription msg = new MessageDescription();
+
+		boolean isCurrentUserAdmin = false;
+		List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+		if (collabList != null) {
+			for (UserInfoVO user : collabList) {
+				if (currentUserId.equalsIgnoreCase(user.getId())) {
+					if (user.isIsAdmin()){
+						isCurrentUserAdmin = true;
+					}
+				}
+			}
+		}
+
+		if (vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(currentUserId) || isCurrentUserAdmin) {
+			if (vo == null || vo.getWorkspaceId() == null) {
+				log.debug("No workspace found, returning empty");
+				msg.setMessage("No workspace found for given id and the user");
+				errorMessage.add(msg);
+				responseMessage.setErrors(errorMessage);
+				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+			}
+			if(vo.getProjectDetails().getProjectCollaborators() == null){
+				log.error("No collabrators are part of this project");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("No collabrators are part of this project, Please add collabrators to the project. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+	
+			if (collabUserId == null ) {
+				log.error("Userid should not be empty");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("Invalid User, Please make sure that User id is not empty. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+			boolean isCollabIdPartOfProject = false;
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (collabUserId.equalsIgnoreCase(user.getId())) {
+						user.setIsApprover(isApprover);
+						isCollabIdPartOfProject = true;
+					}
+				}
+			}
+
+			if(isCollabIdPartOfProject){
+				vo.getProjectDetails().setProjectCollaborators(collabList);
+				responseMessage = service.makeApprover(vo);
+				if("FAILED".equalsIgnoreCase(responseMessage.getSuccess())){
+					return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+				return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+			}else{
+				log.error("collab user should be part of the project");
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				msg.setMessage("Invalid User, Please make sure that collab user should be part of the project. Bad request");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				emptyResponse.setSuccess("FAILED");
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+
+		}
+		else {
+
+			log.info("Not authorized to make collabrator as approver . User does not have privileges. {}", currentUserId, vo.getWorkspaceId());
+			msg.setMessage("Not authorized to make collabrator as approver. User does not have privileges.");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+
+		}
+
 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 	}
 

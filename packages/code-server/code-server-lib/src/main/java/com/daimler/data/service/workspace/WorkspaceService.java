@@ -63,8 +63,11 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, 
-		boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe);
+	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
+		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe);
+
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
+		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
@@ -83,6 +86,8 @@ public interface WorkspaceService {
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished, String env);
 
 	GenericMessage makeAdmin(CodeServerWorkspaceVO vo);
+
+	GenericMessage makeApprover(CodeServerWorkspaceVO vo);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
 
