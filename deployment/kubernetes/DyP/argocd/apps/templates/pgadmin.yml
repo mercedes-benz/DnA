@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: pgadmin
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: tools
+spec:
+  destination:
+    namespace: tools
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/pgadmin
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-{{ .Values.env }}.yaml -n tools
+  project: dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - PruneLast=true
+      - Replace=true
+{{- end }}
