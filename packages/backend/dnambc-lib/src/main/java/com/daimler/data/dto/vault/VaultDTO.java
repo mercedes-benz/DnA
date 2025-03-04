@@ -25,7 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.dto;
+package com.daimler.data.dto.vault;
+
+import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysVO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +37,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VaultDTO {
-	private String appId;
-	private String apiKey;
+	private String projectName;
+	private SubscriptionkeysVO subscriptionKeys;
 }
