@@ -30,6 +30,7 @@ export const getDataForCSV = (
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
     { label: 'RelatedProducts', key: 'relatedProducts' },
+    { label: 'LeanIXAppID', key: 'appId' },
     { label: 'BusinessGoals', key: 'businessGoal' },
     { label: 'Status', key: 'status' },
     { label: 'ReasonForHoldOrClose', key: 'reasonForHoldOrClose' },
@@ -101,6 +102,7 @@ export const getDataForCSV = (
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
     { label: 'RelatedProducts', key: 'relatedProducts' },
+    { label: 'LeanIXAppID', key: 'appId' },
     { label: 'BusinessGoals', key: 'businessGoal' },
     { label: 'Status', key: 'status' },
     { label: 'ReasonForHoldOrClose', key: 'reasonForHoldOrClose' },
@@ -271,6 +273,8 @@ export const getDataForCSV = (
               solution.relatedProducts && solution.relatedProducts.length > 0
                 ? sanitize(solution.relatedProducts.join('|'))
                 : 'NA',
+            appId:
+              solution && solution.appId ? solution.appId : 'NA',
             businessGoal:
               solution.businessGoals && solution.businessGoals.length > 0
                 ? sanitize(solution.businessGoals.join('|'))
