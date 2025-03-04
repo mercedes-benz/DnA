@@ -34,6 +34,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.client.teamsApi.TeamsApiClient;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -61,6 +62,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
+import org.springframework.web.server.ResponseStatusException;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @Api(value = "UserInfo API", tags = { "users" })
@@ -69,7 +73,7 @@ import java.util.Objects;
 public class UserInfoController implements UsersApi {
 
 	private static Logger logger = LoggerFactory.getLogger(UserInfoController.class);
-	
+
 	@Autowired
 	private UserInfoService userInfoService;
 	
@@ -214,6 +218,9 @@ public class UserInfoController implements UsersApi {
 		UserInfoVO userInfoVO = null;
 		if (id != null) {
 			userInfoVO = userInfoService.getById(id);
+			if (userInfoVO == null) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User had been marked as deleted");
+			}
 			return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
@@ -302,6 +309,7 @@ public class UserInfoController implements UsersApi {
 	}
 
 	@Override
+	@ApiIgnore
 	@ApiOperation(value = "Delete specific user for a given userid", nickname = "deleteById", notes = "Delete specific user for a given userid. This endpoints will be used to Delete specific user for a given userid.", response = GenericMessage.class, tags={ "users", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
@@ -317,15 +325,15 @@ public class UserInfoController implements UsersApi {
         method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "Id of the user for which information to be fetched",required=true) @PathVariable("id") String id){
 		try {
-			CreatedByVO currentUser = this.userStore.getVO(); // take user info from jwt
-			String userId = currentUser != null ? currentUser.getId() : "";// set to userID
+			CreatedByVO currentUser = this.userStore.getVO(); 
+			String userId = currentUser != null ? currentUser.getId() : "";
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
-				UserInfoVO userInfoVO = userInfoService.getById(userId); // taking userinfo from database
+				UserInfoVO userInfoVO = userInfoService.getById(userId); 
 				if (userInfoVO != null) {
-					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();// getting roles from db returned vo objet
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
 						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-						if (userId == null || !isAdmin) {
+						if (userId == null || Boolean.FALSE.equals(isAdmin)) {
 							MessageDescription notAuthorizedMsg = new MessageDescription();
 							notAuthorizedMsg.setMessage(
 									"Not authorized to delete User Record. User does not have admin privileges.");
@@ -335,10 +343,20 @@ public class UserInfoController implements UsersApi {
 							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 						}
 					}
+				
+			
+				UserInfoVO userinfo = userInfoService.getById(id);
+				userInfoService.deleteById(id);
 				}
-			}
-			UserInfoVO userinfo = userInfoService.getById(id);// from db, where getById converts entity to vo 
-			userInfoService.deleteById(id);
+				else{
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage("Not authorized to delete User Record. User does not have admin privileges.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					log.debug("User {} cannot delete User Record, insufficient privileges", userId);
+					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+				}
+		}
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("User Record {} deleted successfully", id);

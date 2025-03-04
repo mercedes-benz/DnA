@@ -45,6 +45,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.NoResultException;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @Repository
 public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserInfoNsql, String>
@@ -91,7 +96,7 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from " + USERINFO_NSQL;
-		String basicpredicate = " where (id is not null)";
+		String basicpredicate = " where (id is not null and cast((data->>'isDeleted') as boolean) = FALSE)";
 		String consolidatedPredicates = buildPredicateString(searchTerm);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
@@ -156,6 +161,14 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 		UserInfoNsql user = null;
 		try {
 			user =(UserInfoNsql) q.getSingleResult();
+			if(user == null){
+				logger.error("User not found");
+				return Optional.empty();
+			}
+			if (Boolean.TRUE.equals(user.getData().getIsDeleted())) {
+				logger.error("User {} had been marked as deleted", id);
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User had been marked as deleted"); 
+			}
 		}catch (Exception e) {
 			logger.error("Failed while fetching user information:{}",e.getMessage());
 			return Optional.empty();
@@ -165,7 +178,7 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 
 	@Override
 	public Integer getNumberOfUsers() {
-		String query = "select count(*) from userinfo_nsql";
+		String query = "SELECT COUNT(*) FROM userinfo_nsql WHERE cast((data->>'isDeleted') as boolean) = FALSE";
 		Query q = em.createNativeQuery(query);
 		BigInteger result = (BigInteger) q.getSingleResult();
 		return result.intValue();
@@ -173,11 +186,33 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 
 	@Override
 	public boolean deleteById(String id) {
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaDelete<UserInfoNsql> delete = cb.createCriteriaDelete(UserInfoNsql.class);
-		Root<UserInfoNsql> root = delete.from(UserInfoNsql.class);
-		delete.where(cb.equal(root.get("id"), id));
-		int rowsDeleted = em.createQuery(delete).executeUpdate();
-		return rowsDeleted > 0;
+    	try {
+       	 UserInfoNsql user = em.find(UserInfoNsql.class, id);
+       	 if (user == null) {
+            logger.warn("No user found with ID {} to delete.", id);
+            return false;
+       	 }
+
+       	 if (user.getData() == null) {
+            logger.warn("User data is null for ID {}", id);
+            return false;
+        	}
+
+       		 if (Boolean.TRUE.equals(user.getData().getIsDeleted())) {
+            logger.info("User with ID {} is already marked as deleted.", id);
+            return false;
+       	 }
+
+        user.getData().setIsDeleted(true);
+		user.getData().setFirstName("DEACTIVATED");
+		user.getData().setLastName("USER");
+        em.merge(user); 
+
+        logger.info("User with ID {} has been marked as deleted.", id);
+        return true;
+    		} catch (Exception e) {
+       	 	logger.error("Error while deleting user with ID {}: {}", id, e.getMessage());
+       		 return false;
+   	 	}
 	}
 }
