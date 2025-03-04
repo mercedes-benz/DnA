@@ -146,7 +146,6 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 			}
 		}
 		String id = vo.getId();
-		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
 		UserInfoNsql existingEntity = customRepo.findById(vo.getId()).orElse(null);
 		/* entity.setToken(vo.getToken()); */
 		UserInfo jsonData = new UserInfo();
