@@ -149,7 +149,55 @@ prometheus:
             - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
-
+        - job_name: argocd-server-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-server-metrics.argocd.svc.cluster.local:8083
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: argocd-application-controller-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: argocd-repo-server-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-repo-server-metrics.argocd.svc.cluster.local:8084
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: argocd-applicationset-controller-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-applicationset-controller-metrics.argocd.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      
         - job_name: cnpg	
           metrics_path: /metrics	
           params:	
@@ -185,32 +233,57 @@ prometheus:
           - targets:	
             - cs-hub.prod-dna-cs-workspaces.svc.cluster.local:8081
           tls_config:	
-            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt                      
-      # Adding Prometheus jobs for BAT API's
-        # - job_name: bat-api
-        #   metrics_path: /actuator/prometheus
-        #   params:
-        #     format:
-        #     - prometheus
-        #   scheme: http
-        #   scrape_interval: 1s
-        #   static_configs:
-        #   - targets:
-        #     - bat-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
-        #   tls_config:
-        #     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
-        # - job_name: qilin-api
-        #   metrics_path: /metrics
-        #   params:
-        #     format:
-        #     - prometheus
-        #   scheme: http
-        #   scrape_interval: 1s
-        #   static_configs:
-        #   - targets:
-        #     - qilin-prod-api-metrics.prod-bat-bat.svc.cluster.local:8080
-        #   tls_config:
-        #     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt   
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        
+        #Metrics required for the bat application 
+        - job_name: bat-api
+          metrics_path: /actuator/prometheus
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - bat-prod-api-metrics.prod-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: qilin-api
+          metrics_path: /actuator/prometheus
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - qilin-prod-api-metrics.prod-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: rabbitmq-api
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - prod-rabbitmq-metrics.prod-bat.svc.cluster.local:15692
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        
+        #Metrics to gather for the cert-manager
+        - job_name: cert-manager
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - cert-manager.cert-manager.svc.cluster.local:9402
 
         # A scrape configuration for running Prometheus on a Kubernetes cluster.
         # This uses separate scrape configs for cluster components (i.e. API server, node)
