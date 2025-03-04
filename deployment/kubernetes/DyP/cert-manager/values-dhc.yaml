@@ -1,0 +1,27 @@
+global:
+  leaderElection:
+    namespace: "cert-manager"
+image:
+  repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-controller
+extraArgs:
+- --acme-http01-solver-image=registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-acmesolver:v1.12.4
+extraEnv:
+- name: SSL_CERT_FILE
+  value: /etcd/acme-ca/Corp-Issuing-CA01-G2.pem
+volumes:
+- name: acme-ca
+  secret:
+    secretName: acme-ca
+volumeMounts:
+- mountPath: /etcd/acme-ca
+  name: acme-ca
+webhook:
+  image:
+    repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-webhook
+cainjector:
+  image:
+    repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-cainjector
+startupapicheck:
+  enabled: false
+
+installCRDs: true

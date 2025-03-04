@@ -174,6 +174,10 @@ public class BaseStorageService implements StorageService {
 
 	@Autowired
 	private DataikuClient dataikuClient;
+
+	@Value("${storage.technical.id}")
+	private String technicalId;
+
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm.sss'Z'");
 
@@ -874,6 +878,10 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+			currentUser=entity.getData().getCreatedBy().getId();
+		}
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
@@ -924,6 +932,10 @@ public class BaseStorageService implements StorageService {
 
 	 	LOGGER.debug("Fetching Current user.");
 	 	String currentUser = userStore.getUserInfo().getId();
+		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+			currentUser=entity.getData().getCreatedBy().getId();
+		}
 	 	String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 	 	boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {

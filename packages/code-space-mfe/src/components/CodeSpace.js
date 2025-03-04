@@ -189,6 +189,7 @@ const CodeSpace = (props) => {
     codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
   const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -538,7 +539,9 @@ const CodeSpace = (props) => {
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
-  const deploymentMigrated = !(codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
+  
+  const intDeploymentMigrated = !codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  const prodDeploymentMigrated = !codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
 
   const RestartContent = (
     <div>
@@ -742,11 +745,19 @@ const CodeSpace = (props) => {
                                   <i className="icon mbc-icon new-tab" />
                                 </a>
                               </li>
-                              <li>
-                                <hr />
-                              </li>
                             </>
                           )}
+                          {serverStarted && (
+                      <li>
+                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Resource usage
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </li>
+                    )}
+                    <li>
+                      <hr />
+                    </li>
                           <li>
                             <button
                               className={classNames(
@@ -803,7 +814,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                     rel="noreferrer"
                                   >
                                     Last Build &amp; Deploy Logs{' '}
@@ -825,7 +836,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && intDeploymentMigrated) ?
                                       buildLogViewAWSURL(
                                         codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                         true,
@@ -926,7 +937,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                     rel="noreferrer"
                                   >
                                     Build &amp; Deploy Logs{' '}
@@ -948,7 +959,7 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                    href={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && prodDeploymentMigrated) ?
                                       buildLogViewAWSURL(
                                         prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                       ) :
@@ -1046,7 +1057,7 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                    src={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && intDeploymentMigrated) ?
                                       buildLogViewAWSURL(
                                         codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                         true,
@@ -1066,7 +1077,7 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && deploymentMigrated) ?
+                                    src={(codeSpaceData?.projectDetails?.recipeDetails?.cloudServiceProvider==='DHC-CaaS-AWS' && prodDeploymentMigrated) ?
                                       buildLogViewAWSURL(
                                         prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                       ) :
