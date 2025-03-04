@@ -87,7 +87,7 @@ images:
     tag: ~
     pullPolicy: IfNotPresent
   statsd:
-    repository: quay.io/prometheus/statsd-exporter
+    repository: registry-emea.app.corpintra.net/quaycache/prometheus/statsd-exporter
     tag: v0.22.8
     pullPolicy: IfNotPresent
   redis:
@@ -132,7 +132,7 @@ ingress:
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'
-      acme.cert-manager.io/http01-ingress-class: dev-ingress-intranet
+      acme.cert-manager.io/http01-ingress-class: dev-ingress-intranet    
 
     # The path for the web Ingress
     path: "/"
@@ -255,10 +255,13 @@ executor: "KubernetesExecutor"
 allowPodLaunching: true
 
 # Environment variables for all airflow containers
-env: []
+env:
 # - name: ""
 #   value: ""
-
+  - name: REQUESTS_CA_BUNDLE	
+    value: /usr/local/share/ca-certificates/ca-bundle.crt	
+  - name: SSL_CERT_FILE	
+    value: /usr/local/share/ca-certificates/ca-bundle.crt
 # Volumes for all airflow containers
 volumes:
   - name: officalairflow-webserver-config
@@ -1589,7 +1592,7 @@ flower:
 
 # StatsD settings
 statsd:
-  enabled: false
+  enabled: true
   # Max number of old replicasets to retain
   revisionHistoryLimit: ~
 
@@ -2001,7 +2004,7 @@ config:
     # This is ignored when used with the official Docker image
     load_examples: 'False'
     enable_xcom_pickling: 'True'
-    dagbag_import_timeout: 360    
+    dagbag_import_timeout: 360  
     executor: '{{ .Values.executor }}'
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
@@ -2113,7 +2116,7 @@ dags:
     # If using a custom storageClass, pass name here
     storageClassName: nfs-sc
     # access mode of the persistent volume
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     ## the name of an existing PVC to use
     existingClaim:
     ## optional subpath for dag volume mount
