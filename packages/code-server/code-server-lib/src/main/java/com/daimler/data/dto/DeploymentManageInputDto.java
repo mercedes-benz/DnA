@@ -17,11 +17,12 @@ public class DeploymentManageInputDto {
 	private String projectName;
 	private String shortid;
 	private String action;
-	private String type;
+	private String type;                                   
 	private String repo;
 	private String branch;
 	private String target_env;
 	private Boolean valutInjectorEnable;
-	//private String secure_iam;
+	private String secure_iam;
+	private String appVersion;
 	
 }

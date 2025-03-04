@@ -36,6 +36,8 @@ import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+import com.daimler.data.dto.workspace.buildDeploy.ManageBuildRequestDto;
+
 
 public interface WorkspaceService {
 
@@ -104,5 +106,7 @@ public interface WorkspaceService {
 	GenericMessage restartWorkspace(String userId, String id, String env);
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
+
+	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe);
 	
 }
