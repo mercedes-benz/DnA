@@ -41,6 +41,9 @@ import com.daimler.data.dto.userinfo.UserRoleVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoNsql> {
+	@Autowired
+	private UserInfoCustomRepository customRepo;
 	public List<UserInfoVO> toUserInfoVo(List<TeamsApiResponseDto> entries) {
 		List<UserInfoVO> userInfoVOList = new ArrayList<UserInfoVO>();
 		if (entries != null) {
@@ -140,6 +145,8 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 				entity.setId(id);
 			}
 		}
+		String id = vo.getId();
+		UserInfoNsql existingEntity = customRepo.findById(vo.getId()).orElse(null);
 		/* entity.setToken(vo.getToken()); */
 		UserInfo jsonData = new UserInfo();
 		BeanUtils.copyProperties(vo, jsonData);
@@ -160,6 +167,7 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 			});
 			jsonData.setFavoriteUsecases(jsonFavUsecases);
 		}
+		jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
 		entity.setData(jsonData);
 		return entity;
 	}
