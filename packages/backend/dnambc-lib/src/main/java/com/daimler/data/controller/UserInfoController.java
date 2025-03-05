@@ -271,30 +271,34 @@ public class UserInfoController implements UsersApi {
 		try {
 			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
 				UserInfoVO userInfoVO = userRequestVO.getData();
-				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
-				//To set key existing data if missing in request
-				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
 				Boolean isAdmin = false;
 				CreatedByVO loggedInUser = this.userStore.getVO();
 				String userId = loggedInUser != null ? loggedInUser.getId() : null;
 				if (userId != null && !"".equalsIgnoreCase(userId)) {
-					if (currentUserData != null) {
 						UserInfoVO loggedInUserData = userInfoService.getById(userId);
 						List<UserRoleVO> userRoles = loggedInUserData.getRoles();
 						if (userRoles != null && !userRoles.isEmpty())
 							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
-					}
 				}
 				if (!isAdmin) {
 					logger.info("Only user with Admin role can change roles");
 					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
 				}
+				
+				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
+				if(currentUserData == null){
+					return new ResponseEntity<>(userInfoVO, HttpStatus.NOT_FOUND);	
+				}
+				//To set key existing data if missing in request
+				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
+				if (userInfoVO.getRoles() != null){
 				if (!rolesUpdated(userRequestVO, currentUserData)) {
 					userInfoVO.setToken(currentUserData.getToken());
-				} else {
+				}}
+				 else {
 					userInfoVO.setToken(null);
 				}
-				userInfoService.create(userInfoVO);
+				userInfoVO= userInfoService.create(userInfoVO);
 				log.debug("user details updated successfully for userid {}", userRequestVO.getData().getId());
 				return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 			} else {
@@ -392,7 +396,14 @@ public class UserInfoController implements UsersApi {
 			response.setData(responseVO);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
-		} catch (NoSuchElementException e) {
+		} catch (ResponseStatusException e) { 
+			List<MessageDescription> notFoundmessages = new ArrayList<>();
+				MessageDescription notFoundmessage = new MessageDescription();
+				notFoundmessage.setMessage("User marked as deleted");
+				notFoundmessages.add(notFoundmessage);
+				response.setErrors(notFoundmessages);
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+         } catch (NoSuchElementException e) {
 			List<MessageDescription> notFoundmessages = new ArrayList<>();
 			MessageDescription notFoundmessage = new MessageDescription();
 			notFoundmessage.setMessage("Invalid UserID/Bookmark Id's");

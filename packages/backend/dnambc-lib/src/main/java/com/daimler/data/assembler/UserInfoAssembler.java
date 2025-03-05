@@ -152,11 +152,16 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 		BeanUtils.copyProperties(vo, jsonData);
 
 		List<UserInfoRole> jsonRoles = new ArrayList<>();
+		if (vo.getRoles() != null){
 		vo.getRoles().stream().forEach(userRoleVO -> {
 			UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
 			jsonRoles.add(jsonRole);
 		});
 		jsonData.setRoles(jsonRoles);
+	}
+	else{
+		jsonData.setRoles(existingEntity.getData().getRoles());
+	}
 
 		if (vo.getFavoriteUsecases() != null) {
 			List<UserFavoriteUseCase> jsonFavUsecases = new ArrayList<>();
@@ -167,7 +172,13 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 			});
 			jsonData.setFavoriteUsecases(jsonFavUsecases);
 		}
+		else{
+			jsonData.setFavoriteUsecases(existingEntity.getData().getFavoriteUsecases());
+		}
 		jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
+		if(vo.getDivisionAdmins() == null){
+			jsonData.setDivisionAdmins(existingEntity.getData().getDivisionAdmins());
+		}
 		entity.setData(jsonData);
 		return entity;
 	}
