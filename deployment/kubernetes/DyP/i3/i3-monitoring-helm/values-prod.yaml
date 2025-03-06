@@ -1322,7 +1322,7 @@ loki:
         store: tsdb
         index:
           prefix: loki_index_
-          period: 168h
+          period: 24h
         object_store: s3
         schema: v13 
     storage:
