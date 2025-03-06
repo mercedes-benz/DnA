@@ -45,11 +45,10 @@ export default class Entitlement extends React.Component {
       config: {},
       appId: '',
       appIdErrorMessage: '',
-      showDiscardModal: false, // Controls discard confirmation modal
+      showDiscardModal: false,
 
-      // JSON view state:
       showJson: false,
-      publishedData: '', // The environment-specific published data
+      publishedData: '',
       jsonData: JSON.stringify(
         {
           appId: (props.config && props.config.appId) || '',
@@ -298,7 +297,7 @@ export default class Entitlement extends React.Component {
       const existingItem = entitelmentList.find((item) => item.entitlementName === entitlementName);
 
       if (type === 'Update' && existingItem) {
-        // Update the existing item
+
         const updatedList = entitelmentList.map((item) =>
           item.entitlementName === entitlementName
             ? { ...item, entitlementName, entitlemenPath, httpMethod }
@@ -678,7 +677,7 @@ export default class Entitlement extends React.Component {
                 </button>
 
               </div>
-<AceEditor
+              <AceEditor
                 mode="json"
                 theme="solarized_dark"
                 readOnly={this.props.readOnlyMode}
@@ -705,14 +704,14 @@ export default class Entitlement extends React.Component {
                 }}
                 className={classNames(Styles.editor)}
               />
-                {this.state.jsonError && this.state.jsonError.length > 0 && (
-                  <div className={classNames(Styles.jsonError)}>
-                    {this.state.jsonError.map((error, idx) => (
-                      <div key={idx}>{error}</div>
-                    ))}
-                  </div>
-                )}
-<div className={classNames(Styles.instructionContainer)}>
+              {this.state.jsonError && this.state.jsonError.length > 0 && (
+                <div className={classNames(Styles.jsonError)}>
+                  {this.state.jsonError.map((error, idx) => (
+                    <div key={idx}>{error}</div>
+                  ))}
+                </div>
+              )}
+              <div className={classNames(Styles.instructionContainer)}>
                 <ul className={classNames(Styles.instructionList)}>
                   <li>
                     Ensure the <strong>appId</strong> field is unique and identifies the application.
@@ -742,7 +741,7 @@ export default class Entitlement extends React.Component {
                   </button>
                 </div>
               )}
-{this.state.showDiscardModal && (
+              {this.state.showDiscardModal && (
                 <ConfirmModal
                   title="Discard Changes"
                   showAcceptButton={false}
@@ -775,7 +774,7 @@ export default class Entitlement extends React.Component {
               )}
             </div> </div>
         )}
- {this.state.isCreateOrEditEntitlementModal && (
+        {this.state.isCreateOrEditEntitlementModal && (
           <Modal
             title={this.state.editEntitlementModal ? 'Edit Entitlement' : 'Create New Entitlement'}
             showAcceptButton={false}
