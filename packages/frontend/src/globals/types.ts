@@ -939,6 +939,7 @@ export interface INeededRoleObject {
 }
 
 export interface IAllSolutionsListItemCSV {
+  appId: string;
   id?: string;
   businessNeed: string;
   businessGoals: string[];

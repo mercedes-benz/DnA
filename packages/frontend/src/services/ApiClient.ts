@@ -964,6 +964,7 @@ export class ApiClient {
         additionalResource,
         dataStrategyDomain,
         relatedProducts,
+        appId,
         attachments {
           id,
           fileName,

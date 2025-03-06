@@ -32,6 +32,7 @@ import MarketingSummary from './marketing/MarketingSummary';
 import AddUser from '../addUser/AddUser';
 import { isSolutionFixedTagIncludedInArray } from '../../../services/utils';
 
+
 const classNames = cn.bind(Styles);
 
 export interface ISummaryState {
@@ -678,6 +679,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.additionalResource = res.additionalResource;
             solution.description.requestedFTECount = res.requestedFTECount;
             solution.description.department = res.department;
+            solution.description.appId = res.appId;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;
             solution.team.team = res.team;
