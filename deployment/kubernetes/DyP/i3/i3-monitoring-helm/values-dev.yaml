@@ -123,6 +123,16 @@ prometheus:
             format: [ 'prometheus' ]
           static_configs:
             - targets: [ 'minio.dev-dna-minio.svc.cluster.local:80' ]
+        - job_name: minio-job-test
+          metrics_path: '/minio/v2/metrics/cluster'
+          scrape_interval: 15s
+          scheme: http
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          params:
+            format: [ 'prometheus' ]
+          static_configs:
+            - targets: [ 'minio.test-dna-minio.svc.cluster.local:80' ]
         - job_name: argocd
           metrics_path: /metrics
           params:
@@ -135,8 +145,55 @@ prometheus:
             - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
-
-        - job_name: cnpg	
+        - job_name: argocd-server-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-server-metrics.argocd.svc.cluster.local:8083
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: argocd-application-controller-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-application-controller-metrics.argocd.svc.cluster.local:8082
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: argocd-repo-server-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-repo-server-metrics.argocd.svc.cluster.local:8084
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: argocd-applicationset-controller-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - argocd-applicationset-controller-metrics.argocd.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: cnpg
           metrics_path: /metrics	
           params:	
             format:	
@@ -182,10 +239,22 @@ prometheus:
           scrape_interval: 1s
           static_configs:
           - targets:
-            - bat-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
+            - bat-dev-api-metrics.dev-bat.svc.cluster.local:8080
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
         - job_name: qilin-api
+          metrics_path: /actuator/prometheus
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - qilin-dev-api-metrics.dev-bat.svc.cluster.local:8080
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: rabbitmq-api
           metrics_path: /metrics
           params:
             format:
@@ -194,9 +263,21 @@ prometheus:
           scrape_interval: 1s
           static_configs:
           - targets:
-            - qilin-dev-api-metrics.dev-bat-bat.svc.cluster.local:8080
+            - dev-rabbitmq-metrics.dev-bat.svc.cluster.local:15692
           tls_config:
-            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - job_name: cert-manager
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 1s
+          static_configs:
+          - targets:
+            - cert-manager.cert-manager.svc.cluster.local:9402
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
         # A scrape configuration for running Prometheus on a Kubernetes cluster.
         # This uses separate scrape configs for cluster components (i.e. API server, node)
@@ -1174,7 +1255,7 @@ tempo-distributed:
 
 
 loki:
-  enabled: false
+  enabled: true
   fullnameOverride: "loki"
   global:
     image:
@@ -1192,12 +1273,14 @@ loki:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   write:
-    persistence:
-      size: 30Gi
+    replicas: 0
   loki:
     auth_enabled: false
+    compactor:
+      retention_enabled: true
+      delete_request_store: s3
     limits_config:  
-      retention_period: 48h
+      retention_period: 72h
       # enforce_metric_name: false
       reject_old_samples: true
       reject_old_samples_max_age: 168h
@@ -1213,17 +1296,23 @@ loki:
       max_label_value_length: 20480
       max_label_name_length: 10240
       max_label_names_per_series: 300
+      allow_structured_metadata: true
+      volume_enabled: true
     commonConfig:
       replication_factor: 3
+    pattern_ingester:
+        enabled: true
+    ruler:
+      enable_api: true      
     schemaConfig:
       configs:
       - from: "2024-01-01"
         store: tsdb
         index:
           prefix: loki_index_
-          period: 24h
+          period: 72h
         object_store: s3
-        schema: v13
+        schema: v13 
     storage:
       type: 's3'
       bucketNames:
@@ -1237,8 +1326,33 @@ loki:
         s3ForcePathStyle: true
         insecure: true
         http_config: {}    
-    singleBinary:
-      replicas: 3    
+  singleBinary:
+    replicas: 3    
+    persistence:
+      size: 50Gi    
+  deploymentMode: SingleBinary
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  ingester:
+    replicas: 0
+  querier:
+    replicas: 0
+  queryFrontend:
+    replicas: 0
+  queryScheduler:
+    replicas: 0
+  distributor:
+    replicas: 0
+  compactor:
+    replicas: 0
+  indexGateway:
+    replicas: 0
+  bloomCompactor:
+    replicas: 0
+  bloomGateway:
+    replicas: 0    
   extraObjects:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -1252,3 +1366,7 @@ loki:
           - {}
         policyTypes:
           - Ingress
+  #tableManager:
+    #enabled: true
+    #retention_deletes_enabled: true
+    #retention_period: 24h
