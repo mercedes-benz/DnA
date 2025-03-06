@@ -42,6 +42,7 @@ const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
+const pgAdminUrl = Envs.PGADMIN_URL;
 
 export const DataLayerElements = [
   {
@@ -581,6 +582,23 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'pgAdmin',
+    name: 'pgAdmin',
+    description:'pgAdmin is the most popular and feature rich Open Source administration and development platform for PostgreSQL, the most advanced Open Source database in the world.',
+    tags: ['FOSS', 'Data Storage'],
+    url: pgAdminUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !pgAdminUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
     isDnAInternalTool: false,
   },
 ];
