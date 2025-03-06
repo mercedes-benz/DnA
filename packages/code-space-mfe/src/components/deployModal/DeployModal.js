@@ -18,32 +18,6 @@ import Tags from 'dna-container/Tags';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
-// import TextBox from '../../shared/textBox/TextBox';
-
-// export interface IBranch {
-//   name: string;
-// }
-
-// export interface IDeployRequest {
-//   targetEnvironment: string; // int or prod
-//   branch: string;
-//   secureWithIAMRequired?: boolean;
-//   technicalUserDetailsForIAMLogin?: string;
-//   valutInjectorEnable?: boolean;
-//   clientID?: string;
-//   clientSecret?: string;
-// }
-
-// interface DeployModalProps {
-//   codeSpaceData: ICodeSpaceData;
-//   enableSecureWithIAM: boolean;
-//   setShowCodeDeployModal: (show: boolean) => void;
-//   startDeployLivelinessCheck?: (workspaceId: string, deployEnvironment: string) => void;
-//   setCodeDeploying: (codeDeploying: boolean) => void;
-//   setIsApiCallTakeTime: (apiCallTakeTime: boolean) => void;
-//   navigateSecurityConfig: () => void;
-// }
-
 const DeployModal = (props) => {
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState(true);
   const [branches, setBranches] = useState([]);
@@ -59,8 +33,7 @@ const DeployModal = (props) => {
   const [clientSecret, setClientSecret] = useState('');
   const [clientSecretError, setClientSecretError] = useState('');
   const [changeSelected, setChangeSelected] = useState(false);
-  const [disableIntIAM, setDisableIntIAM] = useState(true);
-  const [disableProdIAM, setDisableProdIAM] = useState(true);
+  const [disableIAM, setDisableIAM] = useState(true);
   const ignorePaths = [
     { id: '1', name: '/favicon.ico' },
     { id: '2', name: '/manifest.json' },
@@ -93,6 +66,8 @@ const DeployModal = (props) => {
   // const [isSecuredWithCookie, setIsSecuredWithCookie] = useState(false);
   const [deploymentType, setDeploymentType] = useState('API');
   const [isUiRecipe, setIsUiRecipe] = useState(false);
+  const [deploymentDetails, setDeploymentDetails] = useState();
+  const [resetRequired, setResetRequired] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -103,14 +78,6 @@ const DeployModal = (props) => {
   useEffect(() => {
     Tooltip.defaultSetup();
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
-    setClientId('');
-    setClientIdError('');
-    setClientSecret('');
-    setClientSecretError('');
-    setOneApiVersionShortNameError('');
-    setRedirectUriError('');
-    setChangeSelected(false);
-    // setIAMTechnicalUserID('');
     getPublishedConfig(props?.codeSpaceData?.id, 'int');
     ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.recipeDetails?.recipeId === "private-user-defined" ? projectDetails?.recipeDetails?.repodetails : projectDetails?.gitRepoName)
@@ -122,11 +89,18 @@ const DeployModal = (props) => {
           element.id = element.name;
         });
         setBranches(branches);
+        const deploymentDetails = projectDetails?.intDeploymentDetails;
+        setDeploymentDetails(deploymentDetails);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-        setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-        setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
-        setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
-        setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
+        setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
+        setOneApiSelected(deploymentDetails?.oneApiVersionShortName?.length || false);
+        setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
+        setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+        setClientId(deploymentDetails?.clientId || '');
+        setRedirectUri(deploymentDetails?.redirectUri || '');
+        deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
+        deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
+        setDeploymentType(deploymentDetails?.deploymentType || 'API');
         // setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
         SelectBox.defaultSetup();
       })
@@ -139,6 +113,7 @@ const DeployModal = (props) => {
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    setResetRequired(false);
     if(deployEnvironment === 'staging'){
       intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
     }
@@ -149,13 +124,39 @@ const DeployModal = (props) => {
 
   useEffect(() => {
     setRedirectUriError('');
-    deploymentType==='API' ? setIsUiRecipe(false) : setIsUiRecipe(true);
-    deploymentType==='API'? setRedirectUri('') : setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+    if(deploymentType==='API'){
+      setIsUiRecipe(false);
+      setRedirectUri('');
+    }
+    else{
+      setIsUiRecipe(true);
+      setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+      setOneApiSelected(false);
+    }
   }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     Tooltip.defaultSetup();
-  }, [secureWithIAMSelected]);// eslint-disable-line react-hooks/exhaustive-deps
+    const shouldReset = (!deploymentType==='UI' && cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
+      (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie) || 
+      (deploymentDetails?.deploymentType?.length ? deploymentType!== deploymentDetails?.deploymentType : deploymentType==='UI');
+    setResetRequired(shouldReset);
+  }, [secureWithIAMSelected, cookieSelected, deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (resetRequired) {
+      setClientId('');
+      setClientSecret('');
+      setRedirectUri('');
+      setIgnorePath([]);
+      setScope(['openid', 'offline_access']);
+    } else {
+      setClientId(deploymentDetails?.clientId || '');
+      setRedirectUri(deploymentDetails?.redirectUri || '');
+      deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
+      deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
+    }
+  },[resetRequired]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const getPublishedConfig = (id, env) => {
     let appId;
@@ -164,11 +165,7 @@ const DeployModal = (props) => {
     CodeSpaceApiClient.getPublishedConfig(id, env).then((res) => {
       appId = res.data.appID || '';
       entitlements = res.data.entitlements || [];
-      if (env === 'int') {
-        appId.length !== 0 && entitlements.length !== 0 ? setDisableIntIAM(false) : setDisableIntIAM(true);
-      } else if (env === 'prod') {
-        appId.length !== 0 && entitlements.length !== 0 ? setDisableProdIAM(false) : setDisableProdIAM(true);
-      }
+      appId.length !== 0 && entitlements.length !== 0 ? setDisableIAM(false) : setDisableIAM(true);
     });
   };
 
@@ -200,100 +197,49 @@ const DeployModal = (props) => {
   };
 
   const onDeployEnvironmentChange = (evnt) => {
-    setClientId('');
     setClientIdError('');
     setClientSecret('');
     setClientSecretError('');
     setOneApiVersionShortNameError('');
     setRedirectUriError('');
     setChangeSelected(false);
+  
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
-    if (deployEnv === 'staging') {
-      setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-      getPublishedConfig(props?.codeSpaceData?.id, 'int');
-      setOneApiSelected(projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false);
-      setOneApiVersionShortName(projectDetails?.intDeploymentDetails?.oneApiVersionShortName || '');
-      // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-      setCookieSelected(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
-      // setIsSecuredWithCookie(projectDetails?.intDeploymentDetails?.isSecuredWithCookie || false);
-    } else {
-      setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-      getPublishedConfig(props?.codeSpaceData?.id, 'prod');
-      setOneApiSelected(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false);
-      setOneApiVersionShortName(projectDetails?.prodDeploymentDetails?.oneApiVersionShortName || '');
-      // setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-      setCookieSelected(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
-      // setIsSecuredWithCookie(projectDetails?.prodDeploymentDetails?.isSecuredWithCookie || false);
-    }
+  
+    const deploymentDetails = deployEnv === 'staging' 
+      ? projectDetails?.intDeploymentDetails 
+      : projectDetails?.prodDeploymentDetails;
+    setDeploymentDetails(deploymentDetails);
+  
+    setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
+    getPublishedConfig(props?.codeSpaceData?.id, deployEnv === 'staging' ? 'int' : 'prod');
+    setOneApiSelected(deploymentDetails?.oneApiVersionShortName?.length || false);
+    setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
+    setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+    setClientId(deploymentDetails?.clientId || '');
+    setRedirectUri(deploymentDetails?.redirectUri || '');
+    deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
+    deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
+    setDeploymentType(deploymentDetails?.deploymentType || 'API');
   };
 
-  // const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-  //   const iamUserID = evnt.currentTarget.value.trim();
-  //   setIAMTechnicalUserID(iamUserID);
-  //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
-  // };
-
-  // const setVault = () => {
-  //   ProgressIndicator.show();
-  //   CodeSpaceApiClient.read_secret(
-  //     projectDetails?.projectName.toLowerCase(),
-  //     deployEnvironment === 'staging' ? 'int' : 'prod',
-  //   )
-  //     .then((response) => {
-  //       ProgressIndicator.hide();
-  //       Object.keys(response.data).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-  //     })
-  //     .catch(() => {
-  //       ProgressIndicator.hide();
-  //       // if (err?.response?.data?.errors?.length > 0) {
-  //       //   err?.response?.data?.errors.forEach((err: any) => {
-  //       //     Notification.show(err?.message || 'Something went wrong.', 'alert');
-  //       //   });
-  //       // } else {
-  //       //   Notification.show(err?.message || 'Something went wrong.', 'alert');
-  //       // }
-  //     });
-  // };
-
   const onAcceptCodeDeploy = () => {
-    // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
-    //   setIAMTechnicalUserIDError(requiredError);
-    //   return;
-    // } else {
-    //   setIAMTechnicalUserIDError('');
-    // }
     let formValid = true;
-    if (
-      secureWithIAMSelected &&
+    const secureWithIAMValidation = secureWithIAMSelected &&
       (((deployEnvironment === 'staging'
         ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
         : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
-        changeSelected)) &&
-      clientSecret.length === 0
-    ) {
+        changeSelected || resetRequired));
+    if (secureWithIAMValidation && clientId.length === 0) {
       formValid = false;
       setClientIdError('*Missing Entry');
     }
-    if (
-      secureWithIAMSelected && 
-      (((deployEnvironment === 'staging'
-        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
-        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
-        changeSelected)) &&
-      clientSecret.length === 0
-    ) {
+    if (secureWithIAMValidation && clientSecret.length === 0) {
       formValid = false;
       setClientSecretError('*Missing Entry');
     }
-    if (
-      secureWithIAMSelected && 
-      (((deployEnvironment === 'staging'
-        ? (!projectDetails.intDeploymentDetails.secureWithIAMRequired)
-        : (!projectDetails.prodDeploymentDetails.secureWithIAMRequired)) ||
-        changeSelected)) && isUiRecipe &&
-      redirectUri.length === 0
-    ) {
+    if (secureWithIAMValidation && isUiRecipe && redirectUri.length === 0) {
       formValid = false;
       setRedirectUriError('*Missing Entry');
     }
@@ -315,14 +261,14 @@ const DeployModal = (props) => {
         targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
         branch: branchValue[0],
         // valutInjectorEnable: vaultEnabled,
-        clientID: clientId,
+        clientID: secureWithIAMSelected ? clientId : '',
         clientSecret: clientSecret,
-        redirectUri: redirectUri || '',
-        ignorePaths: ignorePath.join(',') || '',
-        scope: secureWithIAMSelected ? scope.join(' ') : '',
+        redirectUri: secureWithIAMSelected && redirectUri?.length ? redirectUri : '',
+        ignorePaths: secureWithIAMSelected && ignorePath?.length ? ignorePath?.join(',') : '',
+        scope: secureWithIAMSelected ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
-        isSecuredWithCookie : cookieSelected || false,
+        isSecuredWithCookie : (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -460,8 +406,6 @@ const DeployModal = (props) => {
           </div>
           {/* {(props.enableSecureWithIAM || props.isUIRecipe) && ( */}
             <>
-              {deployEnvironment === 'staging' && (
-                <>
                   <div className={classNames(Styles.threeColumnFlexLayout)}>
                     <div>
                       <label className="checkbox">
@@ -518,7 +462,7 @@ const DeployModal = (props) => {
                     <span>
                       <p
                         style={{ color: 'var(--color-orange)' }}
-                        className={classNames(disableIntIAM && secureWithIAMSelected ? '' : 'hide')}
+                        className={classNames(disableIAM && secureWithIAMSelected ? '' : 'hide')}
                       >
                         <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
                         Configuration and therefore no authorization checks would happen.
@@ -547,7 +491,7 @@ const DeployModal = (props) => {
                         </div>
                         <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'OIDC based authentication enabled (default)'}</label></div>
                       </div>)}
-                      { (!projectDetails?.intDeploymentDetails?.secureWithIAMRequired || changeSelected ? (
+                      { (!deploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
@@ -673,281 +617,8 @@ const DeployModal = (props) => {
                       </span>
                     </>
                   )}
-                  {/* {secureWithIAMSelected && (
-                <div
-                  className={classNames(
-                    Styles.flexLayout,
-                    projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
-                  )}
-                >
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'iamTechnicalUserID'}
-                      labelId={'iamTechnicalUserIDLabel'}
-                      label={'Technical User ID'}
-                      placeholder={'IAM Technical User Id'}
-                      value={iamTechnicalUserID}
-                      errorText={iamTechnicalUserIDError}
-                      required={true}
-                      maxLength={7}
-                      onChange={onIAMTechnicalUserIDOnChange}
-                    />
-                  </div>
-                  <div className={Styles.createTechUserWrapper}>
-                    <a href={IAM_URL} target="_blank" rel="noreferrer">
-                      Create a new technical user in IAM (Enabled only with Production IAM)
-                    </a>
-                  </div>
-                </div>
-              )} */}
-                </>
-              )}
-              {deployEnvironment === 'production' && (
-                <>
-                  <div className={classNames(Styles.threeColumnFlexLayout)}>
-                    <div>
-                      <label className="checkbox">
-                        <span className="wrapper">
-                          <input
-                            type="checkbox"
-                            className="ff-only"
-                            checked={secureWithIAMSelected}
-                            onChange={onChangeSecureWithIAM}
-                            disabled={oneApiSelected}
-                            // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                            // disabled={disableProdIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                          />
-                        </span>
-                        <span className={classNames('label', oneApiSelected ? Styles.disableText : '')}>
-                          Secure with your own IAM Credentials{' '}
-                          {isOwner && !isUiRecipe && (
-                            <span className={classNames(Styles.configLink)} onClick={props.navigateSecurityConfig}>
-                              <a target="_blank" rel="noreferrer">
-                                {CODE_SPACE_TITLE} (
-                                {projectDetails?.publishedSecuirtyConfig?.status ||
-                                  projectDetails?.securityConfig?.status ||
-                                  'New'}
-                                )
-                              </a>
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    </div>
-                    {deploymentType === 'API' && (
-                      <>
-                        <div>OR</div>
-                        <div>
-                          <label className="checkbox">
-                            <span className="wrapper">
-                              <input
-                                type="checkbox"
-                                className="ff-only"
-                                checked={oneApiSelected}
-                                onChange={onChangeOpenApi}
-                                disabled={secureWithIAMSelected}
-                                // disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                                // disabled={disableIntIAM && !projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
-                              />
-                            </span>
-                            <span className={classNames('label', secureWithIAMSelected ? Styles.disableText : '')}>Provision your api through oneAPI</span>
-                          </label>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  {!isUiRecipe && (
-                    <span>
-                      <p
-                        style={{ color: 'var(--color-orange)' }}
-                        className={classNames(disableProdIAM && secureWithIAMSelected ? '' : 'hide')}
-                      >
-                        <i className="icon mbc-icon alert circle"></i> You do not have any published Authorization
-                        Configuration and therefore no authorization checks would happen.
-                      </p>
-                    </span>
-                  )}
-                  {secureWithIAMSelected && (
-                    <div>
-                      {!isUiRecipe && (<div className={Styles.flexLayout}>
-                        <div className={Styles.infoIcon}>
-                          <label className={classNames("switch", cookieSelected ? 'on' : '')}>
-                            <span className="label" style={{ marginRight: '5px' }}>
-                              Switch to cookie based authentication
-                            </span>
-                            <span className="wrapper">
-                              <input
-                                value={cookieSelected}
-                                type="checkbox"
-                                className="ff-only"
-                                onChange={() => {setCookieSelected(!cookieSelected);}}
-                                checked={cookieSelected}
-                                maxLength={63}
-                              />
-                            </span>
-                          </label>
-                        </div>
-                        <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'JWT based authentication enabled (default)'}</label></div>
-                      </div>)}
-                      {(!projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || changeSelected  ? (
-                        <>
-                          <div className={classNames(Styles.wrapper)}>
-                            <span className="label">
-                              <p>Authorization Code Flow</p>
-                            </span>
-                            <div className={classNames(Styles.flexLayout)}>
-                              <TextBox
-                                type="text"
-                                controlId={'Client ID'}
-                                labelId={'clientIdLabel'}
-                                label={'Client ID'}
-                                placeholder={'Client ID as per IAM used with Alice'}
-                                value={clientId}
-                                errorText={clientIdError}
-                                required={true}
-                                maxLength={200}
-                                onChange={(e) => {
-                                  setClientId(e.currentTarget.value);
-                                  setClientIdError('');
-                                }}
-                              />
-                              <TextBox
-                                type="text"
-                                controlId={'Client Secret'}
-                                labelId={'clientSecretLabel'}
-                                label={'Client Secret'}
-                                placeholder={'Client Secret as per IAM used with Alice'}
-                                value={clientSecret}
-                                errorText={clientSecretError}
-                                required={true}
-                                maxLength={200}
-                                onChange={(e) => {
-                                  setClientSecret(e.currentTarget.value);
-                                  setClientSecretError('');
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <div className={classNames(Styles.flexLayout)}>
-                              <div className={classNames(Styles.redirectFlexLayout)}>
-                                <TextBox
-                                  type="text"
-                                  label={'Redirect Uri'}
-                                  placeholder={`eg: /${projectDetails.projectName}/prod`}
-                                  value={redirectUri}
-                                  required={isUiRecipe}
-                                  errorText={redirectUriError}
-                                  maxLength={200}
-                                  onChange={(e) => {
-                                    setRedirectUri(e.currentTarget.value);
-                                    setRedirectUriError('');
-                                  }}
-                                />
-                                <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
-                              </div>
-                              <Tags
-                                title={'Ignore Paths'}
-                                max={100}
-                                chips={ignorePath}
-                                placeholder={'Type root path here....'}
-                                tags={ignorePaths}
-                                setTags={onIgnorePathChange}
-                                isMandatory={false}
-                                isIgnorePath={true}
-                                showAllTagsOnFocus={true}
-                              />
-                            </div>
-                            <Tags
-                              title={'Scope'}
-                              max={100}
-                              chips={scope}
-                              fixedChips={fixedScope}
-                              tags={scopes}
-                              setTags={onScopeChnage}
-                              isMandatory={false}
-                              disableSelfTagAdd={true}
-                              suggestionPopupHeight={150}
-                              showAllTagsOnFocus={true}
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <div className={classNames(Styles.actionWrapper)}>
-                          <button
-                            className={classNames('btn btn-primary', Styles.saveSettingsBtn)}
-                            onClick={() => setChangeSelected(true)}
-                          >
-                            Change Credentials
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {oneApiSelected && (
-                    <>
-                      <div className={classNames(Styles.flexLayout)}>
-                        <TextBox
-                          type="text"
-                          label={'Api version shortname'}
-                          placeholder={'Api version shortname in oneAPI'}
-                          value={oneApiVersionShortName}
-                          errorText={oneApiVersionShortNameError}
-                          required={true}
-                          maxLength={200}
-                          onChange={(e) => {
-                            setOneApiVersionShortName(e.currentTarget.value);
-                            setOneApiVersionShortNameError('');
-                          }}
-                        />
-                        <div className={Styles.oneAPILink}>
-                          <a href={Envs.ONE_API_URL} target="_blank" rel="noreferrer">
-                            where to provision your api ? 
-                          </a>
-                        </div>
-                      </div>
-                      <span>
-                        <p
-                          style={{ color: 'var(--color-orange)' }}>
-                          <i className="icon mbc-icon alert circle"></i> We are supporting only GAS/OIDC. Please ensure that GAS/OIDC is selected as the identity provider under API management in the oneAPI portal.
-                        </p>
-                      </span>
-                    </>
-                  )}
-                  
-                  {/* {secureWithIAMSelected && (
-                <div
-                  className={classNames(
-                    Styles.flexLayout,
-                    projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv,
-                  )}
-                >
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'iamTechnicalUserID'}
-                      labelId={'iamTechnicalUserIDLabel'}
-                      label={'Technical User ID'}
-                      placeholder={'IAM Technical User Id'}
-                      value={iamTechnicalUserID}
-                      errorText={iamTechnicalUserIDError}
-                      required={true}
-                      maxLength={7}
-                      onChange={onIAMTechnicalUserIDOnChange}
-                    />
-                  </div>
-                  <div className={Styles.createTechUserWrapper}>
-                    <a href={IAM_URL} target="_blank" rel="noreferrer">
-                      Create a new technical user in IAM (Enabled only with Production IAM)
-                    </a>
-                  </div>
-                </div>
-              )} */}
-                </>
-              )}
             </>
-          {/* )} */}
+
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">
