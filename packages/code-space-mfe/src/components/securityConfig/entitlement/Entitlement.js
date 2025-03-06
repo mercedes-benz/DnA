@@ -119,14 +119,14 @@ export default class Entitlement extends React.Component {
     Notification.show(message, 'alert');
   }
 
-  
+
   handleToggle() {
-   
+
     const envKey =
       this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
     const storedPublishedData = localStorage.getItem(envKey);
 
-    
+
     this.setState((prevState) => ({
       showJson: !prevState.showJson,
       jsonData: this.props.readOnlyMode
@@ -140,24 +140,24 @@ export default class Entitlement extends React.Component {
   handleJsonChange(newValue) {
     try {
       this.setState({ isJsonTouched: true, jsonData: newValue });
-  
+
       let parsedData;
       try {
         parsedData = JSON.parse(newValue);
       } catch (e) {
         throw new Error('Invalid JSON format: ' + e.message);
       }
-  
+
       let errors = [];
       if (parsedData.entitlements) {
         parsedData.entitlements.forEach((entitlement, index) => {
           const { apiPattern, httpMethod } = entitlement;
-  
+
           if (apiPattern && !apiPattern.startsWith('/api/')) {
             errors.push(`Error in entitlement ${index + 1}: API Path should start with '/api/'`);
           }
-  
-   
+
+
           if (
             httpMethod &&
             !['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE', 'CONNECT'].includes(
@@ -167,12 +167,12 @@ export default class Entitlement extends React.Component {
             errors.push(`Error in entitlement ${index + 1}: Invalid HTTP Method`);
           }
         });
-  
+
         if (errors.length === 0) {
-          
+
           this.setState({
-            entitelmentList: [...parsedData.entitlements], 
-            entitelmentListResponse: [...parsedData.entitlements], 
+            entitelmentList: [...parsedData.entitlements],
+            entitelmentListResponse: [...parsedData.entitlements],
           });
         } else {
           this.setState({ jsonError: errors });
@@ -183,17 +183,17 @@ export default class Entitlement extends React.Component {
       this.setState({ jsonError: [error.message] });
     }
   }
-  
+
 
   onSave() {
-    
+
     if (this.state.jsonError?.length === 0) {
       try {
         const parsedData = JSON.parse(this.state.jsonData);
         const newAppId = parsedData.appId;
         const newEntitlements = parsedData.entitlements;
 
-        
+
         this.setState({
           appId: newAppId,
           entitelmentListResponse: newEntitlements,
@@ -224,7 +224,7 @@ export default class Entitlement extends React.Component {
   }
 
   confirmDiscard() {
-    
+
     const jsonData = JSON.stringify(
       {
         appId: this.state.appId,
@@ -281,7 +281,7 @@ export default class Entitlement extends React.Component {
   };
 
   handleDeleteEntitlement = () => {
-    
+
     const updatedList = this.state.entitelmentList.filter(
       (item) => item.entitlementName !== this.state.deleteEntitlementName
     );
@@ -313,7 +313,7 @@ export default class Entitlement extends React.Component {
           editEntitlementModal: false,
         });
       } else {
-      
+
         const updatedList = entitelmentList.concat({
           entitlementName,
           entitlemenPath,
@@ -340,7 +340,7 @@ export default class Entitlement extends React.Component {
     });
   }
 
-  getRefreshedDagPermission = () => {};
+  getRefreshedDagPermission = () => { };
   getProjectSorted = (entitel) => {
     this.setState({
       entitelmentList: entitel,
@@ -353,7 +353,7 @@ export default class Entitlement extends React.Component {
     });
   };
 
- 
+
   onPaginationPreviousClick = () => {
     const currentPageNumberTemp = this.state.currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * this.state.maxItemsPerPage;
@@ -433,7 +433,7 @@ export default class Entitlement extends React.Component {
       let newAppId = this.state.appId;
       let newEntitlements = this.state.entitelmentListResponse;
 
-      
+
       if (this.state.showJson) {
         try {
           const parsedData = JSON.parse(this.state.jsonData);
@@ -474,7 +474,7 @@ export default class Entitlement extends React.Component {
     }
   };
 
-  
+
   onEntitlementPublish = () => {
     let formValid = true;
     if (!this.state.appId) {
@@ -483,13 +483,13 @@ export default class Entitlement extends React.Component {
     }
 
     if (formValid) {
-      
+
       const newPublishData = {
         appId: this.state.appId,
         entitlements: this.state.entitelmentListResponse,
       };
 
-      
+
       const envKey = this.props.env === 'int'
         ? 'publishedData_staging'
         : 'publishedData_production';
@@ -497,7 +497,7 @@ export default class Entitlement extends React.Component {
       const publishedJson = JSON.stringify(newPublishData, null, 2);
       localStorage.setItem(envKey, publishedJson);
 
-     
+
       this.setState(
         {
           config: {
@@ -506,11 +506,11 @@ export default class Entitlement extends React.Component {
             appId: this.state.appId,
           },
           publishedData: publishedJson,
-          jsonData: publishedJson, 
+          jsonData: publishedJson,
           isJsonTouched: false,
         },
         () => {
-          
+
           this.props.onPublish(this.state.config, this.props.env);
           Notification.show(
             this.props.env === 'int'
@@ -521,12 +521,10 @@ export default class Entitlement extends React.Component {
       );
     }
   };
-
-
   render() {
     return (
       <React.Fragment>
-        
+
         <div className={classNames(Styles.toggleSwitch)}>
           <label className={classNames('switch', this.state.showJson ? 'on' : '')}>
             <span className="label" style={{ marginRight: '5px' }}>Show JSON</span>
@@ -540,53 +538,40 @@ export default class Entitlement extends React.Component {
           </label>
         </div>
 
-     
+
         {!this.state.showJson ? (
           <div className={classNames(Styles.provisionStyles)}>
             <div className={classNames(Styles.wrapper)}>
               <div className={classNames('decriptionSection', 'mbc-scroll')}>
-                
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '10px',
-                  }}
-                >
-                 <h3 className={classNames(Styles.title)} style={{ marginRight: 'auto', padding: '25px' }}>
-  {this.props.env === 'int'
-    ? 'Entitlements for your Staging application authorization'
-    : 'Entitlements for your Production application authorization'}
-</h3>
 
-                  {!this.props.readOnlyMode && !this.state.showJson && (
-                    <button
-                      className="btn btn-primary"
-                      type="button"
-                      onClick={() =>
-                        this.setState({
-                          isCreateOrEditEntitlementModal: true,
-                          editEntitlementModal: false,
-                        })
-                      }
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: 'white',
-                        padding: '16px 20px',
-                        fontSize: '16px',
-                        borderRadius: '5px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        marginLeft: 'auto',
-                      }}
-                    >
-                      + Create New Entitlement
-                    </button>
+                <div>
+                  <h3 className={classNames(Styles.title)} >
+                    {this.props.env === 'int'
+                      ? 'Entitlements for your Staging application authorization'
+                      : 'Entitlements for your Production application authorization'}
+                  </h3>
+
+                  {!this.props.readOnlyMode && this?.state?.appId?.length ? (
+                    <div className={classNames(Styles.createEntitlementButton)}>
+                      <button
+                        className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)}
+                        type="button"
+                        onClick={() => {
+                          this.setState({
+                            isCreateOrEditEntitlementModal: true,
+                          });
+                        }}
+                      >
+                        <i className="icon mbc-icon plus" />
+                        <span>Create New Entitlement</span>
+                      </button>
+                    </div>
+                  ) : (
+                    ''
                   )}
                 </div>
 
-            
+
                 <div className={Styles.parentEntitlement}>
                   <div className={Styles.checkboxWrapper}>
                     <div
@@ -613,9 +598,9 @@ export default class Entitlement extends React.Component {
                           e.target.value.length !== 0
                             ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
                             : this.setState({
-                                appId: e.target.value,
-                                appIdErrorMessage: '*Missing entry',
-                              });
+                              appId: e.target.value,
+                              appIdErrorMessage: '*Missing entry',
+                            });
                         }}
                         value={this.state.appId}
                         readOnly={this.props.readOnlyMode}
@@ -632,28 +617,27 @@ export default class Entitlement extends React.Component {
                   </div>
                 </div>
 
-<p style={{ color: 'var(--color-orange)', marginTop: '10px', paddingLeft: '25px' }}>
-  <i className="icon mbc-icon alert circle"></i> Please redeploy with the new
-  client id and client secret for the application id changes to be reflected.
-  Note that the old credentials will be used until then.
-</p>
+                <p className={classNames(Styles.alertMessage)}>
+                  <i className="icon mbc-icon alert circle"></i> Please redeploy with the new
+                  client id and client secret for the application id changes to be reflected.
+                  Note that the old credentials will be used until then.
+                </p>
 
 
-               
                 {this.state.entitelmentListResponse?.length > 0 ? (
                   <div className={classNames(Styles.subList)} style={{ padding: '25px' }}>
-                  <EntitlementSubList
-                    readOnlyMode={this.props.readOnlyMode}
-                    entitelmentListResponse={this.state.entitelmentListResponse}
-                    listOfProject={this.state.entitelmentList}
-                    getRefreshedDagPermission={this.getRefreshedDagPermission}
-                    updatedFinalEntitlementList={this.updatedFinalEntitlementList}
-                    getProjectSorted={this.getProjectSorted}
-                    projectName={this.props.projectName}
-                    env={this.props.env}
-                  />
-                </div>
-                
+                    <EntitlementSubList
+                      readOnlyMode={this.props.readOnlyMode}
+                      entitelmentListResponse={this.state.entitelmentListResponse}
+                      listOfProject={this.state.entitelmentList}
+                      getRefreshedDagPermission={this.getRefreshedDagPermission}
+                      updatedFinalEntitlementList={this.updatedFinalEntitlementList}
+                      getProjectSorted={this.getProjectSorted}
+                      projectName={this.props.projectName}
+                      env={this.props.env}
+                    />
+                  </div>
+
                 ) : (
                   <div className={classNames('no-data', Styles.noData)}>
                     No Entitlements found
@@ -663,52 +647,20 @@ export default class Entitlement extends React.Component {
             </div>
           </div>
         ) : (
-         
-          <div className={classNames(Styles.jsonView)} style={{ display: 'flex', justifyContent: 'center' }}>
-            <div className={classNames(Styles.wrapper)} style={{ maxWidth: '100%', width: '100%' }}>
-              
+
+          <div className={classNames(Styles.jsonView)} >
+            <div className={classNames(Styles.wrapper)} >
+
               <div
                 className={classNames(Styles.titleWrapper)}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    width: '100%',
-                    marginBottom: '10px',
-                  }}
-                >
-                  <h3 className={classNames(Styles.title)} style={{ margin: 0 }}>
+                <div>
+                  <h3 className={classNames(Styles.title)} >
                     {this.props.env === 'int'
                       ? 'Entitlements for your Staging application authorization'
                       : 'Entitlements for your Production application authorization'}
                   </h3>
-                  {!this.props.readOnlyMode && !this.state.showJson && (
-                    <button
-                      className="btn btn-primary"
-                      type="button"
-                      onClick={() =>
-                        this.setState({
-                          isCreateOrEditEntitlementModal: true,
-                          editEntitlementModal: false,
-                        })
-                      }
-                      style={{
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        padding: '16px 20px',
-                        fontSize: '14px',
-                        borderRadius: '5px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        marginLeft: 'auto',
-                      }}
-                    >
-                      + Create Entitlement
-                    </button>
-                  )}
                 </div>
 
                 <button
@@ -717,17 +669,16 @@ export default class Entitlement extends React.Component {
                       Notification.show('Copied to Clipboard');
                     });
                   }}
-                  className={classNames('btn btn-primary', Styles.actionBtn)}
+                  className={classNames('btn-primary', Styles.actionBtn)}
                   type="button"
                   title="Copy JSON"
-                  style={{ backgroundColor: 'transparent', border: 'none', marginLeft: '10px' }}
+
                 >
                   <i className={classNames('icon mbc-icon copy', Styles.copyIcon)} />
                 </button>
-              </div>
 
-            
-              <AceEditor
+              </div>
+<AceEditor
                 mode="json"
                 theme="solarized_dark"
                 readOnly={this.props.readOnlyMode}
@@ -752,21 +703,17 @@ export default class Entitlement extends React.Component {
                   softTabs: true,
                   lineHeight: 1.5,
                 }}
-                style={{ marginTop: '5px', textAlign: 'left' }}
+                className={classNames(Styles.editor)}
               />
-
-              
-              {this.state.jsonError && this.state.jsonError.length > 0 && (
-                <div style={{ color: 'red', fontWeight: 'bold', marginTop: '10px', fontSize: '16px' }}>
-                  {this.state.jsonError.map((error, idx) => (
-                    <div key={idx}>{error}</div>
-                  ))}
-                </div>
-              )}
-
-            
-              <div style={{ marginTop: '15px', fontSize: '14px', color: '#A9A9A9' }}>
-                <ul style={{ listStyleType: 'disc' }}>
+                {this.state.jsonError && this.state.jsonError.length > 0 && (
+                  <div className={classNames(Styles.jsonError)}>
+                    {this.state.jsonError.map((error, idx) => (
+                      <div key={idx}>{error}</div>
+                    ))}
+                  </div>
+                )}
+<div className={classNames(Styles.instructionContainer)}>
+                <ul className={classNames(Styles.instructionList)}>
                   <li>
                     Ensure the <strong>appId</strong> field is unique and identifies the application.
                   </li>
@@ -774,7 +721,7 @@ export default class Entitlement extends React.Component {
                     Always start the <strong>apiPattern</strong> with <code>/api/</code>.
                   </li>
                   <li>
-                    Use only valid HTTP methods:{' '}
+                    Use only valid HTTP methods: {' '}
                     <strong>GET</strong>, <strong>POST</strong>, <strong>PUT</strong>, <strong>DELETE</strong>,{' '}
                     <strong>PATCH</strong>, <strong>HEAD</strong>, <strong>OPTIONS</strong>, <strong>TRACE</strong>,{' '}
                     <strong>CONNECT</strong>.
@@ -785,35 +732,17 @@ export default class Entitlement extends React.Component {
                 </ul>
               </div>
 
-             
               {!this.props.readOnlyMode && this.state.isJsonTouched && (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    marginTop: '15px',
-                    marginBottom: '20px',
-                    marginRight: '20px',
-                  }}
-                >
+                <div className={classNames(Styles.discardBtnContainer)}>
                   <button
                     onClick={() => this.setState({ showDiscardModal: true })}
                     className={classNames('btn', Styles.discardBtn)}
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: '#1E90FF',
-                      border: '2px solid #1E90FF',
-                      padding: '6px 12px',
-                      fontSize: '14px',
-                    }}
                   >
                     Discard Changes
                   </button>
                 </div>
               )}
-
-              {this.state.showDiscardModal && (
+{this.state.showDiscardModal && (
                 <ConfirmModal
                   title="Discard Changes"
                   showAcceptButton={false}
@@ -822,14 +751,13 @@ export default class Entitlement extends React.Component {
                   showIcon={false}
                   showCloseIcon={true}
                   content={
-                    <div>
+                    <div className={classNames(Styles.confirmModalContent)}>
                       <p>Are you sure you want to discard changes?</p>
-                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                      <div className={classNames(Styles.confirmModalButtons)}>
                         <button
                           className="btn btn-secondary"
                           type="button"
                           onClick={() => this.setState({ showDiscardModal: false })}
-                          style={{ marginRight: '10px' }}
                         >
                           No
                         </button>
@@ -845,12 +773,9 @@ export default class Entitlement extends React.Component {
                   }
                 />
               )}
-            </div>
-          </div>
+            </div> </div>
         )}
-
-     
-        {this.state.isCreateOrEditEntitlementModal && (
+ {this.state.isCreateOrEditEntitlementModal && (
           <Modal
             title={this.state.editEntitlementModal ? 'Edit Entitlement' : 'Create New Entitlement'}
             showAcceptButton={false}
@@ -869,22 +794,16 @@ export default class Entitlement extends React.Component {
             onCancel={() => this.setState({ isCreateOrEditEntitlementModal: false })}
           />
         )}
-{!this.props.readOnlyMode && (
-          <div className="btn-set" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <div className="btnConatiner">
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={this.onEntitlementSubmit}
-                style={{ marginLeft: '10px' }}
-              >
+        {!this.props.readOnlyMode && (
+          <div className="btnConatiner">
+            <div className="btn-set">
+              <button className="btn btn-primary" type="button" onClick={this.onEntitlementSubmit}>
                 {this.props.env === 'int' ? 'Save Staging' : 'Save Production'}
               </button>
               <button
-                className={'btn btn-primary ' + classNames(Styles.publishBtn)}
+                className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
                 type="button"
                 onClick={this.onEntitlementPublish}
-                style={{ marginLeft: '10px' }}
               >
                 {this.props.env === 'int' ? 'Publish Staging' : 'Publish Production'}
               </button>
