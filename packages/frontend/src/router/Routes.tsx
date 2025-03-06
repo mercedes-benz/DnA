@@ -55,6 +55,7 @@ const FabricComponent = React.lazy(() => import('fabric-mfe/Fabric'));
 const DataEntryComponent = React.lazy(() => import('data-entry-mfe/DataEntry'));
 const CodeSpaceComponent = React.lazy(() => import('code-space-mfe/CodeSpace'));
 const PowerPlatformComponent = React.lazy(() => import('power-platform-mfe/PowerPlatform'));
+const PromptCraftComponent = React.lazy(() => import('components/mbc/promptCraft/promptCraftSubscriptions/PromptCraftSubscriptions'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -448,6 +449,13 @@ const protectedRoutes = [
     exact: false,
     path: '/powerplatform',
     title: 'Power Platform',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: PromptCraftComponent,
+    exact: false,
+    path: '/promptcraft',
+    title: 'Prompt Craft',
   },
 ];
 
