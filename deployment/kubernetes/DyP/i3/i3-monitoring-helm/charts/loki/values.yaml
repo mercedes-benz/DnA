@@ -404,7 +404,7 @@ loki:
         schema: v13
         index:
           prefix: index_
-          period: 24h
+          period: 12h
   # -- Check https://grafana.com/docs/loki/latest/configuration/#ruler for more info on configuring ruler
   rulerConfig: {}
   # -- Structured loki configuration, takes precedence over `loki.config`, `loki.schemaConfig`, `loki.storageConfig`
