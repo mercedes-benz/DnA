@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.daimler.data.db.entities.CodeServerAdditionalServiceNsql;
 import com.daimler.data.db.json.CodeServerAdditionalService;
+import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.AdditionalPropertiesDto;
 import com.daimler.data.dto.EnvironmentVariable;
 import com.daimler.data.dto.Port;
@@ -21,6 +22,8 @@ import com.daimler.data.dto.workspace.recipe.PortVO;
 import com.daimler.data.dto.workspace.recipe.SecurityContextVO;
 import com.daimler.data.dto.workspace.recipe.VolumeMountsVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.application.auth.UserStore;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,9 +95,9 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
                 additionalServiceLovVo.setAdditionalProperties(additionalPropertiesVO);
             }
             additionalServiceLovVo.setCreatedOn(entity.getData().getCreatedOn());
-            additionalServiceLovVo.setCreatedBy(entity.getData().getCreatedBy());
+            additionalServiceLovVo.setCreatedBy(toUserInfoVO(entity.getData().getCreatedBy()));
             additionalServiceLovVo.setUpdatedOn(entity.getData().getUpdatedOn());
-            additionalServiceLovVo.setUpdatedBy(entity.getData().getUpdatedBy());
+            additionalServiceLovVo.setUpdatedBy(toUserInfoVO(entity.getData().getUpdatedBy()));
         
         }
         catch(Exception e){
@@ -165,14 +168,26 @@ public class AdditionalServiceAssembler implements GenericAssembler<AdditionalSe
             }
 
             data.setCreatedOn(vo.getCreatedOn());
-            data.setCreatedBy(vo.getCreatedBy());
+            data.setCreatedBy(toUserInfo(vo.getCreatedBy()));
             data.setUpdatedOn(vo.getUpdatedOn());
-            data.setUpdatedBy(vo.getUpdatedBy());
+            data.setUpdatedBy(toUserInfo(vo.getUpdatedBy()));
 
             entity.setId(vo.getId()); 
             entity.setData(data);
         }
         return entity;
+    }
+
+    public UserInfoVO toUserInfoVO(UserInfo userInfo){
+        UserInfoVO userInfoVO = new UserInfoVO();
+        BeanUtils.copyProperties(userInfo, userInfoVO);
+        return userInfoVO;
+    }
+
+    public UserInfo toUserInfo(UserInfoVO userInfoVO){
+        UserInfo userInfo = new UserInfo();
+        BeanUtils.copyProperties(userInfoVO, userInfo);
+        return userInfo;
     }
 
 }
