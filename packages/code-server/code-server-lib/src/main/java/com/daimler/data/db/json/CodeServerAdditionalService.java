@@ -48,6 +48,6 @@ import java.util.List;
      private String id;
 	 private Date createdOn;
 	 private Date updatedOn;
-	 private String createdBy;
-	 private String updatedBy;
+	 private UserInfo createdBy;
+	 private UserInfo updatedBy;
  } 

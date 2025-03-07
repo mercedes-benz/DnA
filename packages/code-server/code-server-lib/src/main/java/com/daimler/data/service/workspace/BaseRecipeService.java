@@ -11,6 +11,7 @@ import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -50,6 +51,8 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import org.springframework.http.HttpStatus;
 import com.daimler.data.application.client.GitClient;
 
@@ -465,9 +468,12 @@ public class BaseRecipeService implements RecipeService{
 		UserInfo currentUser = userStore.getUserInfo();
 		Date currentTime = new Date();
 		softwareRequestVO.setCreatedOn(currentTime);
-    	softwareRequestVO.setCreatedBy(currentUser.getId());
-    	softwareRequestVO.setUpdatedOn(currentTime);
-    	softwareRequestVO.setUpdatedBy(currentUser.getId());
+    	CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO createdByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, createdByUser);
+		softwareRequestVO.setCreatedBy(createdByUser);
+		softwareRequestVO.setUpdatedOn(currentTime);
+    	softwareRequestVO.setUpdatedBy(createdByUser);
 		CodeServerSoftwareNsql softwareEntity = softwareAssembler.toEntity(softwareRequestVO);
 		CodeServerSoftwareNsql savedSoftwareEntity = softwareJpaRepo.save(softwareEntity);
 		return softwareAssembler.toVo(savedSoftwareEntity);
@@ -498,8 +504,11 @@ public class BaseRecipeService implements RecipeService{
 	public SoftwareCollection updateSoftware(SoftwareCollection softwareRequestVO) {
 		UserInfo currentUser = userStore.getUserInfo();
 		Date currentTime = new Date();
+		CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO updatedByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, updatedByUser);
 		softwareRequestVO.setUpdatedOn(currentTime);
-    	softwareRequestVO.setUpdatedBy(currentUser.getId());
+    	softwareRequestVO.setUpdatedBy(updatedByUser);
 		CodeServerSoftwareNsql softwareEntity = softwareAssembler.toEntity(softwareRequestVO);
 		CodeServerSoftwareNsql savedSoftwareEntity = softwareJpaRepo.save(softwareEntity);
 		return softwareAssembler.toVo(savedSoftwareEntity);
@@ -525,9 +534,12 @@ public class BaseRecipeService implements RecipeService{
 		UserInfo currentUser = userStore.getUserInfo();
 		Date currentTime = new Date();
 		addServiceRequestVO.setCreatedOn(currentTime);
-    	addServiceRequestVO.setCreatedBy(currentUser.getId());
+    	CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO createdByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, createdByUser);
+		addServiceRequestVO.setCreatedBy(createdByUser);
     	addServiceRequestVO.setUpdatedOn(currentTime);
-    	addServiceRequestVO.setUpdatedBy(currentUser.getId());
+    	addServiceRequestVO.setUpdatedBy(createdByUser);
 		CodeServerAdditionalServiceNsql serviceEntity = additionalServiceAssembler.toEntity(addServiceRequestVO);
 		CodeServerAdditionalServiceNsql savedServiceEntity = serviceJpaRepo.save(serviceEntity);
 		return additionalServiceAssembler.toVo(savedServiceEntity);
@@ -539,7 +551,10 @@ public class BaseRecipeService implements RecipeService{
 		UserInfo currentUser = userStore.getUserInfo();
 		Date currentTime = new Date();
 		addServiceRequestVO.setUpdatedOn(currentTime);
-    	addServiceRequestVO.setUpdatedBy(currentUser.getId());
+    	CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO createdByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, createdByUser);
+		addServiceRequestVO.setUpdatedBy(createdByUser);
 		CodeServerAdditionalServiceNsql serviceEntity = additionalServiceAssembler.toEntity(addServiceRequestVO);
 		CodeServerAdditionalServiceNsql savedServiceEntity = serviceJpaRepo.save(serviceEntity);
 		return additionalServiceAssembler.toVo(savedServiceEntity);
