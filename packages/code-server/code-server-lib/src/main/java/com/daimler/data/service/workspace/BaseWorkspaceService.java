@@ -143,9 +143,6 @@ import com.daimler.data.util.ConstantsUtility;
 	 private String collabPid;
 
 
-	 @Value("${codeServer.codespace.filename}")
-	 private String codespaceFileName;
-
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
 
