@@ -365,9 +365,7 @@
         margin-top: -10px;
     }
 }
-
-:global {
-    .mbc-modal-wrapper .mbc-modal {
-        background-color: #1c2026 !important;
-    }
+.csCardsContainer {
+    background: #1c2026;
+    padding: 1px 20px;
 }

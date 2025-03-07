@@ -12,12 +12,43 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 
-const AddAdditionalServiceForm = ({ onAddAdditionalService }) => {
-  const [scriptContent, setScriptContent] = useState('');
+const initialContent = {
+  args: [
+    'string'
+  ],
+  env: [
+    {
+      name: 'string',
+      value: 'string'
+    }
+  ],
+  image: 'string',
+  imagePullPolicy: 'string',
+  name: 'string',
+  ports: [
+    {
+      containerPort: 0,
+      protocol: 'string'
+    }
+  ],
+  securityContext: {
+    runAsUser: 0
+  },
+  volumeMounts: [
+    {
+      mountPath: 'string',
+      name: 'string'
+    }
+  ]
+};
+
+const AddAdditionalServiceForm = ({ edit, additionalService, onAddAdditionalService }) => {
+  const [scriptContent, setScriptContent] = useState(edit ? JSON.stringify(additionalService.additionalProperties, null, '\t') : JSON.stringify(initialContent, null, '\t'));
 
   const methods = useForm({ 
     defaultValues: {
-      name: '',
+      serviceName: edit ? additionalService?.serviceName : '',
+      version: edit ? additionalService?.version : '',
     }
   });
   const {
@@ -26,13 +57,14 @@ const AddAdditionalServiceForm = ({ onAddAdditionalService }) => {
     formState: { errors },
   } = methods;
 
-  const handleAddSoftware = (values) => {
+  const handleAddAdditionalService = (values) => {
     ProgressIndicator.show();
     const data = {
-      name: values?.name?.trim(),
-      script: scriptContent,
+      serviceName: values?.serviceName?.trim(),
+      version: values?.version?.trim(),
+      additionalProperties: JSON.parse(scriptContent),
     };
-    CodeSpaceApiClient.addSoftware(data).then(() => {
+    CodeSpaceApiClient.addAdditionalService(data).then(() => {
       ProgressIndicator.hide();
       onAddAdditionalService();
       Notification.show('Additional Service added successfully');
@@ -45,36 +77,73 @@ const AddAdditionalServiceForm = ({ onAddAdditionalService }) => {
     });
   };
 
+  const handleEditAdditionalService = (values) => {
+    ProgressIndicator.show();
+    const data = {
+      serviceName: values?.serviceName?.trim(),
+      version: values?.version?.trim(),
+      additionalProperties: JSON.parse(scriptContent),
+    };
+    CodeSpaceApiClient.editAdditionalService(additionalService?.id, data).then(() => {
+      ProgressIndicator.hide();
+      onAddAdditionalService();
+      Notification.show('Additional Service edited successfully');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.data?.response?.errors?.[0]?.message | error?.response?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while editing additional service',
+        'alert',
+      );
+    });
+  };
+
   return (
     <>
       <FormProvider {...methods}>
         <div className={classNames(Styles.form)}>
           <div className={Styles.formHeader}>
-            <h3>Add Additional Service</h3>
+            <h3>{edit ? 'Edit' : 'Add'} Additional Service</h3>
             <p>Enter following information to add!</p>
           </div>
           <div className={Styles.flex}>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.serviceName ? 'error' : '')}>
                 <label className={'input-label'}>
-                  Name <sup>*</sup>
+                  Service Name <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="name"
+                  id="serviceName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={100}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
+                  {...register('serviceName', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.serviceName?.message}{errors.serviceName?.type === 'pattern' && 'Service name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
+              </div>
+            </div>
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group include-error', errors?.version ? 'error' : '')}>
+                <label className={'input-label'}>
+                  Version <sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="version"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={100}
+                  {...register('version', { required: '*Missing entry' })}
+                />
+                <span className={'error-message'}>{errors?.version?.message}</span>
               </div>
             </div>
             <div className={Styles.col}>
               <div className={classNames('input-field-group')}>
                 <label className={'input-label'}>
-                  Script <sup>*</sup>
+                  Additional Properties <sup>*</sup>
                 </label>
                 <div>
                   <AceEditor
@@ -111,10 +180,10 @@ const AddAdditionalServiceForm = ({ onAddAdditionalService }) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                handleAddSoftware(values);
+                edit ? handleEditAdditionalService(values) : handleAddAdditionalService(values);
               })}
             >
-              Add Software
+              { edit ? 'Edit Additional Service' : 'Add Additional Service' }
             </button>
           </div>
         </div>

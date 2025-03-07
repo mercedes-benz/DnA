@@ -364,7 +364,7 @@ const AllCodeSpaces = (props) => {
             <div className="progress infinite" />
         </div>
     ) : (
-        <div>
+        <div className={Styles.csCardsContainer}>
             <div>
                 {selectedCodespaces?.workspaces?.length === 0 ? (
                     <div className={classNames(Styles.content)}>
@@ -469,6 +469,7 @@ const AllCodeSpaces = (props) => {
                 setShowDeleteCodespaceGroupModal(false);
                 Notification.show(`Code Space Group deleted successfully`);
                 getCodeSpaceGroupsData();
+                getCodeSpacesData();
                 ProgressIndicator.hide();
             })
             .catch((e) => {
@@ -836,7 +837,7 @@ const AllCodeSpaces = (props) => {
                     showCancelButton={false}
                     modalWidth="800px"
                     show={showAddCodespaceGroupModal}
-                    content={<AddCodespaceGroupModal onSave={() => { setShowAddCodespaceGroupModal(false); getCodeSpaceGroupsData(); }}/>}
+                    content={<AddCodespaceGroupModal onSave={() => { setShowAddCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
                     scrollableContent={true}
                     onCancel={() => { setShowAddCodespaceGroupModal(false) }}
                 />
@@ -849,7 +850,7 @@ const AllCodeSpaces = (props) => {
                     showCancelButton={false}
                     modalWidth="800px"
                     show={showEditCodespaceGroupModal}
-                    content={<AddCodespaceGroupModal edit={true} group={selectedCodeSpaceGroup} onSave={() => { setShowEditCodespaceGroupModal(false); getCodeSpaceGroupsData(); }}/>}
+                    content={<AddCodespaceGroupModal edit={true} group={selectedCodeSpaceGroup} onSave={() => { setShowEditCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
                     scrollableContent={true}
                     onCancel={() => { setShowEditCodespaceGroupModal(false) }}
                 />

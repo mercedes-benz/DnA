@@ -21,8 +21,7 @@ import { USER_ROLE } from '../../Utility/constants';
 const ManageRecipes = ({ user }) => {
   const history = useHistory();
 
-  const isAdmin = user.roles.find((role) => role.id === USER_ROLE.ADMIN) !== undefined ||
-                  user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
+  const isAdmin = user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
 
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
