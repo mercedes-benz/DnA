@@ -32,6 +32,9 @@ const devConfig = {
       standalone: false,
     }),
   ],
+  resolve: {
+    fallback: { crypto: false },
+  },
 };
 
 module.exports = merge(base, devConfig);

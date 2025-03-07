@@ -13,6 +13,7 @@ import { fabricApi } from '../../apis/fabric.api';
 import Spinner from '../../components/spinner/Spinner';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import Lakehouses from '../../components/Lakehouses/Lakehouses';
+import { Envs } from '../../utilities/envs';
 
 const WorkspaceDetails = ({ workspace }) => {
   return (
@@ -151,6 +152,9 @@ const FabricWorkspace = ({ user }) => {
           }
         });
   };
+  const userRoles = user?.entitlementGroup
+      ?.filter(ent => ent.startsWith(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}`))
+      ?.map(ent => ent.split('_').at(-1)) || ['N/A'];
 
   return (
     <React.Fragment>
@@ -158,6 +162,11 @@ const FabricWorkspace = ({ user }) => {
         <div className={classNames(Styles.wrapper)}>
           {!loading && 
             <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
+              <div className={Styles.draftIndicatorCol}>
+                {userRoles.map((role, index) => (
+                  <span key={index} className={Styles.draftIndicator}>{role}</span>
+                ))}
+              </div>
               <div>
                 <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
                   <i className="icon mbc-icon refresh"></i>

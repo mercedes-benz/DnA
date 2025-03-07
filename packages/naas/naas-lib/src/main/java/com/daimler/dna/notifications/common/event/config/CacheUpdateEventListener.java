@@ -213,6 +213,7 @@ public class CacheUpdateEventListener {
 									emailNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 								}
 								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
+
 									appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
 									if(record.value().getEventType().contains("Playground Project")){
 										emailNotificationPreferenceFlag = true;
@@ -220,6 +221,7 @@ public class CacheUpdateEventListener {
 									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
 									}	
+
 								}
 								if(record.value().getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();

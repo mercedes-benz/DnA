@@ -12,7 +12,7 @@ spec:
           containers:
             - name: mysql-entire-db-backup
               image: >-
-                xxxx/dna/databack/mysql-backup-u1005:dbea4c6457a3df4e7246721757a24f5bea8d4a0c
+                registry-emea.app.corpintra.net/dnaplatform/databack/mysql-backup-u1005:dbea4c6457a3df4e7246721757a24f5bea8d4a0c-dup
               env:
                 - name: DB_SERVER
                   value: {{ .Values.backupRestore.DB_SERVER }}
@@ -25,7 +25,7 @@ spec:
                 - name: DB_DUMP_DEBUG
                   value: {{ .Values.backupRestore.DB_PASS }}
                 - name: DB_DUMP_TARGET
-                  value: {{ .Values.backupRestore.DB_DUMP_TARGET }}
+                  value: {{ .Values.backupRestore.ENTIRE_DB_DUMP_TARGET }}
                 - name: AWS_ACCESS_KEY_ID
                   value: {{ .Values.backupRestore.AWS_ACCESS_KEY_ID }}
                 - name: AWS_SECRET_ACCESS_KEY
