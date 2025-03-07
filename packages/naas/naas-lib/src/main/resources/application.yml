@@ -3,7 +3,7 @@ spring:
   application:
     name: notification-service
 
-    version: 3.1.17
+    version: 3.1.18
 
   profile: 
     active: production
@@ -102,6 +102,8 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 dna:
   uri: ${DNA_URI:http://localhost:7171}
   ui.uri: ${DNA_UI_URI:XXXX}
+  teams.uri: ${DNA_TEAMS_URI:XXXXX}
+  mattermost.uri: ${DNA_MATTERMOST_URI:XXXX}
 # token: ${DNA_AUTH_API_TOKEN:XXXX}
   user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
   user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
