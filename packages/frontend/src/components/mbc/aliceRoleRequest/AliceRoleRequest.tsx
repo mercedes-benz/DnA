@@ -7,7 +7,6 @@ import TextBox from '../shared/textBox/TextBox';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { ApiClient } from '../../../services/ApiClient';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
-import { SESSION_STORAGE_KEYS } from 'globals/constants';
 
 const AliceRoleRequest = () => {
   const goback = () => {
@@ -19,7 +18,7 @@ const AliceRoleRequest = () => {
 
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const roleNameVal = e.currentTarget.value;
-    setRoleName(roleNameVal.toUpperCase());
+    setRoleName(roleNameVal);
     setRoleNameError('');
   }
 
@@ -33,7 +32,7 @@ const AliceRoleRequest = () => {
       setRoleNameError('Role name cannot contain spaces');
       return false;
     }
-    if (specialCharPattern.test(roleName.toUpperCase())) {
+    if (specialCharPattern.test(roleName)) {
       setRoleNameError('Role name can only contain letters, numbers, and the following characters: . _ -');
       return false;
     }
@@ -41,10 +40,7 @@ const AliceRoleRequest = () => {
   }
 
   useEffect(() => {
-    const storedRoles = sessionStorage.getItem(SESSION_STORAGE_KEYS.ALICE_ROLES_CREATED);
-    if (storedRoles) {
-      setRolesCreated(JSON.parse(storedRoles));
-    }
+    fetchRole();
   }, []);
 
   const createRole = () => {
@@ -55,6 +51,7 @@ const AliceRoleRequest = () => {
           "roleName": value
         }
       }
+      
       ProgressIndicator.show();
       ApiClient.createAliceRole(data)
         .then((res: any) => {
@@ -63,7 +60,6 @@ const AliceRoleRequest = () => {
             const updatedRoles = [...rolesCreated, value]
             setRolesCreated(updatedRoles);
             setRoleName('');
-            sessionStorage.setItem(SESSION_STORAGE_KEYS.ALICE_ROLES_CREATED, JSON.stringify(updatedRoles));
             setRoleNameError('');
             Notification.show('Role created successfully')
           } else {
@@ -84,6 +80,32 @@ const AliceRoleRequest = () => {
           );
         });
     }
+
+  }
+  const fetchRole = () => {
+    ProgressIndicator.show();
+    ApiClient.getExistingRoles(Envs.ALICE_APP_ID)
+      .then((res: any) => {
+        ProgressIndicator.hide();
+        if(Array.isArray(res)) return;
+        if (res?.data) {
+          setRolesCreated(res.data.roles);
+        } else {
+          if (res?.errors[0]?.message?.length > 0) {
+            Notification.show(res?.errors[0]?.message, 'alert')
+          }
+          if (res?.warnings[0]?.message?.length > 0) {
+            Notification.show(res?.warnings[0]?.message, 'warning')
+          }
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          err?.message || "Something went wrong", 
+          "alert"
+        );
+      });
 
   }
   return (
@@ -162,7 +184,7 @@ const AliceRoleRequest = () => {
             <div className={classNames(Styles.rolesListSection)} >
               {rolesCreated?.length ? (<div className={classNames(Styles.rolesList)} >
                 <div className={classNames(Styles.header)}>
-                  <h5>IDs of roles created in this session</h5>
+                  <h5>Roles managed by you</h5> 
                 </div>
                 <div className={Styles.infoLinks}>
                   {rolesCreated.map((item: any, key: any) => {
