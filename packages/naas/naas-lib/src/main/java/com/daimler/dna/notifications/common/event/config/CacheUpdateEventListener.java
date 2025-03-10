@@ -219,7 +219,7 @@ public class CacheUpdateEventListener {
 									}
 									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
-									}	
+									}
 								}
 								if(record.value().getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();

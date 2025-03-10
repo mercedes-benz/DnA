@@ -155,7 +155,6 @@ public class KafkaCoreCampaignService {
 						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
 						}
-						
 					}
 					if(message.getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
