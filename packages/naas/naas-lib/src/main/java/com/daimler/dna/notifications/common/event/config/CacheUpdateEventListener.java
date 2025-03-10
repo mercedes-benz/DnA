@@ -213,14 +213,12 @@ public class CacheUpdateEventListener {
 									emailNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 								}
 								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
-									appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
-									
-									if(record.value().getEventType().contains("Playground_alert")){
+									appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Playground Project")){
 										emailNotificationPreferenceFlag = true;
 									}
-
 									else{
-									emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
 									}
 								}
 								if(record.value().getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {

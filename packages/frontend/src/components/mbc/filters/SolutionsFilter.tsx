@@ -323,8 +323,10 @@ const SolutionsFilter = ({
               });
 
               if(filterPreferences.dataValueRange) {
-                queryParams.dataValueRange.startYear = filterPreferences.dataValueRange.split(',')[0];
-                queryParams.dataValueRange.endYear = filterPreferences.dataValueRange.split(',')[1];
+                const prefStartYear = filterPreferences.dataValueRange.split(',')[0];
+                const prefEndYear = filterPreferences.dataValueRange.split(',')[1];
+                queryParams.dataValueRange.startYear = years.includes(prefStartYear) ? prefStartYear : defaultStartYear;
+                queryParams.dataValueRange.endYear = years.includes(prefEndYear) ? prefEndYear : defaultEndYear;
               } else {
                 queryParams.dataValueRange.startYear = defaultStartYear;
                 queryParams.dataValueRange.endYear = defaultEndYear;
@@ -337,14 +339,23 @@ const SolutionsFilter = ({
               setFilterApplied(true);
             }
             userPreferenceDataId = userPreference.id;
+          } else {
+            queryParams.dataValueRange.startYear = defaultStartYear;
+            queryParams.dataValueRange.endYear = defaultEndYear;
           }
           // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
-          if(queryParams.dataValueRange.startYear < years[0]){
-            queryParams.dataValueRange.startYear = years[0];
+        
+          if (!years.includes(Number(queryParams.dataValueRange.startYear))) {
+            queryParams.dataValueRange.startYear = years.includes(Number(defaultStartYear))
+              ? defaultStartYear
+              : years[0];
           }
-          if(queryParams.dataValueRange.endYear > years[years.length -1]){
-            queryParams.dataValueRange.endYear = years[years.length -1];
+          if (!years.includes(Number(queryParams.dataValueRange.endYear))) {
+            queryParams.dataValueRange.endYear = years.includes(Number(defaultEndYear))
+              ? defaultEndYear
+              : years[years.length - 1];
           }
+
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
