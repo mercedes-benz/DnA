@@ -858,7 +858,7 @@ prometheus:
       ingressClassName: prod-ingress-intranet
       path: /
       hosts:
-        - metrics.dna-aws.app.corpintra.net
+        - metrics.dna.app.corpintra.net
       annotations:
         traefik.frontend.rule.type: PathPrefix
         kubernetes.io/ingress.class: prod-ingress-intranet
@@ -869,7 +869,7 @@ prometheus:
         traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
       tls:
         - hosts:
-            - metrics.dna-aws.app.corpintra.net
+            - metrics.dna.app.corpintra.net
           secretName: metrics-pg-tls
   # Disable default network policies of prometheus chart, we'll use our own more fine-grained network policies
   networkPolicy:
@@ -892,7 +892,7 @@ grafana:
     # enabled: true
     path: /
     hosts:
-       - monitoring.dna-aws.app.corpintra.net
+       - monitoring.dna.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: prod-ingress-intranet
@@ -903,15 +903,15 @@ grafana:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
     tls:
       - hosts:
-          - monitoring.dna-aws.app.corpintra.net
+          - monitoring.dna.app.corpintra.net
         secretName: grafana-tls
 
   # if the Grafana URL uses a subpath like /grafana, ensure to set the following lines
   assertNoLeakedSecrets: false
   grafana.ini:
     server:
-      domain: monitoring.dna-aws.app.corpintra.net
-      root_url: https://monitoring.dna-aws.app.corpintra.net
+      domain: monitoring.dna.app.corpintra.net
+      root_url: https://monitoring.dna.app.corpintra.net
       serve_from_sub_path: false
     smtp:
       enabled: true

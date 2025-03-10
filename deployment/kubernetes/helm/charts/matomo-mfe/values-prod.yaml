@@ -32,13 +32,13 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: matomo.dna-aws.app.corpintra.net
+    - host: matomo.dna.app.corpintra.net
       paths:
         - path: /
           pathType: Prefix
   tls:
     - hosts:
-        - matomo.dna-aws.app.corpintra.net
+        - matomo.dna.app.corpintra.net
       secretName: matomo-tls-secret
 resources:
   limits:
