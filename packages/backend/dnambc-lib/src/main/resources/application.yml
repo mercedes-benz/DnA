@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.4.6
+    version: 3.4.7
   profile:
     active: production
   flyway:

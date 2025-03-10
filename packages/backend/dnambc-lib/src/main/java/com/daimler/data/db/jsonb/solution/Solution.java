@@ -37,6 +37,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.daimler.data.dto.LeanIXDetails;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -120,5 +122,8 @@ public class Solution {
 	private String dataStrategyDomain;
 	private String additionalResource;
 	private BigDecimal requestedFTECount;
+
+	private String appId;
+	private LeanIXDetails leanIXDetails;
 	
 }
