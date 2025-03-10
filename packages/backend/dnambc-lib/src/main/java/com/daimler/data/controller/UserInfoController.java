@@ -89,8 +89,6 @@ public class UserInfoController implements UsersApi {
 	@Value("${teamsApi.enabled}")
 	private boolean teamsApiEnabled;
   
-	@Autowired
-	private HasuraClient hasuraClient;
 	
 	@Value("${dna.user.techUserPrefix}")
 	private String techUserPrefix;
@@ -384,10 +382,10 @@ public class UserInfoController implements UsersApi {
 					logger.info("Failed to onboarding already existing user {} ", existingUser.getId());
 					return new ResponseEntity<>(userInfoVO, HttpStatus.CONFLICT);
 				}
-				HasuraUserInfoInsertGenericResponse response  = hasuraClient.onboardNewUser(userInfoVO);
+				UserInfoVO response  = userInfoService.onboardTechnicalUser(userInfoVO);
 				if (response != null) {
-					log.info("Completed process {} with the response status {}", userRequestVO.getData().getId(), response.getStatus());
-					return new ResponseEntity<>(response.getUserInfoVO(), response.getStatus());
+					log.info("Completed process for ID {} added successfully! ", userRequestVO.getData().getId());
+					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
 			} else {
 				log.debug("user details update failed for userid {}. Bad request", userRequestVO.getData().getId());
