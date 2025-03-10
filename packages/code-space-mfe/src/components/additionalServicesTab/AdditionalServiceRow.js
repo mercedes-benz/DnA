@@ -26,9 +26,9 @@ const AdditionalServiceRow = ({ service, onDeleteAdditionalService, onSelectAddi
         <td className={'wrap-text'}>
           <span>{service?.serviceName}-{service?.version}</span>
         </td>
-        {/* <td className={'wrap-text'}>
-          {service?.configuration}
-        </td> */}
+        <td className={'wrap-text'}>
+          {service?.createdBy?.id}
+        </td>
         <td className={classNames('wrap-text', Styles.actionColumn)}>
           <div>
             <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={handleEditAdditionalService}>
