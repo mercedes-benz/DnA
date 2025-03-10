@@ -845,15 +845,13 @@ definitions:
         format: date
         description: "created date for additional software"
       createdBy:
-        type: string
-        description: "Created by user name"
+        $ref: "#/definitions/UserInfoVO"
       updatedOn:
         type: string
         format: date
         description: "updated date for additional software"
       updatedBy:
-        type: string
-        description: "Updated by user name"
+        $ref: "#/definitions/UserInfoVO"
 
   ResponseServiceVO:
     type: object
@@ -1010,13 +1008,13 @@ definitions:
         format: date
         description: "created date for software"
       createdBy:
-        type: string
-        description: "Created by user name"
+        $ref: "#/definitions/UserInfoVO"
       updatedOn:
         type: string
         format: date
         description: "updated date for software"
       updatedBy:
-        type: string
-        description: "Updated by user name" 
+        $ref: "#/definitions/UserInfoVO"
+
+      
       
