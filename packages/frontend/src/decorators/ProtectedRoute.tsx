@@ -80,7 +80,8 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
             "lastName": userDetails.lastName,
             "id": userDetails.id,
             "mobileNumber": userDetails.mobileNumber,
-            "divisionAdmins": userDetails.divisionAdmins
+            "divisionAdmins": userDetails.divisionAdmins, 
+            "entitlementGroup": userDetails.entitlement_group
           }
         });
         const title = this.props.title;
