@@ -1562,7 +1562,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	
 			// Set alias command
 			String setAliasCommand = String.format("mc alias set %s %s %s %s %s",
-					env, url, minioAdminAccessKey, userSecretKey, flag);
+					env, url, minioAdminAccessKey, minioAdminSecretKey, flag);
 	
 			// Remove bucket command (--force flag deletes the bucket and its contents)
 			String removeBucketCommand = String.format("mc rb --force %s/%s %s",
