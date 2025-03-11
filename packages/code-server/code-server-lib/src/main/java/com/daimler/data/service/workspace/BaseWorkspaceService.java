@@ -142,10 +142,8 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.collab.pid}")
 	 private String collabPid;
 
-
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
-
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;

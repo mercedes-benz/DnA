@@ -72,6 +72,9 @@ public class UiLiciousClient {
     @Value("${promptsraftsubscriptions.uiLicious.projectID}")
     private String projectID;
 
+    @Value("${promptsraftsubscriptions.uiLicious.oauthKey}")
+    private String oauthKey;
+
     public UiliciousStartCreationResponseDTO startCreation (String orgName, String projectName, List<MemberInfoVO> memberDetails){
         UiliciousStartCreationResponseDTO response = new UiliciousStartCreationResponseDTO();
 
@@ -90,6 +93,7 @@ public class UiLiciousClient {
             bodyData.setOrgName(orgName);
             bodyData.setProjectName(projectName);
             bodyData.setMemberMailId(memberDetail.getEmail());
+            bodyData.setOath_Key(oauthKey);
 
             requestBody.setData(bodyData);
             requestBody.setBrowser(browser);
