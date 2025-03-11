@@ -1251,9 +1251,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			// 	minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			// 	minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
 			// }
-		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-				 | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-				 | IllegalArgumentException | IOException e) {
+		// } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+		// 		 | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+		// 		 | IllegalArgumentException | IOException e) {
+		} catch (Exception e) {
 			LOGGER.error("Error occurred while removing bucket from Minio:{} ", e.getMessage());
 			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			minioGenericResponse.setErrors(Arrays
