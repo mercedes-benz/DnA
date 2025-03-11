@@ -1245,12 +1245,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioGenericResponse.setStatus(ConstantsUtility.SUCCESS);
 				minioGenericResponse.setHttpStatus(HttpStatus.OK);
 				
-			} else {
-				LOGGER.debug("Fetch secret from vault failed for user:{}", userId);
-				minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:" + userId)));
-				minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
-				minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
-			}
+			// } else {
+			// 	LOGGER.debug("Fetch secret from vault failed for user:{}", userId);
+			// 	minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:" + userId)));
+			// 	minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+			// 	minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+			// }
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				 | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				 | IllegalArgumentException | IOException e) {
