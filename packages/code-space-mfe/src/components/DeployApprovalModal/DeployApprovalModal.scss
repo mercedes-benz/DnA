@@ -1,8 +1,23 @@
-.allCodeSpace {
+.deployApprovalModal {
   margin-bottom: 15px;
   flex: 1 auto;
   position: relative;
-
+  .threeColumnFlexLayout{
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(33.3% - 7px);
+    }
+    padding-top: 20px;
+  }
+  .fourColumnFlexLayout{
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(25% - 7px);
+    }
+    padding-top: 20px;
+  }
   .flexLayout {
     display: flex;
     justify-content: space-between;
