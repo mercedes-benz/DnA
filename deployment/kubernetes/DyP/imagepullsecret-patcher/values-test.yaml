@@ -1,0 +1,60 @@
+image:
+  # -- repository
+  repository: registry-emea.app.corpintra.net/dnaplatform/titansoft/imagepullsecret-patcher
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # -- tag
+  tag: "v0.14"
+conf:
+  # -- overwrite secrets when not match
+  force: true
+  # -- show DEBUG logs
+  debug: false
+  # -- run the update loop once, allowing for cronjob scheduling if desired
+  runone: false
+  # -- only modify secrets which were created by imagepullsecret
+  managedonly: false
+  # -- comma-separated list of serviceaccounts to patch
+  service_accounts: []
+  # -- if true, list and patch all service accounts and the service_accounts value is ignored
+  all_service_accounts: true
+  # -- comma-separated namespaces excluded from processing
+  excluded_namespaces: [cert-manager, kube-node-lease, kube-public, kube-system]
+  # -- duration string which defines how often namespaces are checked, see https://golang.org/pkg/time/#ParseDuration for more examples
+  interval: "1"
+  # -- Docker credentials secret < .dockerconfigjson = {"auths": {"docker.io": {"auth": "username:password" | b64enc }}} | b64enc >
+  secretName: "imagepullsecret"
+  secretValue: <path:dna_kv/data/staging/kubernetesSecret/infra#imagepullsecret | base64encode>
+
+imagePullSecrets: 
+  - name: imagepullsecret
+nameOverride: ""
+fullnameOverride: "imagepullsecret-patcher"
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
