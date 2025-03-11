@@ -1227,8 +1227,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				if (!checkResults.iterator().hasNext()) {
 					// No objects or versions remain, safe to delete bucket
 					LOGGER.info("Removing bucket:{} from Minio", bucketName);
-					minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucketName).build());
-					LOGGER.info("Success from Minio remove Bucket:{}", bucketName);
+					//minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucketName).build());
+					String deleteResponse = this.deleteBucketWithContents(userId, bucketName, false);
+					LOGGER.info("mc delete bucket response: "+ deleteResponse);
+					//LOGGER.info("Success from Minio remove Bucket:{}", bucketName);
 				} else {
 					LOGGER.error("Objects or versions still remain in bucket, cannot delete.");
 					minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Objects or versions still remain in bucket, cannot delete for user" + userId)));
