@@ -543,7 +543,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 					// To remove bucket.
 					LOGGER.info("Removing bucket:{}", bucketName);
-					minioGenericResponse = removeBucket(userId, bucketName);
+					//minioGenericResponse = removeBucket(userId, bucketName);
+					String deleteResponse = this.deleteBucketWithContents(userId, bucketName, false);
+					LOGGER.info("mc delete bucket response: "+ deleteResponse);
+					
 				} else {
 					LOGGER.error("Bucket is not found" + bucketName);
 					minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
@@ -1526,6 +1529,83 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (Exception e) {
 			LOGGER.error("Error occurred while detaching policy in MinIO using mc: {}", e.getMessage(), e);
 			return "Error detaching policy: " + e.getMessage();
+		}
+	}
+
+	@Override
+	public String deleteBucketWithContents(String userId, String bucketName, boolean isAdmin) {
+		try {
+		   String userSecretKey = "";
+	
+		   // Use admin credentials if the user is an admin
+		   if (isAdmin) {
+			   userId = minioAdminAccessKey;
+			   userSecretKey = minioAdminSecretKey;
+		   } else {
+			   LOGGER.debug("Fetching secrets from vault for user: {}", userId);
+			   userSecretKey = vaultConfig.validateUserInVault(userId);
+		   }
+   
+		   if (!StringUtils.hasText(userSecretKey)) {
+			   LOGGER.error("User: {} not available in vault or secret key is empty.", userId);
+			   return "User not available or secret key is empty.";
+		   }
+   
+		   LOGGER.info("Fetched secret from vault successfully for user: {}", userId);
+	
+			// Construct the mc commands
+			String env = "storagebeminioclient";
+			String flag = "--insecure";
+			String url = storageHttpMethod + storageConnectHost;
+	
+			// Set alias command
+			String setAliasCommand = String.format("mc alias set %s %s %s %s %s",
+					env, url, minioAdminAccessKey, userSecretKey, flag);
+	
+			// Remove bucket command (--force flag deletes the bucket and its contents)
+			String removeBucketCommand = String.format("mc rb --force %s/%s %s",
+					env, bucketName, flag);
+	
+			// Execute the commands
+			boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+			ProcessBuilder aliasBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", setAliasCommand);
+			ProcessBuilder bucketBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", removeBucketCommand);
+	
+			// Execute alias command
+			Process aliasProcess = aliasBuilder.start();
+			int aliasExitCode = aliasProcess.waitFor();
+			if (aliasExitCode != 0) {
+				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+				return "Failed to set alias.";
+			}
+			LOGGER.debug("Alias set successfully for admin user.");
+	
+			// Execute bucket removal command
+			bucketBuilder.redirectErrorStream(true);
+			Process bucketProcess = bucketBuilder.start();
+	
+			// Read the output of the bucket removal command
+			StringBuilder output = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(bucketProcess.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					output.append(line).append("\n");
+				}
+			}
+	
+			int bucketExitCode = bucketProcess.waitFor();
+			LOGGER.debug("Process exited with code: {}", bucketExitCode);
+			LOGGER.debug("Response from mc: {}", output.toString());
+	
+			if (bucketExitCode != 0) {
+				LOGGER.error("Failed to delete bucket. Exit code: {}", bucketExitCode);
+				return "Failed to delete bucket.";
+			}
+	
+			return "Bucket deleted successfully: " + bucketName;
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while deleting bucket in MinIO using mc: {}", e.getMessage(), e);
+			return "Error deleting bucket: " + e.getMessage();
 		}
 	}
 
