@@ -64,7 +64,7 @@ ingress:
     cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
-    - host: chronos.dna-aws.app.corpintra.net
+    - host: chronos.dna.app.corpintra.net
       paths:
         - path: /api
           pathType: Prefix
