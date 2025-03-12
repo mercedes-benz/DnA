@@ -1269,7 +1269,7 @@ loki:
   fullnameOverride: "loki"
   chunksCache:
     podDisruptionBudget:
-      maxUnavailable: ""
+      maxUnavailable: null
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
