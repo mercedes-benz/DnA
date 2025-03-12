@@ -189,6 +189,8 @@ oidc:
 Storage:
   storageClass: dhc-gp3-retain
   accessModes: ReadWriteOnce
+  nfsaccessModes: ReadWriteMany
+  nfsstorageClass: nfs-sc
   size: 5Gi
 probes:
   initialDelaySeconds: 120
