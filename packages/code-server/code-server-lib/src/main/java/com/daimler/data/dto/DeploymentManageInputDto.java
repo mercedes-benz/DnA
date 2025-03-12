@@ -13,16 +13,22 @@ import lombok.NoArgsConstructor;
 public class DeploymentManageInputDto {
 
 	private String environment;
-	private String wsid;
-	private String projectName;
-	private String shortid;
 	private String action;
-	private String type;                                   
 	private String repo;
 	private String branch;
 	private String target_env;
-	private Boolean valutInjectorEnable;
-	private String secure_iam;
+	private String projectName;
 	private String appVersion;
+	private String wsid;
+	private Boolean valutInjectorEnable;
+	
+	// private String shortid;
+	
+	// private String type;                                   
+	
+	
+	
+	// private String secure_iam;
+	
 	
 }

@@ -84,26 +84,6 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         } else {
             ownerVo = vo;
         }
-        
-        //MIGHT NOT BE NECESSARY 
-        // if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl())
-        // &&
-        // Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl()))
-        // {
-        // if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) ||
-        // !ownerVo.isIsWorkspaceMigrated()) &&
-        // ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS))
-        // {
-        // GenericMessage emptyResponse = new GenericMessage();
-        // List<MessageDescription> errors = new ArrayList<>();
-        // MessageDescription msg = new MessageDescription();
-        // msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS
-        // before you deploy.");
-        // errors.add(msg);
-        // emptyResponse.setErrors(errors);
-        // return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
-        // }
-        // }
 
         List<String> authorizedUsers = new ArrayList<>();
         if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
@@ -139,26 +119,45 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         }
         if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")) {
             isPrivateRecipe = true;
-            buildRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+            // buildRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
         }
+        String environment = "int";
         String branch = "main";
+        if (buildRequestDto != null && !"int".equalsIgnoreCase(buildRequestDto.getEnvironment())) {
+            environment = "prod";
+        }
         if (buildRequestDto != null && buildRequestDto.getBranch() != null) {
             branch = buildRequestDto.getBranch();
         }
-        GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe);
+        String status = "";
+        if(environment.equalsIgnoreCase("int"))
+        {
+           status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+        }
+        else
+        {
+           status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+        }
+        if(status != null)
+        {
+           if (status.equalsIgnoreCase("BUILD_REQUESTED")) {
+               MessageDescription invalidTypeMsg = new MessageDescription();
+               invalidTypeMsg.setMessage(
+                       "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+               GenericMessage errorMessage = new GenericMessage();
+               errorMessage.addErrors(invalidTypeMsg);
+               log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+                       vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+               return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+           }
+        }
+        GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
-    // } catch (EntityNotFoundException e) {
-    //     log.error(e.getLocalizedMessage());
-    //     MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
-    //     GenericMessage errorMessage = new GenericMessage();
-    //     errorMessage.addErrors(invalidMsg);
-    //     log.error("No workspace found with id {}, failed to deploy", id);
-    //     return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
     } catch (Exception e) {
         log.error("Failed to build workspace {}, with exception {}", id, e.getLocalizedMessage());
         MessageDescription exceptionMsg = new MessageDescription("Failed to build due to internal error.");

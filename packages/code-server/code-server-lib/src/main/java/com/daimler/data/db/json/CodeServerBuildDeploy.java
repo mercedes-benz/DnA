@@ -45,7 +45,8 @@
  
      private static final long serialVersionUID = -1767843944100072529L;
      private String id;
-     private List<BuildAudit> buildAuditLogs;
+     private List<BuildAudit> intBuildAuditLogs;
+     private List<BuildAudit> prodBuildAuditLogs;
      private List<DeploymentAudit> intDeploymentAuditLogs;
      private List<DeploymentAudit> prodDeploymentAuditLogs;
  }

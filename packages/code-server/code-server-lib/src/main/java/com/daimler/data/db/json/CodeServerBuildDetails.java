@@ -18,7 +18,7 @@ public class CodeServerBuildDetails implements Serializable {
 	private UserInfo lastBuildBy;
 	private String lastBuildBranch;
 	private String lastBuildStatus;
-    private String artifactId;
 	private String version;
+	private String gitjobRunID;
 	
 }

@@ -67,13 +67,12 @@ public class WorkspaceJobStatusUpdateController  {
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{userId}/{name}",
+    @RequestMapping(value = "/workspaces/{wsId}/{userId}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.PUT)
-    public ResponseEntity<GenericMessage> updateWorkspace(@ApiParam(value = "Name of workspace that needs to be updated",required=true) @PathVariable("name") String name,
-    		@ApiParam(value = "user for which workspaces needs to be updated",required=true) @PathVariable("userId") String userId,
-    		@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
+    public ResponseEntity<GenericMessage> updateWorkspace(@ApiParam(value = "wsId for which workspaces needs to be updated",required=true) @PathVariable("wsId") String wsId,
+	@ApiParam(value = "user id for which workspaces needs to be updated",required=true) @PathVariable("userId") String userId,@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
 		
 		String gitJobPat = httpRequest.getHeader("Authorization");
 		if(!gitJobPat.equalsIgnoreCase(personalAccessToken)) {
@@ -85,7 +84,7 @@ public class WorkspaceJobStatusUpdateController  {
 			log.info("Authentication failed to use API. ");
 			return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
 		}
-		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"workspaceId", name);	
+		CodeServerWorkspaceVO existingVO = service.findByWorkspaceId(wsId);	
 		if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			String existingStatus = existingVO.getStatus();
 			log.info("existingStatus  is {}",existingStatus);
@@ -114,7 +113,7 @@ public class WorkspaceJobStatusUpdateController  {
 						"Not authorized to update other's workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {} and owner is {}", userId,name,owner);
+				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {} and owner is {}", userId,wsId,owner);
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 //			if(updateRequestVO.getLastDeployedOn()!=null)
@@ -171,7 +170,7 @@ public class WorkspaceJobStatusUpdateController  {
 			  
 			}
 			if(invalidStatus) {
-				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",name, existingStatus, latestStatus);
+				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",wsId, existingStatus, latestStatus);
 				MessageDescription invalidMsg = new MessageDescription("Cannot change workspace status from " + existingStatus + " to " + latestStatus + ". Invalid status.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(invalidMsg);
@@ -182,6 +181,16 @@ public class WorkspaceJobStatusUpdateController  {
 				environment = "Production";
 			}
 			if(existingStatus.equals("CREATED")) {
+				if(latestStatus.equalsIgnoreCase("BUILD_SUCCESS")) {
+					eventType = "Codespace-build";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Successfully build Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+				}
+				if(latestStatus.equalsIgnoreCase("BUILD_FAILED")) {
+					eventType = "Codespace-build Failed";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Failed to build Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
+				}
 				if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
 					eventType = "Codespace-Deploy";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
@@ -204,7 +213,7 @@ public class WorkspaceJobStatusUpdateController  {
 				}
 			}
 			String gitJobRunId = updateRequestVO.getGitjobRunID();
-			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId);
+			GenericMessage responseMessage = service.update(userId,wsId,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId);
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
 			// if(callKongApisFromBackend) {
 			// 	log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);
@@ -213,11 +222,11 @@ public class WorkspaceJobStatusUpdateController  {
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
-			log.info("workspace {} doesnt exists for User {} , or workspace already deleted and hence update not required",existingVO.getWorkspaceId(), userId);
+			log.info("workspace {} doesnt exists for User {} , or workspace already deleted and hence update not required",wsId, userId);
 			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(invalidMsg);
-			log.error("No workspace found with id {}, failed to update", existingVO.getWorkspaceId());
+			log.error("No workspace found with id {}, failed to update", wsId);
 			return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 		}
     }

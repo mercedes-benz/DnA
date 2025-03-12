@@ -502,12 +502,12 @@ public class CodeServerClient {
 			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
 			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(codeServerGitJobDeployUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
-				if(manageDeploymentResponse.getStatusCode().is2xxSuccessful()) {
+				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
 					status = "SUCCESS";
-					log.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
+					log.info("Success while performing {} action for codeServer workbench for wsid {} with repo {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo());
 				}
 				else {
-					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
+					log.info("Warnings while performing {} for codeServer workbench for wsid {} with repo {} , httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo(),manageDeploymentResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageDeploymentResponse.getBody() + " Response Code is : " + manageDeploymentResponse.getStatusCodeValue());
 					warnings.add(warning);
@@ -515,7 +515,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
+			log.error("Error occured while calling codeServer manage workbench for wsid {} with repo {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);

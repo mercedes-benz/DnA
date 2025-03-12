@@ -112,6 +112,8 @@ public interface WorkspaceService {
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
 
-	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe);
+	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment);
+
+	CodeServerWorkspaceVO findByWorkspaceId(String wsId);
 	
 }

@@ -189,8 +189,6 @@ definitions:
   BuildAuditVO:
     type: object
     properties:
-      # projectName:
-      #   type: string
       branch:
         type: string
         description: "Branch used for last Build"
@@ -208,9 +206,6 @@ definitions:
         type: string
         format: date
         description: "date on which codespace built."
-      artifactId:
-        type: string
-        description: "artifact id on which codespace is built"
       version:
         type: string
         description: "version of the build"
@@ -241,6 +236,9 @@ definitions:
       commitId:
         type: string
         description: "commit id on which codespace is deployed"
+      version:
+        type: string
+        description: "version of the build"  
 
   CodeServerBuildDeployVO:
     type: object
@@ -248,10 +246,14 @@ definitions:
       id:
        type: string
        description: "id"
-      buildAuditLogs:
+      intBuildAuditLogs:
         type: array
         items:
           $ref: "#/definitions/BuildAuditVO"
+      prodBuildAuditLogs:
+        type: array
+        items:
+          $ref: "#/definitions/BuildAuditVO"    
       intDeploymentAuditLogs:
         type: array
         items:
@@ -269,7 +271,5 @@ definitions:
         type: string
       comments:
         type: string
-      enableVersion:
-        type: boolean
-      repo:
+      environment:
         type: string

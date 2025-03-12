@@ -40,7 +40,6 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                     }
                     auditDetails.setBranch(audit.getBranch());
                     auditDetails.setVersion(audit.getVersion());
-                    auditDetails.setArtifactId(audit.getArtifactId());
                     auditDetails.setComments(audit.getComments());
                     auditDetailsVO.add(auditDetails);
                 }
@@ -68,7 +67,6 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
 					 }
 					 auditDetails.setBranch(audit.getBranch());
 					 auditDetails.setVersion(audit.getVersion());
-                     auditDetails.setArtifactId(audit.getArtifactId());
                      auditDetails.setComments(audit.getComments());
 					 buildAuditLogDetails.add(auditDetails);
                 }
@@ -144,9 +142,13 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                 CodeServerBuildDeploy data = entity.getData();
                 if (data != null) {
                     BeanUtils.copyProperties(data, vo);
-                    if (data.getBuildAuditLogs() != null && !data.getBuildAuditLogs().isEmpty()) {
-                        List<BuildAuditVO> auditDetails = this.toBuildAuditVO(data.getBuildAuditLogs());
-                        vo.setBuildAuditLogs(auditDetails);
+                    if (data.getIntBuildAuditLogs() != null && !data.getIntBuildAuditLogs().isEmpty()) {
+                        List<BuildAuditVO> auditDetails = this.toBuildAuditVO(data.getIntBuildAuditLogs());
+                        vo.setIntBuildAuditLogs(auditDetails);
+                    }
+                    if (data.getProdBuildAuditLogs() != null && !data.getProdBuildAuditLogs().isEmpty()) {
+                        List<BuildAuditVO> auditDetails = this.toBuildAuditVO(data.getProdBuildAuditLogs());
+                        vo.setProdBuildAuditLogs(auditDetails);
                     }
                     if (data.getIntDeploymentAuditLogs() != null && !data.getIntDeploymentAuditLogs().isEmpty()) {
                         List<DeploymentAuditVO> auditDetails = this
@@ -175,9 +177,13 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
             entity.setId(vo.getId());
             CodeServerBuildDeploy data = new CodeServerBuildDeploy();
             BeanUtils.copyProperties(vo, data);
-            if(vo.getBuildAuditLogs() != null){
-                List<BuildAudit> auditDetails = this.toBuildAudit(vo.getBuildAuditLogs());
-                data.setBuildAuditLogs(auditDetails);
+            if(vo.getProdBuildAuditLogs() != null){
+                List<BuildAudit> auditDetails = this.toBuildAudit(vo.getProdBuildAuditLogs());
+                data.setProdBuildAuditLogs(auditDetails);
+            }
+            if(vo.getIntBuildAuditLogs() != null){
+                List<BuildAudit> auditDetails = this.toBuildAudit(vo.getIntBuildAuditLogs());
+                data.setIntBuildAuditLogs(auditDetails);
             }
             if(vo.getIntDeploymentAuditLogs() != null){
                 List<DeploymentAudit> auditDetails = this.toDeploymentAudit(vo.getIntDeploymentAuditLogs());

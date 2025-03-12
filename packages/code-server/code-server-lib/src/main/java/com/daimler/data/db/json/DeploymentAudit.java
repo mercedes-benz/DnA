@@ -22,5 +22,6 @@ public class DeploymentAudit implements Serializable{
     private String branch;
     private String commitId;
     private String approvedBy;
+    private String version;
 
 }

@@ -17,11 +17,11 @@ public class BuildAudit implements Serializable{
 
     private String triggeredBy;
     private Date triggeredOn;
-    private String buildStatus;
     private Date buildOn;
+    private String buildStatus;
     private String branch;
-    private String artifactId;
     private String version;
     private String comments;
+    private String commitId;
 
 }

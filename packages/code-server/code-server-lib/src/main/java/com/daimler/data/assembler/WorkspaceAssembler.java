@@ -307,8 +307,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
 			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
-			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
-			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
+			//  List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
+			//  deploymentDetails.setDeploymentAuditLogs(auditDetails);
 		 }
 		 return deploymentDetails;
 	 }
@@ -387,11 +387,11 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 if(deploymentDetails.getDeploymentType()!=null){
 				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
 			 }
-			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
-			 {
-				 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
-				 deploymentDetailsVO.setDeploymentAuditLogs(auditDetails);
-			 }
+			//  if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
+			//  {
+			// 	 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
+			// 	 deploymentDetailsVO.setDeploymentAuditLogs(auditDetails);
+			//  }
 		 }
 		 return deploymentDetailsVO;
 	 }
@@ -718,9 +718,12 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 					 CodeServerProjectDetails projectDetails = data.getProjectDetails();
 					 CodeServerProjectDetailsVO projectDetailsVO = new CodeServerProjectDetailsVO();
 					 if (projectDetails != null) {
-						 CodeServerBuildDetailsVO buildDetailsVO = toBuildDetailsVO(
-							projectDetails.getBuildDetails());
-						 projectDetailsVO.setBuildDetails(buildDetailsVO);
+						 CodeServerBuildDetailsVO intBuildDetailsVO = toBuildDetailsVO(
+							projectDetails.getIntBuildDetails());
+						CodeServerBuildDetailsVO prodBuildDetailsVO = toBuildDetailsVO(
+							projectDetails.getProdBuildDetails());	
+						 projectDetailsVO.setIntBuildDetails(intBuildDetailsVO);
+						 projectDetailsVO.setProdBuildDetails(prodBuildDetailsVO);
 						 CodeServerDeploymentDetailsVO intDeployDetailsVO = toDeploymentDetailsVO(
 								 projectDetails.getIntDeploymentDetails());
 						 CodeServerDeploymentDetailsVO prodDeployDetailsVO = toDeploymentDetailsVO(
@@ -854,10 +857,15 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 					 CodeServerRecipeDetails recipeDetails = this.toRecipeDetails(recipeDetailsVO);
 					 projectDetails.setRecipeDetails(recipeDetails);
 				 }
-				 CodeServerBuildDetailsVO buildDetailsVO = projectDetailsVO.getBuildDetails();
-				 if (buildDetailsVO != null) {
-					 CodeServerBuildDetails buildDetails = this.toBuildDetails(buildDetailsVO);
-					 projectDetails.setBuildDetails(buildDetails);
+				 CodeServerBuildDetailsVO intBuildDetailsVO = projectDetailsVO.getIntBuildDetails();
+				 if (intBuildDetailsVO != null) {
+					 CodeServerBuildDetails intBuildDetails = this.toBuildDetails(intBuildDetailsVO);
+					 projectDetails.setIntBuildDetails(intBuildDetails);
+				 }
+				 CodeServerBuildDetailsVO prodBuildDetailsVO = projectDetailsVO.getProdBuildDetails();
+				 if (prodBuildDetailsVO != null) {
+					 CodeServerBuildDetails prodBuildDetails = this.toBuildDetails(prodBuildDetailsVO);
+					 projectDetails.setProdBuildDetails(prodBuildDetails);
 				 }
 				 CodeServerDeploymentDetailsVO intDeploymentDetailsVO = projectDetailsVO.getIntDeploymentDetails();
 				 if (intDeploymentDetailsVO != null) {

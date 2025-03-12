@@ -1286,14 +1286,16 @@ definitions:
 #        description: "Date of last deployment"  
       status:
         type: string
-        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED"]
-        description: "Status of workspace job action create/delete/deploy/restart request"
+        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED","BUILD_SUCCESS","BUILD_FAILED"]
+        description: "Status of workspace job action create/delete/build/deploy/restart request"
       targetEnvironment:
         type: string
       branch:
         type: string
       gitjobRunID:
         type: string
+      wsId:
+        type: string  
       required:
           -status
   CodeServerWorkspaceValidateVO:
@@ -1355,8 +1357,10 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/UserInfoVO"
-      buildDetails:
+      prodBuildDetails:
         $ref: "#/definitions/CodeServerBuildDetailsVO"
+      intBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"  
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -1951,3 +1955,11 @@ definitions:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
       published:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+
+  BuildWorkSpaceResponse:
+    type: object
+    properties:
+      appVersion:
+        type: string
+      genricMessage:        
+          $ref: "#/definitions/GenericMessage"  
