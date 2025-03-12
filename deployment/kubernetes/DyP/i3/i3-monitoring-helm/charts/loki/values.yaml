@@ -3034,7 +3034,7 @@ resultsCache:
   # -- Memcached operation timeout
   timeout: 500ms
   # -- Total number of results-cache replicas
-  replicas: 1
+  replicas: 2
   # -- Port of the results-cache service
   port: 11211
   # -- Amount of memory allocated to results-cache for object storage (in MB).
@@ -3136,7 +3136,7 @@ chunksCache:
   # -- Specify how long cached chunks should be stored in the chunks-cache before being expired
   defaultValidity: 0s
   # -- Total number of chunks-cache replicas
-  replicas: 1
+  replicas: 2
   # -- Port of the chunks-cache service
   port: 11211
   # -- Amount of memory allocated to chunks-cache for object storage (in MB).

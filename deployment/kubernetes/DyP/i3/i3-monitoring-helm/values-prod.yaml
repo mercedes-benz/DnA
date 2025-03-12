@@ -1267,9 +1267,6 @@ tempo-distributed:
 loki:
   enabled: true
   fullnameOverride: "loki"
-  chunksCache:
-    podDisruptionBudget:
-      maxUnavailable: null
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
