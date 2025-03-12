@@ -33,6 +33,8 @@ imagePullSecrets:
 # the proxy pod.
 hub:
   revisionHistoryLimit:
+  ConfigurableHTTPProxy:
+    auth_token: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#auth_token>
   config:
     Authenticator:
       admin_users:
