@@ -881,10 +881,8 @@ grafana:
   global:
     # -- Overrides the Docker registry globally for all images
     imageRegistry: registry-emea.app.corpintra.net/dockerhub
-
   deploymentStrategy:
     type: Recreate
-
   ingress:
     enabled: true
     ingressClassName: prod-ingress-intranet
@@ -1261,7 +1259,7 @@ tempo-distributed:
                 - protocol: TCP
                   port: 11211        
                 - protocol: UDP
-                  port: 6831                                                                          
+                  port: 6831                                                                                  
           policyTypes:
             - Ingress      
 
@@ -1269,6 +1267,9 @@ tempo-distributed:
 loki:
   enabled: true
   fullnameOverride: "loki"
+  chunksCache:
+    podDisruptionBudget:
+      maxUnavailable: ""
   global:
     image:
       registry: registry-emea.app.corpintra.net/dockerhub  
