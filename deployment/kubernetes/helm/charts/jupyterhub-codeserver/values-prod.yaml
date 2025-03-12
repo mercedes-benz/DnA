@@ -33,8 +33,7 @@ imagePullSecrets:
 # the proxy pod.
 hub:
   revisionHistoryLimit:
-  ConfigurableHTTPProxy:
-    auth_token: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#auth_token>
+
   config:
     Authenticator:
       admin_users:
@@ -50,7 +49,9 @@ hub:
       default_url: https://dna.app.corpintra.net/#/codespaces
       cookie_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
     CryptKeeper:
-      keys: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
+      keys: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#CryptKeeper> 
+    ConfigurableHTTPProxy:
+      auth_token: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#auth_token>           
     GenericOAuthenticator:
       client_id: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#client_secret>
