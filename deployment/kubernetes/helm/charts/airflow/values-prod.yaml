@@ -6,7 +6,7 @@ backend:
   replicas: 1
   image: 
     repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
-    tag: 198
+    tag: 3.2.4
   imagePullPolicy: Always
   dbUrl: jdbc:postgresql://airflow-db.prod-dna-airflow.svc.cluster.local:64000/airflow
   secret:
