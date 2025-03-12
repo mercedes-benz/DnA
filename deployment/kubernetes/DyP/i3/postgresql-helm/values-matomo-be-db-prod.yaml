@@ -141,7 +141,7 @@ walArchiving:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-backup-nfs
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
@@ -244,12 +244,12 @@ service:
 persistence:
   enabled: true
   size: <path:dna_aws_kv/data/prod/kubernetesSecret/matomoBeDb#size>
-  # storageClass: dhc-gp3
+  storageClass: dhc-gp3-retain
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: dhc-gp3
+    storageClass: dhc-gp3-retain
     # PVCName: name
 
 ## Network Policy to be applied
@@ -287,7 +287,7 @@ decryptBackupWal:
 ## PostgreSQL backup configuration
 ##
 backup:
-  enabled: true
+  enabled: flase
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -342,9 +342,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: false
+  createRestoreJob: true
   ## whether to create the list backup job or not
-  createListBackupJob: false
+  createListBackupJob: true
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -365,7 +365,7 @@ restore:
     bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: matomoBeDb-backup-2025-02-12_00-01-09.tar.zst
+  recoveryFile: matomoBeDb-backup-2025-03-12_16-56-01.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
@@ -409,7 +409,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: true
+  enabled: false
 
 pgmonitoring:
   enabled: true
