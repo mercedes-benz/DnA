@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.4.6
+    version: 3.5.1
   profile:
     active: production
   flyway:
@@ -49,6 +49,24 @@ spring:
       security:
           protocol: SSL    
   cloud:
+    vault:
+      uri: ${VAULT_URI:xxxx}
+      namespace: ${VAULT_NAMESPACE:xxxx}
+      mountpath: ${VAULT_MOUNTPATH:xxxx}
+      authentication: ${VAULT_AUTHENTICATION:xxxx}
+      kubernetes:
+        role: ${VAULT_ROLE:xxxx}
+        service-account-token-file: ${KUBERNETES_SA_TOKEN_PATH:XXXX}
+        kubernetes-path: ${VAULT_AUTH_PATH:xxxx}
+      vaultpath: ${VAULT_PATH:xxxx}
+      kv:
+       enabled: true  
+      ssl:
+        enabled: false
+        trust:
+          store:
+            path: ${CA_TRUSTSTORE_PATH:XXXX}
+            password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
     stream:
       default-binder: kafka
       kafka:
@@ -210,6 +228,26 @@ avscan:
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
   subscriptionProvisionApi: ${AVSCAN_SUBSCRIPTION_PROVISION_API:/api/subscription/provision}
   scanApi: ${AVSCAN_UPLOAD_API:/api/v1/scan/upload}
+
+promptsraftsubscriptions:
+  uiLicious:
+    startCreationUri: ${UILICIOUS_START_CREATION_URI:XXXX}
+    getRunDetailsUri: ${UILICIOUS_GET_RUN_DETAILS_URI:XXXX}
+    pidUser: ${PID_UESR:XXXX}
+    pidPassword: ${UILICIOUS_PID_UESR_PASSWORD:XXXX}
+    accessKey: ${UILICIOUS_ACCESS_KEY:XXXX}
+    browser: ${UILICIOUS_BROWSER_KEY:XXXX}
+    width: ${UILICIOUS_BROWSER_WIDTH:XXXX}
+    height: ${UILICIOUS_BROWSER_HEIGHT:XXXX}
+    projectID: ${UILICIOUS_PROJECT_ID:XXXX}
+    filePath: ${UILICIOUS_PROJECT_FILE_PATH:XXXX}
+    privateKeyStepNumber: ${UILICIOUS_PRIVATE_KEY_STEP_NUMBER:XXXX}
+    publicKeyStepNumber: ${UILICIOUS_PUBLIC_KEY_STEP_NUMBER:XXXX}
+    oauthKey: ${UILICIOUS_OAUTH_KEY:XXXX}
+  promotCraftBaseUrl: ${PROMPT_CRAFT_BASE_URL:XXX}
+  xApiKey: ${PROMPT_CRAFT_X_API_KEY:XXX}
+
+
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

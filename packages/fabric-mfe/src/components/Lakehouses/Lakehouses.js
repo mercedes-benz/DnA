@@ -13,6 +13,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -34,6 +35,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         .then((res) => {
           if(res.status !== 204) {
             const sortedBuckets = res?.data?.data?.map((bucket) => { return {...bucket, name: bucket?.bucketName} })
+            .sort((a, b) => a.name.localeCompare(b.name));
             setBuckets(sortedBuckets);
           } else {
             setBuckets([]);
@@ -61,7 +63,7 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
     if(bucketName) {
       ProgressIndicator.show();
         fabricApi
-          .getConnectionInfo(bucketName[0])
+          .getConnectionInfo(bucketName)
           .then((res) => {
             setAccessKey(res?.data?.data?.userVO?.accesskey);
             setSecretKey(res?.data?.data?.userVO?.secretKey);
@@ -89,8 +91,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
       setBucketNameError(true);
     } else {
       const data = {
-        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName[0])[0]?.id || '',
-        bucketname: bucketName[0],
+        bucketId: buckets?.filter(bucket => bucket?.bucketName === bucketName)[0]?.id || '',
+        bucketname: bucketName,
         accessKey,
         secretKey
       }
@@ -109,8 +111,8 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
     }
   }
 
-  const bucketDetails = buckets?.filter(bucket => bucket?.bucketName === bucketName[0]);
-
+  const bucketDetails = bucketName?.length ? buckets?.filter(bucket => bucket?.bucketName === bucketName) : [];
+  
   const onCollabsIconMouseOver = (e) => {
     const targetElem = e.target;
     tooltipElem = targetElem.nextElementSibling;
@@ -137,26 +139,28 @@ const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut
         <Tags
           title={'Select Storage Bucket'}
           max={1}
-          chips={bucketName}
+          chips={bucketName.length ? [bucketName] : []}
           tags={buckets}
           setTags={(selectedTags) => {
-            setBucketName(selectedTags);
+            setBucketName(selectedTags[0] || '');
           }}
           isMandatory={true}
           showMissingEntryError={bucketNameError}
           showAllTagsOnFocus={true}
+          disableSelfTagAdd={true}
         />
       </div>
       <p className={Styles.warning}><i className={'icon mbc-icon info'}></i> S3 shortcuts are currently read-only, as Microsoft Fabric does not support write operations at this time. Write support will be enabled once it becomes available.</p>
       {bucketDetails.length === 1 && (
-
         <div key={'card-'} className={classNames(Styles.storageCard)}>
           <div className={Styles.cardHead}>
             <div className={classNames(Styles.cardHeadInfo)}>
-              <div
-                className={classNames(Styles.cardHeadTitle)}>
-                {bucketName}
-              </div>
+              <a target='_blank' href={`/#/storage/explorer/${bucketName}`} rel="noreferrer">
+                <div
+                  className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}>
+                  {bucketName}
+                </div>
+              </a>
             </div>
           </div>
           <hr />
@@ -447,9 +451,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-  const isAdmin = workspace?.status?.entitlements?.filter(entitlement =>
-    entitlement?.displayName?.split('_')[0]==='FC' && entitlement?.displayName?.split('_')[2]==='Admin'
-  ).length===1;
+  const isAdmin = user?.entitlementGroup?.includes(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}_Admin`);
   const isOwner = user?.id === workspace?.createdBy?.id; 
   return (
     <>
