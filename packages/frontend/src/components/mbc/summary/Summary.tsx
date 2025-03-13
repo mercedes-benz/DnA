@@ -680,6 +680,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.requestedFTECount = res.requestedFTECount;
             solution.description.department = res.department;
             solution.description.appId = res.appId;
+            solution.description.leanIXDetails = res.leanIXDetails;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;
             solution.team.team = res.team;

@@ -940,6 +940,7 @@ export interface INeededRoleObject {
 
 export interface IAllSolutionsListItemCSV {
   appId: string;
+  leanIXDetails: any;
   id?: string;
   businessNeed: string;
   businessGoals: string[];

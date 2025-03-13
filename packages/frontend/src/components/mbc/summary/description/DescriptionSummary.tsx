@@ -11,6 +11,7 @@ import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListIt
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
 import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -311,7 +312,19 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="LeanIX App ID">
                     <label className="input-label summary">LeanIX App ID</label>
                     <br />
-                    {description.appId || 'NA'}
+                    {description?.leanIXDetails?.appReferenceStr ? (
+                      <a
+                        href={`${Envs.LEANIX_BASEURL}/${description.leanIXDetails.appReferenceStr}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {description?.appId}
+                      </a>
+                     
+                    ) : (
+                      <span>{description?.appId ? `${description?.appId}` : 'NA'}</span>
+                    
+                    )}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
