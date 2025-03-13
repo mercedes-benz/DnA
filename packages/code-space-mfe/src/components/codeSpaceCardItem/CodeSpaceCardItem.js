@@ -661,7 +661,7 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {intDeployed && (
+                        {intDeployed && intDeploymentMigrated && (
                           <li>
                             <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
                               Resource usage
@@ -774,7 +774,7 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {prodDeployed && (
+                        {prodDeployed && prodDeploymentMigrated && (
                           <li>
                             <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
                               Resource usage

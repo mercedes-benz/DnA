@@ -878,7 +878,7 @@ const CodeSpace = (props) => {
                                   </span>
                                 </li>
                               )}
-                              {codeDeployed && (
+                              {codeDeployed && intDeploymentMigrated && (
                                 <li>
                                   <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
                                     Resource usage
@@ -1007,7 +1007,7 @@ const CodeSpace = (props) => {
                                   </span>
                                 </li>
                               )}
-                              {prodCodeDeployed && (
+                              {prodCodeDeployed && prodDeploymentMigrated && (
                                 <li>
                                   <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
                                     Resource usage
