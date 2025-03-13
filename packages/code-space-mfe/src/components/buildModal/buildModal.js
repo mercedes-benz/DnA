@@ -22,7 +22,8 @@ const BuildModal = (props) => {
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
   const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
-  // const [buildType, setBuildType] = useState('build');
+  const [buildEnvironment, setBuildEnvironment] = useState('staging');
+  // const [currentSelection, setCurrentSelection] = useState('staging');
   const [comment, setComment] = useState('');
   const [totalNumberOfRecords, setTotalNumberOfRecords] = useState();
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -114,6 +115,13 @@ const BuildModal = (props) => {
     formValid && console.log('buid triggered');
   };
 
+  const onBuildEnvironmentChange = (e) => {
+    const buildEnv = e.currentTarget.value.trim();
+    setBuildEnvironment(buildEnv);
+    // setCurrentSelection(buildEnv)
+    //refresh the logs
+  };
+
   return (
     <Modal
       title={'Manage Build'}
@@ -129,7 +137,38 @@ const BuildModal = (props) => {
         <>
           <div className={Styles.BuildModal}>
             <p>The code from your workspace will be built and you can check the status on the build logs.</p>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+            <div className={classNames(Styles.fourColumnFlexLayout)}>
+              <div id="deployEnvironmentContainer" className="input-field-group">
+                <label className="input-label">Build Environment</label>
+                <div>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="staging"
+                        name="buildEnvironment"
+                        onChange={onBuildEnvironmentChange}
+                        checked={buildEnvironment === 'staging'}
+                      />
+                    </span>
+                    <span className="label">Staging</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="production"
+                        name="buildEnvironment"
+                        onChange={onBuildEnvironmentChange}
+                        checked={buildEnvironment === 'production'}
+                      />
+                    </span>
+                    <span className="label">Production</span>
+                  </label>
+                </div>
+              </div>
               <div>
                 <Tags
                   title={'Select Branch'}
@@ -164,14 +203,14 @@ const BuildModal = (props) => {
                   type="button"
                   onClick={onBuildTrigger}
                 >
-                  Trigger Build
+                  Build
                 </button>
               </div>
             </div>
             <div className={classNames(Styles.wrapper)}>
               <div className={Styles.flexLayout}>
                 <div>
-                  <h4>Build Audit</h4>
+                  <h4>{buildEnvironment === 'staging' ? 'Staging Build Audit Logs' : 'Production Build Audit Logs'}</h4>
                 </div>
                 <div>
                   <button
@@ -202,7 +241,7 @@ const BuildModal = (props) => {
                         <label>Build Status</label>
                       </th>
                       <th>
-                        <label>Artifact ID</label>
+                        <label>Commit ID</label>
                       </th>
                       <th>
                         <label>Version</label>
@@ -243,7 +282,7 @@ const BuildModal = (props) => {
                             <i className="icon mbc-icon new-tab small" />
                           </a>
                         </td>
-                        <td>{item?.artifactId || 'N/A'}</td>
+                        <td>{item?.commitId || 'N/A'}</td>
                         <td>{item?.version || 'N/A'}</td>
                         <td><label>{item?.comment || 'N/A'}</label></td>
                         <td>
@@ -283,15 +322,15 @@ const BuildModal = (props) => {
           ) : null}
           {showDeployCodeSpaceModal && (
             <DeployModal
-            userInfo={props.userInfo}
-            codeSpaceData={props.codeSpaceData}
-            // enableSecureWithIAM={props.enableSecureWithIAM}
-            // isUIRecipe={props.isUIRecipe}
-            setShowCodeDeployModal={setShowDeployCodeSpaceModal}
-            setCodeDeploying={props.setCodeDeploying}
-            setIsApiCallTakeTime={props.setIsApiCallTakeTime}
-            navigateSecurityConfig={props.navigateSecurityConfig}
-            buildDetails={buildDetails}
+              userInfo={props.userInfo}
+              codeSpaceData={props.codeSpaceData}
+              // enableSecureWithIAM={props.enableSecureWithIAM}
+              // isUIRecipe={props.isUIRecipe}
+              setShowCodeDeployModal={setShowDeployCodeSpaceModal}
+              setCodeDeploying={props.setCodeDeploying}
+              setIsApiCallTakeTime={props.setIsApiCallTakeTime}
+              navigateSecurityConfig={props.navigateSecurityConfig}
+              buildDetails={buildDetails}
             />
           )}
         </>

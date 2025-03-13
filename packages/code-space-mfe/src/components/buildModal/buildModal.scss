@@ -1,15 +1,18 @@
 .BuildModal {
-  .flexLayout {
+  .fourColumnFlexLayout {
     display: flex;
     justify-content: space-between;
     margin: 10px;
   
+    >div:nth-child(1){
+      width: calc(22% - 7px);
+    }
     > div {
-      width: calc(40% - 7px); 
+      width: calc(34% - 7px); 
     }
 
     > div:last-child {
-      width: calc(20% - 7px);
+      width: calc(10% - 7px);
       align-self: center;
     }
   }
@@ -17,7 +20,7 @@
   .btnGrp {
     // display: flex;
     // justify-content: center;
-
+    // align-self: center;
     .triggerBtn {
       background: #00adef;
     }
