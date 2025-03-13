@@ -143,7 +143,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
         if (res.status === 204) {
           return history.push('/NotFound');
         } else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
-          return history.push('/Unauthorized');
+          return history.push('/Unauthorized/datasharing');
         } else {
           const data = deserializeFormData({ item: res.data, type: 'consumer' });
           dispatch(setSelectedDataTransfer(data));
