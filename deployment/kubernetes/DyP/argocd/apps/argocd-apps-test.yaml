@@ -12,7 +12,7 @@ spec:
   source:
     path: deployment/kubernetes/DyP/argocd/apps
     repoURL: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
-    targetRevision: migration/aws
+    targetRevision: staging
     plugin:
       name: argocd-vault-plugin-helm
       env:
