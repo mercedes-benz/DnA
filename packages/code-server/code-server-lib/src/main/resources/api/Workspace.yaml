@@ -1295,7 +1295,9 @@ definitions:
       gitjobRunID:
         type: string
       wsId:
-        type: string  
+        type: string
+      version:
+        type: string    
       required:
           -status
   CodeServerWorkspaceValidateVO:
