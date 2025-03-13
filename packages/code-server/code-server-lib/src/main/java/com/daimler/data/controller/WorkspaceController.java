@@ -1202,7 +1202,7 @@ import org.springframework.beans.factory.annotation.Value;
 						   deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
 						   deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
 						   deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
-						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
+						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe,deployRequestDto.getVersion());
 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			   }
