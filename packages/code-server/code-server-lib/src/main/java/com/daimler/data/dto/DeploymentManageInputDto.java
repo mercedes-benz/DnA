@@ -21,8 +21,7 @@ public class DeploymentManageInputDto {
 	private String appVersion;
 	private String wsid;
 	private Boolean valutInjectorEnable;
-	
-	// private String shortid;
+	private String shortid;
 	
 	// private String type;                                   
 	

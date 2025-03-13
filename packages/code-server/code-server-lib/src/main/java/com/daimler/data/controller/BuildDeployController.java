@@ -132,11 +132,11 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         String status = "";
         if(environment.equalsIgnoreCase("int"))
         {
-           status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+           status = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
         }
         else
         {
-           status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+           status = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
         }
         if(status != null)
         {

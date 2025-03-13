@@ -72,7 +72,8 @@ public class WorkspaceJobStatusUpdateController  {
         consumes = { "application/json" },
         method = RequestMethod.PUT)
     public ResponseEntity<GenericMessage> updateWorkspace(@ApiParam(value = "wsId for which workspaces needs to be updated",required=true) @PathVariable("wsId") String wsId,
-	@ApiParam(value = "user id for which workspaces needs to be updated",required=true) @PathVariable("userId") String userId,@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
+	@ApiParam(value = "user id for which workspaces needs to be updated",required=true) @PathVariable("userId") String userId,
+	@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
 		
 		String gitJobPat = httpRequest.getHeader("Authorization");
 		if(!gitJobPat.equalsIgnoreCase(personalAccessToken)) {

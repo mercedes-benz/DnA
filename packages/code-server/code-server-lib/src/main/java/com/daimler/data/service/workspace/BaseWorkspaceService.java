@@ -36,8 +36,10 @@
  import java.util.List;
  import java.util.Map;
  import java.util.Objects;
- import java.util.Set;
- import java.util.regex.Matcher;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
@@ -60,13 +62,18 @@
  import com.daimler.data.auth.client.DnaAuthClient;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
- import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
- import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.BuildAudit;
+import com.daimler.data.db.json.CodeServerBuildDeploy;
+import com.daimler.data.db.json.CodeServerBuildDetails;
+import com.daimler.data.db.json.CodeServerDeploymentDetails;
  import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
  import com.daimler.data.db.json.CodeServerWorkspace;
  import com.daimler.data.db.json.CodespaceSecurityConfig;
  import com.daimler.data.db.json.UserInfo;
- import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceRepository;
@@ -179,6 +186,9 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Autowired
 	 private WorkSpaceCodeServerBuildDeployRepository buildDeployRepo;
+
+	 @Autowired
+	 private WorkspaceRepository workSpaceRepo;
  
 	 public BaseWorkspaceService() {
 		 super();
@@ -226,11 +236,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setShortid(projectOwner);
 				 deployJobInputDto.setTarget_env("int");
  //				deployJobInputDto.setSecure_iam("false");
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-				 } else {
-					 deployJobInputDto.setType("default");
-				 }
+				//  if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
+				// 	 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
+				//  } else {
+				// 	 deployJobInputDto.setType("default");
+				//  }
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 String projectOwnerWsId = entity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(projectOwnerWsId);
@@ -276,11 +286,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setTarget_env("prod");
  //				deployJobInputDto.setSecure_iam("false");
 				 deployJobInputDto.setProjectName(projectOwnerId);
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-				 } else {
-					 deployJobInputDto.setType("default");
-				 }
+				//  if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
+				// 	 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
+				//  } else {
+				// 	 deployJobInputDto.setType("default");
+				//  }
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 String projectOwnerWsId = entity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(projectOwnerWsId);
@@ -1477,26 +1487,13 @@ import com.daimler.data.util.ConstantsUtility;
 			//  }
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
-				if(branch != null){
-					GenericMessage buildStatus = this.buildWorkSpace(userId, cloudServiceProvider, branch, null, isprivateRecipe);
-					if(buildStatus.getSuccess().equalsIgnoreCase("FAILED")){
-						MessageDescription error = new MessageDescription();
-						error.setMessage("Failed while building codeserver workspace project, please retry");
-						errors.add(error);
-						responseMessage.setErrors(errors);
-						responseMessage.setWarnings(warnings);
-						responseMessage.setSuccess(status);
-						return responseMessage;
-					}
-				}
-				
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("deploy");
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto
 						 .setEnvironment(codeServerEnvValue);
-						
+
   			if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
@@ -1534,11 +1531,7 @@ import com.daimler.data.util.ConstantsUtility;
 					responseMessage.setSuccess(status);
 					return responseMessage;
 				 }
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-				 } else {
-					 deployJobInputDto.setType("default");
-				 }
+				 
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
@@ -1599,21 +1592,16 @@ import com.daimler.data.util.ConstantsUtility;
 				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 
 				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-					//  String environmentJsonbName = "intDeploymentDetails";
-					//  CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
-					// 		 .getIntDeploymentDetails();
-					//  if (!"int".equalsIgnoreCase(environment)) {
-					// 	 environmentJsonbName = "prodDeploymentDetails";
-					// 	 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
-					//  }
-					 deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					 // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
-					 
-					 List<DeploymentAudit> auditLogs = new ArrayList<>();
+					 String environmentJsonbName = "intDeploymentDetails";
+					 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
+							 .getIntDeploymentDetails();
+					 if (!"int".equalsIgnoreCase(environment)) {
+						 environmentJsonbName = "prodDeploymentDetails";
+						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 }
+					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					 if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
 					 }
@@ -1676,49 +1664,6 @@ import com.daimler.data.util.ConstantsUtility;
 						deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					 }
 					 
-					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					 Date now = isoFormat.parse(isoFormat.format(new Date()));
-					 DeploymentAudit auditLog = new DeploymentAudit();
-					 GitLatestCommitIdDto commitId =null;
-					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					 .startsWith("private")){
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
-					}else{
-						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
-						
-					}
-					if(commitId == null){
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
-					}
-					auditLog.setCommitId(commitId.getSha());
-					 auditLog.setTriggeredOn(now);
-					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					 auditLog.setBranch(branch);					
-					 auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
-					
-					 CodeServerBuildDeploy buildDeployLogs = buildDeployRepo.findById(projectName);
-					 if(buildDeployLogs == null){
-						buildDeployLogs = new CodeServerBuildDeploy();
-						auditLogs = new ArrayList<>();
-					 }
-					 if (!"int".equalsIgnoreCase(environment)) {
-						auditLogs = buildDeployLogs.getProdDeploymentDetails();
-						auditLogs.add(auditLog);
-						buildDeployLogs.setProdDeploymentDetails(auditLogs);
-					 }else{
-						auditLogs = buildDeployLogs.getIntDeploymentAuditLogs();
-						auditLogs.add(auditLog);
-						buildDeployLogs.setIntDeploymentDetails(auditLogs);
-					 }
-					 
-					 CodeServerBuildDeployNsql auditLogEntity = new CodeServerBuildDeployNsql(projectName,buildDeployLogs);
-					 buildDeployRepo.save(auditLogEntity);
-					 
-					//  deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					//  workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-					// 		 deploymentDetails);
 					 //calling kong to create service, route and plugins
 					 boolean apiRecipe = false;
 					 String serviceName = projectName;
@@ -1758,7 +1703,6 @@ import com.daimler.data.util.ConstantsUtility;
 					 errors.addAll(jobResponse.getErrors());
 				 }
 			 }
-			
 		 } catch (Exception e) {
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
@@ -2118,11 +2062,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(projectOwner);
 				 deployJobInputDto.setTarget_env(environment);
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-				 } else {
-					 deployJobInputDto.setType("default");
-				 }
+				//  if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
+				// 	 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
+				//  } else {
+				// 	 deployJobInputDto.setType("default");
+				//  }
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
@@ -2199,7 +2143,7 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 @Transactional
-	 public GenericMessage update(String userId, String name, String projectName, String existingStatus,
+	 public GenericMessage update(String userId, String wsId, String projectName, String existingStatus,
 			 String latestStatus, String targetEnv, String branch, String gitJobRunId) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
@@ -2211,7 +2155,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 try {
 			 String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			 boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
-			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(name);
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(wsId);
 			 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			 String workspaceName = entity.getData().getWorkspaceId();
 			 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -2339,7 +2283,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 entity.getData().setStatus(latestStatus);
 				 workspaceCustomRepository.update(entity);
 				 log.info("updated status for user {} , workspace name {}, existingStatus {}, latestStatus {}",
-						 userId, name, existingStatus, latestStatus);
+						 userId, wsId, existingStatus, latestStatus);
 				 status = "SUCCESS";
 				 responseMessage.setSuccess(status);
 				 responseMessage.setErrors(errors);
@@ -2388,11 +2332,14 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
+				 CodeServerBuildDetails buildDetails = null;
 				 if ("int".equalsIgnoreCase(targetEnv)) {
 					 deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 				 } else {
 					 environmentJsonbName = "prodDeploymentDetails";
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
 				 }
 				 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 
@@ -2413,6 +2360,9 @@ import com.daimler.data.util.ConstantsUtility;
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
 					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
 				 }
+				 Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+					 CodeServerBuildDeployNsql buildDeployentity = null;
+					 CodeServerBuildDeploy buildDeployData = null;
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					 String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
 					 deploymentDetails.setDeploymentUrl(deploymentUrl);
@@ -2420,17 +2370,32 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 					 deploymentDetails.setLastDeployedOn(now);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
-					 deploymentDetails.setGitjobRunID(gitJobRunId);
-					 //setting audit log details
-					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
-					 if (auditLogs != null && !auditLogs.isEmpty()) {
-						 int lastIndex = auditLogs.size() - 1;
-						 DeploymentAudit lastAudit = auditLogs.get(lastIndex);
-						 lastAudit.setDeploymentStatus(latestStatus);
-						 lastAudit.setDeployedOn(now);
+					 deploymentDetails.setGitjobRunID(gitJobRunId);		
+					 
+					 if("int".equalsIgnoreCase(targetEnv)){
+						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
+						 }else{
+							entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
+						 }
+						 workSpaceRepo.save(entity);
+						 
+						 //setting audit log details
+					 if(optionalBuildDeployentity.isPresent()){
+						 buildDeployentity = optionalBuildDeployentity.get();
+						 buildDeployData = buildDeployentity.getData();
+						 if("int".equalsIgnoreCase(targetEnv)){							
+							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
+							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);							 
+							 
+						 }else{
+							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
+							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
+						 }
+						 buildDeployentity.setData(buildDeployData);
+						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
@@ -2450,33 +2415,94 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setDeploymentUrl(null);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					}
-					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
-					 if (auditLogs != null && !auditLogs.isEmpty()) {
-						 int lastIndex = auditLogs.size() - 1;
-						 DeploymentAudit lastAudit = auditLogs.get(lastIndex);
-						 lastAudit.setDeploymentStatus(latestStatus);
+					 
+					if("int".equalsIgnoreCase(targetEnv)){
+						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
+						 }else{
+							entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
+						 }
+						 workSpaceRepo.save(entity);
+					 if(optionalBuildDeployentity.isPresent()){
+						 buildDeployentity = optionalBuildDeployentity.get();
+						 buildDeployData = buildDeployentity.getData();
+						 if("int".equalsIgnoreCase(targetEnv)){							
+							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);							 
+							 
+						 }else{
+							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
+						 }
+						 buildDeployentity.setData(buildDeployData);
+						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
-				 } else {
+				 }else if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) || "BUILD_FAILED".equalsIgnoreCase(latestStatus)){
+					buildDetails.setLastBuildStatus(latestStatus);
+					buildDetails.setLastBuildOn(now);
+					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+					buildDetails.setGitjobRunID(gitJobRunId);
+					buildDetails.setLastBuildBranch(branch);
+					if("int".equalsIgnoreCase(targetEnv)){
+					   entity.getData().getProjectDetails().setIntBuildDetails(buildDetails);
+						}else{
+						   entity.getData().getProjectDetails().setProdBuildDetails(buildDetails);
+						}
+						workSpaceRepo.save(entity);
+				   
+				   if(optionalBuildDeployentity.isPresent()){
+					   buildDeployentity = optionalBuildDeployentity.get();
+					   buildDeployData = buildDeployentity.getData();
+					   if("int".equalsIgnoreCase(targetEnv)){							
+						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
+						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+						   
+					   }else{
+						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
+						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+					   }
+					   buildDeployentity.setData(buildDeployData);
+					   buildDeployRepo.save(buildDeployentity);
+				   }
+					log.info(
+							"updated build details successfully for projectName {} , branch {} , targetEnv {} and status {}",
+							projectName, branch, targetEnv, latestStatus);
+							// if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")){
+							   
+							// }
+				} else {
 					 deploymentDetails.setDeploymentUrl(deploymentUrl);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);
-					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
-					 if (auditLogs != null && !auditLogs.isEmpty()) {
-						 int lastIndex = auditLogs.size() - 1;
-						 DeploymentAudit lastAudit = auditLogs.get(lastIndex);
-						 lastAudit.setDeploymentStatus(latestStatus);
+					 if("int".equalsIgnoreCase(targetEnv)){
+						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
+						 }else{
+							entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
+						 }
+						 workSpaceRepo.save(entity);
+					 if(optionalBuildDeployentity.isPresent()){
+						 buildDeployentity = optionalBuildDeployentity.get();
+						 buildDeployData = buildDeployentity.getData();
+						 if("int".equalsIgnoreCase(targetEnv)){							
+							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);							 
+							 
+						 }else{
+							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
+						 }
+						 buildDeployentity.setData(buildDeployData);
+						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
 				 }
+				 
 			 }
 		 } catch (Exception e) {
 			 log.error("caught exception while updating status {}", e.getMessage());
@@ -3257,7 +3283,7 @@ import com.daimler.data.util.ConstantsUtility;
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(env);
-				deployJobInputDto.setType("RESTART");
+				// deployJobInputDto.setType("RESTART");
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						projectName);
@@ -3384,13 +3410,15 @@ import com.daimler.data.util.ConstantsUtility;
 
 	@Override
 	@Transactional
-	public GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe){
+	public GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment){
 		GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 String cloudServiceProvider = null;
 		 boolean workspaceMigrated = false;
+		 boolean hasProdUrl = false;
+		boolean hasIntUrl = false;
 		 try {
 			 String repoName = null;
 			 String repoUrl = null;
@@ -3401,7 +3429,8 @@ import com.daimler.data.util.ConstantsUtility;
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("build");
 				 deployJobInputDto.setBranch(branch);
-				 deployJobInputDto.setEnvironment(null);
+				 deployJobInputDto.setEnvironment(codeServerEnvValue);
+				 deployJobInputDto.setTarget_env(environment);
 
   			if (isPrivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
@@ -3421,53 +3450,40 @@ import com.daimler.data.util.ConstantsUtility;
 					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
 
 				}
-				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
-				 deployJobInputDto.setTarget_env(null);
- //				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
- //						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
- //					deployJobInputDto.setSecure_iam("true");
- //				} else {
- //					deployJobInputDto.setSecure_iam("false");
- //				}
-				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
-					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
-				 } else {
-					 deployJobInputDto.setType("default");
-				 }
+ 
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
-				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
-						 projectName);
+				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,projectName);
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
 				 }
-				// hasProdUrl = Objects.nonNull(
-				// 		ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
-				// hasIntUrl = Objects.nonNull(
-				// 		ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
-				// if (!workspaceMigrated) {
-				// 	if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
-				// 		cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-				// 	} else {
-				// 		cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-				// 	}
-				// if ((hasProdUrl && ownerEntity.getData().getProjectDetails().getProdDeploymentDetails()
-				// 		.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
-				// 		(hasIntUrl && ownerEntity.getData().getProjectDetails().getIntDeploymentDetails()
-				// 				.getDeploymentUrl().contains(codeServerBaseUriAws))) {
-				// 	cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-				// } else if (hasProdUrl || hasIntUrl) {
-				// 	cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-				// } else {
-				// 	cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-				// }
-				//  if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
-				// 	deployJobInputDto.setEnvironment(codeServerEnvValue);
-				//  } else {
-				// 	deployJobInputDto.setEnvironment(codeServerEnvValueAws);
-				//  }
+				hasProdUrl = Objects.nonNull(
+						ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
+				hasIntUrl = Objects.nonNull(
+						ownerEntity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());				
+					if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS) && (hasIntUrl || hasProdUrl)) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+					} else {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					}
+				if ((hasProdUrl && ownerEntity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
+						(hasIntUrl && ownerEntity.getData().getProjectDetails().getIntDeploymentDetails()
+								.getDeploymentUrl().contains(codeServerBaseUriAws))) {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				} else if (hasProdUrl || hasIntUrl) {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				} else {
+					cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				}
+				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS)){
+					deployJobInputDto.setEnvironment(codeServerEnvValue);
+				 } else {
+					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
+				 }
 				 if (ownerEntity == null || ownerEntity.getData() == null
 						 || ownerEntity.getData().getWorkspaceId() == null) {
 					 MessageDescription error = new MessageDescription();
@@ -3489,35 +3505,53 @@ import com.daimler.data.util.ConstantsUtility;
 					responseMessage.setSuccess(status);
 					return responseMessage;
 				 }
-				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
+				 int versionNumber = 0;
+					CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+					 if (!"int".equalsIgnoreCase(environment)) {
+						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+					 }
+					 if(buildDetails == null){
+						 buildDetails = new CodeServerBuildDetails();
+						 versionNumber = 1;
+					 }else{
+						 String num[] = buildDetails.getVersion().split("-");
+						 versionNumber = Integer.parseInt(num[1].substring(1));
+						 versionNumber++;	
+					 }
+					 String appVersion = environment+"-v"+versionNumber;
+					 deployJobInputDto.setAppVersion(appVersion);
+				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
 				 deployJobInputDto.setProjectName(projectName.toLowerCase());
 				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
-				 deployJobInputDto.setAppVersion("1");
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
 				 log.info("deploymentJobDto {}",deploymentJobDto);
-				 return null;
 				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-					//  String environmentJsonbName = "intDeploymentDetails";
-					//  CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
-					// 		 .getIntDeploymentDetails();
-					//  if (!"int".equalsIgnoreCase(environment)) {
-					// 	 environmentJsonbName = "prodDeploymentDetails";
-					// 	 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
-					//  }
-					//  deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					//  deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					//  // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
-					 
-					 List<BuildAudit> auditLogs = new ArrayList<>();
-					 if (auditLogs == null) {
-						 auditLogs = new ArrayList<>();
-					 }
-					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					 Date now = isoFormat.parse(isoFormat.format(new Date()));
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					buildDetails.setLastBuildBranch(branch);
+					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+					buildDetails.setLastBuildOn(now);
+					buildDetails.setLastBuildStatus("BUILD_REQUESTED");
+					buildDetails.setVersion(appVersion);
+					if("int".equalsIgnoreCase(environment)){
+						entity.getData().getProjectDetails().setIntBuildDetails(buildDetails);
+					}else{
+						entity.getData().getProjectDetails().setProdBuildDetails(buildDetails);
+					}	
+					workSpaceRepo.save(entity);	
+					List<BuildAudit> auditLogs = new ArrayList<>();
+					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+					if(optionalBuildDeployentity.isPresent()){
+						if("int".equalsIgnoreCase(environment)){
+							auditLogs = optionalBuildDeployentity.get().getData().getIntBuildAuditLogs();
+						}else{
+							auditLogs = optionalBuildDeployentity.get().getData().getProdBuildAuditLogs();
+						}
+					}	
 					 BuildAudit auditLog = new BuildAudit();
 					 GitLatestCommitIdDto commitId =null;
 					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
@@ -3531,49 +3565,46 @@ import com.daimler.data.util.ConstantsUtility;
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
 						warning.setMessage("Error while adding commit id to deployment audit log");
+					}else{
+						auditLog.setCommitId(commitId.getSha());
 					}
-					auditLog.setCommitId(commitId.getSha());
+					
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					 auditLog.setBranch(branch);					
-					 auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
+					 auditLog.setBranch(branch);
+					 auditLog.setBuildStatus("BUILD_REQUESTED");
+					 auditLog.setComments(buildRequestDto.getComments());
+					 auditLog.setVersion(appVersion);
 					 auditLogs.add(auditLog);
-					 CodeServerBuildDeploy buildDeployLogs = buildDeployRepo.findById(projectName);
-					 if(buildDeployLogs == null){
-						buildDeployLogs = new CodeServerBuildDeploy();
+					 CodeServerBuildDeploy buildDeployLogs = null;
+					 CodeServerBuildDeployNsql auditLogEntity = null;
+					 if(optionalBuildDeployentity.isPresent()){
+						auditLogEntity = optionalBuildDeployentity.get();
+						buildDeployLogs =  auditLogEntity.getData();						
+					 }else{
+						 buildDeployLogs = new CodeServerBuildDeploy();
+						 auditLogEntity = new CodeServerBuildDeployNsql();
+						 auditLogEntity.setId(projectName.toLowerCase());
+						 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
+						 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());	
+						 String deployLogId = UUID.randomUUID().toString();	
+						 buildDeployLogs.setId(deployLogId);				
 					 }
-					 buildDeployLogs.setBuildAuditLogs(auditLogs);
-					 CodeServerBuildDeployNsql auditLogEntity = new CodeServerBuildDeployNsql(projectName,buildDeployLogs);
+					 if("int".equalsIgnoreCase(environment)){
+						buildDeployLogs.setIntBuildAuditLogs(auditLogs);
+					 }else{
+						buildDeployLogs.setProdBuildAuditLogs(auditLogs);
+					 }
+					 auditLogEntity.setData(buildDeployLogs);
+
 					 buildDeployRepo.save(auditLogEntity);
-					
-					//  //calling kong to create service, route and plugins
-					//  boolean apiRecipe = false;
-					//  String serviceName = projectName;
-					//  String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					//  String reactRecipeId = RecipeIdEnum.REACT.toString();
-					//  String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
-					//  String dashRecipeId = RecipeIdEnum.DASH.toString();
-					//  String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
-					//  String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
-					//  String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
-					//  String workspaceId = entity.getData().getWorkspaceId();
-					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret, cloudServiceProvider);
-					//  } else {
-					// 	 apiRecipe = true;
-					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-					// 	//  authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret, cloudServiceProvider);
-					//  }
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 errors.addAll(jobResponse.getErrors());
 				 }
 			 }
+		
 		 } catch (Exception e) {
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while build codeserver workspace project with exception " + e.getMessage());
@@ -3583,6 +3614,21 @@ import com.daimler.data.util.ConstantsUtility;
 		 responseMessage.setWarnings(warnings);
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
+		
+	}
+
+	@Override
+	public CodeServerWorkspaceVO findByWorkspaceId(String wsId){
+		try {
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(wsId);
+			if (entity != null) {
+				return workspaceAssembler.toVo(entity);
+			}
+			return null;
+		} catch (Exception e) {
+			log.error("Caught exception while fetching workspace by id: {}", e.getMessage());
+			return null;
+		}
 		
 	}
 

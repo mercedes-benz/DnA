@@ -20,5 +20,6 @@ public class CodeServerBuildDetails implements Serializable {
 	private String lastBuildStatus;
 	private String version;
 	private String gitjobRunID;
+	private String lastBuildType;
 	
 }
