@@ -86,7 +86,6 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
-  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
@@ -400,6 +399,10 @@ const CodeSpaceCardItem = (props) => {
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
+  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-int&var-container=`;
+  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-prod&var-container=`;
+
   const intDeploymentMigrated = !codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
   const prodDeploymentMigrated = !codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
 
@@ -658,6 +661,14 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
+                        {intDeployed && (
+                          <li>
+                            <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
+                              Resource usage
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
                       </>
                     )}
                     <li>
@@ -761,6 +772,14 @@ const CodeSpaceCardItem = (props) => {
                             >
                               Restart Deployed Application
                             </span>
+                          </li>
+                        )}
+                        {prodDeployed && (
+                          <li>
+                            <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
+                              Resource usage
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
                           </li>
                         )}
                       </>
