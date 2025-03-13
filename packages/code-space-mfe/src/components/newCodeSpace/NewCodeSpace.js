@@ -309,7 +309,6 @@ const NewCodeSpace = (props) => {
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
-
   const getRecipeDetails = (id) => {
     setShowProgressIndicator(true);
     CodeSpaceApiClient.getCodeSpaceRecipe(id)
@@ -324,7 +323,7 @@ const NewCodeSpace = (props) => {
 
   const onRecipeChange = (obj) => {
     const selectedOption = obj.id;
-    const recipe = recipesMaster.find((item) => item.id === selectedOption);
+    const recipe = recipesMaster.find((item) => item.id === recipeValue);
     setRecipeValue(selectedOption);
     getRecipeDetails(obj?.id);
     setRecipeError('');

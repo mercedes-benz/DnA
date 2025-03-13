@@ -825,18 +825,11 @@ const CodeSpace = (props) => {
                               )}
                               {codeDeployed && (
                                 <li>
-                                  {intSecuredWithOneApi ? (
-                                    <span className={classNames(Styles.oneAPILink)}>
-                                      Deployed App URL (oneAPI){' '} 
-                                      <i className="icon mbc-icon new-tab" />
-                                    </span>
-                                  ) : (
-                                    <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                                      Deployed App URL{' '}
-                                      {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                      <i className="icon mbc-icon new-tab" />
-                                    </a>
-                                  )}
+                                  <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                                    Deployed App URL{' '}
+                                    {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                    <i className="icon mbc-icon new-tab" />
+                                  </a>
                                 </li>
                               )}
                               {intDeploymentDetails?.lastDeploymentStatus && (
@@ -955,18 +948,11 @@ const CodeSpace = (props) => {
                               )}
                               {prodCodeDeployed && (
                                 <li>
-                                  {prodSecuredWithOneApi ? (
-                                    <span className={classNames(Styles.oneAPILink)}>
-                                      Deployed App URL (oneAPI){' '} 
-                                      <i className="icon mbc-icon new-tab" />
-                                    </span>
-                                  ) : (
-                                    <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                                      Deployed App URL{' '}
-                                      {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                      <i className="icon mbc-icon new-tab" />
-                                    </a>
-                                  )}
+                                  <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                                    Deployed App URL{' '}
+                                    {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                    <i className="icon mbc-icon new-tab" />
+                                  </a>
                                 </li>
                               )}
                               {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -1183,7 +1169,6 @@ const CodeSpace = (props) => {
           userInfo={props.user}
           codeSpaceData={codeSpaceData}
           enableSecureWithIAM={isIAMRecipe}
-          isUIRecipe={isUIRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}

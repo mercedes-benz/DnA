@@ -261,7 +261,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   }
 
 
-
   public onDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const desc = e.currentTarget.value;
     const description = this.props.description;

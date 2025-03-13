@@ -49,4 +49,5 @@ public class ConstantsUtility {
 	public static final String POWERAPPLICENSE_PREMIUMUSER = "POWER-APPS-PREMIUM-USER";
 	
 	public static final String SHARED_DEVELOPMENT_ACCOUNT = "SHARED_DEVELOPMENT_ACCOUNT";
+	
 }

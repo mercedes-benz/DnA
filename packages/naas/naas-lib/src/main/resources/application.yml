@@ -2,7 +2,9 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: notification-service
+
     version: 3.1.18
+
   profile: 
     active: production
   cache:

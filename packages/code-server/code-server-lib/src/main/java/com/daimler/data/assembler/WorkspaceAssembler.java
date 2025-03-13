@@ -273,12 +273,6 @@
 			 {
 				deploymentDetails.setSecureWithIAMRequired(false);
 			 }
-
-			if(vo.isIsSecuredWithCookie()!=null){
-				deploymentDetails.setIsSecuredWithCookie(vo.isIsSecuredWithCookie());
-			}else{
-				deploymentDetails.setIsSecuredWithCookie(false);
-			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -334,12 +328,6 @@
 			 if (deploymentDetails.getLastDeployedOn() != null){
 				 deploymentDetailsVO
 						 .setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
-			 }
-
-			 if(deploymentDetails.getIsSecuredWithCookie()!=null){
-				deploymentDetailsVO.isSecuredWithCookie(deploymentDetails.getIsSecuredWithCookie());
-			 }else{
-				deploymentDetailsVO.isSecuredWithCookie(false);
 			 }
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {

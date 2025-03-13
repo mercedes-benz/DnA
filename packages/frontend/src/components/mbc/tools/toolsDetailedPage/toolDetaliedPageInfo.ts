@@ -1,4 +1,3 @@
-
 export const ToolsDetailedPageElements = [
   {
     "id": "dataikuDSS",

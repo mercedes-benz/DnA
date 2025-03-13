@@ -67,5 +67,4 @@ const SubscriptionCard = (ISubscriptionData: any) => {
     </div>
   );
 };
-
 export default SubscriptionCard;

@@ -75,4 +75,3 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	DnaRoleCollectionVO getAllUserDnaRoles(String id,String authToken);
 
 }
-

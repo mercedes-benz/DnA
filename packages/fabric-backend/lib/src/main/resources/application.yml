@@ -5,7 +5,6 @@ spring:
     version: 1.2.12
   profile:
     active: production
-
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
@@ -33,7 +32,6 @@ spring:
     driverClassName: org.postgresql.Driver
 
 fabricWorkspaces:
-  technicalUserId: ${DNA_TECHNICAL_USER_ID:XXXX}
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
   clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
   grantType: ${FABRIC_OAUTH_GRANT_TYPE:client_credentials}
