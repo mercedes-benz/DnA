@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
+data:
+  01-clickhouse-user.xml: |
+    <yandex>
+        <users>
+            <clickhouse_operator>
+                <networks>
+                    <ip>127.0.0.1</ip>
+                </networks>
+                <password_sha256_hex>{{ .Values.clickhouseOperator.secret.password | sha256sum }}</password_sha256_hex>
+                <profile>{{ .Values.clickhouseOperator.secret.username }}</profile>
+                <quota>default</quota>
+            </clickhouse_operator>
+        </users>
+        <profiles>
+            <clickhouse_operator>
+                <log_queries>0</log_queries>
+                <skip_unavailable_shards>1</skip_unavailable_shards>
+                <http_connection_timeout>10</http_connection_timeout>
+            </clickhouse_operator>
+        </profiles>
+    </yandex>
+  02-clickhouse-default-profile.xml: |
+    <yandex>
+      <profiles>
+        <default>
+          <log_queries>1</log_queries>
+          <connect_timeout_with_failover_ms>1000</connect_timeout_with_failover_ms>
+          <distributed_aggregation_memory_efficient>1</distributed_aggregation_memory_efficient>
+          <parallel_view_processing>1</parallel_view_processing>
+        </default>
+      </profiles>
+    </yandex>
+  03-database-ordinary.xml: |
+    <yandex>
+        <profiles>
+            <default>
+                <default_database_engine>Ordinary</default_database_engine>
+            </default>
+        </profiles>
+    </yandex>

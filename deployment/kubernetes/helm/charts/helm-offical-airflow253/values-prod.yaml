@@ -87,7 +87,7 @@ images:
     tag: ~
     pullPolicy: IfNotPresent
   statsd:
-    repository: quay.io/prometheus/statsd-exporter
+    repository: registry-emea.app.corpintra.net/quaycache/prometheus/statsd-exporter
     tag: v0.22.8
     pullPolicy: IfNotPresent
   redis:
@@ -125,15 +125,15 @@ ingress:
   web:
     # Enable web ingress resource
     enabled: true
-
     # Annotations for the web Ingress
     annotations:
-      cert-manager.io/cluster-issuer: daimler-acme
-      kubernetes.io/ingress.class: traefik
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.frontend.rule.type: PathPrefix
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: 'true'    
-
+      acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
+      
     # The path for the web Ingress
     path: "/"
 
@@ -141,27 +141,27 @@ ingress:
     pathType: "ImplementationSpecific"
 
     # The hostname for the web Ingress (Deprecated - renamed to `ingress.web.hosts`)
-    host: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
+    host: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
 
     # The hostnames or hosts configuration for the web Ingress
     hosts: 
-    - name: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
+    - name: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahosturl>
       # configs for web Ingress TLS
       tls:
         # Enable TLS termination for the web Ingress
         enabled: true
         # the name of a pre-created Secret containing a TLS private key and certificate
-        secretName: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
+        secretName: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
 
     # The Ingress Class for the web Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: prod-ingress-intranet
 
     # configs for web Ingress TLS (Deprecated - renamed to `ingress.web.hosts[*].tls`)
     tls:
       # Enable TLS termination for the web Ingress
       enabled: true
       # the name of a pre-created Secret containing a TLS private key and certificate
-      secretName: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
+      secretName: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#dnahostsecret>
 
     # HTTP paths to add to the web Ingress before the default path
     precedingPaths: []
@@ -196,7 +196,7 @@ ingress:
     #     secretName: ""
 
     # The Ingress Class for the flower Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: prod-ingress-intranet
 
     # configs for flower Ingress TLS (Deprecated - renamed to `ingress.flower.hosts[*].tls`)
     tls:
@@ -255,10 +255,13 @@ executor: "KubernetesExecutor"
 allowPodLaunching: true
 
 # Environment variables for all airflow containers
-env: []
+env:
 # - name: ""
 #   value: ""
-
+  - name: REQUESTS_CA_BUNDLE	
+    value: /usr/local/share/ca-certificates/ca-bundle.crt	
+  - name: SSL_CERT_FILE	
+    value: /usr/local/share/ca-certificates/ca-bundle.crt
 # Volumes for all airflow containers
 volumes:
   - name: officalairflow-webserver-config
@@ -358,7 +361,7 @@ extraEnvFrom: ~
 #       name: '{{ .Release.Name }}-airflow-connections'
 #   - configMapRef:
 #       name: '{{ .Release.Name }}-airflow-variables'
-sqlAlchemyConn: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#sqlAlchemyConn>
+sqlAlchemyConn: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#sqlAlchemyConn>
 # Airflow database & redis config
 data:
   # If secret names are provided, use those secrets
@@ -383,12 +386,12 @@ data:
 
   # Otherwise pass connection values in
   metadataConnection:
-    user: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#airflowdbuser | squote>
-    pass: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#airflowdbpass| squote>
+    user: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdbuser | squote>
+    pass: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdbpass| squote>
     protocol: postgresql
-    host: airflow-db.airflow.svc.cluster.local
+    host: airflow-db.prod-dna-airflow.svc.cluster.local
     port: 64000
-    db: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#airflowdb| squote>
+    db: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#airflowdb| squote>
     sslmode: disable
     
   # resultBackendConnection defaults to the same database as metadataConnection
@@ -407,11 +410,11 @@ data:
 
 # Fernet key settings
 # Note: fernetKey can only be set during install, not upgrade
-fernetKey: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#fernetKey>
+fernetKey: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#fernetKey>
 fernetKeySecretName: ~
 
 # Flask secret key for Airflow Webserver: `[webserver] secret_key` in airflow.cfg
-webserverSecretKey: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#webserverSecretKey>
+webserverSecretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#webserverSecretKey>
 webserverSecretKeySecretName: ~
 
 # In order to use kerberos you need to create secret containing the keytab file
@@ -754,13 +757,13 @@ scheduler:
       maxUnavailable: 1
       # minAvailable: 1
 
-  resources: {}
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  resources:
+   limits:
+    cpu: 3000m
+    memory: 3500Mi
+   requests:
+    cpu: 2500m
+    memory: 3000Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1106,11 +1109,11 @@ webserver:
   defaultUser:
     enabled: false
     role: Admin
-    username: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#adminuser>
+    username: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#adminuser>
     email: admin@example.com
     firstName: admin
     lastName: user
-    password: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#adminpass>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#adminpass>
 
   # Launch additional containers into webserver.
   extraContainers: []
@@ -1264,7 +1267,7 @@ triggerer:
     # Enable persistent volumes
     enabled: false
     # Volume size for triggerer StatefulSet
-    size: 3Gi
+    size: 5Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
     storageClassName: nfs-sc
     # Execute init container to chown log directory.
@@ -1589,7 +1592,7 @@ flower:
 
 # StatsD settings
 statsd:
-  enabled: false
+  enabled: true
   # Max number of old replicasets to retain
   revisionHistoryLimit: ~
 
@@ -2000,6 +2003,8 @@ config:
     dags_folder: '{{ include "airflow_dags" . }}'
     # This is ignored when used with the official Docker image
     load_examples: 'False'
+    enable_xcom_pickling: 'True'
+    dagbag_import_timeout: 360   
     executor: '{{ .Values.executor }}'
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
@@ -2042,6 +2047,14 @@ config:
     reinit_frequency: '{{ .Values.kerberos.reinitFrequency }}'
     principal: '{{ .Values.kerberos.principal }}'
     ccache: '{{ .Values.kerberos.ccacheMountPath }}/{{ .Values.kerberos.ccacheFileName }}'
+  smtp:
+    smtp_host: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtphost>
+    smtp_starttls: 'True'
+    smtp_ssl: 'false'
+    smtp_user: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtpuser>
+    smtp_password: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtppassword>
+    smtp_port: 25
+    smtp_mail_from: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#smtpmailid>
   celery_kubernetes_executor:
     kubernetes_queue: 'kubernetes'
   # The `kubernetes` section is deprecated in Airflow >= 2.5.0 due to an airflow.cfg schema change.
@@ -2105,7 +2118,7 @@ dags:
     # If using a custom storageClass, pass name here
     storageClassName: nfs-sc
     # access mode of the persistent volume
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     ## the name of an existing PVC to use
     existingClaim:
     ## optional subpath for dag volume mount
@@ -2116,8 +2129,8 @@ dags:
     # git repo clone url
     # ssh example: git@github.com:apache/airflow.git
     # https example: https://github.com/apache/airflow.git
-    repo: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#repo>
-    branch: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#branch>
+    repo: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#repo>
+    branch: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#branch>
     rev: HEAD
     depth: 1
     # the number of consecutive failures allowed before aborting
@@ -2163,7 +2176,7 @@ dags:
     # interval between git sync attempts in seconds
     # high values are more likely to cause DAGs to become out of sync between different components
     # low values cause more traffic to the remote git repository
-    wait: 1
+    wait: 5
     containerName: git-sync
     uid: 65533
 
@@ -2199,4 +2212,4 @@ logs:
     storageClassName: nfs-sc
     ## the name of an existing PVC to use
     existingClaim:
-clientSecret: <path:dna_kv/data/prod/kubernetesSecret/officalairflow#clientSecret>
+clientSecret: <path:dna_aws_kv/data/prod/kubernetesSecret/officalairflow#clientSecret>

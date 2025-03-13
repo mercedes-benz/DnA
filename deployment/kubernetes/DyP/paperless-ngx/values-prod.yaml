@@ -21,15 +21,15 @@ image:
 env:
   # -- Set the container timezone
   TZ: UTC
-  PAPERLESS_SECRET_KEY: "<path:dna_kv/data/prod/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
+  PAPERLESS_SECRET_KEY: "<path:dna_aws_kv/data/prod/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
   PAPERLESS_ADMIN_USER: "admin"
-  PAPERLESS_ADMIN_PASSWORD: "<path:dna_kv/data/prod/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
+  PAPERLESS_ADMIN_PASSWORD: "<path:dna_aws_kv/data/prod/kubernetesSecret/paperless-ngx#PAPERLESS_PASSWORD>"
   PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
   PAPERLESS_APP_TITLE: "DnA-Hosted paperless-ngx"
   PAPERLESS_EMAIL_HOST: "mailhost.emea.svc.corpintra.net"
   PAPERLESS_EMAIL_HOST_USER: "dna@mb.com"
   PAPERLESS_REDIRECT_LOGIN_TO_SSO: "True"
-  PAPERLESS_SOCIALACCOUNT_PROVIDERS: '<path:dna_kv/data/prod/kubernetesSecret/paperless-ngx#PAPERLESS_SOCIALACCOUNT_PROVIDERS>'
+  PAPERLESS_SOCIALACCOUNT_PROVIDERS: '<path:dna_aws_kv/data/prod/kubernetesSecret/paperless-ngx#PAPERLESS_SOCIALACCOUNT_PROVIDERS>'
 
 service:
   # -- Configures service settings for the chart.

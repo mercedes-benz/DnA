@@ -114,16 +114,16 @@ config: {}
 
 
   # Dashboards TLS Config (Ensure the cert files are present before enabling SSL
-      # ssl:
-      #   enabled: true
-      #   key: /usr/share/opensearch-dashboards/certs/dashboards-key.pem
-      #   certificate: /usr/share/opensearch-dashboards/certs/dashboards-crt.pem
+  # ssl:
+  #   enabled: true
+  #   key: /usr/share/opensearch-dashboards/certs/dashboards-key.pem
+  #   certificate: /usr/share/opensearch-dashboards/certs/dashboards-crt.pem
 
-    # determines how dashboards will verify certificates (needs to be none for default opensearch certificates to work)
-    # opensearch:
-    #   ssl:
-    #     certificateAuthorities: /usr/share/opensearch-dashboards/certs/dashboards-root-ca.pem
-    #     if utilizing custom CA certs for connection to opensearch, provide the CA here
+  # determines how dashboards will verify certificates (needs to be none for default opensearch certificates to work)
+  # opensearch:
+  #   ssl:
+  #     certificateAuthorities: /usr/share/opensearch-dashboards/certs/dashboards-root-ca.pem
+  #     if utilizing custom CA certs for connection to opensearch, provide the CA here
 
 opensearchDashboardsYml:
   defaultMode:
@@ -156,6 +156,7 @@ service:
   # ipFamilies:
   # - IPv4
   port: 5601
+  metricsPort: 9601
   loadBalancerIP: ""
   nodePort: ""
   labels: {}
@@ -163,6 +164,7 @@ service:
   loadBalancerSourceRanges: []
   # 0.0.0.0/0
   httpPortName: http
+  metricsPortName: metrics
 
 ingress:
   enabled: false
@@ -199,7 +201,9 @@ autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
+  # The legacy `targetCPUUtilizationPercentage` key has been deprecated in favor of `targetCPU`
+  targetCPU: "80"
+  targetMemory: "80"
 
 updateStrategy:
   type: "Recreate"
@@ -209,6 +213,10 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# This is the pod topology spread constraints
+# https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+topologySpreadConstraints: []
 
 # -- Array of extra K8s manifests to deploy
 extraObjects: []
@@ -270,3 +278,22 @@ plugins:
   enabled: false
   installList: []
   # - example-fake-plugin-downloadable-url
+
+# ServiceMonitor Configuration for Prometheus
+# Enabling this option will create a ServiceMonitor resource that allows Prometheus to scrape metrics from the OpenSearch service.
+serviceMonitor:
+  # Set to true to enable the ServiceMonitor resource for OpenSearch Dashboards
+  enabled: false
+
+  # HTTP path where metrics are exposed by OpenSearch Dashboards.
+  # Ensure this path is correctly set in your service.
+  path: /_prometheus/metrics
+
+  # Frequency at which Prometheus will scrape metrics.
+  # Modify as needed for your monitoring requirements.
+  interval: 10s
+
+  # additional labels to be added to the ServiceMonitor
+  # labels:
+  #  k8s.example.com/prometheus: kube-prometheus
+  labels: {}

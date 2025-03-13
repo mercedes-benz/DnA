@@ -102,7 +102,7 @@ networkPolicy:
       - from:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: traefikv2
+                app.kubernetes.io/name: traefik
             namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: ingress  
@@ -117,9 +117,10 @@ networkPolicy:
 ## Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
+  ingressClassName: dev-ingress-intranet
   annotations: 
-    cert-manager.io/cluster-issuer: daimler-acme
-    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.frontend.rule.type: PathPrefix
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
@@ -185,8 +186,8 @@ secretKeys:
 ## Needed chart reinstall for apply changes
 env:
   # can be email or nickname
-  email: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#email>
-  password: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#password>
+  email: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#email>
+  password: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#password>
   # pgpassfile: /var/lib/pgadmin/storage/pgadmin/file.pgpass
 
   # set context path for application (e.g. /pgadmin4/*)
@@ -313,8 +314,8 @@ extraDeploy:
       name: pgadmin4-oauth2-secret
     type: Opaque
     stringData:
-      OAUTH2_CLIENT_ID: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
-      OAUTH2_CLIENT_SECRET: <path:dna_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
+      OAUTH2_CLIENT_ID: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_ID>
+      OAUTH2_CLIENT_SECRET: <path:dna_aws_kv/data/dev/kubernetesSecret/pgadmin#OAUTH2_CLIENT_SECRET>
 
   - apiVersion: v1
     kind: ConfigMap

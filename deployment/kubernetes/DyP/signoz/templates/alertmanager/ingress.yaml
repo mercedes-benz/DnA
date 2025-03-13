@@ -1,0 +1,53 @@
+{{- if and .Values.alertmanager.ingress.enabled .Values.alertmanager.enabled -}}
+{{- $fullName := include "alertmanager.fullname" . -}}
+{{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
+{{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}
+apiVersion: {{ include "ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "alertmanager.labels" . | nindent 4 }}
+  {{- with .Values.alertmanager.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.alertmanager.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.alertmanager.ingress.className }}
+  {{- end }}
+  {{- if .Values.alertmanager.ingress.tls }}
+  tls:
+    {{- range .Values.alertmanager.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      {{- with .secretName }}
+      secretName: {{ . }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.alertmanager.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- if $ingressSupportsPathType }}
+            pathType: {{ .pathType }}
+            {{- end }}
+            backend:
+              {{- if $ingressApiIsStable }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ .port }}
+              {{- else }}
+              serviceName: {{ $fullName }}
+              servicePort: {{ .port }}
+              {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}

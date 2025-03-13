@@ -1,6 +1,6 @@
 namespace: dna
 annotations:
-  argocdvault: "dna_kv/data/dev/kubernetesSecret/dnadb"
+  argocdvault: "dna_aws_kv/data/dev/kubernetesSecret/dnadb"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -13,7 +13,8 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-nameOverride: "postgresql"
+fullnameOverride: "dna-db"
+# nameOverride: "postgresql"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -86,13 +87,13 @@ DBName: db
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_kv/data/dev/kubernetesSecret/dnadb#accesskey>
+  accesskey: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_kv/data/dev/kubernetesSecret/dnadb#secretkey>
+  secretkey: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_kv/data/dev/kubernetesSecret/dnadb#s3.host>
+  host: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -144,9 +145,9 @@ walArchiving:
       storageClass: dhc-backup-nfs
   s3:
     ## Configuration for S3 storage
-    subfolder: postgresql-cluster
+    subfolder: dev-db-backups
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/dev/kubernetesSecret/dnadb#bucketName>
+    bucketName: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,11 +202,11 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_kv/data/dev/kubernetesSecret/dnadb#backup.password>
+    password: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#backup.password>
   ## the database (not the instance) owner
   dbadm:
     username: admin
-    password: <path:dna_kv/data/dev/kubernetesSecret/dnadb#dbadm.password>
+    password: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
@@ -213,16 +214,16 @@ dbusers:
       # name: customschema
   ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_kv/data/dev/kubernetesSecret/dnadb#patroni.password>
+    password: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_kv/data/dev/kubernetesSecret/dnadb#pgmon.password>
+    password: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_kv/data/dev/kubernetesSecret/dnadb#debezium.password>
+    password: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
@@ -243,13 +244,13 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_kv/data/dev/kubernetesSecret/dnadb#size>
-  # storageClass: cinder
+  size: 5Gi
+  storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -289,6 +290,7 @@ decryptBackupWal:
 backup:
   enabled: true
   successfulJobsHistoryLimit: "1"
+
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
   storage: s3
@@ -301,15 +303,15 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/dev/kubernetesSecret/dnadb#bucketName>
+    bucketName: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#bucketName>
   ## general configuration for backup
   schedule: "1 0 * * *"
-  retention: <path:dna_kv/data/dev/kubernetesSecret/dnadb#retention>
+  retention: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -333,7 +335,7 @@ backup:
     ## recommended
     enabled: true
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
   file:
     name: dnadb-backup
     # label: test
@@ -354,21 +356,21 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: true
+      enabled: false
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: postgresql-backup*.tar.gz
+  recoveryFile: restore/dnadb-backup-2024-12-20_00-01-24.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -391,7 +393,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_kv/data/dev/kubernetesSecret/dnadb#init-db>
+  script: <path:dna_aws_kv/data/dev/kubernetesSecret/dnadb#init-db>
 
 test:
   enabled: true

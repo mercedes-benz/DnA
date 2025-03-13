@@ -1,0 +1,23 @@
+{{- if .Values.otelCollectorMetrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "otelCollectorMetrics.fullname" . }}
+  labels:
+    {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
+{{- with .Values.otelCollectorMetrics }}
+  {{- if .service.labels }}
+    {{- toYaml .service.labels | nindent 4 }}
+  {{- end}}
+  {{- if .service.annotations }}
+  annotations:
+    {{- toYaml .service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .service.type }}
+  ports:
+    {{- include "otelCollector.portsConfig" . | indent 4 -}}
+{{- end }}
+  selector:
+    {{- include "otelCollectorMetrics.selectorLabels" . | nindent 4 }}
+{{- end }}

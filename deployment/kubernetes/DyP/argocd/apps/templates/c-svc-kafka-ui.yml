@@ -1,0 +1,35 @@
+{{- if ne .Values.env "test" }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: kafka-ui
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service
+    project: c-svc
+spec:
+  destination:
+    namespace: i3-kafka
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/i3-kafka/kafka-ui
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: kafka-ui
+  project: c-svc
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}
+
+{{- end -}}

@@ -16,11 +16,11 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  storageClass: cinder
+  storageClass: dhc-gp3
   redis:
     password: ""
 
-namespace: "redis"
+namespace: "dev-dna-redis"
 ## @section Common parameters
 ##
 
@@ -78,7 +78,7 @@ diagnosticMode:
 ##
 image:
   registry: registry-emea.app.corpintra.net
-  repository: dnaplatform/bitnami/redis
+  repository: dockerhub/bitnami/redis
   tag: 6.2.7-debian-11-r3
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
@@ -304,11 +304,11 @@ master:
   ##
   podAnnotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_dev_k8_role'
+    vault.hashicorp.com/role: 'dna_aws_dev_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-redis-password-new: 'dna_kv/dev/kubernetesSecret/redis'
+    vault.hashicorp.com/agent-inject-secret-redis-password-new: 'dna_aws_kv/dev/kubernetesSecret/redis'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/agent-inject-template-redis-password-new: '{{`{{- with secret "dna_kv/dev/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
+    vault.hashicorp.com/agent-inject-template-redis-password-new: '{{`{{- with secret "dna_aws_kv/dev/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
   ## @param master.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; master pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
   ##
@@ -430,7 +430,7 @@ master:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: cinder
+    storageClass: dhc-gp3
     ## @param master.persistence.accessModes Persistent Volume access modes
     ##
     accessModes:
@@ -692,11 +692,12 @@ replica:
   ##
   podAnnotations: 
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_dev_k8_role'
+    vault.hashicorp.com/role: 'dna_aws_dev_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-redis-password: 'dna_kv/dev/kubernetesSecret/redis'
+    vault.hashicorp.com/agent-inject-secret-redis-password: 'dna_aws_kv/dev/kubernetesSecret/redis'
     vault.hashicorp.com/tls-skip-verify: 'true'
-    vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "dna_kv/dev/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
+    
+    vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "dna_aws_kv/dev/kubernetesSecret/redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
   ## @param replica.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; replicas pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
   ##
@@ -818,7 +819,7 @@ replica:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: cinder
+    storageClass: dhc-gp3
     ## @param replica.persistence.accessModes Persistent Volume access modes
     ##
     accessModes:
@@ -940,7 +941,7 @@ sentinel:
   ##
   image:
     registry: registry-emea.app.corpintra.net
-    repository: dnaplatform/bitnami/redis-sentinel
+    repository: dockerhub/bitnami/redis-sentinel
     tag: 6.2.7-debian-11-r4
     ## Specify a imagePullPolicy
     ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
@@ -1084,7 +1085,7 @@ sentinel:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: cinder
+    storageClass: dhc-gp3
     ## @param sentinel.persistence.accessModes Persistent Volume access modes
     ##
     accessModes:
@@ -1355,7 +1356,7 @@ metrics:
   ##
   image:
     registry: registry-emea.app.corpintra.net
-    repository: dnaplatform/bitnami/redis-exporter
+    repository: dockerhub/bitnami/redis-exporter
     tag: 1.40.0-debian-11-r0
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
@@ -1548,7 +1549,7 @@ volumePermissions:
   ##
   image:
     registry: registry-emea.app.corpintra.net
-    repository: dnaplatform/bitnami/bitnami-shell
+    repository: dockerhub/bitnami/bitnami-shell
     tag: 11-debian-11-r3
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
@@ -1594,7 +1595,7 @@ sysctl:
   ##
   image:
     registry: registry-emea.app.corpintra.net
-    repository: dnaplatform/bitnami/bitnami-shell
+    repository: dockerhub/bitnami/bitnami-shell
     tag: 11-debian-11-r3
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
