@@ -277,7 +277,7 @@ export const getDataForCSV = (
               solution && solution?.appId
                   ? solution?.leanIXDetails?.appReferenceStr 
                     ? `[${solution.appId}](${Envs.LEANIX_BASEURL}/${solution?.leanIXDetails?.appReferenceStr})`
-                    : `[${solution.appId}]`
+                    : `${solution.appId}`
                   : 'NA',
             businessGoal:
               solution.businessGoals && solution.businessGoals.length > 0

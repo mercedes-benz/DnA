@@ -870,7 +870,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Link 
               to="#"
               src={`${Envs.LEANIX_BASEURL}/${props?.solution?.description?.leanIXDetails?.appReferenceStr}`}
-              style={{ color: 'blue', textDecoration: 'underline' }} // Optional: style the link
+              style={{ color: 'blue', textDecoration: 'underline' }}
             >
               {props?.solution?.description?.appId}
             </Link>
