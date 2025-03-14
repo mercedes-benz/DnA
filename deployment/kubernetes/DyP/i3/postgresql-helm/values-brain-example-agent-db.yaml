@@ -213,6 +213,7 @@ dbusers:
       # name: customschema
   ## technical user, e.g. to do switchover and other cluster operations
   patroni:
+    username: patroni
     password: <path:dna_aws_kv/data/prod/cs-services/example-data-db#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
