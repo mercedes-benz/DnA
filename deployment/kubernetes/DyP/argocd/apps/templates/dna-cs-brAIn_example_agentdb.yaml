@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-cs-brAIn_example_agent-db
+  name: dna-cs-brAIn_example_agent
   namespace: {{ .Values.namespace }}
   labels:
     name: db
