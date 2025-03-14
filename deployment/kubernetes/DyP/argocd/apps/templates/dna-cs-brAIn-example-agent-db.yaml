@@ -24,7 +24,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-brain-example-agent-db --set namespace=cs-apps-services             
+          value: -f values-brain-example-agent-db.yaml --set namespace=cs-apps-services             
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
