@@ -244,12 +244,12 @@ service:
 persistence:
   enabled: true
   size: <path:dna_aws_kv/data/prod/cs-services/example-data-db#size>
-  # storageClass: cinder
+  storageClass: dhc-gp3-retain
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    storageClass: dhc-gp3-retain
     # PVCName: name
 
 ## Network Policy to be applied
@@ -301,7 +301,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-gp3
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
@@ -333,7 +333,7 @@ backup:
     ## recommended
     enabled: true
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3-retain
   file:
     name: example-data-backup
     # label: test
@@ -354,11 +354,11 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: true
+      enabled: false
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
@@ -368,7 +368,7 @@ restore:
   recoveryFile: postgresql-backup*.tar.gz
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false
