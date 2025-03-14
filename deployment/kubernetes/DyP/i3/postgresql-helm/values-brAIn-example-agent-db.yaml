@@ -1,6 +1,6 @@
 namespace: cs-apps-services
 annotations:
-  argocdvault: "dna_aws_kv/data/prod/cs-services/brAIn-example-agent-db"
+  argocdvault: "dna_aws_kv/data/prod/cs-services/brain-example-agent-db"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "brAIn-example-agent-db"
+fullnameOverride: "brain-example-agent-db"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
