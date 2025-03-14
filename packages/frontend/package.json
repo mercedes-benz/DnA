@@ -65,9 +65,9 @@
   "dependencies": {
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
-    "@mui/material": "5.10.6",
-    "@mui/system": "5.10.6",
-    "@mui/x-date-pickers": "5.0.20",
+    "@mui/material": "6.4.7",
+    "@mui/system": "6.4.7",
+    "@mui/x-date-pickers": "7.27.3",
     "@react-pdf/renderer": "3.1.17",
     "ace-builds": "^1.4.12",
     "cors": "^2.8.5",

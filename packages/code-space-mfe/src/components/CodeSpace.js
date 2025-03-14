@@ -751,8 +751,8 @@ const CodeSpace = (props) => {
                           )}
                           {serverStarted && (
                       <li>
-                         <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
-                          Resource usage
+                        <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
+                          Workspace Resource Usage
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>
@@ -881,7 +881,7 @@ const CodeSpace = (props) => {
                               {codeDeployed && intDeploymentMigrated && (
                                 <li>
                                   <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
-                                    Resource usage
+                                    Deployed App Resource Usage
                                     <i className="icon mbc-icon new-tab" />
                                   </a>
                                 </li>
@@ -1010,7 +1010,7 @@ const CodeSpace = (props) => {
                               {prodCodeDeployed && prodDeploymentMigrated && (
                                 <li>
                                   <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
-                                    Resource usage
+                                    Deployed App Resource Usage
                                     <i className="icon mbc-icon new-tab" />
                                   </a>
                                 </li>

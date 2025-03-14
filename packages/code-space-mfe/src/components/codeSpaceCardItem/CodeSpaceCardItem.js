@@ -545,7 +545,7 @@ const CodeSpaceCardItem = (props) => {
                       {serverStarted && (
                       <li>
                          <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
-                          Resource usage
+                          Workspace Resource Usage
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>
@@ -664,7 +664,7 @@ const CodeSpaceCardItem = (props) => {
                         {intDeployed && intDeploymentMigrated && (
                           <li>
                             <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
-                              Resource usage
+                              Deployed App Resource Usage
                               <i className="icon mbc-icon new-tab" />
                             </a>
                           </li>
@@ -777,7 +777,7 @@ const CodeSpaceCardItem = (props) => {
                         {prodDeployed && prodDeploymentMigrated && (
                           <li>
                             <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
-                              Resource usage
+                              Deployed App Resource Usage
                               <i className="icon mbc-icon new-tab" />
                             </a>
                           </li>
@@ -792,7 +792,7 @@ const CodeSpaceCardItem = (props) => {
                 <div>
                 <button
                   className={classNames('btn btn-primary', Styles.btnOutline)}
-                  tooltip-data="Resource usage" 
+                  tooltip-data="Workspace Resource Usage" 
                   onClick={() => window.open(resourceUsageUrl, "_blank")} 
                 >
                   <i className="icon mbc-icon worksspace right" />
