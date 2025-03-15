@@ -553,38 +553,37 @@ singleuser:
           if [ -d "/home/coder/app" ]; then
               echo "Directory is already present"
           else
-              mkdir -p /home/coder/app
-              echo "Cloning the workspace"
-              git config --global credential.helper cache
-              git config --global user.email "$SHORTID"
-              git config --global user.name "$SHORTID"
-              git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app 
-              
-              # Copy .bashrc
-              cp /tmp/.bashrc /home/coder/
-              chmod +x /home/coder/.bashrc
+                mkdir -p /home/coder/app
+                  echo "Cloning the workspace"
+                  git config --global credential.helper cache
+                  git config --global user.email "$SHORTID"
+                  git config --global user.name "$SHORTID"
+                  git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app 
+                  
+                  # Copy .bashrc
+                  cp /tmp/.bashrc /home/coder/
+                  chmod +x /home/coder/.bashrc
 
-              
-              # Install SDK and extensions
-              TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
-              mkdir -pv $TEMP_DIR
-              cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
-              cd $TEMP_DIR
-              chmod +x pkg-install.sh
-              ./pkg-install.sh
-             
-              # Copy extentions
-              mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
-              mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
-              mc alias remove myminio
-
-              #Install Default Plugins
-              code-server --install-extension PKief.material-icon-theme
-              code-server --install-extension GitHub.vscode-pull-request-github
-              code-server --install-extension /home/coder/extension/GitHub.copilot-1.160.0.vsix
-              code-server --install-extension /home/coder/extension/GitHub.copilot-chat-0.24.2025011002.vsix
-              code-server --install-extension /home/coder/extension/mbos-studio-marketplace-*.vsix
-              code-server --install-extension /home/coder/extension/pomdtr.secrets-0.2.2*.vsix
+                  
+                  # Install SDK and extensions
+                  TEMP_DIR="/tmp/.codespaces/DO_NOT_DELETE_MODIFY/"
+                  mkdir -pv $TEMP_DIR
+                  cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                  cd $TEMP_DIR
+                  chmod +x pkg-install.sh
+                  ./pkg-install.sh
+                 
+                  # Copy extensions
+                  mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
+                  mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
+                  mc alias remove myminio
+                  
+                  code-server --install-extension PKief.material-icon-theme
+                  code-server --install-extension GitHub.vscode-pull-request-github
+                  # Install all extensions in the folder
+                  for extension in /home/coder/extension/*.vsix; do
+                    code-server --install-extension "$extension"
+                  done
               
           fi 
 
