@@ -45,7 +45,9 @@ hub:
       authenticator_class: generic-oauth
       redirect_to_server: false
       default_url: https://dev.dna.app.corpintra.net/#/codespaces
-      cookie_secret: <path:dna_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
+      cookie_secret: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#cookie_secret>
+    CryptKeeper:
+      keys: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#CryptKeeper>      
     GenericOAuthenticator:
       client_id: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#client_id>
       client_secret: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#client_secret>
@@ -86,7 +88,7 @@ hub:
     type: Recreate
   db:
     type: postgres
-    upgrade:
+    upgrade: true
     pvc:
       annotations: {}
       selector: {}
@@ -94,9 +96,9 @@ hub:
         - ReadWriteOnce
       storage: 1Gi
       subPath:
-      storageClassName: cinder-retain
-    url: postgresql+psycopg2://jupyterhub-db.code-server.svc.cluster.local:64000/jupyterhub
-    password: <path:dna_kv/data/dev/kubernetesSecret/jupyterhubdb#dbadm.password>
+      storageClassName: dhc-gp3
+    url: postgresql+psycopg2://cs-hub-db:64000/jupyterhub
+    password: <path:dna_aws_kv/data/dev/kubernetesSecret/csdb#dbadm.password>
   labels: {}
   annotations: {}
   command: []
@@ -191,9 +193,9 @@ hub:
               'periodSeconds': 60,
               'timeoutSeconds': 5,
               'successThreshold': 1,
-              'failureThreshold': 10
+              'failureThreshold': 8
             }
-          }
+          }        
 
   extraFiles: {}
   extraEnv: {}
