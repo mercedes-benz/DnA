@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -24,8 +25,10 @@ import com.daimler.data.api.fabricWorkspace.FabricWorkspacesApi;
 import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
+import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
@@ -60,6 +63,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private AuthoriserClient identityClient;
 	
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
@@ -124,13 +130,79 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
+
+		if(workspaceRequestVO.getSecondaryRoleApproverId()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getSecondaryRoleApproverId()))
+		{
+			CreatedByVO secondaryRoleApproverDetails = identityClient.getUserDetails(workspaceRequestVO.getSecondaryRoleApproverId());
+				if(!(secondaryRoleApproverDetails != null && (secondaryRoleApproverDetails.getId()!=null || !"".equalsIgnoreCase(workspaceRequestVO.getSecondaryRoleApproverId())))){
+					log.error("couldnt get the secondary role approver details for id: {}.",workspaceRequestVO.getSecondaryRoleApproverId());
+					MessageDescription invalidMsg = new MessageDescription("couldnt get the secondary role approver details, please provide valid userId.");
+					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+					errorMessage.addErrors(invalidMsg);
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+		}
+
+		if(workspaceRequestVO.getCustomEntitlementName()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getCustomEntitlementName()))
+		{
+			EntiltlemetDetailsDto entitlementDetails = identityClient.getEntitlement(workspaceRequestVO.getCustomEntitlementName());
+				if(!(entitlementDetails!=null && entitlementDetails.getEntitlementId()!=null)){
+						log.error("couldnt get custom entitlement details for name: {}.",workspaceRequestVO.getCustomEntitlementName());
+						MessageDescription invalidMsg = new MessageDescription("couldnt get the custom entitlement details, please provide valid entitlement name.");
+						errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+						errorMessage.addErrors(invalidMsg);
+						responseVO.setData(workspaceRequestVO);
+						responseVO.setResponses(errorMessage);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+		}
+
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<MessageDescription> errors = new ArrayList<>();
-		try {
+
+		if(!isTechnicalUser(requestUser.getId())){
 			workspaceRequestVO.setCreatedBy(requestUser);
+			workspaceRequestVO.setInitiatedBy(null);
+		}else{
+
+			if(workspaceCreateVO.getAliasOwnerId()!=null && !"".equalsIgnoreCase(workspaceCreateVO.getAliasOwnerId())){
+				CreatedByVO aliasOwnerDetails = identityClient.getUserDetails(workspaceCreateVO.getAliasOwnerId());
+				if(aliasOwnerDetails != null && (aliasOwnerDetails.getId()!=null || !"".equalsIgnoreCase(workspaceCreateVO.getAliasOwnerId())) ){
+					workspaceRequestVO.setCreatedBy(aliasOwnerDetails);
+					workspaceRequestVO.setInitiatedBy(requestUser.getId());
+				}else{
+					GenericMessage failedResponse = new GenericMessage();
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("couldnt get alias owner details for id:"+workspaceCreateVO.getAliasOwnerId()+ " Failed to create workspace");
+					messages.add(message);
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("couldnt get alias user details for id:{}",workspaceCreateVO.getAliasOwnerId());
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}else{
+				GenericMessage failedResponse = new GenericMessage();
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Technical user cannot create fabric workspace without alias owner, Bad Request...");
+					messages.add(message);
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess("FAILED");
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Technical user cannot create fabric workspace without alias owner, for workspace name {}",workspaceRequestVO.getName());
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+		}
+		try {
 			workspaceRequestVO.setId(null);
 			workspaceRequestVO.setCreatedOn(new Date());
-			ResponseEntity<FabricWorkspaceResponseVO> responseFromService = service.createWorkspace(workspaceRequestVO);
+			ResponseEntity<FabricWorkspaceResponseVO> responseFromService = service.createWorkspace(workspaceRequestVO, workspaceRequestVO.getSecondaryRoleApproverId(), workspaceRequestVO.getCustomEntitlementName());
 			return responseFromService;
 		}catch(Exception e) {
 			GenericMessage failedResponse = new GenericMessage();
@@ -169,7 +241,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) || ! (isTechnicalUser(requestUser.getId()) && requestUser.getId().equalsIgnoreCase(initiatedBy))) {
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
@@ -483,7 +556,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		allEntitlementsList =  currentUserInfo.getEntitlement_group();
 		user = requestUser.getId();
-		collection = service.getAll(limit, offset, user, allEntitlementsList);
+		collection = service.getAll(limit, offset, user, allEntitlementsList, isTechnicalUser(user));
 		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
 		return new ResponseEntity<>(collection, responseCode);
     }
@@ -771,6 +844,16 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		
 	}
+
+	public static boolean isTechnicalUser(String id) {
+        if (id.length() == 7 && id.startsWith("TE")) {
+            String numericPart = id.substring(2);
+            if (numericPart.matches("\\d{5}")) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     
 }
