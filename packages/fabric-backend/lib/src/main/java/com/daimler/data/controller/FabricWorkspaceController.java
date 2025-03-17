@@ -242,7 +242,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) || ! (isTechnicalUser(requestUser.getId()) && requestUser.getId().equalsIgnoreCase(initiatedBy))) {
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) || !requestUser.getId().equalsIgnoreCase(initiatedBy)) {
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {

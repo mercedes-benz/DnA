@@ -714,7 +714,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			if(secondaryRoleApproverId !=null && !"".equalsIgnoreCase(secondaryRoleApproverId)){
 				HttpStatus secondaryRoleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(secondaryRoleApproverId, updatedRole.getId());
 				if(secondaryRoleApproverPrivilegesStatus.is2xxSuccessful()) {
-					updatedRole.setRoleApprover(secondaryRoleApproverId);
+					updatedRole.setSecondaryRoleApprover(secondaryRoleApproverId);
 				}
 			}
 
