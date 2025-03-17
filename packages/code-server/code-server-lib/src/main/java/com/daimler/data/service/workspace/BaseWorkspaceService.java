@@ -1419,8 +1419,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 	 @Override
 	 public CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value) {
 		 if (value != null) {
-			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, uniqueLiteral,
-					 value);
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, uniqueLiteral,value);
 			 return workspaceAssembler.toVo(entity);
 		 } else
 			 return null;
@@ -3223,18 +3222,20 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				//remove workspace from other groups
 				if(data.getGroups() != null || !data.getGroups().isEmpty()){
 				data.getGroups().forEach(group ->{
+					if(group.getWorkspaces() != null || !group.getWorkspaces().isEmpty()){
 					vo.getWorkspaces().forEach(workSpaceInReq ->{
-						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWorkspaceId()));
 					});
+					}
 				});
 				}
 				List<CodeServerUserGroupWsDetails> workspaceList = new ArrayList<>();
 				vo.getWorkspaces().forEach(workSpaceInReq ->{
 					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
-					workSpace.setWorkSpaceId(workSpaceInReq.getWsId());
+					workSpace.setWorkSpaceId(workSpaceInReq.getWorkspaceId());
 					workSpace.setOrder(0);
 					workspaceList.add(workSpace);
-					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWsId() );                            
+					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWorkspaceId() );                            
 						if (workspaceVo != null) {
 							workspaceVo.setActiveInGroup(Boolean.TRUE);
 							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
@@ -3253,7 +3254,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				responseData.getData().forEach(group ->{
 					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
 						if(null != workspaceVo && null != workspaceVo.getId())
 							workspaceListt.add(workspaceVo);
 					});
@@ -3337,7 +3338,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				responseData.getData().forEach(group ->{
 					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                       
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                             
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                             
 						if(null != workspaceVo && null != workspaceVo.getId())
 							workspaceListt.add(workspaceVo);
 					});
@@ -3363,7 +3364,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				responseData.getData().forEach(group ->{
 					List<CodeServerWorkspaceVO> workspaceList = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{ 						                         
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                            						
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId());                            						
 						if(null != workspaceVo && null != workspaceVo.getId())
 							workspaceList.add(workspaceVo);
 					});

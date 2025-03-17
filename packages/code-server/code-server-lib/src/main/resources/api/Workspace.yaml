@@ -1454,7 +1454,11 @@ definitions:
         -workspaceOwner
       activeInGroup:
         type: boolean
-        description: "Workspace is active in group or not"  
+        description: "Workspace is active in group or not" 
+      order:
+        type: integer
+        default: 0
+        description: "order of user group"   
 
   CodeServerProjectDetailsVO:
     type: object
