@@ -137,7 +137,7 @@ const DeployModal = (props) => {
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    const shouldReset = (!deploymentType==='UI' && cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
+    const shouldReset = (deploymentType!=='UI' && cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
       (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie) || 
       (deploymentDetails?.deploymentType?.length ? deploymentType!== deploymentDetails?.deploymentType : deploymentType==='UI');
     setResetRequired(shouldReset);
