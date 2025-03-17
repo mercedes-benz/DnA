@@ -261,8 +261,11 @@ const AllCodeSpaces = (props) => {
                 <ol>
                     {/* <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li> */}
                     <li><b>Auto Migration:</b> We have migrated all your existing workspaces to DyPCaaS AWS.</li>
-                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>January 31st, 2025</span>.</li>
+                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>February 28th, 2025</span>.</li>
                 </ol>
+                <div className={Styles.modalTitle}>Migrating your Deployed Applications:</div>
+                <p> Please be aware that you must migrate your deployed applications before <span className={classNames(Styles.warning)}> March 31st, 2025</span>.
+                For migration, please reach out to us.</p>
             </p>
             <div className={Styles.modalTitle}>Need Assistance?:</div>
             <p>Please refer to the <span className={classNames(Styles.warning)}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>

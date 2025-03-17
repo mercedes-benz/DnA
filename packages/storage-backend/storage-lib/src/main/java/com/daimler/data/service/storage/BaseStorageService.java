@@ -878,10 +878,15 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
+		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
 			currentUser=entity.getData().getCreatedBy().getId();
+			LOGGER.info("The current user while calling api from technicaluser or admin" + currentUser);
 		}
+		else if(!currentUser.equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GenericMessage("User not authorized to delete this bucket."));
+		}
+		LOGGER.info("the current user is" + currentUser);
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
@@ -894,7 +899,7 @@ public class BaseStorageService implements StorageService {
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove bucket.");
 			// Fetching bucket info from database
-			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+			entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 			if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
 				// To delete dataiku connection if exists
 				Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(projectAndCloudProfile -> {
@@ -931,11 +936,7 @@ public class BaseStorageService implements StorageService {
 	 	HttpStatus httpStatus;
 
 	 	LOGGER.debug("Fetching Current user.");
-	 	String currentUser = userStore.getUserInfo().getId();
-		if(technicalId.equalsIgnoreCase(currentUser) || userStore.getUserInfo().hasAdminAccess()){
-			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName); 
-			currentUser=entity.getData().getCreatedBy().getId();
-		}
+	 	String currentUser = userStore.getUserInfo().getId(); 
 	 	String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 	 	boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {

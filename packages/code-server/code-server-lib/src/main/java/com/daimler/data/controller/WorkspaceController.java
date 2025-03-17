@@ -71,6 +71,7 @@ import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -166,6 +167,12 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Value("${codeServer.run.collab.admin}")
 	 private boolean runCollab;
+
+	@Value("${codeServer.technical.id}")
+	private String technicalId;
+
+	 @Autowired
+	 private WorkspaceRepository jpaRepo;
 
 	@Autowired
 	 private WorkspaceUserGroupRepository userGroupRepository; 
@@ -978,8 +985,8 @@ import org.springframework.beans.factory.annotation.Value;
 				 warnings.add(msg);
 				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			 }
-			 if (!(vo != null && vo.getWorkspaceOwner() != null
-					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			 if (!((vo != null && vo.getWorkspaceOwner() != null
+					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))|| technicalId.equalsIgnoreCase(userId))) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Not authorized to delete workspace. User does not have privileges.");
@@ -999,6 +1006,16 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 			 }
 			 if (("CREATE_REQUESTED".equalsIgnoreCase(vo.getStatus())) || ("COLLABORATION_REQUESTED".equalsIgnoreCase(vo.getStatus()))){
+
+				if(technicalId.equalsIgnoreCase(userId) && vo.getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
+					CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+					entity = workspaceCustomRepository.findByWorkspaceId(id);
+					entity.getData().setStatus("DELETED");
+					jpaRepo.save(entity);
+					GenericMessage message = new GenericMessage();
+					message.setSuccess("Collaborator requested or creation requested Playground projects are deleted sucessfully");
+					return new ResponseEntity<>(message, HttpStatus.OK);
+				 }
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Cannot delete codespace as its not created yet. Bad Request");
@@ -1007,6 +1024,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("Cannot delete workspace {} as its not created yet. Bad Request", vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			 if(!(technicalId.equalsIgnoreCase(userId) && vo.getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground"))){
 			 if (vo != null && vo.getProjectDetails().getProjectOwner() != null
 					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)
 					 && vo.getProjectDetails().getProjectCollaborators() != null
@@ -1020,6 +1038,7 @@ import org.springframework.beans.factory.annotation.Value;
 						 "You have collaborators in your project. Please transfer your ownership to any one of the collaborator before deleting this project codespace");
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			}
 			 GenericMessage responseMsg = service.deleteById(userId, id);
 			 log.info("User {} deleted workspace {}", userId, vo.getWorkspaceId());
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
