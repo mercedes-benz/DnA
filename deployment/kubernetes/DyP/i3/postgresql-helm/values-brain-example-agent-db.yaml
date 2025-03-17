@@ -1,4 +1,4 @@
-namespace: cs-apps-services
+namespace: prod-apisap
 annotations:
   argocdvault: "dna_aws_kv/data/prod/cs-services/example-data-db"
 ## I³ PostgreSQL image version
@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "brain-example-agent-db"
+  fullnameOverride: "brian-example-db"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -210,8 +210,7 @@ dbusers:
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false
-      # name: customschema
-  ## technical user, e.g. to do switchover and other cluster operations
+      # name: customschema  ## technical user, e.g. to do switchover and other cluster operations
   patroni:
     password: <path:dna_aws_kv/data/prod/cs-services/example-data-db#patroni.password>
   ## technical user for postgresql monitoring
@@ -244,12 +243,12 @@ service:
 persistence:
   enabled: true
   size: <path:dna_aws_kv/data/prod/cs-services/example-data-db#size>
-  storageClass: dhc-gp3-retain
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    storageClass: dhc-gp3-retain
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -301,7 +300,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-gp3-retain
+      storageClass: dhc-gp3
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
@@ -331,11 +330,11 @@ backup:
   ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
   tempPgdataVolume:
     ## recommended
-    enabled: true
+    enabled: false
     size: 1Gi
-    # storageClass: dhc-gp3-retain
+    # storageClass: dhc-gp3
   file:
-    name: example-data-backup
+    name: brain-exampleDB-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -354,11 +353,11 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: s3
+  storage: fs
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: false
+      enabled: true
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
@@ -368,7 +367,7 @@ restore:
   recoveryFile: postgresql-backup*.tar.gz
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.5.0-2023.2.20
+    tag: 13.8-5.3.0-2022.11.4
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -392,6 +391,7 @@ initdbScripts:
   enabled: true
   name: init_db.sh
   script: <path:dna_aws_kv/data/prod/cs-services/example-data-db#init-db>
+
 
 test:
   enabled: true
@@ -511,5 +511,4 @@ lb:
   port: 4400
 
 ## define permanent replication slots. These slots will be preserved during switchover/failover
-## for details see [documentation](https://patroni.readthedocs.io/en/latest/SETTINGS.html)
 slots:
