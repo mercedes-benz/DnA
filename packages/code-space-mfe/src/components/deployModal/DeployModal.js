@@ -259,7 +259,6 @@ const DeployModal = (props) => {
       formValid = false;
       setOneApiVersionShortNameError('*Missing Entry');
     }
-    console.log((secureWithIAMSelected && deploymentType === 'UI' && redirectUri?.length) ? redirectUri?.split(envUrl)[1] : '');
     if (formValid) {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
