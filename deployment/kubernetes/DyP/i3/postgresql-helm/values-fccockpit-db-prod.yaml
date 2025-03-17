@@ -16,7 +16,7 @@ image:
 fullnameOverride: "onefcportal-db-prod"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
