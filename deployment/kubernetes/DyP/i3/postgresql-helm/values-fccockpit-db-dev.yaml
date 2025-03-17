@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-  fullnameOverride: "fccockpit-dev-db"
+fullnameOverride: "onefcportal-db-dev"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: fccockpitdevdb
+DBName: onefcportaldevdb
 
 ## Configure S3 properties if S3 storage will be used
 ##
@@ -204,7 +204,7 @@ dbusers:
     password: <path:dna_aws_kv/data/dev/kubernetesSecret/fccockpitdb#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: fccockpit
+    username: onefcportal
     password: <path:dna_aws_kv/data/dev/kubernetesSecret/fccockpitdb#dbadm.password>
 
     createSchema:
@@ -300,7 +300,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-gp3
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     subfolder: fccockpit-db-backups
@@ -334,7 +334,7 @@ backup:
     size: 10Gi
     # storageClass: cinder
   file:
-    name: fccockpit-backup
+    name: onefcportaldevdb-backup
     # label: test
 
 ## PostgreSQL restore configuration
