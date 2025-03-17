@@ -100,7 +100,7 @@ const DeployModal = (props) => {
         setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
         setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
         setClientId(deploymentDetails?.clientId || '');
-        setRedirectUri(`${envUrl}/${deploymentDetails?.redirectUri}` || (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/int/cb` : '' ));
+        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/int/cb` : '' ));
         deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
         deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
         setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -156,7 +156,7 @@ const DeployModal = (props) => {
       setScope(['openid', 'offline_access']);
     } else {
       setClientId(deploymentDetails?.clientId || '');
-      setRedirectUri(`${envUrl}/${deploymentDetails?.redirectUri}` || redirectUri);
+      setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
       deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
       deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     }
@@ -223,7 +223,7 @@ const DeployModal = (props) => {
     setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
     setClientId(deploymentDetails?.clientId || '');
     const redirectUri = deploymentDetails?.deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnv === 'staging' ? 'int' : 'prod'}/cb` : '';
-    setRedirectUri(`${envUrl}/${deploymentDetails?.redirectUri}` || redirectUri);
+    setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
     deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
     deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     setDeploymentType(deploymentDetails?.deploymentType || 'API');
