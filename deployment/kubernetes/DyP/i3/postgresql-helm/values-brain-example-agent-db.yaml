@@ -1,4 +1,4 @@
-namespace: prod-apisap
+namespace: cs-apps-services
 annotations:
   argocdvault: "dna_aws_kv/data/prod/cs-services/example-data-db"
 ## I³ PostgreSQL image version
