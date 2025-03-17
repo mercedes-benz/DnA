@@ -3223,18 +3223,20 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				//remove workspace from other groups
 				if(data.getGroups() != null || !data.getGroups().isEmpty()){
 				data.getGroups().forEach(group ->{
+					if(group.getWorkspaces() != null || !group.getWorkspaces().isEmpty()){
 					vo.getWorkspaces().forEach(workSpaceInReq ->{
-						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWorkspaceId()));
 					});
+					}
 				});
 				}
 				List<CodeServerUserGroupWsDetails> workspaceList = new ArrayList<>();
 				vo.getWorkspaces().forEach(workSpaceInReq ->{
 					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
-					workSpace.setWorkSpaceId(workSpaceInReq.getWsId());
+					workSpace.setWorkSpaceId(workSpaceInReq.getWorkspaceId());
 					workSpace.setOrder(0);
 					workspaceList.add(workSpace);
-					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWsId() );                            
+					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWorkspaceId() );                            
 						if (workspaceVo != null) {
 							workspaceVo.setActiveInGroup(Boolean.TRUE);
 							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
@@ -3251,25 +3253,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
 				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
 				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                           
-						if (workspaceVo != null) {
-							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
-							workSpace.setCloudServiceProvider(workspaceVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
-							workSpace.setServerStatus(workspaceVo.getServerStatus());
-							workSpace.setStatus(workspaceVo.getStatus());
-							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
-							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
-							workSpace.setId(workspaceVo.getId());
-						}else{
-							workSpace.setName("");
-							workSpace.setCloudServiceProvider("");
-							workSpace.setServerStatus("");
-							workSpace.setStatus("");
-							workSpace.setProjectOwner(null);
-							workSpace.setId("");
-						}
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
 					});
+					group.setWorkspaces(workspaceListt);
 				});
 
 				return responseData;
@@ -3347,25 +3337,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
 				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
 				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                             
-						if (workspaceVo != null) {
-							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
-							workSpace.setCloudServiceProvider(workspaceVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
-							workSpace.setServerStatus(workspaceVo.getServerStatus());
-							workSpace.setStatus(workspaceVo.getStatus());
-							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
-							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
-							workSpace.setId(workspaceVo.getId());
-						}else{
-							workSpace.setName("");
-							workSpace.setCloudServiceProvider("");
-							workSpace.setServerStatus("");
-							workSpace.setStatus("");
-							workSpace.setProjectOwner(null);
-							workSpace.setId("");
-						}
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
 					});
+					group.setWorkspaces(workspaceListt);
 				});
 				return responseData;
 			}else
@@ -3385,26 +3363,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 			if(entity.isPresent()){
 				responseData = groupassembler.toVo(entity.get());
 				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                            						
-						if (workspaceVo != null) {
-							log.info("workspaceVo {},workspace id {}",workspaceVo.toString(),workSpace.getWsId());
-							workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
-							workSpace.setCloudServiceProvider(workspaceVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
-							workSpace.setServerStatus(workspaceVo.getServerStatus());
-							workSpace.setStatus(workspaceVo.getStatus());
-							workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
-							workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
-							workSpace.setId(workspaceVo.getId());
-						}else{
-							workSpace.setName("");
-							workSpace.setCloudServiceProvider("");
-							workSpace.setServerStatus("");
-							workSpace.setStatus("");
-							workSpace.setProjectOwner(null);
-							workSpace.setId("");
-						}
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
 					});
+					group.setWorkspaces(workspaceListt);
 				});
 			}
 			return responseData;
@@ -3477,25 +3442,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 			CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
 			CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
 			responseData.getData().forEach(group ->{
-				group.getWorkspaces().forEach(workSpace ->{                           
-					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWsId() );                             
-					if (workspaceVo != null) {
-						workSpace.setName(workspaceVo.getProjectDetails().getProjectName());
-						workSpace.setCloudServiceProvider(workspaceVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
-						workSpace.setServerStatus(workspaceVo.getServerStatus());
-						workSpace.setStatus(workspaceVo.getStatus());
-						workSpace.setProjectOwner(workspaceVo.getProjectDetails().getProjectOwner());
-						workSpace.setWorkspaceUrl(workspaceVo.getWorkspaceUrl());
-						workSpace.setId(workspaceVo.getId());
-					}else{
-						workSpace.setName("");
-						workSpace.setCloudServiceProvider("");
-						workSpace.setServerStatus("");
-						workSpace.setStatus("");
-						workSpace.setProjectOwner(null);
-						workSpace.setId("");
-					}
-				});
+				List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
+					});
+					group.setWorkspaces(workspaceListt);
 			});
 			return responseData;
 		} catch (Exception e) {
