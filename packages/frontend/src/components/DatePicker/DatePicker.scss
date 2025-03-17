@@ -23,9 +23,10 @@
 
     div[role="dialog"] {
         z-index: 9999;
+        margin-left: -12px!important;
         .MuiPaper-root.MuiPaper-elevation {
-            background: #252a33;
-            color: #acb8c4;
+            background: #252a33 !important;
+            color: #acb8c4 !important;
             .MuiCalendarPicker-root {
                 .MuiButtonBase-root {
                     color: #acb8c4;
@@ -110,4 +111,89 @@
             }
         }
     }
+
+    .MuiFormControl-root.MuiTextField-root {
+      min-width: 100% !important;
+    }
+
+    .MuiInputBase-input.MuiOutlinedInput-input {
+      padding-left: 0;
+    }
+
+    .MuiOutlinedInput-root {
+        background-color: transparent !important;
+        background-image: none;
+        border: 1px solid #c0c8d0;
+        border-color: #697582;
+        border-radius: 1px !important;
+        color: #c0c8d0 !important;
+        font-size: var(--font-size-default) !important;
+        height: 40px;
+        letter-spacing: 0.5px !important;
+        padding: 5px 15px;
+        -webkit-transition: border-color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+        transition: border-color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+        width: 100%;
+      }
+
+      .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+        border: 0;
+      }
+      
+      .MuiInputLabel-root, .MuiIconButton-root {
+        color: #697582 !important;
+
+        &:focus {
+          outline: 0;
+        }
+
+        > svg {
+          width: 20px !important;
+        }
+      }
+      
+      .MuiPaper-root {
+        background-color: #f5f5f5 !important;
+      }
+
+      .MuiPickersDay-root.MuiPickersDay-today {
+        border: 1px solid #acb8c4 !important;
+      }
+
+      .MuiTypography-root.MuiDayCalendar-weekDayLabel {
+        color: #acb8c4 !important;
+      }
+
+      .MuiPickersDay-root, .MuiPickersYear-yearButton, .MuiPickersMonth-monthButton {
+        background: #252a33;
+        color: #acb8c4 !important;
+
+        &:hover, &:focus {
+          background-color: #383f49 !important;
+        }
+
+        &:focus {
+          outline: 0;
+        }
+
+        &.Mui-selected {
+          background-color: #00adef !important;
+          color: #ffffff !important;
+          font-weight: 500;
+        }
+        
+        &.Mui-disabled {
+          color: #697582 !important;
+        }
+      }
+
+      .MuiPickersArrowSwitcher-button {
+        &:focus {
+          outline: 0;
+        }
+
+        &.Mui-disabled {
+          color: #697582 !important;
+        }
+      }
 }
