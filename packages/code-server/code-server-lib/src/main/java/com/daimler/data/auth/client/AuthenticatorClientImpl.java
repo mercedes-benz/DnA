@@ -208,8 +208,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			String createServiceUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE;
 			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);	
@@ -267,8 +265,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			String createRouteUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE;
 			HttpEntity<CreateRouteRequestVO> entity = new HttpEntity<CreateRouteRequestVO>(createRouteRequestVO,headers);			
@@ -316,8 +312,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachPluginRequestVO> entity = new HttpEntity<AttachPluginRequestVO>(attachPluginRequestVO,headers);			
@@ -727,8 +721,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_JWT_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachJwtPluginRequestVO> entity = new HttpEntity<AttachJwtPluginRequestVO>(attachJwtPluginRequestVO,headers);			
@@ -778,8 +770,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteServiceUri, HttpMethod.DELETE, entity, String.class);
@@ -835,8 +825,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
@@ -892,8 +880,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
@@ -947,8 +933,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE;
 			if(attachAppAuthoriserPluginRequestVO==null) {
@@ -1004,8 +988,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
-			}else{
-				headers.set("apikey", apiKey);
 			}
 			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_API_AUTHORISER_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachApiAuthoriserPluginRequestVO> entity = new HttpEntity<AttachApiAuthoriserPluginRequestVO>(attachApiAuthoriserPluginRequestVO,headers);			
@@ -1046,11 +1028,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	    headers.set("Content-Type", "application/json");
 	    if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
 	      if(awsApiKey!=null){
-			headers.set("apikey", awsApiKey);
+		headers.set("apikey", awsApiKey);
 	      }
-	    }else{
-			headers.set("apikey", apiKey);
-		}
+	    }
         HttpEntity<?> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
         if (response != null && response.hasBody()) {
