@@ -39,26 +39,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthoriserClient {
 
-	@Value("${authoriser.uri}")
+	@Value("${authoriser.request-url}")
 	private String authoriserBaseUrl;
-	
-	@Value("${authoriser.applicationId}")
-	private String applicationId;
 
 	@Value("${authoriser.ssoUri}")
 	private String ssoUri;
-	
-	@Value("${authoriser.identityAuthLogin}")
-	private String entitlementGroupUri;
 
 	@Value("${authoriser.clientId}")
 	private String authoriserClientID;
 
 	@Value("${authoriser.clientSecret}")
 	private String authoriserClientSecret;
-
-	@Autowired
-	HttpServletRequest httpRequest;
 
 	@Autowired
 	private RestTemplate proxyRestTemplate;
