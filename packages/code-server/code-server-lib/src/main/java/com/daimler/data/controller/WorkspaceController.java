@@ -1216,14 +1216,27 @@ import org.springframework.beans.factory.annotation.Value;
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 				log.info("workspace deployment requires approval");
 			} else {
-				responseMsg = service.deployWorkspace(userId, id, environment, branch,
-						deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
-						deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
-						deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
-						deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
-						deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
-				log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+				if(environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+				&& "APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in APPROVAL_PENDING state");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in APPROVAL_PENDING state.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+				else {
+					responseMsg = service.deployWorkspace(userId, id, environment, branch,
+							deployRequestDto.isSecureWithIAMRequired(), deployRequestDto.getClientID(),
+							deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
+							deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
+							deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
+							deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
+					log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+				}
 			}
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 //				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
