@@ -13,7 +13,6 @@ export interface ITextBoxProps {
   required: boolean;
   maxLength?: number;
   placeholder: string;
-  readOnly?: boolean;
   onChange: (e: React.FormEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FormEvent<HTMLInputElement>) => void;
   onKeyUp?: (e: React.FormEvent<HTMLInputElement>) => void;
@@ -50,7 +49,6 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
         id={props.controlId}
         name={props.name !== undefined ? props.name : props.controlId}
         placeholder={props.placeholder}
-        readOnly={props?.readOnly}
         value={props.value}
         onChange={props.onChange}
         onBlur={props.onBlur ? props.onBlur : undefined}
