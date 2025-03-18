@@ -6,7 +6,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import CodeSpaceGCard from './CodeSpaceGCard';
 
-const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped }) => {
+const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped }) => {
   const [highlight, setHighlight] = useState(false);
   
   const handleEditGroup = (codespace) => {
@@ -66,7 +66,7 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowCodeS
       }
       <div className={classNames(Styles.groupBody)}>
         {group?.workspaces?.slice(0, 3).map((workspace) => 
-          <CodeSpaceGCard key={workspace?.wsId} codeSpace={workspace} userInfo={userInfo} onStartStopCodeSpace={onStartStopCodeSpace} />
+          <CodeSpaceGCard key={workspace?.workspaceId} codeSpace={workspace} userInfo={userInfo} onStartStopCodeSpace={onStartStopCodeSpace} onShowDeployModal={onShowDeployModal} onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard} />
           )}
           <div className={Styles.btnContainer}>
             <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpaceGroupModal(true)}>
