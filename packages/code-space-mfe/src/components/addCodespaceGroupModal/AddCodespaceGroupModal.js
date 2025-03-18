@@ -78,14 +78,14 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
   };
 
   const findCodespaceChanges = (codespaceList, codespaces, selectedCodespaces) => {
-    const codespaceSet = new Set(codespaces.map(cs => cs.wsId));
-    const selectedSet = new Set(selectedCodespaces.map(cs => cs.wsId));
+    const codespaceSet = new Set(codespaces.map(cs => cs.workspaceId));
+    const selectedSet = new Set(selectedCodespaces.map(cs => cs.workspaceId));
 
     // Find added codespaces (in selected but not in original codespaces)
-    const addedCodespaces = codespaceList.filter(cs => selectedSet.has(cs.wsId) && !codespaceSet.has(cs.wsId));
+    const addedCodespaces = codespaceList.filter(cs => selectedSet.has(cs.workspaceId) && !codespaceSet.has(cs.workspaceId));
 
     // Find removed codespaces (in original codespaces but not in selected)
-    const removedCodespaces = codespaceList.filter(cs => codespaceSet.has(cs.wsId) && !selectedSet.has(cs.wsId));
+    const removedCodespaces = codespaceList.filter(cs => codespaceSet.has(cs.workspaceId) && !selectedSet.has(cs.workspaceId));
 
     return { addedCodespaces, removedCodespaces };
   }
@@ -109,7 +109,7 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
       groupId: group?.groupId,
       name: group?.name,
       order: 0,
-      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }}),
+      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, workspaceId: codespace?.workspaceId }}),
       wsRemoved: removedCodespaces
     }
     if(validate()) {
@@ -137,7 +137,7 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
       groupId: '',
       name: groupName,
       order: 0,
-      workspaces: selectedCodeSpaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }})
+      workspaces: selectedCodeSpaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, workspaceId: codespace?.workspaceId }})
     }
     if(validate()) {
       ProgressIndicator.show();
