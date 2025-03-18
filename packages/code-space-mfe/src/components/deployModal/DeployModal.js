@@ -536,15 +536,14 @@ const DeployModal = (props) => {
                             </div>
                           </div>
                           <div>
-                            <div className={classNames(Styles.flexLayout)}>
-                              <div className={classNames(Styles.redirectFlexLayout)}>
+                            <div className={classNames(isUiRecipe ? Styles.flexLayout : '')}>
+                              {isUiRecipe && (<div className={classNames(Styles.redirectFlexLayout)}>
                                 <TextBox
                                   type="text"
                                   label={'Redirect Uri'}
-                                  placeholder={isUiRecipe ? `eg: /${projectDetails?.projectName}/int` : 'not configurable'}
+                                  placeholder={`eg:${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`}
                                   value={redirectUri}
                                   required={isUiRecipe}
-                                  readOnly={!isUiRecipe}
                                   errorText={redirectUriError}
                                   maxLength={200}
                                   onChange={(e) => {
@@ -553,7 +552,7 @@ const DeployModal = (props) => {
                                   }}
                                 />
                                 <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
-                              </div>
+                              </div>)}
                               
                               <Tags
                                 title={'Ignore Paths'}
@@ -611,7 +610,7 @@ const DeployModal = (props) => {
                         />
                         <div className={Styles.oneAPILink}>
                           <a href={Envs.ONE_API_URL} target="_blank" rel="noreferrer">
-                            where to provision your api ? 
+                            Where to provision your api ? 
                           </a>
                         </div>
                       </div>
