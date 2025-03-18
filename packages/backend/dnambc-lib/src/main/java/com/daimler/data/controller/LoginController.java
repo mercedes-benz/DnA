@@ -85,6 +85,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 @RestController
 @Api(value = "Login API", tags = { "authentication" })
@@ -350,10 +351,11 @@ public class LoginController {
 			ResponseEntity<String> response = proxyRestTemplate.exchange(aliceRequestUrl + "/users/" + id, HttpMethod.GET, request,
 					String.class);
 					System.out.println("Raw JSON Response: " + response.getBody());
-			ObjectMapper mapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper();
 			try {
-				DRDResponse userInfo = mapper.readValue(response.getBody(), DRDResponse.class);
-				return new ResponseEntity<DRDResponse>(userInfo, HttpStatus.OK);
+    			JsonNode jsonData = objectMapper.readTree(response.getBody());
+				DRDResponse userInfo = new DRDResponse(jsonData);
+				return new ResponseEntity<>(userInfo, HttpStatus.OK);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage());
 				return new ResponseEntity<String>("{\"errmsg\": \"" + e.getMessage() + "\"}",
@@ -681,20 +683,20 @@ public class LoginController {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class DRDResponse implements Serializable {
 		private String id;
-
-		@JsonProperty("givenname")
 		private String firstName;
-
-		@JsonProperty("surname")
 		private String lastName;
-
-		@JsonProperty("mailAddress")
 		private String email;
-
-		@JsonProperty("departmentNumber")
-		private String department;
-
-		@JsonProperty("mobileNumber")
 		private String mobileNumber;
+		private String department;
+		public DRDResponse(JsonNode userInfo) {
+			if (userInfo != null) {
+				this.id = userInfo.path("id").asText();
+				this.firstName = userInfo.path("givenname").asText();
+				this.lastName = userInfo.path("surname").asText();
+				this.email = userInfo.path("mailAddress").asText();
+				this.mobileNumber = userInfo.path("mobileNumber").asText();
+				this.department = userInfo.path("departmentNumber").asText();
+			}
+		}
 	}
 }
