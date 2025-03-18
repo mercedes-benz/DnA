@@ -71,7 +71,7 @@ import com.daimler.data.service.userrole.UserRoleService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.daimler.data.client.AuthoriserClient;
 import io.jsonwebtoken.Claims;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -84,6 +84,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @RestController
 @Api(value = "Login API", tags = { "authentication" })
@@ -129,12 +130,15 @@ public class LoginController {
 	@Value("${dna.feature.mockOauthToken}")
 	private String mockOauthToken;
 
+	@Value("${authoriser.request-url}")
+	private String aliceRequestUrl;
+
 	@Autowired
 	private RestTemplate restTemplate;
 
 	@Lazy
 	@Autowired
-	private RestTemplate drdRestTemplate;
+	private RestTemplate proxyRestTemplate;
 
 	@Autowired
 	private UserInfoService userInfoService;
@@ -147,6 +151,9 @@ public class LoginController {
 
 	@Autowired
 	private UserRoleAssembler userRoleAssembler;
+
+	@Autowired
+	private AuthoriserClient authoriserClient;
 
 // 	@ApiOperation(value = "Authenticates and generates a JWT on successful authentication.", nickname = "login", notes = "ApplicationLogin", response = String.class, tags = {
 // 			"authentication", })
@@ -327,14 +334,22 @@ public class LoginController {
 			@ApiParam(value = "UserID of the user for which the details have to be retrieved", required = true) @PathVariable("id") String id) {
 		LOGGER.trace("Entering getDrdUserInfo.");
 		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		String authoriserToken = authoriserClient.getToken();
+		if (authoriserToken == null) {
+			return new ResponseEntity<>("{\"errmsg\": \"Authorization token is missing.\"}", HttpStatus.UNAUTHORIZED);
+		}
+		// headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Accept", "application/json");
+        headers.set("Authorization", "Bearer " + authoriserToken);
 		HttpEntity<String> request = new HttpEntity<String>(headers);
 		if (!internalUserEnabled) {
 			return new ResponseEntity<String>("{\"errmsg\": \"This Feature is not allowed.\"}",
 					HttpStatus.METHOD_NOT_ALLOWED);
 		} else {
-			ResponseEntity<String> response = drdRestTemplate.exchange(drdRequestUrl + id, HttpMethod.GET, request,
+			ResponseEntity<String> response = proxyRestTemplate.exchange(aliceRequestUrl + "/users/" + id, HttpMethod.GET, request,
 					String.class);
+					System.out.println("Raw JSON Response: " + response.getBody());
 			ObjectMapper mapper = new ObjectMapper();
 			try {
 				DRDResponse userInfo = mapper.readValue(response.getBody(), DRDResponse.class);
@@ -608,44 +623,78 @@ public class LoginController {
 		private String auth_time;
 	}
 
+	// @Data
+	// @NoArgsConstructor
+	// @JsonIgnoreProperties(ignoreUnknown = true)
+	// public static class DRDResponse implements Serializable {
+	// 	private String id;
+	// 	private String firstName;
+	// 	private String lastName;
+	// 	private String email;
+	// 	private String mobileNumber;
+	// 	private String department;
+
+	// 	private Attrs attrs;
+
+	// 	private void setAttrs(Attrs attrs) {
+	// 		this.id = attrs.getId() != null ? attrs.getId().get(0) : "";
+	// 		this.firstName = attrs.getGivenName() != null ? attrs.getGivenName().get(0) : "";
+	// 		this.lastName = attrs.getSurname() != null ? attrs.getSurname().get(0) : "";
+	// 		this.email = attrs.getMailAddress() != null ? attrs.getMailAddress().get(0) : "";
+	// 		this.mobileNumber = attrs.getMobileNumber() != null ? attrs.getMobileNumber().get(0) : "";
+	// 		this.department = attrs.getDepartmentNumber() != null ? attrs.getDepartmentNumber().get(0) : "";
+		
+
+	// 	// JsonNode jsonData = objectMapper.readTree(response.getBody()); 
+		
+	// 	// this.id = jsonData.path("id").asText();
+	// 	// this.firstName = jsonData.path("givenname").asText();
+	// 	// this.lastName = jsonData.path("surname").asText();
+	// 	// this.department = jsonData.path("departmentNumber").asText();
+	// 	// this.email = jsonData.path("mailAddress").asText();
+	// 	// this.mobile = jsonData.path("mobileNumber").asText();
+	// 	}
+
+	// 	@NoArgsConstructor
+	// 	@Data
+	// 	@JsonIgnoreProperties(ignoreUnknown = true)
+	// 	private class Attrs {
+	// 		// private List<String> dcxCompanyID;
+	// 		// private List<String> objectClass;
+	// 		// private List<String> c;
+	// 		// private List<String> dcxUserSuspended;
+	// 		// private List<String> cn;
+
+
+	// 		//why list? string? 
+	// 		private List<String> id;
+	// 		private List<String> departmentNumber;
+	// 		private List<String> mobileNumber;
+	// 		private List<String> mailAddress;
+	// 		private List<String> givenName;
+	// 		private List<String> surname;
+	// 	}
+	// }
+
 	@Data
 	@NoArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class DRDResponse implements Serializable {
 		private String id;
+
+		@JsonProperty("givenname")
 		private String firstName;
+
+		@JsonProperty("surname")
 		private String lastName;
+
+		@JsonProperty("mailAddress")
 		private String email;
-		private String mobileNumber;
+
+		@JsonProperty("departmentNumber")
 		private String department;
 
-		private Attrs attrs;
-
-		private void setAttrs(Attrs attrs) {
-			this.id = attrs.getUid() != null ? attrs.getUid().get(0) : "";
-			this.firstName = attrs.getGivenName() != null ? attrs.getGivenName().get(0) : "";
-			this.lastName = attrs.getSn() != null ? attrs.getSn().get(0) : "";
-			this.email = attrs.getMail() != null ? attrs.getMail().get(0) : "";
-			this.mobileNumber = attrs.getMobile() != null ? attrs.getMobile().get(0) : "";
-			this.department = attrs.getDepartmentNumber() != null ? attrs.getDepartmentNumber().get(0) : "";
-		}
-
-		@NoArgsConstructor
-		@Data
-		@JsonIgnoreProperties(ignoreUnknown = true)
-		private class Attrs {
-			private List<String> dcxCompanyID;
-			private List<String> objectClass;
-			private List<String> c;
-			private List<String> dcxUserSuspended;
-			private List<String> cn;
-
-			private List<String> uid;
-			private List<String> departmentNumber;
-			private List<String> mobile;
-			private List<String> mail;
-			private List<String> givenName;
-			private List<String> sn;
-		}
+		@JsonProperty("mobileNumber")
+		private String mobileNumber;
 	}
 }
