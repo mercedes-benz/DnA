@@ -38,10 +38,10 @@ public class CodeServerUserGroupassembler implements GenericAssembler<CodeServer
                         vo.setGroupId(group.getGroupId());
                         vo.setName(group.getName());
                         vo.setOrder(group.getOrder());
-                        List<CodeServerUserGroupWsDetailsVO> workspaceList = new ArrayList<>();
+                        List<CodeServerWorkspaceVO> workspaceList = new ArrayList<>();
                         group.getWorkspaces().forEach(workSpace ->{
-                            CodeServerUserGroupWsDetailsVO wsvo = new CodeServerUserGroupWsDetailsVO();
-                            wsvo.setWsId(workSpace.getWorkSpaceId());
+                            CodeServerWorkspaceVO wsvo = new CodeServerWorkspaceVO();
+                            wsvo.setWorkspaceId(workSpace.getWorkSpaceId());
                             wsvo.setOrder(workSpace.getOrder());
                             // CodeServerWorkspaceVO workspaceVo = workSpaceService.getById(entity.getId(),workSpace.getWorkSpaceId());
                             // wsvo.setName(workspaceVo.getProjectDetails().getProjectName());
@@ -81,7 +81,7 @@ public class CodeServerUserGroupassembler implements GenericAssembler<CodeServer
                     vo.getWorkspaces().forEach(wsvo ->{
                         CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
                         workSpace.setOrder(wsvo.getOrder());
-                        workSpace.setWorkSpaceId(wsvo.getWsId());
+                        workSpace.setWorkSpaceId(wsvo.getWorkspaceId());
                         workSpaceList.add(workSpace);
                     });
                     group.setWorkspaces(workSpaceList);
