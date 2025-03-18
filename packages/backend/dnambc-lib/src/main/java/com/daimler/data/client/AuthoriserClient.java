@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthoriserClient {
 
-	@Value("${authoriser.request-url}")
+	@Value("${authoriser.uri}")
 	private String authoriserBaseUrl;
 
 	@Value("${authoriser.ssoUri}")

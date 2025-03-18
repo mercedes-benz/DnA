@@ -180,7 +180,7 @@ proxy:
 
 authoriser:
   request-url: ${IDENTITY_REQUEST_URL:XXXX}
-  # uri: ${IDENTITY_AUTH_URI:XXXX}
+  uri: ${IDENTITY_AUTH_URI:XXXX}
   ssoUri: ${IDENTITY_SSO_URI:XXXX}
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
