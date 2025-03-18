@@ -130,7 +130,7 @@ public class LoginController {
 	@Value("${dna.feature.mockOauthToken}")
 	private String mockOauthToken;
 
-	@Value("${authoriser.request-url}")
+	@Value("${authoriser.uri}")
 	private String aliceRequestUrl;
 
 	@Autowired
