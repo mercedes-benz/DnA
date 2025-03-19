@@ -53,7 +53,9 @@ RUN sudo apt-get update \
     libpango-1.0-0 \
     libcairo2 \
     libasound2 \
-    libatspi2.0-0
+    libatspi2.0-0 \
+    portaudio19-dev \
+    python3-pyaudio
 
 # Manually download and add the Microsoft repository key
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
