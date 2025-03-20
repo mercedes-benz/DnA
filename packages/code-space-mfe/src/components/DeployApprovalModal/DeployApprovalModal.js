@@ -16,7 +16,6 @@ const DeployApprovalModal = (props) => {
   const ignorePaths = deploymentDetails?.ignorePaths?.length ? deploymentDetails?.ignorePaths?.split(',') : ['N/A'];
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
-  console.log(deploymentDetails?.oneApiVersionShortName?.length);
 
   const deployWorkspace = () => {
     const deployRequest = {
@@ -72,7 +71,7 @@ const DeployApprovalModal = (props) => {
   };
 
   const handleApproveClick = () => {
-    deploymentDetails?.secureWithIAMRequired ? setShowCredentialsModal(true) : deployWorkspace();
+    (deploymentDetails?.secureWithIAMRequired && deploymentDetails?.clientId?.length) ? setShowCredentialsModal(true) : deployWorkspace();
   };
 
   const handleFinalApproveClick = () => {
