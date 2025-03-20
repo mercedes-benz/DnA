@@ -334,7 +334,7 @@ backup:
     size: 1Gi
     # storageClass: cinder
   file:
-    name: bat-dev-backup
+    name: bat-test-backup
     # label: test
 
 ## PostgreSQL restore configuration
