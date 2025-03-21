@@ -43,9 +43,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
-import com.daimler.data.adapter.hasura.HasuraUserInfoInsertResponseDto;
-import com.daimler.data.adapter.hasura.HasuraUserInfoRequestDto;
 import com.daimler.data.controller.LoginController;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;

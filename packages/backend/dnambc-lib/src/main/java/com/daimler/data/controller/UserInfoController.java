@@ -27,8 +27,8 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.adapter.hasura.HasuraClient;
-import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
+// import com.daimler.data.adapter.hasura.HasuraClient;
+// import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
 import com.daimler.data.api.userinfo.UsersApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
