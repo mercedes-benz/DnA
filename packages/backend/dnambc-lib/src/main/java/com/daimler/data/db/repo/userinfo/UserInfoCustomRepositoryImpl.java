@@ -148,16 +148,14 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 
 	@Override
 	public Optional<UserInfoNsql> findById(String id) {
-		Query q = em.createNativeQuery("SELECT * from "+USERINFO_NSQL+" WHERE lower(id)= ?",UserInfoNsql.class);
+		Query q = em.createNativeQuery("SELECT * from " + USERINFO_NSQL + " WHERE lower(id) = ?", UserInfoNsql.class);
 		q.setParameter(1, id.toLowerCase());
-		UserInfoNsql user = null;
-		try {
-			user =(UserInfoNsql) q.getSingleResult();
-		}catch (Exception e) {
-			logger.error("Failed while fetching user information:{}",e.getMessage());
+		List<UserInfoNsql> resultList = q.getResultList();
+		if (resultList.isEmpty()) {
+			logger.info("No user found with id: {}", id);
 			return Optional.empty();
 		}
-		return Optional.of(user);
+		return Optional.of(resultList.get(0));
 	}
 
 	@Override
