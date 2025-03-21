@@ -59,6 +59,8 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	 */
 	public Boolean isAdmin(String userId);
 
+	public UserInfoVO onboardTechnicalUser(UserInfoVO userInfoVO );
+
 	boolean isLoggedIn(final String id);
 
 	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
