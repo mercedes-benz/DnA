@@ -162,7 +162,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			policies = new ArrayList<>();
 			
 			//Setting resource for full bucket path
-			String resource = "arn:aws:s3:::" + bucketName + "/*, arn:aws:s3:::" + bucketName";
+			String resource = "arn:aws:s3:::" + bucketName + "/*, arn:aws:s3:::" + bucketName;
 			
 			//action to access bucket and corresponding files & directory
 			String action = "";
