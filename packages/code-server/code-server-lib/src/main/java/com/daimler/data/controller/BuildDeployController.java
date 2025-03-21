@@ -13,12 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.api.workspace.buildDeploy.CodeServerBuildDeployServiceApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
+import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -29,9 +32,15 @@ import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.buildDeploy.BuildAuditVO;
 import com.daimler.data.dto.workspace.buildDeploy.DeploymentAuditVO;
+import com.daimler.data.dto.workspace.buildDeploy.LogsListResponseVO;
+import com.daimler.data.dto.workspace.buildDeploy.CodeServerBuildDeployVO;
+import com.daimler.data.dto.workspace.buildDeploy.VersionListResponseVO;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.BuildDeployAssembler;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
@@ -45,6 +54,12 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
     @Autowired
     private UserStore userStore;
+
+    @Autowired
+	 private WorkSpaceCodeServerBuildDeployRepository buildDeployRepo;
+
+     @Autowired
+	 private BuildDeployAssembler buildDeployAssembler;
 
     @Override
     @ApiOperation(value = "Build workspace Project for a given Id.", nickname = "buildWorkspaceProject", notes = "build workspace Project for a given identifier.", response = GenericMessage.class, tags = {
@@ -151,7 +166,8 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
            }
         }
-        GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment);
+        String lastBuildType = "build";
+        GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
@@ -168,39 +184,112 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
     }
 
     @Override
-    @ApiOperation(value = "Get build logs for a given project name.", nickname = "getBuildLogsByProjectName", notes = "Get build logs for a given project name.", response = BuildAuditVO.class, tags={ "code-server-build-deploy-service", })
+    @ApiOperation(value = "Get build logs for a given project name.", nickname = "getBuildLogsByProjectName", notes = "Get build logs for a given project name.", response = LogsListResponseVO.class, tags={ "code-server-build-deploy-service", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = BuildAuditVO.class),
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = LogsListResponseVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "workspace/{projectName}/buildLogs",
+    @RequestMapping(value = "/workspace/logs/{projectName}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<BuildAuditVO> getBuildLogsByProjectName(@ApiParam(value = "Workspace projectName to be fetched",required=true) @PathVariable("projectName") String projectName) {
-        return null;
+    public ResponseEntity<LogsListResponseVO> getBuildLogsByProjectName(@ApiParam(value = "Workspace projectName to be fetched",required=true) @PathVariable("projectName") String projectName) {
+        List<MessageDescription> errors = new ArrayList<>();
+        LogsListResponseVO response = new LogsListResponseVO();
+        List<MessageDescription> warnings = new ArrayList<>();
+        response.setData(null);
+        response.setErrors(errors);
+        response.setWarnings(warnings);
+        response.setSuccess("FAILED");
+        CodeServerBuildDeployVO data = null;
+        try {
+            Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+					if(optionalBuildDeployentity.isPresent()){
+                        data = buildDeployAssembler.toVo(optionalBuildDeployentity.get());
+                    }else{
+                        MessageDescription msg = new MessageDescription();
+                        msg.setMessage("No build logs found for given project name");
+                        warnings.add(msg);
+				        response.setWarnings(warnings);                        
+                        return new ResponseEntity<>(response, HttpStatus.OK);
+                    }
+            if(null != data){
+                response.setData(data);
+                response.setSuccess("SUCCESS");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }else{
+                MessageDescription exceptionMsg = new MessageDescription("Failed to get logs due to internal error.");
+                errors.add(exceptionMsg);
+				response.setErrors(errors);
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to get logs with exception {}", e.getLocalizedMessage());
+        MessageDescription exceptionMsg = new MessageDescription("Failed to build due to internal error.");
+        errors.add(exceptionMsg);
+				response.setErrors(errors);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
-    @ApiOperation(value = "Get deployment logs for a given project name.", nickname = "getDeploymentLogsByProjectName", notes = "Get deployment logs for a given project name.", response = DeploymentAuditVO.class, tags={ "code-server-build-deploy-service", })
+    @ApiOperation(value = "Get build version for a given project name.", nickname = "getBuildVersionByProjectName", notes = "Get build version for a given project name.", response = VersionListResponseVO.class, tags={ "code-server-build-deploy-service", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = DeploymentAuditVO.class),
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = VersionListResponseVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "workspace/{projectName}/deployLogs",
+    @RequestMapping(value = "/workspace/buildVersion/{projectName}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<DeploymentAuditVO> getDeploymentLogsByProjectName(@ApiParam(value = "Workspace projectName to be fetched",required=true) @PathVariable("projectName") String projectName){
-        return null;
+    public ResponseEntity<VersionListResponseVO> getBuildVersionByProjectName(@ApiParam(value = "Workspace projectName to be fetched",required=true) @PathVariable("projectName") String projectName){
+        List<MessageDescription> errors = new ArrayList<>();
+        VersionListResponseVO response = new VersionListResponseVO();
+        List<MessageDescription> warnings = new ArrayList<>();
+        response.setIntBuildVersions(null);
+        response.setProdBuildVersions(null);
+        response.setErrors(errors);
+        response.setWarnings(warnings);
+        response.setSuccess("FAILED");
+        try {
+
+             Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+					if(optionalBuildDeployentity.isPresent()){
+                        response = service.getBuildVersion(projectName);
+                    }else{
+                        MessageDescription msg = new MessageDescription();
+                        msg.setMessage("No build version found for given project name");
+                        warnings.add(msg);
+				        response.setWarnings(warnings);                        
+                        return new ResponseEntity<>(response, HttpStatus.OK);
+                    }
+            if(null != response){
+                response.setSuccess("SUCCESS");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }else{
+                MessageDescription exceptionMsg = new MessageDescription("Failed to get logs due to internal error.");
+                errors.add(exceptionMsg);
+				response.setErrors(errors);
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            
+            
+        } catch (Exception e) {
+            log.error("Failed to get logs with exception {}", e.getLocalizedMessage());
+        MessageDescription exceptionMsg = new MessageDescription("Failed to build due to internal error.");
+        errors.add(exceptionMsg);
+				response.setErrors(errors);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

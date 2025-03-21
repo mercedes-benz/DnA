@@ -214,7 +214,7 @@ public class WorkspaceJobStatusUpdateController  {
 				}
 			}
 			String gitJobRunId = updateRequestVO.getGitjobRunID();
-			GenericMessage responseMessage = service.update(userId,wsId,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId,updateRequestVO.getVersion());
+			GenericMessage responseMessage = service.update(userId,wsId,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId,updateRequestVO.getAppVersion());
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
 			// if(callKongApisFromBackend) {
 			// 	log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);

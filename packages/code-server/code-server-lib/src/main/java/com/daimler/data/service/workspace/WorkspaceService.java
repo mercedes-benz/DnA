@@ -36,7 +36,7 @@ import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
-import com.daimler.data.dto.workspace.buildDeploy.ManageBuildRequestDto;
+import com.daimler.data.dto.workspace.buildDeploy.*;
 
 
 public interface WorkspaceService {
@@ -112,8 +112,10 @@ public interface WorkspaceService {
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
 
-	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment);
+	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType);
 
 	CodeServerWorkspaceVO findByWorkspaceId(String wsId);
+
+	VersionListResponseVO getBuildVersion(String projectName);
 	
 }

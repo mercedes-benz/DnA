@@ -1296,7 +1296,7 @@ definitions:
         type: string
       wsId:
         type: string
-      version:
+      appVersion:
         type: string    
       required:
           -status

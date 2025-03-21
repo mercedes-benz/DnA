@@ -36,11 +36,12 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                     }
                     auditDetails.setTriggeredBy(audit.getTriggeredBy());
                     if (Objects.nonNull(audit.getTriggeredOn())) {
-                        auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredBy())));
+                        auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
                     }
                     auditDetails.setBranch(audit.getBranch());
                     auditDetails.setVersion(audit.getVersion());
                     auditDetails.setComments(audit.getComments());
+                    auditDetails.setCommitId(audit.getCommitId());
                     auditDetailsVO.add(auditDetails);
                 }
             }
@@ -52,6 +53,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
     }
 
     private List<BuildAudit> toBuildAudit(List<BuildAuditVO> auditdetails) {
+        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
         List<BuildAudit> buildAuditLogDetails = new ArrayList<>();
         try {
             if (auditdetails != null && !auditdetails.isEmpty()) {
@@ -68,6 +70,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
 					 auditDetails.setBranch(audit.getBranch());
 					 auditDetails.setVersion(audit.getVersion());
                      auditDetails.setComments(audit.getComments());
+                     auditDetails.setCommitId(audit.getCommitId());
 					 buildAuditLogDetails.add(auditDetails);
                 }
             }
@@ -84,7 +87,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
         try {
             if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
                 for (DeploymentAudit audit : deploymentAuditLogs) {
-                    DeploymentAuditVO auditDetails = new DeploymentAuditVO();
+                   DeploymentAuditVO auditDetails = new DeploymentAuditVO();
                     auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
                     if (Objects.nonNull(audit.getDeployedOn()))
                         auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
@@ -140,25 +143,34 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
         try {
             if (entity != null) {
                 CodeServerBuildDeploy data = entity.getData();
+                vo.setId(entity.getId());
                 if (data != null) {
                     BeanUtils.copyProperties(data, vo);
                     if (data.getIntBuildAuditLogs() != null && !data.getIntBuildAuditLogs().isEmpty()) {
                         List<BuildAuditVO> auditDetails = this.toBuildAuditVO(data.getIntBuildAuditLogs());
                         vo.setIntBuildAuditLogs(auditDetails);
+                    }else{
+                        vo.setIntBuildAuditLogs(new ArrayList<>());
                     }
                     if (data.getProdBuildAuditLogs() != null && !data.getProdBuildAuditLogs().isEmpty()) {
                         List<BuildAuditVO> auditDetails = this.toBuildAuditVO(data.getProdBuildAuditLogs());
                         vo.setProdBuildAuditLogs(auditDetails);
+                    }else{
+                        vo.setProdBuildAuditLogs(new ArrayList<>());
                     }
                     if (data.getIntDeploymentAuditLogs() != null && !data.getIntDeploymentAuditLogs().isEmpty()) {
                         List<DeploymentAuditVO> auditDetails = this
                                 .toDeploymentAuditVO(data.getIntDeploymentAuditLogs());
                         vo.setIntDeploymentAuditLogs(auditDetails);
+                    }else{
+                        vo.setIntDeploymentAuditLogs(new ArrayList<>());
                     }
                     if (data.getProdDeploymentAuditLogs() != null && !data.getProdDeploymentAuditLogs().isEmpty()) {
                         List<DeploymentAuditVO> auditDetails = this
                                 .toDeploymentAuditVO(data.getProdDeploymentAuditLogs());
                         vo.setProdDeploymentAuditLogs(auditDetails);
+                    }else{
+                        vo.setProdDeploymentAuditLogs(new ArrayList<>());
                     }
                 }
             }
