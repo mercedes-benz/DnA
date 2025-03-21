@@ -152,16 +152,17 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 		BeanUtils.copyProperties(vo, jsonData);
 
 		List<UserInfoRole> jsonRoles = new ArrayList<>();
-		if (vo.getRoles() != null){
-		vo.getRoles().stream().forEach(userRoleVO -> {
-			UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
-			jsonRoles.add(jsonRole);
-		});
-		jsonData.setRoles(jsonRoles);
-	}
-	else{
-		jsonData.setRoles(existingEntity.getData().getRoles());
-	}
+		if (vo.getRoles() != null) {
+			vo.getRoles().stream().forEach(userRoleVO -> {
+				UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
+				jsonRoles.add(jsonRole);
+			});
+			jsonData.setRoles(jsonRoles);
+		} else if (existingEntity == null) {
+			jsonData.setRoles(null);
+		} else {
+			jsonData.setRoles(existingEntity.getData().getRoles());
+		}
 
 		if (vo.getFavoriteUsecases() != null) {
 			List<UserFavoriteUseCase> jsonFavUsecases = new ArrayList<>();
@@ -171,12 +172,24 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 				jsonFavUsecases.add(jsonFavUsecase);
 			});
 			jsonData.setFavoriteUsecases(jsonFavUsecases);
-		}
-		else{
+		} else if (existingEntity == null) {
+			jsonData.setFavoriteUsecases(null);
+		} else {
 			jsonData.setFavoriteUsecases(existingEntity.getData().getFavoriteUsecases());
 		}
-		jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
-		if(vo.getDivisionAdmins() == null){
+
+
+		if (existingEntity == null) {
+			jsonData.setIsDeleted(null);
+		} else {
+			jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
+		}
+
+
+		if(existingEntity == null){
+			jsonData.setDivisionAdmins(null);
+		}
+		else if(vo.getDivisionAdmins() == null){
 			jsonData.setDivisionAdmins(existingEntity.getData().getDivisionAdmins());
 		}
 		entity.setData(jsonData);
