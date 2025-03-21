@@ -51,6 +51,12 @@ public class BaseJMailer implements JMailer {
 
 	@Value("${dna.ui.uri}")
 	private String dnaBaseUri;
+
+	@Value("${dna.teams.uri}")
+	private String TeamsUri;
+
+	@Value("${dna.mattermost.uri}")
+	private String MattermostUri;
 	
 	public BaseJMailer() {
 		super();
@@ -72,11 +78,26 @@ public class BaseJMailer implements JMailer {
 	        helper.setSubject(subject);
 	         
 	        boolean html = true;
+			if(subject.contains("Codespace Playground Project")){
+				helper.setSubject("ACTION REQUIRED:" + subject);
+				helper.setText("Dear User," +
+				"<br/>" +
+				"IMPORTANT!!!"+ "<br/>" + msgTxt
+				+"<br/>" +
+				"<h3>Need Assistance?</h3>" +
+				"<p>Join our <a href=\""+ TeamsUri+ "\">Teams channel</a> or <a href=\""+ MattermostUri+ "\">Mattermost channel</a> for help or to discuss any concerns.</p>"
+				+ "<br/>" + "<p>Thank you for your attention. We look forward to providing you with an enhanced Codespace experience!</p>"
+				+ "<br>Best regards," +
+				"<p><a href=\"" + dnaBaseUri+"\">DnA TEAM</a></p>" 
+				+"<p> Email: <a href=\"mailto:dna@mercedes-benz.com\">dna@mercedes-benz.com</a></p>", html);
+     
+			}
+			else{
 	        helper.setText(""	        		
 	        		+ msgTxt
 					+ "<br/>-----<br/>"
 	        		+ "<p> You received this auto-generated email from DNA as per your notification settings. You can change them <a href=\"" + dnaBaseUri + "/#/usersettings" + "\">here</a>. </p>", html);
-	         
+			}
 	        javaMailSender.send(message);
 	        log.info("Mail sent successfully for eventRecord {} , please check notification by this id for more details", eventId);
 	        
