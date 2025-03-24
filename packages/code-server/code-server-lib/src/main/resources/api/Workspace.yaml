@@ -1204,6 +1204,37 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/deploymentReject:
+    post:
+      tags:
+        - "code-server"
+      summary: "Reject production deployment for a workspace of a given Id."
+      description: "Reject workspace production deployment for a given identifier."
+      operationId: "deploymentRejectWorkspaceProject"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"         
+
           
 definitions:
   CodeSpaceReadmeVo:
@@ -1374,6 +1405,13 @@ definitions:
       projectCreatedOn:
         type: string
         format: date
+      lastBuildOrDeployedOn:
+        type: string
+        format: date
+      lastBuildOrDeployedStatus:
+        type: string
+      lastBuildOrDeployedEnv:
+        type: string    
       securityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       publishedSecuirtyConfig:

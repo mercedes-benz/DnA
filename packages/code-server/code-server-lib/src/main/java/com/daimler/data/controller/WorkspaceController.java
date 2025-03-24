@@ -2814,4 +2814,109 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	}
 
+	 @ApiOperation(value = "Reject production deployment for a workspace of a given Id.", nickname = "deploymentRejectWorkspaceProject", notes = "Reject workspace production deployment for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+     @ApiResponses(value = { 
+         @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+         @ApiResponse(code = 400, message = "Bad request."),
+         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+         @ApiResponse(code = 403, message = "Request is not authorized."),
+         @ApiResponse(code = 405, message = "Method not allowed"),
+         @ApiResponse(code = 500, message = "Internal error") })
+     @RequestMapping(value = "/workspaces/{id}/deploymentReject",
+         produces = { "application/json" }, 
+         consumes = { "application/json" },
+         method = RequestMethod.POST)
+     public ResponseEntity<GenericMessage> deploymentRejectWorkspaceProject(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id){
+		 try{
+			 CreatedByVO currentUser = this.userStore.getVO();
+			 String userId = currentUser != null ? currentUser.getId() : "";
+			 CodeServerWorkspaceVO vo = service.getById(userId, id);
+			 Boolean isOwner = false;
+			 CodeServerWorkspaceVO ownerVo = null;
+			 if (vo == null || vo.getWorkspaceId() == null) {
+				 log.debug("No workspace found, returning empty");
+				 GenericMessage emptyResponse = new GenericMessage();
+				 List<MessageDescription> errors = new ArrayList<>();
+				 MessageDescription msg = new MessageDescription();
+				 msg.setMessage("No workspace found for given id and the user");
+				 errors.add(msg);
+				 emptyResponse.setErrors(errors);
+				 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+			 }
+			 if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
+			    ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
+		     } else{
+			    ownerVo = vo;
+			    isOwner = true;
+		     }
+			 Boolean isApprover =false;
+			 List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+			 if(collabList!=null){
+				 for(UserInfoVO user : collabList){
+					 if(userId.equalsIgnoreCase(user.getId())){
+						 if(user.isIsApprover()){
+							 isApprover = true;
+						 }
+					 }
+				 }
+			 }
+			 if(!isOwner && !isApprover){
+				 MessageDescription notAuthorizedMsg = new MessageDescription();
+				 notAuthorizedMsg.setMessage(
+						 "Not authorized to reject production deployment for workspace. User does not have approver privileges.");
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.addErrors(notAuthorizedMsg);
+				 log.info("User {} cannot reject production deployment for workspace {}, insufficient privileges.", userId,
+						 vo.getWorkspaceId());
+				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			 }
+			 Boolean deploymentApprovalEnabled = false;
+			 deploymentApprovalEnabled = Boolean.TRUE
+					 .equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
+			 if(!deploymentApprovalEnabled){
+				 MessageDescription invalidTypeMsg = new MessageDescription();
+				 invalidTypeMsg.setMessage(
+						 "cannot reject workspace deployment since it is not a deployment approval enabled workspace.");
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.addErrors(invalidTypeMsg);
+				 log.info("User {} cannot reject project deployment of recipe {} for workspace {}, since it is not a deployment approval enabled workspace.", userId,
+						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			 String status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+			 if (status==null || !status.equalsIgnoreCase("APPROVAL_REQUESTED")) {
+				 MessageDescription invalidTypeMsg = new MessageDescription();
+				 invalidTypeMsg.setMessage(
+						 "cannot reject workspace deployment since it is not in APPROVAL_REQUESTED state.");
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.addErrors(invalidTypeMsg);
+				 log.info("User {} cannot reject project deployment of recipe {} for workspace {}, since it is not in APPROVAL_REQUESTED state.", userId,
+						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			 GenericMessage responseMsg;
+			 responseMsg = service.rejectDeployApproval(userId, id);
+			 log.info("User {} rejected deployment for workspace {} project {}", userId, vo.getWorkspaceId(),
+					 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			 if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+				 return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+			 }
+			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+		 } catch (EntityNotFoundException e) {
+			 log.error(e.getLocalizedMessage());
+			 MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.addErrors(invalidMsg);
+			 log.error("No workspace found with id {}, failed to reject deployment", id);
+			 return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		 } catch (Exception e) {
+			 log.error("Failed to reject production deployment for workspace {}, with exception {}", id, e.getLocalizedMessage());
+			 MessageDescription exceptionMsg = new MessageDescription("Failed to reject production deployment due to internal error.");
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.addErrors(exceptionMsg);
+			 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		 }
+	 };
+
  }

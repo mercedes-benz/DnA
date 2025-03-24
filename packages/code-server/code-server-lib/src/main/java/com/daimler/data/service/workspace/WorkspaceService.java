@@ -117,5 +117,7 @@ public interface WorkspaceService {
 	CodeServerWorkspaceVO findByWorkspaceId(String wsId);
 
 	VersionListResponseVO getBuildVersion(String projectName);
+
+	GenericMessage rejectDeployApproval(String userId, String id);
 	
 }

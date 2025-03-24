@@ -781,6 +781,10 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 									 isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 
 						projectDetailsVO.setRecipeName(projectDetails.getRecipeName());
+						if(projectDetails.getLastBuildOrDeployedOn() !=null)
+							 projectDetailsVO.setLastBuildOrDeployedOn(isoFormat.parse(isoFormat.format(projectDetails.getLastBuildOrDeployedOn())));
+						projectDetailsVO.setLastBuildOrDeployedEnv(projectDetails.getLastBuildOrDeployedEnv());
+						projectDetailsVO.setLastBuildOrDeployedStatus(projectDetails.getLastBuildOrDeployedStatus());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
  

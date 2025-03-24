@@ -1414,6 +1414,8 @@ import com.daimler.data.util.ConstantsUtility;
          try {
              CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
              if (entity != null) {
+				SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+				 Date now = isoFormat.parse(isoFormat.format(new Date()));
                  String projectName = entity.getData().getProjectDetails().getProjectName();
                 //  String environmentJsonbName = "intDeploymentDetails";
                 //  CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
@@ -1433,8 +1435,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 deploymentDetails.setIgnorePaths(ignorePaths);
 				 deploymentDetails.setScope(scope);
                  // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
-				
+				 
 					entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(environment);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("APPROVAL_PENDING");
 				workSpaceRepo.save(entity);
 				 List<DeploymentAudit> auditLogs = new ArrayList<>();
 					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
@@ -1447,8 +1452,8 @@ import com.daimler.data.util.ConstantsUtility;
                  if (auditLogs == null) {
                      auditLogs = new ArrayList<>();
                  }
-                 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-                 Date now = isoFormat.parse(isoFormat.format(new Date()));
+                 
+                 
                  DeploymentAudit auditLog = new DeploymentAudit();
                  auditLog.setTriggeredOn(now);
                  auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
@@ -1508,7 +1513,8 @@ import com.daimler.data.util.ConstantsUtility;
 		 boolean hasProdUrl = false;
 		 boolean hasIntUrl = false;
 		 try {
-			
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));
 			 String repoName = null;
 			 String repoUrl = null;
 			 String gitOrg = null;
@@ -1658,8 +1664,7 @@ import com.daimler.data.util.ConstantsUtility;
 						auditLog.setApprovedBy(entity.getData().getWorkspaceOwner().getGitUserName());																
 					 }
 					 else{
-						SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-						Date now = isoFormat.parse(isoFormat.format(new Date()));						
+												
 						auditLog.setTriggeredOn(now);
 						auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
 						auditLog.setBranch(branch);					
@@ -1731,7 +1736,10 @@ import com.daimler.data.util.ConstantsUtility;
 						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
 					}else{
 						entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
-					}	
+					}
+					entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(environment);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("DEPLOY_REQUESTED");	
 					workSpaceRepo.save(entity);
 					// workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
@@ -2137,7 +2145,12 @@ import com.daimler.data.util.ConstantsUtility;
 						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
 					}else{
 						entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
-					}	
+					}
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					 Date now = isoFormat.parse(isoFormat.format(new Date()));
+					entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(environment);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("UNDEPLOY_REQUESTED");	
 					workSpaceRepo.save(entity);
 
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
@@ -2152,8 +2165,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 if (auditLogs == null) {
 						 auditLogs = new ArrayList<>();
 					 }
-					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					 Date now = isoFormat.parse(isoFormat.format(new Date()));
+					 
 					 DeploymentAudit auditLog = new DeploymentAudit();
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
@@ -2450,6 +2462,9 @@ import com.daimler.data.util.ConstantsUtility;
 						 }else{
 							entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
 						 }
+					entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(targetEnv);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(latestStatus);
 						 workSpaceRepo.save(entity);
 						 
 						 //setting audit log details
@@ -2494,6 +2509,9 @@ import com.daimler.data.util.ConstantsUtility;
 						 }else{
 							entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
 						 }
+						 entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(targetEnv);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(latestStatus);
 						 workSpaceRepo.save(entity);
 					 if(optionalBuildDeployentity.isPresent()){
 						 buildDeployentity = optionalBuildDeployentity.get();
@@ -2523,6 +2541,9 @@ import com.daimler.data.util.ConstantsUtility;
 						}else{
 						   entity.getData().getProjectDetails().setProdBuildDetails(buildDetails);
 						}
+						entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(targetEnv);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(latestStatus);
 						workSpaceRepo.save(entity);
 				   
 				   if(optionalBuildDeployentity.isPresent()){
@@ -2572,6 +2593,9 @@ import com.daimler.data.util.ConstantsUtility;
 						 }else{
 							entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
 						 }
+						 entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(targetEnv);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(latestStatus);
 						 workSpaceRepo.save(entity);
 					 if(optionalBuildDeployentity.isPresent()){
 						 buildDeployentity = optionalBuildDeployentity.get();
@@ -3659,8 +3683,11 @@ import com.daimler.data.util.ConstantsUtility;
 						entity.getData().getProjectDetails().setIntBuildDetails(buildDetails);
 					}else{
 						entity.getData().getProjectDetails().setProdBuildDetails(buildDetails);
-					}	
-					workSpaceRepo.save(entity);	
+					}
+					entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(environment);
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("BUILD_REQUESTED");
+					workSpaceRepo.save(entity);
 					List<BuildAudit> auditLogs = new ArrayList<>();
 					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
 					if(optionalBuildDeployentity.isPresent()){
@@ -3808,6 +3835,71 @@ import com.daimler.data.util.ConstantsUtility;
 			log.error("Caught exception while fetching build versions: {}", e.getMessage());
 			return null;
 		}
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage rejectDeployApproval(String userId, String id) {
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try{
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+			if (entity != null) {
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String environmentJsonbName = "prodDeploymentDetails";
+				CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+				List<DeploymentAudit> auditLogs = new ArrayList<>();
+					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+					if(optionalBuildDeployentity.isPresent()){						
+							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();						
+					}
+				if (auditLogs == null) {
+				 auditLogs = new ArrayList<>();
+				}
+				DeploymentAudit auditLog = new DeploymentAudit();
+				if (!auditLogs.isEmpty()){
+					 auditLog = auditLogs.get(auditLogs.size() - 1);
+				}
+				auditLog.setApprovedBy(entity.getData().getWorkspaceOwner().getGitUserName());				
+				auditLog.setDeploymentStatus("APPROVAL_REJECTED");
+				if (!auditLogs.isEmpty()){
+					auditLogs.set(auditLogs.size() - 1, auditLog);
+				}
+				else{
+					auditLogs.add(auditLog);
+				}
+
+				CodeServerBuildDeploy buildDeployLogs = null;
+				 CodeServerBuildDeployNsql auditLogEntity = null;
+				 if(optionalBuildDeployentity.isPresent()){
+					auditLogEntity = optionalBuildDeployentity.get();
+					buildDeployLogs =  auditLogEntity.getData();						
+				 }else{
+					 buildDeployLogs = new CodeServerBuildDeploy();
+					 auditLogEntity = new CodeServerBuildDeployNsql();
+					 auditLogEntity.setId(projectName.toLowerCase());
+					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
+					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
+					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
+					 String deployLogId = UUID.randomUUID().toString();	
+					 buildDeployLogs.setId(deployLogId);				
+				 }
+					buildDeployLogs.setProdDeploymentAuditLogs(auditLogs);
+				 
+				 auditLogEntity.setData(buildDeployLogs);
+				 buildDeployRepo.save(auditLogEntity);
+			}
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failed while rejecting codeserver workspace project deployment with exception " + e.getMessage());
+				errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage; 
 	}
 
 }
