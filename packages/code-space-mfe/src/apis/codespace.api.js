@@ -55,6 +55,12 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
         data,
     });
 };
+
+const rejectDeployApproval = (id) => {
+    return server.post(`workspaces/${id}/deploymentReject`, {
+        data: {},
+    });
+};
   
 const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
@@ -307,6 +313,7 @@ export const CodeSpaceApiClient = {
     getCodeSpacesGitBranchList,
     deployCodeSpace,
     unDeployCodeSpace,
+    rejectDeployApproval,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,

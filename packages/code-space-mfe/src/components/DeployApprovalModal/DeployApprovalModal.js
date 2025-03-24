@@ -79,6 +79,34 @@ const DeployApprovalModal = (props) => {
     setShowCredentialsModal(false);
   };
 
+  const handleFinalRejectClick = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.rejectDeployApproval(props.codeSpaceData.id)
+      .then((res) => {
+        if (res.data.success === 'SUCCESS') {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Production deployment of your project ' + codeSpace.projectDetails?.projectName +' is rejected.'
+          );
+        } else {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in rejecting production deployment. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in rejecting production deployment. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+      });
+      setShowCredentialsModal(false);
+      props.setShowDeployApprovalModal(false);
+  };
+
   return (
     <>
       <Modal
@@ -199,8 +227,11 @@ const DeployApprovalModal = (props) => {
                   </div>
                 )}
               </div>
-              <div className={Styles.approveBtnWrapper}>
-                <button className={'btn btn-tertiary'} onClick={handleApproveClick}>
+              <div className={classNames('btn-set',Styles.btnSet)}>
+                <button className="btn btn-primary" onClick={handleFinalRejectClick}>
+                  Reject
+                </button>
+                <button className="btn btn-tertiary" onClick={handleApproveClick}>
                   Approve
                 </button>
               </div>
