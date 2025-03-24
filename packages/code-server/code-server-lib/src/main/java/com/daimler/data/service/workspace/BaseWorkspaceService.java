@@ -1726,6 +1726,52 @@ import com.daimler.data.util.ConstantsUtility;
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
 	 }
+
+	 @Override
+     @Transactional
+     public GenericMessage rejectDeployApproval(String userId, String id) {
+		 GenericMessage responseMessage = new GenericMessage();
+		 String status = "FAILED";
+		 List<MessageDescription> warnings = new ArrayList<>();
+		 List<MessageDescription> errors = new ArrayList<>();
+		 try{
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+             if (entity != null) {
+                 String projectName = entity.getData().getProjectDetails().getProjectName();
+				 String environmentJsonbName = "prodDeploymentDetails";
+                 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+				 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+				 if (auditLogs == null) {
+				  auditLogs = new ArrayList<>();
+				 }
+				 DeploymentAudit auditLog = new DeploymentAudit();
+				 if (!auditLogs.isEmpty()){
+				 	 auditLog = auditLogs.get(auditLogs.size() - 1);
+				 }
+				 auditLog.setApprovedBy(entity.getData().getWorkspaceOwner().getGitUserName());				
+				 auditLog.setDeploymentStatus("APPROVAL_REJECTED");
+				 if (!auditLogs.isEmpty()){
+					 auditLogs.set(auditLogs.size() - 1, auditLog);
+				 }
+				 else{
+					 auditLogs.add(auditLog);
+				 }
+				
+				 deploymentDetails.setDeploymentAuditLogs(auditLogs);
+				 deploymentDetails.setLastDeploymentStatus("APPROVAL_REJECTED");
+                 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
+                         deploymentDetails);
+			 }
+		 } catch (Exception e) {
+			 MessageDescription error = new MessageDescription();
+			 error.setMessage("Failed while rejecting codeserver workspace project deployment with exception " + e.getMessage());
+				 errors.add(error);
+		 }
+		 responseMessage.setErrors(errors);
+		 responseMessage.setWarnings(warnings);
+		 responseMessage.setSuccess(status);
+		 return responseMessage; 
+	 }
  
 	 @Override
 	 @Transactional
