@@ -3844,6 +3844,8 @@ import com.daimler.data.util.ConstantsUtility;
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		Date now = isoFormat.parse(isoFormat.format(new Date()));
 		try{
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			if (entity != null) {
@@ -3890,6 +3892,11 @@ import com.daimler.data.util.ConstantsUtility;
 				 
 				 auditLogEntity.setData(buildDeployLogs);
 				 buildDeployRepo.save(auditLogEntity);
+
+				 entity.getData().getProjectDetails().setLastBuildOrDeployedEnv("prod");
+					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
+					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("APPROVAL_REJECTED");
+					workSpaceRepo.save(entity);
 			}
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
