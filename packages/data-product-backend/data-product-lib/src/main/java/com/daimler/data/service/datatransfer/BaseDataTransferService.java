@@ -598,7 +598,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 							+ ". You can view the details [here](" + dataTransferBaseUrl + "consume/"
 							+ resourceID + ")";
 					providerEventMessage = "DataTransfer " + existingDataTransferName + " is updated by user " + userName
-							+ ". You can view the details [here](" + dataTransferBaseUrl + "provider/" + resourceID + ")";
+							+ ". You can view the details [here](" + dataTransferBaseUrl + "summary/" + resourceID + ")";
 					changeLogs = dataTransferAssembler.jsonObjectCompare(currDataTransferVO, prevDataTransferVO,
 							currentUser);
 					LOGGER.info("Publishing message on update for dataTransfer {} by userId {}", existingDataTransferName,
