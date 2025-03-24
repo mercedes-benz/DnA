@@ -195,3 +195,5 @@ kong:
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
+  logs:
+      migrate: ${WORKSPACE_LOGS_MIGRATE:YOUR_MIGRATE_BOOLEAN}

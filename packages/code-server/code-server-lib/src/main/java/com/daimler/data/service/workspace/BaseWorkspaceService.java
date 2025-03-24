@@ -3843,10 +3843,10 @@ import com.daimler.data.util.ConstantsUtility;
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
-		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-		Date now = isoFormat.parse(isoFormat.format(new Date()));
+		List<MessageDescription> errors = new ArrayList<>();		
 		try{
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		Date now = isoFormat.parse(isoFormat.format(new Date()));
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			if (entity != null) {
 				String projectName = entity.getData().getProjectDetails().getProjectName();
@@ -3907,6 +3907,51 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
 		return responseMessage; 
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage migrateWorkspaceLogs(CodeServerWorkspaceNsql entity){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CodeServerBuildDeploy buildDeployLogs = null;
+				 CodeServerBuildDeployNsql auditLogEntity = null;
+		try{
+			
+			List<DeploymentAudit> intAuditLogs = new ArrayList<>();
+			List<DeploymentAudit> prodAuditLogs = new ArrayList<>();
+			String projectName = entity.getData().getProjectDetails().getProjectName();
+					buildDeployLogs = new CodeServerBuildDeploy();
+					 auditLogEntity = new CodeServerBuildDeployNsql();
+					 auditLogEntity.setId(projectName.toLowerCase());
+					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
+					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());					 
+					 String deployLogId = UUID.randomUUID().toString();	
+					 buildDeployLogs.setId(deployLogId);
+					 if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs() != null){
+						intAuditLogs = entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs();
+					 }
+					 if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs() != null){
+						prodAuditLogs = entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs();
+					 }
+					 buildDeployLogs.setIntDeploymentAuditLogs(intAuditLogs);
+					 buildDeployLogs.setProdDeploymentAuditLogs(prodAuditLogs);
+					 auditLogEntity.setData(buildDeployLogs);
+					 buildDeployRepo.save(auditLogEntity);
+					 status = "SUCCESS";
+
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while Migrating codeserver workspace logs  with exception " + e.getMessage());
+			error.setMessage("Failed while Migrating codeserver workspace logs  with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
 	}
 
 }

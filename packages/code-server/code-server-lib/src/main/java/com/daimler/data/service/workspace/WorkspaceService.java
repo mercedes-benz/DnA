@@ -119,5 +119,7 @@ public interface WorkspaceService {
 	VersionListResponseVO getBuildVersion(String projectName);
 
 	GenericMessage rejectDeployApproval(String userId, String id);
+
+	GenericMessage migrateWorkspaceLogs(CodeServerWorkspaceNsql entity);
 	
 }
