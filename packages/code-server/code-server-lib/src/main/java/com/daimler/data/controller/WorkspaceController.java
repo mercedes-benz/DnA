@@ -994,13 +994,13 @@ import org.springframework.beans.factory.annotation.Value;
 			 }
 			 if (("CREATE_REQUESTED".equalsIgnoreCase(vo.getStatus())) || ("COLLABORATION_REQUESTED".equalsIgnoreCase(vo.getStatus()))){
 
-				if(technicalId.equalsIgnoreCase(userId) && vo.getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
+				if(technicalId.equalsIgnoreCase(userId)){
 					CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
 					entity = workspaceCustomRepository.findByWorkspaceId(id);
 					entity.getData().setStatus("DELETED");
 					jpaRepo.save(entity);
 					GenericMessage message = new GenericMessage();
-					message.setSuccess("Collaborator requested or creation requested Playground projects are deleted sucessfully");
+					message.setSuccess("Collaborator requested or creation requested projects are deleted sucessfully");
 					return new ResponseEntity<>(message, HttpStatus.OK);
 				 }
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -1011,7 +1011,7 @@ import org.springframework.beans.factory.annotation.Value;
 				 log.info("Cannot delete workspace {} as its not created yet. Bad Request", vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
-			 if(!(technicalId.equalsIgnoreCase(userId) && vo.getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground"))){
+			 if(!(technicalId.equalsIgnoreCase(userId))){
 			 if (vo != null && vo.getProjectDetails().getProjectOwner() != null
 					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)
 					 && vo.getProjectDetails().getProjectCollaborators() != null
