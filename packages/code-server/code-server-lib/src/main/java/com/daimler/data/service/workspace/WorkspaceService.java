@@ -69,6 +69,8 @@ public interface WorkspaceService {
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
+	GenericMessage rejectDeployApproval(String userId, String id);
+
 	GenericMessage addCollabById(String userId,  CodeServerWorkspaceVO vo, UserInfoVO userRequestDto);
 
 	GenericMessage removeCollabById(String currentUserUserId,  CodeServerWorkspaceVO vo, String userRequestDto);

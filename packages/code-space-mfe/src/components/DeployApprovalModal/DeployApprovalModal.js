@@ -16,7 +16,6 @@ const DeployApprovalModal = (props) => {
   const ignorePaths = deploymentDetails?.ignorePaths?.length ? deploymentDetails?.ignorePaths?.split(',') : ['N/A'];
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
-  console.log(deploymentDetails?.oneApiVersionShortName?.length);
 
   const deployWorkspace = () => {
     const deployRequest = {
@@ -72,12 +71,40 @@ const DeployApprovalModal = (props) => {
   };
 
   const handleApproveClick = () => {
-    deploymentDetails?.secureWithIAMRequired ? setShowCredentialsModal(true) : deployWorkspace();
+    (deploymentDetails?.secureWithIAMRequired && deploymentDetails?.clientId?.length) ? setShowCredentialsModal(true) : deployWorkspace();
   };
 
   const handleFinalApproveClick = () => {
     deployWorkspace();
     setShowCredentialsModal(false);
+  };
+
+  const handleFinalRejectClick = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.rejectDeployApproval(props.codeSpaceData.id)
+      .then((res) => {
+        if (res.data.success === 'SUCCESS') {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Production deployment of your project ' + codeSpace.projectDetails?.projectName +' is rejected.'
+          );
+        } else {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in rejecting production deployment. Please try again later.',
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in rejecting production deployment. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+      });
+      setShowCredentialsModal(false);
+      props.setShowDeployApprovalModal(false);
   };
 
   return (
@@ -200,8 +227,11 @@ const DeployApprovalModal = (props) => {
                   </div>
                 )}
               </div>
-              <div className={Styles.approveBtnWrapper}>
-                <button className={'btn btn-tertiary'} onClick={handleApproveClick}>
+              <div className={classNames('btn-set',Styles.btnSet)}>
+                <button className="btn btn-primary" onClick={handleFinalRejectClick}>
+                  Reject
+                </button>
+                <button className="btn btn-tertiary" onClick={handleApproveClick}>
                   Approve
                 </button>
               </div>
