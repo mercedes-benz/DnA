@@ -402,7 +402,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 // if(isProjectOwner) {
 		 // workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 		 // }else {
-		 if(technicalId.equalsIgnoreCase(userId) && entity.getData().getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
+		 if(technicalId.equalsIgnoreCase(userId)){
 			entity.getData().setStatus("DELETED");
 			jpaRepo.save(entity);
 		 }
