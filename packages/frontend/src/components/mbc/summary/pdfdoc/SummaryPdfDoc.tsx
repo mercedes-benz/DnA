@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
   },
 });
 
-const digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
-const dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+const digitalValueTypeKeyValue = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+const dataValueTypeKeyValue = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
 const dataValueSavingsKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[0];
 const dataValueRevenueKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[1];
 
@@ -630,8 +630,7 @@ const dataComplianceProcessFlow = (dataCompliance: IDataCompliance) => {
     );
   return <View style={styles.imageSection}>{image}</View>;
 };
-
-const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, firstItem?: boolean) => {
+const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, currentPhase: IPhase, firstItem?: boolean) => {
   const canShowPhase = phaseItem ? phaseItem.month && phaseItem.year : false;
   const activeState = { backgroundColor: canShowPhase ? '#697582' : '#C0C8D0' };
   if (!phaseItem) {
@@ -639,8 +638,9 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
     const phase: IPhase = { id: '1', name: 'Kick-off' };
     phaseItem = { month: 1, year: 1971, description: '', phase };
   }
+  const isCurrentPhase = phaseItem?.phase?.id === currentPhase?.id;
   return (
-    <View style={styles.milestoneCol}>
+    <View style={[styles.milestoneCol, isCurrentPhase ? { borderTopWidth: 2, borderTopColor: 'black',  marginTop: -2  } : {}]}>
       <Image style={{ width: 25, opacity: canShowPhase ? 1 : 0 }} src={phaseImageFileName} />
       <View style={[styles.milestoneValueView, { opacity: canShowPhase ? 1 : 0 }]}>
         <Text style={[styles.sectionTitle, styles.setMarginTop15, styles.noMarginBottom]}>{phaseItem.phase.name}</Text>
@@ -670,16 +670,16 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
   );
 };
 
-const milestonesView = (milestones: IMilestonesList) => {
+const milestonesView = (milestones: IMilestonesList, currentPhase: IPhase) => {
   const phases = milestones.phases;
   return (
     <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 25 }}>
-      {getPhaseItemView(phases[0], ImgKickOff, true)}
-      {getPhaseItemView(phases[1], ImgIdeation)}
-      {getPhaseItemView(phases[2], ImgPOC)}
-      {getPhaseItemView(phases[3], ImgPilot)}
-      {getPhaseItemView(phases[4], ImgProfessionalization)}
-      {getPhaseItemView(phases[5], ImgRollout)}
+      {getPhaseItemView(phases[0], ImgKickOff, currentPhase, true)}
+      {getPhaseItemView(phases[1], ImgIdeation, currentPhase)}
+      {getPhaseItemView(phases[2], ImgPOC, currentPhase)}
+      {getPhaseItemView(phases[3], ImgPilot, currentPhase)}
+      {getPhaseItemView(phases[4], ImgProfessionalization, currentPhase)}
+      {getPhaseItemView(phases[5], ImgRollout, currentPhase)}
     </View>
   );
 };
@@ -776,6 +776,7 @@ interface SummaryPdfDocProps {
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
   children?: any;
+  createdBy?: IUserInfo;
 }
 export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
   // @ts-ignore
@@ -852,6 +853,14 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Last Modified On</Text>
             <Text>{props.lastModifiedDate ? getDateTimeFromTimestamp(props.lastModifiedDate) : '-'}</Text>
+          </View>
+          <View style={[styles.flexCol2, styles.wideCol]}>
+            <Text style={styles.sectionTitle}>Created By</Text>
+            <Text>
+              {props.solution.description?.createdBy
+                ? `${props.solution.description.createdBy.firstName} ${props.solution.description.createdBy.lastName}`
+                : 'NA'}
+            </Text>
           </View>
         </View>
         <View style={styles.seperatorLine} />
@@ -952,9 +961,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                                     props.dataIkuInfo?.cloudProfile?.toLowerCase().includes('extollo')
                                       ? Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'
                                       : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL +
-                                        '/projects/' +
-                                        props.dataIkuInfo.projectKey +
-                                        '/'
+                                      '/projects/' +
+                                      props.dataIkuInfo.projectKey +
+                                      '/'
                                   }
                                 >
                                   <Text>{props.dataIkuInfo.name}</Text>
@@ -967,12 +976,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                           <View>
                             <Text>
                               {(props?.dnaNotebookEnabled && props?.noteBookInfo?.createdOn) ||
-                              (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
+                                (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
                                 ? `Created on ${getDateFromTimestamp(
-                                    (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
-                                      (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
-                                    '.',
-                                  )}`
+                                  (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
+                                  (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
+                                  '.',
+                                )}`
                                 : ''}{' '}
                               {(props.dnaNotebookEnabled &&
                                 props.noteBookInfo.createdBy.firstName &&
@@ -1030,11 +1039,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         ) : (
           <View />
         )}
+        {/* here */}
         {props.canShowMilestones ? (
           <View>
             <View wrap={false}>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
-              <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
+              <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones, props.solution.currentPhase)}</View>
             </View>
             {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.length > 0 ? (
               <View>
@@ -1066,10 +1076,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             {(props.solution.dataSources &&
               props.solution.dataSources.dataSources &&
               props.solution.dataSources.dataSources.length > 0) ||
-            (props.solution.dataSources &&
-              props.solution.dataSources.dataVolume &&
-              props.solution.dataSources.dataVolume.name &&
-              props.solution.dataSources.dataVolume.name !== 'Choose') ? (
+              (props.solution.dataSources &&
+                props.solution.dataSources.dataVolume &&
+                props.solution.dataSources.dataVolume.name &&
+                props.solution.dataSources.dataVolume.name !== 'Choose') ? (
               <View wrap={false}>
                 <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
@@ -1104,27 +1114,27 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         {(props.solution.analytics &&
           props.solution.analytics.algorithms &&
           props.solution.analytics.algorithms.length > 0) ||
-        (props.solution.analytics &&
-          props.solution.analytics.languages &&
-          props.solution.analytics.languages.length > 0) ||
-        (props.solution.analytics &&
-          props.solution.analytics.visualizations &&
-          props.solution.analytics.visualizations.length > 0) ? (
+          (props.solution.analytics &&
+            props.solution.analytics.languages &&
+            props.solution.analytics.languages.length > 0) ||
+          (props.solution.analytics &&
+            props.solution.analytics.visualizations &&
+            props.solution.analytics.visualizations.length > 0) ? (
           <View wrap={false}>
             <View style={styles.flexLayout}>
               <View style={[styles.flexCol4, styles.firstCol]}>
-                <Text style={styles.subTitle}>{props.isGenAi ?"Technology":"Analytics"}</Text>
+                <Text style={styles.subTitle}>{props.isGenAi ? "Technology" : "Analytics"}</Text>
               </View>
-              {!props.isGenAi ?(<View style={styles.flexCol4}>
+              {!props.isGenAi ? (<View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Languages</Text>
                 {props.solution.analytics.languages && props.solution.analytics.languages.length > 0 ? (
                   processDataValuesFromObj(props.solution.analytics.languages)
                 ) : (
                   <Text>NA</Text>
                 )}
-              </View>): ''}
+              </View>) : ''}
               <View style={styles.flexCol4}>
-                <Text style={styles.sectionTitle}>{props.isGenAi?"GenAI Models ":"Models/Algorithms"}</Text>
+                <Text style={styles.sectionTitle}>{props.isGenAi ? "GenAI Models " : "Models/Algorithms"}</Text>
                 {props.solution.analytics.algorithms && props.solution.analytics.algorithms.length > 0 ? (
                   processDataValuesFromObj(props.solution.analytics.algorithms)
                 ) : (
@@ -1133,32 +1143,32 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>{props.isGenAi ? "solutions" : "Visualization"}</Text>
-                  {!props.isGenAi ? (
-                    props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
-                      processDataValuesFromObj(props.solution.analytics.visualizations)
-                    ) : (
-                      <Text>NA</Text>
-                    )) : (
-                    props.solution.analytics.analyticsSolution && props.solution.analytics.analyticsSolution.length > 0 ? (
-                      processDataValuesFromObj(props.solution.analytics.analyticsSolution)
-                    ) : (
-                      <Text>NA</Text>
-                    )
+                {!props.isGenAi ? (
+                  props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
+                    processDataValuesFromObj(props.solution.analytics.visualizations)
+                  ) : (
+                    <Text>NA</Text>
+                  )) : (
+                  props.solution.analytics.analyticsSolution && props.solution.analytics.analyticsSolution.length > 0 ? (
+                    processDataValuesFromObj(props.solution.analytics.analyticsSolution)
+                  ) : (
+                    <Text>NA</Text>
                   )
-                  }
+                )
+                }
               </View>
-              </View>
+            </View>
             <View style={styles.seperatorLineLight} />
           </View>
         ) : (
           <View />
         )}
         {props.solution.sharing &&
-        ((props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '') ||
-          (props.solution.sharing.result &&
-            props.solution.sharing.result.name &&
-            props.solution.sharing.result.name !== 'Choose') ||
-          (props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '')) ? (
+          ((props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '') ||
+            (props.solution.sharing.result &&
+              props.solution.sharing.result.name &&
+              props.solution.sharing.result.name !== 'Choose') ||
+            (props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '')) ? (
           <View wrap={false}>
             <View style={styles.flexLayout}>
               <View style={[styles.flexCol4, styles.firstCol]}>
@@ -1196,24 +1206,24 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         )}
         <View style={styles.seperatorLine} />
         {props.solution?.marketing &&
-        (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
-          props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
-          props.solution?.marketing?.personas?.length > 0 ||
-          props.solution?.marketing?.personalization?.isChecked ||
-          props.solution?.marketing?.marketingRoles?.length > 0) ? (
+          (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
+            props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
+            props.solution?.marketing?.personas?.length > 0 ||
+            props.solution?.marketing?.personalization?.isChecked ||
+            props.solution?.marketing?.marketingRoles?.length > 0) ? (
           <View>
             <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
             <View style={styles.flexLayout}>
-            <View style={[styles.flexCol4, styles.firstCol]}>
-              <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
-              {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
-                <View>
-                  {props.solution?.marketing?.customerJourneyPhases?.map((item, index) => {
-                    return <Text key={index}>{item.name}</Text>;
-                  })}
-                </View>
-              ) : (
-                <Text>NA</Text>
+              <View style={[styles.flexCol4, styles.firstCol]}>
+                <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
+                {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
+                  <View>
+                    {props.solution?.marketing?.customerJourneyPhases?.map((item, index) => {
+                      return <Text key={index}>{item.name}</Text>;
+                    })}
+                  </View>
+                ) : (
+                  <Text>NA</Text>
                 )}
               </View>
             </View>
@@ -1279,7 +1289,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.seperatorLine} />
             </View>
-             <View wrap={false}>
+            <View wrap={false}>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Workers Council Approval</Text>
               <View style={styles.flexLayout}>
                 <Text>
@@ -1314,7 +1324,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text style={[styles.subTitle, styles.setMarginTop]}>Local Compliance Officers</Text>
               <View style={styles.flexLayout}>
                 {props.solution.datacompliance.complianceOfficers &&
-                props.solution.datacompliance.complianceOfficers.length ? (
+                  props.solution.datacompliance.complianceOfficers.length ? (
                   teamMembersList(props.solution.datacompliance.complianceOfficers)
                 ) : (
                   <Text>NA</Text>
@@ -1346,7 +1356,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text style={[styles.subTitle, styles.setMarginTop]}>Controllers</Text>
               <View style={styles.flexLayout}>
                 {props.solution.digitalValue.projectControllers &&
-                props.solution.digitalValue.projectControllers.length ? (
+                  props.solution.digitalValue.projectControllers.length ? (
                   teamMembersList(props.solution.digitalValue.projectControllers)
                 ) : (
                   <Text>NA</Text>
@@ -1393,8 +1403,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <View style={[styles.flexLayout]}>
                   {props.solution.digitalValue ? (
                     props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears &&
-                    props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears.length > 0 ? (
+                      props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears &&
+                      props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears.length > 0 ? (
                       digitalValue(props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears)
                     ) : (
                       <Text>NA</Text>
@@ -1410,12 +1420,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={[styles.flexLayout]}>
                     {props.solution?.digitalValue ? (
                       props.solution.digitalValue?.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator?.calculatedValueRampUpYearsVO &&
-                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO?.savings?.length >
+                        props.solution.digitalValue.dataValueCalculator?.calculatedValueRampUpYearsVO &&
+                        props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO?.savings?.length >
                         0 ? (
-                          dataValue(
-                            props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
-                          )
+                        dataValue(
+                          props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
+                        )
                       ) : (
                         <Text>NA</Text>
                       )
@@ -1427,12 +1437,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={[styles.flexLayout]}>
                     {props.solution.digitalValue ? (
                       props.solution.digitalValue.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
-                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue?.length >
+                        props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
+                        props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue?.length >
                         0 ? (
-                          dataValue(
-                            props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue
-                          )
+                        dataValue(
+                          props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue
+                        )
                       ) : (
                         <Text>NA</Text>
                       )
@@ -1451,7 +1461,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       {' '}
                       Digital Value at{' '}
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
+                        props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                         <Text>{props.solution.digitalValue.valueCalculator.calculatedDigitalValue.valueAt}%</Text>
                       ) : (
                         <Text>%</Text>
@@ -1459,10 +1469,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     </Text>
                     <Text style={styles.sectionTitle}>
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
+                        props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                         props.solution.digitalValue.valueCalculator.calculatedDigitalValue.year +
-                        ' (' +
-                        props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ? (
+                          ' (' +
+                          props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ? (
                           <IntlProvider locale={navigator.language} defaultLocale="en">
                             <FormattedNumber
                               value={Number(props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value)}
@@ -1481,7 +1491,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       {' '}
                       Value Drivers (
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.valueFactorSummary ? (
+                        props.solution.digitalValue.valueCalculator.valueFactorSummary ? (
                         props.solution.digitalValue.valueCalculator.valueFactorSummary.year
                       ) : (
                         <View />
@@ -1490,8 +1500,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     </Text>
                     <Text style={styles.sectionTitle}>
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.valueFactorSummary &&
-                      props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
+                        props.solution.digitalValue.valueCalculator.valueFactorSummary &&
+                        props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
                         <Text>
                           {props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
                             <IntlProvider locale={navigator.language} defaultLocale="en">
@@ -1514,7 +1524,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       {' '}
                       Cost Drivers (
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.costFactorSummary ? (
+                        props.solution.digitalValue.valueCalculator.costFactorSummary ? (
                         props.solution.digitalValue.valueCalculator.costFactorSummary.year
                       ) : (
                         <View />
@@ -1523,8 +1533,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     </Text>
                     <Text style={styles.sectionTitle}>
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.costFactorSummary &&
-                      props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
+                        props.solution.digitalValue.valueCalculator.costFactorSummary &&
+                        props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
                         <Text>
                           {' '}
                           {props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
@@ -1547,7 +1557,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     <Text style={styles.sectionTitle}> Break Even Point </Text>
                     <Text style={styles.sectionTitle}>
                       {props.solution.digitalValue.valueCalculator &&
-                      props.solution.digitalValue.valueCalculator.breakEvenPoint ? (
+                        props.solution.digitalValue.valueCalculator.breakEvenPoint ? (
                         props.solution.digitalValue.valueCalculator.breakEvenPoint
                       ) : (
                         <Text>NA</Text>
@@ -1565,7 +1575,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     <Text style={styles.sectionTitle}>
                       {SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueSavingsKeyValue]} Value Summary (
                       {props.solution.digitalValue.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO ? (
+                        props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO ? (
                         props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.year
                       ) : (
                         <View />
@@ -1574,8 +1584,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     </Text>
                     <Text style={styles.sectionTitle}>
                       {props.solution.digitalValue.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO &&
-                      props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value ? (
+                        props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO &&
+                        props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value ? (
                         <Text>
                           {props.solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value ? (
                             <IntlProvider locale={navigator.language} defaultLocale="en">
@@ -1597,7 +1607,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     <Text style={styles.sectionTitle}>
                       {SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueRevenueKeyValue]} Value Summary (
                       {props.solution.digitalValue.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO ? (
+                        props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO ? (
                         props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.year
                       ) : (
                         <View />
@@ -1606,8 +1616,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     </Text>
                     <Text style={styles.sectionTitle}>
                       {props.solution.digitalValue.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO &&
-                      props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value ? (
+                        props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO &&
+                        props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value ? (
                         <Text>
                           {props.solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value ? (
                             <IntlProvider locale={navigator.language} defaultLocale="en">
@@ -1646,7 +1656,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <Text style={styles.sectionTitle}>Strategic Relevance</Text>
                 <Text style={{ marginBottom: 12 }}>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.strategicRelevance ? (
+                    props.solution.digitalValue.assessment.strategicRelevance ? (
                     props.solution.digitalValue.assessment.strategicRelevance
                   ) : (
                     <Text>NA</Text>
@@ -1654,7 +1664,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 </Text>
                 <Text>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.commentOnStrategicRelevance ? (
+                    props.solution.digitalValue.assessment.commentOnStrategicRelevance ? (
                     props.solution.digitalValue.assessment.commentOnStrategicRelevance
                   ) : (
                     <View />
@@ -1667,7 +1677,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <Text style={styles.sectionTitle}>Benefit Realization Risk</Text>
                 <Text style={{ marginBottom: 12 }}>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.benefitRealizationRisk ? (
+                    props.solution.digitalValue.assessment.benefitRealizationRisk ? (
                     props.solution.digitalValue.assessment.benefitRealizationRisk
                   ) : (
                     <Text>NA</Text>
@@ -1675,7 +1685,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 </Text>
                 <Text>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.commentOnBenefitRealizationRisk ? (
+                    props.solution.digitalValue.assessment.commentOnBenefitRealizationRisk ? (
                     props.solution.digitalValue.assessment.commentOnBenefitRealizationRisk
                   ) : (
                     <View />
@@ -1701,7 +1711,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         ) : (
           <View />
         )}
-        <View fixed={true} style={{bottom: 0}}>
+        <View fixed={true} style={{ bottom: 0 }}>
           <Text fixed={true} style={styles.pageNumber} render={pageNumberRender} />
         </View>
       </View>

@@ -198,6 +198,9 @@ const base = {
       chunks: 'async',
     },
   },
+  resolve: {
+    fallback: { crypto: false },
+  },
 };
 
 // copy config file part of build
