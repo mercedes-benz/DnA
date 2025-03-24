@@ -119,7 +119,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
-          department: ''
+          department: '',
+          leanIXDetails: {},
+          appId: '',
         },
         openSegments: [],
         team: { team: [] },
@@ -490,9 +492,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     )}
 
                     {this.state.canShowMilestones && (
-                      <MilestonesSummary milestones={this.state.solution.milestones} phases={this.state.phases} />
+                      <MilestonesSummary milestones={this.state.solution.milestones} phases={this.state.phases} currentPhase={this.state.solution.currentPhase} />
                     )}
-
+                    
                     {this.state.canShowDataSources && !this.state.isGenAI && (
                       <DataSourcesSummary
                         datasources={this.state.solution.dataSources}
@@ -676,6 +678,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.additionalResource = res.additionalResource;
             solution.description.requestedFTECount = res.requestedFTECount;
             solution.description.department = res.department;
+            solution.description.createdBy = res.createdBy;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;
             solution.team.team = res.team;

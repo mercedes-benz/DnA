@@ -787,7 +787,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
           </div>
           <div id="buttonContainer" className={classNames(Styles.actionWrapper)}>
             <button id="saveMilestonebtn" className="btn btn-primary" onClick={this.addMileStones} type="button">
-              Save
+              Confirm
             </button>
           </div>
         </div>
@@ -848,16 +848,17 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                       className={classNames(
                         Styles.info,
                         showPhase ? '' : canShowPhasesPlaceHolder && !showAddMileStoneBtn ? 'hidden' : 'hide',
+                        milestone.phase.id === this.state.currentPhase?.id ? Styles.currentPhase : ''
                       )}
                     >
-                      <div>{this.mileStoneIcons[index]}</div>
-                      <div className={classNames(Styles.phase, showPhase ? '' : 'hide')}>{milestone.phase.name}</div>
-                      <div className={Styles.monthYear}>
-                        {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
-                        {milestone.month > 0 && milestone.year > 0
-                          ? regionalForMonthAndYear(milestone.month + '/' + '01' + '/' + milestone.year)
-                          : ''}
-                      </div>
+                        <div>{this.mileStoneIcons[index]}</div>
+                        <div className={classNames(Styles.phase, showPhase ? '' : 'hide', milestone.phase.id === this.state.currentPhase?.id ? Styles.currentPhaseText : '')}>{milestone.phase.name}</div>
+                        <div className={classNames(Styles.monthYear, milestone.phase.id === this.state.currentPhase?.id ? Styles.currentPhaseText : '' )}>
+                          {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
+                          {milestone.month > 0 && milestone.year > 0
+                            ? regionalForMonthAndYear(milestone.month + '/' + '01' + '/' + milestone.year)
+                            : ''}
+                        </div>
                     </div>
                     <div
                       className={
@@ -935,7 +936,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                   type="button"
                   disabled={commentValueError !== ''}
                 >
-                  Save
+                  Confirm
                 </button>
               </div>
             </div>
