@@ -528,12 +528,17 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 				String currentDataTransferName = currDataTransferVO.getDataTransferName();
 				String eventType = "";
 				String eventMessage = "";
+				String providerEventMessage = "";
 				String userName = super.currentUserName(currentUser);
 				String userId = currentUser != null ? currentUser.getId() : "dna_system";
 				String userEmailId = currentUser != null ? currentUser.getEmail() : "";
 				List<ChangeLogVO> changeLogs = new ArrayList<>();
 				List<String> teamMembers = new ArrayList<>();
 				List<String> teamMembersEmails = new ArrayList<>();
+				List<String> providers = new ArrayList<>();
+				List<String> consumers = new ArrayList<>();
+				List<String> providerEmails = new ArrayList<>();
+                List<String> consumerEmails = new ArrayList<>();
 				if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
 					for (DataTransferTeamMemberVO user : currProviderVO.getUsers()) {
 						if (user != null) {
@@ -554,15 +559,29 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 				if (currProviderVO.getCreatedBy() != null) {
 					String providerUserId = currProviderVO.getCreatedBy().getId();
 					String providerEmailId = currProviderVO.getCreatedBy().getEmail();
-
 					if (StringUtils.hasText(providerUserId) && !teamMembers.contains(providerUserId)
 							&& !providerUserId.equalsIgnoreCase(userId)) {
 						teamMembers.add(providerUserId);
 					}
-
 					if (StringUtils.hasText(providerEmailId) && !teamMembersEmails.contains(providerEmailId)
 							&& !providerEmailId.equalsIgnoreCase(userEmailId)) {
 						teamMembersEmails.add(providerEmailId);
+					}
+
+					for (String member : teamMembers) {
+						if (member.equalsIgnoreCase(providerUserId)) {
+							providers.add(member);
+						} else {
+							consumers.add(member);
+						}
+					}
+
+					for (String memberEmail : teamMembersEmails) {
+						if (memberEmail.equalsIgnoreCase(providerEmailId)) {
+							providerEmails.add(memberEmail);
+						} else {
+							consumerEmails.add(memberEmail);
+						}
 					}
 				}
 
@@ -578,6 +597,8 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 					eventMessage = "DataTransfer " + existingDataTransferName + " is updated by user " + userName
 							+ ". You can view the details [here](" + dataTransferBaseUrl + "consume/"
 							+ resourceID + ")";
+					providerEventMessage = "DataTransfer " + existingDataTransferName + " is updated by user " + userName
+							+ ". You can view the details [here](" + dataTransferBaseUrl + "provider/" + resourceID + ")";
 					changeLogs = dataTransferAssembler.jsonObjectCompare(currDataTransferVO, prevDataTransferVO,
 							currentUser);
 					LOGGER.info("Publishing message on update for dataTransfer {} by userId {}", existingDataTransferName,
@@ -590,10 +611,23 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 					LOGGER.info("Publishing message on provider form submission for dataTransfer {} by userId {}",
 							currentDataTransferName, userId);
 				}
-				if (StringUtils.hasText(eventType)) {
+				if (StringUtils.hasText(eventType) && eventType != "DataTransfer_Update") {
 					kafkaProducer.send(eventType, resourceID, "", userId, eventMessage, true, teamMembers,
 							teamMembersEmails, changeLogs);
 					LOGGER.info("Published successfully event {} for data transfer with id {}", eventType, resourceID);
+				} 
+				else {
+					if (StringUtils.hasText(eventType)) {
+						kafkaProducer.send(eventType, resourceID, "", userId, providerEventMessage, true, providers,
+								providerEmails, changeLogs);
+						LOGGER.info("Published successfully event {} for data transfer with id {}", eventType,
+								resourceID);
+						kafkaProducer.send(eventType, resourceID, "", userId, eventMessage, true, consumers,
+								consumerEmails, changeLogs);
+						LOGGER.info("Published successfully event {} for data transfer with id {}", eventType,
+								resourceID);
+
+					}
 				}
 			}
 		} catch (Exception e) {
