@@ -2226,9 +2226,9 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/docs";
 				 }
 				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
 				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
