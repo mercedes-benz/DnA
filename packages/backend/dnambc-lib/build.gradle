@@ -54,6 +54,7 @@ repositories {
 		}
 }
 
+
 group 'com.daimler.data'
 version = releaseVersion
 
@@ -617,6 +618,23 @@ swaggerSources {
         }
     }  
 
+    promptCraftSubscriptions {
+        def promptCraftSubscriptionsYaml = "${rootDir}/dnambc-lib/src/main/resources/api/PromptCraftSubscriptions.yaml"
+        def promptCraftSubscriptionsJson = "${rootDir}/dnambc-lib/src/main/resources/api/PromptCraftSubscriptions.json"
+        inputFile = file(promptCraftSubscriptionsYaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(promptCraftSubscriptionsJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
+
 }
 
 
@@ -688,6 +706,8 @@ compileJava {
     source "${swaggerSources.dashboard.code.outputDir}/src/main/java"
     dependsOn swaggerSources.skill.code
     source "${swaggerSources.skill.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.promptCraftSubscriptions.code
+    source "${swaggerSources.promptCraftSubscriptions.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -730,6 +750,7 @@ sourceSets {
 		java { srcDirs += "${swaggerSources.dataiku.code.outputDir}/src/main/java"}	
 		java { srcDirs += "${swaggerSources.dashboard.code.outputDir}/src/main/java"}
 		java { srcDirs += "${swaggerSources.skill.code.outputDir}/src/main/java"}
+        java { srcDirs += "${swaggerSources.promptCraftSubscriptions.code.outputDir}/src/main/java"}
     }
 }
 
@@ -863,6 +884,8 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
 
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.0.3'
+    
     implementation('org.springframework.boot:spring-boot-starter-web')
     // implementation('org.springframework.boot:spring-boot-starter-security')
     //implementation('org.apache.tomcat.embed:tomcat-embed-jasper:8.0.47')

@@ -174,6 +174,7 @@ export interface IDescriptionRequest {
   department: string;
   leanIXDetails: any;
   appId: string;
+  createdBy?: IUserInfo;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
