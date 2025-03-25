@@ -214,7 +214,7 @@ public class CacheUpdateEventListener {
 								}
 								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
-									if(record.value().getEventType().contains("Playground Project")){
+									if(record.value().getEventType().contains("Playground Project") || record.value().getEventType().contains("Codespace Project")){
 										emailNotificationPreferenceFlag = true;
 									}
 									else{
