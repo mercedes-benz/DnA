@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.5.0
+    version: 3.5.2
   profile:
     active: production
   flyway:
@@ -243,6 +243,7 @@ promptsraftsubscriptions:
     filePath: ${UILICIOUS_PROJECT_FILE_PATH:XXXX}
     privateKeyStepNumber: ${UILICIOUS_PRIVATE_KEY_STEP_NUMBER:XXXX}
     publicKeyStepNumber: ${UILICIOUS_PUBLIC_KEY_STEP_NUMBER:XXXX}
+    oauthKey: ${UILICIOUS_OAUTH_KEY:XXXX}
   promotCraftBaseUrl: ${PROMPT_CRAFT_BASE_URL:XXX}
   xApiKey: ${PROMPT_CRAFT_X_API_KEY:XXX}
 
