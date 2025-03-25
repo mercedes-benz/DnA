@@ -873,6 +873,20 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text>NA</Text>
             )}
           </View>
+          <View style={[styles.flexCol2, styles.firstCol, { marginRight: 20 }]}>
+            <Text style={styles.sectionTitle}>LeanIX App ID</Text>
+            {props?.solution?.description?.leanIXDetails?.appReferenceStr ? (
+              <Link 
+              to="#"
+              src={`${Envs.LEANIX_BASEURL}/${props?.solution?.description?.leanIXDetails?.appReferenceStr}`}
+              style={{ color: 'blue', textDecoration: 'underline' }}
+            >
+              {props?.solution?.description?.appId}
+            </Link>
+            ) : (
+              <Text>{props?.solution?.description?.appId ? `${props?.solution?.description?.appId}` : 'NA'}</Text>
+            )}
+          </View>
           <View style={[styles.flexCol2]}>
             <Text style={styles.sectionTitle}>Business Goals</Text>
             {props.solution.description.businessGoal ? (
