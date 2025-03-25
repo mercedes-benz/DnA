@@ -1041,7 +1041,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						viewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
 						viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
 					}
-					if(customGroupName!=null && "".equalsIgnoreCase(customGroupName)){
+					if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
 						if(!isCustomGroupAvailable) {
 							customGroupVO = new GroupDetailsVO();
 							customGroupVO.setState(ConstantsUtility.PENDING_STATE);
@@ -1074,7 +1074,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 									viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
 									viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
-								if(customGroupName!=null && "".equalsIgnoreCase(customGroupName)){
+								if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
 									if(userGroupDetail.getDisplayName().equalsIgnoreCase(customGroupVO.getGroupName())) {
 										isCustomGroupAssigned = true;
 										customGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
@@ -1096,10 +1096,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(!isViewerGroupAssigned) {
 						viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 					}
-					if(customGroupName!=null && "".equalsIgnoreCase(customGroupName)){
+					if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
 						if(!isCustomGroupAssigned) {
 							customGroupVO = this.callGroupAssign(customGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
-							updatedMicrosoftFabricGroups.add(customGroupVO);
 						}
 					}
 
@@ -1107,6 +1106,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					updatedMicrosoftFabricGroups.add(contributorGroupVO);
 					updatedMicrosoftFabricGroups.add(memberGroupVO);
 					updatedMicrosoftFabricGroups.add(viewerGroupVO);
+
+					if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
+						updatedMicrosoftFabricGroups.add(customGroupVO);
+					}
 					
 					currentStatus.setMicrosoftGroups(updatedMicrosoftFabricGroups);
 					
