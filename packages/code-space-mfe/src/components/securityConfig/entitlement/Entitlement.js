@@ -139,7 +139,7 @@ export default class Entitlement extends React.Component {
   handleJsonChange(newValue) {
     try {
       this.setState({ isJsonTouched: true, jsonData: newValue });
-  
+
       let parsedData;
       try {
         parsedData = JSON.parse(newValue);
@@ -147,16 +147,16 @@ export default class Entitlement extends React.Component {
         this.setState({ jsonError: ['Invalid JSON format: ' + e.message] });
         return;
       }
-  
+
       let errors = [];
       if (parsedData.entitlements) {
         parsedData.entitlements.forEach((entitlement, index) => {
           const { apiPattern, httpMethod } = entitlement;
-  
+
           if (apiPattern && !apiPattern.startsWith('/api/')) {
             errors.push(`Error in entitlement ${index + 1}: API Path should start with '/api/'`);
           }
-  
+
           if (
             httpMethod &&
             !['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE', 'CONNECT'].includes(httpMethod)
@@ -164,7 +164,7 @@ export default class Entitlement extends React.Component {
             errors.push(`Error in entitlement ${index + 1}: Invalid HTTP Method`);
           }
         });
-  
+
         if (errors.length === 0) {
           this.setState({
             entitelmentList: [...parsedData.entitlements],
@@ -180,7 +180,7 @@ export default class Entitlement extends React.Component {
       this.setState({ jsonError: [error.message] });
     }
   }
-  
+
 
   onSave() {
 
@@ -615,14 +615,14 @@ export default class Entitlement extends React.Component {
                 </div>
 
                 {this.state.appId &&
- this.props.config?.appId &&
- this.state.appId !== this.props.config.appId && (
-  <p className={classNames(Styles.alertMessage)}>
-    <i className="icon mbc-icon alert circle"></i> Please redeploy with the new
-    client id and client secret for the application id changes to be reflected.
-    Note that the old credentials will be used until then.
-  </p>
-)}
+                  this.props.config?.appId &&
+                  this.state.appId !== this.props.config.appId && (
+                    <p className={classNames(Styles.alertMessage)}>
+                      <i className="icon mbc-icon alert circle"></i> Please redeploy with the new
+                      client id and client secret for the application id changes to be reflected.
+                      Note that the old credentials will be used until then.
+                    </p>
+                  )}
 
 
 
