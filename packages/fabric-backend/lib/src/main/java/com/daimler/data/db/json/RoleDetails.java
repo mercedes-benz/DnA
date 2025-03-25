@@ -25,4 +25,5 @@ public class RoleDetails implements Serializable{
 	private String roleOwner;
 	private String globalRoleAssigner;
 	private String roleApprover;
+	private String secondaryRoleApprover;
 }

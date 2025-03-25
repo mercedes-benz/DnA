@@ -42,5 +42,7 @@ public class FabricWorkspace implements Serializable{
 	private List<ProjectDetails> relatedSolutions;
 	private List<ProjectDetails> relatedReports;
 	private List<Lakehouse> lakehouses;
-	
+	private String initiatedBy;
+	private String secondaryRoleApproverId;
+	private String customEntitlementName;
 }
