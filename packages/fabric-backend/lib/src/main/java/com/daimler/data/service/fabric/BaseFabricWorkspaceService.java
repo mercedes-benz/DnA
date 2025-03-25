@@ -1013,6 +1013,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								viewerGroupVO = tempGrp;
 								isViewerGroupAvailable = true;
 							}
+							if(customGroupName != null && "".equalsIgnoreCase(customGroupName)){
+								if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
+									customGroupVO = tempGrp;
+									isCustomGroupAvailable = true;
+								}
+							}
 						}
 					}
 					if(!isAdminGroupAvailable) {
@@ -1118,7 +1124,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(contributorGroupVO.getState()) && 
 							ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(memberGroupVO.getState()) && 
 							ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(viewerGroupVO.getState()) ) {
-						currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
+								
+								if(customGroupName != null && !"".equalsIgnoreCase(customGroupName)){
+									if(ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(customGroupVO.getState())){
+										currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
+									}
+								}else{
+									currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
+								}
+						
 					}
 				}
 				return currentStatus;
@@ -1152,7 +1166,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				viewerGroupVO = tempGrp;
 			}
 			if(customGroupName !=null && "".equalsIgnoreCase(customGroupName)){
-				if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
+				if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
 					customGroupVO = tempGrp;
 				}
 			}
@@ -1191,7 +1205,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							isViewerGroupAvailable = true;
 							viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
 							viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
-						}else if (customGroupVO != null && customGroupName != null && "".equalsIgnoreCase(customGroupName)){
+						}
+						else if (customGroupVO != null && customGroupName != null && "".equalsIgnoreCase(customGroupName)){
 							if(userGroupDetail.getDisplayName().equalsIgnoreCase(customGroupVO.getGroupName())){
 								isCustomGroupAvailable = true;
 								customGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
