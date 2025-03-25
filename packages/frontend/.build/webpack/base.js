@@ -207,6 +207,7 @@ const base = {
         'data-entry-mfe': `data_entry_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_ENTRY_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'code-space-mfe': `code_space_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CODE_SPACE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'power-platform-mfe': `power_platform_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.POWER_PLATFORM_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'dbservice-mfe': `dbservice_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DB_SERVICE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,

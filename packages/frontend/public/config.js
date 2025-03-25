@@ -128,6 +128,8 @@ window['INJECTED_ENVIRONMENT'] = {
   ONEAPI_SUBSCRIPTION_URL:'YOUR_ONEAPI_SUBSCRIPTION_URL',
   ONEAPI_PROMPT_CRAFT_USAGE_LINK:'YOUR_ONEAPI_PROMPT_CRAFT_USAGE_LINK',
   PGADMIN_URL : 'YOUR_PGADMIN_URL',
+  ENABLE_DB_SERVICE: false,
+  DB_SERVICE_MFE_APP_URL: 'http://localhost:8089'
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
@@ -262,3 +264,9 @@ window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
   TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
   TOU_GE_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
 }; 
+
+window["DB_SERVICE_INJECTED_ENVIRONMENT"]={
+  CONTAINER_APP_URL:'YOUR_CONTAINER_APP_URL',
+  API_BASEURL: 'YOUR_API_BASEURL',
+  DB_SERVICE_API_BASEURL: 'YOUR_DB_SERVICE_API_BASEURL',
+};
