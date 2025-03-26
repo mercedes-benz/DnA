@@ -165,7 +165,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		// }
 		if(workspaceRequestVO.getCustomGroupName()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getCustomGroupName())){
 			MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(workspaceRequestVO.getCustomGroupName());
-					if(! (searchResult!=null)) {
+					if(! (searchResult!=null && searchResult.getId()!=null)) {
 						GenericMessage failedResponse = new GenericMessage();
 						List<MessageDescription> messages = new ArrayList<>();
 						MessageDescription message = new MessageDescription();
@@ -177,6 +177,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 						responseVO.setResponses(failedResponse);
 						log.error("couldnt get group details for name {}, Failed to create workspace ",workspaceRequestVO.getCustomGroupName());
 						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					}else{
+						workspaceRequestVO.setCustomGroupName(searchResult.getDisplayName());
 					}			
 		}
 
