@@ -3916,31 +3916,43 @@ import com.daimler.data.util.ConstantsUtility;
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
-		CodeServerBuildDeploy buildDeployLogs = null;
-				 CodeServerBuildDeployNsql auditLogEntity = null;
+		// CodeServerBuildDeploy buildDeployLogs = null;
+		// 		 CodeServerBuildDeployNsql auditLogEntity = null;
 		try{
-			
-			List<DeploymentAudit> intAuditLogs = new ArrayList<>();
-			List<DeploymentAudit> prodAuditLogs = new ArrayList<>();
+			List<DeploymentAudit> intAuditLogs =  new ArrayList<>();;
+			List<DeploymentAudit> prodAuditLogs =  new ArrayList<>();;
 			String projectName = entity.getData().getProjectDetails().getProjectName();
-					buildDeployLogs = new CodeServerBuildDeploy();
-					 auditLogEntity = new CodeServerBuildDeployNsql();
+			if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs() != null){
+				// buildDeployLogs.getIntDeploymentAuditLogs().addAll(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs());
+				intAuditLogs.addAll(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs());
+			 }
+			 if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs() != null){
+				// buildDeployLogs.getProdDeploymentAuditLogs().addAll(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs());
+				prodAuditLogs.addAll(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs());
+			 }
+			 if(null == intAuditLogs){
+				 intAuditLogs = new ArrayList<>();
+			 }
+			 if(null == prodAuditLogs){
+				 prodAuditLogs = new ArrayList<>();
+			 }
+					CodeServerBuildDeploy buildDeployLogs = new CodeServerBuildDeploy();
+					CodeServerBuildDeployNsql auditLogEntity = new CodeServerBuildDeployNsql();
 					 auditLogEntity.setId(projectName.toLowerCase());
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
-					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());					 
+					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());
+					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
+					 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());
 					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);
-					 if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs() != null){
-						intAuditLogs = entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs();
-					 }
-					 if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs() != null){
-						prodAuditLogs = entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs();
-					 }
-					 buildDeployLogs.setIntDeploymentAuditLogs(intAuditLogs);
-					 buildDeployLogs.setProdDeploymentAuditLogs(prodAuditLogs);
+					 buildDeployLogs.setId(deployLogId);				
+				 	
+					 buildDeployLogs.getIntDeploymentAuditLogs().addAll(intAuditLogs);
+					 buildDeployLogs.getProdDeploymentAuditLogs().addAll(prodAuditLogs);
+					
 					 auditLogEntity.setData(buildDeployLogs);
-					 buildDeployRepo.save(auditLogEntity);
-					 status = "SUCCESS";
+					 buildDeployRepo.save(auditLogEntity);	 
+				 
+				 status = "SUCCESS";
 
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
