@@ -278,7 +278,8 @@ injector:
 
   # extraEnvironmentVars is a list of extra environment variables to set in the
   # injector deployment.
-  extraEnvironmentVars: {}
+  extraEnvironmentVars: 
+    AGENT_INJECT_VAULT_CACERT_BYTES: <path:dna_aws_kv/data/prod/kubernetesSecret/infra#croppem_base64>
     # KUBERNETES_SERVICE_HOST: kubernetes.default.svc
 
   # Affinity Settings for injector pods
