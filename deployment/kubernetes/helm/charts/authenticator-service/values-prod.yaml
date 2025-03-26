@@ -15,7 +15,6 @@ serviceAccount:
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
   vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
-  vault.hashicorp.com/tls-skip-verify: 'true'
   vault.hashicorp.com/agent-pre-populate-only: 'true'
   vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/prod/kubernetesSecret/authenticatorService
   vault.hashicorp.com/agent-inject-template-envvar: |
