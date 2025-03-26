@@ -368,8 +368,9 @@ const CodeSpace = (props) => {
           (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
         const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
         const deployingInProgress =
-          intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+          intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+          prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
         // const deployed =
         //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
@@ -521,6 +522,7 @@ const CodeSpace = (props) => {
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
     <svg

@@ -353,6 +353,8 @@ const CodeSpaceCardItem = (props) => {
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+  const approvalPending = prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING';
+  const approvalRejected = prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_REJECTED';
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
@@ -1097,10 +1099,12 @@ const CodeSpaceCardItem = (props) => {
                         tooltip-data={
                           intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
                             ? 'Deploying to Staging'
-                            : 'Deploying to Production'
+                            : (approvalPending
+                              ? 'Production deployment approval pending'
+                              : 'Deploying to Production')
                         }
                       >
-                        <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                        <span className={classNames(Styles.statusIndicator, Styles.deploying)}>{approvalPending ? 'Pending...' : 'Deploying...'}</span>
                       </a>
                     )}
                     {!creationFailed && deployed && (
@@ -1122,7 +1126,7 @@ const CodeSpaceCardItem = (props) => {
                                             intDeploymentDetails?.deploymentAuditLogs?.length - 1
                                           ].triggeredOn,
                                         )
-                                      : 'Deployment to staging failed'
+                                      : 'Deployment to Staging failed'
                                   }
                                 >
                                   Failed
@@ -1144,7 +1148,7 @@ const CodeSpaceCardItem = (props) => {
                                 </a>
                               </span>
                             )
-                          ) : prodCodeDeployFailed ? (
+                          ) : (prodCodeDeployFailed || approvalRejected) ? (
                             <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                               <a
                                 href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
@@ -1152,17 +1156,19 @@ const CodeSpaceCardItem = (props) => {
                                 rel="noreferrer"
                                 className={Styles.deployFailLink}
                                 tooltip-data={
-                                  prodDeploymentDetails?.deploymentAuditLogs
-                                    ? 'Deployment to Production failed on ' +
-                                      regionalDateAndTimeConversionSolution(
-                                        prodDeploymentDetails?.deploymentAuditLogs[
-                                          prodDeploymentDetails?.deploymentAuditLogs?.length - 1
-                                        ].triggeredOn,
-                                      )
-                                    : 'Deployment to production failed'
+                                  approvalRejected 
+                                    ? 'Production deployment rejected by approver'
+                                    : (prodDeploymentDetails?.deploymentAuditLogs
+                                      ? 'Deployment to Production failed on ' +
+                                        regionalDateAndTimeConversionSolution(
+                                          prodDeploymentDetails?.deploymentAuditLogs[
+                                            prodDeploymentDetails?.deploymentAuditLogs?.length - 1
+                                          ].triggeredOn,
+                                        )
+                                      : 'Deployment to Production failed')
                                 }
                               >
-                                Failed
+                                {approvalRejected ? 'Rejected' : 'Failed'}
                               </a>
                             </span>
                           ) : (
