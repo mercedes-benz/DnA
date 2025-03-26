@@ -1100,7 +1100,7 @@ const CodeSpaceCardItem = (props) => {
                           intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
                             ? 'Deploying to Staging'
                             : (approvalPending
-                              ? 'Production Deployment Approval Pending'
+                              ? 'Production deployment approval pending'
                               : 'Deploying to Production')
                         }
                       >
@@ -1126,7 +1126,7 @@ const CodeSpaceCardItem = (props) => {
                                             intDeploymentDetails?.deploymentAuditLogs?.length - 1
                                           ].triggeredOn,
                                         )
-                                      : 'Deployment to staging failed'
+                                      : 'Deployment to Staging failed'
                                   }
                                 >
                                   Failed
@@ -1157,15 +1157,15 @@ const CodeSpaceCardItem = (props) => {
                                 className={Styles.deployFailLink}
                                 tooltip-data={
                                   approvalRejected 
-                                    ? 'Production deployment Rejected by approver'
-                                    : prodDeploymentDetails?.deploymentAuditLogs
+                                    ? 'Production deployment rejected by approver'
+                                    : (prodDeploymentDetails?.deploymentAuditLogs
                                       ? 'Deployment to Production failed on ' +
                                         regionalDateAndTimeConversionSolution(
                                           prodDeploymentDetails?.deploymentAuditLogs[
                                             prodDeploymentDetails?.deploymentAuditLogs?.length - 1
                                           ].triggeredOn,
                                         )
-                                      : 'Deployment to production failed'
+                                      : 'Deployment to Production failed')
                                 }
                               >
                                 {approvalRejected ? 'Rejected' : 'Failed'}
