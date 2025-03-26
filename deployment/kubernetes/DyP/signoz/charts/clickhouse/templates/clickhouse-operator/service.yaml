@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "clickhouseOperator.fullname" . }}-metrics
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
+{{- with .Values.clickhouseOperator.metricsExporter.service }}
+  {{- if .annotations }}
+  annotations:
+    {{- toYaml .annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .type }}
+  ports:
+    - port: {{ .port }}
+      name: {{ include "clickhouseOperator.fullname" $ }}-metrics
+  selector:
+    {{- include "clickhouseOperator.selectorLabels" $ | nindent 4 }}
+{{- end }}

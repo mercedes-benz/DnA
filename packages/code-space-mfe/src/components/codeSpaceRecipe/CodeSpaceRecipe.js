@@ -33,7 +33,7 @@ const CodeSpaceRecipe = (props) => {
   const [recipeName, setRecipeName] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [gitUrl, setGitUrl] = useState('');
-  const [hardware, setHardware] = useState('large');
+  const [hardware, setHardware] = useState('small');
   const [software, setSoftware] = useState([]);
   const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
@@ -236,15 +236,15 @@ const CodeSpaceRecipe = (props) => {
     if (value === 'small') {
       setMaxCpu('0.5');
       setMaxRam('2');
-      setDiskSpace('5');
+      setDiskSpace('3');
     } else if (value === 'medium') {
       setMaxCpu('1');
       setMaxRam('3');
-      setDiskSpace('10');
+      setDiskSpace('6');
     } else {
       setMaxCpu('1.5');
       setMaxRam('4');
-      setDiskSpace('15');
+      setDiskSpace('10');
     }
   };
 
@@ -593,9 +593,9 @@ const CodeSpaceRecipe = (props) => {
                             value={hardware}
                             onChange={onHardwareChange}
                             >
-                            <option value={'small'}>DiskSpace - 5GB CPU - 0.5 RAM - 2GB</option>
-                            <option value={'medium'}>DiskSpace - 10GB CPU - 1 RAM - 3GB</option>
-                            <option value={'large'}>DiskSpace - 15GB CPU - 1.5 RAM - 4GB</option>
+                            <option value={'small'}>DiskSpace - 3GB CPU - 0.5 RAM - 2GB</option>
+                            <option value={'medium'}>DiskSpace - 6GB CPU - 1 RAM - 3GB</option>
+                            <option value={'large'}>DiskSpace - 10GB CPU - 1.5 RAM - 4GB</option>
                           </select>
                           <span className={classNames('error-message', errorObj.discSpace.length ? '' : 'hide')}>
                             {errorObj.discSpace}

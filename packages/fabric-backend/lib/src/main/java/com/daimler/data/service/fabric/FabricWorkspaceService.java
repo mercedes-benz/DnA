@@ -28,7 +28,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	Long getCount(String user);
 
-	ResponseEntity<FabricWorkspaceResponseVO>  createWorkspace(FabricWorkspaceVO vo);
+	ResponseEntity<FabricWorkspaceResponseVO>  createWorkspace(FabricWorkspaceVO vo, String secondaryRoleApproverId, String customEntitlementName);
 	
 	GenericMessage delete(String id, boolean skipDeleteFabricWorkspace);
 
@@ -45,9 +45,9 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName);
 
 	FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
-			String creatorId, String workspaceId);
+			String creatorId, String workspaceId, String secondaryRoleApproverId, String customEntitlementName);
 
-	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList);
+	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser);
 	
 	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken);
 	

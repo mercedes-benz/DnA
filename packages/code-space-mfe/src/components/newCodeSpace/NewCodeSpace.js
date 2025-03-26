@@ -215,14 +215,19 @@ const NewCodeSpace = (props) => {
 
   const onProjectNameOnChange = (evnt) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
-    setProjectName(projectNameVal);
+    setProjectName(projectNameVal);    
     const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
+    const startsWithNumber = /^\d/.test(projectNameVal);
+    
     if (hasSpecialChars) {
       setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
     }
     else if (!projectNameVal.length) {
       setProjectNameError(requiredError);
+    }
+    else if (startsWithNumber) {
+      setProjectNameError('Invalid name: Should not start with a number.');
     }
     else if (startsOrEndswith) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
@@ -230,7 +235,7 @@ const NewCodeSpace = (props) => {
     else {
       setProjectNameError('');
     }
-  };
+};
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
   //   const githubUserNameVal = evnt.currentTarget.value.trim();

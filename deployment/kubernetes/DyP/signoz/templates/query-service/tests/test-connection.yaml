@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "queryService.fullname" . }}-test-connection"
+  labels:
+    {{- include "queryService.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: {{ default "docker.io" .Values.global.imageRegistry }}/busybox:1.35
+      command: ['wget']
+      args: ['http://{{ include "queryService.url" . }}/api/v1/health?live=1']
+      # NOTE: replace the path with version or healthcheck URL after the implementation
+  restartPolicy: Never

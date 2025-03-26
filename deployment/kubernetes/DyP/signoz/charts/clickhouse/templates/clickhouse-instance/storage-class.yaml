@@ -1,0 +1,33 @@
+{{- if .Values.installCustomStorageClass -}}
+
+{{- if hasPrefix "gcp" .Values.global.cloud -}}
+#
+# GCP resizable storage class
+#
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gce-resizable
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-standard
+  fstype: ext4
+  replication-type: none
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+
+{{- else if hasPrefix "aws" .Values.global.cloud -}}
+#
+# AWS resizable storage class
+#
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp2-resizable
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+{{- end -}}
+{{- end }}
