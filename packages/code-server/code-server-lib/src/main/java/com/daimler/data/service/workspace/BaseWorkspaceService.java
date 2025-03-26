@@ -149,6 +149,9 @@ import com.daimler.data.util.ConstantsUtility;
 
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
+
+	 @Value("${codeServer.technical.id}")
+	 private String technicalId;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -202,12 +205,19 @@ import com.daimler.data.util.ConstantsUtility;
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		 CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
-		 if (projectOwnerId.equalsIgnoreCase(userId)) {
+		 if (projectOwnerId.equalsIgnoreCase(userId)|| technicalId.equalsIgnoreCase(userId)) {
 			 isProjectOwner = true;
 		 }
  
@@ -406,6 +416,13 @@ import com.daimler.data.util.ConstantsUtility;
 		 // if(isProjectOwner) {
 		 // workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 		 // }else {
+		 if(technicalId.equalsIgnoreCase(userId) && entity.getData().getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
+			entity.getData().setStatus("DELETED");
+			jpaRepo.save(entity);
+		 }
+
+
+		 else {
 		 entity.getData().setStatus("DELETED");
  
 		 UserInfo removeUser = new UserInfo();
@@ -421,6 +438,7 @@ import com.daimler.data.util.ConstantsUtility;
 		 }
 		 jpaRepo.save(entity);
 		 workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
+		}
 		 // }
 		 // Deleting Kong route
 		 if((entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null
@@ -1326,7 +1344,13 @@ import com.daimler.data.util.ConstantsUtility;
  
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 return workspaceAssembler.toVo(entity);
 	 }
  
@@ -2398,9 +2422,9 @@ import com.daimler.data.util.ConstantsUtility;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api";
+				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
+					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/docs";
 				 }
 				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
 				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
