@@ -197,7 +197,19 @@ prometheus:
             - argocd-applicationset-controller-metrics.argocd.svc.cluster.local:8080
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      
+        - job_name: kong-server-metrics
+          metrics_path: /metrics
+          params:
+            format:
+            - prometheus
+          scheme: http
+          scrape_interval: 5s
+          static_configs:
+          - targets:
+            - kong-admin.prod-dna-kong.svc.cluster.local:8001
+            - kong-admin.prod-apisap.svc.cluster.local:8001
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         - job_name: cnpg	
           metrics_path: /metrics	
           params:	
