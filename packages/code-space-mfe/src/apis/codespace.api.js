@@ -104,6 +104,12 @@ const assignAdminRole = (id, userId, data) => {
   });
 };
 
+const assignApproverRole = (id, userId, data) => {
+    return server.post(`workspaces/${id}/collaborator/${userId}/approver?isApprover=${data}`, {
+      data: {},
+    });
+};
+
 //   // Usage statistics
 // const getWorkSpacesTransparency = () => { // not used 
 //     return server.get(`workspaces/transparency`, {
@@ -327,6 +333,7 @@ export const CodeSpaceApiClient = {
     deleteCollaborator,
     transferOwnership,
     assignAdminRole,
+    assignApproverRole,
     // getWorkSpacesTransparency,
     createOrUpdateCodeSpaceConfig,
     getCodeSpaceConfig,

@@ -193,21 +193,19 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
       totalWeightage: total,
     });
   };
-
   protected setDataSources = (arr: string[]) => {
-    let dataSources = [...this.state.dataSources];
+    const dataSources = Array.isArray(this.state.dataSources) ? [...this.state.dataSources] : [];
 
     arr.forEach((element) => {
       const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
-      if (result) {
-        dataSources = [...this.state.dataSources];
-      } else {
-        dataSources = dataSources.concat([{ dataSource: element, weightage: 0 }]);
+      if (!result) {
+        dataSources.push({ dataSource: element, weightage: dataSources.length === 0 ? 100 : 0 });
       }
     });
 
-    const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
+    const totalWeightage = dataSources.reduce((current, next) => current + next.weightage, 0);
     this.setState({
+      dataSources,
       totalWeightage,
     });
 

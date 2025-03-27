@@ -406,6 +406,39 @@ const DeployModal = (props) => {
               </div>
             </div>
             <div>
+              <div id="deployTypeContainer" className="input-field-group">
+                <label className="input-label">Deployment Type</label>
+                <div>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="API"
+                        name="deploymentType"
+                        onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
+                        checked={deploymentType === 'API'}
+                      />
+                    </span>
+                    <span className="label">API recipe</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                  <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="UI"
+                        name="deploymentType"
+                        onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
+                        checked={deploymentType === 'UI'}
+                      />
+                    </span>
+                    <span className="label">UI recipe</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div>
               {version?.length ? (
                 <div id="deployVersionContainer" className="input-field-group">
                   <label className="input-label">Based on previous build</label>
