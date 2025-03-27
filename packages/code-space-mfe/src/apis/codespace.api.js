@@ -55,6 +55,24 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
         data,
     });
 };
+
+const buildCodeSpace = (id, data) => {
+    return server.post(`/workspaces/${id}/build`, {
+        data,
+    });
+};
+
+const getBuildAndDeployLogs = (projectName) => {
+    return server.get(`workspaces/logs/${projectName}`, {
+        data: {},
+    });
+};
+
+const buildVersionLov = (projectName) => { //not used for now
+    return server.get(`workspaces/buildVersion/${projectName}`, {
+        data: {},
+    });
+}
   
 const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
@@ -307,6 +325,9 @@ export const CodeSpaceApiClient = {
     getCodeSpacesGitBranchList,
     deployCodeSpace,
     unDeployCodeSpace,
+    buildCodeSpace,
+    getBuildAndDeployLogs,
+    buildVersionLov,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,
