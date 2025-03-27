@@ -162,7 +162,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			policies = new ArrayList<>();
 			
 			//Setting resource for full bucket path
-			String resource = "arn:aws:s3:::" + bucketName + "/*";
+			String resource = "arn:aws:s3:::" + bucketName + "/*, arn:aws:s3:::" + bucketName;
 			
 			//action to access bucket and corresponding files & directory
 			String action = "";
@@ -186,7 +186,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			policyName = bucketName + "_" + ConstantsUtility.READWRITE;
 			//Setting action as view, edit & delete all bucket contents
 			//action = "s3:ListBucket,s3:GetObject,s3:PutObject,s3:DeleteObject";
-			action = "*";
+			action = "s3:PutObject,s3:DeleteObject,s3:GetBucketLocation,s3:GetObject,s3:ListBucket,s3:DeleteObjectVersion,s3:DeleteBucket";
 			createBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
 			policies.add(policyName);
 

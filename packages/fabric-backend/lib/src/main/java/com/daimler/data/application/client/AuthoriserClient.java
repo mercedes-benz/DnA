@@ -38,6 +38,7 @@ import com.daimler.data.dto.fabric.RoleApproverPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -584,6 +585,45 @@ public class AuthoriserClient {
             log.error("Failed to get roles for user :{} with error {} ", id, e.getMessage());
         }
         return roles;
+	}
+
+	public CreatedByVO getUserDetails(String id){
+		CreatedByVO userDetail = new CreatedByVO();
+		try{
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return userDetail;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+				headers.set("Accept", "application/json");
+				headers.set("Authorization", "Bearer "+token);
+				headers.setContentType(MediaType.APPLICATION_JSON);
+				String uri = authoriserBaseUrl + "/users/"+ id;
+				HttpEntity requestEntity = new HttpEntity<>(headers);
+				ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+						requestEntity, String.class);
+				if (response != null && response.getStatusCode() != null) {
+					if (response.getStatusCode().is2xxSuccessful()) {
+						log.info("Successfully got user  details{}", id);
+						ObjectMapper objectMapper = new ObjectMapper();
+						JsonNode jsonData = objectMapper.readTree(response.getBody());
+						
+						userDetail.setId(jsonData.path("id").asText());
+						userDetail.setFirstName(jsonData.path("givenname").asText());
+						userDetail.setLastName(jsonData.path("surname").asText());
+						userDetail.setDepartment(jsonData.path("departmentNumber").asText());
+						userDetail.setEmail(jsonData.path("mailAddress").asText());
+
+						return userDetail;
+					}
+				}
+			}catch(Exception e) {
+				log.error("Failed to get user detail   with error {} ", e.getMessage());
+			}
+		return userDetail;
 	}
 
 }

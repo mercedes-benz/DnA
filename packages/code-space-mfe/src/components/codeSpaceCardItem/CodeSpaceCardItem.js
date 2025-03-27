@@ -90,7 +90,6 @@ const CodeSpaceCardItem = (props) => {
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
-  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
   const [showDeployApprovalModal, setShowDeployApprovalModal] = useState(false);
@@ -420,8 +419,12 @@ const CodeSpaceCardItem = (props) => {
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
-  const intDeploymentMigrated = !codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
-  const prodDeploymentMigrated = !codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
+  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-int&var-container=`;
+  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-prod&var-container=`;
+
+  const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
   const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
@@ -574,7 +577,7 @@ const CodeSpaceCardItem = (props) => {
                       {serverStarted && (
                       <li>
                          <a target="_blank" href={resourceUsageUrl} rel="noreferrer">
-                          Resource usage
+                          Workspace Resource Usage
                           <i className="icon mbc-icon new-tab" />
                         </a>
                       </li>
@@ -696,6 +699,14 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
+                        {intDeployed && intDeploymentMigrated && (
+                          <li>
+                            <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
+                              Deployed App Resource Usage
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
                       </>
                     )}
                     <li>
@@ -807,6 +818,14 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
+                        {prodDeployed && prodDeploymentMigrated && (
+                          <li>
+                            <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
+                              Deployed App Resource Usage
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          </li>
+                        )}
                       </>
                     )}
                   </ul>
@@ -817,7 +836,7 @@ const CodeSpaceCardItem = (props) => {
                 <div>
                 <button
                   className={classNames('btn btn-primary', Styles.btnOutline)}
-                  tooltip-data="Resource usage" 
+                  tooltip-data="Workspace Resource Usage" 
                   onClick={() => window.open(resourceUsageUrl, "_blank")} 
                 >
                   <i className="icon mbc-icon worksspace right" />
