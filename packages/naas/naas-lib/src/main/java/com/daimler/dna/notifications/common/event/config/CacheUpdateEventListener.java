@@ -186,35 +186,70 @@ public class CacheUpdateEventListener {
 								boolean emailNotificationPreferenceFlag = false;
 								if(record.value().getEventType().contains(SOLUTION_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(NOTEBOOK_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{	
 									emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getDataProductNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getDataProductNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(DATACOMPLIANCE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getDataComplianceNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getDataComplianceNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
-									if(record.value().getEventType().contains("Playground Project") || record.value().getEventType().contains("Codespace Project")){
+									if(record.value().getEventType().contains("Playground Project") || record.value().getEventType().contains("Scheduled for Deletion")){
 										emailNotificationPreferenceFlag = true;
 									}
 									else{
@@ -223,15 +258,30 @@ public class CacheUpdateEventListener {
 								}
 								if(record.value().getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getPowerPlatformNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getUseCaseOwnerNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getUseCaseOwnerNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								if(record.value().getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
+									if(record.value().getEventType().contains("Scheduled for Deletion")){
+										emailNotificationPreferenceFlag = true;
+									}
+									else{
 									emailNotificationPreferenceFlag =  preferenceVO.getAirflowNotificationPref().isEnableEmailNotifications();
+									}
 								}
 								NotificationVO vo = new NotificationVO();
 								vo.setDateTime(record.value().getTime());
