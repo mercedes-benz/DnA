@@ -1339,10 +1339,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<MessageDescription> warnings = new ArrayList<>();
 		LakehouseS3ShortcutDto createLakehouseS3ShortcutDto = new LakehouseS3ShortcutDto();
 		String connectionId = "";
-		String randomSeriesNumber = UUID.randomUUID().toString();
+		// String randomSeriesNumber = UUID.randomUUID().toString();
 		try {
 			CreateDatasourceRequestDto createDatsourceReqDto = new CreateDatasourceRequestDto();
-			createDatsourceReqDto.setDatasourcename(shortcutNameprefix+createRequestVO.getBucketname() + "_" + randomSeriesNumber);
+			createDatsourceReqDto.setDatasourcename(shortcutNameprefix+createRequestVO.getBucketname() + "_" + id);
 			createDatsourceReqDto.setDatasourceType("extension");
 			String connectionDetails = "{\"extensionDataSourceKind\": \"AmazonS3Compatible\",\"extensionDataSourcePath\": \"" + shortcutLocation + "\"}";
 			createDatsourceReqDto.setConnectionDetails(connectionDetails);
@@ -1406,7 +1406,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		
 		try {
 			
-			createLakehouseS3ShortcutDto.setName( shortcutNameprefix + randomSeriesNumber);
+			createLakehouseS3ShortcutDto.setName( shortcutNameprefix + id);
 			createLakehouseS3ShortcutDto.setPath("Files/");
 			ShortcutTargetDto targetDto = new ShortcutTargetDto();
 			S3CompatibleTargetDto s3Target = new S3CompatibleTargetDto();
