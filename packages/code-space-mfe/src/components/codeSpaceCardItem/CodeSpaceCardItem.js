@@ -68,6 +68,8 @@ const CodeSpaceCardItem = (props) => {
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const [logsList, setlogsList] = useState([]);
+  const [intDeployAuditLogs, setIntDeployAuditLogs] = useState([]);
+  const [prodDeployAuditLogs, setProdDeployAuditLogs] = useState([]);
 
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
@@ -91,7 +93,14 @@ const CodeSpaceCardItem = (props) => {
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
   useEffect(() => {
-
+    CodeSpaceApiClient.getBuildAndDeployLogs(codeSpace?.projectDetails?.projectName)
+      .then((res) => { 
+        setIntDeployAuditLogs(res?.data?.intDeploymentAuditLogs);
+        setProdDeployAuditLogs(res?.data?.prodDeploymentAuditLogs);
+      })
+      .catch((err) => {
+        Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
+      });
     handleServerStatusAndProgress();
     Tooltip.defaultSetup();
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -349,7 +358,11 @@ const CodeSpaceCardItem = (props) => {
   // const prodLastDeployedOn = prodDeploymentDetails?.lastDeployedOn;
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' || 
+    prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING';
+  const approvalPending = prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING';
+  const approvalRejected = prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_REJECTED';
+  const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
@@ -359,8 +372,8 @@ const CodeSpaceCardItem = (props) => {
     // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? intDeploymentDetails?.lastDeployedOn
-        : intDeploymentDetails?.deploymentAuditLogs &&
-            intDeploymentDetails?.deploymentAuditLogs[intDeploymentDetails?.deploymentAuditLogs?.length - 1]
+        : intDeployAuditLogs?.length !== 0 &&
+            intDeployAuditLogs[intDeployAuditLogs?.length - 1]
               ?.triggeredOn,
     // ),
   ).getTime();
@@ -373,8 +386,8 @@ const CodeSpaceCardItem = (props) => {
     // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
         ? prodDeploymentDetails?.lastDeployedOn
-        : prodDeploymentDetails?.deploymentAuditLogs &&
-            prodDeploymentDetails?.deploymentAuditLogs[prodDeploymentDetails?.deploymentAuditLogs?.length - 1]
+        : prodDeployAuditLogs?.length !== 0 &&
+            prodDeployAuditLogs[prodDeployAuditLogs?.length - 1]
               ?.triggeredOn,
     // ),
   ).getTime();
@@ -399,6 +412,9 @@ const CodeSpaceCardItem = (props) => {
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
+  const intDeploymentMigrated = !codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  const prodDeploymentMigrated = !codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
 
   const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
 
@@ -530,7 +546,7 @@ const CodeSpaceCardItem = (props) => {
                         Manage Build
                       </span>
                     </li>
-                    <li className={classNames(deployingInProgress ? 'inactive' : '')}>
+                    <li className={classNames((deployingInProgress || buildInProgress) ? 'inactive' : '')}>
                       <span
                         onClick={() => {
                           props.onShowDeployModal(codeSpace);
@@ -571,7 +587,7 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     <li>
                       <button
-                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeployAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowStagingActions(!showStagingActions);
                         }}
@@ -584,7 +600,7 @@ const CodeSpaceCardItem = (props) => {
                           </span>
                         </div>
                         <div ref={stagingWrapperRef} className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}>
-                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeployAuditLogs) && (
                             <>
                               <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
@@ -644,13 +660,13 @@ const CodeSpaceCardItem = (props) => {
                             </a>
                           </li>
                         )}
-                        {intDeploymentDetails?.deploymentAuditLogs && (
+                        {intDeployAuditLogs?.length !== 0 && (
                           <li>
                             <span
                               onClick={() => {
                                 setShowAuditLogsModal(true);
                                 setIsStaging(true);
-                                setlogsList(intDeploymentDetails?.deploymentAuditLogs);
+                                setlogsList(intDeployAuditLogs);
                               }}
                             >
                               Deploy & Action Audit Logs
@@ -673,7 +689,7 @@ const CodeSpaceCardItem = (props) => {
                     </li>
                     <li>
                       <button
-                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && Styles.btnDisabled)}
+                        className={classNames('btn btn-primary', Styles.btnOutline, !((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeployAuditLogs) && Styles.btnDisabled)}
                         onClick={() => {
                           setShowProdActions(!showProdActions);
                         }}
@@ -686,7 +702,7 @@ const CodeSpaceCardItem = (props) => {
                           </span>
                         </div>
                         <div ref={prodWrapperRef} className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')} >
-                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                          {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeployAuditLogs) && (
                             <>
                               <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                               <i className={classNames("icon down-up-flip")}></i>
@@ -746,13 +762,13 @@ const CodeSpaceCardItem = (props) => {
                             </a>
                           </li>
                         )}
-                        {prodDeploymentDetails?.deploymentAuditLogs && (
+                        {prodDeployAuditLogs?.length !== 0 && (
                           <li>
                             <span
                               onClick={() => {
                                 setShowAuditLogsModal(true);
                                 setIsStaging(false);
-                                setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
+                                setlogsList(prodDeployAuditLogs);
                               }}
                             >
                               Deploy & Action Audit Logs
@@ -1070,16 +1086,128 @@ const CodeSpaceCardItem = (props) => {
                 {createInProgress ? (
                   <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
                 ) : (
-                  <>
+                  !creationFailed && projectDetails?.lastBuildOrDeployedStatus ? (
+                    <>
+                      {buildInProgress && (
+                        <a
+                          href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                            ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                              : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                            : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                              : buildGitJobLogViewURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          className={Styles.deployingLink}
+                          tooltip-data={
+                            projectDetails?.lastBuildOrDeployedEnv === 'int'
+                              ? 'Building Staging environment'
+                              : 'Building Production environment'
+                          }
+                        >
+                          <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Building...</span>
+                        </a>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' && (
+                        <a
+                          href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                            ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                            : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          className={Styles.deployingLink}
+                          tooltip-data={
+                            projectDetails?.lastBuildOrDeployedEnv === 'int'
+                              ? 'Deploying to Staging'
+                              : 'Deploying to Production'
+                          }
+                        >
+                          <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                        </a>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_FAILED' && (
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                          <a
+                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployFailLink}
+                            tooltip-data={
+                             `Build to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} failed on ` +
+                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                            }
+                          >
+                           Failed
+                          </a>
+                        </span>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' && (
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                          <a
+                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployFailLink}
+                            tooltip-data={
+                             `Deployment to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} failed on ` +
+                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                            }
+                          >
+                           Failed
+                          </a>
+                        </span>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_SUCCESS' && (
+                        <span className={Styles.statusIndicator}>
+                          <a
+                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data={
+                              `Build to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} on ` +
+                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                            }
+                          >
+                            Built
+                          </a>
+                        </span>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYED' && (
+                        <span className={Styles.statusIndicator}>
+                          <a
+                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data={
+                              `Deployed to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} on ` +
+                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                            }
+                          >
+                            Deployed
+                          </a>
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
                     {!creationFailed && deployingInProgress && (
                       <a
-                        href={ (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? 
-                          (intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
+                        href={(intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED')
+                          ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) 
                             ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)) :
-                          (intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
-                            ? buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID))
+                            : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
+                          : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
+                            ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)
+                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)
                         }
                         target="_blank"
                         rel="noreferrer"
@@ -1087,10 +1215,12 @@ const CodeSpaceCardItem = (props) => {
                         tooltip-data={
                           intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED'
                             ? 'Deploying to Staging'
-                            : 'Deploying to Production'
+                            : (approvalPending
+                              ? 'Production deployment approval pending'
+                              : 'Deploying to Production')
                         }
                       >
-                        <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                        <span className={classNames(Styles.statusIndicator, Styles.deploying)}>{approvalPending ? 'Pending...' : 'Deploying...'}</span>
                       </a>
                     )}
                     {!creationFailed && deployed && (
@@ -1100,19 +1230,19 @@ const CodeSpaceCardItem = (props) => {
                             intCodeDeployFailed ? (
                               <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                                 <a
-                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployFailLink}
                                   tooltip-data={
-                                    intDeploymentDetails?.deploymentAuditLogs
+                                    intDeployAuditLogs
                                       ? 'Deployment to Staging failed on ' +
                                         regionalDateAndTimeConversionSolution(
-                                          intDeploymentDetails?.deploymentAuditLogs[
-                                            intDeploymentDetails?.deploymentAuditLogs?.length - 1
-                                          ].triggeredOn,
+                                          intDeployAuditLogs[
+                                            intDeployAuditLogs?.length - 1
+                                          ]?.triggeredOn,
                                         )
-                                      : 'Deployment to staging failed'
+                                      : 'Deployment to Staging failed'
                                   }
                                 >
                                   Failed
@@ -1121,7 +1251,7 @@ const CodeSpaceCardItem = (props) => {
                             ) : (
                               <span className={Styles.statusIndicator}>
                                 <a
-                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployedLink}
@@ -1134,31 +1264,33 @@ const CodeSpaceCardItem = (props) => {
                                 </a>
                               </span>
                             )
-                          ) : prodCodeDeployFailed ? (
+                          ) : (prodCodeDeployFailed || approvalRejected) ? (
                             <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                               <a
-                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployFailLink}
                                 tooltip-data={
-                                  prodDeploymentDetails?.deploymentAuditLogs
-                                    ? 'Deployment to Production failed on ' +
-                                      regionalDateAndTimeConversionSolution(
-                                        prodDeploymentDetails?.deploymentAuditLogs[
-                                          prodDeploymentDetails?.deploymentAuditLogs?.length - 1
-                                        ].triggeredOn,
-                                      )
-                                    : 'Deployment to production failed'
+                                  approvalRejected 
+                                    ? 'Production deployment rejected by approver'
+                                    : (prodDeployAuditLogs
+                                      ? 'Deployment to Production failed on ' +
+                                        regionalDateAndTimeConversionSolution(
+                                          prodDeployAuditLogs[
+                                            prodDeployAuditLogs?.length - 1
+                                          ]?.triggeredOn,
+                                        )
+                                      : 'Deployment to Production failed')
                                 }
                               >
-                                Failed
+                                {approvalRejected ? 'Rejected' : 'Failed'}
                               </a>
                             </span>
                           ) : (
                             <span className={Styles.statusIndicator}>
                               <a
-                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployedLink}
@@ -1198,6 +1330,8 @@ const CodeSpaceCardItem = (props) => {
                       </>
                     )}
                   </>
+                  )
+                  
                 )}
                 {deleteInProgress && (
                   <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Deleting...</span>
@@ -1211,6 +1345,7 @@ const CodeSpaceCardItem = (props) => {
                   !isPublicRecipe &&
                   !createInProgress &&
                   !deployingInProgress &&
+                  !buildInProgress &&
                   !creationFailed &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
@@ -1222,12 +1357,12 @@ const CodeSpaceCardItem = (props) => {
                     <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
                     </button>
                   )}
-                {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
+                {!isPublicRecipe && !createInProgress && !deployingInProgress && !buildInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
                   </button>
                 )}
-                {!creationFailed && !deleteInProgress && !createInProgress && !deployingInProgress && (
+                {!creationFailed && !deleteInProgress && !createInProgress && !deployingInProgress && !buildInProgress && (
                   <button className="btn btn-primary" onClick={onCodeSpaceDelete}>
                     <i className="icon delete"></i>
                   </button>

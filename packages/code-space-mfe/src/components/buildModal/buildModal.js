@@ -41,7 +41,16 @@ const BuildModal = (props) => {
   useEffect(() => {
     Tooltip.defaultSetup();
     ProgressIndicator.show();
-    setAllLogs([]);
+    CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
+      .then((res) => {
+        setAllLogs([...(res?.data?.intBuildAuditLogs ?? [])].reverse());
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
+      });
+    ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
       .then((res) => {
         ProgressIndicator.hide();
@@ -59,6 +68,10 @@ const BuildModal = (props) => {
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    onLogsRefresh();
+  },[buildEnvironment]);
 
   useEffect(() => {
     setTotalNumberOfRecords(allLogs.length);
@@ -112,7 +125,39 @@ const BuildModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    formValid && console.log('buid triggered');
+    if (formValid) {
+      const buildRequest = {
+        environment: buildEnvironment==='staging' ? 'int' : 'prod',
+        branch: branchValue,
+        comments: comment,
+      }
+      ProgressIndicator.show();
+      CodeSpaceApiClient.buildCodeSpace(props.codeSpaceData.id, buildRequest)
+        .then((res) => {
+          if (res.data.success === 'SUCCESS') {
+            ProgressIndicator.hide();
+            Notification.show(
+                `Code space '${projectDetails.projectName}' build successfully started. Please check the status by refreshing the logs.`,
+            );
+            setComment('');
+          }
+          else{
+            ProgressIndicator.hide();
+            Notification.show(
+              'Error in building code space. Please try again later.\n' + res.data.errors[0].message,
+              'alert',
+            );
+          }
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show('Error in building code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message, 'alert');
+        })
+        .finally(() => {
+          onLogsRefresh();
+        })
+    }
+
   };
 
   const onBuildEnvironmentChange = (e) => {
@@ -120,6 +165,18 @@ const BuildModal = (props) => {
     setBuildEnvironment(buildEnv);
     // setCurrentSelection(buildEnv)
     //refresh the logs
+  };
+
+  const onLogsRefresh = () => {
+    CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
+      .then((res) => { 
+        setAllLogs(buildEnvironment === 'staging' 
+          ? [...(res?.data?.intBuildAuditLogs ?? [])].reverse() 
+          : [...(res?.data?.prodBuildAuditLogs ?? [])].reverse());
+      })
+      .catch((err) => {
+        Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
+      });
   };
 
   return (
@@ -202,6 +259,7 @@ const BuildModal = (props) => {
                   className={'btn btn-primary ' + classNames(Styles.triggerBtn)}
                   type="button"
                   onClick={onBuildTrigger}
+                  disabled={projectDetails?.lastBuildOrDeployedStatus==='BUILD_REQUESTED'}
                 >
                   Build
                 </button>
@@ -216,9 +274,7 @@ const BuildModal = (props) => {
                   <button
                     className={classNames('btn btn-primary', Styles.refreshBtn)}
                     tooltip-data="Refresh logs"
-                    onClick={() => {
-                      console.log('refresh');
-                    }}
+                    onClick={onLogsRefresh}
                   >
                     <i className="icon mbc-icon refresh" />
                   </button>
@@ -241,6 +297,9 @@ const BuildModal = (props) => {
                         <label>Build Status</label>
                       </th>
                       <th>
+                        <label>Build On</label>
+                      </th>
+                      <th>
                         <label>Commit ID</label>
                       </th>
                       <th>
@@ -261,37 +320,28 @@ const BuildModal = (props) => {
                         <td>{item?.triggeredBy}</td>
                         <td>{regionalDateAndTimeConversionSolution(item?.triggeredOn)}</td>
                         <td>
-                          {/* {item?.buildStatus}
-                          <button
-                            className={classNames('btn btn-primary', Styles.actionBtn)}
-                            tooltip-data="Navigate to OpenSearch logs"
-                            onClick={() => {
-                              console.log('logs');
-                            }}
-                          >
-                            <i className="icon mbc-icon new-tab" />
-                          </button> */}
                           <a
                             target="_blank"
                             href={''}
                             rel="noreferrer"
                             className={classNames(Styles.newLink)}
-                            style={{ color: item?.buildStatus === 'SUCCESS' ? '#12e7ab' : item?.buildStatus === 'BUILD_FAILED' ? '#e94d47' : '#f3e537' }}
+                            style={{ color: item?.buildStatus === 'BUILD_SUCCESS' ? '#12e7ab' : item?.buildStatus === 'BUILD_FAILED' ? '#e94d47' : '#f3e537' }}
                           >
-                            {item?.buildStatus === 'SUCCESS' ? 'Success' : item?.buildStatus === 'BUILD_FAILED' ? 'Failed' : 'In Progress'}
+                            {item?.buildStatus === 'BUILD_SUCCESS' ? 'Success' : item?.buildStatus === 'BUILD_FAILED' ? 'Failed' : 'In Progress'}
                             <i className="icon mbc-icon new-tab small" />
                           </a>
                         </td>
+                        <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
                         <td>{item?.commitId || 'N/A'}</td>
                         <td>{item?.version || 'N/A'}</td>
-                        <td><label>{item?.comment || 'N/A'}</label></td>
+                        <td><label>{item?.comments || 'N/A'}</label></td>
                         <td>
-                          {item?.buildStatus === 'SUCCESS' ? (
+                          {item?.buildStatus === 'BUILD_SUCCESS' ? (
                             <button
                               className={'btn btn-primary ' + classNames(Styles.actionBtn)}
                               tooltip-data="Deploy application"
                               onClick={() => {
-                                console.log('deploy');
+                                item.environment = buildEnvironment;
                                 setBuildDetails(item);
                                 setShowDeployCodeSpaceModal(true);
                               }}

@@ -74,18 +74,25 @@ const DeployModal = (props) => {
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
+  const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  const prodDeploymentMigrated = projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  const envUrl = (intDeploymentMigrated || prodDeploymentMigrated) ? Envs.CODESPACE_AWS_DEPLOYMENT_URL : Envs.CODESPACE_DEPLOYMENT_URL ;
 
   //details from build
   const version = props?.buildDetails?.version || '';
-  const triggeredOn = regionalDateAndTimeConversionSolution(props?.buildDetails?.triggeredOn) || '';
+  const buildOn = regionalDateAndTimeConversionSolution(props?.buildDetails?.buildOn) || '';
   const buildBranch = props?.buildDetails?.branch || '';
   const artifactId = props?.buildDetails?.artifactId || '';
   const triggeredBy = props?.buildDetails?.triggeredBy || '';
-
+  const buildEnvironment = props?.buildDetails?.environment || '';
+  const comment = props?.buildDetails?.comments || '';
+  
   useEffect(() => {
     Tooltip.defaultSetup();
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
-    getPublishedConfig(props?.codeSpaceData?.id, 'int');
+    version?.length && setDeployEnvironment(buildEnvironment);
+    const env =  version?.length ? (buildEnvironment==='staging' ? 'int' : 'prod') : 'int';
+    getPublishedConfig(props?.codeSpaceData?.id, env);
     ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.recipeDetails?.recipeId === "private-user-defined" ? projectDetails?.recipeDetails?.repodetails : projectDetails?.gitRepoName)
       .then((res) => {
@@ -96,7 +103,7 @@ const DeployModal = (props) => {
           element.id = element.name;
         });
         setBranches(branches);
-        const deploymentDetails = projectDetails?.intDeploymentDetails;
+        const deploymentDetails =  env === 'int' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
         setDeploymentDetails(deploymentDetails);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
         setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
@@ -104,7 +111,7 @@ const DeployModal = (props) => {
         setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
         setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
         setClientId(deploymentDetails?.clientId || '');
-        setRedirectUri(deploymentDetails?.redirectUri || '');
+        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/${env}/cb` : '' ));
         deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
         deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
         setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -137,29 +144,30 @@ const DeployModal = (props) => {
     }
     else{
       setIsUiRecipe(true);
-      setRedirectUri(`/${projectDetails?.projectName}/${deployEnvironment === 'staging'?'int':'prod'}`);
+      setRedirectUri(`${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`);
       setOneApiSelected(false);
     }
   }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    const shouldReset = (!deploymentType==='UI' && cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
+    const shouldReset = (deploymentType!=='UI' && cookieSelected && deploymentDetails?.secureWithIAMRequired && !deploymentDetails?.isSecuredWithCookie) ||
       (secureWithIAMSelected && !cookieSelected && deploymentDetails?.secureWithIAMRequired && deploymentDetails?.isSecuredWithCookie) || 
       (deploymentDetails?.deploymentType?.length ? deploymentType!== deploymentDetails?.deploymentType : deploymentType==='UI');
     setResetRequired(shouldReset);
   }, [secureWithIAMSelected, cookieSelected, deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    const redirectUri = deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb` : '';
     if (resetRequired) {
       setClientId('');
       setClientSecret('');
-      setRedirectUri('');
+      setRedirectUri(redirectUri);
       setIgnorePath([]);
       setScope(['openid', 'offline_access']);
     } else {
       setClientId(deploymentDetails?.clientId || '');
-      setRedirectUri(deploymentDetails?.redirectUri || '');
+      setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
       deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
       deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     }
@@ -225,7 +233,8 @@ const DeployModal = (props) => {
     setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
     setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
     setClientId(deploymentDetails?.clientId || '');
-    setRedirectUri(deploymentDetails?.redirectUri || '');
+    const redirectUri = deploymentDetails?.deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnv === 'staging' ? 'int' : 'prod'}/cb` : '';
+    setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
     deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
     deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -265,13 +274,13 @@ const DeployModal = (props) => {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
         // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
-        targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-        branch: version?.length ? '' : branchValue[0],
+        targetEnvironment: version?.length ? (buildEnvironment === 'staging' ? 'int' : 'prod') : (deployEnvironment === 'staging' ? 'int' : 'prod'), // int or prod
+        branch: version?.length ? buildBranch : branchValue[0],
         version: version || '',
         // valutInjectorEnable: vaultEnabled,
         clientID: secureWithIAMSelected ? clientId : '',
         clientSecret: clientSecret,
-        redirectUri: secureWithIAMSelected && redirectUri?.length ? redirectUri : '',
+        redirectUri: (secureWithIAMSelected && deploymentType === 'UI' && redirectUri?.length) ? redirectUri?.split(envUrl)[1] : '',
         ignorePaths: secureWithIAMSelected && ignorePath?.length ? ignorePath?.join(',') : '',
         scope: secureWithIAMSelected ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
@@ -329,8 +338,8 @@ const DeployModal = (props) => {
             The code from your workspace will be deployed and is run in a container and you will get the access url
             after the deployment.
           </p>
-          <div className={Styles.threeColumnLayout}>
-            <div>
+          <div className={version?.length ? Styles.flexLayout : Styles.threeColumnLayout}>
+            {!version.length && <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
                 <label className="input-label">Deploy Environment</label>
                 <div>
@@ -362,7 +371,7 @@ const DeployModal = (props) => {
                   </label>
                 </div>
               </div>
-            </div>
+            </div>}
             <div>
               <div id="deployTypeContainer" className="input-field-group">
                 <label className="input-label">Deployment Type</label>
@@ -402,29 +411,30 @@ const DeployModal = (props) => {
                   <label className="input-label">Based on previous build</label>
                   <div>
                     <label className="chips">
-                      <b>Branch: </b>
-                      {buildBranch} | <b> Triggered By: </b>
-                      {triggeredBy} | <b> Triggered On: </b>
-                      {triggeredOn} | <b> Artifact id: </b>
-                      {artifactId} | <b> Version: </b>
-                      {version}
+                      <b>Environment: </b> {buildEnvironment} | 
+                      <b> Branch: </b> {buildBranch} | 
+                      <b> Triggered By: </b> {triggeredBy} | 
+                      <b> Build On: </b> {buildOn} | 
+                      <b> Artifact id: </b> {artifactId} | 
+                      <b> Version: </b> {version} |
+                      <b> Comment: </b> {comment} 
                     </label>
                   </div>
                 </div>
               ) : (
-                <Tags
-                  title={'Code Branch to Deploy'}
-                  max={1}
-                  chips={branchValue}
-                  placeholder={'Type here....'}
-                  tags={branches}
-                  setTags={onBranchChange}
-                  isMandatory={true}
-                  showMissingEntryError={isBranchValueMissing}
-                  showAllTagsOnFocus={true}
-                  disableSelfTagAdd={true}
-                  suggestionPopupHeight={150}
-                />
+              <Tags
+                title={'Code Branch to Deploy'}
+                max={1}
+                chips={branchValue}
+                placeholder={'Type here...'}
+                tags={branches}
+                setTags={onBranchChange}
+                isMandatory={true}
+                showMissingEntryError={isBranchValueMissing}
+                showAllTagsOnFocus={true}
+                disableSelfTagAdd={true}
+                suggestionPopupHeight={150}
+              />
               )}
             </div>
           </div>
@@ -555,12 +565,12 @@ const DeployModal = (props) => {
                             </div>
                           </div>
                           <div>
-                            <div className={classNames(Styles.flexLayout)}>
-                              <div className={classNames(Styles.redirectFlexLayout)}>
+                            <div className={classNames(isUiRecipe ? Styles.flexLayout : '')}>
+                              {isUiRecipe && (<div className={classNames(Styles.redirectFlexLayout)}>
                                 <TextBox
                                   type="text"
                                   label={'Redirect Uri'}
-                                  placeholder={`eg: /${projectDetails?.projectName}/int`}
+                                  placeholder={`eg:${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`}
                                   value={redirectUri}
                                   required={isUiRecipe}
                                   errorText={redirectUriError}
@@ -571,7 +581,7 @@ const DeployModal = (props) => {
                                   }}
                                 />
                                 <div><i className="icon mbc-icon info" tooltip-data="Note: Make sure the Redirect Url is part of the Client Id OIDC Service Config Redirect URI(s)" /> </div>
-                              </div>
+                              </div>)}
                               
                               <Tags
                                 title={'Ignore Paths'}
@@ -629,7 +639,7 @@ const DeployModal = (props) => {
                         />
                         <div className={Styles.oneAPILink}>
                           <a href={Envs.ONE_API_URL} target="_blank" rel="noreferrer">
-                            where to provision your api ? 
+                            Where to provision your api ? 
                           </a>
                         </div>
                       </div>
