@@ -202,10 +202,10 @@ prometheus:
           scrape_interval: 5s
           static_configs:
           - targets:
-            - kong-proxy.dev-dna-kong.svc.cluster.local:80
-            - kong-proxy.test-dna-kong.svc.cluster.local:80
-            - kong-proxy.dev-apisap.svc.cluster.local:80
-            - kong-proxy.test-apisap.svc.cluster.local:80
+            - kong-admin.dev-dna-kong.svc.cluster.local:8001
+            - kong-admin.test-dna-kong.svc.cluster.local:8001
+            - kong-admin.dev-apisap.svc.cluster.local:8001
+            - kong-admin.test-apisap.svc.cluster.local:8001
           tls_config:
             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt    
         - job_name: cnpg
