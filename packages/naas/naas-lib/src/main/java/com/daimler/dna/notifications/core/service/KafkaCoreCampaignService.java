@@ -121,35 +121,70 @@ public class KafkaCoreCampaignService {
 					boolean emailNotificationPreferenceFlag = false;
 					if(message.getEventType().contains(SOLUTION_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(NOTEBOOK_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY) || message.getEventType().contains(DATATRANSFER_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDataProductNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getDataProductNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(DATACOMPLIANCE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDataComplianceNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getDataComplianceNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
-						if(message.getEventType().contains("Playground Project")){
+						if(message.getEventType().contains("Playground Project") || message.getEventType().contains("Scheduled for Deletion")){
 							emailNotificationPreferenceFlag = true;
 						}
 						else{
@@ -158,11 +193,17 @@ public class KafkaCoreCampaignService {
 					}
 					if(message.getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getAirflowNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(TRINO_DATALAKE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDataLakeNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDataLakeNotificationPref().isEnableEmailNotifications();
+						
 					}
 					if(message.getEventType().contains(DATAENTRY_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDataEntryNotificationPref().isEnableAppNotifications();
@@ -170,11 +211,21 @@ public class KafkaCoreCampaignService {
 					}
 					if(message.getEventType().contains(USE_CASE_OWNER_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getUseCaseOwnerNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getUseCaseOwnerNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(POWERPLATFORM_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Scheduled for Deletion")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getPowerPlatformNotificationPref().isEnableEmailNotifications();
+						}
 					}
 
 					NotificationVO vo = new NotificationVO();
