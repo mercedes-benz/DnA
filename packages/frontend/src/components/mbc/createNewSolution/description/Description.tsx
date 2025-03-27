@@ -25,6 +25,7 @@ import {
   ISimilarSearchListItem,
   ISubDivision,
   ITag,
+  IUserInfo,
 } from 'globals/types';
 import AddRelatedProductModal from './addRelatedProductModal/AddRelatedProductModal';
 import Styles from './Description.scss';
@@ -157,6 +158,7 @@ export interface IDescriptionRequest {
   department: string,
   appId: string;
   leanIXDetails: any,
+  createdBy?: IUserInfo;
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {

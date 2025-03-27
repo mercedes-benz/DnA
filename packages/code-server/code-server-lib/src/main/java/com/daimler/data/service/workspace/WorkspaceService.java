@@ -36,6 +36,8 @@ import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+import com.daimler.data.dto.workspace.buildDeploy.*;
+
 
 public interface WorkspaceService {
 
@@ -59,10 +61,13 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
-	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
+	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId,String version);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, 
-		boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe);
+	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
+		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe);
+
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
+		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
@@ -81,6 +86,8 @@ public interface WorkspaceService {
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished, String env);
 
 	GenericMessage makeAdmin(CodeServerWorkspaceVO vo);
+
+	GenericMessage makeApprover(CodeServerWorkspaceVO vo);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
 
@@ -104,5 +111,15 @@ public interface WorkspaceService {
 	GenericMessage restartWorkspace(String userId, String id, String env);
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
+
+	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType);
+
+	CodeServerWorkspaceVO findByWorkspaceId(String wsId);
+
+	VersionListResponseVO getBuildVersion(String projectName);
+
+	GenericMessage rejectDeployApproval(String userId, String id);
+
+	GenericMessage migrateWorkspaceLogs(CodeServerWorkspaceNsql entity);
 	
 }

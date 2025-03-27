@@ -343,6 +343,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
 						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
+						+ " \"isApprover\": " + updatedcollaborators.getIsApprover()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
 						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
@@ -388,6 +389,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
 				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
+				" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
+				" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
+				" \"deploymentType\": " + (deploymentDetails.getDeploymentType() != null ? addQuotes(String.valueOf(deploymentDetails.getDeploymentType())) : "null") + "," +
+				" \"clientId\": " + addQuotes(deploymentDetails.getClientId()) + "," +
+				" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
+				" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
+				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
 
 			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -403,6 +411,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
 						" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
 						" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
+						" \"approvedBy\": " + (auditLog.getApprovedBy() != null ? addQuotes(String.valueOf(auditLog.getApprovedBy())) : "null") + "," +
 						" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
 					if(i+1 < deploymentAuditLogs.size()) {
 						updateQuery += ",";
@@ -719,6 +728,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ "set data = jsonb_set(data, '{projectDetails,dataGovernance}',\n"
 				+ " '{\"tags\": " + ArrayTagstoJsonb + ","
 				+ " \"piiData\": " + newGovFeilds.getPiiData() + ","
+				+ " \"enableDeployApproval\": " + newGovFeilds.getEnableDeployApproval() + ","
 				+ " \"archerId\": " + addQuotes(newGovFeilds.getArcherId()) + ","
 				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
 				+ " \"department\": " + addQuotes(newGovFeilds.getDepartment()) + ","
