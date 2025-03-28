@@ -128,21 +128,11 @@ public class LoginController {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class AuthoriserResponse implements Serializable {
 		private String id;
-
-		@JsonProperty("givenname")
-		private String firstName;
-
-		@JsonProperty("surname")
-		private String lastName;
-
-		@JsonProperty("mailAddress")
-		private String email;
-
-		@JsonProperty("mobileNumber")
+		private String givenname;
+		private String surname;
+		private String mailAddress;
 		private String mobileNumber;
-
-		@JsonProperty("departmentNumber")
-		private String department;
+		private String departmentNumber;
 
 		public AuthoriserResponse(JsonNode userInfo) {
 			
@@ -150,11 +140,11 @@ public class LoginController {
             AuthoriserResponse mappedResponse = objectMapper.convertValue(userInfo, AuthoriserResponse.class);
 
             this.id = mappedResponse.getId();
-            this.firstName = mappedResponse.getFirstName();
-            this.lastName = mappedResponse.getLastName();
-            this.email = mappedResponse.getEmail();
+            this.givenname = mappedResponse.getGivenname();
+            this.surname = mappedResponse.getSurname();
+            this.mailAddress = mappedResponse.getMailAddress();
             this.mobileNumber = mappedResponse.getMobileNumber();
-            this.department = mappedResponse.getDepartment();
+            this.departmentNumber = mappedResponse.getDepartmentNumber();
 
 
 		}

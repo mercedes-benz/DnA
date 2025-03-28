@@ -207,11 +207,11 @@ public class UserInfoController {
 			UserInfo userInfo = new UserInfo();
 			if(authoriserResponse!=null){
 				userInfo.setId(authoriserResponse.getId());
-				userInfo.setFirstName(authoriserResponse.getFirstName());
-				userInfo.setLastName(authoriserResponse.getLastName());
-				userInfo.setEmail(authoriserResponse.getEmail());
+				userInfo.setFirstName(authoriserResponse.getGivenname());
+				userInfo.setLastName(authoriserResponse.getSurname());
+				userInfo.setEmail(authoriserResponse.getMailAddress());
 				userInfo.setMobileNumber(authoriserResponse.getMobileNumber());
-				userInfo.setDepartment(authoriserResponse.getDepartment());	
+				userInfo.setDepartment(authoriserResponse.getDepartmentNumber());	
 		}
 	return userInfo;
 	}
