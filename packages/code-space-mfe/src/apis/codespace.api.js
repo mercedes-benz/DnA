@@ -63,13 +63,13 @@ const buildCodeSpace = (id, data) => {
 };
 
 const getBuildAndDeployLogs = (projectName) => {
-    return server.get(`workspaces/logs/${projectName}`, {
+    return server.get(`workspace/logs/${projectName}`, {
         data: {},
     });
 };
 
 const buildVersionLov = (projectName) => { //not used for now
-    return server.get(`workspaces/buildVersion/${projectName}`, {
+    return server.get(`workspace/buildVersion/${projectName}`, {
         data: {},
     });
 }

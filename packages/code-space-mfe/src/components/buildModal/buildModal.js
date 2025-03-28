@@ -43,7 +43,7 @@ const BuildModal = (props) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
-        setAllLogs([...(res?.data?.intBuildAuditLogs ?? [])].reverse());
+        setAllLogs([...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse());
         ProgressIndicator.hide();
       })
       .catch((err) => {
@@ -171,8 +171,8 @@ const BuildModal = (props) => {
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => { 
         setAllLogs(buildEnvironment === 'staging' 
-          ? [...(res?.data?.intBuildAuditLogs ?? [])].reverse() 
-          : [...(res?.data?.prodBuildAuditLogs ?? [])].reverse());
+          ? [...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse() 
+          : [...(res?.data?.data?.prodBuildAuditLogs ?? [])].reverse());
       })
       .catch((err) => {
         Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
