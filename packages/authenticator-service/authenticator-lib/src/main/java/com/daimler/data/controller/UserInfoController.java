@@ -157,7 +157,7 @@ public class UserInfoController {
 					JsonNode userInfoJson = objectMapper.readTree(response.getBody());
 
 					AuthoriserResponse authoriserResponse = new AuthoriserResponse(userInfoJson);
-					userInfo = convertDrdResponseToUserInfo(authoriserResponse);
+					userInfo = convertAuthResponseToUserInfo(authoriserResponse);
 					id = userInfo.getId();
 			} catch (HttpClientErrorException e) {
 				HttpStatus statusCode = e.getStatusCode();
@@ -203,7 +203,7 @@ public class UserInfoController {
 		return userVO;
 	}
 
-	private UserInfo convertDrdResponseToUserInfo(AuthoriserResponse authoriserResponse) {
+	private UserInfo convertAuthResponseToUserInfo(AuthoriserResponse authoriserResponse) {
 			UserInfo userInfo = new UserInfo();
 			if(authoriserResponse!=null){
 				userInfo.setId(authoriserResponse.getId());
