@@ -964,6 +964,17 @@ export class ApiClient {
         additionalResource,
         dataStrategyDomain,
         relatedProducts,
+        appId,
+        leanIXDetails {
+          ObjectState,
+          appReferenceStr,
+          name,
+          providerOrgDeptid,
+          providerOrgId,
+          providerOrgRefstr,
+          providerOrgShortname,
+          shortName,
+        },
         attachments {
           id,
           fileName,

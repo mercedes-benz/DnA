@@ -1,0 +1,13 @@
+{{- if and .Values.otelCollectorMetrics.clusterRole.create .Values.otelCollectorMetrics.enabled -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "otelCollectorMetrics.clusterRoleName" . }}
+  labels:
+    {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
+  {{- with .Values.otelCollectorMetrics.clusterRole.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules: {{ toYaml .Values.otelCollectorMetrics.clusterRole.rules | nindent 2 -}}
+{{- end }}

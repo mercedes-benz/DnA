@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-apisap-kong
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: apisap-kong-gw
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna    
+spec:
+  destination:
+    namespace: {{ .Values.env }}-apisap
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/helm
+    repoURL: https://git.i.mercedes-benz.com/DNA/dna-kong.git
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-apisap-{{ .Values.env }}.yaml -n {{ .Values.env }}-apisap
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - PruneLast=true
+      - Replace=true
+{{- end }}

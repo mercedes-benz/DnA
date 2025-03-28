@@ -37,11 +37,12 @@ const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
+const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
-const genAILLMPromptUrl = Envs.GENAI_LLM_PROMPT_ENG_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
+const pgAdminUrl = Envs.PGADMIN_URL;
 
 export const DataLayerElements = [
   {
@@ -583,6 +584,23 @@ export const ToolsLandingPageElements = [
     svgIcon: 'tools-mini',
     isDnAInternalTool: false,
   },
+  {
+    id: 'pgAdmin',
+    name: 'pgAdmin',
+    description:'pgAdmin is the most popular and feature rich Open Source administration and development platform for PostgreSQL, the most advanced Open Source database in the world.',
+    tags: ['FOSS', 'Data Storage'],
+    url: pgAdminUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !pgAdminUrl?.startsWith('http'),
+    isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
+    isDnAInternalTool: false,
+  },
 ];
 
 export const TranparencyLandingPageElements = [
@@ -858,10 +876,11 @@ export const GenAILandingPageElements = [
   {
     name: 'Prompt Craft LLM Engineering',
     description: 'Prompt Craft is a fully functional LLM Engineering solution that leverages OpenSource and enables Prompt Engineers to build enterprise grade GenAI Applications.',
-    url: genAILLMPromptUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled:  !genAILLMPromptUrl?.startsWith('http') ,
+    tags: ['Self-Service'],
+    url: '/promptcraft',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    isDisabled: !enablePromptCraftService,
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-solutions',
