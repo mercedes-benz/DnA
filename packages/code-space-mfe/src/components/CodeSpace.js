@@ -401,8 +401,8 @@ const CodeSpace = (props) => {
 
         CodeSpaceApiClient.getBuildAndDeployLogs(res?.data?.projectDetails?.projectName)
           .then((res) => { 
-            setIntDeployAuditLogs(res?.data?.intDeploymentAuditLogs);
-            setProdDeployAuditLogs(res?.data?.prodDeploymentAuditLogs);
+            setIntDeployAuditLogs(res?.data?.data?.intDeploymentAuditLogs || []);
+            setProdDeployAuditLogs(res?.data?.data?.prodDeploymentAuditLogs || []);
           })
           .catch((err) => {
             Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
