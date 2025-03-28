@@ -126,7 +126,7 @@ public class LoginController {
 	@Data
 	@NoArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class DRDResponse implements Serializable {
+	public static class AuthoriserResponse implements Serializable {
 		private String id;
 
 		@JsonProperty("givenname")
@@ -144,10 +144,10 @@ public class LoginController {
 		@JsonProperty("departmentNumber")
 		private String department;
 
-		public DRDResponse(JsonNode userInfo) {
+		public AuthoriserResponse(JsonNode userInfo) {
 			
             ObjectMapper objectMapper = new ObjectMapper();
-            DRDResponse mappedResponse = objectMapper.convertValue(userInfo, DRDResponse.class);
+            AuthoriserResponse mappedResponse = objectMapper.convertValue(userInfo, AuthoriserResponse.class);
 
             this.id = mappedResponse.getId();
             this.firstName = mappedResponse.getFirstName();

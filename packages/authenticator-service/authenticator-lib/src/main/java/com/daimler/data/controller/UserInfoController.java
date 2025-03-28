@@ -52,7 +52,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.controller.LoginController.DRDResponse;
+import com.daimler.data.controller.LoginController.AuthoriserResponse;
 import com.daimler.data.controller.LoginController.UserInfo;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.entities.UserRoleNsql;
@@ -156,8 +156,8 @@ public class UserInfoController {
 					ObjectMapper objectMapper = new ObjectMapper();
 					JsonNode userInfoJson = objectMapper.readTree(response.getBody());
 
-					DRDResponse drdResponse = new DRDResponse(userInfoJson);
-					userInfo = convertDrdResponseToUserInfo(drdResponse);
+					AuthoriserResponse authoriserResponse = new AuthoriserResponse(userInfoJson);
+					userInfo = convertDrdResponseToUserInfo(authoriserResponse);
 					id = userInfo.getId();
 			} catch (HttpClientErrorException e) {
 				HttpStatus statusCode = e.getStatusCode();
@@ -203,15 +203,15 @@ public class UserInfoController {
 		return userVO;
 	}
 
-	private UserInfo convertDrdResponseToUserInfo(DRDResponse drdResponse) {
+	private UserInfo convertDrdResponseToUserInfo(AuthoriserResponse authoriserResponse) {
 			UserInfo userInfo = new UserInfo();
-			if(drdResponse!=null){
-				userInfo.setId(drdResponse.getId());
-				userInfo.setFirstName(drdResponse.getFirstName());
-				userInfo.setLastName(drdResponse.getLastName());
-				userInfo.setEmail(drdResponse.getEmail());
-				userInfo.setMobileNumber(drdResponse.getMobileNumber());
-				userInfo.setDepartment(drdResponse.getDepartment());	
+			if(authoriserResponse!=null){
+				userInfo.setId(authoriserResponse.getId());
+				userInfo.setFirstName(authoriserResponse.getFirstName());
+				userInfo.setLastName(authoriserResponse.getLastName());
+				userInfo.setEmail(authoriserResponse.getEmail());
+				userInfo.setMobileNumber(authoriserResponse.getMobileNumber());
+				userInfo.setDepartment(authoriserResponse.getDepartment());	
 		}
 	return userInfo;
 	}
