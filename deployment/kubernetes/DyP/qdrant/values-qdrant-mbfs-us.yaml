@@ -8,7 +8,7 @@ image:
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: qdrant-mbfs-us
 args: ["./config/initialize.sh"]
 env: {}
   # - name: MY_ENV
