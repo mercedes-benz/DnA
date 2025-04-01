@@ -144,7 +144,7 @@ config:
     consensus:
       tick_period_ms: 100
   service:
-    api_key: <path:dna_kv/data/prod/kubernetesSecret/qdrant-mbfs-us#api_key>
+    api_key: <path:dna_aws_kv/data/prod/kubernetesSecret/qdrant-mbfs-us#api_key>
 sidecarContainers: []
 # sidecarContainers:
 #   - name: my-sidecar
