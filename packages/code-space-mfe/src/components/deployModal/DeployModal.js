@@ -500,7 +500,7 @@ const DeployModal = (props) => {
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
-                              <p>Authorization Code Flow</p>
+                              <p>{isUiRecipe ? 'Authorization Code Flow' : 'Client Credentials Grant / Authorization Code Flow'}</p>
                             </span>
                             <div className={classNames(Styles.flexLayout)}>
                               <TextBox
