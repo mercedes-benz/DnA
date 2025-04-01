@@ -26,9 +26,11 @@ import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
@@ -66,6 +68,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private AuthoriserClient identityClient;
+
+	@Autowired
+	private FabricWorkspaceClient fabricWorkspaceClient;
 	
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
@@ -131,32 +136,50 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
 
-		if(workspaceRequestVO.getSecondaryRoleApproverId()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getSecondaryRoleApproverId()))
-		{
-			CreatedByVO secondaryRoleApproverDetails = identityClient.getUserDetails(workspaceRequestVO.getSecondaryRoleApproverId());
-				if(!(secondaryRoleApproverDetails != null && (secondaryRoleApproverDetails.getId()!=null || !"".equalsIgnoreCase(workspaceRequestVO.getSecondaryRoleApproverId())))){
-					log.error("couldnt get the secondary role approver details for id: {}.",workspaceRequestVO.getSecondaryRoleApproverId());
-					MessageDescription invalidMsg = new MessageDescription("couldnt get the secondary role approver details, please provide valid userId.");
-					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-					errorMessage.addErrors(invalidMsg);
-					responseVO.setData(workspaceRequestVO);
-					responseVO.setResponses(errorMessage);
-					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-				}
-		}
+		// if(workspaceRequestVO.getSecondaryRoleApproverId()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getSecondaryRoleApproverId()))
+		// {
+		// 	CreatedByVO secondaryRoleApproverDetails = identityClient.getUserDetails(workspaceRequestVO.getSecondaryRoleApproverId());
+		// 		if(!(secondaryRoleApproverDetails != null && (secondaryRoleApproverDetails.getId()!=null || !"".equalsIgnoreCase(workspaceRequestVO.getSecondaryRoleApproverId())))){
+		// 			log.error("couldnt get the secondary role approver details for id: {}.",workspaceRequestVO.getSecondaryRoleApproverId());
+		// 			MessageDescription invalidMsg = new MessageDescription("couldnt get the secondary role approver details, please provide valid userId.");
+		// 			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+		// 			errorMessage.addErrors(invalidMsg);
+		// 			responseVO.setData(workspaceRequestVO);
+		// 			responseVO.setResponses(errorMessage);
+		// 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		// 		}
+		// }
 
-		if(workspaceRequestVO.getCustomEntitlementName()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getCustomEntitlementName()))
-		{
-			EntiltlemetDetailsDto entitlementDetails = identityClient.getEntitlement(workspaceRequestVO.getCustomEntitlementName());
-				if(!(entitlementDetails!=null && entitlementDetails.getEntitlementId()!=null)){
-						log.error("couldnt get custom entitlement details for name: {}.",workspaceRequestVO.getCustomEntitlementName());
-						MessageDescription invalidMsg = new MessageDescription("couldnt get the custom entitlement details, please provide valid entitlement name.");
-						errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-						errorMessage.addErrors(invalidMsg);
+		// if(workspaceRequestVO.getCustomEntitlementName()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getCustomEntitlementName()))
+		// {
+		// 	EntiltlemetDetailsDto entitlementDetails = identityClient.getEntitlement(workspaceRequestVO.getCustomEntitlementName());
+		// 		if(!(entitlementDetails!=null && entitlementDetails.getEntitlementId()!=null)){
+		// 				log.error("couldnt get custom entitlement details for name: {}.",workspaceRequestVO.getCustomEntitlementName());
+		// 				MessageDescription invalidMsg = new MessageDescription("couldnt get the custom entitlement details, please provide valid entitlement name.");
+		// 				errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+		// 				errorMessage.addErrors(invalidMsg);
+		// 				responseVO.setData(workspaceRequestVO);
+		// 				responseVO.setResponses(errorMessage);
+		// 				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		// 		}
+		// }
+		if(workspaceRequestVO.getCustomGroupName()!=null && !"".equalsIgnoreCase(workspaceRequestVO.getCustomGroupName())){
+			MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(workspaceRequestVO.getCustomGroupName());
+					if(! (searchResult!=null && searchResult.getId()!=null)) {
+						GenericMessage failedResponse = new GenericMessage();
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						message.setMessage("couldnt get group details for name:"+workspaceRequestVO.getCustomGroupName()+ " Failed to create workspace");
+						messages.add(message);
+						failedResponse.addErrors(message);
+						failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
 						responseVO.setData(workspaceRequestVO);
-						responseVO.setResponses(errorMessage);
+						responseVO.setResponses(failedResponse);
+						log.error("couldnt get group details for name {}, Failed to create workspace ",workspaceRequestVO.getCustomGroupName());
 						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-				}
+					}else{
+						workspaceRequestVO.setCustomGroupName(searchResult.getDisplayName());
+					}			
 		}
 
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -202,7 +225,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		try {
 			workspaceRequestVO.setId(null);
 			workspaceRequestVO.setCreatedOn(new Date());
-			ResponseEntity<FabricWorkspaceResponseVO> responseFromService = service.createWorkspace(workspaceRequestVO, workspaceRequestVO.getSecondaryRoleApproverId(), workspaceRequestVO.getCustomEntitlementName());
+			ResponseEntity<FabricWorkspaceResponseVO> responseFromService = service.createWorkspace(workspaceRequestVO);
 			return responseFromService;
 		}catch(Exception e) {
 			GenericMessage failedResponse = new GenericMessage();
