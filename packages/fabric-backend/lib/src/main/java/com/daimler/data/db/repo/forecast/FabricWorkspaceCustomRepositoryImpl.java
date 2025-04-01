@@ -50,7 +50,10 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = " select count(*) from fabric_workspace_nsql where  (lower(jsonb_extract_path_text(data,'createdBy','id')) = '" + user +"') ";
+		String getCountStmt = "SELECT count(*) FROM fabric_workspace_nsql " + 
+                      "WHERE (lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = '" + user + "' " + 
+                      "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
+
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
@@ -59,7 +62,10 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit){
 		String user = userId.toLowerCase();
-		String getAllStmt = " select cast(id as text), cast(data as text) from fabric_workspace_nsql where  (lower(jsonb_extract_path_text(data,'createdBy','id')) = '" + user +"')";
+		String getAllStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " + 
+                    "WHERE (lower(COALESCE(jsonb_extract_path_text(data, 'createdBy', 'id'), '')) = '" + user + "' " +
+                    "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
+
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
 		if (offset >= 0)
