@@ -1401,7 +1401,7 @@ const CodeSpaceCardItem = (props) => {
                     <i className="icon mbc-icon edit"></i>
                   </button>
                 )}
-                 {isApprover && !disableDeployment && (
+                 {isApprover && !disableDeployment && prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' && (
                     <button
                       className={classNames('btn btn-primary', Styles.tutorials)}
                       tooltip-data="Deployment Approval"

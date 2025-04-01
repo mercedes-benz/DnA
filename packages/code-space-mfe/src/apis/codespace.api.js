@@ -57,9 +57,7 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
 };
 
 const buildCodeSpace = (id, data) => {
-    return server.post(`/workspaces/${id}/build`, {
-        data,
-    });
+    return server.post(`/workspaces/${id}/build`, data);
 };
 
 const getBuildAndDeployLogs = (projectName) => {
