@@ -223,7 +223,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	@Transactional
-	public FabricWorkspacesCollectionVO getAll( int limit,  int offset, String user, List<String> allEntitlementsList) {
+	public FabricWorkspacesCollectionVO getAll( int limit,  int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser) {
 		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
@@ -232,13 +232,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			if(user!=null && !"".equalsIgnoreCase(user.trim())){
 				for(FabricWorkspaceNsql existingEntity : allEntities) {
 					if(existingEntity!=null) {
-						List<String> filteredEntitlements = new ArrayList<>();
-						if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
-							filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(existingEntity.getId())).collect(Collectors.toList());
-						}
-						String creatorId = existingEntity.getData().getCreatedBy().getId();
-						if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
-							filteredEntities.add(existingEntity);
+						if(isTechnicalUser){
+							String initiatedBy = Optional.ofNullable(existingEntity.getData().getInitiatedBy()).orElse("");
+							if(user.equalsIgnoreCase(initiatedBy)){
+								filteredEntities.add(existingEntity);
+							}
+						}else{
+							List<String> filteredEntitlements = new ArrayList<>();
+							if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
+								filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(existingEntity.getId())).collect(Collectors.toList());
+							}
+							String creatorId = existingEntity.getData().getCreatedBy().getId();
+							if(!(!user.equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty()))) {
+								filteredEntities.add(existingEntity);
+							}
 						}
 					}
 				}
@@ -416,8 +423,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
-					String creatorId = vo.getCreatedBy().getId(); 
-					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId()));
+					String creatorId = vo.getCreatedBy().getId();
+					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
 					FabricWorkspaceVO savedRecord = null;
 					try{
 						savedRecord = super.create(data);
@@ -610,6 +617,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		dnaFabricEntitlementVO.setDisplayName(dnaFabricEntitlementName);
 		dnaFabricEntitlementVO.setEntitlementId(dnaFabricEntitlementId);
 		dnaFabricEntitlementVO.setState(ConstantsUtility.CREATED_STATE);
+
+		// Boolean isEntitlementsAssigned = false;
+		// Boolean isCustomEntitlementAssigned = false;
 		
 		RoleDetailsVO updatedRole = new RoleDetailsVO();
 		Boolean isRoleAvailable = false;
@@ -630,17 +640,52 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			List<EntitlementDetailsVO> adminEntitlementsVO = new ArrayList<>();
 			adminEntitlementsVO.add(dnaFabricEntitlementVO);
 			adminEntitlementsVO.add(roleEntitlementVO);
-			updatedRole.setEntitlements(adminEntitlementsVO);
 			if(!ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(updatedRole.getAssignEntitlementsState())) {
 				HttpStatus assignAdminEntitlementStatus = identityClient.AssignEntitlementToRole(roleEntitlementVO.getEntitlementId(), updatedRole.getId());
 				HttpStatus assignDnaEntitlementStatus = identityClient.AssignEntitlementToRole(dnaFabricEntitlementVO.getEntitlementId(), updatedRole.getId());
 				if((assignAdminEntitlementStatus.is2xxSuccessful() || (assignAdminEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0)) && 
 						(assignDnaEntitlementStatus.is2xxSuccessful() || (assignDnaEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0))) {
 					updatedRole.setAssignEntitlementsState(ConstantsUtility.ASSIGNED_STATE);
+					// isEntitlementsAssigned = true;
 				}else {
 					updatedRole.setAssignEntitlementsState(ConstantsUtility.INPROGRESS_STATE);
 				}
 			}
+			//assign custom entitlement if any
+			// if(customEntitlementName != null && !"".equalsIgnoreCase(customEntitlementName)){
+			// 	if(!ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(updatedRole.getAssignEntitlementsState())) {
+			// 		EntiltlemetDetailsDto customEntitlementDetail = identityClient.getEntitlement(customEntitlementName);
+			// 		if(customEntitlementDetail !=null && customEntitlementDetail.getUuid()!=null) {
+			// 			HttpStatus assignAdminEntitlementStatus = identityClient.AssignEntitlementToRole(customEntitlementDetail.getEntitlementId(), updatedRole.getId());
+			// 			if((assignAdminEntitlementStatus.is2xxSuccessful() || (assignAdminEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0))){
+			// 				EntitlementDetailsVO customEntitlementVO = new EntitlementDetailsVO();
+			// 				customEntitlementVO.setDisplayName(customEntitlementName);
+			// 				customEntitlementVO.setEntitlementId(customEntitlementDetail.getEntitlementId());
+			// 				customEntitlementVO.setState(ConstantsUtility.CREATED_STATE);
+			// 				adminEntitlementsVO.add(customEntitlementVO);
+			// 				isCustomEntitlementAssigned = true;
+			// 				// updatedRole.setAssignEntitlementsState(ConstantsUtility.ASSIGNED_STATE);
+			// 			}else {
+			// 				updatedRole.setAssignEntitlementsState(ConstantsUtility.INPROGRESS_STATE);
+			// 			}
+			// 		}
+			// 	}
+			// }
+
+			//setting all entitlements to role
+			updatedRole.setEntitlements(adminEntitlementsVO);
+
+			// Changing role assignment status 
+			// if (customEntitlementName != null && !customEntitlementName.isEmpty()) {
+			// 	if (isCustomEntitlementAssigned && isEntitlementsAssigned) {
+			// 		updatedRole.setAssignEntitlementsState(ConstantsUtility.ASSIGNED_STATE);
+			// 	}
+			// } else {
+			// 	if (isEntitlementsAssigned) {
+			// 		updatedRole.setAssignEntitlementsState(ConstantsUtility.ASSIGNED_STATE);
+			// 	}
+			// }
+
 			//assign Role Owner privileges
 			if(updatedRole.getRoleOwner()==null || "".equalsIgnoreCase(updatedRole.getRoleOwner())) {
 				HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(creatorId, updatedRole.getId());
@@ -665,6 +710,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					updatedRole.setRoleApprover(creatorId);
 				}
 			}
+
+			// //assign secondary role approver if any
+			// if(secondaryRoleApproverId !=null && !"".equalsIgnoreCase(secondaryRoleApproverId)){
+			// 	HttpStatus secondaryRoleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(secondaryRoleApproverId, updatedRole.getId());
+			// 	if(secondaryRoleApproverPrivilegesStatus.is2xxSuccessful()) {
+			// 		updatedRole.setSecondaryRoleApprover(secondaryRoleApproverId);
+			// 	}
+			// }
+
 		}else {
 			log.info("Role {} creation and assignment still in progress for {} ", existingRoleVO.getName() ,  workspaceName);
 			updatedRole.setAssignEntitlementsState(ConstantsUtility.INPROGRESS_STATE);
@@ -749,7 +803,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	
 	@Override
-	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId) {
+	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId, String customGroupName) {
 				if(ConstantsUtility.INPROGRESS_STATE.equalsIgnoreCase(currentStatus.getState())) {
 					boolean isAdminEntitlementAvailable = false;
 					boolean isContributorEntitlementAvailable = false;
@@ -933,10 +987,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					GroupDetailsVO memberGroupVO = new GroupDetailsVO();
 					boolean isViewerGroupAssigned = false;
 					GroupDetailsVO viewerGroupVO = new GroupDetailsVO();
+					boolean isCustomGroupAssigned = false;
+					GroupDetailsVO customGroupVO = new GroupDetailsVO();
 					boolean isAdminGroupAvailable = false;
 					boolean isContributorGroupAvailable = false;
 					boolean isMemberGroupAvailable = false;
 					boolean isViewerGroupAvailable = false;
+					boolean isCustomGroupAvailable = false;
 					//checks if groups are available
 					if(groups!=null && !groups.isEmpty()) {
 						for(GroupDetailsVO tempGrp : groups) {
@@ -955,6 +1012,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
 								viewerGroupVO = tempGrp;
 								isViewerGroupAvailable = true;
+							}
+							if(customGroupName != null && "".equalsIgnoreCase(customGroupName)){
+								if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
+									customGroupVO = tempGrp;
+									isCustomGroupAvailable = true;
+								}
 							}
 						}
 					}
@@ -977,6 +1040,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						viewerGroupVO = new GroupDetailsVO();
 						viewerGroupVO.setState(ConstantsUtility.PENDING_STATE);
 						viewerGroupVO.setGroupName(dnaGroupPrefix+workspaceId+ "_"+ ConstantsUtility.PERMISSION_VIEWER);
+					}
+					if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
+						if(!isCustomGroupAvailable) {
+							customGroupVO = new GroupDetailsVO();
+							customGroupVO.setState(ConstantsUtility.PENDING_STATE);
+							customGroupVO.setGroupName(customGroupName);
+						}
 					}
 					//check if groups are assigned
 					FabricGroupsCollectionDto usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
@@ -1004,6 +1074,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 									viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
 									viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
 								}
+								if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
+									if(userGroupDetail.getDisplayName().equalsIgnoreCase(customGroupVO.getGroupName())) {
+										isCustomGroupAssigned = true;
+										customGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+										customGroupVO.setGroupId(userGroupDetail.getIdentifier());
+									}
+								}
 							}
 						}
 					}
@@ -1019,11 +1096,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(!isViewerGroupAssigned) {
 						viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 					}
-					
+					if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
+						if(!isCustomGroupAssigned) {
+							customGroupVO = this.callGroupAssign(customGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+						}
+					}
+
 					updatedMicrosoftFabricGroups.add(adminGroupVO);
 					updatedMicrosoftFabricGroups.add(contributorGroupVO);
 					updatedMicrosoftFabricGroups.add(memberGroupVO);
 					updatedMicrosoftFabricGroups.add(viewerGroupVO);
+
+					if(customGroupName!=null && !"".equalsIgnoreCase(customGroupName)){
+						updatedMicrosoftFabricGroups.add(customGroupVO);
+					}
 					
 					currentStatus.setMicrosoftGroups(updatedMicrosoftFabricGroups);
 					
@@ -1041,14 +1127,22 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(contributorGroupVO.getState()) && 
 							ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(memberGroupVO.getState()) && 
 							ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(viewerGroupVO.getState()) ) {
-						currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
+								
+								if(customGroupName != null && !"".equalsIgnoreCase(customGroupName)){
+									if(ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(customGroupVO.getState())){
+										currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
+									}
+								}else{
+									currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
+								}
+						
 					}
 				}
 				return currentStatus;
 	}
 	
 	@Override
-	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId) {
+	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId, String customGroupName) {
 		List<GroupDetailsVO>  updatedGroups = new ArrayList<>();
 		boolean isAdminGroupAvailable = false;
 		GroupDetailsVO adminGroupVO = new GroupDetailsVO();
@@ -1059,6 +1153,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		boolean isViewerGroupAvailable = false;
 		GroupDetailsVO viewerGroupVO = new GroupDetailsVO();
 		boolean isDefaultGroupAvailable = false;
+		GroupDetailsVO customGroupVO = new GroupDetailsVO();
+		boolean isCustomGroupAvailable = false;
 		for(GroupDetailsVO tempGrp : existingGroupsDetails) {
 			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
 				adminGroupVO = tempGrp;
@@ -1072,6 +1168,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
 				viewerGroupVO = tempGrp;
 			}
+			if(customGroupName !=null && "".equalsIgnoreCase(customGroupName)){
+				if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
+					customGroupVO = tempGrp;
+				}
+			}
+			
 		}
 		//check for all groups and users for cleanup
 		FabricGroupsCollectionDto	usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
@@ -1106,7 +1208,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							isViewerGroupAvailable = true;
 							viewerGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
 							viewerGroupVO.setGroupId(userGroupDetail.getIdentifier());
-						}else {
+						}
+						else if (customGroupVO != null && customGroupName != null && "".equalsIgnoreCase(customGroupName)){
+							if(userGroupDetail.getDisplayName().equalsIgnoreCase(customGroupVO.getGroupName())){
+								isCustomGroupAvailable = true;
+								customGroupVO.setState(ConstantsUtility.ASSIGNED_STATE);
+								customGroupVO.setGroupId(userGroupDetail.getIdentifier());
+							}
+						}
+						else {
 							//fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
 							log.info("Custom group {} assigned to workspace {} , ignoring.", userGroupDetail.getDisplayName(), workspaceId);
 						}
@@ -1156,6 +1266,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.info("Viewer group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
 			viewerGroupVO = this.callGroupAssign(viewerGroupVO, workspaceId, ConstantsUtility.PERMISSION_VIEWER);
 			updatedGroups.add(viewerGroupVO);
+		}
+		if(customGroupName !=null && "".equalsIgnoreCase(customGroupName)){
+			if(isCustomGroupAvailable) {
+				updatedGroups.add(customGroupVO);
+			}else {
+				log.info("Custom group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
+				customGroupVO = this.callGroupAssign(customGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+				updatedGroups.add(customGroupVO);
+			}
 		}
 		return updatedGroups;
 	}
@@ -1697,7 +1816,7 @@ public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
         roles = roleList.stream()
                         .filter(role -> role.startsWith("DNA_"))
                         .collect(Collectors.toList());
-		data.setRoles(roles);
+        	data.setRoles(roles);
         dnaRoleCollection.setData(data);
     } catch (Exception e) {
         log.error("Error occurred while getting user roles: {}", e.getMessage());

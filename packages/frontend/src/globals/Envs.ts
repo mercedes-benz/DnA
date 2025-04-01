@@ -183,6 +183,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_POWER_PLATFORM_SERVICE, false),
+  ENABLE_PROMPT_CRAFT_SERVICE:
+    getInjectedEnv('ENABLE_PROMPT_CRAFT_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_PROMPT_CRAFT_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_PROMPT_CRAFT_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
@@ -199,6 +203,7 @@ export const Envs = {
   DATABRICKS_TRAINING_URL: getInjectedEnv('DATABRICKS_TRAINING_URL') || process.env.DATABRICKS_TRAINING_URL,
   FABRIC_TRAINING_URL: getInjectedEnv('FABRIC_TRAINING_URL') || process.env.FABRIC_TRAINING_URL,
   FORMBRICKS_SURVEY_URL: getInjectedEnv('FORMBRICKS_SURVEY_URL') || process.env.FORMBRICKS_SURVEY_URL,
+  PGADMIN_URL: getInjectedEnv('PGADMIN_URL') || process.env.PGADMIN_URL,
   DATASPHERE_TRAINING_URL: getInjectedEnv('DATASPHERE_TRAINING_URL') || process.env.DATASPHERE_TRAINING_URL,
   CHINA_TRAINING_URL: getInjectedEnv('CHINA_TRAINING_URL') || process.env.CHINA_TRAINING_URL,
   TRANSACTIONAL_DATA_URL: getInjectedEnv('TRANSACTIONAL_DATA_URL') || process.env.TRANSACTIONAL_DATA_URL,
@@ -239,5 +244,15 @@ export const Envs = {
   GENAI_LLM_PROMPT_ENG_URL:getInjectedEnv('GENAI_LLM_PROMPT_ENG_URL') || process.env.GENAI_LLM_PROMPT_ENG_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
   CODESPACE_SECURITY_APP_ID: getInjectedEnv('CODESPACE_SECURITY_APP_ID') || process.env.CODESPACE_SECURITY_APP_ID,
-  CDC_DATABASE_URL:  getInjectedEnv('CDC_DATABASE_URL') || process.env.CDC_DATABASE_URL
+  CDC_DATABASE_URL:  getInjectedEnv('CDC_DATABASE_URL') || process.env.CDC_DATABASE_URL,
+
+  ONEAPI_SUBSCRIPTION_URL:
+    getInjectedEnv('ONEAPI_SUBSCRIPTION_URL') !== undefined
+      ? getInjectedEnv('ONEAPI_SUBSCRIPTION_URL')
+      : EnvParser.parseBool(process.env.ONEAPI_SUBSCRIPTION_URL, false),
+  ONEAPI_PROMPT_CRAFT_USAGE_LINK:
+    getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK') !== undefined
+      ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
+      : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
+  LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
 };
