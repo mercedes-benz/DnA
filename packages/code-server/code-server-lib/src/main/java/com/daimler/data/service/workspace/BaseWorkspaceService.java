@@ -3371,6 +3371,10 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 					});
 					group.setWorkspaces(workspaceListt);
 				});
+			}else{
+				responseData = new CodeServerUserGroupCollectionVO();
+				responseData.setUserId(currentUser.getId());
+				responseData.setData(new ArrayList<>());
 			}
 			return responseData;
 		} catch (Exception e) {
