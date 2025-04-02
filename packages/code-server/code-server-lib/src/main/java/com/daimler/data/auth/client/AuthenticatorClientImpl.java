@@ -874,7 +874,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 									attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
-									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
+									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env;	
 									//String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
 									if("int".equalsIgnoreCase(env)){
@@ -906,8 +906,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
 									attachOIDCPluginConfigVO.setFilters(ignorePaths.isBlank()?null:ignorePaths);
 									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths.isBlank()?null:ignorePaths);
-									attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
-									attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
+									attachOIDCPluginConfigVO.setAccess_token_as_bearer("no");
+									attachOIDCPluginConfigVO.setAccess_token_header_name("X-Access-Token");
 									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
