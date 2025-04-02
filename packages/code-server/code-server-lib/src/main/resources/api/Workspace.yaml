@@ -1522,9 +1522,9 @@ definitions:
       lastBuildStatus:
         type: string
         description: "Status of last build"
-      artifactId :
+      gitjobRunID:
         type: string
-        description: "artifact id on which codespace is built"
+        description: "git job run Id of project deployed"
       version:
         type: string
         description: "version of the last build"
