@@ -3366,8 +3366,25 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                           
 						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
-						if(null != workspaceVo && null != workspaceVo.getId())
+						if(null != workspaceVo && null != workspaceVo.getId()){
+							if(workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+								if(workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+								}else{
+									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+								}
+							}
+							String serverStatus = getServerStatus(workspaceVo); // Update server status
+			 				if(serverStatus.equalsIgnoreCase("true"))
+			 				{
+								workspaceVo.setServerStatus("SERVER_STARTED");
+			 				}
+			 				else
+			 				{
+								workspaceVo.setServerStatus("SERVER_STOPPED");
+			 				}
 							workspaceListt.add(workspaceVo);
+						}
 					});
 					group.setWorkspaces(workspaceListt);
 				});
