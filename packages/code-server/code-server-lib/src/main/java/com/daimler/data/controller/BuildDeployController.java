@@ -158,10 +158,10 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
            if (status.equalsIgnoreCase("BUILD_REQUESTED")) {
                MessageDescription invalidTypeMsg = new MessageDescription();
                invalidTypeMsg.setMessage(
-                       "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+                       "cannot build workspace since it is already in BUILD_REQUESTED state");
                GenericMessage errorMessage = new GenericMessage();
                errorMessage.addErrors(invalidTypeMsg);
-               log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+               log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
            }

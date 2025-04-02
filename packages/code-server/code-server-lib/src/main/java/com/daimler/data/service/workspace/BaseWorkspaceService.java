@@ -1598,6 +1598,21 @@ import com.daimler.data.util.ConstantsUtility;
 			 }	
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
+
+			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 if (!"int".equalsIgnoreCase(environment)) {
+						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 }
+
+					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+					 deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
+					 deploymentDetails.setClientId(clientID);
+					 deploymentDetails.setRedirectUri(redirectUri);
+					 deploymentDetails.setIgnorePaths(ignorePaths);
+					 deploymentDetails.setScope(scope);
+					 		 
 			 
 			 if(!branch.isEmpty() && version.isEmpty()){
 				String lastBuildType = "buildAndDeploy";
@@ -1666,10 +1681,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 deploymentJobDto.setRef(codeServerEnvRef);
 				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-					 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
-					 if (!"int".equalsIgnoreCase(environment)) {
-						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
-					 }
+					 
 					
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
 					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
@@ -1748,23 +1760,11 @@ import com.daimler.data.util.ConstantsUtility;
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-					deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-					deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
-					deploymentDetails.setClientId(clientID);
-					deploymentDetails.setRedirectUri(redirectUri);
-					deploymentDetails.setIgnorePaths(ignorePaths);
-					deploymentDetails.setScope(scope);
-					if("int".equalsIgnoreCase(environment)){
-						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
-					}else{
-						entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
-					}
+					
 					entity.getData().getProjectDetails().setLastBuildOrDeployedEnv(environment);
 					entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);	
 					entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("DEPLOY_REQUESTED");	
-					workSpaceRepo.save(entity);
+					
 					// workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
 				 } else {
@@ -1772,6 +1772,12 @@ import com.daimler.data.util.ConstantsUtility;
 					 errors.addAll(jobResponse.getErrors());
 				 }
 			 }
+			 if("int".equalsIgnoreCase(environment)){
+				entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
+			}else{
+				entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
+			}
+			 workSpaceRepo.save(entity);
 			 }
 		 } catch (Exception e) {
 			 MessageDescription error = new MessageDescription();
@@ -3659,7 +3665,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 				 Boolean isValutInjectorEnable = false;
 				 try{
-					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
