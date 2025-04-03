@@ -1603,8 +1603,11 @@ import com.daimler.data.util.ConstantsUtility;
 					 if (!"int".equalsIgnoreCase(environment)) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
+					 		 
+			 
+			 if(!branch.isEmpty() && version.isEmpty()){
 
-					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
 					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
 					 deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
@@ -1612,9 +1615,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setRedirectUri(redirectUri);
 					 deploymentDetails.setIgnorePaths(ignorePaths);
 					 deploymentDetails.setScope(scope);
-					 		 
-			 
-			 if(!branch.isEmpty() && version.isEmpty()){
+
 				String lastBuildType = "buildAndDeploy";
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
@@ -2445,7 +2446,7 @@ import com.daimler.data.util.ConstantsUtility;
 					  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
 				 }
 				 String environmentJsonbName = "intDeploymentDetails";
-				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
+				 CodeServerDeploymentDetails deploymentDetails = null;
 				 CodeServerBuildDetails buildDetails = null;
 				 if ("int".equalsIgnoreCase(targetEnv)) {
 					 deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
@@ -2600,7 +2601,7 @@ import com.daimler.data.util.ConstantsUtility;
 							"updated build details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
 							if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")){
-								this.deployWorkspace(userId, entity.getId(), targetEnv, "",
+								this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
 								false, "",
 						   "", "",
 						   "", "",
