@@ -1,0 +1,39 @@
+
+env: "dev"     # dev,test and prod
+
+global:
+  leaderElection:
+    namespace: "cert-manager"
+image:
+  repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-controller
+extraArgs:
+- --acme-http01-solver-image=registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-acmesolver:v1.12.4
+extraEnv:
+- name: SSL_CERT_FILE
+  value: /etcd/acme-ca/Corp-Issuing-CA01-G2.pem
+- name: http_proxy
+  value: http://security-proxy.emea.svc.corpintra.net:3128
+- name: https_proxy
+  value: http://security-proxy.emea.svc.corpintra.net:3128
+- name: no_proxy
+  value: "192.168.0.0/16,corpintra.net"  
+volumes:
+- name: acme-ca
+  secret:
+    secretName: acme-ca
+volumeMounts:
+- mountPath: /etcd/acme-ca
+  name: acme-ca
+webhook:
+  image:
+    repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-webhook
+cainjector:
+  image:
+    repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-cainjector
+startupapicheck:
+  enabled: false
+
+installCRDs: true
+
+extraObjects:
+  cert: <path:dna_aws_kv/data/dev/kubernetesSecret/infra#croppem | base64encode>
