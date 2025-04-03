@@ -1,0 +1,53 @@
+{{- $genericConfig := dict -}}
+{{- $_ := set $genericConfig "fullName" (include "signoz-otel-gateway.fullname" .) -}}
+{{- $_ := set $genericConfig "namespace" .Release.Namespace -}}
+{{- $_ := set $genericConfig "labels" (include "signoz-otel-gateway.labels" .) -}}
+
+{{- range $key, $value := .Values.ingress }}
+  {{- $config := mustDeepCopy $genericConfig -}}
+  {{- $_ := set $config "name" $value.name -}}
+  {{- $_ := set $config "annotations" $value.annotations -}}
+  {{- $_ := set $config "ingressClassName" $value.ingressClassName -}}
+  {{- $_ := set $config "hosts" $value.hosts -}}
+  {{- $_ := set $config "paths" $value.paths -}}
+  {{- $_ := set $config "tls" $value.tls -}}
+  {{- include "signoz-otel-gateway.ingress" $config -}}
+{{- end }}
+
+
+{{- define "signoz-otel-gateway.ingress" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .fullName }}-{{ .name }}
+  labels:
+    {{- .labels | nindent 4 }}
+  {{- with .annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .ingressClassName }}
+  {{- with .tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+  {{- range .hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $.fullName }}
+                port:
+                  number: {{ .port }}
+          {{- end }}
+  {{- end }}
+{{- end }}
