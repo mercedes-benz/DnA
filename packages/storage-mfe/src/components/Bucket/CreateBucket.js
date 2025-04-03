@@ -74,11 +74,11 @@ const CreateBucket = ({ user }) => {
   const [procedureID, setProcedureID] = useState('');
   const [procedureIDError, setProcedureIDError] = useState('');
   const [enablePublicAccess, setEnablePublicAccess] = useState(false);
+  const [isOwner, setIsOwner] = useState(true);
 
   const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
   const requiredError = '*Missing entry';
 
-  const isOwner = user.id === createdBy.id;
 
   const chips =
     department && department?.length
@@ -115,6 +115,10 @@ const CreateBucket = ({ user }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setIsOwner(createdBy?.id?.length ? user?.id === createdBy.id : true);
+  },[createdBy])
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
