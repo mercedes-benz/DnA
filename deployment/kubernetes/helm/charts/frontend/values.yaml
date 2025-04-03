@@ -206,8 +206,12 @@ configJs: |
         TOU_GE_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>",
     }; 
 
-    
-    
+    window["DB_SERVICE_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL:'http://localhost:9090',
+        API_BASEURL: 'http://localhost:7171/api',
+        DB_SERVICE_API_BASEURL: 'YOUR_DB_SERVICE_API_BASEURL',
+    };
+
 probes:
   initialDelaySeconds: 30
   timeoutSeconds: 10
