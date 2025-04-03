@@ -228,8 +228,8 @@ export const ToolsLandingPageElements = [
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
-    isDetailedPage: true,
-    svgIcon: 'mini-tools',
+    isDetailedPage: false,
+    svgIcon: 'storage',
     isDnAInternalTool: true,
   },
   {

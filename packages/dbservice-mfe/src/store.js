@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
 import logger from 'redux-logger';
-import { dbServiceReducer } from './redux/dbServiceSlice';
+import dbServiceReducer from './redux/dbServiceSlice';
 
 export const history = createHashHistory({
   basename: '/dbservice',

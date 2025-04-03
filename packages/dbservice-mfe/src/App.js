@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import store, { history } from './store';
 
-import Routes, { protectedRoutes } from './routes/FabricRoutes';
+import Routes, { protectedRoutes } from './routes/DBServiceRoutes';
 import ScrollToTop from './components/scrollToTop/ScrollToTop';
 
 const App = ({ user, ...rest }) => {
