@@ -1,12 +1,9 @@
-import { dbServices } from '../data/mock';
 import { server, hostServer, storageServer, reportsServer } from '../server/api';
 
 const getDBServices = (offset, limit) => {
-  // return server.get(`/dbservices?limit=${limit}&offset=${offset}`, {
-  //   data: {},
-  // });
-  console.log(offset, limit);
-  return Promise.resolve(dbServices);
+  return server.get(`/dbservices?limit=${limit}&offset=${offset}`, {
+    data: {},
+  });
 };
 
 const createDBService = (data) => {
