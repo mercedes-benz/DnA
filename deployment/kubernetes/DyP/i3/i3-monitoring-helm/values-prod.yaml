@@ -36,7 +36,7 @@ prometheus:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
       # Limit persistent data size (experimental)
-      storage.tsdb.retention.size: "10GB"
+      storage.tsdb.retention.size: "100GB"
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
