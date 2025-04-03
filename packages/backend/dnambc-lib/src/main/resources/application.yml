@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.5.2
+    version: 3.5.4
   profile:
     active: production
   flyway:
@@ -173,6 +173,17 @@ drd:
   request-url: ${INTERNAL_USER_REQUEST_URL:xxxxx}
   certificate-file: ${INTERNAL_USER_CERT_FILE:xxxxx}
   certificate-pass: ${INTERNAL_USER_CERT_PASS:xxxxx}
+
+proxy:
+  port: ${CUSTOMPROXY_PORT:xxxx}
+  host: ${CUSTOMPROXY_HOST:xxxx}
+
+authoriser:
+  request-url: ${IDENTITY_REQUEST_URL:XXXX}
+  uri: ${IDENTITY_AUTH_URI:XXXX}
+  ssoUri: ${IDENTITY_SSO_URI:XXXX}
+  clientId: ${IDENTITY_CLIENT_ID:XXXX}
+  clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
 
 
 task:
