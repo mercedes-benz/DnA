@@ -128,7 +128,7 @@ const BuildModal = (props) => {
     if (formValid) {
       const buildRequest = {
         environment: buildEnvironment==='staging' ? 'int' : 'prod',
-        branch: branchValue,
+        branch: branchValue[0],
         comments: comment,
       }
       ProgressIndicator.show();
@@ -256,10 +256,10 @@ const BuildModal = (props) => {
               </div>
               <div className={Styles.btnGrp}>
                 <button
-                  className={'btn btn-primary ' + classNames(Styles.triggerBtn)}
+                  className={'btn btn-primary ' + classNames(allLogs[0]?.buildStatus==='BUILD_REQUESTED' ? '' : Styles.triggerBtn)}
                   type="button"
                   onClick={onBuildTrigger}
-                  disabled={projectDetails?.lastBuildOrDeployedStatus==='BUILD_REQUESTED'}
+                  disabled={allLogs[0]?.buildStatus==='BUILD_REQUESTED'}
                 >
                   Build
                 </button>
