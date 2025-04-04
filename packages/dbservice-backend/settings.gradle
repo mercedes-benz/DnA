@@ -1,0 +1,24 @@
+pluginManagement {
+    repositories {
+      maven {
+            url ""
+            credentials {
+              username = ""
+              password = ""
+            }
+ 
+            metadataSources {
+                artifact() // Only looks for the .jar/.aar file, ignoring the POM
+                gradleMetadata() // Gradle's own metadata format
+                mavenPom()       // Maven POM metadata (if available)
+            }
+        }
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url ""
+        }
+    }
+}
+rootProject.name = 'dbservice'

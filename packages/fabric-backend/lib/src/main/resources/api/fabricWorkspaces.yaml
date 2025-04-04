@@ -491,10 +491,13 @@ definitions:
       initiatedBy:
         type: string
         default: string
-      secondaryRoleApproverId: 
-        type: string
-        default: null
-      customEntitlementName: 
+      # secondaryRoleApproverId: 
+      #   type: string
+      #   default: null
+      # customEntitlementName: 
+      #   type: string
+      #   default: null
+      customGroupName: 
         type: string
         default: null
   
@@ -545,9 +548,9 @@ definitions:
         type: string
       roleApprover:
         type: string
-      secondaryRoleApprover: 
-        type: string
-        default: null
+      # secondaryRoleApprover: 
+      #   type: string
+      #   default: null
       entitlements:
         type: array
         items:
