@@ -55,7 +55,8 @@ RUN sudo apt-get update \
     libasound2 \
     libatspi2.0-0 \
     portaudio19-dev \
-    python3-pyaudio
+    python3-pyaudio \
+    poppler-utils
 
 # Manually download and add the Microsoft repository key
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
