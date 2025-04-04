@@ -23,6 +23,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
+      with:
+        ref: 'dev'
 
     # - name: Copy virus db
     #   working-directory: ./deployment/dockerfiles/clamav
