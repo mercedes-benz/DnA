@@ -221,14 +221,14 @@ const AllCodeSpaces = (props) => {
 
     const AWSWarningModalContent = (
         <div className={Styles.modalContentWrapper}>
-            <div className={Styles.modalMainTitle}><i className="icon mbc-icon alert circle" />DnA Platform successfully migrated<i className="icon mbc-icon alert circle" /></div>
+            <div className={Styles.awsModalMainTitle}><i className="icon mbc-icon alert circle" />DnA Platform successfully migrated<i className="icon mbc-icon alert circle" /></div>
             <br/>
-            <div className={Styles.modalTitle}>Old Workspace Access:</div>
+            <div className={Styles.awsModalTitle}>Old Workspace Access:</div>
             <p>You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>April 30th, 2025</span>.</p>
-            <div className={Styles.modalTitle}>Migrating your Deployed Applications:</div>
+            <div className={Styles.awsModalTitle}>Migrating your Deployed Applications: <span className={classNames(Styles.important)}>URGENT!!</span></div>
             <p>Please be aware that you must migrate your deployed applications before <span className={classNames(Styles.warning)}> April 30th, 2025</span>.
                 For migration, please reach out to us.</p>            
-            <div className={Styles.modalTitle}>Need Assistance?:</div>
+            <div className={Styles.awsModalTitle}>Need Assistance?:</div>
             <p>Please refer to the <span className={classNames(Styles.warning)}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
             <p><strong>Note:</strong> Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
