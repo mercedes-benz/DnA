@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.UserInfo;
@@ -57,6 +58,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails);
+
+	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);		
 
 	GenericMessage  updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql);
 
