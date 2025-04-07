@@ -26,10 +26,7 @@ const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
-const dataModelUrl = Envs.DATA_MODEL_URL;
 const dataCatalogUrl = Envs.DATA_CATALOG_URL;
-const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
-const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const odinUrl = Envs.ODIN_URL; 
 const sassUrl = Envs.SASS_URL;
@@ -43,48 +40,6 @@ const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 const pgAdminUrl = Envs.PGADMIN_URL;
-
-export const DataLayerElements = [
-  {
-    name: 'Data Model',
-    description:
-      'The Data Model shows the most important Master data dimensions and how they relate to each other.',
-    tags: ['Self Service', 'FOSS'],
-    url: dataModelUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !dataModelUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'Corporate Data Catalogue',
-    description:
-      'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
-    tags: ['Self Service', 'FOSS'],
-    url: corporateDataCatalogUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'Smart Data Governance',
-    description:
-      'Information on the compliance with architecture guidelines and the data volume in the CarLA Core Datawarehouse.',
-    tags: ['Self Service', 'FOSS'],
-    url: smartDataGovernanceUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !smartDataGovernanceUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-];
 
 export const DataGovernanceElements = [
   {
@@ -671,19 +626,6 @@ export const DataLandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIcon: 'dataproductoverview',
-  },
-  {
-    name: 'Data Layer',
-    description:
-      'More information and definitions of applications, key figures and data.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/data/datalayer',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIcon: 'datamodel',
   },
   {
     name: 'Data Governance',
