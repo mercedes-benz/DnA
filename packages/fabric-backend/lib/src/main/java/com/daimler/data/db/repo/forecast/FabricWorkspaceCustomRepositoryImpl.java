@@ -50,10 +50,8 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = "SELECT count(*) FROM fabric_workspace_nsql " + 
-                      "WHERE (lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = '" + user + "' " + 
-                      "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
-
+		String getCountStmt = " select count(*) from fabric_workspace_nsql where  (lower(jsonb_extract_path_text(data,'createdBy','id')) = '"
+				+ user + "') " + "AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
@@ -64,7 +62,8 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		String user = userId.toLowerCase();
 		String getAllStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " + 
                     "WHERE (lower(COALESCE(jsonb_extract_path_text(data, 'createdBy', 'id'), '')) = '" + user + "' " +
-                    "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
+                    "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')" +
+					"AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
 
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
@@ -88,5 +87,37 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		}).collect(Collectors.toList());
 		return convertedResults;
 	}
+
+	public FabricWorkspaceNsql getById(String workspaceId) {
+		String getByIdStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
+							 "WHERE id = :workspaceId " +
+							 "AND lower(jsonb_extract_path_text(data, 'state')) <> 'deleted'";
+	
+		Query q = em.createNativeQuery(getByIdStmt);
+		q.setParameter("workspaceId", workspaceId);
+	
+		List<Object[]> results = q.getResultList();
+		if (results.isEmpty()) {
+			return null; 
+		}
+	
+		ObjectMapper mapper = new ObjectMapper();
+		Object[] temp = results.get(0);
+		
+		FabricWorkspaceNsql entity = new FabricWorkspaceNsql();
+		try {
+			String jsonData = temp[1] != null ? temp[1].toString() : "";
+			FabricWorkspace workspaceData = mapper.readValue(jsonData, FabricWorkspace.class);
+			entity.setData(workspaceData);
+		} catch (Exception e) {
+			log.error("Failed to get workspace data with exception {}", e.getMessage());
+		}
+		
+		String id = temp[0] != null ? temp[0].toString() : "";
+		entity.setId(id);
+		
+		return entity;
+	}
+	
 
 }

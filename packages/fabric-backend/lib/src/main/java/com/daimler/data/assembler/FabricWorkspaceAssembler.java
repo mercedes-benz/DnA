@@ -1,5 +1,9 @@
 package com.daimler.data.assembler;
 
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,10 +62,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		return vo;
 	}
 	
+	private static final Logger log = LoggerFactory.getLogger(FabricWorkspaceAssembler.class);
+
 	
 	@Override
 	public FabricWorkspaceVO toVo(FabricWorkspaceNsql entity) {
 		FabricWorkspaceVO vo = null;
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		if(entity!=null) {
 			vo = new FabricWorkspaceVO();
 			vo.setId(entity.getId());
@@ -80,7 +87,15 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				if(creator!=null) {
 					BeanUtils.copyProperties(creator, createdByVO);
 				}
-				
+
+				if (data.getLastModifiedOn() != null) {
+					try {
+						vo.setLastModifiedOn(isoFormat.parse(isoFormat.format(data.getLastModifiedOn())));
+					} catch (ParseException e) {
+						log.error("Error parsing lastModifiedOn: {}", e.getMessage());
+						vo.setLastModifiedOn(null); 
+					}
+				}
 				List<ProjectReferenceDetailsVO> relatedReportsVO = toProjectDetailVOs(data.getRelatedReports());
 				vo.setRelatedReports(relatedReportsVO);
 				

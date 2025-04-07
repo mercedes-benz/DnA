@@ -37,6 +37,7 @@ public class FabricWorkspace implements Serializable{
 	private Capacity capacity;
 	private UserDetails createdBy;
 	private Date createdOn;
+	private Date lastModifiedOn;
 	private String role;
 	private FabricWorkspaceStatus status;
 	private List<ProjectDetails> relatedSolutions;

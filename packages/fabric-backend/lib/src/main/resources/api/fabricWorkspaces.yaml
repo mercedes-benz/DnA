@@ -482,6 +482,9 @@ definitions:
       createdOn:
         type: string
         format: date
+      lastModifiedOn:
+        type: string
+        format: date
       role:
         type: string
       lakehouses:

@@ -1,6 +1,8 @@
 package com.daimler.data.controller;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -700,6 +702,16 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
+			// existingFabricWorkspace.setLastModifiedOn(LocalDateTime.now());
+			try {
+				SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+				Date now = isoFormat.parse(isoFormat.format(new Date()));
+				existingFabricWorkspace.setLastModifiedOn(now);
+			} catch (ParseException e) {
+				System.err.println("Failed to parse date for lastModifiedOn. Using current date instead.");
+				e.printStackTrace();
+				existingFabricWorkspace.setLastModifiedOn(new Date());
+			}
 			
 			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
