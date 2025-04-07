@@ -2173,7 +2173,8 @@ import com.daimler.data.util.ConstantsUtility;
 					 if (auditLogs == null) {
 						 auditLogs = new ArrayList<>();
 					 }
-					 
+					 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					 Date now = isoFormat.parse(isoFormat.format(new Date()));
 					 DeploymentAudit auditLog = new DeploymentAudit();
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
